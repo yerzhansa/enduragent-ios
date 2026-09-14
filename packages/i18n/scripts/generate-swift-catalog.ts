@@ -205,7 +205,7 @@ const swiftOut = new URL(
   import.meta.url,
 );
 const xcstringsOut = new URL(
-  "../../../apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Localizable.xcstrings",
+  "../../../apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json",
   import.meta.url,
 );
 

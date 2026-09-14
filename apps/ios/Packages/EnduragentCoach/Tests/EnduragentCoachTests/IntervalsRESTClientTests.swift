@@ -272,9 +272,11 @@ func fixtureData(_ name: String) throws -> Data {
 }
 
 func writeEvidence(_ name: String, _ text: String) {
-	let directory = URL(
-		fileURLWithPath: "/Users/yerzhansagyt/projects/cycling-coach/docs/initiatives/ios-app/evidence/005"
-	)
+	guard
+		let path = ProcessInfo.processInfo.environment["ENDURAGENT_TEST_EVIDENCE_DIRECTORY"],
+		!path.isEmpty
+	else { return }
+	let directory = URL(fileURLWithPath: path, isDirectory: true)
 	guard FileManager.default.fileExists(atPath: directory.path) else { return }
 	try? text.write(to: directory.appendingPathComponent(name), atomically: true, encoding: .utf8)
 }

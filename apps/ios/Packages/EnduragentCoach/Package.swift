@@ -15,7 +15,7 @@ let package = Package(
 		.target(
 			name: "EnduragentCoach",
 			resources: [
-				.copy("Resources/Localizable.xcstrings"),
+				.copy("Resources/Phrasebook.json"),
 				.copy("Loop/PromptResources"),
 			]
 		),

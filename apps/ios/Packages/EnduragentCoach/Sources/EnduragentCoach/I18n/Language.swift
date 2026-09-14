@@ -230,8 +230,8 @@ private enum CatalogStore {
 
 	private static func load() -> XCStringsFile {
 		let urls = [
-			Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings"),
-			Bundle.module.url(forResource: "Localizable", withExtension: "xcstrings", subdirectory: "Resources"),
+			Bundle.module.url(forResource: "Phrasebook", withExtension: "json"),
+			Bundle.module.url(forResource: "Phrasebook", withExtension: "json", subdirectory: "Resources"),
 		]
 		guard let url = urls.compactMap({ $0 }).first else {
 			return XCStringsFile(strings: [:])
