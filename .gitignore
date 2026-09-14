@@ -1,0 +1,11 @@
+docs/
+node_modules/
+.build/
+DerivedData/
+dist/
+.wrangler/
+.env*
+.dev.vars*
+*.xcuserstate
+xcuserdata/
+.DS_Store
