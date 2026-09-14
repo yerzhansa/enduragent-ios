@@ -13,23 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  credits-worker:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version-file: .node-version
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check:source
-      - run: pnpm check:catalogs
-      - run: pnpm check:worker
-      - run: pnpm test:worker
-      - run: pnpm check:worker-dry-run
-
   ios:
     runs-on: macos-26
     timeout-minutes: 30
@@ -43,6 +26,7 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm check:source
       - run: xcodebuild -version
       - run: pnpm check:catalogs
       - run: pnpm test:swift

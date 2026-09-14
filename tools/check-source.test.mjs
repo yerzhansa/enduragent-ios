@@ -32,11 +32,11 @@ for (const [name, file, value, code] of [
   ['large activity URL', 'README.md', '/activity/' + activityID, 'activity-id'],
   ['current-era fixture date', fixture, '{"start_date_local":"2026-06-07"}', 'fixture-date'],
   ['environment file', '.env.production', 'TOKEN=placeholder', 'forbidden-path'],
-  ['local Worker credentials', 'apps/credits-worker/.dev.vars', 'TOKEN=placeholder', 'forbidden-path'],
+  ['local app credentials', 'apps/ios/.dev.vars', 'TOKEN=placeholder', 'forbidden-path'],
   ['build output', 'apps/ios/.build/debug/app', 'binary', 'forbidden-path'],
   ['ignored documentation', 'docs/example.md', 'text', 'forbidden-path'],
   ['private key', 'key.txt', '-----BEGIN ' + 'PRIVATE KEY-----', 'secret-shape'],
-  ['Worker public wording', 'apps/credits-worker/src/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
+  ['app TypeScript public wording', 'packages/i18n/scripts/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
   ['Swift label', 'apps/ios/Enduragent/Screen.swift', 'Text("Normalized Power")', 'public-language'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
 ]) {
@@ -53,7 +53,6 @@ test('accepts historical fixtures and technical identifiers', () => {
   const result = run({
     [fixture]: '{"id":"i1234567","start_date_local":"1998-06-07","icu_training_load":120}',
     'apps/ios/Screen.swift': 'let CTL = 1\nlet codingKey = "NP"\nText("Fitness")',
-    'apps/credits-worker/migrations/0001.sql': 'CREATE TABLE IF NOT EXISTS test (id INTEGER);',
     'NOTICE.md': 'THE SOFTWARE IS PROVIDED AS IS, IF ANY.',
     'packages/i18n/catalogs/en.json': '{"NP":"weighted average power","IF":"Intensity"}',
     'packages/i18n/catalogs/sv.json': '{"legacy":"TSB"}',
