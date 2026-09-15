@@ -23,6 +23,7 @@
 		7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FFE0F37052EAEFF6684E41 /* ChatView.swift */; };
 		8DB4BEAAE94936E8D48FB79D /* SlashListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DE1643D8AAF084B95462CB /* SlashListView.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
+		A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E410F19BC06DE08527699D1 /* Assets.xcassets */; };
 		AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C001D5C325DA3FC53ECF139 /* RootView.swift */; };
 		AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE5043C9095F3E5521623E3 /* SidebarView.swift */; };
 		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
@@ -75,6 +76,7 @@
 		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
 		9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseCoordinator.swift; sourceTree = "<group>"; };
 		9C001D5C325DA3FC53ECF139 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9E410F19BC06DE08527699D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9FF96790E55864A7E928A05B /* EnduragentCoach */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EnduragentCoach; path = Packages/EnduragentCoach; sourceTree = SOURCE_ROOT; };
 		A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerView.swift; sourceTree = "<group>"; };
 		A608FF4CC7189E50D0C53424 /* EnduragentTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = EnduragentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -111,6 +113,7 @@
 		3F67EEC5AF4FB01AFBD76F9D /* Enduragent */ = {
 			isa = PBXGroup;
 			children = (
+				9E410F19BC06DE08527699D1 /* Assets.xcassets */,
 				1041134C33C16BE411AFAA91 /* Enduragent.entitlements */,
 				33C05184A97F24A77692DE4E /* EnduragentApp.swift */,
 				697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */,
@@ -240,6 +243,7 @@
 			buildConfigurationList = DEE05A860252D10D7E8DA411 /* Build configuration list for PBXNativeTarget "Enduragent" */;
 			buildPhases = (
 				E4BDD9375B0FAA7F3F55155D /* Sources */,
+				2277D31433157FBBA2FDC40F /* Resources */,
 				B6E5FDE64A8B6FF457BB7CCF /* Frameworks */,
 			);
 			buildRules = (
@@ -337,6 +341,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2277D31433157FBBA2FDC40F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		650CAFFCFFA4B8FCF5960196 /* Sources */ = {
@@ -496,7 +511,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CREDITS_WORKER_BASE = "https://enduragent-credits-testflight.yerzhan-st.workers.dev";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = FA494ACVTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Enduragent/Info.plist;
@@ -626,7 +641,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CREDITS_WORKER_BASE = "https://enduragent-credits-testflight.yerzhan-st.workers.dev";
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = FA494ACVTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Enduragent/Info.plist;

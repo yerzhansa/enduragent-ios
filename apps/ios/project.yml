@@ -26,10 +26,11 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
         PRODUCT_NAME: Enduragent
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "1"
+        CURRENT_PROJECT_VERSION: "2"
         CREDITS_WORKER_BASE: https://enduragent-credits-testflight.yerzhan-st.workers.dev
         OPENROUTER_MODEL: deepseek/deepseek-v4.1-flash-20260910
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Enduragent
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
@@ -43,6 +44,8 @@ targets:
       properties:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleIconName: AppIcon
+        ITSAppUsesNonExemptEncryption: false
         CreditsWorkerBase: $(CREDITS_WORKER_BASE)
         OpenRouterModel: $(OPENROUTER_MODEL)
     entitlements:

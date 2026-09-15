@@ -5,7 +5,7 @@ This is the iPhone upload path. The Railway image runbook does not apply.
 ## Identity
 
 Read `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` from `apps/ios/project.yml`. Do not hardcode the next version in a script.
-First TestFlight is `0.1.0` `(1)`.
+First TestFlight is `0.1.0` `(1)`. The next upload increments `CURRENT_PROJECT_VERSION`.
 Bundle id is `icu.enduragent.app`.
 Team is `FA494ACVTF`.
 Display name is `Enduragent`.
