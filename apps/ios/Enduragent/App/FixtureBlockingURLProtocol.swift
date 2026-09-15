@@ -1,22 +1,27 @@
 import Foundation
+import Synchronization
 
 final class FixtureBlockingURLProtocol: URLProtocol, @unchecked Sendable {
-	private static let lock = NSLock()
-	private static var count = 0
-	private static var isRegistered = false
+	private struct State: Sendable {
+		var count = 0
+		var isRegistered = false
+	}
+
+	private static let state = Mutex(State())
 
 	static var requestCount: Int {
-		lock.lock()
-		defer { lock.unlock() }
-		return count
+		state.withLock { $0.count }
 	}
 
 	static func register() {
-		lock.lock()
-		defer { lock.unlock() }
-		guard !isRegistered else { return }
-		URLProtocol.registerClass(Self.self)
-		isRegistered = true
+		let shouldRegister = state.withLock { current -> Bool in
+			if current.isRegistered { return false }
+			current.isRegistered = true
+			return true
+		}
+		if shouldRegister {
+			URLProtocol.registerClass(Self.self)
+		}
 	}
 
 	override class func canInit(with request: URLRequest) -> Bool {
@@ -28,9 +33,7 @@ final class FixtureBlockingURLProtocol: URLProtocol, @unchecked Sendable {
 	}
 
 	override func startLoading() {
-		Self.lock.lock()
-		Self.count += 1
-		Self.lock.unlock()
+		Self.state.withLock { $0.count += 1 }
 		client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
 	}
 

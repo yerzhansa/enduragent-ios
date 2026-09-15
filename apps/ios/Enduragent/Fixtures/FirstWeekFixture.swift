@@ -23,18 +23,18 @@ enum FirstWeekFixture {
 	}
 
 	static func install(on credits: FakeCreditsClient) {
-		credits.grantResult = .success(.minted(Credits(units: 200)))
+		credits.grantResult = .success(.minted(.of(200)))
 		credits.catalogResult = .success(
-			PackCatalog(
+			.catalog(
 				purchasesEnabled: false,
-				scale: CreditScale(creditsPerUsd: 100),
+				scale: .perUsd(100),
 				packs: [
-					CreditPack(id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
-					CreditPack(id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
+					.pack(id: "icu.enduragent.credits.small", credits: .of(500)),
+					.pack(id: "icu.enduragent.credits.large", credits: .of(2000)),
 				]
 			)
 		)
-		credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
+		credits.balanceResult = .success(.balance(.of(200)))
 	}
 
 	static func script(for text: String) -> [ScriptedEvent] {

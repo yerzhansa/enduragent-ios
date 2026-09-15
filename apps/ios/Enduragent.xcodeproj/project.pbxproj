@@ -9,21 +9,39 @@
 /* Begin PBXBuildFile section */
 		01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */; };
 		28115121B0FED40730769B04 /* EnduragentCoach in Frameworks */ = {isa = PBXBuildFile; productRef = E957E38AABE221883FA39FAE /* EnduragentCoach */; };
+		30D1217FDEE03BDDC51541DB /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490EB5C3EA005CDE6D16CB16 /* AppServices.swift */; };
 		33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */; };
 		7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */; };
+		7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FFE0F37052EAEFF6684E41 /* ChatView.swift */; };
+		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
+		AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C001D5C325DA3FC53ECF139 /* RootView.swift */; };
+		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
+		CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4D837BF9883269DAD6C615 /* NoticeView.swift */; };
+		DD224F1891F710F94D738395 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D10C84C333E7498713547A /* ConnectView.swift */; };
+		E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CB01ECD4F0385933736762 /* StarterView.swift */; };
 		E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */; };
 		EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C05184A97F24A77692DE4E /* EnduragentApp.swift */; };
+		F58B25BCD97459A9F7D629DD /* FixtureBlockingURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1041134C33C16BE411AFAA91 /* Enduragent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Enduragent.entitlements; sourceTree = "<group>"; };
+		28CB01ECD4F0385933736762 /* StarterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterView.swift; sourceTree = "<group>"; };
+		30D10C84C333E7498713547A /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
+		30DA796E304FA8860C541078 /* ShellModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellModel.swift; sourceTree = "<group>"; };
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
+		490EB5C3EA005CDE6D16CB16 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
+		5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstWeekFixture.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
 		7D3959BCDD350AB804E93846 /* Enduragent.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Enduragent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		84FFE0F37052EAEFF6684E41 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
 		9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseCoordinator.swift; sourceTree = "<group>"; };
+		9C001D5C325DA3FC53ECF139 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		9FF96790E55864A7E928A05B /* EnduragentCoach */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EnduragentCoach; path = Packages/EnduragentCoach; sourceTree = SOURCE_ROOT; };
+		AC4D837BF9883269DAD6C615 /* NoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeView.swift; sourceTree = "<group>"; };
 		E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCheckTokenProvider.swift; sourceTree = "<group>"; };
+		E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBlockingURLProtocol.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,9 +62,29 @@
 				1041134C33C16BE411AFAA91 /* Enduragent.entitlements */,
 				33C05184A97F24A77692DE4E /* EnduragentApp.swift */,
 				697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */,
+				7EEB7B33938357DD088A8EED /* App */,
+				50455CA901023C7102832213 /* Chat */,
 				74A786EE528AFAF332958B55 /* Credits */,
+				703E49E2EB6BD9FB3D9D2DA8 /* Fixtures */,
+				D28C4514B54892926933C74C /* Onboarding */,
 			);
 			path = Enduragent;
+			sourceTree = "<group>";
+		};
+		50455CA901023C7102832213 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				84FFE0F37052EAEFF6684E41 /* ChatView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		703E49E2EB6BD9FB3D9D2DA8 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 		74A786EE528AFAF332958B55 /* Credits */ = {
@@ -59,12 +97,33 @@
 			path = Credits;
 			sourceTree = "<group>";
 		};
+		7EEB7B33938357DD088A8EED /* App */ = {
+			isa = PBXGroup;
+			children = (
+				490EB5C3EA005CDE6D16CB16 /* AppServices.swift */,
+				E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */,
+				9C001D5C325DA3FC53ECF139 /* RootView.swift */,
+				30DA796E304FA8860C541078 /* ShellModel.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
 		C11F1844D88709F68E343B94 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				7D3959BCDD350AB804E93846 /* Enduragent.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		D28C4514B54892926933C74C /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				30D10C84C333E7498713547A /* ConnectView.swift */,
+				AC4D837BF9883269DAD6C615 /* NoticeView.swift */,
+				28CB01ECD4F0385933736762 /* StarterView.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		D304B14B7C506A5F710C0F42 /* Packages */ = {
@@ -148,10 +207,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30D1217FDEE03BDDC51541DB /* AppServices.swift in Sources */,
+				7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */,
+				DD224F1891F710F94D738395 /* ConnectView.swift in Sources */,
 				01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */,
 				E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */,
 				EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */,
+				BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */,
+				F58B25BCD97459A9F7D629DD /* FixtureBlockingURLProtocol.swift in Sources */,
+				CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */,
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
+				AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */,
+				A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */,
+				E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */,
 				33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
