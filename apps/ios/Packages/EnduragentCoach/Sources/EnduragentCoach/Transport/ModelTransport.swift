@@ -1,7 +1,12 @@
 import Foundation
 
 public struct CompletionRequest: Sendable, Equatable {
-	public static let openRouterModel = "deepseek/deepseek-v4.1-flash-20260910"
+	public static var openRouterModel: String {
+		if let value = Bundle.main.object(forInfoDictionaryKey: "OpenRouterModel") as? String, !value.isEmpty {
+			return value
+		}
+		return "deepseek/deepseek-v4.1-flash-20260910"
+	}
 
 	public var model: String
 	public var messages: [WireMessage]

@@ -6,7 +6,7 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 settings:
-  DEVELOPMENT_TEAM: ""
+  DEVELOPMENT_TEAM: FA494ACVTF
   CODE_SIGN_STYLE: Automatic
   SWIFT_VERSION: "6.0"
 packages:
@@ -19,21 +19,32 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: Enduragent
+        excludes:
+          - Info.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios
+        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
         PRODUCT_NAME: Enduragent
-        MARKETING_VERSION: "1.0"
+        MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        CREDITS_WORKER_BASE: https://enduragent-credits-testflight.yerzhan-st.workers.dev
+        OPENROUTER_MODEL: deepseek/deepseek-v4.1-flash-20260910
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Enduragent
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "6.0"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
+    info:
+      path: Enduragent/Info.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CreditsWorkerBase: $(CREDITS_WORKER_BASE)
+        OpenRouterModel: $(OPENROUTER_MODEL)
     entitlements:
       path: Enduragent/Enduragent.entitlements
       properties:
@@ -42,7 +53,7 @@ targets:
         com.apple.developer.icloud-services:
           - CloudKit
         keychain-access-groups:
-          - $(AppIdentifierPrefix)icu.enduragent.ios
+          - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
   EnduragentTests:
@@ -59,7 +70,7 @@ targets:
         BUNDLE_LOADER: $(TEST_HOST)
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "6.0"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
@@ -76,7 +87,7 @@ targets:
         TEST_TARGET_NAME: Enduragent
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "6.0"
-        DEVELOPMENT_TEAM: ""
+        DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
