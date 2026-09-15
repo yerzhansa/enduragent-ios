@@ -45,15 +45,55 @@ targets:
           - $(AppIdentifierPrefix)icu.enduragent.ios
     dependencies:
       - package: EnduragentCoach
+  EnduragentTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: EnduragentTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Enduragent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Enduragent
+        BUNDLE_LOADER: $(TEST_HOST)
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "6.0"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: Enduragent
+  EnduragentUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: EnduragentUITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Enduragent
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "6.0"
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+    dependencies:
+      - target: Enduragent
 schemes:
   Enduragent:
     build:
       targets:
         Enduragent: all
+        EnduragentTests: [test]
+        EnduragentUITests: [test]
     run:
       config: Debug
     test:
       config: Debug
+      targets:
+        - EnduragentTests
+        - EnduragentUITests
     profile:
       config: Release
     analyze:

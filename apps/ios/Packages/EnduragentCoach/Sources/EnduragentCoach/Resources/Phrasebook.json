@@ -121143,6 +121143,16 @@
         }
       }
     },
+    "onboarding.notice.health": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        }
+      }
+    },
     "plan.details.calendar.complete": {
       "localizations": {
         "en": {
