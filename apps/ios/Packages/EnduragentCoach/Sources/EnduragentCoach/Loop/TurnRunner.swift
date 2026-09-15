@@ -350,7 +350,7 @@ package struct TurnRunner: Sendable {
 			}
 
 			if !assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				let templateHash = sha256Hex(prefix + schemas.map(\.name.rawValue).joined() + "deepseek/deepseek-v4-flash")
+				let templateHash = sha256Hex(prefix + schemas.map(\.name.rawValue).joined() + CompletionRequest.openRouterModel)
 				let assembledHash = sha256Hex(system + timed + assistantText)
 				try await writer.append(
 					.userMessage(
