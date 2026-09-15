@@ -5,7 +5,12 @@ struct EnduragentApp: App {
 	var body: some Scene {
 		WindowGroup {
 			#if DEBUG
-			RecordSyncDebugView()
+			TabView {
+				CreditsDebugView()
+					.tabItem { Text("Credits") }
+				RecordSyncDebugView()
+					.tabItem { Text("Records") }
+			}
 			#else
 			EmptyView()
 			#endif

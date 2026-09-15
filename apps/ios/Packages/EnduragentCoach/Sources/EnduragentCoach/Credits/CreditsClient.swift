@@ -1,13 +1,74 @@
 import Foundation
 import Security
 
-public struct CreditBalance: Sendable, Equatable {
-	public var credits: Int
+public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+	public var secret: String
+
+	public var description: String {
+		"AthleteKey(redacted)"
+	}
+
+	public var debugDescription: String {
+		description
+	}
 }
 
-public struct CreditPack: Sendable, Equatable {
-	public var productId: String
-	public var displayCredits: Int
+public struct Credits: Sendable, Hashable, Comparable {
+	public var units: Int
+
+	public static func < (lhs: Credits, rhs: Credits) -> Bool {
+		lhs.units < rhs.units
+	}
+}
+
+public struct CreditScale: Sendable, Equatable {
+	public var creditsPerUsd: Int
+}
+
+public struct CreditPack: Identifiable, Sendable, Equatable {
+	public var id: String
+	public var credits: Credits
+}
+
+public struct PackCatalog: Sendable, Equatable {
+	public var purchasesEnabled: Bool
+	public var scale: CreditScale
+	public var packs: [CreditPack]
+}
+
+public enum GrantOutcome: Sendable, Equatable {
+	case minted(Credits)
+	case toppedUp(added: Credits)
+	case alreadyGranted
+}
+
+public enum ClaimOutcome: Sendable, Equatable {
+	case minted(creditsAdded: Credits)
+	case toppedUp(creditsAdded: Credits)
+	case alreadyClaimed
+}
+
+public struct Recovery: Sendable, Equatable {
+	public var athleteId: UUID
+	public var credits: Credits
+}
+
+public struct CreditBalance: Sendable, Equatable {
+	public var credits: Credits
+}
+
+public enum CreditsFailure: Error, Sendable, Equatable {
+	case banned
+	case notOurBundle
+	case wrongEnvironment
+	case unknownPack
+	case purchasesDisabled
+	case noPurchaseToRecover
+	case identityMismatch
+	case rateLimited
+	case unavailable
+	case unexpectedResponse(status: Int)
+	case noAthleteKey
 }
 
 public enum IntervalsCredential: Sendable, Equatable {
@@ -17,6 +78,7 @@ public enum IntervalsCredential: Sendable, Equatable {
 
 public protocol SecretStore: Sendable {
 	func appAccountToken() throws -> UUID
+	func storeAppAccountToken(_ token: UUID) throws
 	func openRouterKey() throws -> String?
 	func storeOpenRouterKey(_ key: String) throws
 	func intervalsCredential() throws -> IntervalsCredential?
@@ -65,6 +127,10 @@ public struct ICloudKeychainStore: SecretStore {
 			}
 			throw error
 		}
+	}
+
+	public func storeAppAccountToken(_ token: UUID) throws {
+		try write(account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
 	}
 
 	public func openRouterKey() throws -> String? {
@@ -117,32 +183,247 @@ public struct ICloudKeychainStore: SecretStore {
 }
 
 public protocol CreditsClient: Sendable {
-	func purchase(_ pack: CreditPack, signedTransaction: Data) async throws -> CreditBalance
-	func grantStarter(deviceCheck: Data) async throws -> CreditBalance
-	func recover(signedTransaction: Data) async throws -> CreditBalance
-	func balance() async throws -> CreditBalance
+	func grant(deviceCheck: Data) async throws -> GrantOutcome
+	func claim(signedTransaction: String) async throws -> ClaimOutcome
+	func recover(signedTransaction: String) async throws -> Recovery
+	func catalog() async throws -> PackCatalog
+	func balance(scale: CreditScale) async throws -> CreditBalance
+}
+
+public enum ClaimSettlement: Sendable, Equatable {
+	case finish
+	case recoverThenFinish
+
+	public static func settlement(after outcome: ClaimOutcome, hasKey: Bool) -> ClaimSettlement {
+		if outcome == .alreadyClaimed && !hasKey {
+			return .recoverThenFinish
+		}
+		return .finish
+	}
 }
 
 public struct PhoneCreditsClient: CreditsClient {
-	public init(secrets: any SecretStore, workerBase: URL) {
-		fatalError("not implemented")
+	private static let failures: [String: CreditsFailure] = [
+		"banned": .banned,
+		"not_our_bundle": .notOurBundle,
+		"wrong_environment": .wrongEnvironment,
+		"unknown_pack": .unknownPack,
+		"purchases_disabled": .purchasesDisabled,
+		"no_purchase_to_recover": .noPurchaseToRecover,
+		"identity_mismatch": .identityMismatch,
+		"rate_limited": .rateLimited,
+		"unavailable": .unavailable,
+	]
+	private static let timeout: TimeInterval = 20
+
+	private let secrets: any SecretStore
+	private let workerBase: URL
+	private let openRouterBase: URL
+	private let session: URLSession
+
+	public init(
+		secrets: any SecretStore,
+		workerBase: URL,
+		openRouterBase: URL = URL(string: "https://openrouter.ai/api/v1")!,
+		session: URLSession = .shared
+	) {
+		self.secrets = secrets
+		self.workerBase = workerBase
+		self.openRouterBase = openRouterBase
+		self.session = session
 	}
 
-	public func purchase(_ pack: CreditPack, signedTransaction: Data) async throws -> CreditBalance {
-		fatalError("not implemented")
+	public func grant(deviceCheck: Data) async throws -> GrantOutcome {
+		let athleteId = try secrets.appAccountToken()
+		let (status, data) = try await worker(
+			path: "grant",
+			method: "POST",
+			body: GrantBody(
+				athleteId: athleteId.uuidString.lowercased(),
+				deviceCheckToken: deviceCheck.base64EncodedString()
+			)
+		)
+		switch try decode(KindWire.self, from: data, status: status).kind {
+		case "grantMinted":
+			let wire = try decode(GrantMintedWire.self, from: data, status: status)
+			try secrets.storeOpenRouterKey(wire.key)
+			return .minted(Credits(units: wire.credits))
+		case "grantToppedUp":
+			let wire = try decode(GrantToppedUpWire.self, from: data, status: status)
+			return .toppedUp(added: Credits(units: wire.added))
+		case "grantAlreadyGranted":
+			return .alreadyGranted
+		default:
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
 	}
 
-	public func grantStarter(deviceCheck: Data) async throws -> CreditBalance {
-		fatalError("not implemented")
+	public func claim(signedTransaction: String) async throws -> ClaimOutcome {
+		let (status, data) = try await worker(
+			path: "claim",
+			method: "POST",
+			body: SignedTransactionBody(signedTransaction: signedTransaction)
+		)
+		switch try decode(KindWire.self, from: data, status: status).kind {
+		case "claimMinted":
+			let wire = try decode(ClaimMintedWire.self, from: data, status: status)
+			try secrets.storeOpenRouterKey(wire.key)
+			return .minted(creditsAdded: Credits(units: wire.creditsAdded))
+		case "claimToppedUp":
+			let wire = try decode(ClaimToppedUpWire.self, from: data, status: status)
+			return .toppedUp(creditsAdded: Credits(units: wire.creditsAdded))
+		case "claimAlreadyClaimed":
+			return .alreadyClaimed
+		default:
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
 	}
 
-	public func recover(signedTransaction: Data) async throws -> CreditBalance {
-		fatalError("not implemented")
+	public func recover(signedTransaction: String) async throws -> Recovery {
+		let (status, data) = try await worker(
+			path: "recover",
+			method: "POST",
+			body: SignedTransactionBody(signedTransaction: signedTransaction)
+		)
+		guard try decode(KindWire.self, from: data, status: status).kind == "recovered" else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
+		let wire = try decode(RecoveredWire.self, from: data, status: status)
+		try secrets.storeOpenRouterKey(wire.key)
+		try secrets.storeAppAccountToken(wire.athleteId)
+		return Recovery(athleteId: wire.athleteId, credits: Credits(units: wire.credits))
 	}
 
-	public func balance() async throws -> CreditBalance {
-		fatalError("not implemented")
+	public func catalog() async throws -> PackCatalog {
+		let (status, data) = try await send(
+			url: workerBase.appending(path: "catalog"),
+			method: "GET",
+			body: nil,
+			authorization: nil
+		)
+		let wire = try decode(CatalogWire.self, from: data, status: status)
+		return PackCatalog(
+			purchasesEnabled: wire.purchasesEnabled,
+			scale: CreditScale(creditsPerUsd: wire.creditsPerUsd),
+			packs: wire.packs.map { CreditPack(id: $0.productId, credits: Credits(units: $0.credits)) }
+		)
 	}
+
+	public func balance(scale: CreditScale) async throws -> CreditBalance {
+		guard let key = try secrets.openRouterKey() else {
+			throw CreditsFailure.noAthleteKey
+		}
+		let (status, data) = try await send(
+			url: openRouterBase.appending(path: "key"),
+			method: "GET",
+			body: nil,
+			authorization: "Bearer \(key)"
+		)
+		let remaining = try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
+		let units = Int(floor(remaining * Double(scale.creditsPerUsd)))
+		return CreditBalance(credits: Credits(units: max(0, units)))
+	}
+
+	private func worker(path: String, method: String, body: some Encodable) async throws -> (status: Int, data: Data) {
+		try await send(
+			url: workerBase.appending(path: path),
+			method: method,
+			body: try JSONEncoder().encode(body),
+			authorization: nil
+		)
+	}
+
+	private func send(url: URL, method: String, body: Data?, authorization: String?) async throws -> (status: Int, data: Data) {
+		var request = URLRequest(url: url, timeoutInterval: Self.timeout)
+		request.httpMethod = method
+		request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+		request.setValue("application/json", forHTTPHeaderField: "Accept")
+		if let authorization {
+			request.setValue(authorization, forHTTPHeaderField: "Authorization")
+		}
+		request.httpBody = body
+		let (data, response) = try await session.data(for: request)
+		guard let http = response as? HTTPURLResponse else {
+			throw CreditsFailure.unexpectedResponse(status: 0)
+		}
+		guard (200..<300).contains(http.statusCode) else {
+			if let wire = try? JSONDecoder().decode(ErrorWire.self, from: data),
+				let failure = Self.failures[wire.error]
+			{
+				throw failure
+			}
+			throw CreditsFailure.unexpectedResponse(status: http.statusCode)
+		}
+		return (http.statusCode, data)
+	}
+
+	private func decode<T: Decodable>(_ type: T.Type, from data: Data, status: Int) throws -> T {
+		do {
+			return try JSONDecoder().decode(type, from: data)
+		} catch {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
+	}
+}
+
+private struct GrantBody: Encodable {
+	var athleteId: String
+	var deviceCheckToken: String
+}
+
+private struct SignedTransactionBody: Encodable {
+	var signedTransaction: String
+}
+
+private struct ErrorWire: Decodable {
+	var error: String
+}
+
+private struct KindWire: Decodable {
+	var kind: String
+}
+
+private struct GrantMintedWire: Decodable {
+	var key: String
+	var credits: Int
+}
+
+private struct GrantToppedUpWire: Decodable {
+	var added: Int
+}
+
+private struct ClaimMintedWire: Decodable {
+	var key: String
+	var creditsAdded: Int
+}
+
+private struct ClaimToppedUpWire: Decodable {
+	var creditsAdded: Int
+}
+
+private struct RecoveredWire: Decodable {
+	var athleteId: UUID
+	var key: String
+	var credits: Int
+}
+
+private struct CatalogWire: Decodable {
+	var purchasesEnabled: Bool
+	var creditsPerUsd: Int
+	var packs: [CatalogPackWire]
+}
+
+private struct CatalogPackWire: Decodable {
+	var productId: String
+	var credits: Int
+}
+
+private struct OpenRouterKeyWire: Decodable {
+	var data: OpenRouterKeyDataWire
+}
+
+private struct OpenRouterKeyDataWire: Decodable {
+	var limit_remaining: Double?
 }
 
 private enum KeychainAccount {

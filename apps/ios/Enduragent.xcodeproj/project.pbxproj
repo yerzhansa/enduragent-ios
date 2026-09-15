@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */; };
 		28115121B0FED40730769B04 /* EnduragentCoach in Frameworks */ = {isa = PBXBuildFile; productRef = E957E38AABE221883FA39FAE /* EnduragentCoach */; };
+		33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */; };
 		7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */; };
+		E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */; };
 		EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C05184A97F24A77692DE4E /* EnduragentApp.swift */; };
 /* End PBXBuildFile section */
 
@@ -17,7 +20,10 @@
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
 		7D3959BCDD350AB804E93846 /* Enduragent.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Enduragent.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
+		9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseCoordinator.swift; sourceTree = "<group>"; };
 		9FF96790E55864A7E928A05B /* EnduragentCoach */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EnduragentCoach; path = Packages/EnduragentCoach; sourceTree = SOURCE_ROOT; };
+		E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCheckTokenProvider.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,8 +44,19 @@
 				1041134C33C16BE411AFAA91 /* Enduragent.entitlements */,
 				33C05184A97F24A77692DE4E /* EnduragentApp.swift */,
 				697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */,
+				74A786EE528AFAF332958B55 /* Credits */,
 			);
 			path = Enduragent;
+			sourceTree = "<group>";
+		};
+		74A786EE528AFAF332958B55 /* Credits */ = {
+			isa = PBXGroup;
+			children = (
+				94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */,
+				E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */,
+				9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */,
+			);
+			path = Credits;
 			sourceTree = "<group>";
 		};
 		C11F1844D88709F68E343B94 /* Products */ = {
@@ -131,8 +148,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */,
+				E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */,
 				EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */,
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
+				33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
