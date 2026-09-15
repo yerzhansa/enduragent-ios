@@ -10,10 +10,15 @@ struct StarterView: View {
 					Text(starterLine)
 						.accessibilityIdentifier("starter.credits")
 				}
-				Button("Start chatting") {
-					model.startChatting()
+				if model.starterResolved {
+					Button("Start chatting") {
+						model.startChatting()
+					}
+					.accessibilityIdentifier("starter.start")
+				} else {
+					ProgressView("Requesting starter credits")
+						.accessibilityIdentifier("starter.progress")
 				}
-				.accessibilityIdentifier("starter.start")
 			}
 			.padding()
 			.frame(maxWidth: .infinity, maxHeight: .infinity)
