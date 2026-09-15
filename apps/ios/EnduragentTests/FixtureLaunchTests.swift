@@ -26,6 +26,17 @@ struct FixtureLaunchTests {
 		#expect(model.starterLine == "200 credits")
 	}
 
+	@Test func skippingConnectMovesToStarterWithoutAthlete() throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let model = ShellModel(builder: ServicesBuilder(fixture: services, language: language))
+		model.continueNotice()
+		model.skipConnect()
+		#expect(model.route == .onboarding(.starter))
+		#expect(model.athlete == nil)
+		#expect(model.athleteFirstName.isEmpty)
+	}
+
 	@Test func alreadyGrantedWithStoredKeyShowsBalance() async throws {
 		let services = try #require(AppServices.fixture(named: "first-week"))
 		let credits = try #require(services.credits as? FakeCreditsClient)
