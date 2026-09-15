@@ -443,9 +443,10 @@ package struct TurnRunner: Sendable {
 				text += delta
 				emit(.textDelta(delta))
 			case .toolCall(let call):
+				await watchdog.beat()
 				calls.append(call)
 			case .heartbeat:
-				break
+				await watchdog.beat()
 			case .finished(let finishReason, let finishUsage):
 				reason = finishReason
 				usage = finishUsage
