@@ -14,6 +14,7 @@ final class ShellModel {
 	var todayWellness: WellnessDay?
 	var starterCredits: Credits?
 	var starterLine: String?
+	var starterResolved = false
 	var balance: Credits?
 	var catalog: PackCatalog?
 	var history: [ChatSummary] = []
@@ -81,11 +82,20 @@ final class ShellModel {
 			case .toppedUp(let added):
 				starterLine = "Added \(added.units) credits"
 			case .alreadyGranted:
-				starterLine = "This device already used its starter credits."
+				starterLine = try await existingBalanceLine() ?? "This device already used its starter credits."
 			}
 		} catch {
 			starterLine = grantFailureName(error)
 		}
+		starterResolved = true
+	}
+
+	private func existingBalanceLine() async throws -> String? {
+		guard try builder.secrets.openRouterKey() != nil else { return nil }
+		let scale = try await builder.credits.catalog().scale
+		let balance = try await builder.credits.balance(scale: scale)
+		starterCredits = balance.credits
+		return "\(balance.credits.units) credits"
 	}
 
 	func startChatting() {

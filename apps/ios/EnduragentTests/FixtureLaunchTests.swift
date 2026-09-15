@@ -15,4 +15,25 @@ struct FixtureLaunchTests {
 		#expect(model.errorLine == "Plans arrive in the next TestFlight.")
 		#expect(model.seam.transcript.isEmpty)
 	}
+
+	@Test func starterScreenResolvesOnlyAfterGrant() async throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let model = ShellModel(builder: ServicesBuilder(fixture: services, language: language))
+		#expect(model.starterResolved == false)
+		await model.loadStarter()
+		#expect(model.starterResolved)
+		#expect(model.starterLine == "200 credits")
+	}
+
+	@Test func alreadyGrantedWithStoredKeyShowsBalance() async throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let credits = try #require(services.credits as? FakeCreditsClient)
+		credits.grantResult = .success(.alreadyGranted)
+		try services.secrets.storeOpenRouterKey("sk-or-test-0000")
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let model = ShellModel(builder: ServicesBuilder(fixture: services, language: language))
+		await model.loadStarter()
+		#expect(model.starterLine == "200 credits")
+	}
 }
