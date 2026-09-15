@@ -1,6 +1,7 @@
 import EnduragentCoach
 import Foundation
 import Observation
+import StoreKit
 
 @MainActor
 @Observable
@@ -22,12 +23,16 @@ final class ShellModel {
 	var didConnect = false
 	var confirmLine: String?
 	var chatId: ChatID = .main
+	var showSidebar = false
+	var packPrices: [String: String] = [:]
 
 	let builder: ServicesBuilder
+	let chatIndex: ChatIndex
 	private var starterLoaded = false
 
 	init(builder: ServicesBuilder) {
 		self.builder = builder
+		self.chatIndex = ChatIndex(isFixture: builder.isFixture)
 	}
 
 	var services: AppServices? {
@@ -86,7 +91,67 @@ final class ShellModel {
 	func startChatting() {
 		do {
 			_ = try builder.completedServices()
+			beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
 			route = .chat
+		} catch {
+			errorLine = String(describing: error)
+		}
+	}
+
+	func newChat() {
+		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+		seam = .empty
+		confirmLine = nil
+		errorLine = nil
+		composer = ""
+		slashListVisible = false
+		showSidebar = false
+	}
+
+	func openChat(_ id: ChatID) async {
+		chatId = id
+		showSidebar = false
+		confirmLine = nil
+		errorLine = nil
+		composer = ""
+		slashListVisible = false
+		if let services {
+			await refreshSeam(from: services)
+		} else {
+			seam = .empty
+		}
+	}
+
+	func reloadHistory() async {
+		guard let services else {
+			history = []
+			return
+		}
+		var rows: [ChatSummary] = []
+		for entry in chatIndex.all() {
+			guard let id = ChatID(rawValue: entry.id), let created = CivilDate(rawValue: entry.created) else {
+				continue
+			}
+			let messages = await services.coach.history(chatId: id)
+			let title = messages.first(where: { $0.role == .user })?.text ?? "New chat"
+			rows.append(ChatSummary(id: id, title: title, civilDate: created))
+		}
+		history = rows
+	}
+
+	func loadCredits() async {
+		guard let services else { return }
+		do {
+			let loaded = try await services.credits.catalog()
+			catalog = loaded
+			let held = try await services.credits.balance(scale: loaded.scale)
+			balance = held.credits
+			if services.isFixture {
+				packPrices = [:]
+			} else {
+				let products = try await Product.products(for: loaded.packs.map(\.id))
+				packPrices = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
+			}
 		} catch {
 			errorLine = String(describing: error)
 		}
@@ -169,6 +234,12 @@ final class ShellModel {
 		if seam.phase == .awaitingConfirmation {
 			seam.phase = .idle
 		}
+	}
+
+	private func beginChat(_ id: ChatID?) {
+		guard let id else { return }
+		chatId = id
+		chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
 	}
 
 	private func refreshSeam(from services: AppServices) async {

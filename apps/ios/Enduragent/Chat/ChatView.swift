@@ -24,6 +24,24 @@ struct ChatView: View {
 				ComposerView(model: model)
 			}
 			.navigationTitle("Coach")
+			.toolbar {
+				ToolbarItem(placement: .topBarLeading) {
+					Button("Menu") {
+						model.showSidebar = true
+					}
+					.accessibilityIdentifier("chat.sidebar")
+				}
+				ToolbarItem(placement: .topBarTrailing) {
+					Button("New chat") {
+						model.newChat()
+					}
+				}
+			}
+			.sheet(isPresented: $model.showSidebar) {
+				NavigationStack {
+					SidebarView(model: model)
+				}
+			}
 		}
 	}
 }
