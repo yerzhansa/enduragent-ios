@@ -283,6 +283,12 @@ package struct TurnRunner: Sendable {
 				}
 
 				if step.toolCalls.isEmpty {
+					if (step.reason == .error || step.reason == .contentFilter),
+					   step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+					{
+						emit(.failed(message: "CHAT_PROVIDER_ERROR"))
+						return
+					}
 					break stepLoop
 				}
 
