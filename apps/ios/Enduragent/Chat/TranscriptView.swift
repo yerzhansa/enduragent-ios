@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct TranscriptView: View {
@@ -12,6 +13,11 @@ struct TranscriptView: View {
 					}
 					ForEach(Array(model.seam.transcript.enumerated()), id: \.offset) { _, message in
 						Text(message.text)
+					}
+					if model.isWaitingForCoach {
+						Text(model.builder.phrasebook.say(Catalog.chatNoticeWorking, [:]))
+							.foregroundStyle(.secondary)
+							.accessibilityIdentifier("chat.working")
 					}
 					if !model.seam.streamingText.isEmpty {
 						Text(model.seam.streamingText)
