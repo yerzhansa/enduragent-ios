@@ -11,6 +11,7 @@ const root = realpathSync(resolve(args[1] ?? process.cwd()));
 const forbiddenPath = /(?:^|\/)(?:docs|node_modules|\.build|build|dist|out|DerivedData|\.wrangler|\.swiftpm|xcuserdata|\.idea)(?:\/|$)|(?:^|\/)(?:\.env(?:\.[^/]*)?|\.dev\.vars(?:\.[^/]*)?|credentials(?:\.[^/]*)?|[^/]+\.(?:p12|p8|mobileprovision|keychain|keychain-db|ipa|xcarchive))$/i;
 const language = /\b(?:CTL|ATL|TSB|TSS|IF|NP|Normalized\s+Power|[Nn]orm\s+[Pp]ower)\b/;
 const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
+const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
 let violations = 0;
 let count = 0;
 function report(file, rule) {
@@ -44,7 +45,9 @@ try {
     }
     const bytes = readFileSync(path);
     if (bytes.includes(0)) {
-      report(file, 'unexpected-binary');
+      if (!appIcon.test(file)) {
+        report(file, 'unexpected-binary');
+      }
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
