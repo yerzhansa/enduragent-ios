@@ -49,6 +49,13 @@ for (const [name, file, value, code] of [
   });
 }
 
+test('accepts the App Store 1024 icon', () => {
+  const result = run({
+    'apps/ios/Enduragent/Assets.xcassets/AppIcon.appiconset/AppIcon.png': Buffer.from([137, 80, 78, 71, 0, 1, 2, 3]),
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
 test('accepts historical fixtures and technical identifiers', () => {
   const result = run({
     [fixture]: '{"id":"i1234567","start_date_local":"1998-06-07","icu_training_load":120}',

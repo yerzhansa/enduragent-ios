@@ -28,7 +28,13 @@ enum CivilDates {
 }
 
 struct AppServices: Sendable {
-	static let creditsWorkerBase = URL(string: "https://enduragent-credits-testflight.yerzhan-st.workers.dev")!
+	static var creditsWorkerBase: URL {
+		let raw = Bundle.main.object(forInfoDictionaryKey: "CreditsWorkerBase") as? String
+		guard let raw, let url = URL(string: raw) else {
+			preconditionFailure("CreditsWorkerBase is missing from Info.plist")
+		}
+		return url
+	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 	static let fixtureArgumentKey = "EnduragentFixture"
 
