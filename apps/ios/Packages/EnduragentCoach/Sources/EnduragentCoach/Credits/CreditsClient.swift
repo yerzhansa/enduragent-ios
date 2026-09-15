@@ -3,6 +3,9 @@ import Security
 
 public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
 	public var secret: String
+	public init(secret: String) {
+		self.secret = secret
+	}
 
 	public var description: String {
 		"AthleteKey(redacted)"
@@ -15,6 +18,9 @@ public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDe
 
 public struct Credits: Sendable, Hashable, Comparable {
 	public var units: Int
+	public init(units: Int) {
+		self.units = units
+	}
 
 	public static func < (lhs: Credits, rhs: Credits) -> Bool {
 		lhs.units < rhs.units
@@ -23,17 +29,29 @@ public struct Credits: Sendable, Hashable, Comparable {
 
 public struct CreditScale: Sendable, Equatable {
 	public var creditsPerUsd: Int
+	public init(creditsPerUsd: Int) {
+		self.creditsPerUsd = creditsPerUsd
+	}
 }
 
 public struct CreditPack: Identifiable, Sendable, Equatable {
 	public var id: String
 	public var credits: Credits
+	public init(id: String, credits: Credits) {
+		self.id = id
+		self.credits = credits
+	}
 }
 
 public struct PackCatalog: Sendable, Equatable {
 	public var purchasesEnabled: Bool
 	public var scale: CreditScale
 	public var packs: [CreditPack]
+	public init(purchasesEnabled: Bool, scale: CreditScale, packs: [CreditPack]) {
+		self.purchasesEnabled = purchasesEnabled
+		self.scale = scale
+		self.packs = packs
+	}
 }
 
 public enum GrantOutcome: Sendable, Equatable {
@@ -51,10 +69,17 @@ public enum ClaimOutcome: Sendable, Equatable {
 public struct Recovery: Sendable, Equatable {
 	public var athleteId: UUID
 	public var credits: Credits
+	public init(athleteId: UUID, credits: Credits) {
+		self.athleteId = athleteId
+		self.credits = credits
+	}
 }
 
 public struct CreditBalance: Sendable, Equatable {
 	public var credits: Credits
+	public init(credits: Credits) {
+		self.credits = credits
+	}
 }
 
 public enum CreditsFailure: Error, Sendable, Equatable {
