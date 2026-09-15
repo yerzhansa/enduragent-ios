@@ -1,6 +1,8 @@
 import Foundation
 
 public struct CompletionRequest: Sendable, Equatable {
+	public static let openRouterModel = "deepseek/deepseek-v4.1-flash-20260910"
+
 	public var model: String
 	public var messages: [WireMessage]
 	public var tools: [ToolSchema]
@@ -14,7 +16,7 @@ public struct CompletionRequest: Sendable, Equatable {
 		deadline: Duration
 	) -> CompletionRequest {
 		CompletionRequest(
-			model: "deepseek/deepseek-v4-flash",
+			model: Self.openRouterModel,
 			messages: messages,
 			tools: tools,
 			stream: true,

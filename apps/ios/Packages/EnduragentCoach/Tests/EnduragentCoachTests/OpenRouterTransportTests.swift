@@ -8,7 +8,7 @@ import Testing
 		let body = OpenRouterHTTP.body(for: sampleRequest(tools: true))
 		let object = try objectValue(body)
 		#expect(object["temperature"] == nil)
-		#expect(object["model"] == .string("deepseek/deepseek-v4-flash"))
+		#expect(object["model"] == .string("deepseek/deepseek-v4.1-flash-20260910"))
 		#expect(object["stream"] == .bool(true))
 		#expect(object["usage"] == .object(["include": .bool(true)]))
 		#expect(object["tool_choice"] == .string("auto"))
