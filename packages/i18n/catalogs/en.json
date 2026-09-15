@@ -927,6 +927,11 @@
     "chooseTitle": "Choose your language",
     "continue": "Continue"
   },
+  "onboarding": {
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
   "plan": {
     "details": {
       "calendar": {
