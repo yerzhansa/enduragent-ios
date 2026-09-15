@@ -69,6 +69,14 @@ final class ShellModel {
 		route = .onboarding(.starter)
 	}
 
+	func skipConnect() {
+		athlete = nil
+		todayWellness = nil
+		didConnect = false
+		connectError = nil
+		route = .onboarding(.starter)
+	}
+
 	func loadStarter() async {
 		guard !starterLoaded else { return }
 		starterLoaded = true

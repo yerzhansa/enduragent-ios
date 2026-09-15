@@ -17,10 +17,6 @@ enum ConnectFailure: Error {
 	case rejected
 }
 
-enum LiveServicesError: Error {
-	case missingIntervalsCredential
-}
-
 enum CivilDates {
 	static func today(clock: any Clock) -> CivilDate {
 		var calendar = Calendar(identifier: .gregorian)
@@ -82,11 +78,12 @@ struct AppServices: Sendable {
 
 	static func live(language: LanguageTag) throws -> AppServices {
 		let secrets = ICloudKeychainStore()
-		guard let credential = try secrets.intervalsCredential() else {
-			throw LiveServicesError.missingIntervalsCredential
-		}
 		let clock = SystemClock()
-		let intervals = IntervalsRESTClient(credential: credential, clock: clock)
+		let intervals: any IntervalsClient = if let credential = try secrets.intervalsCredential() {
+			IntervalsRESTClient(credential: credential, clock: clock)
+		} else {
+			UnconnectedIntervalsClient()
+		}
 		let key = try secrets.openRouterKey() ?? ""
 		let transport = OpenRouterTransport(apiKey: key)
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
@@ -183,7 +180,7 @@ final class ServicesBuilder {
 		self.deviceCheck = DeviceCheckTokenProvider()
 		self.clock = SystemClock()
 		self.isFixture = false
-		self.intervals = IntervalsRESTClient(credential: .apiKey(""), clock: SystemClock())
+		self.intervals = UnconnectedIntervalsClient()
 		self.services = nil
 	}
 

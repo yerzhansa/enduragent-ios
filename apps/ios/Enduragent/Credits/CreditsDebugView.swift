@@ -10,6 +10,8 @@ struct CreditsDebugView: View {
 	@State private var catalog: PackCatalog?
 	@State private var products: [String: Product] = [:]
 	@State private var errorText: String?
+	@State private var identityText = "—"
+	@State private var hasKey = false
 
 	var body: some View {
 		NavigationStack {
@@ -53,6 +55,14 @@ struct CreditsDebugView: View {
 						Text(errorText)
 					}
 				}
+				Section("Identity") {
+					Text(identityText)
+						.font(.footnote.monospaced())
+					Text(hasKey ? "Athlete key stored" : "No athlete key")
+					Button("New athlete identity", role: .destructive) {
+						newIdentity()
+					}
+				}
 			}
 			.navigationTitle("Credits")
 			.task { await bootstrap() }
@@ -68,8 +78,32 @@ struct CreditsDebugView: View {
 	}
 
 	@MainActor
+	private func refreshIdentity() {
+		guard let session else { return }
+		do {
+			identityText = try session.secrets.appAccountToken().uuidString
+			hasKey = try session.secrets.openRouterKey() != nil
+		} catch {
+			present(error)
+		}
+	}
+
+	@MainActor
+	private func newIdentity() {
+		guard let session else { return }
+		do {
+			try session.secrets.storeAppAccountToken(UUID())
+			errorText = nil
+		} catch {
+			present(error)
+		}
+		refreshIdentity()
+	}
+
+	@MainActor
 	private func reload() async {
 		guard let session else { return }
+		refreshIdentity()
 		do {
 			let loaded = try await session.credits.catalog()
 			catalog = loaded
@@ -139,6 +173,8 @@ struct CreditsDebugView: View {
 	private func present(_ error: Error) {
 		if let failure = error as? CreditsFailure {
 			errorText = creditsFailureName(failure)
+		} else if let keychain = error as? KeychainStoreError {
+			errorText = "keychain \(keychain.status)"
 		} else {
 			errorText = error.localizedDescription
 		}

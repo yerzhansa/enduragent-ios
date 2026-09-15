@@ -7,7 +7,7 @@ struct TranscriptView: View {
 		ScrollView {
 			LazyVStack(alignment: .leading, spacing: 16) {
 				if showsGreeting {
-					Text("Hello, \(model.athleteFirstName).")
+					Text(model.athleteFirstName.isEmpty ? "Hello." : "Hello, \(model.athleteFirstName).")
 				}
 				ForEach(Array(model.seam.transcript.enumerated()), id: \.offset) { _, message in
 					Text(message.text)

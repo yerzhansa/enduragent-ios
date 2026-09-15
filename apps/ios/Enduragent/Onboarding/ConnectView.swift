@@ -17,6 +17,12 @@ struct ConnectView: View {
 				if let connectError = model.connectError {
 					Text(connectError)
 				}
+				if !model.didConnect {
+					Button("Skip for now") {
+						model.skipConnect()
+					}
+					.accessibilityIdentifier("connect.skip")
+				}
 				if model.didConnect, let athlete = model.athlete {
 					Text(athlete.name)
 						.accessibilityIdentifier("connect.athleteName")
