@@ -47,4 +47,22 @@ struct FixtureLaunchTests {
 		await model.loadStarter()
 		#expect(model.starterLine == "200 credits")
 	}
+
+	@Test func sendShowsAthleteTextBeforeCoachReplies() async throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let transport = try #require(services.fixtureTransport)
+		transport.requestDelay = .milliseconds(250)
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let model = ShellModel(builder: ServicesBuilder(fixture: services, language: language))
+		let sendTask = Task { await model.send("hi") }
+		try await Task.sleep(for: .milliseconds(40))
+		#expect(model.composer.isEmpty)
+		#expect(model.seam.phase == .streaming)
+		#expect(model.seam.streamingText.isEmpty)
+		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "hi" })
+		await sendTask.value
+		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "hi" })
+		#expect(model.seam.transcript.contains { $0.role == .assistant && !$0.text.isEmpty })
+		#expect(model.seam.streamingText.isEmpty)
+	}
 }

@@ -199,31 +199,31 @@ final class ShellModel {
 		if let transport = services.fixtureTransport {
 			transport.script = FirstWeekFixture.script(for: trimmed)
 		}
-		seam.streamingText = ""
-		seam.phase = .streaming
+		seam = seam.postingUser(
+			ChatMessage(
+				role: .user,
+				text: trimmed,
+				civilDate: CivilDates.today(clock: builder.clock)
+			)
+		)
+		await Task.yield()
 		do {
 			for try await event in services.coach.send(trimmed, chatId: chatId) {
 				switch event {
-				case .textDelta(let delta):
-					seam.streamingText += delta
-					seam.phase = .streaming
-				case .proposalPending(let pending):
-					seam.pendingWrite = pending
-					seam.phase = .awaitingConfirmation
-				case .finished:
+				case .finished, .interrupted:
 					await refreshSeam(from: services)
 				case .failed(let message):
-					seam.phase = .failed(message)
-					errorLine = message
-				case .interrupted:
-					await refreshSeam(from: services)
-				case .toolStarted, .toolFinished, .planCard, .languagePicker:
-					break
+					seam = seam.applying(event)
+					errorLine = Self.athleteFacing(message)
+				default:
+					seam = seam.applying(event)
 				}
+				await Task.yield()
 			}
 		} catch {
-			seam.phase = .failed(String(describing: error))
-			errorLine = String(describing: error)
+			let message = String(describing: error)
+			seam = seam.applying(.failed(message: message))
+			errorLine = Self.athleteFacing(message)
 		}
 	}
 
@@ -264,6 +264,15 @@ final class ShellModel {
 		var next = await services.coach.snapshot(chatId: chatId)
 		next.streamingText = ""
 		seam = next
+	}
+
+	private static func athleteFacing(_ message: String) -> String {
+		switch message {
+		case "CHAT_TTFT_TIMEOUT", "CHAT_INTER_CHUNK_TIMEOUT":
+			return "The coach couldn't respond. Please try again."
+		default:
+			return message
+		}
 	}
 
 	private func grantFailureName(_ error: Error) -> String {

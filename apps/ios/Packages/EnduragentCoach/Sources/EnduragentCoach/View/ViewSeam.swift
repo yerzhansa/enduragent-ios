@@ -19,6 +19,31 @@ public struct ViewSeam: Sendable, Equatable {
 		planCards: [],
 		phase: .idle
 	)
+
+	public func postingUser(_ message: ChatMessage) -> ViewSeam {
+		var next = self
+		next.transcript.append(message)
+		next.streamingText = ""
+		next.phase = .streaming
+		return next
+	}
+
+	public func applying(_ event: CoachEvent) -> ViewSeam {
+		var next = self
+		switch event {
+		case .textDelta(let delta):
+			next.streamingText += delta
+			next.phase = .streaming
+		case .proposalPending(let pending):
+			next.pendingWrite = pending
+			next.phase = .awaitingConfirmation
+		case .failed(let message):
+			next.phase = .failed(message)
+		case .finished, .interrupted, .toolStarted, .toolFinished, .planCard, .languagePicker:
+			break
+		}
+		return next
+	}
 }
 
 public enum TurnPhase: Sendable, Equatable {
