@@ -143,15 +143,26 @@ final class ServicesBuilder {
 
 	static func bootstrap() -> ServicesBuilder {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		if let name = UserDefaults.standard.string(forKey: AppServices.fixtureArgumentKey),
-			let services = AppServices.fixture(named: name)
-		{
+		if let name = fixtureLaunchName(), let services = AppServices.fixture(named: name) {
+			return ServicesBuilder(fixture: services, language: language)
+		}
+		if isHostedByTests, let services = AppServices.fixture(named: "first-week") {
 			return ServicesBuilder(fixture: services, language: language)
 		}
 		return ServicesBuilder(liveLanguage: language)
 	}
 
-	private init(fixture services: AppServices, language: LanguageTag) {
+	static func fixtureLaunchName() -> String? {
+		UserDefaults.standard.string(forKey: AppServices.fixtureArgumentKey)
+	}
+
+	static var isHostedByTests: Bool {
+		ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+			|| ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
+			|| NSClassFromString("XCTestCase") != nil
+	}
+
+	init(fixture services: AppServices, language: LanguageTag) {
 		self.language = language
 		self.phrasebook = services.phrasebook
 		self.secrets = services.secrets

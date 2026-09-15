@@ -14,7 +14,10 @@
 		30D1217FDEE03BDDC51541DB /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 490EB5C3EA005CDE6D16CB16 /* AppServices.swift */; };
 		33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */; };
 		3770B936C14C45953BB0BCF6 /* CreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */; };
+		3DDB9A3AE6D9264D6AA313EA /* SlashListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA0399B8EE30AFDF2D4D3BB /* SlashListTests.swift */; };
+		499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */; };
 		5030EC98960DE14FB9688525 /* TranscriptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BFB776A369E9C4E27001B2 /* TranscriptView.swift */; };
+		6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5502A456F209EE30186C41C0 /* TutorialHarness.swift */; };
 		7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */; };
 		75B6936C93B9BF6207DBE14B /* ComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */; };
 		7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FFE0F37052EAEFF6684E41 /* ChatView.swift */; };
@@ -25,12 +28,30 @@
 		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
 		BBB6B0000B1C48D6C8FEE78E /* ChatIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB34221AE8B0EB8B664B7BE /* ChatIndex.swift */; };
 		CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4D837BF9883269DAD6C615 /* NoticeView.swift */; };
+		D74E3051E2D7865B708A229E /* TutorialProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */; };
 		DD224F1891F710F94D738395 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D10C84C333E7498713547A /* ConnectView.swift */; };
 		E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CB01ECD4F0385933736762 /* StarterView.swift */; };
 		E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */; };
 		EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C05184A97F24A77692DE4E /* EnduragentApp.swift */; };
 		F58B25BCD97459A9F7D629DD /* FixtureBlockingURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E4E743D9B2EB08E044426BB0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0EDD2A7254B92CE5818E5193 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3A70BE77DB500E5467D856E4;
+			remoteInfo = Enduragent;
+		};
+		F01D784EFEB6E05922C873E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0EDD2A7254B92CE5818E5193 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3A70BE77DB500E5467D856E4;
+			remoteInfo = Enduragent;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		05DE1643D8AAF084B95462CB /* SlashListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlashListView.swift; sourceTree = "<group>"; };
@@ -43,8 +64,12 @@
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
 		490EB5C3EA005CDE6D16CB16 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
 		50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		5502A456F209EE30186C41C0 /* TutorialHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialHarness.swift; sourceTree = "<group>"; };
 		5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstWeekFixture.swift; sourceTree = "<group>"; };
+		616327945A67A8217D98FC35 /* EnduragentUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = EnduragentUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialProofs.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
+		7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLaunchTests.swift; sourceTree = "<group>"; };
 		7D3959BCDD350AB804E93846 /* Enduragent.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Enduragent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84FFE0F37052EAEFF6684E41 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
@@ -52,8 +77,10 @@
 		9C001D5C325DA3FC53ECF139 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		9FF96790E55864A7E928A05B /* EnduragentCoach */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EnduragentCoach; path = Packages/EnduragentCoach; sourceTree = SOURCE_ROOT; };
 		A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerView.swift; sourceTree = "<group>"; };
+		A608FF4CC7189E50D0C53424 /* EnduragentTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = EnduragentTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC4D837BF9883269DAD6C615 /* NoticeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeView.swift; sourceTree = "<group>"; };
 		B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmedPreviewCard.swift; sourceTree = "<group>"; };
+		BEA0399B8EE30AFDF2D4D3BB /* SlashListTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlashListTests.swift; sourceTree = "<group>"; };
 		E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCheckTokenProvider.swift; sourceTree = "<group>"; };
 		E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsView.swift; sourceTree = "<group>"; };
 		E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBlockingURLProtocol.swift; sourceTree = "<group>"; };
@@ -72,6 +99,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		259BE4845D6A7C1D6F525B24 /* EnduragentTests */ = {
+			isa = PBXGroup;
+			children = (
+				7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */,
+				BEA0399B8EE30AFDF2D4D3BB /* SlashListTests.swift */,
+			);
+			path = EnduragentTests;
+			sourceTree = "<group>";
+		};
 		3F67EEC5AF4FB01AFBD76F9D /* Enduragent */ = {
 			isa = PBXGroup;
 			children = (
@@ -87,6 +123,15 @@
 				C8004B33A856E2C62F13F105 /* Sidebar */,
 			);
 			path = Enduragent;
+			sourceTree = "<group>";
+		};
+		42334581947FD6D94CC5C0AA /* EnduragentUITests */ = {
+			isa = PBXGroup;
+			children = (
+				5502A456F209EE30186C41C0 /* TutorialHarness.swift */,
+				648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */,
+			);
+			path = EnduragentUITests;
 			sourceTree = "<group>";
 		};
 		50455CA901023C7102832213 /* Chat */ = {
@@ -144,6 +189,8 @@
 			isa = PBXGroup;
 			children = (
 				7D3959BCDD350AB804E93846 /* Enduragent.app */,
+				A608FF4CC7189E50D0C53424 /* EnduragentTests.xctest */,
+				616327945A67A8217D98FC35 /* EnduragentUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -178,6 +225,8 @@
 			isa = PBXGroup;
 			children = (
 				3F67EEC5AF4FB01AFBD76F9D /* Enduragent */,
+				259BE4845D6A7C1D6F525B24 /* EnduragentTests */,
+				42334581947FD6D94CC5C0AA /* EnduragentUITests */,
 				D304B14B7C506A5F710C0F42 /* Packages */,
 				C11F1844D88709F68E343B94 /* Products */,
 			);
@@ -205,6 +254,42 @@
 			productReference = 7D3959BCDD350AB804E93846 /* Enduragent.app */;
 			productType = "com.apple.product-type.application";
 		};
+		53A22E07108A077911497F80 /* EnduragentTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 61EFC994C353EA2D0FDA85B5 /* Build configuration list for PBXNativeTarget "EnduragentTests" */;
+			buildPhases = (
+				CA602934C4D50F7C9176500D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				92D212D654ACAA4253CE6152 /* PBXTargetDependency */,
+			);
+			name = EnduragentTests;
+			packageProductDependencies = (
+			);
+			productName = EnduragentTests;
+			productReference = A608FF4CC7189E50D0C53424 /* EnduragentTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C78D0FB1309FE995BDE1FB5C /* EnduragentUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FCBFF68A8F1D84AC6548BAB9 /* Build configuration list for PBXNativeTarget "EnduragentUITests" */;
+			buildPhases = (
+				650CAFFCFFA4B8FCF5960196 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CE876FF69565A3B3B67500D0 /* PBXTargetDependency */,
+			);
+			name = EnduragentUITests;
+			packageProductDependencies = (
+			);
+			productName = EnduragentUITests;
+			productReference = 616327945A67A8217D98FC35 /* EnduragentUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -217,6 +302,15 @@
 					3A70BE77DB500E5467D856E4 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
+					};
+					53A22E07108A077911497F80 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					C78D0FB1309FE995BDE1FB5C = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+						TestTargetID = 3A70BE77DB500E5467D856E4;
 					};
 				};
 			};
@@ -238,11 +332,31 @@
 			projectRoot = "";
 			targets = (
 				3A70BE77DB500E5467D856E4 /* Enduragent */,
+				53A22E07108A077911497F80 /* EnduragentTests */,
+				C78D0FB1309FE995BDE1FB5C /* EnduragentUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		650CAFFCFFA4B8FCF5960196 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */,
+				D74E3051E2D7865B708A229E /* TutorialProofs.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA602934C4D50F7C9176500D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */,
+				3DDB9A3AE6D9264D6AA313EA /* SlashListTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E4BDD9375B0FAA7F3F55155D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -274,7 +388,41 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		92D212D654ACAA4253CE6152 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3A70BE77DB500E5467D856E4 /* Enduragent */;
+			targetProxy = F01D784EFEB6E05922C873E1 /* PBXContainerItemProxy */;
+		};
+		CE876FF69565A3B3B67500D0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3A70BE77DB500E5467D856E4 /* Enduragent */;
+			targetProxy = E4E743D9B2EB08E044426BB0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		1583E0BE0E7AF2B50AAA1B7D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = icu.enduragent.ios.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Enduragent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Enduragent";
+			};
+			name = Release;
+		};
 		2309FEEFDEBCCC7644268E49 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -367,6 +515,27 @@
 			};
 			name = Release;
 		};
+		391EAE13B5A07C1C465A8156 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = icu.enduragent.ios.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Enduragent;
+			};
+			name = Debug;
+		};
 		6E35EA6B1851EB4F57FF1F90 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -425,6 +594,27 @@
 			};
 			name = Release;
 		};
+		E26A45F5F5389D04F4C3AA63 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = icu.enduragent.ios.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Enduragent.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Enduragent";
+			};
+			name = Debug;
+		};
 		F113330DFB359F104B746C45 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -452,9 +642,39 @@
 			};
 			name = Debug;
 		};
+		F7829210EFA16BF233D82492 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = icu.enduragent.ios.uitests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = Enduragent;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		61EFC994C353EA2D0FDA85B5 /* Build configuration list for PBXNativeTarget "EnduragentTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E26A45F5F5389D04F4C3AA63 /* Debug */,
+				1583E0BE0E7AF2B50AAA1B7D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		DEE05A860252D10D7E8DA411 /* Build configuration list for PBXNativeTarget "Enduragent" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -469,6 +689,15 @@
 			buildConfigurations = (
 				2309FEEFDEBCCC7644268E49 /* Debug */,
 				6E35EA6B1851EB4F57FF1F90 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FCBFF68A8F1D84AC6548BAB9 /* Build configuration list for PBXNativeTarget "EnduragentUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				391EAE13B5A07C1C465A8156 /* Debug */,
+				F7829210EFA16BF233D82492 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

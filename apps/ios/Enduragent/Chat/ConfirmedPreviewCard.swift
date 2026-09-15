@@ -6,7 +6,7 @@ struct ConfirmedPreviewCard: View {
 	var pending: PendingProposal
 
 	var body: some View {
-		GroupBox {
+		GroupBox("Confirmed preview") {
 			VStack(alignment: .leading, spacing: 12) {
 				Text(pending.description)
 					.frame(maxWidth: .infinity, alignment: .leading)

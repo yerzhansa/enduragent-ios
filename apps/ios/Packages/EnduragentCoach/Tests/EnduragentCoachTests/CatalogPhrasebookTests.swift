@@ -4,8 +4,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2416)
-		#expect(Catalog.keyCount == 2452)
+		#expect(Catalog.englishLeafCount == 2417)
+		#expect(Catalog.keyCount == 2453)
 	}
 
 	@Test func italianCancelUsesTheItalianCatalog() {

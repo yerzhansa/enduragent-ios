@@ -21,6 +21,34 @@
                ReferencedContainer = "container:Enduragent.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "53A22E07108A077911497F80"
+               BuildableName = "EnduragentTests.xctest"
+               BlueprintName = "EnduragentTests"
+               ReferencedContainer = "container:Enduragent.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C78D0FB1309FE995BDE1FB5C"
+               BuildableName = "EnduragentUITests.xctest"
+               BlueprintName = "EnduragentUITests"
+               ReferencedContainer = "container:Enduragent.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -39,6 +67,28 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "53A22E07108A077911497F80"
+               BuildableName = "EnduragentTests.xctest"
+               BlueprintName = "EnduragentTests"
+               ReferencedContainer = "container:Enduragent.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C78D0FB1309FE995BDE1FB5C"
+               BuildableName = "EnduragentUITests.xctest"
+               BlueprintName = "EnduragentUITests"
+               ReferencedContainer = "container:Enduragent.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
