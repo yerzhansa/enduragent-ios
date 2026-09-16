@@ -29,12 +29,28 @@ final class ShellModel {
 
 	let builder: ServicesBuilder
 	let chatIndex: ChatIndex
+	private let defaults: UserDefaults
+	private let persistSession: Bool
 	private var starterLoaded = false
 
-	init(builder: ServicesBuilder) {
+	init(
+		builder: ServicesBuilder,
+		defaults: UserDefaults = .standard,
+		persistSession: Bool? = nil
+	) {
 		self.builder = builder
-		self.chatIndex = ChatIndex(isFixture: builder.isFixture)
+		self.defaults = defaults
+		self.persistSession = persistSession ?? !builder.isFixture
+		self.chatIndex = ChatIndex(isFixture: builder.isFixture, defaults: defaults)
+		restoreSessionIfNeeded()
 	}
+
+	var isWaitingForCoach: Bool {
+		seam.phase == .streaming && seam.streamingText.isEmpty
+	}
+
+	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
+	static let lastChatIdKey = "enduragent.lastChatId"
 
 	var services: AppServices? {
 		builder.services
@@ -106,18 +122,32 @@ final class ShellModel {
 		return "\(balance.credits.units) credits"
 	}
 
+	func appear() async {
+		guard persistSession, route == .chat else { return }
+		do {
+			let services = try builder.completedServices()
+			await refreshSeam(from: services)
+			await reloadHistory()
+			await refreshAthlete()
+		} catch {
+			errorLine = athleteFacing(String(describing: error))
+		}
+	}
+
 	func startChatting() {
 		do {
 			_ = try builder.completedServices()
 			beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+			saveSession()
 			route = .chat
 		} catch {
-			errorLine = String(describing: error)
+			errorLine = athleteFacing(String(describing: error))
 		}
 	}
 
 	func newChat() {
 		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+		saveSession()
 		seam = .empty
 		confirmLine = nil
 		errorLine = nil
@@ -128,6 +158,7 @@ final class ShellModel {
 
 	func openChat(_ id: ChatID) async {
 		chatId = id
+		saveSession()
 		showSidebar = false
 		confirmLine = nil
 		errorLine = nil
@@ -214,7 +245,7 @@ final class ShellModel {
 					await refreshSeam(from: services)
 				case .failed(let message):
 					seam = seam.applying(event)
-					errorLine = Self.athleteFacing(message)
+					errorLine = athleteFacing(message)
 				default:
 					seam = seam.applying(event)
 				}
@@ -223,7 +254,7 @@ final class ShellModel {
 		} catch {
 			let message = String(describing: error)
 			seam = seam.applying(.failed(message: message))
-			errorLine = Self.athleteFacing(message)
+			errorLine = athleteFacing(message)
 		}
 	}
 
@@ -233,8 +264,10 @@ final class ShellModel {
 			let outcome = try await services.coach.confirm(chatId: chatId, nonce: pending.nonce)
 			switch outcome {
 			case .executed(let summary):
+				errorLine = nil
 				confirmLine = "Done — \(summary)."
 			case .expired:
+				errorLine = nil
 				confirmLine = "That proposal expired — ask me again and I'll re-propose."
 			case .refused(let message), .failed(let message):
 				errorLine = message
@@ -243,7 +276,7 @@ final class ShellModel {
 			}
 			await refreshSeam(from: services)
 		} catch {
-			errorLine = String(describing: error)
+			errorLine = athleteFacing(String(describing: error))
 		}
 	}
 
@@ -260,17 +293,62 @@ final class ShellModel {
 		chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
 	}
 
+	private func restoreSessionIfNeeded() {
+		guard persistSession else { return }
+		let stored = storedChatId()
+		let indexed = chatIndex.all().first.flatMap { ChatID(rawValue: $0.id) }
+		let completed = defaults.bool(forKey: Self.onboardingCompletedKey)
+		guard completed || stored != nil || indexed != nil else { return }
+		route = .chat
+		if let stored {
+			chatId = stored
+		} else if let indexed {
+			chatId = indexed
+		} else {
+			chatId = .main
+		}
+	}
+
+	private func saveSession() {
+		guard persistSession else { return }
+		defaults.set(true, forKey: Self.onboardingCompletedKey)
+		defaults.set(chatId.rawValue, forKey: Self.lastChatIdKey)
+	}
+
+	private func storedChatId() -> ChatID? {
+		guard let raw = defaults.string(forKey: Self.lastChatIdKey) else { return nil }
+		return ChatID(rawValue: raw)
+	}
+
+	private func refreshAthlete() async {
+		guard let services else { return }
+		do {
+			athlete = try await services.intervals.fetchAthlete()
+			let today = CivilDates.today(clock: builder.clock)
+			todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today).first
+		} catch {
+			return
+		}
+	}
+
 	private func refreshSeam(from services: AppServices) async {
 		var next = await services.coach.snapshot(chatId: chatId)
 		next.streamingText = ""
 		seam = next
 	}
 
-	private static func athleteFacing(_ message: String) -> String {
+	private func athleteFacing(_ message: String) -> String {
+		let failure = builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
 		switch message {
-		case "CHAT_TTFT_TIMEOUT", "CHAT_INTER_CHUNK_TIMEOUT":
-			return "The coach couldn't respond. Please try again."
+		case "CHAT_TTFT_TIMEOUT", "CHAT_INTER_CHUNK_TIMEOUT", "CHAT_PROVIDER_ERROR":
+			return failure
 		default:
+			if message.hasPrefix("UnknownFinishReasonError")
+				|| message.hasPrefix("OpenRouterHTTPError")
+				|| message.hasPrefix("ProviderAuthError")
+			{
+				return failure
+			}
 			return message
 		}
 	}

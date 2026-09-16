@@ -99,6 +99,10 @@ private struct ParseState {
 			events.append(.finished(reason: .toolCalls, usage: summedUsage()))
 		case "length":
 			events.append(.finished(reason: .length, usage: summedUsage()))
+		case "content_filter", "content-filter":
+			events.append(.finished(reason: .contentFilter, usage: summedUsage()))
+		case "error":
+			events.append(.finished(reason: .error, usage: summedUsage()))
 		case let value?:
 			throw UnknownFinishReasonError(reason: value)
 		case nil:

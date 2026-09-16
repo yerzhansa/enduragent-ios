@@ -10,6 +10,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
 	public private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
+	public var streamFailure: Error?
 	public var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	private let lock = NSLock()
@@ -20,6 +21,12 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	}
 
 	public func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
+		if let streamFailure {
+			let error = streamFailure
+			return AsyncThrowingStream { continuation in
+				continuation.finish(throwing: error)
+			}
+		}
 		if hangUntilCancelled {
 			return AsyncThrowingStream { continuation in
 				let task = Task {

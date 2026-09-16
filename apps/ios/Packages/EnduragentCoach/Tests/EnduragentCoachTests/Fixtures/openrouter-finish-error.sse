@@ -1,0 +1,5 @@
+data: {"id":"gen-1998-ada-error","object":"chat.completion.chunk","created":883612800,"model":"deepseek/deepseek-v4-flash","choices":[{"index":0,"delta":{"role":"assistant","content":"Tomorrow's ride is queued."},"finish_reason":null}]}
+
+data: {"id":"gen-1998-ada-error","object":"chat.completion.chunk","created":883612800,"model":"deepseek/deepseek-v4-flash","choices":[{"index":0,"delta":{"content":""},"finish_reason":"error","error":{"code":502,"message":"Provider disconnected mid-stream"}}],"usage":{"prompt_tokens":40,"completion_tokens":8,"total_tokens":48,"cost":0.2},"error":{"code":502,"message":"Provider disconnected mid-stream"}}
+
+data: [DONE]

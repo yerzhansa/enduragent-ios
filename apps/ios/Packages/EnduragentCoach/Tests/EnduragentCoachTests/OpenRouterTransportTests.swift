@@ -109,6 +109,28 @@ import Testing
 		#expect(usage.outputTokens == 20)
 	}
 
+	@Test func parserMapsErrorFinishReasonAndKeepsPartialText() async throws {
+		let events = try await parseFixture("openrouter-finish-error")
+		#expect(textDeltas(in: events) == ["Tomorrow's ride is queued."])
+		guard case .finished(let reason, let usage) = events.last else {
+			Issue.record("expected finished")
+			return
+		}
+		#expect(reason == .error)
+		#expect(usage.inputTokens == 40)
+		#expect(usage.outputTokens == 8)
+	}
+
+	@Test func parserMapsContentFilterFinishReason() async throws {
+		let events = try await parseFixture("openrouter-finish-content-filter")
+		#expect(textDeltas(in: events) == ["Stopped."])
+		guard case .finished(let reason, _) = events.last else {
+			Issue.record("expected finished")
+			return
+		}
+		#expect(reason == .contentFilter)
+	}
+
 	@Test func parserThrowsOnUnknownFinishReason() async {
 		await #expect(throws: UnknownFinishReasonError.self) {
 			_ = try await parseFixture("openrouter-finish-unknown")

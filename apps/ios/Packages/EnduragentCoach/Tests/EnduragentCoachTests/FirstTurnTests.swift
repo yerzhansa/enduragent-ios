@@ -51,6 +51,65 @@ import Testing
 		#expect(request.messages.first?.content.hasPrefix("# Cycling Coach") == true)
 	}
 
+	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
+		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .error)]
+		let coach = makeCoach()
+		var finished = false
+		var failed: String?
+		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
+			switch event {
+			case .finished:
+				finished = true
+			case .failed(let message):
+				failed = message
+			default:
+				break
+			}
+		}
+		#expect(finished)
+		#expect(failed == nil)
+		#expect(await coach.history(chatId: "main").map(\.text) == [
+			"Give me a ride for tomorrow",
+			"Tomorrow's ride is queued.",
+		])
+	}
+
+	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
+		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)]
+		let coach = makeCoach()
+		var finished = false
+		var failed: String?
+		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
+			switch event {
+			case .finished:
+				finished = true
+			case .failed(let message):
+				failed = message
+			default:
+				break
+			}
+		}
+		#expect(finished)
+		#expect(failed == nil)
+		#expect(await coach.history(chatId: "main").map(\.text) == [
+			"Give me a ride for tomorrow",
+			"Tomorrow's ride is queued.",
+		])
+	}
+
+	@Test func emptyProviderErrorFinishFailsWithoutPersisting() async throws {
+		transport.script = [.finish(reason: .error)]
+		let coach = makeCoach()
+		var failed: String?
+		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
+			if case .failed(let message) = event {
+				failed = message
+			}
+		}
+		#expect(failed == "CHAT_PROVIDER_ERROR")
+		#expect(await coach.history(chatId: "main").isEmpty)
+	}
+
 	@Test func toolCallRunsAndFeedsBackIntoTheTurn() async throws {
 		intervals.activities = [.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)]
 		transport.script = [
@@ -118,6 +177,32 @@ import Testing
 			}
 		)
 		#expect(await coach.pendingProposal(chatId: "main")?.nonce == pending.nonce)
+	}
+
+	@Test func calendarProposalSurvivesProviderErrorFinish() async throws {
+		transport.script = [
+			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+			.finish(reason: .toolCalls),
+			.text("I've prepared the ride. Confirm to add it."),
+			.finish(reason: .error)
+		]
+		let coach = makeCoach()
+		var proposal: PendingProposal?
+		var failed: String?
+		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main") {
+			switch event {
+			case .proposalPending(let pending):
+				proposal = pending
+			case .failed(let message):
+				failed = message
+			default:
+				break
+			}
+		}
+		#expect(failed == nil)
+		#expect(try #require(proposal).summary == "Create workout \"Endurance\" on 1998-06-14")
+		#expect(await coach.history(chatId: "main").map(\.text).contains("I've prepared the ride. Confirm to add it."))
+		#expect(await coach.pendingProposal(chatId: "main") != nil)
 	}
 
 	@Test func confirmRunsTheWriteOnce() async throws {
