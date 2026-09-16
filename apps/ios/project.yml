@@ -26,7 +26,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
         PRODUCT_NAME: Enduragent
         MARKETING_VERSION: "0.1.0"
-        CURRENT_PROJECT_VERSION: "2"
+        CURRENT_PROJECT_VERSION: "3"
         CREDITS_WORKER_BASE: https://enduragent-credits-testflight.yerzhan-st.workers.dev
         OPENROUTER_MODEL: deepseek/deepseek-v4.1-flash-20260910
         GENERATE_INFOPLIST_FILE: YES
