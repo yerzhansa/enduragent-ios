@@ -81,6 +81,20 @@ struct FixtureLaunchTests {
 		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)
 	}
 
+	@Test func startChattingFailureShowsAthleteFacingCopy() throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let builder = ServicesBuilder(fixture: services, language: language)
+		builder.completedServicesFailure = UnknownFinishReasonError(reason: "error")
+		let model = ShellModel(builder: builder)
+		model.startChatting()
+		let failure = model.builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
+		#expect(model.route == .onboarding(.notice))
+		#expect(model.errorLine == failure)
+		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)
+		#expect(model.errorLine?.contains("String(describing:") != true)
+	}
+
 	@Test func fixtureLaunchStaysOnNotice() throws {
 		let services = try #require(AppServices.fixture(named: "first-week"))
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
@@ -103,6 +117,22 @@ struct FixtureLaunchTests {
 		)
 		#expect(model.route == .chat)
 		#expect(model.chatId.rawValue == "restored-chat")
+	}
+
+	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let suiteName = "enduragent.test.\(UUID().uuidString)"
+		let suite = try #require(UserDefaults(suiteName: suiteName))
+		defer { suite.removePersistentDomain(forName: suiteName) }
+		suite.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let model = ShellModel(
+			builder: ServicesBuilder(fixture: services, language: language),
+			defaults: suite,
+			persistSession: true
+		)
+		#expect(model.route == .chat)
+		#expect(model.chatId == .main)
 	}
 
 	@Test func startChattingPersistsSessionForNextLaunch() throws {

@@ -143,6 +143,7 @@ final class ServicesBuilder {
 	let isFixture: Bool
 	private(set) var intervals: any IntervalsClient
 	private(set) var services: AppServices?
+	var completedServicesFailure: (any Error)?
 
 	static func bootstrap() -> ServicesBuilder {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
@@ -212,6 +213,9 @@ final class ServicesBuilder {
 	}
 
 	func completedServices() throws -> AppServices {
+		if let completedServicesFailure {
+			throw completedServicesFailure
+		}
 		if let services {
 			return services
 		}

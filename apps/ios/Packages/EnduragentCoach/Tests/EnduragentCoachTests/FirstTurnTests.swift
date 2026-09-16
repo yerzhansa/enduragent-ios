@@ -74,6 +74,29 @@ import Testing
 		])
 	}
 
+	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
+		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)]
+		let coach = makeCoach()
+		var finished = false
+		var failed: String?
+		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
+			switch event {
+			case .finished:
+				finished = true
+			case .failed(let message):
+				failed = message
+			default:
+				break
+			}
+		}
+		#expect(finished)
+		#expect(failed == nil)
+		#expect(await coach.history(chatId: "main").map(\.text) == [
+			"Give me a ride for tomorrow",
+			"Tomorrow's ride is queued.",
+		])
+	}
+
 	@Test func emptyProviderErrorFinishFailsWithoutPersisting() async throws {
 		transport.script = [.finish(reason: .error)]
 		let coach = makeCoach()

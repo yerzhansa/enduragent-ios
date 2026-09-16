@@ -141,7 +141,7 @@ final class ShellModel {
 			saveSession()
 			route = .chat
 		} catch {
-			errorLine = String(describing: error)
+			errorLine = athleteFacing(String(describing: error))
 		}
 	}
 
@@ -304,6 +304,8 @@ final class ShellModel {
 			chatId = stored
 		} else if let indexed {
 			chatId = indexed
+		} else {
+			chatId = .main
 		}
 	}
 
