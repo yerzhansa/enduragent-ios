@@ -229,3 +229,109 @@ final class FailedReplyProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class RecordsAfterReplyProof: XCTestCase {
+	func testRecordsAfterReply() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "assistantMessage"))
+		TutorialHarness.attach(self, name: "records-after-reply", app: app)
+	}
+}
+
+final class StorageFaultStoresNothingProof: XCTestCase {
+	func testStorageFaultStoresNothing() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:storage fail-next-append")
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.error"))
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.openRecords(app)
+		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
+		TutorialHarness.attach(self, name: "storage-fault-records", app: app)
+	}
+}
+
+final class RecordsClockOrderProof: XCTestCase {
+	func testRecordsClockOrder() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		TutorialHarness.named(app, "chat.preview.add").tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.done)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.attach(self, name: "records-clock-order", app: app)
+		let labels = TutorialHarness.recordRowLabels(app)
+		let clocks = labels.compactMap { label -> (Int64, Int64)? in
+			guard let stamp = label.split(separator: " ").last?.split(separator: "@").first else {
+				return nil
+			}
+			let parts = stamp.split(separator: ".")
+			guard parts.count == 2, let wall = Int64(parts[0]), let logical = Int64(parts[1])
+			else {
+				return nil
+			}
+			return (wall, logical)
+		}
+		XCTAssertEqual(clocks.count, labels.count, "every row shows an HLC: \(labels)")
+		XCTAssertGreaterThanOrEqual(clocks.count, 6, "rows: \(labels)")
+		for index in 1..<clocks.count {
+			XCTAssertTrue(
+				clocks[index - 1] < clocks[index],
+				"HLC at row \(index) does not increase: \(labels)")
+		}
+	}
+}
+
+final class UpgradeKeepsTranscriptProof: XCTestCase {
+	func testUpgradeKeepsTranscript() {
+		let app = XCUIApplication()
+		TutorialHarness.launchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(
+			TutorialHarness.recordCount(app, "assistantMessage"), "assistantMessage 1")
+		TutorialHarness.attach(self, name: "upgrade-transcript", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
+		TutorialHarness.attach(self, name: "upgrade-then-reply", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
+		XCTAssertEqual(
+			TutorialHarness.recordCount(app, "assistantMessage"), "assistantMessage 1")
+		TutorialHarness.attach(self, name: "upgrade-then-reply-records", app: app)
+	}
+}
+
+final class UpgradeKeepsProposalProof: XCTestCase {
+	func testUpgradeKeepsProposal() {
+		let app = XCUIApplication()
+		TutorialHarness.launchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		TutorialHarness.waitForLabel(app, "Confirmed preview")
+		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		XCTAssertTrue(cancel.exists)
+		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
+		TutorialHarness.attach(self, name: "upgrade-proposal", app: app)
+	}
+}

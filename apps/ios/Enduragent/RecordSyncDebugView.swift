@@ -13,6 +13,7 @@
 				List {
 					Section("Device") {
 						Text(snapshot?.deviceId.rawValue ?? "—")
+							.accessibilityIdentifier("records.device")
 					}
 					Section("Newest HLC") {
 						Text(snapshot.map { $0.newestHLC.isEmpty ? "—" : $0.newestHLC } ?? "—")
@@ -25,6 +26,8 @@
 									Spacer()
 									Text("\(item.count)")
 								}
+								.accessibilityElement(children: .ignore)
+								.accessibilityLabel("\(item.kind) \(item.count)")
 								.accessibilityIdentifier("records.count.\(item.kind)")
 							}
 						} else {
@@ -41,6 +44,8 @@
 									.font(.caption2)
 									.monospaced()
 							}
+							.accessibilityElement(children: .ignore)
+							.accessibilityLabel("\(row.kind) \(row.deviceId) \(row.hlc)")
 							.accessibilityIdentifier("records.row.\(row.id)")
 						}
 					}

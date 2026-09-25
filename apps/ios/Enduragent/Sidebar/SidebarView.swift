@@ -36,6 +36,7 @@ struct SidebarView: View {
 				NavigationLink("Records") {
 					RecordSyncDebugView(probe: model.services?.coach.recordSyncProbe())
 				}
+				.accessibilityIdentifier("debug.records")
 				if model.builder.isFixture {
 					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
 						.accessibilityIdentifier("fixture.requestCount")

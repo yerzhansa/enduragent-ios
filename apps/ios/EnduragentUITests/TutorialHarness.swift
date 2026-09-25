@@ -28,6 +28,15 @@ enum TutorialHarness {
 		app.launch()
 	}
 
+	static func launchKeepingStore(_ app: XCUIApplication) {
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", storeArgument, "keep",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+	}
+
 	static func relaunchKeepingStore(_ app: XCUIApplication) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
@@ -101,6 +110,46 @@ enum TutorialHarness {
 	static func openSidebar(_ app: XCUIApplication) {
 		named(app, "chat.sidebar").tap()
 		wait(named(app, "sidebar.credits"))
+	}
+
+	static func openRecords(_ app: XCUIApplication) {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		wait(named(app, "fixture.requestCount"))
+		named(app, "debug.records").tap()
+		wait(named(app, "records.device"))
+	}
+
+	static func closeMenu(_ app: XCUIApplication) {
+		app.swipeDown(velocity: .fast)
+		app.swipeDown(velocity: .fast)
+		wait(named(app, "chat.composer"))
+	}
+
+	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
+		let element = named(app, "records.count.\(kind)")
+		return element.exists ? element.label : nil
+	}
+
+	static func recordRowLabels(_ app: XCUIApplication) -> [String] {
+		var seen: [String] = []
+		var labels: [String] = []
+		for _ in 0..<8 {
+			let rows = app.descendants(matching: .any).matching(
+				NSPredicate(format: "identifier BEGINSWITH %@", "records.row.")
+			).allElementsBoundByIndex
+			var added = false
+			for row in rows where !seen.contains(row.identifier) {
+				seen.append(row.identifier)
+				labels.append(row.label)
+				added = true
+			}
+			if !added {
+				break
+			}
+			app.swipeUp()
+		}
+		return labels
 	}
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
