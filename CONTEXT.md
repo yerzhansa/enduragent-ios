@@ -28,6 +28,26 @@ _Avoid_: Vendor, backend
 
 ### Conversation
 
+**Conversation**:
+The one ongoing chat between the athlete and the coach. There is never more than one.
+_Avoid_: Chat, thread, session
+
+**Archived conversation**:
+A past conversation closed by New conversation and kept in History to read.
+_Avoid_: Old chat, earlier chat, segment
+
+**Turn**:
+One athlete message and the coach's work to answer it, from Send to a finished or stopped reply.
+_Avoid_: Request, exchange, round
+
+**Attempt**:
+One try at answering a turn. The coach makes a few on its own, and Try again starts another.
+_Avoid_: Run, call
+
+**Try again**:
+The action that answers a turn again. It is offered only when nothing from the turn was saved; otherwise the notice asks for a new message.
+_Avoid_: Retry, resend
+
 **New conversation**:
 The reset that archives the current conversation, saves memory, and shows the welcome.
 _Avoid_: Reset, new chat, clear

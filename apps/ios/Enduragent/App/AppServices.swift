@@ -32,7 +32,6 @@ struct AppServices: Sendable {
 		return url
 	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
-	static let fixtureArgumentKey = "EnduragentFixture"
 
 	var coach: Coach
 	var intervals: any IntervalsClient
@@ -42,10 +41,20 @@ struct AppServices: Sendable {
 	var phrasebook: any Phrasebook
 	var clock: any Clock
 	var isFixture: Bool
-	var fixtureTransport: FakeModelTransport?
+	var fixtureDirector: FixtureDirector?
 
-	static func fixture(named: String) -> AppServices? {
-		guard named == "first-week" else { return nil }
+	var fixtureTransport: FakeModelTransport? {
+		fixtureDirector?.transport
+	}
+
+	var fixtureRecordLog: FaultInjectingRecordLog? {
+		fixtureDirector?.records
+	}
+
+	static func fixture(_ launch: FixtureLaunch, defaults: UserDefaults) throws -> AppServices {
+		guard launch.name == FixtureLaunch.firstWeekName else {
+			throw FixtureLaunchError.unknownFixture(launch.name)
+		}
 		FixtureBlockingURLProtocol.register()
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
@@ -53,15 +62,26 @@ struct AppServices: Sendable {
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()
-		let store = InMemoryRecordLog()
-		let secrets = FakeSecretStore()
+		let records = FaultInjectingRecordLog(
+			wrapping: SwiftDataRecordLog(
+				deviceId: persistedDeviceID(in: defaults),
+				synced: try ModelContainerHandle.withoutCloudKit(
+					storeURL: launch.directory.appending(
+						path: ModelContainerHandle.syncedStoreFileName)),
+				local: try ModelContainerHandle.withoutCloudKit(
+					storeURL: launch.directory.appending(
+						path: ModelContainerHandle.localStoreFileName))
+			)
+		)
+		let secrets = try FakeSecretStore(directory: launch.directory)
+		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
 		let coach = Coach(
 			sport: .cycling,
 			transport: transport,
 			intervals: intervals,
-			store: store,
+			store: records,
 			clock: clock,
 			language: LanguagePreference(ui: language, coachReply: nil)
 		)
@@ -74,7 +94,7 @@ struct AppServices: Sendable {
 			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: true,
-			fixtureTransport: transport
+			fixtureDirector: FixtureDirector(transport: transport, records: records)
 		)
 	}
 
@@ -91,7 +111,7 @@ struct AppServices: Sendable {
 		let transport = OpenRouterTransport(apiKey: key)
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
 		let store = SwiftDataRecordLog(
-			deviceId: persistedDeviceID(),
+			deviceId: persistedDeviceID(in: .standard),
 			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
@@ -114,12 +134,11 @@ struct AppServices: Sendable {
 			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: false,
-			fixtureTransport: nil
+			fixtureDirector: nil
 		)
 	}
 
-	static func persistedDeviceID() -> DeviceID {
-		let defaults = UserDefaults.standard
+	static func persistedDeviceID(in defaults: UserDefaults) -> DeviceID {
 		if let stored = defaults.string(forKey: deviceDefaultsKey) {
 			return DeviceID(rawValue: stored)
 		}
@@ -138,23 +157,30 @@ final class ServicesBuilder {
 	let deviceCheck: any DeviceCheckTokenProviding
 	let clock: any Clock
 	let isFixture: Bool
+	let defaults: UserDefaults
 	private(set) var intervals: any IntervalsClient
 	private(set) var services: AppServices?
 	var completedServicesFailure: (any Error)?
 
 	static func bootstrap() -> ServicesBuilder {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		if let name = fixtureLaunchName(), let services = AppServices.fixture(named: name) {
-			return ServicesBuilder(fixture: services, language: language)
+		do {
+			guard let launch = try fixtureLaunch() else {
+				return ServicesBuilder(liveLanguage: language)
+			}
+			let defaults = try launch.prepare()
+			let services = try AppServices.fixture(launch, defaults: defaults)
+			return ServicesBuilder(fixture: services, language: language, defaults: defaults)
+		} catch {
+			fatalError("The fixture launch failed: \(error)")
 		}
-		if isHostedByTests, let services = AppServices.fixture(named: "first-week") {
-			return ServicesBuilder(fixture: services, language: language)
-		}
-		return ServicesBuilder(liveLanguage: language)
 	}
 
-	static func fixtureLaunchName() -> String? {
-		UserDefaults.standard.string(forKey: AppServices.fixtureArgumentKey)
+	private static func fixtureLaunch() throws -> FixtureLaunch? {
+		if let launch = try FixtureLaunch.fromArguments() {
+			return launch
+		}
+		return isHostedByTests ? try FixtureLaunch.firstWeek() : nil
 	}
 
 	static var isHostedByTests: Bool {
@@ -163,7 +189,7 @@ final class ServicesBuilder {
 			|| NSClassFromString("XCTestCase") != nil
 	}
 
-	init(fixture services: AppServices, language: LanguageTag) {
+	init(fixture services: AppServices, language: LanguageTag, defaults: UserDefaults) {
 		self.language = language
 		self.phrasebook = services.phrasebook
 		self.secrets = services.secrets
@@ -171,6 +197,7 @@ final class ServicesBuilder {
 		self.deviceCheck = services.deviceCheck
 		self.clock = services.clock
 		self.isFixture = true
+		self.defaults = defaults
 		self.intervals = services.intervals
 		self.services = services
 	}
@@ -185,6 +212,7 @@ final class ServicesBuilder {
 		self.deviceCheck = DeviceCheckTokenProvider()
 		self.clock = SystemClock()
 		self.isFixture = false
+		self.defaults = .standard
 		self.intervals = UnconnectedIntervalsClient()
 		self.services = nil
 	}
