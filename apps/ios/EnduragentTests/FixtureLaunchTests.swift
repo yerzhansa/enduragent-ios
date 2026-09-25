@@ -6,7 +6,7 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-struct FixtureLaunchTests {
+final class FixtureLaunchTests {
 	let launch: FixtureLaunch
 	let defaults: UserDefaults
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
@@ -22,6 +22,17 @@ struct FixtureLaunchTests {
 			defaultsSuiteName: "enduragent.test.\(stamp)"
 		)
 		defaults = try launch.prepare()
+	}
+
+	deinit {
+		let launch = launch
+		UserDefaults(suiteName: launch.defaultsSuiteName)?
+			.removePersistentDomain(forName: launch.defaultsSuiteName)
+		do {
+			try FileManager.default.removeItem(at: launch.directory)
+		} catch {
+			Issue.record(error, "fixture directory cleanup")
+		}
 	}
 
 	private func services(
