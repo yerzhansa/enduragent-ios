@@ -73,7 +73,7 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds. |
 | `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
 
-Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow and hang settings.
+Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
 
 ## UI test run
 

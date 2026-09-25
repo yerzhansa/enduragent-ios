@@ -228,8 +228,16 @@ final class ShellModel {
 		}
 		composer = ""
 		slashListVisible = false
-		if let director = services.fixtureDirector, director.prepare(for: trimmed) == .handled {
-			return
+		if let director = services.fixtureDirector {
+			switch director.prepare(for: trimmed) {
+			case .sendToCoach:
+				break
+			case .handled:
+				return
+			case .rejected(let message):
+				errorLine = message
+				return
+			}
 		}
 		seam = seam.postingUser(
 			ChatMessage(

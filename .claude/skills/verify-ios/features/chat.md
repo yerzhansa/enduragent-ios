@@ -50,7 +50,8 @@ Preconditions:
 
 - The fixture transport answers with no delay unless the message is `fixture:slow`. Only that directive keeps `chat.working` and the streamed text on screen long enough to capture.
 - A `fixture:` directive is typed as a message. `fixture:slow`, `fixture:hang`, and `fixture:fail ...` appear in the transcript as the athlete's message. `fixture:storage fail-next-append` does not: it arms the next write and sends nothing.
-- `fixture:slow` and `fixture:hang` apply to that message only. The next plain message answers at once.
+- `fixture:slow`, `fixture:hang`, and a queued `fixture:fail` apply to that message only. The next plain message answers at once.
+- A misspelled directive is not silent. `chat.error` reads `Unknown fixture directive: <message>` and nothing is sent.
 - After `fixture:hang`, wait the full 30 seconds. Sending another message before the watchdog fires queues it behind the hung turn.
 - Menu, Debug, Records reads the app's production record store, not the fixture store. It is empty on a verify simulator whatever the fixture did. Prove saved or unsaved records through the transcript after `sim.mjs launch <run id> --keep` instead.
 - The fixture picks a reply from the message text, and any unmatched text gets the week summary. A wrong prompt still gets a reply, so assert the specific reply text.

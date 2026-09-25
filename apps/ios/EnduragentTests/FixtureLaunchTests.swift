@@ -259,6 +259,30 @@ final class FixtureLaunchTests {
 		#expect(await services.coach.history(chatId: model.chatId).isEmpty)
 	}
 
+	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let model = model(services)
+		model.startChatting()
+		await model.send("fixture:fail bogus")
+		#expect(transport.requests.isEmpty)
+		#expect(model.seam.transcript.isEmpty)
+		#expect(model.errorLine == "Unknown fixture directive: fixture:fail bogus")
+		await model.send("fixture:storage fail-everything")
+		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func nextMessageClearsAQueuedFailure() throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let director = try #require(services.fixtureDirector)
+		#expect(director.prepare(for: "fixture:fail 500") == .sendToCoach)
+		#expect(transport.failures.count == 1)
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(transport.failures.isEmpty)
+	}
+
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
