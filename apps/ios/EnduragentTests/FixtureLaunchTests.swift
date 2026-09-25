@@ -30,8 +30,14 @@ final class FixtureLaunchTests {
 			.removePersistentDomain(forName: launch.defaultsSuiteName)
 		do {
 			try FileManager.default.removeItem(at: launch.directory)
+			let preferences = try FileManager.default.url(
+				for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: false
+			).appending(path: "Preferences/\(launch.defaultsSuiteName).plist")
+			if FileManager.default.fileExists(atPath: preferences.path) {
+				try FileManager.default.removeItem(at: preferences)
+			}
 		} catch {
-			Issue.record(error, "fixture directory cleanup")
+			Issue.record(error, "fixture cleanup")
 		}
 	}
 
