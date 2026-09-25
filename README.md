@@ -4,18 +4,22 @@ This repository owns the iPhone app and local Swift coach package. The app is an
 
 ## Development
 
-Use Node `24.20.0`, pnpm `11.24.0`, Xcode `26.6`, and XcodeGen `2.46.0`.
+Use Node `24.20.0`, pnpm `11.24.0`, Xcode `26.6`, XcodeGen `2.46.0`, and SwiftLint `0.65.1`.
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm check:catalogs
 pnpm check:source
+pnpm lint:swift
+pnpm check:lint-baseline
 pnpm test:swift
 xcodegen generate --spec apps/ios/project.yml
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
 CI runs these focused checks on every pull request and every push to main.
+
+`pnpm lint:swift` enforces the rules in `.swiftlint.yml`. Violations that predate the linter are listed in `.swiftlint-baseline.json` and are ignored until the line changes. `pnpm check:lint-baseline` fails when the baseline gains an entry compared with `origin/main`, so the baseline can only shrink.
 
 Swift live API tests are opt-in and skipped by `pnpm test:swift`. Optional REST test evidence is written only when `ENDURAGENT_TEST_EVIDENCE_DIRECTORY` names an existing test-owned directory.
 

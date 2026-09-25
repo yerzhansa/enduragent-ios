@@ -39,6 +39,7 @@ for (const [name, file, value, code] of [
   ['app TypeScript public wording', 'packages/i18n/scripts/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
   ['Swift label', 'apps/ios/Enduragent/Screen.swift', 'Text("Normalized Power")', 'public-language'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
+  ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {
   test(`rejects ${name} without printing matched data`, () => {
     const result = run({ [file]: value });
