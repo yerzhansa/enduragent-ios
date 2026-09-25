@@ -15,10 +15,12 @@ import Testing
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
 		log.failNextAppend = true
 		await #expect(throws: RecordStorageFault(operation: .append(.userMessage))) {
-			try await log.append(record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "lost"))))
+			try await log.append(
+				record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "lost"))))
 		}
 		#expect(log.failNextAppend == false)
-		try await log.append(record(wall: 2, body: .userMessage(sampleUser(chatId: .main, text: "kept"))))
+		try await log.append(
+			record(wall: 2, body: .userMessage(sampleUser(chatId: .main, text: "kept"))))
 		let fetched = try await log.fetch(RecordQuery(kinds: [.userMessage]))
 		#expect(fetched.map(\.ulid).count == 1)
 	}
@@ -26,14 +28,19 @@ import Testing
 	@Test func failAppendsOfKindLeavesOtherKindsWritable() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
 		log.failAppends(ofKind: .assistantMessage)
-		try await log.append(record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
+		try await log.append(
+			record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
 		await #expect(throws: RecordStorageFault(operation: .append(.assistantMessage))) {
 			try await log.append(
-				record(wall: 2, body: .assistantMessage(sampleAssistant(chatId: .main, text: "hello"))))
+				record(
+					wall: 2, body: .assistantMessage(sampleAssistant(chatId: .main, text: "hello")))
+			)
 		}
 		await #expect(throws: RecordStorageFault(operation: .append(.assistantMessage))) {
 			try await log.append(
-				record(wall: 3, body: .assistantMessage(sampleAssistant(chatId: .main, text: "again"))))
+				record(
+					wall: 3, body: .assistantMessage(sampleAssistant(chatId: .main, text: "again")))
+			)
 		}
 		let users = try await log.fetch(RecordQuery(kinds: [.userMessage]))
 		let assistants = try await log.fetch(RecordQuery(kinds: [.assistantMessage]))
@@ -43,7 +50,8 @@ import Testing
 
 	@Test func failFetchesThrowsUntilCleared() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
-		try await log.append(record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
+		try await log.append(
+			record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
 		log.failFetches = true
 		await #expect(throws: RecordStorageFault(operation: .fetch)) {
 			_ = try await log.fetch(RecordQuery(kinds: [.userMessage]))

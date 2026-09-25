@@ -30,19 +30,13 @@ final class ShellModel {
 	let builder: ServicesBuilder
 	let chatIndex: ChatIndex
 	private let defaults: UserDefaults
-	private let persistSession: Bool
 	private var starterLoaded = false
 
-	init(
-		builder: ServicesBuilder,
-		defaults: UserDefaults = .standard,
-		persistSession: Bool? = nil
-	) {
+	init(builder: ServicesBuilder) {
 		self.builder = builder
-		self.defaults = defaults
-		self.persistSession = persistSession ?? !builder.isFixture
-		self.chatIndex = ChatIndex(isFixture: builder.isFixture, defaults: defaults)
-		restoreSessionIfNeeded()
+		self.defaults = builder.defaults
+		self.chatIndex = ChatIndex(defaults: builder.defaults)
+		restoreSession()
 	}
 
 	var isWaitingForCoach: Bool {
@@ -127,7 +121,7 @@ final class ShellModel {
 	}
 
 	func appear() async {
-		guard persistSession, route == .chat else { return }
+		guard route == .chat else { return }
 		do {
 			let services = try builder.completedServices()
 			await refreshSeam(from: services)
@@ -234,8 +228,8 @@ final class ShellModel {
 		}
 		composer = ""
 		slashListVisible = false
-		if let transport = services.fixtureTransport {
-			transport.script = FirstWeekFixture.script(for: trimmed)
+		if let director = services.fixtureDirector, director.prepare(for: trimmed) == .handled {
+			return
 		}
 		seam = seam.postingUser(
 			ChatMessage(
@@ -300,8 +294,7 @@ final class ShellModel {
 		chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
 	}
 
-	private func restoreSessionIfNeeded() {
-		guard persistSession else { return }
+	private func restoreSession() {
 		let stored = storedChatId()
 		let indexed = chatIndex.all().first.flatMap { ChatID(rawValue: $0.id) }
 		let completed = defaults.bool(forKey: Self.onboardingCompletedKey)
@@ -317,7 +310,6 @@ final class ShellModel {
 	}
 
 	private func saveSession() {
-		guard persistSession else { return }
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
 		defaults.set(chatId.rawValue, forKey: Self.lastChatIdKey)
 	}
