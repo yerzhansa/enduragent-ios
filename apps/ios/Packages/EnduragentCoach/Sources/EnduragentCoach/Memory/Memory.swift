@@ -324,11 +324,7 @@ public struct Memory: Sendable {
 			"section": .string(name.rawValue),
 			"source": .string(source.rawValue),
 		]).canonicalDigestInput()
-		do {
-			try await append(.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
-		} catch {
-			_ = error
-		}
+		try await append(.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
 		try await append(.memorySection(MemorySectionBody(name: name, content: stamped)), civilDate: today)
 	}
 

@@ -89,8 +89,10 @@ package actor ChatWatchdog {
 		timer = Task {
 			do {
 				try await Task.sleep(for: delay)
-			} catch {
+			} catch is CancellationError {
 				return
+			} catch {
+				fatalError("Task.sleep failed: \(error)")
 			}
 			guard !Task.isCancelled else { return }
 			self.fire(kind)

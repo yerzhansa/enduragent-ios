@@ -52,6 +52,29 @@ import Testing
 		#expect(transport.script.isEmpty)
 	}
 
+	@Test func hangingStreamFinishesWhenCancelled() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let request = CompletionRequest.openRouter(
+			messages: [
+				WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil),
+			],
+			tools: [],
+			deadline: .seconds(30)
+		)
+		let task = Task {
+			var count = 0
+			for try await _ in transport.stream(request) {
+				count += 1
+			}
+			return count
+		}
+		try await Task.sleep(for: .milliseconds(20))
+		task.cancel()
+		let count = try await task.value
+		#expect(count == 0)
+	}
+
 	@Test func streamStopsAtEachFinish() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [

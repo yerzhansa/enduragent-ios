@@ -128,9 +128,9 @@ final class ShellModel {
 			let services = try builder.completedServices()
 			await refreshSeam(from: services)
 			await reloadHistory()
-			await refreshAthlete()
+			try await refreshAthlete()
 		} catch {
-			errorLine = athleteFacing(String(describing: error))
+			errorLine = athleteFacing(failureMessage(error))
 		}
 	}
 
@@ -320,21 +320,24 @@ final class ShellModel {
 		return ChatID(rawValue: raw)
 	}
 
-	private func refreshAthlete() async {
+	private func refreshAthlete() async throws {
 		guard let services else { return }
-		do {
-			athlete = try await services.intervals.fetchAthlete()
-			let today = CivilDates.today(clock: builder.clock)
-			todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today).first
-		} catch {
-			return
-		}
+		athlete = try await services.intervals.fetchAthlete()
+		let today = CivilDates.today(clock: builder.clock)
+		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today).first
 	}
 
 	private func refreshSeam(from services: AppServices) async {
 		var next = await services.coach.snapshot(chatId: chatId)
 		next.streamingText = ""
 		seam = next
+	}
+
+	private func failureMessage(_ error: Error) -> String {
+		if let intervals = error as? IntervalsError {
+			return intervals.details
+		}
+		return String(describing: error)
 	}
 
 	private func athleteFacing(_ message: String) -> String {
