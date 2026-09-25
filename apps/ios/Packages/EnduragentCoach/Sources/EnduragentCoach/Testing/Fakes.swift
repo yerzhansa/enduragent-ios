@@ -8,25 +8,21 @@ public enum ScriptedEvent: Sendable, Equatable {
 
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
+	public var failures: [any Error]
 	public private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
-	public var streamFailure: Error?
 	public var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
+	public var deltaDelay: Duration?
 	private let lock = NSLock()
 
 	public init() {
 		self.script = []
+		self.failures = []
 		self.requests = []
 	}
 
 	public func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
-		if let streamFailure {
-			let error = streamFailure
-			return AsyncThrowingStream { continuation in
-				continuation.finish(throwing: error)
-			}
-		}
 		if hangUntilCancelled {
 			return AsyncThrowingStream { continuation in
 				let task = Task {
@@ -55,15 +51,25 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 			}
 		}
 		let delay = requestDelay
+		let pause = deltaDelay
 		return AsyncThrowingStream { continuation in
 			let task = Task {
-				if let delay {
-					try? await Task.sleep(for: delay)
+				do {
+					if let delay {
+						try await Task.sleep(for: delay)
+					}
+					for event in events {
+						if let pause {
+							try await Task.sleep(for: pause)
+						}
+						continuation.yield(event)
+					}
+					continuation.finish()
+				} catch is CancellationError {
+					continuation.finish()
+				} catch {
+					continuation.finish(throwing: error)
 				}
-				for event in events {
-					continuation.yield(event)
-				}
-				continuation.finish()
 			}
 			continuation.onTermination = { _ in
 				task.cancel()
@@ -75,6 +81,9 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		lock.lock()
 		defer { lock.unlock() }
 		requests.append(request)
+		if !failures.isEmpty {
+			throw failures.removeFirst()
+		}
 		var events: [TransportEvent] = []
 		while !script.isEmpty {
 			let event = script.removeFirst()

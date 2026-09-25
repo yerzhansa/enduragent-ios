@@ -1,6 +1,6 @@
 # History
 
-The menu's History screen lists the chats started since launch, newest first, each titled with its first message and dated with its start day. Choosing a row reopens that chat.
+The menu's History screen lists the chats started so far, newest first, each titled with its first message and dated with its start day. Choosing a row reopens that chat.
 
 ## Sub-features
 
@@ -25,7 +25,7 @@ Preconditions:
 
 ## Gotchas
 
-- History covers only the current launch in fixture mode. A relaunch empties it.
+- `sim.mjs launch <run id>` wipes the fixture state and empties History. `sim.mjs launch <run id> --keep` keeps the rows.
 - The row identifier ends in a random chat id. Match it with the prefix `history.row.`, as `HistoryListProof` does.
 - The date is the fixture's fixed day `1998-06-15`, not the simulator's date.
 - History reloads each time the screen appears. Leave it and open it again to see a new chat.
