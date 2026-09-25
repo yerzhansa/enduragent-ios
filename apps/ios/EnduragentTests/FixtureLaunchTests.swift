@@ -118,12 +118,9 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
-		let model = model(services)
+		let model = model(try services())
 		model.startChatting()
-		await model.send("Give me a ride for tomorrow")
+		await model.send("fixture:fail finish")
 		let failure = model.builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
 		#expect(model.errorLine == failure)
 		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)

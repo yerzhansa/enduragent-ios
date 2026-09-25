@@ -70,6 +70,8 @@ struct FixtureDirector: Sendable {
 				statusCode: 400,
 				body: "This endpoint's maximum context length is 131072 tokens."
 			)
+		case "finish" where rest.isEmpty:
+			return UnknownFinishReasonError(reason: "error")
 		default:
 			return nil
 		}
