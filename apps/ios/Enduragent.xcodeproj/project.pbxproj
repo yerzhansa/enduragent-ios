@@ -511,7 +511,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CREDITS_WORKER_BASE = "https://enduragent-credits-testflight.yerzhan-st.workers.dev";
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = FA494ACVTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Enduragent/Info.plist;
@@ -641,7 +641,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				CREDITS_WORKER_BASE = "https://enduragent-credits-testflight.yerzhan-st.workers.dev";
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = FA494ACVTF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Enduragent/Info.plist;

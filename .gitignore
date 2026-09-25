@@ -1,4 +1,6 @@
 docs/
+/.audit/
+/DESIGN.md
 node_modules/
 .build/
 DerivedData/
