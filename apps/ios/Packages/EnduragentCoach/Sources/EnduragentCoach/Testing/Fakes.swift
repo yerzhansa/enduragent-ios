@@ -30,14 +30,16 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		if hangUntilCancelled {
 			return AsyncThrowingStream { continuation in
 				let task = Task {
-					while !Task.isCancelled {
-						do {
+					do {
+						while !Task.isCancelled {
 							try await Task.sleep(for: .seconds(60))
-						} catch {
-							break
 						}
+						continuation.finish()
+					} catch is CancellationError {
+						continuation.finish()
+					} catch {
+						continuation.finish(throwing: error)
 					}
-					continuation.finish()
 				}
 				continuation.onTermination = { _ in
 					task.cancel()
@@ -126,6 +128,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public private(set) var calls: [FakeIntervalsCall]
 	public var athleteName: String
 	public var ftp: Int
+	public var loadFailure: IntervalsError?
 
 	public init(athleteName: String, ftp: Int) {
 		self.athleteName = athleteName
@@ -139,13 +142,20 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		])
 		self.events = []
 		self.calls = []
+		self.loadFailure = nil
 	}
 
 	public func fetchAthlete() async throws -> AthleteProfile {
-		AthleteProfile(id: "0", name: athleteName, ftp: ftp)
+		if let loadFailure {
+			throw loadFailure
+		}
+		return AthleteProfile(id: "0", name: athleteName, ftp: ftp)
 	}
 
 	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
+		if let loadFailure {
+			throw loadFailure
+		}
 		calls.append(.wellness(oldest: oldest, newest: newest))
 		return wellness.filter { $0.date >= oldest && $0.date <= newest }
 	}

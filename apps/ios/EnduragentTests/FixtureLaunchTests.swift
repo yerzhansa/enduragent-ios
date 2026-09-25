@@ -95,6 +95,31 @@ struct FixtureLaunchTests {
 		#expect(model.errorLine?.contains("String(describing:") != true)
 	}
 
+	@Test func intervalsLoadFailureShowsTheReason() async throws {
+		let services = try #require(AppServices.fixture(named: "first-week"))
+		let intervals = try #require(services.intervals as? FakeIntervalsClient)
+		let failure = IntervalsError(
+			code: "load_failed",
+			details: "intervals.icu could not load today's training data."
+		)
+		intervals.loadFailure = failure
+		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
+		let suiteName = "enduragent.test.\(UUID().uuidString)"
+		let suite = try #require(UserDefaults(suiteName: suiteName))
+		defer { suite.removePersistentDomain(forName: suiteName) }
+		suite.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let model = ShellModel(
+			builder: ServicesBuilder(fixture: services, language: language),
+			defaults: suite,
+			persistSession: true
+		)
+		await model.appear()
+		#expect(model.route == .chat)
+		#expect(model.errorLine == failure.details)
+		#expect(model.athlete == nil)
+		#expect(model.todayWellness == nil)
+	}
+
 	@Test func fixtureLaunchStaysOnNotice() throws {
 		let services = try #require(AppServices.fixture(named: "first-week"))
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)

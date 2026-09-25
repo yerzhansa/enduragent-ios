@@ -3,6 +3,14 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct WatchdogTests {
+	@Test func cancellingTheTimerDoesNotFire() async {
+		let watchdog = ChatWatchdog()
+		await watchdog.arm()
+		await watchdog.disarm()
+		let outcome = await watchdog.fired()
+		#expect(outcome == nil)
+	}
+
 	@Test func pauseForToolsSuppressesFireUntilCleared() async {
 		let watchdog = ChatWatchdog()
 		await watchdog.arm()

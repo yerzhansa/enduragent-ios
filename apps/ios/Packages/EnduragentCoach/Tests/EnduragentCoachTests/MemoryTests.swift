@@ -132,6 +132,16 @@ import Testing
 		)
 	}
 
+	@Test func writeSectionPropagatesJournalAppendFailure() async throws {
+		let store = JournalRejectingLog()
+		let memory = Memory(store: store, clock: clock)
+		await #expect(throws: JournalAppendRejected.self) {
+			try await memory.writeSection(.person, content: "- Name: Ada", source: .chat)
+		}
+		let sections = try await store.fetch(RecordQuery(kinds: [.memorySection]))
+		#expect(sections.isEmpty)
+	}
+
 	@Test func writeSectionReplacesLeadingStampRatherThanStacking() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(store: store, clock: clock)
@@ -142,5 +152,23 @@ import Testing
 			return
 		}
 		#expect(body.content == "_updated: 1998-06-13\n- Name: Ada")
+	}
+}
+
+private struct JournalAppendRejected: Error, Equatable {}
+
+private final class JournalRejectingLog: RecordLog, @unchecked Sendable {
+	let inner = InMemoryRecordLog()
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ record: AthleteRecord) async throws {
+		if case .journal = record.body {
+			throw JournalAppendRejected()
+		}
+		try await inner.append(record)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
+		try await inner.fetch(query)
 	}
 }
