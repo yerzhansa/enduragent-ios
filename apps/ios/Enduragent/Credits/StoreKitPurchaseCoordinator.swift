@@ -12,15 +12,30 @@ enum StoreKitPurchaseFailure: Error {
 final class StoreKitPurchaseCoordinator {
 	private let credits: any CreditsClient
 	private let secrets: any SecretStore
+	private let onSettlementFailure: @MainActor (String) -> Void
 	private var updatesTask: Task<Void, Never>?
+	var settlementError: String?
 
-	init(credits: any CreditsClient, secrets: any SecretStore) {
+	init(
+		credits: any CreditsClient,
+		secrets: any SecretStore,
+		onSettlementFailure: @escaping @MainActor (String) -> Void
+	) {
 		self.credits = credits
 		self.secrets = secrets
+		self.onSettlementFailure = onSettlementFailure
 		updatesTask = Task { [weak self] in
 			for await update in Transaction.updates {
 				guard let self else { return }
-				_ = try? await self.settle(update)
+				do {
+					_ = try await self.settle(update)
+				} catch is CancellationError {
+					return
+				} catch {
+					let message = String(describing: error)
+					self.settlementError = message
+					self.onSettlementFailure(message)
+				}
 			}
 		}
 	}

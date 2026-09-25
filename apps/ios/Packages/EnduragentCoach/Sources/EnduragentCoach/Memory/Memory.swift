@@ -515,7 +515,7 @@ public struct Memory: Sendable {
 		conversation: [ChatMessage],
 		transport: any ModelTransport
 	) async throws -> (writes: Int, ledgerAppends: Int) {
-		let current = (try? await fullContext()) ?? ""
+		let current = try await fullContext()
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let fenced = PromptAssembly.wrapAthleteContext(
 			current.isEmpty ? "No athlete data stored yet." : current)
@@ -591,7 +591,16 @@ public struct Memory: Sendable {
 	}
 
 	private func executeFlushTool(_ call: WireToolCall) async throws -> (String, Bool, Bool) {
-		let arguments = (try? JSONValue.parse(call.arguments)) ?? .object([:])
+		let arguments: JSONValue
+		do {
+			arguments = try JSONValue.parse(call.arguments)
+		} catch is DecodingError {
+			return (
+				JSONValue.object(["error": .string("invalid_arguments")]).canonicalDigestInput(),
+				false,
+				false
+			)
+		}
 		switch call.name {
 		case .memoryWrite:
 			let fields = arguments.objectFields
@@ -878,15 +887,17 @@ private struct JournalPreview {
 }
 
 private func parseJournalPreview(_ preview: String) -> JournalPreview {
-	guard let parsed = try? JSONValue.parse(preview) else {
+	do {
+		let parsed = try JSONValue.parse(preview)
+		let fields = parsed.objectFields
+		return JournalPreview(
+			section: fields["section"]?.stringValue,
+			oldBody: fields["oldBody"]?.stringValue,
+			newBody: fields["newBody"]?.stringValue
+		)
+	} catch is DecodingError {
 		return JournalPreview(section: nil, oldBody: nil, newBody: preview)
 	}
-	let fields = parsed.objectFields
-	return JournalPreview(
-		section: fields["section"]?.stringValue,
-		oldBody: fields["oldBody"]?.stringValue,
-		newBody: fields["newBody"]?.stringValue
-	)
 }
 
 private func demoteEmbeddedH2(_ content: String) -> String {

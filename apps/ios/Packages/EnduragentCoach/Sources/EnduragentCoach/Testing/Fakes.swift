@@ -58,7 +58,15 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				if let delay {
-					try? await Task.sleep(for: delay)
+					do {
+						try await Task.sleep(for: delay)
+					} catch is CancellationError {
+						continuation.finish()
+						return
+					} catch {
+						continuation.finish(throwing: error)
+						return
+					}
 				}
 				for event in events {
 					continuation.yield(event)

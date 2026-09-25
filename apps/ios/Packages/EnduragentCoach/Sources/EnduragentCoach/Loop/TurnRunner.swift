@@ -140,18 +140,11 @@ package struct TurnRunner: Sendable {
 		}
 
 		let memory = Memory(store: store, clock: clock)
-		let context = (try? await memory.context()) ?? ""
-		let view =
-			(try? await memory.view())
-			?? MemoryView(
-				sections: [:],
-				todayNotes: nil,
-				planHeadline: nil,
-				orphanNames: []
-			)
+		let context = try await memory.context()
+		let view = try await memory.view()
 		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = await loadSnapshot()
+		let snapshot = try await loadSnapshot()
 		let resolution = LanguageResolution(
 			language: language.coachReply ?? language.ui,
 			source: language.coachReply == nil ? .surface : .preference,
@@ -177,7 +170,7 @@ package struct TurnRunner: Sendable {
 				.compactionSummary(
 					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped)))
 			)
-			try? await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
+			try await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
 		}
 		let kept = trim.kept
 		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
@@ -496,8 +489,21 @@ package struct TurnRunner: Sendable {
 			for (index, call) in calls.enumerated() {
 				group.addTask {
 					emit(.toolStarted(name: call.name.rawValue, callId: call.id))
-					let arguments =
-						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
+					let arguments: JSONValue
+					do {
+						arguments = try JSONValue.parse(call.arguments)
+					} catch is DecodingError {
+						emit(.toolFinished(name: call.name.rawValue, callId: call.id))
+						return (
+							index, call,
+							.result(
+								.object([
+									"details": .string("Tool arguments were not valid JSON."),
+									"error": .string("invalid_arguments"),
+								])
+							)
+						)
+					}
 					let outcome = try await self.tools.execute(
 						name: call.name,
 						arguments: arguments,
@@ -579,12 +585,10 @@ package struct TurnRunner: Sendable {
 		wire = next
 	}
 
-	private func loadSnapshot() async -> AthleteSnapshot? {
+	private func loadSnapshot() async throws -> AthleteSnapshot? {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let oldest = today.adding(days: -(7 - 1))
-		guard let days = try? await intervals.fetchWellness(oldest: oldest, newest: today) else {
-			return nil
-		}
+		let days = try await intervals.fetchWellness(oldest: oldest, newest: today)
 		guard let latest = days.last else {
 			return nil
 		}

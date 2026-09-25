@@ -21,8 +21,12 @@ package enum PromptResources {
 			let url = Bundle.module.url(
 				forResource: resource, withExtension: "md", subdirectory: subdirectory)
 		else {
-			return ""
+			fatalError("bundled prompt \(subdirectory)/\(resource).md is missing")
 		}
-		return (try? String(contentsOf: url, encoding: .utf8)) ?? ""
+		do {
+			return try String(contentsOf: url, encoding: .utf8)
+		} catch {
+			fatalError("bundled prompt \(subdirectory)/\(resource).md is unreadable: \(error)")
+		}
 	}
 }

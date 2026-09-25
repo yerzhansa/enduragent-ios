@@ -381,11 +381,12 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: 0)
 		}
 		guard (200..<300).contains(http.statusCode) else {
-			if let wire = try? JSONDecoder().decode(ErrorWire.self, from: data),
-				let failure = Self.failures[wire.error]
-			{
-				throw failure
-			}
+			do {
+				let wire = try JSONDecoder().decode(ErrorWire.self, from: data)
+				if let failure = Self.failures[wire.error] {
+					throw failure
+				}
+			} catch is DecodingError {}
 			throw CreditsFailure.unexpectedResponse(status: http.statusCode)
 		}
 		return (http.statusCode, data)

@@ -251,13 +251,14 @@ private enum CatalogStore {
 				forResource: "Phrasebook", withExtension: "json", subdirectory: "Resources"),
 		]
 		guard let url = urls.compactMap({ $0 }).first else {
-			return XCStringsFile(strings: [:])
+			fatalError("Phrasebook.json is missing from the coach bundle")
 		}
-		guard let data = try? Data(contentsOf: url) else {
-			return XCStringsFile(strings: [:])
+		do {
+			let data = try Data(contentsOf: url)
+			return try JSONDecoder().decode(XCStringsFile.self, from: data)
+		} catch {
+			fatalError("Phrasebook.json is unreadable: \(error)")
 		}
-		return (try? JSONDecoder().decode(XCStringsFile.self, from: data))
-			?? XCStringsFile(strings: [:])
 	}
 }
 
@@ -328,10 +329,10 @@ private func interpolate(_ template: String, vars: [String: String]) -> String {
 private enum MessageLanguage {
 	static func detect(_ text: String) -> LanguageTag? {
 		let sample = clean(text)
-		if matches(#"\p{Script=Hangul}"#, sample) { return .ko }
-		if matches(#"\p{Script=Hiragana}|\p{Script=Katakana}"#, sample) { return .ja }
-		if matches(#"\p{Script=Han}"#, sample) {
-			return matches(#"[體訓練這個們時學車騎鐘週強級區間]"#, sample) ? .zhHant : .zhHans
+		if matches(/\p{Script=Hangul}/, sample) { return .ko }
+		if matches(/\p{Script=Hiragana}|\p{Script=Katakana}/, sample) { return .ja }
+		if matches(/\p{Script=Han}/, sample) {
+			return matches(/[體訓練這個們時學車騎鐘週強級區間]/, sample) ? .zhHant : .zhHans
 		}
 		let tokens = uniqueLatinTokens(sample)
 		if tokens.count < 3 { return nil }
@@ -344,7 +345,7 @@ private enum MessageLanguage {
 				let shared = profiles.filter { $0.words.contains(token) }.count
 				score += shared == 1 ? 3 : 1
 			}
-			if let marker = diacritics[profile.language], matches(marker, sample) {
+			if let marker = diacriticPattern(profile.language), matches(marker, sample) {
 				score += 2
 			}
 			return (profile.language, score, matchCount)
@@ -358,7 +359,7 @@ private enum MessageLanguage {
 		if best.language == .ptPT,
 			tokens.contains("você")
 				|| tokens.contains("vocês")
-				|| matches(#"treino de hoje|\b(?:celular|legal|pedalando)\b"#, sample)
+				|| matches(/treino de hoje|\b(?:celular|legal|pedalando)\b/, sample)
 		{
 			return .ptBR
 		}
@@ -366,11 +367,10 @@ private enum MessageLanguage {
 	}
 
 	private static func clean(_ text: String) -> String {
-		var stripped = replace(#"^\s*(?:/[\w-]+(?:@[\w-]+)?(?:\s+|$))+"#, in: text, with: "")
-		stripped = replace(#"```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)"#, in: stripped, with: " ")
-		stripped = replace(
-			#"(?:https?://|www\.)\S+"#, in: stripped, with: " ", options: .caseInsensitive)
-		stripped = replace(#"\p{N}+"#, in: stripped, with: " ")
+		var stripped = replace(/^\s*(?:\/[\w-]+(?:@[\w-]+)?(?:\s+|$))+/, in: text, with: "")
+		stripped = replace(/```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)/, in: stripped, with: " ")
+		stripped = replace(/(?i)(?:https?:\/\/|www\.)\S+/, in: stripped, with: " ")
+		stripped = replace(/\p{N}+/, in: stripped, with: " ")
 		var sample = ""
 		var count = 0
 		for scalar in stripped.unicodeScalars {
@@ -382,17 +382,10 @@ private enum MessageLanguage {
 	}
 
 	private static func uniqueLatinTokens(_ sample: String) -> Set<String> {
-		guard
-			let regex = try? NSRegularExpression(
-				pattern: "[\\p{Script=Latin}]+(?:['’][\\p{Script=Latin}]+)?")
-		else {
-			return []
-		}
-		let range = NSRange(sample.startIndex..., in: sample)
+		let regex = /[\p{Script=Latin}]+(?:['’][\p{Script=Latin}]+)?/
 		var tokens: Set<String> = []
-		regex.enumerateMatches(in: sample, options: [], range: range) { match, _, _ in
-			guard let match, let tokenRange = Range(match.range, in: sample) else { return }
-			tokens.insert(String(sample[tokenRange]))
+		for match in sample.matches(of: regex) {
+			tokens.insert(String(match.output))
 		}
 		return tokens
 	}
@@ -472,40 +465,35 @@ private enum MessageLanguage {
 		),
 	]
 
-	private static let diacritics: [LanguageTag: String] = [
-		.es: #"[ñ¿¡]"#,
-		.fr: #"[œç]|[àâêîôû]"#,
-		.it: #"[ìòù]"#,
-		.de: #"[ßü]"#,
-		.da: #"[æø]"#,
-		.sv: #"[äö]"#,
-		.nb: #"[æø]"#,
-		.fi: #"[äö]"#,
-		.ptPT: #"[ãõç]"#,
-		.pl: #"[ąćęłńśźż]"#,
-	]
+	private static func diacriticPattern(_ tag: LanguageTag) -> (any RegexComponent)? {
+		switch tag {
+		case .es: /[ñ¿¡]/
+		case .fr: /[œç]|[àâêîôû]/
+		case .it: /[ìòù]/
+		case .de: /[ßü]/
+		case .da: /[æø]/
+		case .sv: /[äö]/
+		case .nb: /[æø]/
+		case .fi: /[äö]/
+		case .ptPT: /[ãõç]/
+		case .pl: /[ąćęłńśźż]/
+		default: nil
+		}
+	}
 
 	private static func words(_ list: String) -> Set<String> {
 		Set(list.split(separator: " ").map(String.init))
 	}
 
-	private static func matches(_ pattern: String, _ text: String) -> Bool {
-		guard let regex = try? NSRegularExpression(pattern: pattern) else { return false }
-		let range = NSRange(text.startIndex..., in: text)
-		return regex.firstMatch(in: text, options: [], range: range) != nil
+	private static func matches(_ pattern: any RegexComponent, _ text: String) -> Bool {
+		text.contains(pattern)
 	}
 
 	private static func replace(
-		_ pattern: String,
+		_ pattern: some RegexComponent,
 		in text: String,
-		with template: String,
-		options: NSRegularExpression.Options = []
+		with template: String
 	) -> String {
-		guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
-			return text
-		}
-		let range = NSRange(text.startIndex..., in: text)
-		return regex.stringByReplacingMatches(
-			in: text, options: [], range: range, withTemplate: template)
+		text.replacing(pattern, with: template)
 	}
 }

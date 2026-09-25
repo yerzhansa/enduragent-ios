@@ -72,7 +72,7 @@
 		@MainActor
 		private func bootstrap() async {
 			if session == nil {
-				session = CreditsDebugSession()
+				session = CreditsDebugSession { errorText = $0 }
 			}
 			await reload()
 		}
@@ -227,7 +227,7 @@
 			return url
 		}()
 
-		init() {
+		init(onSettlementFailure: @escaping @MainActor (String) -> Void) {
 			let secrets = ICloudKeychainStore()
 			self.secrets = secrets
 			let credits = PhoneCreditsClient(
@@ -235,7 +235,11 @@
 				workerBase: Self.workerBase
 			)
 			self.credits = credits
-			self.purchases = StoreKitPurchaseCoordinator(credits: credits, secrets: secrets)
+			self.purchases = StoreKitPurchaseCoordinator(
+				credits: credits,
+				secrets: secrets,
+				onSettlementFailure: onSettlementFailure
+			)
 		}
 	}
 #endif

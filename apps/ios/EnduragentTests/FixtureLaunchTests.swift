@@ -6,6 +6,16 @@ import Testing
 
 @MainActor
 struct FixtureLaunchTests {
+	@Test func corruptChatIndexIsVisible() throws {
+		let name = "enduragent.chat-index.\(UUID().uuidString)"
+		let defaults = try #require(UserDefaults(suiteName: name))
+		defaults.removePersistentDomain(forName: name)
+		defaults.set(Data("{}".utf8), forKey: "enduragent.chatIndex")
+		let index = ChatIndex(isFixture: false, defaults: defaults)
+		#expect(index.loadError != nil)
+		#expect(index.all().isEmpty)
+	}
+
 	@Test func fixtureArgumentBuildsCoachFromFakes() async throws {
 		let services = try #require(AppServices.fixture(named: "first-week"))
 		#expect(services.isFixture)

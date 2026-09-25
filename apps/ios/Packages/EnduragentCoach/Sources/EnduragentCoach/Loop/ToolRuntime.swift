@@ -608,7 +608,7 @@ package struct ToolRuntime: Sendable {
 			}
 			let allowed = Set(
 				SectionName.cyclingEffective.map(\.rawValue)
-					+ ((try? await memory().view())?.orphanNames ?? []))
+					+ (try await memory().view()).orphanNames)
 			if !allowed.contains(section) {
 				return .result(
 					.object([

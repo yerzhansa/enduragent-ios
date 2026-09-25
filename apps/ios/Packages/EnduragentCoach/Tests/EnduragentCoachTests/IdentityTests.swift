@@ -50,6 +50,12 @@ import Testing
 		#expect(GregorianStamp.isoMillis(instant) == "1998-06-13T06:00:00.123Z")
 	}
 
+	@Test func parseThrowsDecodingErrorForInvalidJSON() {
+		#expect(throws: DecodingError.self) {
+			try JSONValue.parse("not-json")
+		}
+	}
+
 	@Test func jsonParseCanonicalSha256AndStringify() throws {
 		let parsed = try JSONValue.parse("{\"b\":1,\"a\":[true,null,\"x\"]}")
 		#expect(
