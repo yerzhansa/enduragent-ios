@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct IdentityTests {
@@ -12,8 +13,12 @@ import Testing
 		#expect(second.rawValue.count == 26)
 		#expect(ULID(rawValue: first.rawValue) == first)
 		#expect(first.rawValue < second.rawValue)
-		#expect(ulidTimestamp(first.rawValue) == UInt64((earlier.timeIntervalSince1970 * 1000).rounded(.down)))
-		#expect(ulidTimestamp(second.rawValue) == UInt64((later.timeIntervalSince1970 * 1000).rounded(.down)))
+		#expect(
+			ulidTimestamp(first.rawValue)
+				== UInt64((earlier.timeIntervalSince1970 * 1000).rounded(.down)))
+		#expect(
+			ulidTimestamp(second.rawValue)
+				== UInt64((later.timeIntervalSince1970 * 1000).rounded(.down)))
 	}
 
 	@Test func civilDateAndDateKeyRoundTripEveryDayOf1998() {
@@ -51,8 +56,11 @@ import Testing
 				"""
 		)
 		#expect(parsed.canonicalDigestInput() == "{\"a\":[true,null,\"x\"],\"b\":1}")
-		#expect(sha256Hex("hello") == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824")
-		let quotes = JSONValue.array([.string("say \"hi\""), .string("a\\b"), .string("line\n")]).canonicalDigestInput()
+		#expect(
+			sha256Hex("hello") == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+		)
+		let quotes = JSONValue.array([.string("say \"hi\""), .string("a\\b"), .string("line\n")])
+			.canonicalDigestInput()
 		#expect(quotes == "[\"say \\\"hi\\\"\",\"a\\\\b\",\"line\\n\"]")
 	}
 

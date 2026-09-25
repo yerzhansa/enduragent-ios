@@ -1,4 +1,5 @@
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct DetectMessageLanguageTests {
@@ -33,7 +34,8 @@ import Testing
 
 	@Test func stripsCommandsLinksCodeAndNumbersBeforeDetection() {
 		let message =
-			"/review@coach https://example.com/日本語 ```한국어``` 123456 " + DetectFixtures.messages[.it]![0]
+			"/review@coach https://example.com/日本語 ```한국어``` 123456 "
+			+ DetectFixtures.messages[.it]![0]
 		#expect(Language.detectMessageLanguage(message) == .it)
 	}
 
@@ -42,7 +44,9 @@ import Testing
 	}
 
 	@Test func inspectsAtMost512CodePoints() {
-		#expect(Language.detectMessageLanguage(String(repeating: "🚲", count: 512) + DetectFixtures.messages[.ko]![0]) == nil)
+		#expect(
+			Language.detectMessageLanguage(
+				String(repeating: "🚲", count: 512) + DetectFixtures.messages[.ko]![0]) == nil)
 		#expect(Language.detectMessageLanguage(String(repeating: "🚲", count: 511) + "한") == .ko)
 	}
 
@@ -55,7 +59,9 @@ import Testing
 	}
 
 	@Test func recognizesDecomposedLatinDiacritics() {
-		#expect(Language.detectMessageLanguage(DetectFixtures.messages[.pl]![0].decomposedStringWithCanonicalMapping) == .pl)
+		#expect(
+			Language.detectMessageLanguage(
+				DetectFixtures.messages[.pl]![0].decomposedStringWithCanonicalMapping) == .pl)
 	}
 }
 

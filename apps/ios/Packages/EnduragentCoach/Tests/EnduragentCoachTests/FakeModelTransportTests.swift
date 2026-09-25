@@ -1,4 +1,5 @@
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct FakeModelTransportTests {
@@ -12,30 +13,33 @@ import Testing
 		]
 		let firstRequest = CompletionRequest.openRouter(
 			messages: [
-				WireMessage(role: .user, content: "How was 1998-06-13?", toolCalls: [], toolCallId: nil),
+				WireMessage(
+					role: .user, content: "How was 1998-06-13?", toolCalls: [], toolCallId: nil)
 			],
 			tools: [],
 			deadline: .seconds(600)
 		)
 		let secondRequest = CompletionRequest.openRouter(
 			messages: [
-				WireMessage(role: .user, content: "Fetch the athlete.", toolCalls: [], toolCallId: nil),
+				WireMessage(
+					role: .user, content: "Fetch the athlete.", toolCalls: [], toolCallId: nil)
 			],
 			tools: [
 				ToolSchema(
 					name: .intervalsFetchAthlete,
 					description: "Fetch the athlete profile.",
 					parameters: .object(["type": .string("object")])
-				),
+				)
 			],
 			deadline: .seconds(600)
 		)
 
 		let first = try await collect(transport.stream(firstRequest))
-		#expect(first == [
-			.textDelta("Ada rode Saturday."),
-			.finished(reason: .stop, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
-		])
+		#expect(
+			first == [
+				.textDelta("Ada rode Saturday."),
+				.finished(reason: .stop, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
+			])
 
 		let second = try await collect(transport.stream(secondRequest))
 		#expect(second.count == 2)
@@ -46,7 +50,10 @@ import Testing
 		#expect(!call.id.isEmpty)
 		#expect(call.name == .intervalsFetchAthlete)
 		#expect(call.arguments == "{}")
-		#expect(second.last == .finished(reason: .toolCalls, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)))
+		#expect(
+			second.last
+				== .finished(
+					reason: .toolCalls, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)))
 
 		#expect(transport.requests == [firstRequest, secondRequest])
 		#expect(transport.script.isEmpty)
@@ -57,7 +64,7 @@ import Testing
 		transport.hangUntilCancelled = true
 		let request = CompletionRequest.openRouter(
 			messages: [
-				WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil),
+				WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil)
 			],
 			tools: [],
 			deadline: .seconds(30)
@@ -85,7 +92,7 @@ import Testing
 		]
 		let request = CompletionRequest.openRouter(
 			messages: [
-				WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil),
+				WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
 			],
 			tools: [],
 			deadline: .seconds(30)
@@ -102,7 +109,9 @@ import Testing
 	}
 }
 
-private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws -> [TransportEvent] {
+private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
+	-> [TransportEvent]
+{
 	var events: [TransportEvent] = []
 	for try await event in stream {
 		events.append(event)

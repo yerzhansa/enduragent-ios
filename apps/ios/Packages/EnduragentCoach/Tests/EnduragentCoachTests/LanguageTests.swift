@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct LanguageTests {
@@ -126,17 +127,22 @@ import Testing
 			}
 		}
 		for sample in ["", "ok", "/review", "the und et", "bonjour"] {
-			detect.append(["input": sample, "output": Language.detectMessageLanguage(sample)?.rawValue ?? ""])
+			detect.append([
+				"input": sample, "output": Language.detectMessageLanguage(sample)?.rawValue ?? "",
+			])
 		}
 		var normalize: [[String: String]] = []
 		for hint in ["it_IT.UTF-8", "C", "pt-br", "pt", "zh-TW", "no", "nn", "ru_RU:fr_FR:en"] {
-			normalize.append(["input": hint, "output": Language.normalizeLocaleHint(hint)?.rawValue ?? ""])
+			normalize.append([
+				"input": hint, "output": Language.normalizeLocaleHint(hint)?.rawValue ?? "",
+			])
 		}
 		var resolve: [[String: String]] = []
 		for saved in [Optional<LanguageTag>.none, .it] {
 			for message in [Optional<LanguageTag>.none, .fr] {
 				for surface in [Optional<LanguageTag>.none, .nl] {
-					let result = Language.resolve(saved: saved, messageHint: message, surface: surface)
+					let result = Language.resolve(
+						saved: saved, messageHint: message, surface: surface)
 					resolve.append([
 						"saved": saved?.rawValue ?? "",
 						"message": message?.rawValue ?? "",
@@ -149,7 +155,8 @@ import Testing
 			}
 		}
 		let payload: [String: Any] = ["detect": detect, "normalize": normalize, "resolve": resolve]
-		let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+		let data = try JSONSerialization.data(
+			withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
 		try data.write(to: directory.appendingPathComponent("resolve-swift.json"))
 	}
 }

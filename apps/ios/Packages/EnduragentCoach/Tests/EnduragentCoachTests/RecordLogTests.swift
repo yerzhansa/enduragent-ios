@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 enum RecordLogKind: String, Sendable, CaseIterable {
@@ -24,8 +25,10 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 	try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 	return SwiftDataRecordLog(
 		deviceId: deviceId,
-		synced: try ModelContainerHandle.withoutCloudKit(storeURL: root.appending(path: "synced.store")),
-		local: try ModelContainerHandle.withoutCloudKit(storeURL: root.appending(path: "local.store"))
+		synced: try ModelContainerHandle.withoutCloudKit(
+			storeURL: root.appending(path: "synced.store")),
+		local: try ModelContainerHandle.withoutCloudKit(
+			storeURL: root.appending(path: "local.store"))
 	)
 }
 
@@ -40,7 +43,10 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 		let foreign = record(
 			device: phoneB,
 			wall: 1,
-			body: .pendingProposal(sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: Date(timeIntervalSince1970: 899_164_800)))
+			body: .pendingProposal(
+				sampleProposal(
+					chatId: .main, nonce: Nonce(),
+					expiresAt: Date(timeIntervalSince1970: 899_164_800)))
 		)
 		await #expect(throws: ForeignDeviceLocalRecord.self) {
 			try await log.append(foreign)
@@ -49,11 +55,16 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 			record(
 				device: phoneA,
 				wall: 2,
-				body: .pendingProposal(sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: Date(timeIntervalSince1970: 899_164_800)))
+				body: .pendingProposal(
+					sampleProposal(
+						chatId: .main, nonce: Nonce(),
+						expiresAt: Date(timeIntervalSince1970: 899_164_800)))
 			)
 		)
 		try await log.append(
-			record(device: phoneB, wall: 3, body: .userMessage(sampleUser(chatId: .main, text: "from b")))
+			record(
+				device: phoneB, wall: 3,
+				body: .userMessage(sampleUser(chatId: .main, text: "from b")))
 		)
 	}
 
@@ -90,14 +101,18 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 				device: phoneA,
 				wall: 13,
 				date: "1998-06-14",
-				body: .pendingProposal(sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: Date(timeIntervalSince1970: 899_164_800)))
+				body: .pendingProposal(
+					sampleProposal(
+						chatId: .main, nonce: Nonce(),
+						expiresAt: Date(timeIntervalSince1970: 899_164_800)))
 			)
 		)
 
 		let kinds = try await log.fetch(RecordQuery(kinds: [.userMessage, .assistantMessage]))
 		#expect(kinds.map { text(of: $0) } == ["main 13", "reply 14", "other 15"])
 
-		let mainOnly = try await log.fetch(RecordQuery(kinds: [.userMessage, .assistantMessage], chatId: .main))
+		let mainOnly = try await log.fetch(
+			RecordQuery(kinds: [.userMessage, .assistantMessage], chatId: .main))
 		#expect(mainOnly.map { text(of: $0) } == ["main 13", "reply 14"])
 
 		let mid = try await log.fetch(

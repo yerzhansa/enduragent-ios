@@ -1,10 +1,12 @@
 import XCTest
 
 enum TutorialHarness {
-	static let notice = "Training suggestions, not medical advice. Check with a doctor before big changes."
+	static let notice =
+		"Training suggestions, not medical advice. Check with a doctor before big changes."
 	static let weekQuestion = "What did my training look like this week?"
 	static let remember = "Remember that I ride with a group on Saturdays"
-	static let workout = "Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+	static let workout =
+		"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
 	static let weekReply = "Tuesday sweet spot"
 	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 	static let reviewReply = "Saturday group ride"
@@ -13,7 +15,9 @@ enum TutorialHarness {
 	static let warmup = "Warmup"
 
 	static func launch(_ app: XCUIApplication, dark: Bool = false) {
-		app.launchArguments = ["-EnduragentFixture", "first-week", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
 		}
@@ -40,7 +44,8 @@ enum TutorialHarness {
 		if exact.waitForExistence(timeout: timeout) {
 			return
 		}
-		let partial = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+		let partial = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text))
+			.firstMatch
 		XCTAssertTrue(partial.waitForExistence(timeout: 2), "missing text \(text)")
 	}
 

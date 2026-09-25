@@ -6,7 +6,8 @@ public struct ULID: Hashable, Sendable, RawRepresentable {
 
 	public init?(rawValue: String) {
 		let alphabet = CharacterSet(charactersIn: "0123456789ABCDEFGHJKMNPQRSTVWXYZ")
-		guard rawValue.count == 26, rawValue.unicodeScalars.allSatisfy({ alphabet.contains($0) }) else {
+		guard rawValue.count == 26, rawValue.unicodeScalars.allSatisfy({ alphabet.contains($0) })
+		else {
 			return nil
 		}
 		self.rawValue = rawValue
@@ -73,7 +74,9 @@ public struct Nonce: Hashable, Sendable, RawRepresentable {
 	}
 }
 
-public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLiteral, CustomStringConvertible {
+public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLiteral,
+	CustomStringConvertible
+{
 	public let rawValue: String
 
 	public init?(rawValue: String) {
@@ -225,25 +228,30 @@ public enum JSONValue: Sendable, Equatable {
 		case .array(let items):
 			if items.isEmpty { return "[]" }
 			if !pretty {
-				return "[" + items.map { render($0, pretty: false, depth: 0) }.joined(separator: ",") + "]"
+				return "["
+					+ items.map { render($0, pretty: false, depth: 0) }.joined(separator: ",") + "]"
 			}
 			let pad = String(repeating: "  ", count: depth + 1)
 			let close = String(repeating: "  ", count: depth)
-			let inner = items.map { pad + render($0, pretty: true, depth: depth + 1) }.joined(separator: ",\n")
+			let inner = items.map { pad + render($0, pretty: true, depth: depth + 1) }.joined(
+				separator: ",\n")
 			return "[\n\(inner)\n\(close)]"
 		case .object(let fields):
 			let keys = fields.keys.sorted()
 			if keys.isEmpty { return "{}" }
 			if !pretty {
 				return "{"
-					+ keys.map { encodeJSONString($0) + ":" + render(fields[$0]!, pretty: false, depth: 0) }
+					+ keys.map {
+						encodeJSONString($0) + ":" + render(fields[$0]!, pretty: false, depth: 0)
+					}
 					.joined(separator: ",")
 					+ "}"
 			}
 			let pad = String(repeating: "  ", count: depth + 1)
 			let close = String(repeating: "  ", count: depth)
 			let inner = keys.map {
-				pad + encodeJSONString($0) + ": " + render(fields[$0]!, pretty: true, depth: depth + 1)
+				pad + encodeJSONString($0) + ": "
+					+ render(fields[$0]!, pretty: true, depth: depth + 1)
 			}.joined(separator: ",\n")
 			return "{\n\(inner)\n\(close)}"
 		}
@@ -264,8 +272,8 @@ public func estimateTokens(_ text: String) -> Int {
 	Int((Double(text.utf16.count) / 4.0 * 1.2).rounded(.up))
 }
 
-private extension String {
-	var leftPadHex: String { count == 1 ? "0" + self : self }
+extension String {
+	fileprivate var leftPadHex: String { count == 1 ? "0" + self : self }
 }
 
 private func encodeJSONString(_ string: String) -> String {

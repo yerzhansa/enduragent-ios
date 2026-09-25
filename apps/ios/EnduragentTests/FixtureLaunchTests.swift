@@ -1,6 +1,7 @@
 import EnduragentCoach
 import Foundation
 import Testing
+
 @testable import Enduragent
 
 @MainActor

@@ -29,10 +29,13 @@ package actor ChatMailbox {
 		self.tail = Task {}
 	}
 
-	package func send(_ text: String, language: LanguagePreference) -> AsyncThrowingStream<CoachEvent, Error> {
+	package func send(_ text: String, language: LanguagePreference) -> AsyncThrowingStream<
+		CoachEvent, Error
+	> {
 		AsyncThrowingStream { continuation in
 			let task = Task {
-				await self.serializedTurn(text: text, language: language, continuation: continuation)
+				await self.serializedTurn(
+					text: text, language: language, continuation: continuation)
 			}
 			continuation.onTermination = { termination in
 				guard case .cancelled = termination else { return }
@@ -124,7 +127,8 @@ private struct RecordLogReset {
 	let clock: any Clock
 
 	func run(chatId: ChatID) async throws {
-		let tz = IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+		let tz =
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
 		let marker = ULID.generate(at: clock.now)
 		let record = AthleteRecord(
 			ulid: marker,
@@ -132,7 +136,8 @@ private struct RecordLogReset {
 			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
 			timeZone: tz,
 			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: .flushPending(FlushPendingBody(chatId: chatId, trigger: .explicitReset, messageUlids: []))
+			body: .flushPending(
+				FlushPendingBody(chatId: chatId, trigger: .explicitReset, messageUlids: []))
 		)
 		try await store.append(record)
 		try await store.append(

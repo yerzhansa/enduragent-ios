@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct MemoryToolsTests {
@@ -72,10 +73,13 @@ import Testing
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat)
+		try await memory.writeSection(
+			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat)
 		let tools = runtime(store: store)
 		let view = try await memory.view()
-		let schema = tools.toolsForTurn(chatId: .main, memory: view).first { $0.name == .memoryWrite }
+		let schema = tools.toolsForTurn(chatId: .main, memory: view).first {
+			$0.name == .memoryWrite
+		}
 		let encoded = canonicalJSON(schema?.parameters ?? .null)
 		#expect(encoded.contains("random-legacy"))
 		let result = try await tools.execute(
@@ -93,7 +97,8 @@ import Testing
 		let store = InMemoryRecordLog()
 		let result = try await runtime(store: store).execute(
 			name: .memoryWrite,
-			arguments: try JSONValue.parse(#"{"type":"daily","content":"Group ride on Saturdays"}"#),
+			arguments: try JSONValue.parse(
+				#"{"type":"daily","content":"Group ride on Saturdays"}"#),
 			chatId: .main,
 			state: turnState()
 		)

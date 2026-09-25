@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct UnionMergeTests {
@@ -27,7 +28,8 @@ import Testing
 			ulid: ulid(2),
 			body: .userMessage(sampleUser(chatId: .main, text: "from b later"))
 		)
-		let messages = UnionMerge.conversation([third, first, second], chatId: .main, deviceId: phoneA)
+		let messages = UnionMerge.conversation(
+			[third, first, second], chatId: .main, deviceId: phoneA)
 		#expect(messages.map(\.text) == ["from b", "from a", "from b later"])
 		#expect(messages.map(\.role) == [.user, .assistant, .user])
 	}
@@ -97,7 +99,8 @@ import Testing
 			body: .memorySection(MemorySectionBody(name: .schedule, content: "Saturdays free"))
 		)
 		#expect(UnionMerge.sectionText([earlier, later, other], name: .person) == "Ada Kovač")
-		#expect(UnionMerge.sectionText([earlier, later, other], name: .schedule) == "Saturdays free")
+		#expect(
+			UnionMerge.sectionText([earlier, later, other], name: .schedule) == "Saturdays free")
 		#expect(UnionMerge.sectionText([earlier, later, other], name: .goals) == nil)
 	}
 
@@ -107,7 +110,8 @@ import Testing
 			wall: 1,
 			date: "1998-06-13",
 			ulid: ulid(1),
-			body: .ledgerEvent(LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
+			body: .ledgerEvent(
+				LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
 		)
 		let duplicate = record(
 			device: phoneB,
@@ -137,7 +141,8 @@ import Testing
 			device: phoneA,
 			wall: 1,
 			ulid: ulid(1),
-			body: .pendingProposal(sampleProposal(chatId: .main, nonce: nonce, expiresAt: now.addingTimeInterval(600)))
+			body: .pendingProposal(
+				sampleProposal(chatId: .main, nonce: nonce, expiresAt: now.addingTimeInterval(600)))
 		)
 		#expect(UnionMerge.pendingProposal([live], chatId: .main, now: now)?.nonce == nonce)
 		let cleared = record(
@@ -164,7 +169,9 @@ import Testing
 			wall: 1,
 			ulid: ulid(1),
 			body: .planningDevice(
-				PlanningDeviceBody(planningDeviceId: phoneA, planUlid: ulid(10), activatedAt: Date(timeIntervalSince1970: 10))
+				PlanningDeviceBody(
+					planningDeviceId: phoneA, planUlid: ulid(10),
+					activatedAt: Date(timeIntervalSince1970: 10))
 			)
 		)
 		let secondDevice = record(
@@ -172,7 +179,9 @@ import Testing
 			wall: 2,
 			ulid: ulid(2),
 			body: .planningDevice(
-				PlanningDeviceBody(planningDeviceId: phoneB, planUlid: ulid(11), activatedAt: Date(timeIntervalSince1970: 20))
+				PlanningDeviceBody(
+					planningDeviceId: phoneB, planUlid: ulid(11),
+					activatedAt: Date(timeIntervalSince1970: 20))
 			)
 		)
 		#expect(UnionMerge.planningDevice([firstDevice, secondDevice])?.planningDeviceId == phoneB)
@@ -198,7 +207,9 @@ import Testing
 		for row in rows {
 			let kind = try #require(LedgerKind(rawValue: row.kind))
 			let date = try #require(CivilDate(rawValue: row.date))
-			let normalized = row.text.replacing(/^[\s]+|[\s]+$/, with: "").replacing(/\s+/, with: " ").lowercased()
+			let normalized = row.text.replacing(/^[\s]+|[\s]+$/, with: "").replacing(
+				/\s+/, with: " "
+			).lowercased()
 			let digestInput = JSONValue.array([
 				.string(row.date),
 				.string(row.kind),

@@ -10,8 +10,11 @@ package enum MemoryFlushPrompt {
 		illness, experiment outcomes); ledger entries are appended, never replaced.
 		"""
 
-	package static func userPrompt(sections: [SectionName], currentMemory: String, today: String) -> String {
-		let sectionList = sections.map { "- \"\($0.rawValue)\": \($0.sectionDescription)" }.joined(separator: "\n")
+	package static func userPrompt(sections: [SectionName], currentMemory: String, today: String)
+		-> String
+	{
+		let sectionList = sections.map { "- \"\($0.rawValue)\": \($0.sectionDescription)" }.joined(
+			separator: "\n")
 		return """
 			Review the new conversation messages above and save athlete details to
 			structured memory sections. The current memory is shown below; write each
@@ -77,7 +80,8 @@ package enum MemoryFlushPrompt {
 						]),
 						"content": .object([
 							"type": .string("string"),
-							"description": .string("Complete section content — include ALL facts for this section"),
+							"description": .string(
+								"Complete section content — include ALL facts for this section"),
 						]),
 					]),
 					"required": .array([.string("section"), .string("content")]),
@@ -101,7 +105,8 @@ package enum MemoryFlushPrompt {
 						]),
 						"text": .object([
 							"type": .string("string"),
-							"description": .string("One or two sentences, with rationale or outcome when stated"),
+							"description": .string(
+								"One or two sentences, with rationale or outcome when stated"),
 						]),
 					]),
 					"required": .array([.string("date"), .string("kind"), .string("text")]),

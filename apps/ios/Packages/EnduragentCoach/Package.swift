@@ -9,7 +9,7 @@ let package = Package(
 		.macOS(.v15),
 	],
 	products: [
-		.library(name: "EnduragentCoach", targets: ["EnduragentCoach"]),
+		.library(name: "EnduragentCoach", targets: ["EnduragentCoach"])
 	],
 	targets: [
 		.target(

@@ -490,19 +490,23 @@ extension BodyEnvelope {
 			)
 		case .windowStart(let value):
 			self = .windowStart(
-				WindowStartPayload(chatId: value.chatId.rawValue, firstIncludedUlid: value.firstIncludedUlid.rawValue)
+				WindowStartPayload(
+					chatId: value.chatId.rawValue,
+					firstIncludedUlid: value.firstIncludedUlid.rawValue)
 			)
 		case .compactionSummary(let value):
 			self = .compactionSummary(
 				CompactionSummaryPayload(chatId: value.chatId.rawValue, markdown: value.markdown)
 			)
 		case .memorySection(let value):
-			self = .memorySection(MemorySectionPayload(name: value.name.rawValue, content: value.content))
+			self = .memorySection(
+				MemorySectionPayload(name: value.name.rawValue, content: value.content))
 		case .dailyNote(let value):
 			self = .dailyNote(DailyNotePayload(note: value.note))
 		case .ledgerEvent(let value):
 			self = .ledgerEvent(
-				LedgerEventPayload(kind: value.kind.rawValue, text: value.text, source: value.source.rawValue)
+				LedgerEventPayload(
+					kind: value.kind.rawValue, text: value.text, source: value.source.rawValue)
 			)
 		case .journal(let value):
 			self = .journal(JournalPayload(op: value.op.rawValue, preview: value.preview))
@@ -623,20 +627,26 @@ extension BodyEnvelope {
 			)
 		case .windowStart(let payload):
 			return .windowStart(
-				WindowStartBody(chatId: try decodeChatID(payload.chatId), firstIncludedUlid: try decodeULID(payload.firstIncludedUlid))
+				WindowStartBody(
+					chatId: try decodeChatID(payload.chatId),
+					firstIncludedUlid: try decodeULID(payload.firstIncludedUlid))
 			)
 		case .compactionSummary(let payload):
 			return .compactionSummary(
-				CompactionSummaryBody(chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
+				CompactionSummaryBody(
+					chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
 			)
 		case .memorySection(let payload):
 			return .memorySection(
-				MemorySectionBody(name: SectionName(rawValue: payload.name), content: payload.content)
+				MemorySectionBody(
+					name: SectionName(rawValue: payload.name), content: payload.content)
 			)
 		case .dailyNote(let payload):
 			return .dailyNote(DailyNoteBody(note: payload.note))
 		case .ledgerEvent(let payload):
-			guard let kind = LedgerKind(rawValue: payload.kind), let source = LedgerSource(rawValue: payload.source) else {
+			guard let kind = LedgerKind(rawValue: payload.kind),
+				let source = LedgerSource(rawValue: payload.source)
+			else {
 				throw RecordDecodeFailure(reason: "ledger")
 			}
 			return .ledgerEvent(LedgerEventBody(kind: kind, text: payload.text, source: source))
@@ -713,7 +723,7 @@ extension BodyEnvelope {
 			)
 		case .planningCommand(let payload):
 			guard let name = PlanningCommandName(rawValue: payload.commandName),
-				  let status = PlanningCommandStatus(rawValue: payload.status)
+				let status = PlanningCommandStatus(rawValue: payload.status)
 			else {
 				throw RecordDecodeFailure(reason: "planningCommand")
 			}
@@ -740,8 +750,8 @@ extension BodyEnvelope {
 			)
 		case .mirrorJob(let payload):
 			guard let kind = MirrorJobKind(rawValue: payload.kind),
-				  let windowStart = DateKey(rawValue: payload.windowStart),
-				  let windowEnd = DateKey(rawValue: payload.windowEnd)
+				let windowStart = DateKey(rawValue: payload.windowStart),
+				let windowEnd = DateKey(rawValue: payload.windowEnd)
 			else {
 				throw RecordDecodeFailure(reason: "mirror")
 			}
@@ -807,7 +817,8 @@ extension GatedToolInputPayload {
 		case .createWorkout(let date, let workout):
 			return .createWorkout(date: try decodeCivilDate(date), workout: try workout.workout())
 		case .createStrengthWorkout(let date, let name, let description):
-			return .createStrengthWorkout(date: try decodeCivilDate(date), name: name, description: description)
+			return .createStrengthWorkout(
+				date: try decodeCivilDate(date), name: name, description: description)
 		case .deleteWorkout(let eventId):
 			return .deleteWorkout(eventId: EventID(rawValue: eventId))
 		case .updateWorkout(let eventId, let date, let name, let description):
@@ -830,7 +841,9 @@ extension GatedToolInputPayload {
 				parsedStatus = nil
 			}
 			return .planSave(
-				PlanHeadline(name: name, primaryGoal: primaryGoal, totalWeeks: totalWeeks, status: parsedStatus)
+				PlanHeadline(
+					name: name, primaryGoal: primaryGoal, totalWeeks: totalWeeks,
+					status: parsedStatus)
 			)
 		}
 	}
@@ -870,7 +883,8 @@ extension SimpleStepPayload {
 	init(_ step: SimpleStep) {
 		self.init(
 			type: step.type.rawValue,
-			duration: DurationPayload(value: step.duration.value, unit: step.duration.unit.rawValue),
+			duration: DurationPayload(
+				value: step.duration.value, unit: step.duration.unit.rawValue),
 			power: step.power.map {
 				PowerPayload(kind: $0.kind.rawValue, value: $0.value, low: $0.low, high: $0.high)
 			},
@@ -882,7 +896,9 @@ extension SimpleStepPayload {
 	}
 
 	func simpleStep() throws -> SimpleStep {
-		guard let type = StepType(rawValue: type), let unit = DurationInput.Unit(rawValue: duration.unit) else {
+		guard let type = StepType(rawValue: type),
+			let unit = DurationInput.Unit(rawValue: duration.unit)
+		else {
 			throw RecordDecodeFailure(reason: "step")
 		}
 		let power: PowerTarget?
@@ -890,7 +906,8 @@ extension SimpleStepPayload {
 			guard let kind = PowerKind(rawValue: payload.kind) else {
 				throw RecordDecodeFailure(reason: "power")
 			}
-			power = PowerTarget(kind: kind, value: payload.value, low: payload.low, high: payload.high)
+			power = PowerTarget(
+				kind: kind, value: payload.value, low: payload.low, high: payload.high)
 		} else {
 			power = nil
 		}
@@ -914,7 +931,9 @@ extension SetStepPayload {
 	}
 
 	func setStep() throws -> SetStep {
-		SetStep(repeatCount: repeatCount, interval: try interval.simpleStep(), recovery: try recovery.simpleStep())
+		SetStep(
+			repeatCount: repeatCount, interval: try interval.simpleStep(),
+			recovery: try recovery.simpleStep())
 	}
 }
 
@@ -949,9 +968,11 @@ private func decodeSlash(_ raw: String) throws -> SlashCommand {
 extension RecordKind: CaseIterable {
 	public static var allCases: [RecordKind] {
 		[
-			.userMessage, .assistantMessage, .windowStart, .compactionSummary, .memorySection, .dailyNote,
+			.userMessage, .assistantMessage, .windowStart, .compactionSummary, .memorySection,
+			.dailyNote,
 			.ledgerEvent, .journal, .provenance, .pendingProposal, .proposalCleared, .flushPending,
-			.coachReplyLanguage, .planningDevice, .planningCommand, .planRevision, .mirrorJob, .workoutMatch,
+			.coachReplyLanguage, .planningDevice, .planningCommand, .planRevision, .mirrorJob,
+			.workoutMatch,
 			.workoutDrift,
 		]
 	}
@@ -968,7 +989,8 @@ public enum RecordLogSamples {
 				chatId: .main,
 				nonce: Nonce(),
 				tool: .intervalsCreateStrengthWorkout,
-				toolInput: .createStrengthWorkout(date: "1998-06-13", name: "Core", description: "20 min"),
+				toolInput: .createStrengthWorkout(
+					date: "1998-06-13", name: "Core", description: "20 min"),
 				summary: "Core session",
 				description: "Core · 20 min",
 				expiresAt: expiresAt
@@ -981,7 +1003,8 @@ public enum RecordLogSamples {
 			ulid: ULID.generate(at: now),
 			deviceId: deviceId,
 			hlc: HybridLogicalClock.tick(now: now, deviceId: deviceId, last: nil),
-			timeZone: IANATimeZone(identifier: TimeZone.current.identifier) ?? IANATimeZone(identifier: "GMT")!,
+			timeZone: IANATimeZone(identifier: TimeZone.current.identifier) ?? IANATimeZone(
+				identifier: "GMT")!,
 			civilDate: sampleCivilDate(now),
 			body: body
 		)

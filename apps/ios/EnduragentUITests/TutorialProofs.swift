@@ -89,9 +89,12 @@ final class CreditsProof: XCTestCase {
 		let balance = TutorialHarness.named(app, "credits.balance")
 		TutorialHarness.wait(balance)
 		XCTAssertEqual(balance.label, "200 credits")
-		XCTAssertEqual(TutorialHarness.named(app, "credits.note").label, "Testers cannot buy packs yet.")
-		XCTAssertTrue(TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.small").exists)
-		XCTAssertTrue(TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.large").exists)
+		XCTAssertEqual(
+			TutorialHarness.named(app, "credits.note").label, "Testers cannot buy packs yet.")
+		XCTAssertTrue(
+			TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.small").exists)
+		XCTAssertTrue(
+			TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.large").exists)
 		TutorialHarness.attach(self, name: "06-credits", app: app)
 	}
 }
@@ -150,7 +153,9 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.history").tap()
-		let row = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "history.row.")).firstMatch
+		let row = app.descendants(matching: .any).matching(
+			NSPredicate(format: "identifier BEGINSWITH %@", "history.row.")
+		).firstMatch
 		TutorialHarness.wait(row)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, "1998-06-15")

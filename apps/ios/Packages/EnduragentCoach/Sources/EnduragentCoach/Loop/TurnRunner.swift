@@ -128,7 +128,9 @@ package struct TurnRunner: Sendable {
 		var transcript = try await loadTranscript(chatId: chatId)
 		if shouldDailyReset(last: transcript.lastDate) {
 			try await writer.append(
-				.flushPending(FlushPendingBody(chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
+				.flushPending(
+					FlushPendingBody(
+						chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
 			)
 			let marker = ULID.generate(at: clock.now)
 			try await writer.append(
@@ -139,12 +141,14 @@ package struct TurnRunner: Sendable {
 
 		let memory = Memory(store: store, clock: clock)
 		let context = (try? await memory.context()) ?? ""
-		let view = (try? await memory.view()) ?? MemoryView(
-			sections: [:],
-			todayNotes: nil,
-			planHeadline: nil,
-			orphanNames: []
-		)
+		let view =
+			(try? await memory.view())
+			?? MemoryView(
+				sections: [:],
+				todayNotes: nil,
+				planHeadline: nil,
+				orphanNames: []
+			)
 		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = await loadSnapshot()
@@ -170,7 +174,8 @@ package struct TurnRunner: Sendable {
 				)
 			}
 			try await writer.append(
-				.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped)))
+				.compactionSummary(
+					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped)))
 			)
 			try? await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
 		}
@@ -214,7 +219,8 @@ package struct TurnRunner: Sendable {
 			if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
 				try await writer.append(
 					.flushPending(
-						FlushPendingBody(chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
+						FlushPendingBody(
+							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
 					)
 				)
 				emit(.interrupted(text: streamed))
@@ -241,7 +247,9 @@ package struct TurnRunner: Sendable {
 				if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
 					try await writer.append(
 						.flushPending(
-							FlushPendingBody(chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
+							FlushPendingBody(
+								chatId: chatId, trigger: .softThreshold,
+								messageUlids: transcript.ulids)
 						)
 					)
 					emit(.interrupted(text: streamed))
@@ -253,7 +261,9 @@ package struct TurnRunner: Sendable {
 					TurnPolicy.chatCallDeadline,
 					budget.remaining(until: ContinuousClock().now)
 				)
-				var messages = [WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)]
+				var messages = [
+					WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
+				]
 				messages.append(contentsOf: wire)
 				let request = CompletionRequest.openRouter(
 					messages: messages,
@@ -264,7 +274,10 @@ package struct TurnRunner: Sendable {
 				do {
 					step = try await generateStep(request: request, emit: emit, streamed: &streamed)
 				} catch let timeout as WatchdogTimeout {
-					emit(.failed(message: timeout == .ttft ? "CHAT_TTFT_TIMEOUT" : "CHAT_INTER_CHUNK_TIMEOUT"))
+					emit(
+						.failed(
+							message: timeout == .ttft
+								? "CHAT_TTFT_TIMEOUT" : "CHAT_INTER_CHUNK_TIMEOUT"))
 					return
 				}
 
@@ -283,8 +296,8 @@ package struct TurnRunner: Sendable {
 				}
 
 				if step.toolCalls.isEmpty {
-					if (step.reason == .error || step.reason == .contentFilter),
-					   step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+					if step.reason == .error || step.reason == .contentFilter,
+						step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 					{
 						emit(.failed(message: "CHAT_PROVIDER_ERROR"))
 						return
@@ -296,10 +309,13 @@ package struct TurnRunner: Sendable {
 				let watchdogPause = ChatWatchdog()
 				await watchdogPause.pauseForTools(ids)
 				wire.append(
-					WireMessage(role: .assistant, content: step.text, toolCalls: step.toolCalls, toolCallId: nil)
+					WireMessage(
+						role: .assistant, content: step.text, toolCalls: step.toolCalls,
+						toolCallId: nil)
 				)
 
-				let outcomes = try await runTools(step.toolCalls, chatId: chatId, state: state, emit: emit)
+				let outcomes = try await runTools(
+					step.toolCalls, chatId: chatId, state: state, emit: emit)
 				for (call, outcome) in outcomes {
 					if case .pending(let proposal) = outcome {
 						pendingProposal = proposal
@@ -324,20 +340,21 @@ package struct TurnRunner: Sendable {
 
 			var assistantText = lastText
 			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-			   lastReason == .toolCalls || lastReason == .length
+				lastReason == .toolCalls || lastReason == .length
 			{
 				try budget.chargeGenerate()
 				let recovery = try await generateStep(
 					request: CompletionRequest.openRouter(
 						messages: [
-							WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil),
+							WireMessage(
+								role: .system, content: system, toolCalls: [], toolCallId: nil)
 						] + wire + [
 							WireMessage(
 								role: .user,
 								content: PromptStaticBlocks.recoveryPrompt,
 								toolCalls: [],
 								toolCallId: nil
-							),
+							)
 						],
 						tools: [],
 						deadline: minDuration(
@@ -356,11 +373,14 @@ package struct TurnRunner: Sendable {
 			}
 
 			if !assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				let templateHash = sha256Hex(prefix + schemas.map(\.name.rawValue).joined() + CompletionRequest.openRouterModel)
+				let templateHash = sha256Hex(
+					prefix + schemas.map(\.name.rawValue).joined()
+						+ CompletionRequest.openRouterModel)
 				let assembledHash = sha256Hex(system + timed + assistantText)
 				try await writer.append(
 					.userMessage(
-						UserMessageBody(chatId: chatId, athleteText: text, timedText: timed, slash: slash)
+						UserMessageBody(
+							chatId: chatId, athleteText: text, timedText: timed, slash: slash)
 					)
 				)
 				try await writer.append(
@@ -377,7 +397,10 @@ package struct TurnRunner: Sendable {
 
 			if shouldFlush {
 				try await writer.append(
-					.flushPending(FlushPendingBody(chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids))
+					.flushPending(
+						FlushPendingBody(
+							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
+					)
 				)
 			}
 
@@ -473,7 +496,8 @@ package struct TurnRunner: Sendable {
 			for (index, call) in calls.enumerated() {
 				group.addTask {
 					emit(.toolStarted(name: call.name.rawValue, callId: call.id))
-					let arguments = (try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
+					let arguments =
+						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
 					let outcome = try await self.tools.execute(
 						name: call.name,
 						arguments: arguments,
@@ -505,7 +529,8 @@ package struct TurnRunner: Sendable {
 			messages: [
 				WireMessage(
 					role: .system,
-					content: "Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions.",
+					content:
+						"Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions.",
 					toolCalls: [],
 					toolCallId: nil
 				),
@@ -522,9 +547,11 @@ package struct TurnRunner: Sendable {
 		var unused = ""
 		let summary: String
 		do {
-			summary = try await generateStep(request: request, emit: { _ in }, streamed: &unused).text
+			summary = try await generateStep(request: request, emit: { _ in }, streamed: &unused)
+				.text
 		} catch {
-			summary = compactionStub(dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
+			summary = compactionStub(
+				dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
 		}
 		if let first = keep.first {
 			try await writer.append(
@@ -546,7 +573,7 @@ package struct TurnRunner: Sendable {
 				content: "[Previous conversation summary]\n\(summary)",
 				toolCalls: [],
 				toolCallId: nil
-			),
+			)
 		]
 		next.append(contentsOf: keep)
 		wire = next
@@ -566,7 +593,9 @@ package struct TurnRunner: Sendable {
 
 	private func loadTranscript(chatId: ChatID) async throws -> Transcript {
 		let records = try await store.fetch(
-			RecordQuery(kinds: [.userMessage, .assistantMessage, .windowStart, .compactionSummary], chatId: chatId)
+			RecordQuery(
+				kinds: [.userMessage, .assistantMessage, .windowStart, .compactionSummary],
+				chatId: chatId)
 		)
 		let ordered = records.sorted { $0.hlc < $1.hlc }
 		let start = ordered.reversed().compactMap { record -> ULID? in
@@ -582,11 +611,13 @@ package struct TurnRunner: Sendable {
 			}
 			switch record.body {
 			case .userMessage(let body):
-				messages.append(ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
+				messages.append(
+					ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
 				ulids.append(record.ulid)
 				lastDate = Date(timeIntervalSince1970: Double(record.hlc.wallMs) / 1000)
 			case .assistantMessage(let body):
-				messages.append(ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
+				messages.append(
+					ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
 				ulids.append(record.ulid)
 				lastDate = Date(timeIntervalSince1970: Double(record.hlc.wallMs) / 1000)
 			default:
@@ -598,7 +629,8 @@ package struct TurnRunner: Sendable {
 
 	private func shouldDailyReset(last: Date?) -> Bool {
 		guard let last else { return false }
-		let resetAt = dailyResetDate(now: clock.now, timeZone: clock.timeZone, hour: TurnPolicy.dailyResetHour)
+		let resetAt = dailyResetDate(
+			now: clock.now, timeZone: clock.timeZone, hour: TurnPolicy.dailyResetHour)
 		guard last < resetAt else { return false }
 		let grace = durationSeconds(TurnPolicy.dailyResetGrace)
 		if clock.now.timeIntervalSince(last) < grace {
@@ -639,7 +671,8 @@ private struct RecordWriter {
 	mutating func refreshClock() async throws {
 		let synced = try await store.fetch(
 			RecordQuery(kinds: [
-				.userMessage, .assistantMessage, .windowStart, .compactionSummary, .coachReplyLanguage,
+				.userMessage, .assistantMessage, .windowStart, .compactionSummary,
+				.coachReplyLanguage,
 			])
 		)
 		let local = try await store.fetch(
@@ -652,7 +685,8 @@ private struct RecordWriter {
 	}
 
 	mutating func append(_ body: RecordBody) async throws {
-		let tz = IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+		let tz =
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,

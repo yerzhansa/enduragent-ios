@@ -45,7 +45,8 @@ package enum ProposalPolicy {
 		clock: any Clock
 	) async throws -> PendingProposal {
 		let records = try await store.fetch(
-			RecordQuery(kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
+			RecordQuery(
+				kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
 		)
 		var last = records.map(\.hlc).max()
 		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
@@ -87,7 +88,8 @@ package enum ProposalPolicy {
 		run: @Sendable (GatedToolInput) async throws -> JSONValue
 	) async throws -> ProposalLookup {
 		let records = try await store.fetch(
-			RecordQuery(kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
+			RecordQuery(
+				kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
 		)
 		let now = clock.now
 		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
@@ -141,7 +143,8 @@ package enum ProposalPolicy {
 		}
 	}
 
-	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody? {
+	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?
+	{
 		let ordered = records.sorted { $0.hlc < $1.hlc }
 		var cleared: Set<Nonce> = []
 		for record in ordered {
@@ -150,7 +153,9 @@ package enum ProposalPolicy {
 			}
 		}
 		for record in ordered.reversed() {
-			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else { continue }
+			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else {
+				continue
+			}
 			if cleared.contains(body.nonce) { continue }
 			return body
 		}
@@ -163,7 +168,8 @@ package enum ProposalPolicy {
 		clock: any Clock,
 		last: inout HybridLogicalClock?
 	) async throws {
-		let tz = IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+		let tz =
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,

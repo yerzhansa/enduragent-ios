@@ -31,7 +31,8 @@ public actor Coach {
 		self.memory = Memory(store: store, clock: clock)
 		let planning = Planning(store: store, intervals: intervals, clock: clock)
 		self.planning = planning
-		let tools = ToolRuntime(intervals: intervals, store: store, planning: planning, clock: clock)
+		let tools = ToolRuntime(
+			intervals: intervals, store: store, planning: planning, clock: clock)
 		self.tools = tools
 		self.runner = TurnRunner(
 			transport: transport,
@@ -44,7 +45,9 @@ public actor Coach {
 		self.mailboxes = [:]
 	}
 
-	public nonisolated func send(_ text: String, chatId: ChatID) -> AsyncThrowingStream<CoachEvent, Error> {
+	public nonisolated func send(_ text: String, chatId: ChatID) -> AsyncThrowingStream<
+		CoachEvent, Error
+	> {
 		AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
@@ -69,10 +72,14 @@ public actor Coach {
 	}
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
-		let records = (try? await store.fetch(
-			RecordQuery(kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
-		)) ?? []
-		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now) else {
+		let records =
+			(try? await store.fetch(
+				RecordQuery(
+					kinds: [.pendingProposal, .proposalCleared], chatId: chatId,
+					deviceLocalOnly: true)
+			)) ?? []
+		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
+		else {
 			return nil
 		}
 		return PendingProposal(
@@ -120,7 +127,8 @@ public actor Coach {
 
 	public func setCoachReplyLanguage(_ tag: LanguageTag?) async {
 		language.coachReply = tag
-		let tz = IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+		let tz =
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,
@@ -166,7 +174,9 @@ public actor Coach {
 		)
 	}
 
-	private func streamFromMailbox(_ text: String, chatId: ChatID) async -> AsyncThrowingStream<CoachEvent, Error> {
+	private func streamFromMailbox(_ text: String, chatId: ChatID) async -> AsyncThrowingStream<
+		CoachEvent, Error
+	> {
 		await mailbox(for: chatId).send(text, language: language)
 	}
 
@@ -202,9 +212,11 @@ public actor Coach {
 			}
 			switch record.body {
 			case .userMessage(let body):
-				messages.append(ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
+				messages.append(
+					ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
 			case .assistantMessage(let body):
-				messages.append(ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
+				messages.append(
+					ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
 			default:
 				break
 			}

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct TurnRunnerTests {
@@ -9,7 +10,9 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func tenthStepRunsToolsThenStops() async throws {
-		intervals.activities = [.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)]
+		intervals.activities = [
+			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
+		]
 		var script: [ScriptedEvent] = []
 		for _ in 0..<10 {
 			script.append(.text("."))
@@ -27,11 +30,14 @@ import Testing
 	}
 
 	@Test func overflowLengthCompactsAndRetries() async throws {
-		transport.finishUsage = Usage(inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
+		transport.finishUsage = Usage(
+			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
 		transport.script = [
 			.text("truncated"),
 			.finish(reason: .length),
-			.text("## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"),
+			.text(
+				"## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"
+			),
 			.finish(reason: .stop),
 			.text("after compact"),
 			.finish(reason: .stop),
@@ -43,7 +49,8 @@ import Testing
 		}
 		#expect(text.contains("after compact") || text.contains("truncated"))
 		#expect(transport.requests.count >= 2)
-		let records = try await store.fetch(RecordQuery(kinds: [.compactionSummary, .windowStart], chatId: "main"))
+		let records = try await store.fetch(
+			RecordQuery(kinds: [.compactionSummary, .windowStart], chatId: "main"))
 		#expect(!records.isEmpty)
 	}
 
@@ -57,7 +64,8 @@ import Testing
 		}
 		#expect(interrupted != nil)
 		#expect(transport.requests.isEmpty)
-		let pending = try await store.fetch(RecordQuery(kinds: [.flushPending], chatId: "main", deviceLocalOnly: true))
+		let pending = try await store.fetch(
+			RecordQuery(kinds: [.flushPending], chatId: "main", deviceLocalOnly: true))
 		#expect(!pending.isEmpty)
 	}
 

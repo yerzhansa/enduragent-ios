@@ -1,4 +1,5 @@
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct ViewSeamTurnTests {

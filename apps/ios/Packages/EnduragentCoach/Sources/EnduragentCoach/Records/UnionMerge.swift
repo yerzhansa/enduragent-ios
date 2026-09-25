@@ -54,8 +54,11 @@ package enum UnionMerge {
 	}
 
 	package static func ledgerDigest(date: CivilDate, kind: LedgerKind, text: String) -> String {
-		let normalized = text.replacing(/^[\s]+|[\s]+$/, with: "").replacing(/\s+/, with: " ").lowercased()
-		let input = JSONValue.array([.string(date.rawValue), .string(kind.rawValue), .string(normalized)]).canonicalDigestInput()
+		let normalized = text.replacing(/^[\s]+|[\s]+$/, with: "").replacing(/\s+/, with: " ")
+			.lowercased()
+		let input = JSONValue.array([
+			.string(date.rawValue), .string(kind.rawValue), .string(normalized),
+		]).canonicalDigestInput()
 		return sha256Hex(input)
 	}
 
@@ -88,7 +91,9 @@ package enum UnionMerge {
 			}
 		}
 		for record in ordered.reversed() {
-			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else { continue }
+			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else {
+				continue
+			}
 			if body.expiresAt <= now { continue }
 			if let cleared = clearedAt[body.nonce], record.hlc < cleared { continue }
 			return body

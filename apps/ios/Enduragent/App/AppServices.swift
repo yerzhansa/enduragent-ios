@@ -23,7 +23,8 @@ enum CivilDates {
 		calendar.locale = Locale(identifier: "en_US_POSIX")
 		calendar.timeZone = clock.timeZone
 		let parts = calendar.dateComponents([.year, .month, .day], from: clock.now)
-		return CivilDate(rawValue: String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!))!
+		return CivilDate(
+			rawValue: String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!))!
 	}
 }
 
@@ -85,11 +86,12 @@ struct AppServices: Sendable {
 	static func live(language: LanguageTag) throws -> AppServices {
 		let secrets = ICloudKeychainStore()
 		let clock = SystemClock()
-		let intervals: any IntervalsClient = if let credential = try secrets.intervalsCredential() {
-			IntervalsRESTClient(credential: credential, clock: clock)
-		} else {
-			UnconnectedIntervalsClient()
-		}
+		let intervals: any IntervalsClient =
+			if let credential = try secrets.intervalsCredential() {
+				IntervalsRESTClient(credential: credential, clock: clock)
+			} else {
+				UnconnectedIntervalsClient()
+			}
 		let key = try secrets.openRouterKey() ?? ""
 		let transport = OpenRouterTransport(apiKey: key)
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
@@ -183,7 +185,8 @@ final class ServicesBuilder {
 		self.phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let secrets = ICloudKeychainStore()
 		self.secrets = secrets
-		self.credits = PhoneCreditsClient(secrets: secrets, workerBase: AppServices.creditsWorkerBase)
+		self.credits = PhoneCreditsClient(
+			secrets: secrets, workerBase: AppServices.creditsWorkerBase)
 		self.deviceCheck = DeviceCheckTokenProvider()
 		self.clock = SystemClock()
 		self.isFixture = false
@@ -191,7 +194,9 @@ final class ServicesBuilder {
 		self.services = nil
 	}
 
-	func connectIntervals(apiKey: String) async throws -> (athlete: AthleteProfile, wellness: WellnessDay?) {
+	func connectIntervals(apiKey: String) async throws -> (
+		athlete: AthleteProfile, wellness: WellnessDay?
+	) {
 		if apiKey.isEmpty {
 			throw ConnectFailure.emptyKey
 		}
@@ -225,7 +230,9 @@ final class ServicesBuilder {
 		return built
 	}
 
-	private func fetchConnectedProfile() async throws -> (athlete: AthleteProfile, wellness: WellnessDay?) {
+	private func fetchConnectedProfile() async throws -> (
+		athlete: AthleteProfile, wellness: WellnessDay?
+	) {
 		do {
 			let athlete = try await intervals.fetchAthlete()
 			let today = CivilDates.today(clock: clock)

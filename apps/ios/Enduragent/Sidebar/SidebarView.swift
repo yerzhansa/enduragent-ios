@@ -14,10 +14,10 @@ struct SidebarView: View {
 			}
 			.accessibilityIdentifier("sidebar.history")
 			#if DEBUG
-			NavigationLink("Debug") {
-				DebugMenuView(model: model)
-			}
-			.accessibilityIdentifier("sidebar.debug")
+				NavigationLink("Debug") {
+					DebugMenuView(model: model)
+				}
+				.accessibilityIdentifier("sidebar.debug")
 			#endif
 		}
 		.navigationTitle("Menu")
@@ -25,23 +25,23 @@ struct SidebarView: View {
 }
 
 #if DEBUG
-struct DebugMenuView: View {
-	var model: ShellModel
+	struct DebugMenuView: View {
+		var model: ShellModel
 
-	var body: some View {
-		List {
-			NavigationLink("Credits") {
-				CreditsDebugView()
+		var body: some View {
+			List {
+				NavigationLink("Credits") {
+					CreditsDebugView()
+				}
+				NavigationLink("Records") {
+					RecordSyncDebugView()
+				}
+				if model.builder.isFixture {
+					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
+						.accessibilityIdentifier("fixture.requestCount")
+				}
 			}
-			NavigationLink("Records") {
-				RecordSyncDebugView()
-			}
-			if model.builder.isFixture {
-				Text("\(FixtureBlockingURLProtocol.requestCount) requests")
-					.accessibilityIdentifier("fixture.requestCount")
-			}
+			.navigationTitle("Debug")
 		}
-		.navigationTitle("Debug")
 	}
-}
 #endif

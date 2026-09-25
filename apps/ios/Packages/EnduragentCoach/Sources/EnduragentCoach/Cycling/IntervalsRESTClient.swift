@@ -6,7 +6,10 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let athletePath: String
 	private let clock: any Clock
 
-	public init(credential: IntervalsCredential, session: URLSession? = nil, clock: any Clock = SystemClock()) {
+	public init(
+		credential: IntervalsCredential, session: URLSession? = nil,
+		clock: any Clock = SystemClock()
+	) {
 		self.credential = credential
 		self.athletePath = IntervalsPolicy.athletePath
 		self.clock = clock
@@ -43,7 +46,9 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return rows.map(WellnessDay.init(json:))
 	}
 
-	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
+	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
+		-> [ActivitySummary]
+	{
 		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 		let json = try await getJSON(
 			path: ["athlete", athletePath, "activities"],
@@ -63,7 +68,8 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		let json = try await getJSON(
 			path: ["activity", id.rawValue, "streams.json"],
 			query: [
-				URLQueryItem(name: "types", value: IntervalsPolicy.defaultStreamTypes.joined(separator: ",")),
+				URLQueryItem(
+					name: "types", value: IntervalsPolicy.defaultStreamTypes.joined(separator: ","))
 			]
 		)
 		return IntervalsStreamSummary.summarize(json)
@@ -75,9 +81,10 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 			URLQueryItem(name: "oldest", value: oldest.rawValue),
 			URLQueryItem(name: "newest", value: newest.rawValue),
 		]
-		query.append(contentsOf: IntervalsPolicy.eventCategories.map {
-			URLQueryItem(name: "category", value: $0)
-		})
+		query.append(
+			contentsOf: IntervalsPolicy.eventCategories.map {
+				URLQueryItem(name: "category", value: $0)
+			})
 		let json = try await getJSON(path: ["athlete", athletePath, "events"], query: query)
 		return (json.arrayValue ?? []).compactMap(Self.calendarEvent(from:))
 	}
@@ -90,17 +97,21 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 			body: IntervalsPolicy.chatCreateBody(draft)
 		)
 		guard let event = Self.calendarEvent(from: json) else {
-			throw IntervalsError(code: "invalid_json", details: "create event response was not an event")
+			throw IntervalsError(
+				code: "invalid_json", details: "create event response was not an event")
 		}
 		return event
 	}
 
 	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
 		_ = draft
-		throw IntervalsError(code: "not_implemented", details: "Plan mirror writes are not available.")
+		throw IntervalsError(
+			code: "not_implemented", details: "Plan mirror writes are not available.")
 	}
 
-	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?) async throws -> CalendarEvent {
+	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+		async throws -> CalendarEvent
+	{
 		let existing = try await fetchEvent(id: id)
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		try IntervalsPolicy.refuseMutableEvent(
@@ -126,7 +137,8 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 			body: .object(fields)
 		)
 		guard let event = Self.calendarEvent(from: json) else {
-			throw IntervalsError(code: "invalid_json", details: "update event response was not an event")
+			throw IntervalsError(
+				code: "invalid_json", details: "update event response was not an event")
 		}
 		return event
 	}
@@ -160,7 +172,8 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private func fetchEvent(id: EventID) async throws -> CalendarEvent {
 		let json = try await getJSON(path: ["athlete", athletePath, "events", String(id.rawValue)])
 		guard let event = Self.calendarEvent(from: json) else {
-			throw IntervalsError(code: "invalid_json", details: "event \(id.rawValue) was not an event")
+			throw IntervalsError(
+				code: "invalid_json", details: "event \(id.rawValue) was not an event")
 		}
 		return event
 	}
@@ -213,7 +226,8 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 			throw IntervalsError(code: "network", details: "missing http response")
 		}
 		guard (200..<300).contains(http.statusCode) else {
-			throw IntervalsError(code: "http", details: "status \(http.statusCode)", status: http.statusCode)
+			throw IntervalsError(
+				code: "http", details: "status \(http.statusCode)", status: http.statusCode)
 		}
 		return data
 	}
@@ -233,7 +247,9 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		let fields = json.objectFields
 		guard let name = fields["name"]?.stringValue else { return nil }
 		let local = fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue
-		guard let local, let date = CivilDate(rawValue: String(local.prefix(10))) else { return nil }
+		guard let local, let date = CivilDate(rawValue: String(local.prefix(10))) else {
+			return nil
+		}
 		let duration = fields["moving_time"]?.intValue() ?? fields["movingTime"]?.intValue() ?? 0
 		let load = fields["icu_training_load"]?.intValue() ?? fields["icuTrainingLoad"]?.intValue()
 		return ActivitySummary(name: name, date: date, durationS: duration, trainingLoad: load)
@@ -242,7 +258,8 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private static func calendarEvent(from json: JSONValue) -> CalendarEvent? {
 		let fields = json.objectFields
 		guard let id = fields["id"]?.intValue() else { return nil }
-		let start = fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue ?? ""
+		let start =
+			fields["start_date_local"]?.stringValue ?? fields["startDateLocal"]?.stringValue ?? ""
 		let name = fields["name"]?.stringValue ?? ""
 		let category = fields["category"]?.stringValue ?? ""
 		let externalId = fields["external_id"]?.stringValue ?? fields["externalId"]?.stringValue
@@ -283,7 +300,8 @@ package enum IntervalsStreamSummary {
 			var out: [(String, [JSONValue])] = []
 			for element in items {
 				let fields = element.objectFields
-				guard let type = fields["type"]?.stringValue, let data = fields["data"]?.arrayValue else {
+				guard let type = fields["type"]?.stringValue, let data = fields["data"]?.arrayValue
+				else {
 					continue
 				}
 				out.append((type, data))

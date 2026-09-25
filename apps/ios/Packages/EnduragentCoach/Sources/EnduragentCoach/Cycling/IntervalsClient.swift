@@ -143,7 +143,9 @@ public struct ActivitySummary: Sendable, Equatable {
 	public var durationS: Int
 	public var trainingLoad: Int?
 
-	public static func ride(name: String, date: String, durationS: Int, trainingLoad: Int) -> ActivitySummary {
+	public static func ride(name: String, date: String, durationS: Int, trainingLoad: Int)
+		-> ActivitySummary
+	{
 		ActivitySummary(
 			name: name,
 			date: CivilDate(stringLiteral: date),
@@ -196,7 +198,8 @@ public protocol IntervalsClient: Sendable {
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
 	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?) async throws -> CalendarEvent
+	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+		async throws -> CalendarEvent
 	func deleteEvent(id: EventID) async throws
 }
 
@@ -278,7 +281,8 @@ public enum IntervalsPolicy {
 		if days > listMaxRangeDays {
 			throw IntervalsError(
 				code: "range_too_wide",
-				details: "Range is \(days) days; the maximum is \(listMaxRangeDays). Fetch the range in chunks of at most \(listMaxRangeDays) days."
+				details:
+					"Range is \(days) days; the maximum is \(listMaxRangeDays). Fetch the range in chunks of at most \(listMaxRangeDays) days."
 			)
 		}
 	}
@@ -293,7 +297,8 @@ public enum IntervalsPolicy {
 		if date < today {
 			throw IntervalsError(
 				code: "past_date_refused",
-				details: "Cannot create a workout dated \(date.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."
+				details:
+					"Cannot create a workout dated \(date.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."
 			)
 		}
 	}
@@ -309,34 +314,40 @@ public enum IntervalsPolicy {
 		if event.category != "WORKOUT" {
 			throw IntervalsError(
 				code: "not_a_workout",
-				details: "Event \(eventId.rawValue) is category \(event.category.isEmpty ? "unknown" : event.category), not a scheduled workout. Races, notes, plans, and other calendar entries cannot be \(verb) by the coach."
+				details:
+					"Event \(eventId.rawValue) is category \(event.category.isEmpty ? "unknown" : event.category), not a scheduled workout. Races, notes, plans, and other calendar entries cannot be \(verb) by the coach."
 			)
 		}
 		if !isCoachOwned(externalId: event.externalId, tags: event.tags) {
 			let athleteAction = action == "delete" ? "remove" : "change"
 			throw IntervalsError(
 				code: "not_coach_created",
-				details: "This workout was not created by this coach (no provenance marker) — it may be athlete-added, from another app, or created before provenance markers shipped. It will not be \(verb); the athlete can \(athleteAction) it directly on intervals.icu."
+				details:
+					"This workout was not created by this coach (no provenance marker) — it may be athlete-added, from another app, or created before provenance markers shipped. It will not be \(verb); the athlete can \(athleteAction) it directly on intervals.icu."
 			)
 		}
 		let eventDate = String(event.startDateLocal.prefix(10))
 		if eventDate < today.rawValue {
 			throw IntervalsError(
 				code: "past_workout_protected",
-				details: "Cannot \(action) workout dated \(eventDate) — it's before today (\(today.rawValue))."
+				details:
+					"Cannot \(action) workout dated \(eventDate) — it's before today (\(today.rawValue))."
 			)
 		}
 		if let nextDate, nextDate.rawValue < today.rawValue {
 			throw IntervalsError(
 				code: "past_workout_destination",
-				details: "Cannot move workout to \(nextDate.rawValue) — it's before today (\(today.rawValue))."
+				details:
+					"Cannot move workout to \(nextDate.rawValue) — it's before today (\(today.rawValue))."
 			)
 		}
 	}
 }
 
 public enum CyclingTools {
-	public static func parseCreateWorkout(_ arguments: JSONValue, today: CivilDate) throws -> ChatCalendarCreate {
+	public static func parseCreateWorkout(_ arguments: JSONValue, today: CivilDate) throws
+		-> ChatCalendarCreate
+	{
 		let parsed = try parseCreateWorkoutInput(arguments, today: today)
 		return parsed.draft
 	}
@@ -380,7 +391,8 @@ public enum CyclingTools {
 		today: CivilDate
 	) throws -> (date: CivilDate, name: String, description: String, draft: ChatCalendarCreate) {
 		let fields = arguments.objectFields
-		guard let dateRaw = fields["date"]?.stringValue, let date = CivilDate(rawValue: dateRaw) else {
+		guard let dateRaw = fields["date"]?.stringValue, let date = CivilDate(rawValue: dateRaw)
+		else {
 			let raw = fields["date"]?.stringValue ?? ""
 			throw IntervalsError(
 				code: "invalid_date",
@@ -391,10 +403,14 @@ public enum CyclingTools {
 		}
 		try IntervalsPolicy.rejectPastCreationDate(date, today: today)
 		guard let name = fields["name"]?.stringValue, (1...120).contains(name.count) else {
-			throw IntervalsError(code: "invalid_input", details: "name must be 1 to 120 characters.")
+			throw IntervalsError(
+				code: "invalid_input", details: "name must be 1 to 120 characters.")
 		}
-		guard let description = fields["description"]?.stringValue, (1...4000).contains(description.count) else {
-			throw IntervalsError(code: "invalid_input", details: "description must be 1 to 4000 characters.")
+		guard let description = fields["description"]?.stringValue,
+			(1...4000).contains(description.count)
+		else {
+			throw IntervalsError(
+				code: "invalid_input", details: "description must be 1 to 4000 characters.")
 		}
 		let draft = ChatCalendarCreate(
 			date: date,
@@ -414,7 +430,9 @@ public enum CyclingTools {
 		return EventID(rawValue: eventId)
 	}
 
-	package static func parseUpdateWorkout(_ arguments: JSONValue, today: CivilDate) throws -> UpdateWorkoutInput {
+	package static func parseUpdateWorkout(_ arguments: JSONValue, today: CivilDate) throws
+		-> UpdateWorkoutInput
+	{
 		let fields = arguments.objectFields
 		guard let eventId = fields["eventId"]?.intValue() else {
 			throw IntervalsError(code: "invalid_event_id", details: "eventId must be an integer.")
@@ -431,7 +449,8 @@ public enum CyclingTools {
 			if parsed < today {
 				throw IntervalsError(
 					code: "past_date_refused",
-					details: "Cannot move a workout to \(parsed.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."
+					details:
+						"Cannot move a workout to \(parsed.rawValue) — it's before today (\(today.rawValue)). Use today's date or later."
 				)
 			}
 			date = parsed
@@ -441,7 +460,8 @@ public enum CyclingTools {
 		let name = changes["name"]?.stringValue
 		let description = changes["description"]?.stringValue
 		if date == nil && name == nil && description == nil {
-			throw IntervalsError(code: "invalid_changes", details: "At least one workout field must change.")
+			throw IntervalsError(
+				code: "invalid_changes", details: "At least one workout field must change.")
 		}
 		return UpdateWorkoutInput(
 			eventId: EventID(rawValue: eventId),

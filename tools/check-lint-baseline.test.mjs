@@ -35,6 +35,11 @@ test('accepts a baseline that shrinks', () => {
   assert.equal(result.status, 0, result.output);
 });
 
+test('accepts a rewritten line of the same rule', () => {
+  const result = run([unwrap], [entry('apps/ios/A.swift', 'force_unwrapping', 'let a =\n b!')]);
+  assert.equal(result.status, 0, result.output);
+});
+
 test('accepts an unchanged baseline', () => {
   const result = run([unwrap], [unwrap]);
   assert.equal(result.status, 0, result.output);

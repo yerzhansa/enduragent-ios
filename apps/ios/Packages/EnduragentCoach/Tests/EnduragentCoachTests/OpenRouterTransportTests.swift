@@ -1,6 +1,7 @@
 import Foundation
 import Synchronization
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
@@ -174,7 +175,8 @@ import Testing
 			#expect(state.posts == 1)
 			let request = try #require(state.request)
 			#expect(request.httpMethod == "POST")
-			#expect(request.url?.absoluteString == "https://openrouter.test/api/v1/chat/completions")
+			#expect(
+				request.url?.absoluteString == "https://openrouter.test/api/v1/chat/completions")
 			#expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer test-key")
 			#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
 			#expect(request.value(forHTTPHeaderField: "Referer") == nil)
@@ -204,7 +206,8 @@ import Testing
 					transport.stream(
 						CompletionRequest.openRouter(
 							messages: [
-								WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil),
+								WireMessage(
+									role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
 							],
 							tools: [],
 							deadline: .seconds(45)
@@ -271,13 +274,16 @@ private final class TimeoutCapture: Sendable {
 private func sampleRequest(tools: Bool) -> CompletionRequest {
 	CompletionRequest.openRouter(
 		messages: [
-			WireMessage(role: .system, content: "You are Ada Kovač's coach.", toolCalls: [], toolCallId: nil),
-			WireMessage(role: .user, content: "How did 1998-06-13 look?", toolCalls: [], toolCallId: nil),
+			WireMessage(
+				role: .system, content: "You are Ada Kovač's coach.", toolCalls: [], toolCallId: nil
+			),
+			WireMessage(
+				role: .user, content: "How did 1998-06-13 look?", toolCalls: [], toolCallId: nil),
 			WireMessage(
 				role: .assistant,
 				content: "",
 				toolCalls: [
-					WireToolCall(id: "call_ada_1", name: .intervalsFetchAthlete, arguments: "{}"),
+					WireToolCall(id: "call_ada_1", name: .intervalsFetchAthlete, arguments: "{}")
 				],
 				toolCallId: nil
 			),
@@ -294,7 +300,7 @@ private func sampleRequest(tools: Bool) -> CompletionRequest {
 					name: .intervalsFetchAthlete,
 					description: "Fetch the athlete profile.",
 					parameters: .object(["type": .string("object")])
-				),
+				)
 			]
 			: [],
 		deadline: .seconds(600)
@@ -305,7 +311,9 @@ private func parseFixture(_ name: String) async throws -> [TransportEvent] {
 	try await collect(OpenRouterSSEParser.events(from: fixture(name, ext: "sse")))
 }
 
-private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws -> [TransportEvent] {
+private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
+	-> [TransportEvent]
+{
 	var events: [TransportEvent] = []
 	for try await event in stream {
 		events.append(event)

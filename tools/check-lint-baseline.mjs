@@ -13,7 +13,7 @@ const file = '.swiftlint-baseline.json';
 
 function key(entry) {
   const { ruleIdentifier, location } = entry.violation;
-  return JSON.stringify([location.file, ruleIdentifier, entry.text]);
+  return JSON.stringify([location.file, ruleIdentifier]);
 }
 function tally(entries) {
   const counts = new Map();

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite(.serialized)
@@ -8,12 +9,16 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient(credential: .apiKey("test-key"))
 		_ = try await client.fetchAthlete()
 		let expected = "Basic " + Data("API_KEY:test-key".utf8).base64EncodedString()
-		#expect(IntervalsURLProtocolStub.lastRequest?.value(forHTTPHeaderField: "Authorization") == expected)
-		#expect(IntervalsURLProtocolStub.lastRequest?.timeoutInterval == IntervalsPolicy.requestTimeout)
+		#expect(
+			IntervalsURLProtocolStub.lastRequest?.value(forHTTPHeaderField: "Authorization")
+				== expected)
+		#expect(
+			IntervalsURLProtocolStub.lastRequest?.timeoutInterval == IntervalsPolicy.requestTimeout)
 	}
 
 	@Test func oauthSendsBearer() async throws {
-		let client = try makeClient(credential: .oauth(access: "access-token", refresh: "refresh-token"))
+		let client = try makeClient(
+			credential: .oauth(access: "access-token", refresh: "refresh-token"))
 		_ = try await client.fetchAthlete()
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.value(forHTTPHeaderField: "Authorization")
@@ -61,10 +66,11 @@ struct IntervalsRESTClientTests {
 	@Test func listEventsSendsCategoryQuery() async throws {
 		let client = try makeClient()
 		let events = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
-		let items = URLComponents(
-			url: try #require(IntervalsURLProtocolStub.lastRequest?.url),
-			resolvingAgainstBaseURL: false
-		)?.queryItems ?? []
+		let items =
+			URLComponents(
+				url: try #require(IntervalsURLProtocolStub.lastRequest?.url),
+				resolvingAgainstBaseURL: false
+			)?.queryItems ?? []
 		let categories = items.filter { $0.name == "category" }.compactMap(\.value)
 		#expect(Set(categories) == Set(IntervalsPolicy.eventCategories))
 		#expect(events[0].coachCreated)
@@ -74,8 +80,10 @@ struct IntervalsRESTClientTests {
 
 	@Test func fetchStreamsReturnsSummaryWithoutSeries() async throws {
 		let client = try makeClient()
-		let summary = try await client.fetchStreams(id: try #require(ActivityID(rawValue: "i1234567")))
-		let expected = try JSONValue.parse(String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
+		let summary = try await client.fetchStreams(
+			id: try #require(ActivityID(rawValue: "i1234567")))
+		let expected = try JSONValue.parse(
+			String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
 		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
 		let encoded = canonicalJSON(summary)
 		#expect(!encoded.contains("\"data\""))
@@ -166,20 +174,20 @@ struct IntervalsRESTClientTests {
 			if path.contains("/events/") {
 				if path.hasSuffix("/43") {
 					let race = """
-					{"id":43,"start_date_local":"1998-06-20T00:00:00","name":"Local race","category":"RACE_A","tags":[]}
-					"""
+						{"id":43,"start_date_local":"1998-06-20T00:00:00","name":"Local race","category":"RACE_A","tags":[]}
+						"""
 					return (200, Data(race.utf8))
 				}
 				let owned = """
-				{"id":42,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
-				"""
+					{"id":42,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
+					"""
 				return (200, Data(owned.utf8))
 			}
 			if path.contains("/events") {
 				if method == "POST" {
 					let created = """
-					{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
-					"""
+						{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
+						"""
 					return (200, Data(created.utf8))
 				}
 				return (200, try fixtureData("intervals-events"))
@@ -264,7 +272,8 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 
 func fixtureData(_ name: String) throws -> Data {
 	guard
-		let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures")
+		let url = Bundle.module.url(
+			forResource: name, withExtension: "json", subdirectory: "Fixtures")
 	else {
 		throw URLError(.fileDoesNotExist)
 	}

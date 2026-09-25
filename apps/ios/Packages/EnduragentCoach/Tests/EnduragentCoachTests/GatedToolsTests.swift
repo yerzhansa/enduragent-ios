@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite
@@ -104,9 +105,13 @@ struct GatedToolsTests {
 				#"{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}"#
 			)
 		)
-		let json = try await runtime().rebuildConfirmed(.createWorkout(date: "1998-06-14", workout: workout))
+		let json = try await runtime().rebuildConfirmed(
+			.createWorkout(date: "1998-06-14", workout: workout))
 		#expect(json.objectFields["created"]?.boolValue == true)
-		#expect(intervals.calls.last == .createEvent(date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
+		#expect(
+			intervals.calls.last
+				== .createEvent(
+					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
 	}
 
 	@Test func pastDateIsRefusedAtTheBoundary() async throws {

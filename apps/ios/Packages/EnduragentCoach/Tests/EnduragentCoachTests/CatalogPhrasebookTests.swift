@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct CatalogPhrasebookTests {
@@ -15,16 +16,24 @@ import Testing
 
 	@Test func polishCountThreeSelectsTheFewForm() {
 		let book = CatalogPhrasebook(tag: .pl, locale: "pl-PL")
-		#expect(book.say(Catalog.archiveTurnCount, ["count": "3", "formattedCount": "3"]) == "3 wiadomości")
-		#expect(book.say(Catalog.trainingViewRideCount, ["count": "3", "number": "3"]) == "3 przejazdy")
-		#expect(book.say(Catalog.trainingViewRideCount, ["count": "1", "number": "1"]) == "1 przejazd")
-		#expect(book.say(Catalog.trainingViewRideCount, ["count": "5", "number": "5"]) == "5 przejazdów")
+		#expect(
+			book.say(Catalog.archiveTurnCount, ["count": "3", "formattedCount": "3"])
+				== "3 wiadomości")
+		#expect(
+			book.say(Catalog.trainingViewRideCount, ["count": "3", "number": "3"]) == "3 przejazdy")
+		#expect(
+			book.say(Catalog.trainingViewRideCount, ["count": "1", "number": "1"]) == "1 przejazd")
+		#expect(
+			book.say(Catalog.trainingViewRideCount, ["count": "5", "number": "5"]) == "5 przejazdów"
+		)
 	}
 
 	@Test func japanesePluralsUseOtherOnly() {
 		let book = CatalogPhrasebook(tag: .ja, locale: "ja-JP")
-		#expect(book.say(Catalog.archiveTurnCount, ["count": "1", "formattedCount": "1"]) == "1件のメッセージ")
-		#expect(book.say(Catalog.archiveTurnCount, ["count": "3", "formattedCount": "3"]) == "3件のメッセージ")
+		#expect(
+			book.say(Catalog.archiveTurnCount, ["count": "1", "formattedCount": "1"]) == "1件のメッセージ")
+		#expect(
+			book.say(Catalog.archiveTurnCount, ["count": "3", "formattedCount": "3"]) == "3件のメッセージ")
 	}
 
 	@Test func brazilianPortugueseDoesNotFallBackToPortugal() {

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterLiveTests {
@@ -13,7 +14,7 @@ import Testing
 					content: "Reply with the single word pong.",
 					toolCalls: [],
 					toolCallId: nil
-				),
+				)
 			],
 			tools: [
 				ToolSchema(
@@ -23,7 +24,7 @@ import Testing
 						"type": .string("object"),
 						"properties": .object([:]),
 					])
-				),
+				)
 			],
 			deadline: .seconds(60)
 		)
@@ -33,7 +34,8 @@ import Testing
 			request: request
 		)
 		let configuration = URLSessionConfiguration.ephemeral
-		configuration.timeoutIntervalForRequest = OpenRouterHTTP.timeInterval(from: request.deadline)
+		configuration.timeoutIntervalForRequest = OpenRouterHTTP.timeInterval(
+			from: request.deadline)
 		let session = URLSession(configuration: configuration)
 		defer { session.finishTasksAndInvalidate() }
 		let (bytes, response) = try await session.bytes(for: urlRequest)
@@ -77,7 +79,8 @@ import Testing
 			if let provider {
 				payload["provider"] = provider
 			}
-			let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+			let data = try JSONSerialization.data(
+				withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
 			try data.write(to: URL(fileURLWithPath: path))
 		}
 	}

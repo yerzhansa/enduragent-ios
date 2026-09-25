@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct MemoryFlushTests {
@@ -10,7 +11,8 @@ import Testing
 		transport.script = [
 			.toolCall(
 				name: "ledger_append",
-				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
+				arguments:
+					#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
 			),
 			.finish(reason: .toolCalls),
 			.finish(reason: .stop),
@@ -34,7 +36,8 @@ import Testing
 		try await memory.flush(trigger: .softThreshold, chatId: .main, transport: transport)
 		#expect(transport.requests.count >= 1)
 		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
-		let hits = try await memory.query(from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
+		let hits = try await memory.query(
+			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
 		#expect(hits.count == 1)
 	}
 
@@ -71,7 +74,8 @@ import Testing
 		#expect(finished)
 		#expect(sawLedgerBeforeFinish == false)
 		await coach.waitForMemoryFlush()
-		let hits = try await coach.memory.query(from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
+		let hits = try await coach.memory.query(
+			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
 		#expect(hits.count == 1)
 	}
 
@@ -90,7 +94,8 @@ import Testing
 			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
 			timeZone: tz,
 			civilDate: "1998-06-13",
-			body: .flushPending(FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
+			body: .flushPending(
+				FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
 		)
 		let second = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
@@ -98,18 +103,21 @@ import Testing
 			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: first.hlc),
 			timeZone: tz,
 			civilDate: "1998-06-13",
-			body: .flushPending(FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
+			body: .flushPending(
+				FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
 		)
 		try await store.append(first)
 		try await store.append(second)
 		let memory = Memory(store: store, clock: clock)
 		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
 		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
-		let consumed = try await store.fetch(RecordQuery(kinds: [.provenance])).compactMap { record -> String? in
+		let consumed = try await store.fetch(RecordQuery(kinds: [.provenance])).compactMap {
+			record -> String? in
 			guard case .provenance(let body) = record.body else { return nil }
 			return body.key
 		}
-		#expect(consumed.filter { $0.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) }.count == 2)
+		#expect(
+			consumed.filter { $0.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) }.count == 2)
 		#expect(consumed.contains(MemoryFlushPolicy.consumedFlushKeyPrefix + first.ulid.rawValue))
 		#expect(consumed.contains(MemoryFlushPolicy.consumedFlushKeyPrefix + second.ulid.rawValue))
 	}
@@ -134,13 +142,15 @@ import Testing
 				deviceId: store.deviceId,
 				now: clock.now,
 				body: .userMessage(
-					UserMessageBody(chatId: .main, athleteText: "note", timedText: "note", slash: nil)
+					UserMessageBody(
+						chatId: .main, athleteText: "note", timedText: "note", slash: nil)
 				)
 			)
 		)
 		let memory = Memory(store: store, clock: clock)
 		try await memory.flush(trigger: .trim, chatId: .main, transport: transport)
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
-		#expect(transport.requests.allSatisfy { $0.tools.map(\.name) == [.memoryWrite, .ledgerAppend] })
+		#expect(
+			transport.requests.allSatisfy { $0.tools.map(\.name) == [.memoryWrite, .ledgerAppend] })
 	}
 }

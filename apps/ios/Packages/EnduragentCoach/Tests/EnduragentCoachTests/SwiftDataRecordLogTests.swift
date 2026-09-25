@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct SwiftDataRecordLogTests {
@@ -17,12 +18,16 @@ import Testing
 
 	@Test func appendRoutesByLocality() async throws {
 		let log = try makeSwiftDataLog(deviceId: phoneA)
-		try await log.append(record(device: phoneA, wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "synced"))))
+		try await log.append(
+			record(
+				device: phoneA, wall: 1,
+				body: .userMessage(sampleUser(chatId: .main, text: "synced"))))
 		try await log.append(
 			record(
 				device: phoneA,
 				wall: 2,
-				body: .pendingProposal(sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires))
+				body: .pendingProposal(
+					sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires))
 			)
 		)
 		let synced = try await log.fetch(RecordQuery(kinds: [.userMessage]))
@@ -34,13 +39,20 @@ import Testing
 
 	@Test func fetchSyncedIsUnionAndLocalIsThisDevice() async throws {
 		let log = try makeSwiftDataLog(deviceId: phoneA)
-		try await log.append(record(device: phoneB, wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "from b"))))
-		try await log.append(record(device: phoneA, wall: 2, body: .userMessage(sampleUser(chatId: .main, text: "from a"))))
+		try await log.append(
+			record(
+				device: phoneB, wall: 1,
+				body: .userMessage(sampleUser(chatId: .main, text: "from b"))))
+		try await log.append(
+			record(
+				device: phoneA, wall: 2,
+				body: .userMessage(sampleUser(chatId: .main, text: "from a"))))
 		try await log.append(
 			record(
 				device: phoneA,
 				wall: 3,
-				body: .pendingProposal(sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires))
+				body: .pendingProposal(
+					sampleProposal(chatId: .main, nonce: Nonce(), expiresAt: expires))
 			)
 		)
 		let synced = try await log.fetch(RecordQuery(kinds: [.userMessage]))
@@ -56,9 +68,12 @@ import Testing
 		for (index, sample) in samples.enumerated() {
 			try await log.append(record(device: phoneA, wall: Int64(index + 1), body: sample.body))
 		}
-		let synced = try await log.fetch(RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .synced })))
-		let local = try await log.fetch(RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .deviceLocal })))
-		let fetched = Dictionary(uniqueKeysWithValues: (synced + local).map { ($0.body.kind, $0.body) })
+		let synced = try await log.fetch(
+			RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .synced })))
+		let local = try await log.fetch(
+			RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .deviceLocal })))
+		let fetched = Dictionary(
+			uniqueKeysWithValues: (synced + local).map { ($0.body.kind, $0.body) })
 		for sample in samples {
 			#expect(fetched[sample.kind] == sample.body)
 		}
@@ -118,20 +133,30 @@ import Testing
 			(
 				.userMessage,
 				.userMessage(
-					UserMessageBody(chatId: .main, athleteText: "hi", timedText: "hi /review", slash: .review)
+					UserMessageBody(
+						chatId: .main, athleteText: "hi", timedText: "hi /review", slash: .review)
 				)
 			),
 			(.assistantMessage, .assistantMessage(sampleAssistant(chatId: .main, text: "hello"))),
 			(.windowStart, .windowStart(WindowStartBody(chatId: .main, firstIncludedUlid: ulid))),
-			(.compactionSummary, .compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum"))),
+			(
+				.compactionSummary,
+				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum"))
+			),
 			(.memorySection, .memorySection(MemorySectionBody(name: .person, content: "Ada"))),
 			(.dailyNote, .dailyNote(DailyNoteBody(note: "note"))),
-			(.ledgerEvent, .ledgerEvent(LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))),
+			(
+				.ledgerEvent,
+				.ledgerEvent(
+					LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
+			),
 			(.journal, .journal(JournalBody(op: .writeSection, preview: "person"))),
 			(
 				.provenance,
 				.provenance(
-					ProvenanceBody(key: "k", garmin: true, nonGarmin: false, unknown: false, contentSha256: "abc")
+					ProvenanceBody(
+						key: "k", garmin: true, nonGarmin: false, unknown: false,
+						contentSha256: "abc")
 				)
 			),
 			(
@@ -139,7 +164,8 @@ import Testing
 				.pendingProposal(
 					ProposalBody(
 						chatId: .main,
-						nonce: Nonce(rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!),
+						nonce: Nonce(
+							rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!),
 						tool: .intervalsCreateWorkout,
 						toolInput: .createWorkout(date: "1998-06-13", workout: workout),
 						summary: "Z2",
@@ -151,7 +177,11 @@ import Testing
 			(
 				.proposalCleared,
 				.proposalCleared(
-					ProposalClearedBody(chatId: .main, nonce: Nonce(rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!), reason: .executed)
+					ProposalClearedBody(
+						chatId: .main,
+						nonce: Nonce(
+							rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!),
+						reason: .executed)
 				)
 			),
 			(
@@ -162,7 +192,8 @@ import Testing
 			(
 				.planningDevice,
 				.planningDevice(
-					PlanningDeviceBody(planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)
+					PlanningDeviceBody(
+						planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)
 				)
 			),
 			(
@@ -186,7 +217,9 @@ import Testing
 			(
 				.planRevision,
 				.planRevision(
-					PlanRevisionBody(planUlid: ulid, version: 1, status: .active, snapshot: .object(["name": .string("Base")]))
+					PlanRevisionBody(
+						planUlid: ulid, version: 1, status: .active,
+						snapshot: .object(["name": .string("Base")]))
 				)
 			),
 			(
@@ -204,7 +237,8 @@ import Testing
 			(
 				.workoutMatch,
 				.workoutMatch(
-					WorkoutMatchBody(planWorkoutId: ulid, activityId: "123456", decision: .confirmed)
+					WorkoutMatchBody(
+						planWorkoutId: ulid, activityId: "123456", decision: .confirmed)
 				)
 			),
 			(.workoutDrift, .workoutDrift(WorkoutDriftBody(planWorkoutId: ulid, askedAt: expires))),

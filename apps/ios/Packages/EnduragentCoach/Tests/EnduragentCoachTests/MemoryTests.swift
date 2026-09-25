@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct MemoryTests {
@@ -8,7 +9,8 @@ import Testing
 	@Test func journalRecordPrecedesSectionRecord() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(.person, content: "## Ada Kovač\nRides on Saturdays.", source: .chat)
+		try await memory.writeSection(
+			.person, content: "## Ada Kovač\nRides on Saturdays.", source: .chat)
 		let records = try await store.fetch(RecordQuery(kinds: [.journal, .memorySection]))
 			.sorted { $0.hlc < $1.hlc }
 		#expect(records.count == 2)
@@ -54,7 +56,8 @@ import Testing
 				hlc: .tick(now: now, deviceId: other, last: nil),
 				timeZone: IANATimeZone(identifier: "Europe/Amsterdam")!,
 				civilDate: "1998-06-13",
-				body: .ledgerEvent(LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
+				body: .ledgerEvent(
+					LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))
 			)
 		)
 		let recorded = try await memory.appendEvent(
@@ -145,7 +148,8 @@ import Testing
 	@Test func writeSectionReplacesLeadingStampRatherThanStacking() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(.person, content: "_updated: 1998-06-01\n- Name: Ada", source: .chat)
+		try await memory.writeSection(
+			.person, content: "_updated: 1998-06-01\n- Name: Ada", source: .chat)
 		let records = try await store.fetch(RecordQuery(kinds: [.memorySection]))
 		guard case .memorySection(let body) = records.last?.body else {
 			Issue.record("expected section")

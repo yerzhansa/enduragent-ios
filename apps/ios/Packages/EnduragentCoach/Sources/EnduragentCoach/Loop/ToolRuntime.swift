@@ -53,7 +53,9 @@ package struct ToolRuntime: Sendable {
 	private let clock: any Clock
 	private let memo: ToolMemoActor
 
-	package init(intervals: any IntervalsClient, store: any RecordLog, planning: Planning, clock: any Clock) {
+	package init(
+		intervals: any IntervalsClient, store: any RecordLog, planning: Planning, clock: any Clock
+	) {
 		self.intervals = intervals
 		self.store = store
 		self.planning = planning
@@ -83,7 +85,8 @@ package struct ToolRuntime: Sendable {
 			return try await existing.value
 		}
 		let task = Task {
-			try await self.runPrepared(name: name, arguments: arguments, chatId: chatId, state: state, key: key)
+			try await self.runPrepared(
+				name: name, arguments: arguments, chatId: chatId, state: state, key: key)
 		}
 		await memo.store(task: task, for: key)
 		do {
@@ -105,7 +108,8 @@ package struct ToolRuntime: Sendable {
 		state: TurnState,
 		key: String
 	) async throws -> ToolOutcome {
-		let raw = try await executeBody(name: name, arguments: arguments, chatId: chatId, state: state)
+		let raw = try await executeBody(
+			name: name, arguments: arguments, chatId: chatId, state: state)
 		let outcome: ToolOutcome
 		switch raw {
 		case .result(let data):
@@ -151,7 +155,8 @@ package struct ToolRuntime: Sendable {
 				return .result(encodeAthlete(try await intervals.fetchAthlete()))
 			case .intervalsFetchWellness:
 				let range = try listRange(from: arguments)
-				let days = try await intervals.fetchWellness(oldest: range.oldest, newest: range.newest)
+				let days = try await intervals.fetchWellness(
+					oldest: range.oldest, newest: range.newest)
 				return .result(.array(days.map(encodeWellness)))
 			case .intervalsFetchActivity:
 				let id = try activityID(from: arguments)
@@ -161,11 +166,13 @@ package struct ToolRuntime: Sendable {
 				return .result(try await intervals.fetchStreams(id: id))
 			case .intervalsFetchActivities:
 				let range = try listRange(from: arguments)
-				let rows = try await intervals.fetchActivities(oldest: range.oldest, newest: range.newest)
+				let rows = try await intervals.fetchActivities(
+					oldest: range.oldest, newest: range.newest)
 				return .result(.array(rows.map(encodeActivity)))
 			case .intervalsListEvents:
 				let range = try listRange(from: arguments)
-				var events = try await intervals.listEvents(oldest: range.oldest, newest: range.newest)
+				var events = try await intervals.listEvents(
+					oldest: range.oldest, newest: range.newest)
 				if arguments.objectFields["coachCreatedOnly"]?.boolValue == true {
 					events = events.filter(\.coachCreated)
 				}
@@ -179,10 +186,10 @@ package struct ToolRuntime: Sendable {
 			case .ledgerAppend:
 				return try await executeLedgerAppend(arguments)
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
-			     .intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
+				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")
 			case .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-			     .planLoad:
+				.planLoad:
 				fatalError("not implemented")
 			}
 		} catch let error as IntervalsError {
@@ -198,19 +205,21 @@ package struct ToolRuntime: Sendable {
 				description: "Calculate power-zone watt ranges from FTP watts (7-zone numbering)",
 				parameters: objectSchema(
 					properties: [
-						"ftpWatts": integerProperty("FTP in watts", minimum: 50, maximum: 600),
+						"ftpWatts": integerProperty("FTP in watts", minimum: 50, maximum: 600)
 					],
 					required: ["ftpWatts"]
 				)
 			),
 			ToolSchema(
 				name: .intervalsFetchAthlete,
-				description: "Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
+				description:
+					"Fetch athlete profile from intervals.icu (FTP, weight, max HR, sport settings, zones)",
 				parameters: objectSchema(properties: [:], required: [])
 			),
 			ToolSchema(
 				name: .intervalsFetchWellness,
-				description: "Fetch wellness data from intervals.icu (fitness, fatigue, weight, HRV, resting HR, sleep). Form = fitness - fatigue.",
+				description:
+					"Fetch wellness data from intervals.icu (fitness, fatigue, weight, HRV, resting HR, sleep). Form = fitness - fatigue.",
 				parameters: objectSchema(
 					properties: [
 						"oldest": stringProperty("Start date (YYYY-MM-DD)"),
@@ -221,17 +230,19 @@ package struct ToolRuntime: Sendable {
 			),
 			ToolSchema(
 				name: .intervalsFetchActivity,
-				description: "Fetch one recorded activity by legacy or canonical ID. Store-backed results return a bounded source-neutral summary plus laps; other readers may include additional source fields. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
+				description:
+					"Fetch one recorded activity by legacy or canonical ID. Store-backed results return a bounded source-neutral summary plus laps; other readers may include additional source fields. Use only fields actually returned. Use this for Tier B+ workout reviews; for summary-only Tier A, use `intervals_fetch_activities`.",
 				parameters: objectSchema(
 					properties: [
-						"activityId": stringProperty(Self.activityIDDescription),
+						"activityId": stringProperty(Self.activityIDDescription)
 					],
 					required: ["activityId"]
 				)
 			),
 			ToolSchema(
 				name: .intervalsFetchStreams,
-				description: "Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude.",
+				description:
+					"Fetch time-series channels for an activity by legacy or canonical ID. Store-backed reads accept up to 16 unique public channels; platform-backed reads also accept provider-specific channels such as smooth_grade. Returns only per-channel min/max/mean over the full series plus the sample count; no per-second data; do not use it for pacing, duration-based best efforts, quartile trends, decoupling, HR recovery, fade patterns, or indoor/outdoor comparisons. Use only minimum, maximum, and mean as descriptive recorded observations. They alone cannot establish session quality, recovery, or readiness, or justify changing the next session. Expensive to fetch (~10,800 samples per type for a 3-hour ride): call it only for Tier C deep reviews the athlete explicitly requests. For Tier A/B use `intervals_fetch_activities` and `intervals_fetch_activity`. Default types: watts, heartrate, cadence, time, altitude.",
 				parameters: objectSchema(
 					properties: [
 						"activityId": stringProperty(Self.activityIDDescription),
@@ -248,7 +259,8 @@ package struct ToolRuntime: Sendable {
 			),
 			ToolSchema(
 				name: .intervalsFetchActivities,
-				description: "Fetch up to 200 recorded activity summaries for a date range. Store-backed results use positive integer or lowercase 64-hex IDs and a bounded source-neutral shape; other readers may include additional source fields. If more than 200 store-backed activities match, narrow the date range.",
+				description:
+					"Fetch up to 200 recorded activity summaries for a date range. Store-backed results use positive integer or lowercase 64-hex IDs and a bounded source-neutral shape; other readers may include additional source fields. If more than 200 store-backed activities match, narrow the date range.",
 				parameters: objectSchema(
 					properties: [
 						"oldest": stringProperty("Oldest date (YYYY-MM-DD)"),
@@ -262,7 +274,8 @@ package struct ToolRuntime: Sendable {
 			),
 			ToolSchema(
 				name: .intervalsListEvents,
-				description: "List scheduled calendar workouts on intervals.icu for a date range. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. Filters to WORKOUT category only. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to return only coach-created events.",
+				description:
+					"List scheduled calendar workouts on intervals.icu for a date range. Use this BEFORE deleting so you can show the athlete the list (id, date, name) and ask which one to delete. Filters to WORKOUT category only. Each row carries a coachCreated flag; only coach-created workouts can be deleted with intervals_delete_workout. Pass coachCreatedOnly: true to return only coach-created events.",
 				parameters: objectSchema(
 					properties: [
 						"oldest": stringProperty("Oldest date (YYYY-MM-DD)"),
@@ -309,7 +322,7 @@ package struct ToolRuntime: Sendable {
 					"List and confirm first. Delete a today-or-future coach-owned workout by event ID.",
 				parameters: objectSchema(
 					properties: [
-						"eventId": integerProperty("Event ID from intervals_list_events"),
+						"eventId": integerProperty("Event ID from intervals_list_events")
 					],
 					required: ["eventId"]
 				)
@@ -375,7 +388,8 @@ package struct ToolRuntime: Sendable {
 						"type": .object([
 							"type": .string("string"),
 							"enum": .array([.string("memory"), .string("daily")]),
-							"description": .string("'memory' for long-term facts, 'daily' for today's notes"),
+							"description": .string(
+								"'memory' for long-term facts, 'daily' for today's notes"),
 						]),
 						"section": .object([
 							"type": .string("string"),
@@ -403,7 +417,8 @@ package struct ToolRuntime: Sendable {
 							"enum": .array(LedgerKind.allCases.map { .string($0.rawValue) }),
 							"description": .string("Event category"),
 						]),
-						"text": stringProperty("One or two sentences, with rationale or outcome when stated"),
+						"text": stringProperty(
+							"One or two sentences, with rationale or outcome when stated"),
 					],
 					required: ["date", "kind", "text"]
 				)
@@ -438,7 +453,8 @@ package struct ToolRuntime: Sendable {
 				name: name,
 				description: description,
 				type: .weightTraining,
-				externalId: IntervalsSerializer.chatExternalId(date: date, name: "strength \(name)"),
+				externalId: IntervalsSerializer.chatExternalId(
+					date: date, name: "strength \(name)"),
 				tags: [IntervalsPolicy.coachTag]
 			)
 			let event = try await intervals.createChatEvent(draft)
@@ -461,7 +477,8 @@ package struct ToolRuntime: Sendable {
 				"event": encodeEvent(event),
 			])
 		case .planSave:
-			throw IntervalsError(code: "not_implemented", details: "Saving a plan is not available yet.")
+			throw IntervalsError(
+				code: "not_implemented", details: "Saving a plan is not available yet.")
 		}
 	}
 
@@ -534,7 +551,8 @@ package struct ToolRuntime: Sendable {
 			let input = GatedToolInput.updateWorkout(update)
 			return (input, ProposalPolicy.summary(for: input), update.description ?? "")
 		case .planSave:
-			throw IntervalsError(code: "not_implemented", details: "Saving a plan is not available yet.")
+			throw IntervalsError(
+				code: "not_implemented", details: "Saving a plan is not available yet.")
 		}
 	}
 
@@ -560,7 +578,9 @@ package struct ToolRuntime: Sendable {
 		let query = fields["query"]?.stringValue
 		guard let from = CivilDate(rawValue: fromRaw), let to = CivilDate(rawValue: toRaw) else {
 			return .result(
-				.string("Error: \(fromRaw)..\(toRaw) contains an invalid calendar date. Use real YYYY-MM-DD dates.")
+				.string(
+					"Error: \(fromRaw)..\(toRaw) contains an invalid calendar date. Use real YYYY-MM-DD dates."
+				)
 			)
 		}
 		do {
@@ -586,7 +606,9 @@ package struct ToolRuntime: Sendable {
 					])
 				)
 			}
-			let allowed = Set(SectionName.cyclingEffective.map(\.rawValue) + ((try? await memory().view())?.orphanNames ?? []))
+			let allowed = Set(
+				SectionName.cyclingEffective.map(\.rawValue)
+					+ ((try? await memory().view())?.orphanNames ?? []))
 			if !allowed.contains(section) {
 				return .result(
 					.object([
@@ -595,7 +617,8 @@ package struct ToolRuntime: Sendable {
 					])
 				)
 			}
-			try await memory().writeSection(SectionName(rawValue: section), content: content, source: .chat)
+			try await memory().writeSection(
+				SectionName(rawValue: section), content: content, source: .chat)
 			return .result(.object(["saved": .bool(true)]))
 		}
 		try await memory().appendDailyNote(content)
@@ -613,9 +636,11 @@ package struct ToolRuntime: Sendable {
 			!text.isEmpty
 		else {
 			let dateRaw = fields["date"]?.stringValue ?? ""
-			return .result(.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
+			return .result(
+				.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
 		}
-		let recorded = try await memory().appendEvent(date: date, kind: kind, text: text, source: .chat)
+		let recorded = try await memory().appendEvent(
+			date: date, kind: kind, text: text, source: .chat)
 		if recorded {
 			return .result(.object(["recorded": .bool(true)]))
 		}
@@ -636,19 +661,23 @@ package struct ToolRuntime: Sendable {
 			throw IntervalsError(code: "invalid_ftp", details: "ftpWatts is required.")
 		}
 		let rows = try DisplayZones.table(ftpWatts: ftp)
-		return .result(.array(rows.map { row in
-			var fields: [String: JSONValue] = [
-				"label": .string(row.label),
-				"value": .string(row.value),
-			]
-			if row.overlaps {
-				fields["overlaps"] = .bool(true)
-			}
-			return .object(fields)
-		}))
+		return .result(
+			.array(
+				rows.map { row in
+					var fields: [String: JSONValue] = [
+						"label": .string(row.label),
+						"value": .string(row.value),
+					]
+					if row.overlaps {
+						fields["overlaps"] = .bool(true)
+					}
+					return .object(fields)
+				}))
 	}
 
-	private func listRange(from arguments: JSONValue) throws -> (oldest: CivilDate, newest: CivilDate) {
+	private func listRange(from arguments: JSONValue) throws -> (
+		oldest: CivilDate, newest: CivilDate
+	) {
 		let fields = arguments.objectFields
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		if let oldest = try optionalDate(fields["oldest"], label: "oldest") {
@@ -782,7 +811,9 @@ package struct ToolRuntime: Sendable {
 			.isEmpty
 	}
 
-	private func integerProperty(_ description: String, minimum: Int? = nil, maximum: Int? = nil) -> JSONValue {
+	private func integerProperty(_ description: String, minimum: Int? = nil, maximum: Int? = nil)
+		-> JSONValue
+	{
 		var fields: [String: JSONValue] = [
 			"type": .string("integer"),
 			"description": .string(description),

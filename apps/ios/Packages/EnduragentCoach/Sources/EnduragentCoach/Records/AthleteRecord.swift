@@ -29,11 +29,11 @@ public enum RecordKind: String, Sendable {
 	public var locality: RecordLocality {
 		switch self {
 		case .userMessage, .assistantMessage, .windowStart, .compactionSummary,
-		     .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-		     .coachReplyLanguage, .planningDevice:
+			.memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
+			.coachReplyLanguage, .planningDevice:
 			return .synced
 		case .pendingProposal, .proposalCleared, .flushPending, .planningCommand,
-		     .planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
+			.planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
 			return .deviceLocal
 		}
 	}

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite
@@ -88,7 +89,7 @@ struct ProposalPolicyTests {
 						cadence: nil,
 						label: nil
 					)
-				),
+				)
 			]
 		)
 		let input = GatedToolInput.createWorkout(date: "1998-06-14", workout: workout)

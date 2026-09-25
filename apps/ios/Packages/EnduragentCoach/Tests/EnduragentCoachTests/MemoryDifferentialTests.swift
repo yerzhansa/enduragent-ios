@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct MemoryDifferentialTests {
@@ -10,7 +11,9 @@ import Testing
 			MemoryQuery.render([], from: "1998-06-01", to: "1998-06-30")
 				== "Memory query 1998-06-01..1998-06-30: no daily notes, events, or history found."
 		)
-		#expect(MemoryQuery.truncationNotice == "[truncated — narrow the date range or add a query term]")
+		#expect(
+			MemoryQuery.truncationNotice
+				== "[truncated — narrow the date range or add a query term]")
 		#expect(MemoryQuery.emptySuffix == ": no daily notes, events, or history found.")
 	}
 
@@ -21,13 +24,16 @@ import Testing
 		let context = try await memory.context()
 		let hits = try await memory.query(from: "1998-06-01", to: "1998-06-30", contains: nil)
 		let query = MemoryQuery.render(hits, from: "1998-06-01", to: "1998-06-30")
-		let skip = injectableDailyLines(MemoryDifferentialFixture.dailyWithSkip).joined(separator: "\n")
+		let skip = injectableDailyLines(MemoryDifferentialFixture.dailyWithSkip).joined(
+			separator: "\n")
 		try writeDump("context-swift.txt", context)
 		try writeDump("query-swift.txt", query)
-		try writeDump("empty-swift.txt", MemoryQuery.render([], from: "1998-01-01", to: "1998-01-02"))
+		try writeDump(
+			"empty-swift.txt", MemoryQuery.render([], from: "1998-01-01", to: "1998-01-02"))
 		try writeDump("truncation-suffix-swift.txt", MemoryQuery.truncationNotice)
 		try writeDump("injectable-swift.txt", skip)
-		try compareIfPresent("empty-ts.txt", MemoryQuery.render([], from: "1998-01-01", to: "1998-01-02"))
+		try compareIfPresent(
+			"empty-ts.txt", MemoryQuery.render([], from: "1998-01-01", to: "1998-01-02"))
 		try compareIfPresent("truncation-suffix-ts.txt", MemoryQuery.truncationNotice)
 		try compareIfPresent("injectable-ts.txt", skip)
 		try compareIfPresent("context-ts.txt", context)

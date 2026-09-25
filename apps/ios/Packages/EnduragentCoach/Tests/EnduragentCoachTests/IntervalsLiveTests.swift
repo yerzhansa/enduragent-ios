@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite
@@ -71,7 +72,8 @@ struct IntervalsLiveTests {
 				return json
 			},
 		]
-		let data = try JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
+		let data = try JSONSerialization.data(
+			withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
 		if let path = ProcessInfo.processInfo.environment["ENDURAGENT_LIVE_OUT"], !path.isEmpty {
 			try data.write(to: URL(fileURLWithPath: path))
 		}

@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite
@@ -53,13 +54,14 @@ struct ReadToolsTests {
 
 	@Test func wellnessToolOmitsCtlAtl() async throws {
 		intervals.wellness = [
-			WellnessDay(json: IntervalsWellnessJSON(
-				date: "1998-06-13",
-				ctl: 55.2,
-				atl: 42.1,
-				rampRate: 1.4,
-				fatigue: 2
-			)),
+			WellnessDay(
+				json: IntervalsWellnessJSON(
+					date: "1998-06-13",
+					ctl: 55.2,
+					atl: 42.1,
+					rampRate: 1.4,
+					fatigue: 2
+				))
 		]
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchWellness,
@@ -77,13 +79,15 @@ struct ReadToolsTests {
 		#expect(encoded.contains("\"fitness\""))
 		#expect(encoded.contains("\"Fatigue\"") == false)
 		#expect(unwrapData(json).arrayValue?.first?.objectFields["fatigue"]?.numberValue == 42.1)
-		#expect(unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 55.2 - 42.1)
+		#expect(
+			unwrapData(json).arrayValue?.first?.objectFields["form"]?.numberValue == 55.2 - 42.1)
 	}
 
 	@Test func fetchAthleteAndActivityAndStreamsAndEvents() async throws {
 		let activityID = try #require(ActivityID(rawValue: "i1234567"))
 		intervals.activity = try JSONValue.parse(#"{"id":"i1234567","name":"Sunday long ride"}"#)
-		intervals.streams = try JSONValue.parse(String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
+		intervals.streams = try JSONValue.parse(
+			String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
 		intervals.events = [
 			CalendarEvent(
 				id: EventID(rawValue: 42),
@@ -133,14 +137,16 @@ struct ReadToolsTests {
 		)
 		let listed = try await tools.execute(
 			name: .intervalsListEvents,
-			arguments: try JSONValue.parse(#"{"oldest":"1998-06-14","newest":"1998-06-20","coachCreatedOnly":true}"#),
+			arguments: try JSONValue.parse(
+				#"{"oldest":"1998-06-14","newest":"1998-06-20","coachCreatedOnly":true}"#),
 			chatId: .main,
 			state: turnState()
 		)
 		#expect(intervals.calls.contains(.activity(activityID)))
 		#expect(intervals.calls.contains(.streams(activityID)))
 		#expect(intervals.calls.contains(.events(oldest: "1998-06-14", newest: "1998-06-20")))
-		guard case .result(let eventsJSON) = listed, let events = unwrapData(eventsJSON).arrayValue else {
+		guard case .result(let eventsJSON) = listed, let events = unwrapData(eventsJSON).arrayValue
+		else {
 			Issue.record("expected events")
 			return
 		}
@@ -164,12 +170,14 @@ struct ReadToolsTests {
 	}
 
 	@Test func toolsForTurnSchemasHaveNoUnions() {
-		let schemas = runtime().toolsForTurn(chatId: .main, memory: MemoryView(
-			sections: [:],
-			todayNotes: nil,
-			planHeadline: nil,
-			orphanNames: []
-		))
+		let schemas = runtime().toolsForTurn(
+			chatId: .main,
+			memory: MemoryView(
+				sections: [:],
+				todayNotes: nil,
+				planHeadline: nil,
+				orphanNames: []
+			))
 		#expect(
 			schemas.map(\.name) == [
 				.calculateZones,

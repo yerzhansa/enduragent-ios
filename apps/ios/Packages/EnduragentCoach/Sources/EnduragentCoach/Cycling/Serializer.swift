@@ -159,18 +159,23 @@ public enum IntervalsSerializer {
 
 	private static func validateSchema(_ workout: IntervalsWorkoutInput) throws {
 		if workout.name.isEmpty || workout.name.count > maxName {
-			throw InvalidWorkout(message: "name: String must contain at most \(maxName) character(s)")
+			throw InvalidWorkout(
+				message: "name: String must contain at most \(maxName) character(s)")
 		}
 		if workout.steps.isEmpty {
 			throw InvalidWorkout(message: "steps: Array must contain at least 1 element(s)")
 		}
 		if workout.steps.count > maxSteps {
-			throw InvalidWorkout(message: "steps: Array must contain at most \(maxSteps) element(s)")
+			throw InvalidWorkout(
+				message: "steps: Array must contain at most \(maxSteps) element(s)")
 		}
 		for (index, step) in workout.steps.enumerated() {
 			if case .set(let set) = step {
 				if set.repeatCount < 1 || set.repeatCount > maxRepeat {
-					throw InvalidWorkout(message: "steps[\(index)].repeat: Number must be less than or equal to \(maxRepeat)")
+					throw InvalidWorkout(
+						message:
+							"steps[\(index)].repeat: Number must be less than or equal to \(maxRepeat)"
+					)
 				}
 			}
 		}
@@ -189,10 +194,12 @@ public enum IntervalsSerializer {
 				try validatePowerBounds(power, path: path)
 			}
 			if let label = simple.label, label.count > maxName {
-				throw InvalidWorkout(message: "\(path).label: String must contain at most \(maxName) character(s)")
+				throw InvalidWorkout(
+					message: "\(path).label: String must contain at most \(maxName) character(s)")
 			}
 			if simple.duration.value <= 0 {
-				throw InvalidWorkout(message: "\(path).duration.value: Number must be greater than 0")
+				throw InvalidWorkout(
+					message: "\(path).duration.value: Number must be greater than 0")
 			}
 		}
 	}
@@ -201,10 +208,16 @@ public enum IntervalsSerializer {
 		func check(_ value: Double?, name: String) throws {
 			guard let value else { return }
 			if power.kind == .watts, value > Double(maxWatts) {
-				throw InvalidWorkout(message: "\(path).power.\(name): \(jsString(value))w exceeds sanity bound \(maxWatts)w")
+				throw InvalidWorkout(
+					message:
+						"\(path).power.\(name): \(jsString(value))w exceeds sanity bound \(maxWatts)w"
+				)
 			}
 			if power.kind == .percentFtp, value > Double(maxPercentFtp) {
-				throw InvalidWorkout(message: "\(path).power.\(name): \(jsString(value))% exceeds sanity bound \(maxPercentFtp)%")
+				throw InvalidWorkout(
+					message:
+						"\(path).power.\(name): \(jsString(value))% exceeds sanity bound \(maxPercentFtp)%"
+				)
 			}
 		}
 		try check(power.value, name: "value")
@@ -212,7 +225,9 @@ public enum IntervalsSerializer {
 		try check(power.high, name: "high")
 	}
 
-	private static func formatPower(_ power: PowerTarget, isRamp: Bool, path: String) throws -> String {
+	private static func formatPower(_ power: PowerTarget, isRamp: Bool, path: String) throws
+		-> String
+	{
 		let hasRange = power.low != nil && power.high != nil
 		let hasValue = power.value != nil
 		let prefix = isRamp ? "ramp " : ""
@@ -223,7 +238,9 @@ public enum IntervalsSerializer {
 			let low = power.low!
 			let high = power.high!
 			if low > high {
-				throw InvalidWorkout(message: "\(path): power.low (\(jsString(low))) > power.high (\(jsString(high)))")
+				throw InvalidWorkout(
+					message:
+						"\(path): power.low (\(jsString(low))) > power.high (\(jsString(high)))")
 			}
 			if power.kind == .zone {
 				try assertZone(low, path: "\(path).power.low")
@@ -265,7 +282,8 @@ public enum IntervalsSerializer {
 			let low = cadence.low!
 			let high = cadence.high!
 			if low > high {
-				throw InvalidWorkout(message: "\(path): cadence.low (\(low)) > cadence.high (\(high))")
+				throw InvalidWorkout(
+					message: "\(path): cadence.low (\(low)) > cadence.high (\(high))")
 			}
 			return "\(low)-\(high)rpm"
 		}
@@ -325,7 +343,10 @@ public enum IntervalsSerializer {
 	private static func assertZone(_ value: Double, path: String) throws {
 		let integer = value.rounded() == value
 		if !integer || value < Double(minZone) || value > Double(maxZone) {
-			throw InvalidWorkout(message: "\(path): zone must be an integer \(minZone)-\(maxZone), got \(jsString(value))")
+			throw InvalidWorkout(
+				message:
+					"\(path): zone must be an integer \(minZone)-\(maxZone), got \(jsString(value))"
+			)
 		}
 	}
 
@@ -356,7 +377,9 @@ public enum IntervalsSerializer {
 
 	private static func parseSimple(_ json: JSONValue, path: String) throws -> SimpleStep {
 		let fields = json.objectFields
-		guard let typeRaw = fields["type"]?.stringValue, let type = StepType(rawValue: typeRaw), type != .set else {
+		guard let typeRaw = fields["type"]?.stringValue, let type = StepType(rawValue: typeRaw),
+			type != .set
+		else {
 			throw InvalidWorkout(message: "\(path).type: Invalid option")
 		}
 		guard let durationJSON = fields["duration"] else {
@@ -376,7 +399,9 @@ public enum IntervalsSerializer {
 		guard let value = fields["value"]?.numberValue else {
 			throw InvalidWorkout(message: "\(path).value: Required")
 		}
-		guard let unitRaw = fields["unit"]?.stringValue, let unit = DurationInput.Unit(rawValue: unitRaw) else {
+		guard let unitRaw = fields["unit"]?.stringValue,
+			let unit = DurationInput.Unit(rawValue: unitRaw)
+		else {
 			throw InvalidWorkout(message: "\(path).unit: Invalid option")
 		}
 		return DurationInput(value: value, unit: unit)
@@ -384,7 +409,8 @@ public enum IntervalsSerializer {
 
 	private static func parsePower(_ json: JSONValue, path: String) throws -> PowerTarget {
 		let fields = json.objectFields
-		guard let kindRaw = fields["kind"]?.stringValue, let kind = PowerKind(rawValue: kindRaw) else {
+		guard let kindRaw = fields["kind"]?.stringValue, let kind = PowerKind(rawValue: kindRaw)
+		else {
 			throw InvalidWorkout(message: "\(path).kind: Invalid option")
 		}
 		return PowerTarget(
@@ -407,7 +433,8 @@ public enum IntervalsSerializer {
 	}
 
 	private static func jsString(_ value: Double) -> String {
-		if value.isFinite, value.rounded(.towardZero) == value, abs(value) <= 9_007_199_254_740_991 {
+		if value.isFinite, value.rounded(.towardZero) == value, abs(value) <= 9_007_199_254_740_991
+		{
 			return String(Int64(value))
 		}
 		return String(value)
@@ -439,7 +466,8 @@ public enum DisplayZones {
 			Row(label: "Z1 Active Recovery", value: "< \(band(0.55))W", overlaps: false),
 			Row(label: "Z2 Endurance", value: "\(band(0.56))-\(band(0.75))W", overlaps: false),
 			Row(label: "Z3 Tempo", value: "\(band(0.76))-\(band(0.9))W", overlaps: false),
-			Row(label: "Sweet Spot (88-94%)", value: "\(band(0.88))-\(band(0.94))W", overlaps: true),
+			Row(
+				label: "Sweet Spot (88-94%)", value: "\(band(0.88))-\(band(0.94))W", overlaps: true),
 			Row(label: "Z4 Threshold", value: "\(band(0.91))-\(band(1.05))W", overlaps: false),
 			Row(label: "Z5 VO2max", value: "\(band(1.06))-\(band(1.2))W", overlaps: false),
 		]
@@ -448,16 +476,17 @@ public enum DisplayZones {
 	package static func json(ftpWatts: [Int]) throws -> JSONValue {
 		var object: [String: JSONValue] = [:]
 		for ftp in ftpWatts {
-			object[String(ftp)] = .array(try table(ftpWatts: ftp).map { row in
-				var fields: [String: JSONValue] = [
-					"label": .string(row.label),
-					"value": .string(row.value),
-				]
-				if row.overlaps {
-					fields["overlaps"] = .bool(true)
-				}
-				return .object(fields)
-			})
+			object[String(ftp)] = .array(
+				try table(ftpWatts: ftp).map { row in
+					var fields: [String: JSONValue] = [
+						"label": .string(row.label),
+						"value": .string(row.value),
+					]
+					if row.overlaps {
+						fields["overlaps"] = .bool(true)
+					}
+					return .object(fields)
+				})
 		}
 		return .object(object)
 	}

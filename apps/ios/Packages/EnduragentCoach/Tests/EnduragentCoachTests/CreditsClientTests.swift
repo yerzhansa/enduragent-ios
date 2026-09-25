@@ -1,6 +1,7 @@
 import Foundation
 import Synchronization
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite(.serialized)
@@ -178,14 +179,17 @@ struct CreditsClientTests {
 			try await client.catalog()
 		}
 		#expect(
-			catalog == PackCatalog(
-				purchasesEnabled: false,
-				scale: CreditScale(creditsPerUsd: 100),
-				packs: [
-					CreditPack(id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
-					CreditPack(id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
-				]
-			)
+			catalog
+				== PackCatalog(
+					purchasesEnabled: false,
+					scale: CreditScale(creditsPerUsd: 100),
+					packs: [
+						CreditPack(
+							id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
+						CreditPack(
+							id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
+					]
+				)
 		)
 	}
 }

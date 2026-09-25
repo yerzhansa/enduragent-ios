@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct PromptAssemblyTests {
@@ -54,8 +55,12 @@ import Testing
 			now: clock.now,
 			timeZone: clock.timeZone
 		)
-		#expect(once.contains("Current time: Saturday, June 13th, 1998 - 08:00 (Europe/Amsterdam) / 1998-06-13 06:00 UTC"))
-		let twice = PromptAssembly.appendCurrentTime(athleteText: once, now: clock.now, timeZone: clock.timeZone)
+		#expect(
+			once.contains(
+				"Current time: Saturday, June 13th, 1998 - 08:00 (Europe/Amsterdam) / 1998-06-13 06:00 UTC"
+			))
+		let twice = PromptAssembly.appendCurrentTime(
+			athleteText: once, now: clock.now, timeZone: clock.timeZone)
 		#expect(once == twice)
 	}
 

@@ -2,7 +2,9 @@ import Foundation
 
 public struct CompletionRequest: Sendable, Equatable {
 	public static var openRouterModel: String {
-		if let value = Bundle.main.object(forInfoDictionaryKey: "OpenRouterModel") as? String, !value.isEmpty {
+		if let value = Bundle.main.object(forInfoDictionaryKey: "OpenRouterModel") as? String,
+			!value.isEmpty
+		{
 			return value
 		}
 		return "deepseek/deepseek-v4.1-flash-20260910"

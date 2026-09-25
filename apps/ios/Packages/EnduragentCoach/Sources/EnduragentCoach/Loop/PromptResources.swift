@@ -17,7 +17,10 @@ package enum PromptResources {
 	}
 
 	private static func utf8(resource: String, subdirectory: String) -> String {
-		guard let url = Bundle.module.url(forResource: resource, withExtension: "md", subdirectory: subdirectory) else {
+		guard
+			let url = Bundle.module.url(
+				forResource: resource, withExtension: "md", subdirectory: subdirectory)
+		else {
 			return ""
 		}
 		return (try? String(contentsOf: url, encoding: .utf8)) ?? ""

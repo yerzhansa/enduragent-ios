@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct ReplyLanguageSectionTests {
@@ -44,10 +45,12 @@ import Testing
 	@Test func everyTagHasBothBranches() {
 		for tag in LanguageTag.contractOrder {
 			let preference = PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: tag, source: .preference, locale: tag.defaultLocale)
+				resolution: LanguageResolution(
+					language: tag, source: .preference, locale: tag.defaultLocale)
 			)
 			let automatic = PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: tag, source: .message, locale: tag.defaultLocale)
+				resolution: LanguageResolution(
+					language: tag, source: .message, locale: tag.defaultLocale)
 			)
 			#expect(preference.contains("The athlete chose \(tag.englishName) (\(tag.endonym))"))
 			#expect(automatic.contains("reply in \(tag.englishName) (\(tag.endonym))"))
@@ -65,7 +68,8 @@ import Testing
 		for tag in LanguageTag.contractOrder {
 			for source in [LanguageSource.preference, .message] {
 				let section = PromptAssembly.replyLanguageSection(
-					resolution: LanguageResolution(language: tag, source: source, locale: tag.defaultLocale)
+					resolution: LanguageResolution(
+						language: tag, source: source, locale: tag.defaultLocale)
 				)
 				lines.append("=== \(tag.rawValue) \(source.rawValue)")
 				lines.append(section)

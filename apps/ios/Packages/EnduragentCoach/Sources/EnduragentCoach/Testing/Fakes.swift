@@ -160,7 +160,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		return wellness.filter { $0.date >= oldest && $0.date <= newest }
 	}
 
-	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
+	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
+		-> [ActivitySummary]
+	{
 		let days = IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest)
 		calls.append(.activities(days: days))
 		return activities.filter { $0.date >= oldest && $0.date <= newest }
@@ -202,10 +204,13 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 
 	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
 		_ = draft
-		throw IntervalsError(code: "not_implemented", details: "Plan mirror writes are not available.")
+		throw IntervalsError(
+			code: "not_implemented", details: "Plan mirror writes are not available.")
 	}
 
-	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?) async throws -> CalendarEvent {
+	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+		async throws -> CalendarEvent
+	{
 		calls.append(.updateEvent(id))
 		return CalendarEvent(
 			id: id,

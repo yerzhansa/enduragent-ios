@@ -1,7 +1,8 @@
 import Foundation
 import Security
 
-public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
+public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible
+{
 	public var secret: String
 	public init(secret: String) {
 		self.secret = secret
@@ -144,7 +145,8 @@ public struct ICloudKeychainStore: SecretStore {
 		}
 		let token = UUID()
 		do {
-			try backing.add(account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
+			try backing.add(
+				account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
 			return token
 		} catch let error as KeychainStoreError where error.status == errSecDuplicateItem {
 			if let existing = try readToken() {
@@ -330,7 +332,9 @@ public struct PhoneCreditsClient: CreditsClient {
 		return PackCatalog(
 			purchasesEnabled: wire.purchasesEnabled,
 			scale: CreditScale(creditsPerUsd: wire.creditsPerUsd),
-			packs: wire.packs.map { CreditPack(id: $0.productId, credits: Credits(units: $0.credits)) }
+			packs: wire.packs.map {
+				CreditPack(id: $0.productId, credits: Credits(units: $0.credits))
+			}
 		)
 	}
 
@@ -344,12 +348,15 @@ public struct PhoneCreditsClient: CreditsClient {
 			body: nil,
 			authorization: "Bearer \(key)"
 		)
-		let remaining = try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
+		let remaining =
+			try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
 		let units = Int(floor(remaining * Double(scale.creditsPerUsd)))
 		return CreditBalance(credits: Credits(units: max(0, units)))
 	}
 
-	private func worker(path: String, method: String, body: some Encodable) async throws -> (status: Int, data: Data) {
+	private func worker(path: String, method: String, body: some Encodable) async throws -> (
+		status: Int, data: Data
+	) {
 		try await send(
 			url: workerBase.appending(path: path),
 			method: method,
@@ -358,7 +365,9 @@ public struct PhoneCreditsClient: CreditsClient {
 		)
 	}
 
-	private func send(url: URL, method: String, body: Data?, authorization: String?) async throws -> (status: Int, data: Data) {
+	private func send(url: URL, method: String, body: Data?, authorization: String?) async throws
+		-> (status: Int, data: Data)
+	{
 		var request = URLRequest(url: url, timeoutInterval: Self.timeout)
 		request.httpMethod = method
 		request.setValue("application/json", forHTTPHeaderField: "Content-Type")

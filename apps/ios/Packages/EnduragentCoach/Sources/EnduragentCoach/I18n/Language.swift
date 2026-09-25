@@ -86,7 +86,8 @@ public enum LanguageTag: String, Sendable, CaseIterable {
 	}
 
 	public static let contractOrder: [LanguageTag] = [
-		.en, .es, .fr, .it, .de, .nl, .da, .sv, .nb, .fi, .ptPT, .ptBR, .pl, .ko, .ja, .zhHans, .zhHant,
+		.en, .es, .fr, .it, .de, .nl, .da, .sv, .nb, .fi, .ptPT, .ptBR, .pl, .ko, .ja, .zhHans,
+		.zhHant,
 	]
 }
 
@@ -124,15 +125,19 @@ public struct Language {
 		surface: LanguageTag?
 	) -> LanguageResolution {
 		if let saved {
-			return LanguageResolution(language: saved, source: .preference, locale: saved.defaultLocale)
+			return LanguageResolution(
+				language: saved, source: .preference, locale: saved.defaultLocale)
 		}
 		if let messageHint {
-			return LanguageResolution(language: messageHint, source: .message, locale: messageHint.defaultLocale)
+			return LanguageResolution(
+				language: messageHint, source: .message, locale: messageHint.defaultLocale)
 		}
 		if let surface {
-			return LanguageResolution(language: surface, source: .surface, locale: surface.defaultLocale)
+			return LanguageResolution(
+				language: surface, source: .surface, locale: surface.defaultLocale)
 		}
-		return LanguageResolution(language: .en, source: .default, locale: LanguageTag.en.defaultLocale)
+		return LanguageResolution(
+			language: .en, source: .default, locale: LanguageTag.en.defaultLocale)
 	}
 
 	public static func detectMessageLanguage(_ text: String) -> LanguageTag? {
@@ -151,11 +156,16 @@ public struct Language {
 		for entry in hints {
 			for candidate in entry.split(separator: ":", omittingEmptySubsequences: false) {
 				let trimmed = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
-				let head = trimmed.split(maxSplits: 1, omittingEmptySubsequences: false, whereSeparator: { $0 == "." || $0 == "@" })
+				let head =
+					trimmed.split(
+						maxSplits: 1, omittingEmptySubsequences: false,
+						whereSeparator: { $0 == "." || $0 == "@" }
+					)
 					.first.map(String.init) ?? ""
 				let normalized = head.replacingOccurrences(of: "_", with: "-").lowercased()
 				if normalized.isEmpty || normalized == "c" || normalized == "posix" { continue }
-				let pieces = normalized.split(separator: "-", omittingEmptySubsequences: false).map(String.init)
+				let pieces = normalized.split(separator: "-", omittingEmptySubsequences: false).map(
+					String.init)
 				guard let base = pieces.first else { continue }
 				let parts = Array(pieces.dropFirst())
 				if base == "no" || base == "nn" { return .nb }
@@ -163,7 +173,8 @@ public struct Language {
 				if base == "zh" {
 					if parts.contains("hant") { return .zhHant }
 					if parts.contains("hans") { return .zhHans }
-					let traditionalRegion = parts.contains("tw") || parts.contains("hk") || parts.contains("mo")
+					let traditionalRegion =
+						parts.contains("tw") || parts.contains("hk") || parts.contains("mo")
 					return traditionalRegion ? .zhHant : .zhHans
 				}
 				if let tag = LanguageTag(rawValue: base) { return tag }
@@ -199,7 +210,10 @@ public struct CatalogPhrasebook: Phrasebook {
 	}
 
 	private func render(_ key: String, tag: LanguageTag, vars: [String: String]) -> String {
-		guard let template = CatalogStore.template(key: key, tag: tag, count: parsedCount(vars["count"])) else {
+		guard
+			let template = CatalogStore.template(
+				key: key, tag: tag, count: parsedCount(vars["count"]))
+		else {
 			return ""
 		}
 		return interpolate(template, vars: vars)
@@ -212,7 +226,8 @@ private enum CatalogStore {
 	static func template(key: String, tag: LanguageTag, count: Int?) -> String? {
 		let (lookupKey, forcedForm) = splitPluralKey(key)
 		guard let entry = file.strings[lookupKey] else { return nil }
-		let localization = entry.localizations[tag.rawValue] ?? entry.localizations[LanguageTag.en.rawValue]
+		let localization =
+			entry.localizations[tag.rawValue] ?? entry.localizations[LanguageTag.en.rawValue]
 		guard let localization else { return nil }
 		if let unit = localization.stringUnit?.value {
 			return unit
@@ -225,13 +240,15 @@ private enum CatalogStore {
 			let category = pluralCategory(tag: tag, count: count)
 			return forms[category]?.stringUnit?.value ?? forms["other"]?.stringUnit?.value
 		}
-		return forms["other"]?.stringUnit?.value ?? forms.lazy.compactMap(\.value.stringUnit?.value).first
+		return forms["other"]?.stringUnit?.value
+			?? forms.lazy.compactMap(\.value.stringUnit?.value).first
 	}
 
 	private static func load() -> XCStringsFile {
 		let urls = [
 			Bundle.module.url(forResource: "Phrasebook", withExtension: "json"),
-			Bundle.module.url(forResource: "Phrasebook", withExtension: "json", subdirectory: "Resources"),
+			Bundle.module.url(
+				forResource: "Phrasebook", withExtension: "json", subdirectory: "Resources"),
 		]
 		guard let url = urls.compactMap({ $0 }).first else {
 			return XCStringsFile(strings: [:])
@@ -239,7 +256,8 @@ private enum CatalogStore {
 		guard let data = try? Data(contentsOf: url) else {
 			return XCStringsFile(strings: [:])
 		}
-		return (try? JSONDecoder().decode(XCStringsFile.self, from: data)) ?? XCStringsFile(strings: [:])
+		return (try? JSONDecoder().decode(XCStringsFile.self, from: data))
+			?? XCStringsFile(strings: [:])
 	}
 }
 
@@ -317,7 +335,8 @@ private enum MessageLanguage {
 		}
 		let tokens = uniqueLatinTokens(sample)
 		if tokens.count < 3 { return nil }
-		let scores = profiles.compactMap { profile -> (language: LanguageTag, score: Int, matches: Int)? in
+		let scores = profiles.compactMap {
+			profile -> (language: LanguageTag, score: Int, matches: Int)? in
 			var score = 0
 			var matchCount = 0
 			for token in tokens where profile.words.contains(token) {
@@ -337,9 +356,9 @@ private enum MessageLanguage {
 			return nil
 		}
 		if best.language == .ptPT,
-		   tokens.contains("você")
-		   || tokens.contains("vocês")
-		   || matches(#"treino de hoje|\b(?:celular|legal|pedalando)\b"#, sample)
+			tokens.contains("você")
+				|| tokens.contains("vocês")
+				|| matches(#"treino de hoje|\b(?:celular|legal|pedalando)\b"#, sample)
 		{
 			return .ptBR
 		}
@@ -349,7 +368,8 @@ private enum MessageLanguage {
 	private static func clean(_ text: String) -> String {
 		var stripped = replace(#"^\s*(?:/[\w-]+(?:@[\w-]+)?(?:\s+|$))+"#, in: text, with: "")
 		stripped = replace(#"```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)"#, in: stripped, with: " ")
-		stripped = replace(#"(?:https?://|www\.)\S+"#, in: stripped, with: " ", options: .caseInsensitive)
+		stripped = replace(
+			#"(?:https?://|www\.)\S+"#, in: stripped, with: " ", options: .caseInsensitive)
 		stripped = replace(#"\p{N}+"#, in: stripped, with: " ")
 		var sample = ""
 		var count = 0
@@ -362,7 +382,10 @@ private enum MessageLanguage {
 	}
 
 	private static func uniqueLatinTokens(_ sample: String) -> Set<String> {
-		guard let regex = try? NSRegularExpression(pattern: "[\\p{Script=Latin}]+(?:['’][\\p{Script=Latin}]+)?") else {
+		guard
+			let regex = try? NSRegularExpression(
+				pattern: "[\\p{Script=Latin}]+(?:['’][\\p{Script=Latin}]+)?")
+		else {
 			return []
 		}
 		let range = NSRange(sample.startIndex..., in: sample)
@@ -375,18 +398,78 @@ private enum MessageLanguage {
 	}
 
 	private static let profiles: [(language: LanguageTag, words: Set<String>)] = [
-		(.en, words("the and of to in is that for it with as was on be this have from or by but not are my can should would how what after before today tomorrow yesterday ride training feel legs recovery easy week during want need more than also a an i me we you")),
-		(.es, words("el la los las de del y en que para por con una un es mi mis al se no me como pero más hoy mañana ayer después antes entrenamiento bicicleta piernas puedo debo quiero hacer durante esta este semana tengo siento estoy suave recuperación")),
-		(.fr, words("le la les de des du et en que pour avec une un est mon mes au aux je ne pas sur mais plus aujourd'hui demain hier après avant entraînement vélo jambes peux dois voudrais faire pendant cette ce semaine suis ai mes récupération sortie")),
-		(.it, words("il lo la gli le di del della e che per con una un è mio mia al non mi come ma più oggi domani ieri dopo prima allenamento bicicletta gambe posso devo vorrei fare durante questa questo settimana sono ho sento recupero uscita")),
-		(.de, words("der die das den dem des und in zu ist dass für mit ein eine mein meine am auf ich nicht mir wie aber mehr heute morgen gestern nach vor training fahrrad beine kann soll möchte machen während diese dieser woche habe fühle erholung fahrt")),
-		(.nl, words("de het een en van te dat voor met is mijn op ik niet me hoe maar meer vandaag morgen gisteren na vóór training fiets benen kan moet wil doen tijdens deze dit week heb voel herstel rit zijn als om nog graag rustig omdat")),
-		(.da, words("den det de en et og af at er for med min mine på jeg ikke mig hvordan men mere i dag morgen efter før træning cykel ben kan skal vil gøre under denne dette uge har føler restitution tur var som til gerne rolig fordi også træt træne trætte roligt kørt")),
-		(.sv, words("den det de en ett och av att är för med min mina på jag inte mig hur men mer idag imorgon igår efter före träning cykel ben kan ska vill göra under denna detta vecka har känner återhämtning tur var som till gärna lugn eftersom också trött")),
-		(.nb, words("den det de en et og av at er for med min mine på jeg ikke meg hvordan men mer i dag morgen etter før trening sykkel bein kan skal vil gjøre under denne dette uke har føler restitusjon tur var som til gjerne rolig fordi også sliten trene slitne syklet kjørt")),
-		(.fi, words("ja on ei että se kun jos niin kuin mutta tai sekä minun olen oli ovat kanssa tänään huomenna eilen jälkeen ennen harjoitus pyörä jalat voin pitäisi haluan tehdä aikana tämä viikko minulla tuntuu palautuminen lenkki miten voinko paljon vielä nyt jotta olisi olivat haluaisin")),
-		(.ptPT, words("o a os as de do da dos das e em que para por com uma um é meu minha meus minhas ao não me como mas mais hoje amanhã ontem depois antes treino bicicleta pernas posso devo quero fazer durante esta este semana tenho sinto estou recuperação pedalada")),
-		(.pl, words("i w na z do że nie to jest się jak ale po przed dla czy mój moje mam jestem dzisiaj jutro wczoraj trening rower nogi mogę powinien chcę zrobić podczas ten ta tydzień czuję regeneracja jazda bardzo jeszcze ponieważ żeby oraz był były chciałbym odpoczynek")),
+		(
+			.en,
+			words(
+				"the and of to in is that for it with as was on be this have from or by but not are my can should would how what after before today tomorrow yesterday ride training feel legs recovery easy week during want need more than also a an i me we you"
+			)
+		),
+		(
+			.es,
+			words(
+				"el la los las de del y en que para por con una un es mi mis al se no me como pero más hoy mañana ayer después antes entrenamiento bicicleta piernas puedo debo quiero hacer durante esta este semana tengo siento estoy suave recuperación"
+			)
+		),
+		(
+			.fr,
+			words(
+				"le la les de des du et en que pour avec une un est mon mes au aux je ne pas sur mais plus aujourd'hui demain hier après avant entraînement vélo jambes peux dois voudrais faire pendant cette ce semaine suis ai mes récupération sortie"
+			)
+		),
+		(
+			.it,
+			words(
+				"il lo la gli le di del della e che per con una un è mio mia al non mi come ma più oggi domani ieri dopo prima allenamento bicicletta gambe posso devo vorrei fare durante questa questo settimana sono ho sento recupero uscita"
+			)
+		),
+		(
+			.de,
+			words(
+				"der die das den dem des und in zu ist dass für mit ein eine mein meine am auf ich nicht mir wie aber mehr heute morgen gestern nach vor training fahrrad beine kann soll möchte machen während diese dieser woche habe fühle erholung fahrt"
+			)
+		),
+		(
+			.nl,
+			words(
+				"de het een en van te dat voor met is mijn op ik niet me hoe maar meer vandaag morgen gisteren na vóór training fiets benen kan moet wil doen tijdens deze dit week heb voel herstel rit zijn als om nog graag rustig omdat"
+			)
+		),
+		(
+			.da,
+			words(
+				"den det de en et og af at er for med min mine på jeg ikke mig hvordan men mere i dag morgen efter før træning cykel ben kan skal vil gøre under denne dette uge har føler restitution tur var som til gerne rolig fordi også træt træne trætte roligt kørt"
+			)
+		),
+		(
+			.sv,
+			words(
+				"den det de en ett och av att är för med min mina på jag inte mig hur men mer idag imorgon igår efter före träning cykel ben kan ska vill göra under denna detta vecka har känner återhämtning tur var som till gärna lugn eftersom också trött"
+			)
+		),
+		(
+			.nb,
+			words(
+				"den det de en et og av at er for med min mine på jeg ikke meg hvordan men mer i dag morgen etter før trening sykkel bein kan skal vil gjøre under denne dette uke har føler restitusjon tur var som til gjerne rolig fordi også sliten trene slitne syklet kjørt"
+			)
+		),
+		(
+			.fi,
+			words(
+				"ja on ei että se kun jos niin kuin mutta tai sekä minun olen oli ovat kanssa tänään huomenna eilen jälkeen ennen harjoitus pyörä jalat voin pitäisi haluan tehdä aikana tämä viikko minulla tuntuu palautuminen lenkki miten voinko paljon vielä nyt jotta olisi olivat haluaisin"
+			)
+		),
+		(
+			.ptPT,
+			words(
+				"o a os as de do da dos das e em que para por com uma um é meu minha meus minhas ao não me como mas mais hoje amanhã ontem depois antes treino bicicleta pernas posso devo quero fazer durante esta este semana tenho sinto estou recuperação pedalada"
+			)
+		),
+		(
+			.pl,
+			words(
+				"i w na z do że nie to jest się jak ale po przed dla czy mój moje mam jestem dzisiaj jutro wczoraj trening rower nogi mogę powinien chcę zrobić podczas ten ta tydzień czuję regeneracja jazda bardzo jeszcze ponieważ żeby oraz był były chciałbym odpoczynek"
+			)
+		),
 	]
 
 	private static let diacritics: [LanguageTag: String] = [
@@ -418,8 +501,11 @@ private enum MessageLanguage {
 		with template: String,
 		options: NSRegularExpression.Options = []
 	) -> String {
-		guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else { return text }
+		guard let regex = try? NSRegularExpression(pattern: pattern, options: options) else {
+			return text
+		}
 		let range = NSRange(text.startIndex..., in: text)
-		return regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: template)
+		return regex.stringByReplacingMatches(
+			in: text, options: [], range: range, withTemplate: template)
 	}
 }

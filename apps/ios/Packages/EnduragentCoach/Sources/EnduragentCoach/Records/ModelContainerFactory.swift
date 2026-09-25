@@ -56,6 +56,7 @@ extension ModelContainerHandle {
 			url: storeURL,
 			cloudKitDatabase: cloudKitDatabase
 		)
-		return ModelContainerHandle(container: try ModelContainer(for: schema, configurations: [configuration]))
+		return ModelContainerHandle(
+			container: try ModelContainer(for: schema, configurations: [configuration]))
 	}
 }

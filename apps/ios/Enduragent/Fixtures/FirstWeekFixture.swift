@@ -7,18 +7,21 @@ enum FirstWeekFixture {
 	static let tomorrow: CivilDate = "1998-06-16"
 
 	static let workoutArguments = """
-	{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":90}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
-	"""
+		{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":90}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
+		"""
 
 	static func install(on intervals: FakeIntervalsClient) {
 		intervals.athleteName = athleteName
 		intervals.ftp = 250
 		intervals.wellness = [
-			WellnessDay(date: today, fitness: 42, fatigue: 49, form: -7),
+			WellnessDay(date: today, fitness: 42, fatigue: 49, form: -7)
 		]
 		intervals.activities = [
-			.ride(name: "Tuesday sweet spot", date: "1998-06-09", durationS: 3_600, trainingLoad: 72),
-			.ride(name: "Saturday group ride", date: "1998-06-13", durationS: 7_800, trainingLoad: 118),
+			.ride(
+				name: "Tuesday sweet spot", date: "1998-06-09", durationS: 3_600, trainingLoad: 72),
+			.ride(
+				name: "Saturday group ride", date: "1998-06-13", durationS: 7_800, trainingLoad: 118
+			),
 		]
 	}
 
@@ -41,7 +44,9 @@ enum FirstWeekFixture {
 		let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
 		if SlashRouting.parse(trimmed) == .review {
 			return [
-				.text("Saturday group ride on 1998-06-13, 2 h 10 min, Training Load 118. It sat a little above your Fatigue of 49 against Fitness 42. Keep the next ride easier."),
+				.text(
+					"Saturday group ride on 1998-06-13, 2 h 10 min, Training Load 118. It sat a little above your Fatigue of 49 against Fitness 42. Keep the next ride easier."
+				),
 				.finish(reason: .stop),
 			]
 		}
@@ -53,14 +58,17 @@ enum FirstWeekFixture {
 		}
 		if isWorkoutRequest(trimmed) {
 			return [
-				.toolCall(name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
+				.toolCall(
+					name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
 				.finish(reason: .toolCalls),
 				.text("I've prepared the ride. Confirm to add it."),
 				.finish(reason: .stop),
 			]
 		}
 		return [
-			.text("This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."),
+			.text(
+				"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
+			),
 			.finish(reason: .stop),
 		]
 	}

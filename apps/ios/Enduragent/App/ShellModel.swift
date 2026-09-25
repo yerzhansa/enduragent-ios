@@ -57,7 +57,9 @@ final class ShellModel {
 	}
 
 	var athleteFirstName: String {
-		guard let name = athlete?.name.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else {
+		guard let name = athlete?.name.trimmingCharacters(in: .whitespacesAndNewlines),
+			!name.isEmpty
+		else {
 			return ""
 		}
 		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
@@ -106,7 +108,9 @@ final class ShellModel {
 			case .toppedUp(let added):
 				starterLine = "Added \(added.units) credits"
 			case .alreadyGranted:
-				starterLine = try await existingBalanceLine() ?? "This device already used its starter credits."
+				starterLine =
+					try await existingBalanceLine()
+					?? "This device already used its starter credits."
 			}
 		} catch {
 			starterLine = grantFailureName(error)
@@ -178,7 +182,9 @@ final class ShellModel {
 		}
 		var rows: [ChatSummary] = []
 		for entry in chatIndex.all() {
-			guard let id = ChatID(rawValue: entry.id), let created = CivilDate(rawValue: entry.created) else {
+			guard let id = ChatID(rawValue: entry.id),
+				let created = CivilDate(rawValue: entry.created)
+			else {
 				continue
 			}
 			let messages = await services.coach.history(chatId: id)
@@ -199,7 +205,8 @@ final class ShellModel {
 				packPrices = [:]
 			} else {
 				let products = try await Product.products(for: loaded.packs.map(\.id))
-				packPrices = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
+				packPrices = Dictionary(
+					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
 			}
 		} catch {
 			errorLine = String(describing: error)
@@ -324,7 +331,8 @@ final class ShellModel {
 		guard let services else { return }
 		athlete = try await services.intervals.fetchAthlete()
 		let today = CivilDates.today(clock: builder.clock)
-		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today).first
+		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today)
+			.first
 	}
 
 	private func refreshSeam(from services: AppServices) async {

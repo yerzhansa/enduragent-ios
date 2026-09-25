@@ -1,4 +1,5 @@
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite struct FirstTurnTests {
@@ -24,7 +25,9 @@ import Testing
 	}
 
 	@Test func replyStreamsTextThenFinishes() async throws {
-		transport.script = [.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop)]
+		transport.script = [
+			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
+		]
 		let coach = makeCoach()
 
 		var text = ""
@@ -68,10 +71,11 @@ import Testing
 		}
 		#expect(finished)
 		#expect(failed == nil)
-		#expect(await coach.history(chatId: "main").map(\.text) == [
-			"Give me a ride for tomorrow",
-			"Tomorrow's ride is queued.",
-		])
+		#expect(
+			await coach.history(chatId: "main").map(\.text) == [
+				"Give me a ride for tomorrow",
+				"Tomorrow's ride is queued.",
+			])
 	}
 
 	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
@@ -91,10 +95,11 @@ import Testing
 		}
 		#expect(finished)
 		#expect(failed == nil)
-		#expect(await coach.history(chatId: "main").map(\.text) == [
-			"Give me a ride for tomorrow",
-			"Tomorrow's ride is queued.",
-		])
+		#expect(
+			await coach.history(chatId: "main").map(\.text) == [
+				"Give me a ride for tomorrow",
+				"Tomorrow's ride is queued.",
+			])
 	}
 
 	@Test func emptyProviderErrorFinishFailsWithoutPersisting() async throws {
@@ -111,12 +116,14 @@ import Testing
 	}
 
 	@Test func toolCallRunsAndFeedsBackIntoTheTurn() async throws {
-		intervals.activities = [.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)]
+		intervals.activities = [
+			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
+		]
 		transport.script = [
 			.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
 			.finish(reason: .toolCalls),
 			.text("Sunday long ride, 2 h, load 120."),
-			.finish(reason: .stop)
+			.finish(reason: .stop),
 		]
 		let coach = makeCoach()
 
@@ -138,14 +145,21 @@ import Testing
 	@Test func memoryIsWrittenAfterTheReplyAndQueryable() async throws {
 		transport.script = [
 			.text("Noted: group ride on Saturdays."), .finish(reason: .stop),
-			.toolCall(name: "ledger_append", arguments: #"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#),
-			.finish(reason: .toolCalls), .finish(reason: .stop)
+			.toolCall(
+				name: "ledger_append",
+				arguments:
+					#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
+			),
+			.finish(reason: .toolCalls), .finish(reason: .stop),
 		]
 		let coach = makeCoach()
-		for try await _ in coach.send("Remember that I ride with a group on Saturdays", chatId: "main") {}
+		for try await _ in coach.send(
+			"Remember that I ride with a group on Saturdays", chatId: "main")
+		{}
 		await coach.waitForMemoryFlush()
 
-		let hits = try await coach.memory.query(from: "1998-06-01", to: "1998-06-30", contains: "Saturdays")
+		let hits = try await coach.memory.query(
+			from: "1998-06-01", to: "1998-06-30", contains: "Saturdays")
 		#expect(hits.count == 1)
 		#expect(hits[0].date == "1998-06-13")
 		#expect(hits[0].kind == .ledger(.decision))
@@ -156,12 +170,13 @@ import Testing
 			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
 			.finish(reason: .toolCalls),
 			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop)
+			.finish(reason: .stop),
 		]
 		let coach = makeCoach()
 
 		var proposal: PendingProposal?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main") {
+		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
+		{
 			if case .proposalPending(let pending) = event { proposal = pending }
 		}
 
@@ -184,12 +199,13 @@ import Testing
 			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
 			.finish(reason: .toolCalls),
 			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .error)
+			.finish(reason: .error),
 		]
 		let coach = makeCoach()
 		var proposal: PendingProposal?
 		var failed: String?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main") {
+		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
+		{
 			switch event {
 			case .proposalPending(let pending):
 				proposal = pending
@@ -201,7 +217,9 @@ import Testing
 		}
 		#expect(failed == nil)
 		#expect(try #require(proposal).summary == "Create workout \"Endurance\" on 1998-06-14")
-		#expect(await coach.history(chatId: "main").map(\.text).contains("I've prepared the ride. Confirm to add it."))
+		#expect(
+			await coach.history(chatId: "main").map(\.text).contains(
+				"I've prepared the ride. Confirm to add it."))
 		#expect(await coach.pendingProposal(chatId: "main") != nil)
 	}
 
@@ -212,7 +230,10 @@ import Testing
 		let outcome = try await coach.confirm(chatId: "main", nonce: pending.nonce)
 
 		#expect(outcome == .executed(summary: "Create workout \"Endurance\" on 1998-06-14"))
-		#expect(intervals.calls.last == .createEvent(date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
+		#expect(
+			intervals.calls.last
+				== .createEvent(
+					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
 		#expect(await coach.pendingProposal(chatId: "main") == nil)
 
 		let again = try await coach.confirm(chatId: "main", nonce: pending.nonce)
@@ -228,10 +249,11 @@ import Testing
 			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
 			.finish(reason: .toolCalls),
 			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop)
+			.finish(reason: .stop),
 		]
 		var proposal: PendingProposal?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main") {
+		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
+		{
 			if case .proposalPending(let pending) = event { proposal = pending }
 		}
 		return try #require(proposal)

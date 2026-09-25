@@ -30,7 +30,9 @@ final class StoreKitPurchaseCoordinator {
 	}
 
 	func purchase(_ product: Product) async throws -> ClaimOutcome {
-		let result = try await product.purchase(options: [.appAccountToken(try secrets.appAccountToken())])
+		let result = try await product.purchase(options: [
+			.appAccountToken(try secrets.appAccountToken())
+		])
 		switch result {
 		case .success(let verification):
 			return try await settle(verification)

@@ -11,7 +11,9 @@ public struct HybridLogicalClock: Sendable, Hashable, Comparable {
 		self.deviceId = deviceId
 	}
 
-	public static func tick(now: Date, deviceId: DeviceID, last: HybridLogicalClock?) -> HybridLogicalClock {
+	public static func tick(now: Date, deviceId: DeviceID, last: HybridLogicalClock?)
+		-> HybridLogicalClock
+	{
 		let nowMs = Int64((now.timeIntervalSince1970 * 1000).rounded(.down))
 		guard let last else {
 			return HybridLogicalClock(wallMs: nowMs, logical: 0, deviceId: deviceId)

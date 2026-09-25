@@ -27,10 +27,13 @@ package enum PromptAssembly {
 
 	package static let sectionSeparator = "\n\n---\n\n"
 
-	package static func prefix(soul: String, skills: [(key: String, body: String)], gated: Bool) -> String {
+	package static func prefix(soul: String, skills: [(key: String, body: String)], gated: Bool)
+		-> String
+	{
 		var parts: [String] = [soul]
 		if !skills.isEmpty {
-			let skillBlock = skills
+			let skillBlock =
+				skills
 				.map { "## Skill: \($0.key)\n\n\($0.body)" }
 				.joined(separator: sectionSeparator)
 			parts.append("# Domain Knowledge\n\n" + skillBlock)
@@ -47,9 +50,10 @@ package enum PromptAssembly {
 		replyLanguage: String
 	) -> String {
 		var parts: [String] = [
-			"# Athlete Context\n\n" + wrapAthleteContext(context),
+			"# Athlete Context\n\n" + wrapAthleteContext(context)
 		]
-		if let snapshot, snapshot.fitness != nil || snapshot.fatigue != nil || snapshot.form != nil {
+		if let snapshot, snapshot.fitness != nil || snapshot.fatigue != nil || snapshot.form != nil
+		{
 			parts.append(renderSnapshot(snapshot))
 		} else {
 			parts.append(PromptStaticBlocks.snapshotFallback)
@@ -61,16 +65,22 @@ package enum PromptAssembly {
 		return parts.joined(separator: sectionSeparator)
 	}
 
-	package static func wrapAthleteContext(_ text: String, maxChars: Int = TurnPolicy.athleteContextChars) -> String {
+	package static func wrapAthleteContext(
+		_ text: String, maxChars: Int = TurnPolicy.athleteContextChars
+	) -> String {
 		let sanitized = sanitizeUntrustedText(text)
 		var body = sanitized
 		if sanitized.utf16.count > maxChars {
-			body = truncateUtf16Safe(sanitized, maxChars: maxChars) + "\n" + PromptStaticBlocks.truncationNotice
+			body =
+				truncateUtf16Safe(sanitized, maxChars: maxChars) + "\n"
+				+ PromptStaticBlocks.truncationNotice
 		}
 		return athleteDataOpen + "\n" + body + "\n" + athleteDataClose
 	}
 
-	package static func appendCurrentTime(athleteText: String, now: Date, timeZone: TimeZone) -> String {
+	package static func appendCurrentTime(athleteText: String, now: Date, timeZone: TimeZone)
+		-> String
+	{
 		let base = trimEnd(athleteText)
 		if base.isEmpty || base.contains("Current time:") {
 			return base
@@ -153,7 +163,9 @@ public struct HistoryWindow {
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 
-	public static func shouldSoftFlush(historyTokens: Int, budget: Int, messagesSinceFlush: Int) -> Bool {
+	public static func shouldSoftFlush(historyTokens: Int, budget: Int, messagesSinceFlush: Int)
+		-> Bool
+	{
 		if messagesSinceFlush < 5 {
 			return false
 		}
@@ -162,7 +174,8 @@ public struct HistoryWindow {
 }
 
 func sanitizeUntrustedText(_ value: String) -> String {
-	let normalized = value
+	let normalized =
+		value
 		.replacingOccurrences(of: "\r\n", with: "\n")
 		.replacingOccurrences(of: "\r", with: "\n")
 	var kept: [Unicode.Scalar] = []
@@ -184,10 +197,12 @@ func sanitizeUntrustedText(_ value: String) -> String {
 	}
 	var out = String(String.UnicodeScalarView(kept))
 	if out.contains(PromptAssembly.athleteDataOpen) {
-		out = out.replacingOccurrences(of: PromptAssembly.athleteDataOpen, with: PromptStaticBlocks.fenceTokenReplacement)
+		out = out.replacingOccurrences(
+			of: PromptAssembly.athleteDataOpen, with: PromptStaticBlocks.fenceTokenReplacement)
 	}
 	if out.contains(PromptAssembly.athleteDataClose) {
-		out = out.replacingOccurrences(of: PromptAssembly.athleteDataClose, with: PromptStaticBlocks.fenceTokenReplacement)
+		out = out.replacingOccurrences(
+			of: PromptAssembly.athleteDataClose, with: PromptStaticBlocks.fenceTokenReplacement)
 	}
 	return out
 }
@@ -255,7 +270,8 @@ private func formatTimeInTZ(_ date: Date, timeZone: TimeZone) -> String? {
 	var calendar = Calendar(identifier: .gregorian)
 	calendar.locale = Locale(identifier: "en_US")
 	calendar.timeZone = timeZone
-	let parts = calendar.dateComponents([.weekday, .year, .month, .day, .hour, .minute], from: date)
+	let parts = calendar.dateComponents(
+		[.weekday, .year, .month, .day, .hour, .minute], from: date)
 	guard
 		let weekday = parts.weekday,
 		let year = parts.year,
@@ -272,7 +288,8 @@ private func formatTimeInTZ(_ date: Date, timeZone: TimeZone) -> String? {
 	}
 	let weekdayName = calendar.weekdaySymbols[weekday - 1]
 	let monthName = calendar.monthSymbols[month - 1]
-	return "\(weekdayName), \(monthName) \(day)\(ordinalSuffix(day)), \(year) - \(String(format: "%02d:%02d", hour, minute))"
+	return
+		"\(weekdayName), \(monthName) \(day)\(ordinalSuffix(day)), \(year) - \(String(format: "%02d:%02d", hour, minute))"
 }
 
 private func utcStamp(_ date: Date) -> String {

@@ -1,5 +1,6 @@
 import EnduragentCoach
 import Testing
+
 @testable import Enduragent
 
 struct SlashListTests {

@@ -19,7 +19,8 @@ public struct SectionName: RawRepresentable, Hashable, Sendable {
 
 	public var inject: Bool {
 		switch rawValue {
-		case SectionName.notes.rawValue, SectionName.cyclingEquipment.rawValue, SectionName.cyclingHistory.rawValue:
+		case SectionName.notes.rawValue, SectionName.cyclingEquipment.rawValue,
+			SectionName.cyclingHistory.rawValue:
 			return false
 		default:
 			return true
@@ -77,7 +78,8 @@ public struct SectionName: RawRepresentable, Hashable, Sendable {
 		case SectionName.notes.rawValue:
 			return "Anything else important not covered by other sections"
 		case SectionName.medicalHistory.rawValue:
-			return "Chronic conditions, medications, long-term injuries — facts that persist across sports"
+			return
+				"Chronic conditions, medications, long-term injuries — facts that persist across sports"
 		case SectionName.cyclingProfile.rawValue:
 			return
 				"FTP (watts), max HR, resting HR, W/kg ratio, experience level. "
@@ -147,7 +149,10 @@ public struct MemoryView: Sendable, Equatable {
 	public var planHeadline: PlanHeadline?
 	public var orphanNames: [String]
 
-	public init(sections: [String: String], todayNotes: String?, planHeadline: PlanHeadline?, orphanNames: [String]) {
+	public init(
+		sections: [String: String], todayNotes: String?, planHeadline: PlanHeadline?,
+		orphanNames: [String]
+	) {
 		self.sections = sections
 		self.todayNotes = todayNotes
 		self.planHeadline = planHeadline
@@ -201,10 +206,12 @@ public struct Memory: Sendable {
 		self.clock = clock
 	}
 
-	public func query(from: CivilDate, to: CivilDate, contains: String?) async throws -> [MemoryHit] {
+	public func query(from: CivilDate, to: CivilDate, contains: String?) async throws -> [MemoryHit]
+	{
 		if from > to {
 			throw MemoryQueryFailure(
-				message: "Error: 'from' (\(from.rawValue)) is after 'to' (\(to.rawValue)). Swap the bounds."
+				message:
+					"Error: 'from' (\(from.rawValue)) is after 'to' (\(to.rawValue)). Swap the bounds."
 			)
 		}
 		let days = IntervalsPolicy.inclusiveDayCount(from: from, to: to)
@@ -228,7 +235,11 @@ public struct Memory: Sendable {
 					.map(String.init)
 				if lines.isEmpty { continue }
 				collected.append(
-					(MemoryHit(date: date, kind: .dailyNote, text: lines.joined(separator: "\n")), order)
+					(
+						MemoryHit(
+							date: date, kind: .dailyNote, text: lines.joined(separator: "\n")),
+						order
+					)
 				)
 			} else {
 				collected.append((MemoryHit(date: date, kind: .dailyNote, text: text), order))
@@ -290,7 +301,8 @@ public struct Memory: Sendable {
 	}
 
 	public func context() async throws -> String {
-		try await renderContext(excluding: SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue))
+		try await renderContext(
+			excluding: SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue))
 	}
 
 	package func fullContext() async throws -> String {
@@ -302,7 +314,9 @@ public struct Memory: Sendable {
 		return try await renderContext(excluding: injected)
 	}
 
-	public func writeSection(_ name: SectionName, content: String, source: LedgerSource) async throws {
+	public func writeSection(_ name: SectionName, content: String, source: LedgerSource)
+		async throws
+	{
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let snapshot = try await loadSnapshot()
 		let previous = UnionMerge.sectionText(snapshot.sections, name: name)
@@ -324,8 +338,10 @@ public struct Memory: Sendable {
 			"section": .string(name.rawValue),
 			"source": .string(source.rawValue),
 		]).canonicalDigestInput()
-		try await append(.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
-		try await append(.memorySection(MemorySectionBody(name: name, content: stamped)), civilDate: today)
+		try await append(
+			.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
+		try await append(
+			.memorySection(MemorySectionBody(name: name, content: stamped)), civilDate: today)
 	}
 
 	public func appendDailyNote(_ note: String) async throws {
@@ -338,17 +354,22 @@ public struct Memory: Sendable {
 		try await append(.dailyNote(DailyNoteBody(note: note)), civilDate: today)
 	}
 
-	public func appendEvent(date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource) async throws -> Bool {
+	public func appendEvent(date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource)
+		async throws -> Bool
+	{
 		let snapshot = try await loadSnapshot()
 		let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: text)
 		for record in snapshot.ledgerRecords {
 			guard case .ledgerEvent(let body) = record.body else { continue }
-			if UnionMerge.ledgerDigest(date: record.civilDate, kind: body.kind, text: body.text) == digest {
+			if UnionMerge.ledgerDigest(date: record.civilDate, kind: body.kind, text: body.text)
+				== digest
+			{
 				return false
 			}
 		}
 		let body = LedgerEventBody(kind: kind, text: text, source: source)
-		let line = serializeLedgerLine(date: date, kind: kind, text: text, source: source, wallMs: wallMs(clock.now))
+		let line = serializeLedgerLine(
+			date: date, kind: kind, text: text, source: source, wallMs: wallMs(clock.now))
 		try await append(
 			.provenance(
 				ProvenanceBody(
@@ -365,7 +386,9 @@ public struct Memory: Sendable {
 		return true
 	}
 
-	public func flush(trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport) async throws {
+	public func flush(trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport)
+		async throws
+	{
 		let pending = try await oldestUnconsumedFlush(chatId: chatId)
 		let effectiveTrigger: FlushTrigger = {
 			if let pending, case .flushPending(let body) = pending.body {
@@ -373,7 +396,8 @@ public struct Memory: Sendable {
 			}
 			return trigger
 		}()
-		let conversation = try await loadFlushMessages(trigger: effectiveTrigger, chatId: chatId, pending: pending)
+		let conversation = try await loadFlushMessages(
+			trigger: effectiveTrigger, chatId: chatId, pending: pending)
 		if conversation.isEmpty, pending == nil {
 			return
 		}
@@ -382,7 +406,8 @@ public struct Memory: Sendable {
 		var lastLedger = 0
 		while attempt < MemoryFlushPolicy.maxAttempts {
 			attempt += 1
-			let outcome = try await runFlushGenerate(conversation: conversation, transport: transport)
+			let outcome = try await runFlushGenerate(
+				conversation: conversation, transport: transport)
 			lastWrites = outcome.writes
 			lastLedger = outcome.ledgerAppends
 			let zeroWrite =
@@ -410,7 +435,9 @@ public struct Memory: Sendable {
 			}
 		}
 		for orphan in snapshot.orphanNames {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: SectionName(rawValue: orphan)) {
+			if let content = UnionMerge.sectionText(
+				snapshot.sections, name: SectionName(rawValue: orphan))
+			{
 				sections[orphan] = content
 			}
 		}
@@ -428,7 +455,9 @@ public struct Memory: Sendable {
 	package func hiddenSectionsHaveLogicalContent() async throws -> Bool {
 		let snapshot = try await loadSnapshot()
 		for name in SectionName.cyclingEffective where !name.inject {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: name), hasLogicalSectionContent(content) {
+			if let content = UnionMerge.sectionText(snapshot.sections, name: name),
+				hasLogicalSectionContent(content)
+			{
 				return true
 			}
 		}
@@ -440,14 +469,17 @@ public struct Memory: Sendable {
 		let exclude = Set(excluding)
 		var parts: [String] = []
 		var blocks: [String] = []
-		for name in SectionName.cyclingEffective where name.inject && !exclude.contains(name.rawValue) {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: name), !content.isEmpty {
+		for name in SectionName.cyclingEffective
+		where name.inject && !exclude.contains(name.rawValue) {
+			if let content = UnionMerge.sectionText(snapshot.sections, name: name), !content.isEmpty
+			{
 				blocks.append("## \(name.rawValue)\n\(content)")
 			}
 		}
 		for orphan in snapshot.orphanNames where !exclude.contains(orphan) {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: SectionName(rawValue: orphan)),
-			   !content.isEmpty
+			if let content = UnionMerge.sectionText(
+				snapshot.sections, name: SectionName(rawValue: orphan)),
+				!content.isEmpty
 			{
 				blocks.append("## \(orphan)\n\(content)")
 			}
@@ -485,9 +517,11 @@ public struct Memory: Sendable {
 	) async throws -> (writes: Int, ledgerAppends: Int) {
 		let current = (try? await fullContext()) ?? ""
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let fenced = PromptAssembly.wrapAthleteContext(current.isEmpty ? "No athlete data stored yet." : current)
+		let fenced = PromptAssembly.wrapAthleteContext(
+			current.isEmpty ? "No athlete data stored yet." : current)
 		var messages: [WireMessage] = [
-			WireMessage(role: .system, content: MemoryFlushPrompt.system, toolCalls: [], toolCallId: nil),
+			WireMessage(
+				role: .system, content: MemoryFlushPrompt.system, toolCalls: [], toolCallId: nil)
 		]
 		messages.append(contentsOf: conversation.map(wireMessage(from:)))
 		messages.append(
@@ -518,7 +552,8 @@ public struct Memory: Sendable {
 				break
 			}
 			messages.append(
-				WireMessage(role: .assistant, content: step.text, toolCalls: step.calls, toolCallId: nil)
+				WireMessage(
+					role: .assistant, content: step.text, toolCalls: step.calls, toolCallId: nil)
 			)
 			for call in step.calls {
 				let (payload, wroteSection, wroteLedger) = try await executeFlushTool(call)
@@ -560,8 +595,13 @@ public struct Memory: Sendable {
 		switch call.name {
 		case .memoryWrite:
 			let fields = arguments.objectFields
-			guard let section = fields["section"]?.stringValue, let content = fields["content"]?.stringValue else {
-				return (JSONValue.object(["error": .string("section_required")]).canonicalDigestInput(), false, false)
+			guard let section = fields["section"]?.stringValue,
+				let content = fields["content"]?.stringValue
+			else {
+				return (
+					JSONValue.object(["error": .string("section_required")]).canonicalDigestInput(),
+					false, false
+				)
 			}
 			try await writeSection(SectionName(rawValue: section), content: content, source: .flush)
 			return (JSONValue.object(["saved": .bool(true)]).canonicalDigestInput(), true, false)
@@ -583,15 +623,21 @@ public struct Memory: Sendable {
 			}
 			let recorded = try await appendEvent(date: date, kind: kind, text: text, source: .flush)
 			if recorded {
-				return (JSONValue.object(["recorded": .bool(true)]).canonicalDigestInput(), false, true)
+				return (
+					JSONValue.object(["recorded": .bool(true)]).canonicalDigestInput(), false, true
+				)
 			}
 			return (
-				JSONValue.object(["duplicate": .bool(true), "recorded": .bool(false)]).canonicalDigestInput(),
+				JSONValue.object(["duplicate": .bool(true), "recorded": .bool(false)])
+					.canonicalDigestInput(),
 				false,
 				false
 			)
 		default:
-			return (JSONValue.object(["error": .string("unsupported")]).canonicalDigestInput(), false, false)
+			return (
+				JSONValue.object(["error": .string("unsupported")]).canonicalDigestInput(), false,
+				false
+			)
 		}
 	}
 
@@ -611,7 +657,8 @@ public struct Memory: Sendable {
 		for record in records {
 			guard case .provenance(let body) = record.body else { continue }
 			if body.key.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) {
-				ids.insert(String(body.key.dropFirst(MemoryFlushPolicy.consumedFlushKeyPrefix.count)))
+				ids.insert(
+					String(body.key.dropFirst(MemoryFlushPolicy.consumedFlushKeyPrefix.count)))
 			}
 		}
 		return ids
@@ -642,20 +689,27 @@ public struct Memory: Sendable {
 			RecordQuery(kinds: [.userMessage, .assistantMessage, .windowStart], chatId: chatId)
 		)
 		let ignoreWindow =
-			trigger == .trim || trigger == .preCompaction || trigger == .overflow || trigger == .explicitReset
+			trigger == .trim || trigger == .preCompaction || trigger == .overflow
+			|| trigger == .explicitReset
 		if let pending, case .flushPending(let body) = pending.body, !body.messageUlids.isEmpty {
 			let wanted = Set(body.messageUlids.map(\.rawValue))
 			let byUlid = Dictionary(uniqueKeysWithValues: records.map { ($0.ulid.rawValue, $0) })
 			var messages: [ChatMessage] = []
 			for ulid in body.messageUlids {
-				guard let record = byUlid[ulid.rawValue] ?? records.first(where: { $0.ulid.rawValue == ulid.rawValue })
+				guard
+					let record = byUlid[ulid.rawValue]
+						?? records.first(where: { $0.ulid.rawValue == ulid.rawValue })
 				else { continue }
 				_ = wanted
 				switch record.body {
 				case .userMessage(let message):
-					messages.append(ChatMessage(role: .user, text: message.athleteText, civilDate: record.civilDate))
+					messages.append(
+						ChatMessage(
+							role: .user, text: message.athleteText, civilDate: record.civilDate))
 				case .assistantMessage(let message):
-					messages.append(ChatMessage(role: .assistant, text: message.text, civilDate: record.civilDate))
+					messages.append(
+						ChatMessage(
+							role: .assistant, text: message.text, civilDate: record.civilDate))
 				default:
 					break
 				}
@@ -667,9 +721,11 @@ public struct Memory: Sendable {
 			return records.sorted { $0.hlc < $1.hlc }.compactMap { record in
 				switch record.body {
 				case .userMessage(let body) where body.chatId == chatId:
-					return ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate)
+					return ChatMessage(
+						role: .user, text: body.athleteText, civilDate: record.civilDate)
 				case .assistantMessage(let body) where body.chatId == chatId:
-					return ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate)
+					return ChatMessage(
+						role: .assistant, text: body.text, civilDate: record.civilDate)
 				default:
 					return nil
 				}
@@ -722,7 +778,8 @@ public struct Memory: Sendable {
 
 	private func append(_ body: RecordBody, civilDate: CivilDate) async throws {
 		let last = try await maxHLC()
-		let tz = IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+		let tz =
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,
@@ -749,8 +806,12 @@ public enum MemoryQuery {
 	public static let truncationNotice = "[truncated — narrow the date range or add a query term]"
 	public static let emptySuffix = ": no daily notes, events, or history found."
 
-	public static func render(_ hits: [MemoryHit], from: CivilDate, to: CivilDate, query: String? = nil) -> String {
-		let header = "Memory query \(from.rawValue)..\(to.rawValue)" + (query.map { " matching \"\($0)\"" } ?? "")
+	public static func render(
+		_ hits: [MemoryHit], from: CivilDate, to: CivilDate, query: String? = nil
+	) -> String {
+		let header =
+			"Memory query \(from.rawValue)..\(to.rawValue)"
+			+ (query.map { " matching \"\($0)\"" } ?? "")
 		if hits.isEmpty {
 			return header + emptySuffix
 		}
@@ -785,7 +846,9 @@ private struct MemorySnapshot {
 
 	func dailyNotesOnly(on date: CivilDate) -> String {
 		daily.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .dailyNote(let body) = record.body else { return nil }
+			guard record.civilDate == date, case .dailyNote(let body) = record.body else {
+				return nil
+			}
 			return body.note
 		}.joined(separator: "\n")
 	}
@@ -796,7 +859,9 @@ private struct MemorySnapshot {
 			return notes
 		}
 		let extras = compaction.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .compactionSummary(let body) = record.body else { return nil }
+			guard record.civilDate == date, case .compactionSummary(let body) = record.body else {
+				return nil
+			}
 			return formatCompactionNote(body.markdown)
 		}
 		for extra in extras {
@@ -888,7 +953,8 @@ private func isAtMostH3(_ line: String) -> Bool {
 }
 
 private func formatCompactionNote(_ summary: String) -> String {
-	let demoted = summary.split(separator: "\n", omittingEmptySubsequences: false).map { line -> String in
+	let demoted = summary.split(separator: "\n", omittingEmptySubsequences: false).map {
+		line -> String in
 		let text = String(line)
 		if text.hasPrefix("## "), !text.hasPrefix("### ") {
 			return "#### " + text.dropFirst(3)
@@ -982,7 +1048,8 @@ private func wallMs(_ date: Date) -> Int64 {
 }
 
 private func historyBodySummary(_ body: String?, query: String?) -> String {
-	let text = (body ?? "").trimmingCharacters(in: .whitespacesAndNewlines).replacing(/\s+/, with: " ")
+	let text = (body ?? "").trimmingCharacters(in: .whitespacesAndNewlines).replacing(
+		/\s+/, with: " ")
 	if text.utf16.count <= MemoryFlushPolicy.historyPreviewChars {
 		return text
 	}

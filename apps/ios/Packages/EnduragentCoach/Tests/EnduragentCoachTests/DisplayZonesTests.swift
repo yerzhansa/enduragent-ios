@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import EnduragentCoach
 
 @Suite
@@ -19,10 +20,13 @@ struct DisplayZonesTests {
 	}
 
 	@Test func ftpTablesMatchTypeScriptBytes() throws {
-		let expected = try JSONValue.parse(String(data: try fixtureData("zones-ts"), encoding: .utf8)!)
+		let expected = try JSONValue.parse(
+			String(data: try fixtureData("zones-ts"), encoding: .utf8)!)
 		let actual = try DisplayZones.json(ftpWatts: [200, 250, 280, 400])
 		#expect(actual.canonicalDigestInput() == expected.canonicalDigestInput())
-		#expect(Array(actual.canonicalDigestInput().utf8) == Array(expected.canonicalDigestInput().utf8))
+		#expect(
+			Array(actual.canonicalDigestInput().utf8) == Array(expected.canonicalDigestInput().utf8)
+		)
 		writeEvidence("zones-swift.json", canonicalJSON(actual))
 	}
 
