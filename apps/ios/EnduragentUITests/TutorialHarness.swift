@@ -13,15 +13,33 @@ enum TutorialHarness {
 	static let greeting = "Hello, Ada."
 	static let done = "Done — Create workout \"Endurance with tempo\" on 1998-06-16."
 	static let warmup = "Warmup"
+	static let working = "Coach is working…"
+	static let responseFailure = "The coach couldn't respond. Please try again."
+	static let storeArgument = "-EnduragentFixtureStore"
 
 	static func launch(_ app: XCUIApplication, dark: Bool = false) {
 		app.launchArguments = [
-			"-EnduragentFixture", "first-week", "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			"-EnduragentFixture", "first-week", storeArgument, "fresh",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
 		}
 		app.launch()
+	}
+
+	static func relaunchKeepingStore(_ app: XCUIApplication) {
+		app.terminate()
+		XCTAssertEqual(app.state, .notRunning)
+		guard let index = app.launchArguments.firstIndex(of: storeArgument),
+			app.launchArguments.indices.contains(index + 1)
+		else {
+			XCTFail("launch arguments carry no \(storeArgument)")
+			return
+		}
+		app.launchArguments[index + 1] = "keep"
+		app.launch()
+		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}
 
 	static func attach(_ test: XCTestCase, name: String, app: XCUIApplication) {

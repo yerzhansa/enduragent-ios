@@ -25,9 +25,15 @@ import Testing
 		#expect(
 			synced.records[0].body
 				== .legacy(
-					.userMessageV1(chatId: .main, athleteText: "What did my week look like?", slash: nil)))
-		#expect(synced.records[2].body == .legacy(.userMessageV1(chatId: .main, athleteText: "/review", slash: .review)))
-		#expect(synced.records[4].body == .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: store.manifest.questionB)))
+					.userMessageV1(
+						chatId: .main, athleteText: "What did my week look like?", slash: nil)))
+		#expect(
+			synced.records[2].body
+				== .legacy(.userMessageV1(chatId: .main, athleteText: "/review", slash: .review)))
+		#expect(
+			synced.records[4].body
+				== .legacy(
+					.windowStartV1(chatId: .main, firstIncludedUlid: store.manifest.questionB)))
 		guard case .synced(.ledgerEvent(let event)) = synced.records[8].body else {
 			Issue.record("expected a ledger event")
 			return
@@ -42,14 +48,18 @@ import Testing
 	@Test func v1TranscriptFoldsWithLegacyRepliesSettled() async throws {
 		let store = try V1Store.materialize()
 		let log = try store.open(deviceId: phoneA)
-		let page = try await log.fetch(RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
+		let page = try await log.fetch(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
 		let conversation = ConversationFold.fold(chat: .main, synced: page.records, device: phoneA)
 		#expect(
 			conversation.current.messages.map(\.text) == [
 				"What did my week look like?", "Your week: two rides, 3 h 10 min.", "/review",
 				"Saturday group ride summary.",
 			])
-		#expect(conversation.current.promptHistory(excluding: nil).messages.map(\.text) == ["/review", "Saturday group ride summary."])
+		#expect(
+			conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				"/review", "Saturday group ride summary.",
+			])
 	}
 
 	@Test func upgradedStoreAcceptsEnvelopeV2Writes() async throws {
@@ -63,10 +73,14 @@ import Testing
 				sampleReply(chatId: .main, turn: turn, text: "Noted."),
 			],
 			stamp: testStamp())
-		let page = try await ledger.read(RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
+		let page = try await ledger.read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
 		let conversation = ConversationFold.fold(chat: .main, synced: page.records, device: phoneA)
-		#expect(conversation.current.messages.map(\.text).suffix(2) == ["after the upgrade", "Noted."])
-		let byTurn = try await log.fetch(RecordQuery(scope: .synced([.userMessage, .turnSettled]), turn: turn)).records
+		#expect(
+			conversation.current.messages.map(\.text).suffix(2) == ["after the upgrade", "Noted."])
+		let byTurn = try await log.fetch(
+			RecordQuery(scope: .synced([.userMessage, .turnSettled]), turn: turn)
+		).records
 		#expect(kinds(byTurn) == ["userMessage", "turnSettled"])
 	}
 
@@ -82,11 +96,16 @@ import Testing
 	@Test func newerBodyVersionBecomesSkippedRow() async throws {
 		let store = try V1Store.materialize()
 		let log = try store.open(deviceId: phoneA)
-		try store.insertRaw(kind: "userMessage", bodyVersion: 99, ulid: "01NEWVERS00000000000000000")
+		try store.insertRaw(
+			kind: "userMessage", bodyVersion: 99, ulid: "01NEWVERS00000000000000000")
 		let page = try await log.fetch(RecordQuery(scope: .synced([.userMessage])))
-		#expect(page.skipped == [.newerVersion(kind: "userMessage", version: 99, ulid: "01NEWVERS00000000000000000")])
+		#expect(
+			page.skipped == [
+				.newerVersion(kind: "userMessage", version: 99, ulid: "01NEWVERS00000000000000000")
+			])
 		#expect(page.records.isEmpty)
-		let withLegacy = try await log.fetch(RecordQuery(scope: .synced([.userMessage], includeLegacy: [.userMessage])))
+		let withLegacy = try await log.fetch(
+			RecordQuery(scope: .synced([.userMessage], includeLegacy: [.userMessage])))
 		#expect(withLegacy.records.count == 2)
 		#expect(withLegacy.skipped.count == 1)
 	}
@@ -120,13 +139,16 @@ struct V1Store {
 	func open(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 		SwiftDataRecordLog(
 			deviceId: deviceId,
-			synced: try ModelContainerHandle.withoutCloudKit(storeURL: root.appending(path: "synced.store")),
-			local: try ModelContainerHandle.withoutCloudKit(storeURL: root.appending(path: "local.store"))
+			synced: try ModelContainerHandle.withoutCloudKit(
+				storeURL: root.appending(path: "synced.store")),
+			local: try ModelContainerHandle.withoutCloudKit(
+				storeURL: root.appending(path: "local.store"))
 		)
 	}
 
 	func insertRaw(kind: String, bodyVersion: Int, ulid: String) throws {
-		let handle = try ModelContainerHandle.withoutCloudKit(storeURL: root.appending(path: "synced.store"))
+		let handle = try ModelContainerHandle.withoutCloudKit(
+			storeURL: root.appending(path: "synced.store"))
 		let context = ModelContext(handle.container)
 		let row = try StoredAthleteRecord(
 			record: storedRecord(

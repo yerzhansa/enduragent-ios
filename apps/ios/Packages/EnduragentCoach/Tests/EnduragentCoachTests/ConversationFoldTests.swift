@@ -11,30 +11,41 @@ import Testing
 		let question = storedRecord(
 			device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "week?"))
 		let reply = storedRecord(
-			device: phoneA, wall: 2, ulid: ulid(2), body: legacyReply(chatId: .main, text: "Two rides."))
+			device: phoneA, wall: 2, ulid: ulid(2),
+			body: legacyReply(chatId: .main, text: "Two rides."))
 		let second = storedRecord(
 			device: phoneA, wall: 3, ulid: ulid(3), body: legacyUser(chatId: .main, text: "again?"))
 		let secondReply = storedRecord(
-			device: phoneA, wall: 4, ulid: ulid(4), body: legacyReply(chatId: .main, text: "Still two."))
+			device: phoneA, wall: 4, ulid: ulid(4),
+			body: legacyReply(chatId: .main, text: "Still two."))
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: [secondReply, reply, second, question], device: phoneA)
 		let turns = conversation.current.turns
 		#expect(turns.map(\.turn) == [TurnID(ulid: ulid(1)), TurnID(ulid: ulid(3))])
 		let first = try #require(turns.first)
 		#expect(first.fragments.map(\.draft) == [nil])
-		#expect(first.latestSettlement?.settlement == .replied(.model("Two rides."), lineage: ReplyLineage(templateHash: "t", assembledHash: "a")))
 		#expect(
-			conversation.current.messages.map(\.text) == ["week?", "Two rides.", "again?", "Still two."])
-		#expect(conversation.current.messages.map(\.role) == [.user, .assistant, .user, .assistant])
+			first.latestSettlement?.settlement
+				== .replied(
+					.model("Two rides."),
+					lineage: ReplyLineage(templateHash: "t", assembledHash: "a")))
+		#expect(
+			conversation.current.messages.map(\.text) == [
+				"week?", "Two rides.", "again?", "Still two.",
+			])
+		#expect(
+			conversation.current.messages.map(\.role) == [.user, .assistant, .user, .assistant])
 	}
 
 	@Test func settledTurnsInterleaveWithLegacyOnesByClock() throws {
 		let turn = TurnID(ulid: ulid(5))
 		let records = [
 			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")),
+				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")
+			),
 			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2), body: legacyReply(chatId: .main, text: "old reply")),
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: legacyReply(chatId: .main, text: "old reply")),
 			storedRecord(
 				device: phoneA, wall: 3, ulid: ulid(3),
 				body: .synced(sampleUser(chatId: .main, text: "new", turn: turn))),
@@ -43,7 +54,8 @@ import Testing
 				body: .synced(sampleReply(chatId: .main, turn: turn, text: "new reply"))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
+		#expect(
+			conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
 		#expect(conversation.lastExchange == .at(Date(timeIntervalSince1970: 0.004)))
 	}
 
@@ -100,7 +112,10 @@ import Testing
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(onA.current.promptWindow.firstIncluded == nil)
-		#expect(onA.current.promptHistory(excluding: nil).messages.map(\.text) == ["first", "first reply", "second"])
+		#expect(
+			onA.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				"first", "first reply", "second",
+			])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
 		#expect(onB.current.promptWindow.firstIncluded == ulid(3))
 		#expect(onB.current.promptHistory(excluding: nil).messages.map(\.text) == ["second"])
@@ -111,11 +126,14 @@ import Testing
 	@Test func v1WindowStartFoldsAsTrimAndHidesNothingFromTheTranscript() throws {
 		let records = [
 			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")),
+				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")
+			),
 			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2), body: legacyReply(chatId: .main, text: "old reply")),
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: legacyReply(chatId: .main, text: "old reply")),
 			storedRecord(
-				device: phoneA, wall: 3, ulid: ulid(3), body: legacyUser(chatId: .main, text: "kept")),
+				device: phoneA, wall: 3, ulid: ulid(3),
+				body: legacyUser(chatId: .main, text: "kept")),
 			storedRecord(
 				device: phoneA, wall: 4, ulid: ulid(4),
 				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(3)))),

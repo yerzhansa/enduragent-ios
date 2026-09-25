@@ -25,7 +25,9 @@
 			return RecordSyncSnapshot(
 				deviceId: ledger.deviceId,
 				newestHLC: records.last.map { hlcText($0.hlc) } ?? "",
-				counts: counts.sorted { $0.key < $1.key }.map { RecordSyncCount(kind: $0.key, count: $0.value) },
+				counts: counts.sorted { $0.key < $1.key }.map {
+					RecordSyncCount(kind: $0.key, count: $0.value)
+				},
 				rows: records.map { record in
 					RecordSyncRow(
 						id: record.ulid.rawValue,

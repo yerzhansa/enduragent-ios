@@ -12,7 +12,9 @@ import Testing
 		let log = InMemoryRecordLog(deviceId: phoneA)
 		let ledger = Ledger(log: log, clock: clock)
 		async let synced = ledger.commit(
-			synced: [sampleUser(chatId: .main, text: "one"), sampleUser(chatId: .main, text: "two")],
+			synced: [
+				sampleUser(chatId: .main, text: "one"), sampleUser(chatId: .main, text: "two"),
+			],
 			stamp: testStamp())
 		async let local = ledger.commit(
 			local: [
@@ -73,7 +75,7 @@ import Testing
 	}
 
 	@Test func injectedAppendFailureStoresNothingFromTheBatch() async throws {
-		let log = RejectingLog(inner: InMemoryRecordLog(deviceId: phoneA))
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phoneA))
 		let ledger = Ledger(log: log, clock: clock)
 		log.failNextAppend = true
 		await #expect(throws: LedgerFailure.rejectedBatch) {
@@ -97,7 +99,8 @@ import Testing
 		let written = try await ledger.commit(
 			synced: [
 				.windowStart(
-					WindowStartBody(chatId: .main, firstIncludedUlid: boundary, reason: .reset(.daily))),
+					WindowStartBody(
+						chatId: .main, firstIncludedUlid: boundary, reason: .reset(.daily))),
 				sampleUser(chatId: .main, text: "first in the new segment"),
 			],
 			stamp: testStamp())
@@ -121,30 +124,3 @@ import Testing
 		#expect(record.deviceId == phoneA)
 	}
 }
-
-private final class RejectingLog: RecordLog, @unchecked Sendable {
-	let inner: InMemoryRecordLog
-	var failNextAppend = false
-
-	init(inner: InMemoryRecordLog) {
-		self.inner = inner
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		if failNextAppend {
-			failNextAppend = false
-			throw InjectedAppendFailure()
-		}
-		try await inner.append(batch, locality: locality)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
-}
-
-private struct InjectedAppendFailure: Error {}

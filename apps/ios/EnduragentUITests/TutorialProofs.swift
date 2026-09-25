@@ -174,3 +174,58 @@ final class ConfirmedPreviewDarkProof: XCTestCase {
 		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
 	}
 }
+
+final class RelaunchKeepsChatProof: XCTestCase {
+	func testRelaunchKeepsChat() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
+		TutorialHarness.attach(self, name: "relaunch-keeps-chat", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class SlowReplyProof: XCTestCase {
+	func testSlowReply() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:slow")
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		XCTAssertEqual(working.label, TutorialHarness.working)
+		TutorialHarness.attach(self, name: "slow-reply-working", app: app)
+		TutorialHarness.waitForLabel(app, "This week has", timeout: 5)
+		XCTAssertFalse(app.staticTexts["quieter stretch between them."].exists)
+		TutorialHarness.attach(self, name: "slow-reply-streaming", app: app)
+		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 15)
+		XCTAssertFalse(working.exists)
+		TutorialHarness.attach(self, name: "slow-reply-done", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class FailedReplyProof: XCTestCase {
+	func testFailedReply() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:fail 500")
+		let error = TutorialHarness.named(app, "chat.error")
+		TutorialHarness.wait(error)
+		XCTAssertEqual(error.label, TutorialHarness.responseFailure)
+		XCTAssertFalse(
+			app.staticTexts.containing(
+				NSPredicate(format: "label CONTAINS %@", "OpenRouterHTTPError")
+			).firstMatch.exists)
+		TutorialHarness.attach(self, name: "failed-reply", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}

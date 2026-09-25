@@ -6,6 +6,9 @@ enum FirstWeekFixture {
 	static let today: CivilDate = "1998-06-15"
 	static let tomorrow: CivilDate = "1998-06-16"
 
+	static let weekSummary =
+		"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
+
 	static let workoutArguments = """
 		{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":90}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
 		"""
@@ -65,12 +68,16 @@ enum FirstWeekFixture {
 				.finish(reason: .stop),
 			]
 		}
-		return [
-			.text(
-				"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
-			),
-			.finish(reason: .stop),
-		]
+		return [.text(weekSummary), .finish(reason: .stop)]
+	}
+
+	static func weekSummaryByWord() -> [ScriptedEvent] {
+		let words = weekSummary.split(separator: " ")
+		var script = words.enumerated().map { index, word in
+			ScriptedEvent.text(index == words.count - 1 ? String(word) : word + " ")
+		}
+		script.append(.finish(reason: .stop))
+		return script
 	}
 
 	private static func isWorkoutRequest(_ text: String) -> Bool {

@@ -8,6 +8,9 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 - `chat-send` posts the athlete's message and clears the composer.
 - `chat-reply` shows the coach's reply under the message.
 - `chat-working` shows `Coach is working…` in `chat.working` while the turn has no reply text yet.
+- `chat-streaming` shows the reply growing under the working row while the coach is still answering.
+- `chat-failed` shows `The coach couldn't respond. Please try again.` in `chat.error` when the model fails, with no Swift type name.
+- `chat-relaunch` reopens on the chat with the transcript after the app is killed and relaunched with the kept store.
 - `chat-review` answers `/review` with the Saturday group ride.
 - `chat-slash-list` lists `/review`, `/status`, `/workout`, and `/language` above the composer, and never `/plan`.
 - `chat-slash-fill` fills the composer with the chosen command and a space, which hides the list.
@@ -37,10 +40,18 @@ Preconditions:
 - **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `chat.error` reads `Plans arrive in the next TestFlight.`, no `/plan` message appears in the transcript, the composer still reads `/plan`, and the slash list stays open. Capture it with `sim.mjs shot <run id> plan-refused`.
 - **New chat.** This step is interactive. After a reply, tap the `New chat` button. The transcript returns to the greeting and the composer is empty. Capture it with `sim.mjs shot <run id> new-chat`.
 - **No network.** Tap `chat.sidebar`, then `sidebar.debug`. `fixture.requestCount` reads `0 requests`. Capture it with `sim.mjs shot <run id> request-count`. `FirstConversationProof` asserts the same value.
+- **Working and streaming.** Send `fixture:slow`. Run `sim.mjs test <run id> SlowReplyProof`. Attachment `slow-reply-working` shows `Coach is working…` with no reply text, `slow-reply-streaming` shows part of the week summary under the working row, and `slow-reply-done` shows the whole reply with the working row gone. Interactively, send `fixture:slow` and take `sim.mjs shot <run id> working` within one second and `sim.mjs shot <run id> streaming` at about three seconds.
+- **Failed reply.** Send `fixture:fail 500`. Run `sim.mjs test <run id> FailedReplyProof`. `chat.error` reads `The coach couldn't respond. Please try again.` and nothing on screen names `OpenRouterHTTPError`. Attachment `failed-reply` shows it. `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, and `fixture:fail overflow` fail the next request with the matching error.
+- **Hang and watchdog.** This step is interactive. Send `fixture:hang` and wait 35 seconds. `chat.working` shows for 30 seconds, then `chat.error` reads `The coach couldn't respond. Please try again.` Capture it with `sim.mjs shot <run id> hang-watchdog`.
+- **Storage fault.** This step is interactive. Send `fixture:storage fail-next-append`; the composer clears and the transcript does not change. Then send `What did my training look like this week?`. The reply streams, then the turn fails when it saves, and the failure text appears in `chat.error`. Menu, Debug, Records lists no `userMessage` row for the question. Capture it with `sim.mjs shot <run id> storage-fault`.
+- **Relaunch with the kept store.** After a reply, kill and reopen the app with the kept store. Run `sim.mjs test <run id> RelaunchKeepsChatProof`. The chat shows the question and the reply and the notice is not on screen. Attachment `relaunch-keeps-chat` shows it. Interactively, run `sim.mjs launch <run id> --keep` after a reply.
 
 ## Gotchas
 
-- The fixture transport answers with no delay, so `chat.working` and the streamed text last only a moment. A fixture run cannot verify `chat-working`. Report it as skipped.
+- The fixture transport answers with no delay unless the message is `fixture:slow`. Only that directive keeps `chat.working` and the streamed text on screen long enough to capture.
+- A `fixture:` directive is typed as a message. `fixture:slow`, `fixture:hang`, and `fixture:fail ...` appear in the transcript as the athlete's message. `fixture:storage fail-next-append` does not: it arms the next write and sends nothing.
+- `fixture:slow` and `fixture:hang` apply to that message only. The next plain message answers at once.
+- After `fixture:hang`, wait the full 30 seconds. Sending another message before the watchdog fires queues it behind the hung turn.
 - The fixture picks a reply from the message text, and any unmatched text gets the week summary. A wrong prompt still gets a reply, so assert the specific reply text.
 - `/status` and `/workout` get the week summary in the fixture, and the command itself appears as the athlete's message. The workout preview needs a message containing `endurance ride`.
 - `TutorialHarness.waitForLabel` waits 10 seconds for an exact label before it falls back to a `CONTAINS` match. Replies longer than the expected fragment still pass, but each such wait adds 10 seconds.

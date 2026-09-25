@@ -75,7 +75,8 @@ func legacyUser(chatId: ChatID, text: String) -> RecordBody {
 func legacyReply(chatId: ChatID, text: String) -> RecordBody {
 	.legacy(
 		.assistantMessage(
-			AssistantMessageBody(chatId: chatId, text: text, templateHash: "t", assembledHash: "a")))
+			AssistantMessageBody(chatId: chatId, text: text, templateHash: "t", assembledHash: "a"))
+	)
 }
 
 func sampleProposal(chatId: ChatID, nonce: Nonce, expiresAt: Date) -> ProposalBody {

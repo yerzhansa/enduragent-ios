@@ -48,7 +48,8 @@ package enum ConversationFold {
 					slash: body.slash
 				)
 				if turns[body.turn] == nil {
-					turns[body.turn] = TurnFacts(turn: body.turn, chat: chat, origin: record.deviceId)
+					turns[body.turn] = TurnFacts(
+						turn: body.turn, chat: chat, origin: record.deviceId)
 					order.append(body.turn)
 				}
 				turns[body.turn]?.fragments.append(fragment)
@@ -245,7 +246,10 @@ package struct TurnFacts: Sendable, Equatable {
 		]
 		if let settled = latestSettlement, case .replied(.model(let text), _) = settled.settlement {
 			rows.append(
-				(settled.ulid, ChatMessage(role: .assistant, text: text, civilDate: settled.civilDate))
+				(
+					settled.ulid,
+					ChatMessage(role: .assistant, text: text, civilDate: settled.civilDate)
+				)
 			)
 		}
 		return rows

@@ -30,10 +30,12 @@ enum RecordCodec {
 					return .success(.legacy(legacy))
 				}
 				return .success(
-					.synced(try syncedBody(synced, version: version, data: data, civilDate: civilDate)))
+					.synced(
+						try syncedBody(synced, version: version, data: data, civilDate: civilDate)))
 			}
 			if let local = DeviceLocalKind(rawValue: kind) {
-				return .success(.deviceLocal(try deviceLocalBody(local, version: version, data: data)))
+				return .success(
+					.deviceLocal(try deviceLocalBody(local, version: version, data: data)))
 			}
 			if let legacy = LegacyKind(rawValue: kind) {
 				guard version == 1, let body = try legacyBody(legacy, data: data) else {
@@ -109,7 +111,8 @@ enum RecordCodec {
 		let name = kind.rawValue
 		switch kind {
 		case .userMessage:
-			let payload = try payload(UserMessagePayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				UserMessagePayload.self, version: version, kind: name, data: data)
 			return .userMessage(
 				UserMessageBody(
 					chatId: try decodeChatID(payload.chatId),
@@ -121,7 +124,8 @@ enum RecordCodec {
 				)
 			)
 		case .turnSettled:
-			let payload = try payload(TurnSettledPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				TurnSettledPayload.self, version: version, kind: name, data: data)
 			return .turnSettled(
 				TurnSettledBody(
 					chatId: try decodeChatID(payload.chatId),
@@ -131,7 +135,8 @@ enum RecordCodec {
 				)
 			)
 		case .windowStart:
-			let payload = try payload(WindowStartPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				WindowStartPayload.self, version: version, kind: name, data: data)
 			return .windowStart(
 				WindowStartBody(
 					chatId: try decodeChatID(payload.chatId),
@@ -143,17 +148,22 @@ enum RecordCodec {
 			let payload = try payload(
 				CompactionSummaryPayload.self, version: version, kind: name, data: data)
 			return .compactionSummary(
-				CompactionSummaryBody(chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
+				CompactionSummaryBody(
+					chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
 			)
 		case .memorySection:
-			let payload = try payload(MemorySectionPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				MemorySectionPayload.self, version: version, kind: name, data: data)
 			return .memorySection(
-				MemorySectionBody(name: SectionName(rawValue: payload.name), content: payload.content))
+				MemorySectionBody(
+					name: SectionName(rawValue: payload.name), content: payload.content))
 		case .dailyNote:
-			let payload = try payload(DailyNotePayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				DailyNotePayload.self, version: version, kind: name, data: data)
 			return .dailyNote(DailyNoteBody(note: payload.note))
 		case .ledgerEvent:
-			let payload = try payload(LedgerEventPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				LedgerEventPayload.self, version: version, kind: name, data: data)
 			guard let eventKind = LedgerKind(rawValue: payload.kind),
 				let source = LedgerSource(rawValue: payload.source)
 			else {
@@ -176,7 +186,8 @@ enum RecordCodec {
 			}
 			return .journal(JournalBody(op: op, preview: payload.preview))
 		case .provenance:
-			let payload = try payload(ProvenancePayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				ProvenancePayload.self, version: version, kind: name, data: data)
 			return .provenance(
 				ProvenanceBody(
 					key: payload.key,
@@ -218,7 +229,8 @@ enum RecordCodec {
 		let name = kind.rawValue
 		switch kind {
 		case .pendingProposal:
-			let payload = try payload(ProposalPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				ProposalPayload.self, version: version, kind: name, data: data)
 			guard let tool = GatedToolName(rawValue: payload.tool) else {
 				throw RecordDecodeFailure(reason: "tool")
 			}
@@ -247,7 +259,8 @@ enum RecordCodec {
 				)
 			)
 		case .flushPending:
-			let payload = try payload(FlushPendingPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				FlushPendingPayload.self, version: version, kind: name, data: data)
 			guard let trigger = FlushTrigger(rawValue: payload.trigger) else {
 				throw RecordDecodeFailure(reason: "flush")
 			}
@@ -276,7 +289,8 @@ enum RecordCodec {
 				)
 			)
 		case .planRevision:
-			let payload = try payload(PlanRevisionPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				PlanRevisionPayload.self, version: version, kind: name, data: data)
 			guard let status = PlanStatus(rawValue: payload.status) else {
 				throw RecordDecodeFailure(reason: "planStatus")
 			}
@@ -289,7 +303,8 @@ enum RecordCodec {
 				)
 			)
 		case .mirrorJob:
-			let payload = try payload(MirrorJobPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				MirrorJobPayload.self, version: version, kind: name, data: data)
 			guard let jobKind = MirrorJobKind(rawValue: payload.kind),
 				let windowStart = DateKey(rawValue: payload.windowStart),
 				let windowEnd = DateKey(rawValue: payload.windowEnd)
@@ -306,7 +321,8 @@ enum RecordCodec {
 				)
 			)
 		case .workoutMatch:
-			let payload = try payload(WorkoutMatchPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				WorkoutMatchPayload.self, version: version, kind: name, data: data)
 			guard let decision = MatchDecision(rawValue: payload.decision) else {
 				throw RecordDecodeFailure(reason: "match")
 			}
@@ -318,7 +334,8 @@ enum RecordCodec {
 				)
 			)
 		case .workoutDrift:
-			let payload = try payload(WorkoutDriftPayload.self, version: version, kind: name, data: data)
+			let payload = try payload(
+				WorkoutDriftPayload.self, version: version, kind: name, data: data)
 			return .workoutDrift(
 				WorkoutDriftBody(
 					planWorkoutId: try decodeULID(payload.planWorkoutId),

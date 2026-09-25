@@ -7,7 +7,7 @@ description: Drive the Enduragent iPhone app, the SwiftUI app in apps/ios, on a 
 
 The surface is the iPhone app built from `apps/ios/project.yml`. Every verification run creates its own simulator, `enduragent-verify-<run id>`, from the newest iOS 26 runtime. The default device is iPhone 17e, which is 390 × 844 points, the same viewport as the prototype captures. Never drive a simulator the run did not create. Never drive a physical device.
 
-The app always runs in fixture mode, `-EnduragentFixture first-week`. `AppServices.fixture` swaps intervals.icu, credits, the model transport, the keychain, and the record store for in-memory fakes. `FixtureBlockingURLProtocol` fails and counts every `URLSession` request. No API key, account, or network is needed.
+The app always runs in fixture mode, `-EnduragentFixture first-week`. `AppServices.fixture` swaps intervals.icu, credits, the model transport, the keychain, and the record store for fakes. The fakes keep their state on disk under the app's `Application Support/fixture/` and in the `UserDefaults` suite `icu.enduragent.fixture`, so a relaunch can either wipe it (`-EnduragentFixtureStore fresh`, the default) or reuse it (`-EnduragentFixtureStore keep`). `FixtureBlockingURLProtocol` fails and counts every `URLSession` request. No API key, account, or network is needed.
 
 Every step goes through one helper. Run it by path from the checkout you are verifying. It resolves that checkout from its own location, so it also works when your shell starts somewhere else.
 
@@ -29,7 +29,7 @@ The feature map in [features/README.md](features/README.md) is the recipe for ea
 1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. A clean build took 36 seconds on 2026-09-25. If XcodeGen changes `apps/ios/Enduragent.xcodeproj`, the change belongs in your commit, because `project.yml` changed.
 2. Create the run with `sim.mjs create <kebab-slug>`. It creates and boots the simulator, waits for `simctl bootstatus`, sets the status bar to 9:41 with full signal and battery like the prototype captures, sets light appearance, and writes `run.json` into the evidence folder. The first boot takes about a minute.
 3. Install with `sim.mjs install <run id>`. Install again after every build.
-4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US` and prints `icu.enduragent.app: <pid>`. Extra arguments after the run id pass through to the app. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`.
+4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would.
 
 The first launch on a new simulator can block for minutes while first-boot services run and the home screen still shows blank icons. On 2026-09-25, with the Mac at a load average near 250, it took about six minutes and then succeeded. Check `uptime` before you suspect the app, and let the command finish. Launching again terminates the app and opens it again. Teardown is **Cleanup**.
 
@@ -64,6 +64,17 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 
 The fixture athlete is Ada Kovač. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
+A message that starts with `fixture:` is a directive to the fakes, typed into `chat.composer` like any message. `FixtureDirector` applies it before the turn starts:
+
+| Message | Effect |
+| --- | --- |
+| `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
+| `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
+| `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds. |
+| `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
+
+Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow and hang settings.
+
 ## UI test run
 
 ```sh
@@ -78,21 +89,7 @@ xcodebuild test-without-building -project apps/ios/Enduragent.xcodeproj -scheme 
 
 `-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On failure it prints the tail of the log and exits 1. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
 
-To prove state across a kill and reopen, terminate and relaunch the same `XCUIApplication` inside one proof:
-
-```swift
-let app = XCUIApplication()
-TutorialHarness.launch(app)
-TutorialHarness.completeOnboarding(app)
-app.terminate()
-XCTAssertEqual(app.state, .notRunning)
-app.launch()
-XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-```
-
-`launch()` reuses the `launchArguments` that `TutorialHarness.launch` set, so the reopened app is still in fixture mode. Then assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent of a kill and reopen is `sim.mjs launch <run id>`, which keeps the installed app and its data container.
-
-Fixture state lives only in memory. `InMemoryRecordLog` and `FakeSecretStore` hold the records and keys, and `ChatIndex` and `ShellModel` skip `UserDefaults` in fixture mode. A reopened fixture app therefore shows the notice again. This was observed on 2026-09-25 after reaching the chat. A proof of the truthful state after a relaunch first needs fixture state that survives the process. Until that exists, a relaunch that lands on the notice is the expected fixture behavior, not a restored session.
+To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
 ## Compare with the prototype
 
@@ -115,8 +112,9 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `chat-new-conversation` | The greeting after `New chat` |
 | `review-ready` | The `Confirmed preview` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
-| `chat-working`, `chat-streaming` | Not capturable in fixture mode. The fixture transport has no delay, so both last only a moment. |
-| `chat-failed` | No fixture path to a model failure. `/plan` shows a different state in `chat.error`. |
+| `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
+| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary under the working row |
+| `chat-failed` | After `fixture:fail 500`: `chat.error` reads `The coach couldn't respond. Please try again.` |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, `interruption-*` | No app screen yet |
 
 ## Evidence
@@ -135,7 +133,7 @@ Proof standards:
 - Drive the athlete's path by tapping controls from launch onward. Setting `ShellModel` state, calling model methods, and unit tests are not UI proof.
 - Capture the action and the resulting state. Take a `shot` before the tap and after the result, or use a proof whose attachment shows the end state.
 - Check the side effect beside the pixels. Menu, then Debug, must show `fixture.requestCount` reading `0 requests`. `TutorialHarness.assertZeroFixtureRequests` asserts it. Any other count means a code path escaped the fakes, which is a finding.
-- The fixture is the only mock, and it replaces services at the same seam as production, `AppServices`. Fixture mode blocks all `URLSession` traffic, keeps records in memory, writes keys to `FakeSecretStore`, and skips the StoreKit price lookup. A fixture run cannot prove live networking, persistence across launches, iCloud sync, or StoreKit prices. Say so when a change touches them.
+- The fixture is the only mock, and it replaces services at the same seam as production, `AppServices`. Fixture mode blocks all `URLSession` traffic, keeps records in a SwiftData store under `Application Support/fixture/` with CloudKit off, writes keys to `FakeSecretStore`, and skips the StoreKit price lookup. A fixture run cannot prove live networking, the real keychain, iCloud sync, or StoreKit prices. Say so when a change touches them.
 - Report the feature ID and the entry point with every artifact. Do not report a skipped entry point as verified through another one.
 
 ## Cleanup
@@ -154,7 +152,7 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 | `build` | XcodeGen, then `build-for-testing` into `DerivedData` |
 | `create <kebab-slug>` | New run id, evidence folder, and booted simulator |
 | `install <run id>` | Installs the built app on the run's simulator |
-| `launch <run id> [app arguments]` | Kills and opens the app in fixture mode |
+| `launch <run id> [--keep] [app arguments]` | Kills and opens the app in fixture mode; `--keep` reuses the fixture state instead of wiping it |
 | `shot <run id> <kebab-label>` | Screenshot to `<evidence>/<label>.png` |
 | `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported |
 | `parity <run id> <prototype>-<state> <light\|dark> [--from <png>]` | Prototype capture beside a simulator screenshot |
