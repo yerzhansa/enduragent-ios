@@ -9,6 +9,7 @@ package struct TurnState: Sendable, Equatable {
 	package var flushedThisTurn: Bool
 	package var lastFlushMessageCount: Int
 	package var steps: Int
+	package var stamp: OperationStamp
 }
 
 public enum TurnPolicy {
@@ -82,7 +83,7 @@ public struct TurnBudget: Sendable {
 package struct TurnRunner: Sendable {
 	private let transport: any ModelTransport
 	private let intervals: any IntervalsClient
-	private let store: any RecordLog
+	private let ledger: Ledger
 	private let clock: any Clock
 	private let tools: ToolRuntime
 	private let planning: Planning
@@ -90,14 +91,14 @@ package struct TurnRunner: Sendable {
 	package init(
 		transport: any ModelTransport,
 		intervals: any IntervalsClient,
-		store: any RecordLog,
+		ledger: Ledger,
 		clock: any Clock,
 		tools: ToolRuntime,
 		planning: Planning
 	) {
 		self.transport = transport
 		self.intervals = intervals
-		self.store = store
+		self.ledger = ledger
 		self.clock = clock
 		self.tools = tools
 		self.planning = planning
@@ -122,24 +123,37 @@ package struct TurnRunner: Sendable {
 		}
 
 		await tools.beginTurn()
-		var writer = RecordWriter(store: store, clock: clock)
-		try await writer.refreshClock()
+		let turn = TurnID(ulid: await ledger.nextULID())
+		let stamp = OperationStamp(
+			operation: .turn(turn),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: ActionBinding(
+				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+		)
 
-		var transcript = try await loadTranscript(chatId: chatId)
+		var transcript = try await loadTranscript(chatId: chatId, excluding: turn)
 		if shouldDailyReset(last: transcript.lastDate) {
-			try await writer.append(
-				.flushPending(
-					FlushPendingBody(
-						chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
+			_ = try await ledger.commit(
+				local: [
+					.flushPending(
+						FlushPendingBody(
+							chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
+				],
+				stamp: stamp
 			)
-			let marker = ULID.generate(at: clock.now)
-			try await writer.append(
-				.windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: marker))
+			let marker = await ledger.nextULID()
+			_ = try await ledger.commit(
+				synced: [
+					.windowStart(
+						WindowStartBody(
+							chatId: chatId, firstIncludedUlid: marker, reason: .reset(.daily)))
+				],
+				stamp: stamp
 			)
 			transcript = Transcript(messages: [], ulids: [], lastDate: nil, windowStart: marker)
 		}
 
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(ledger: ledger, clock: clock)
 		let context = (try? await memory.context()) ?? ""
 		let view =
 			(try? await memory.view())
@@ -168,15 +182,16 @@ package struct TurnRunner: Sendable {
 		let systemTokens = estimateTokens(system)
 		let trim = HistoryWindow.trim(messages: transcript.messages, systemTokens: systemTokens)
 		if !trim.dropped.isEmpty {
+			var bodies: [SyncedRecordBody] = []
 			if let first = trim.kept.first, let ulid = transcript.ulid(for: first) {
-				try await writer.append(
-					.windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: ulid))
-				)
+				bodies.append(
+					.windowStart(
+						WindowStartBody(chatId: chatId, firstIncludedUlid: ulid, reason: .trim)))
 			}
-			try await writer.append(
+			bodies.append(
 				.compactionSummary(
-					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped)))
-			)
+					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
+			_ = try await ledger.commit(synced: bodies, stamp: stamp)
 			try? await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
 		}
 		let kept = trim.kept
@@ -203,7 +218,8 @@ package struct TurnRunner: Sendable {
 			writesCommitted: 0,
 			flushedThisTurn: false,
 			lastFlushMessageCount: 0,
-			steps: 0
+			steps: 0,
+			stamp: stamp
 		)
 
 		var budget = TurnBudget.start()
@@ -217,12 +233,7 @@ package struct TurnRunner: Sendable {
 			try budget.checkDeadline()
 
 			if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-				try await writer.append(
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
-					)
-				)
+				try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
 				emit(.interrupted(text: streamed))
 				return
 			}
@@ -231,7 +242,7 @@ package struct TurnRunner: Sendable {
 				if overflowTries >= TurnPolicy.overflowRetries {
 					throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
 				}
-				try await compact(wire: &wire, budget: &budget, chatId: chatId, writer: &writer)
+				try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
 				overflowTries += 1
 			}
 
@@ -245,13 +256,7 @@ package struct TurnRunner: Sendable {
 			stepLoop: while state.steps < TurnPolicy.maxSteps {
 				try Task.checkCancellation()
 				if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-					try await writer.append(
-						.flushPending(
-							FlushPendingBody(
-								chatId: chatId, trigger: .softThreshold,
-								messageUlids: transcript.ulids)
-						)
-					)
+					try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
 					emit(.interrupted(text: streamed))
 					return
 				}
@@ -291,7 +296,7 @@ package struct TurnRunner: Sendable {
 						throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
 					}
 					overflowTries += 1
-					try await compact(wire: &wire, budget: &budget, chatId: chatId, writer: &writer)
+					try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
 					continue attemptLoop
 				}
 
@@ -377,31 +382,37 @@ package struct TurnRunner: Sendable {
 					prefix + schemas.map(\.name.rawValue).joined()
 						+ CompletionRequest.openRouterModel)
 				let assembledHash = sha256Hex(system + timed + assistantText)
-				try await writer.append(
-					.userMessage(
-						UserMessageBody(
-							chatId: chatId, athleteText: text, timedText: timed, slash: slash)
-					)
-				)
-				try await writer.append(
-					.assistantMessage(
-						AssistantMessageBody(
-							chatId: chatId,
-							text: assistantText,
-							templateHash: templateHash,
-							assembledHash: assembledHash
-						)
-					)
+				_ = try await ledger.commit(
+					synced: [
+						.userMessage(
+							UserMessageBody(
+								chatId: chatId,
+								turn: turn,
+								fragment: 0,
+								draft: DraftID(),
+								athleteText: text,
+								slash: slash
+							)
+						),
+						.turnSettled(
+							TurnSettledBody(
+								chatId: chatId,
+								turn: turn,
+								attempt: stamp.attempt,
+								settlement: .replied(
+									.model(assistantText),
+									lineage: ReplyLineage(
+										templateHash: templateHash, assembledHash: assembledHash)
+								)
+							)
+						),
+					],
+					stamp: stamp
 				)
 			}
 
 			if shouldFlush {
-				try await writer.append(
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
-					)
-				)
+				try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
 			}
 
 			_ = lastUsage
@@ -516,11 +527,21 @@ package struct TurnRunner: Sendable {
 		}
 	}
 
+	private func queueSoftFlush(chatId: ChatID, ulids: [ULID], stamp: OperationStamp) async throws {
+		_ = try await ledger.commit(
+			local: [
+				.flushPending(
+					FlushPendingBody(chatId: chatId, trigger: .softThreshold, messageUlids: ulids))
+			],
+			stamp: stamp
+		)
+	}
+
 	private func compact(
 		wire: inout [WireMessage],
 		budget: inout TurnBudget,
 		chatId: ChatID,
-		writer: inout RecordWriter
+		stamp: OperationStamp
 	) async throws {
 		try budget.chargeGenerate()
 		let keep = Array(wire.suffix(4))
@@ -553,20 +574,20 @@ package struct TurnRunner: Sendable {
 			summary = compactionStub(
 				dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
 		}
-		if let first = keep.first {
-			try await writer.append(
+		var bodies: [SyncedRecordBody] = []
+		if !keep.isEmpty {
+			bodies.append(
 				.windowStart(
 					WindowStartBody(
 						chatId: chatId,
-						firstIncludedUlid: ULID.generate(at: clock.now)
+						firstIncludedUlid: await ledger.nextULID(),
+						reason: .compaction
 					)
 				)
 			)
-			_ = first
 		}
-		try await writer.append(
-			.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: summary))
-		)
+		bodies.append(.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: summary)))
+		_ = try await ledger.commit(synced: bodies, stamp: stamp)
 		var next: [WireMessage] = [
 			WireMessage(
 				role: .system,
@@ -591,40 +612,23 @@ package struct TurnRunner: Sendable {
 		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
 	}
 
-	private func loadTranscript(chatId: ChatID) async throws -> Transcript {
-		let records = try await store.fetch(
-			RecordQuery(
-				kinds: [.userMessage, .assistantMessage, .windowStart, .compactionSummary],
-				chatId: chatId)
-		)
-		let ordered = records.sorted { $0.hlc < $1.hlc }
-		let start = ordered.reversed().compactMap { record -> ULID? in
-			if case .windowStart(let body) = record.body { return body.firstIncludedUlid }
-			return nil
-		}.first
-		var messages: [ChatMessage] = []
-		var ulids: [ULID] = []
-		var lastDate: Date?
-		for record in ordered {
-			if let start, record.ulid.rawValue < start.rawValue {
-				continue
-			}
-			switch record.body {
-			case .userMessage(let body):
-				messages.append(
-					ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
-				ulids.append(record.ulid)
-				lastDate = Date(timeIntervalSince1970: Double(record.hlc.wallMs) / 1000)
-			case .assistantMessage(let body):
-				messages.append(
-					ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
-				ulids.append(record.ulid)
-				lastDate = Date(timeIntervalSince1970: Double(record.hlc.wallMs) / 1000)
-			default:
-				break
-			}
+	private func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
+		let page = try await ledger.read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
+		let conversation = ConversationFold.fold(
+			chat: chatId, synced: page.records, device: ledger.deviceId)
+		let history = conversation.current.promptHistory(excluding: turn)
+		let lastDate: Date?
+		switch conversation.lastExchange {
+		case .none: lastDate = nil
+		case .at(let date): lastDate = date
 		}
-		return Transcript(messages: messages, ulids: ulids, lastDate: lastDate, windowStart: start)
+		return Transcript(
+			messages: history.messages,
+			ulids: history.ulids,
+			lastDate: lastDate,
+			windowStart: conversation.current.promptWindow.firstIncluded
+		)
 	}
 
 	private func shouldDailyReset(last: Date?) -> Bool {
@@ -661,43 +665,6 @@ private struct Transcript: Sendable {
 
 private struct TurnFailure: Error {
 	var message: String
-}
-
-private struct RecordWriter {
-	let store: any RecordLog
-	let clock: any Clock
-	var lastHLC: HybridLogicalClock?
-
-	mutating func refreshClock() async throws {
-		let synced = try await store.fetch(
-			RecordQuery(kinds: [
-				.userMessage, .assistantMessage, .windowStart, .compactionSummary,
-				.coachReplyLanguage,
-			])
-		)
-		let local = try await store.fetch(
-			RecordQuery(
-				kinds: [.flushPending, .pendingProposal, .proposalCleared],
-				deviceLocalOnly: true
-			)
-		)
-		lastHLC = (synced + local).map(\.hlc).max()
-	}
-
-	mutating func append(_ body: RecordBody) async throws {
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let record = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: lastHLC),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: body
-		)
-		lastHLC = record.hlc
-		try await store.append(record)
-	}
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {

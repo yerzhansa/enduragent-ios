@@ -41,23 +41,15 @@ package enum ProposalPolicy {
 		summary: String,
 		description: String,
 		now: Date,
-		store: any RecordLog,
-		clock: any Clock
+		ledger: Ledger,
+		stamp: OperationStamp
 	) async throws -> PendingProposal {
-		let records = try await store.fetch(
-			RecordQuery(
-				kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
-		)
-		var last = records.map(\.hlc).max()
+		let records = try await ledger.read(proposalQuery(chatId)).records
+		var bodies: [DeviceLocalRecordBody] = []
 		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
-			try await append(
+			bodies.append(
 				.proposalCleared(
-					ProposalClearedBody(chatId: chatId, nonce: live.nonce, reason: .replaced)
-				),
-				store: store,
-				clock: clock,
-				last: &last
-			)
+					ProposalClearedBody(chatId: chatId, nonce: live.nonce, reason: .replaced)))
 		}
 		let nonce = Nonce()
 		let expiresAt = now.addingTimeInterval(ttlSeconds)
@@ -70,7 +62,8 @@ package enum ProposalPolicy {
 			description: description,
 			expiresAt: expiresAt
 		)
-		try await append(.pendingProposal(body), store: store, clock: clock, last: &last)
+		bodies.append(.pendingProposal(body))
+		_ = try await ledger.commit(local: bodies, stamp: stamp)
 		return PendingProposal(
 			chatId: chatId,
 			nonce: nonce,
@@ -83,27 +76,28 @@ package enum ProposalPolicy {
 	package static func take(
 		chatId: ChatID,
 		nonce: Nonce,
-		store: any RecordLog,
-		clock: any Clock,
+		ledger: Ledger,
+		binding: ActionBinding,
+		now: Date,
 		run: @Sendable (GatedToolInput) async throws -> JSONValue
 	) async throws -> ProposalLookup {
-		let records = try await store.fetch(
-			RecordQuery(
-				kinds: [.pendingProposal, .proposalCleared], chatId: chatId, deviceLocalOnly: true)
-		)
-		let now = clock.now
+		let records = try await ledger.read(proposalQuery(chatId)).records
 		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
 			if live.nonce != nonce {
 				return .mismatch
 			}
-			var last = records.map(\.hlc).max()
-			try await append(
-				.proposalCleared(
-					ProposalClearedBody(chatId: chatId, nonce: nonce, reason: .executed)
-				),
-				store: store,
-				clock: clock,
-				last: &last
+			let stamp = OperationStamp(
+				operation: .workoutChangeSet(
+					ChangeSetID(ulid: await ledger.nextULID()), ChangeSetRevision(rawValue: 1)),
+				attempt: AttemptID(ulid: await ledger.nextULID()),
+				binding: binding
+			)
+			_ = try await ledger.commit(
+				local: [
+					.proposalCleared(
+						ProposalClearedBody(chatId: chatId, nonce: nonce, reason: .executed))
+				],
+				stamp: stamp
 			)
 			_ = try await run(live.toolInput)
 			return .found(live)
@@ -143,42 +137,27 @@ package enum ProposalPolicy {
 		}
 	}
 
+	package static func proposalQuery(_ chatId: ChatID) -> RecordQuery {
+		RecordQuery(scope: .deviceLocal([.pendingProposal, .proposalCleared]), chatId: chatId)
+	}
+
 	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?
 	{
 		let ordered = records.sorted { $0.hlc < $1.hlc }
 		var cleared: Set<Nonce> = []
 		for record in ordered {
-			if case .proposalCleared(let body) = record.body, body.chatId == chatId {
+			if case .deviceLocal(.proposalCleared(let body)) = record.body, body.chatId == chatId {
 				cleared.insert(body.nonce)
 			}
 		}
 		for record in ordered.reversed() {
-			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else {
+			guard case .deviceLocal(.pendingProposal(let body)) = record.body, body.chatId == chatId
+			else {
 				continue
 			}
 			if cleared.contains(body.nonce) { continue }
 			return body
 		}
 		return nil
-	}
-
-	private static func append(
-		_ body: RecordBody,
-		store: any RecordLog,
-		clock: any Clock,
-		last: inout HybridLogicalClock?
-	) async throws {
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let record = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: last),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: body
-		)
-		last = record.hlc
-		try await store.append(record)
 	}
 }

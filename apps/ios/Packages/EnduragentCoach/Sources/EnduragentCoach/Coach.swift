@@ -7,7 +7,7 @@ public actor Coach {
 	private let sport: SportID
 	private let transport: any ModelTransport
 	private let intervals: any IntervalsClient
-	private let store: any RecordLog
+	private let ledger: Ledger
 	private let clock: any Clock
 	private var language: LanguagePreference
 	private let tools: ToolRuntime
@@ -25,19 +25,20 @@ public actor Coach {
 		self.sport = sport
 		self.transport = transport
 		self.intervals = intervals
-		self.store = store
+		let ledger = Ledger(log: store, clock: clock)
+		self.ledger = ledger
 		self.clock = clock
 		self.language = language
-		self.memory = Memory(store: store, clock: clock)
+		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: store, intervals: intervals, clock: clock)
 		self.planning = planning
 		let tools = ToolRuntime(
-			intervals: intervals, store: store, planning: planning, clock: clock)
+			intervals: intervals, ledger: ledger, planning: planning, clock: clock)
 		self.tools = tools
 		self.runner = TurnRunner(
 			transport: transport,
 			intervals: intervals,
-			store: store,
+			ledger: ledger,
 			clock: clock,
 			tools: tools,
 			planning: planning
@@ -72,12 +73,7 @@ public actor Coach {
 	}
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
-		let records =
-			(try? await store.fetch(
-				RecordQuery(
-					kinds: [.pendingProposal, .proposalCleared], chatId: chatId,
-					deviceLocalOnly: true)
-			)) ?? []
+		let records = (try? await ledger.read(ProposalPolicy.proposalQuery(chatId)).records) ?? []
 		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
 		else {
 			return nil
@@ -100,8 +96,9 @@ public actor Coach {
 			let lookup = try await ProposalPolicy.take(
 				chatId: chatId,
 				nonce: nonce,
-				store: store,
-				clock: clock,
+				ledger: ledger,
+				binding: binding,
+				now: clock.now,
 				run: { input in
 					try await tools.rebuildConfirmed(input)
 				}
@@ -125,19 +122,25 @@ public actor Coach {
 		}
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async {
-		language.coachReply = tag
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let record = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: .coachReplyLanguage(CoachReplyLanguageBody(tag: tag))
+	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
+		let stamp = OperationStamp(
+			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: binding
 		)
-		try? await store.append(record)
+		_ = try await ledger.commit(
+			synced: [.coachReplyLanguage(CoachReplyLanguageBody(tag: tag))], stamp: stamp)
+		language.coachReply = tag
+	}
+
+	#if DEBUG
+		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
+			RecordSyncProbe(ledger: ledger, clock: clock)
+		}
+	#endif
+
+	private var binding: ActionBinding {
+		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 	}
 
 	public func waitForMemoryFlush() async {
@@ -188,7 +191,7 @@ public actor Coach {
 			chatId: chatId,
 			runner: runner,
 			memory: memory,
-			store: store,
+			ledger: ledger,
 			clock: clock,
 			transport: transport
 		)
@@ -197,30 +200,9 @@ public actor Coach {
 	}
 
 	private func loadHistory(chatId: ChatID) async throws -> [ChatMessage] {
-		let records = try await store.fetch(
-			RecordQuery(kinds: [.userMessage, .assistantMessage, .windowStart], chatId: chatId)
-		)
-		let ordered = records.sorted { $0.hlc < $1.hlc }
-		let start = ordered.reversed().compactMap { record -> ULID? in
-			if case .windowStart(let body) = record.body { return body.firstIncludedUlid }
-			return nil
-		}.first
-		var messages: [ChatMessage] = []
-		for record in ordered {
-			if let start, record.ulid.rawValue < start.rawValue {
-				continue
-			}
-			switch record.body {
-			case .userMessage(let body):
-				messages.append(
-					ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
-			case .assistantMessage(let body):
-				messages.append(
-					ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
-			default:
-				break
-			}
-		}
-		return messages
+		let page = try await ledger.read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
+		return ConversationFold.fold(chat: chatId, synced: page.records, device: ledger.deviceId)
+			.current.messages
 	}
 }

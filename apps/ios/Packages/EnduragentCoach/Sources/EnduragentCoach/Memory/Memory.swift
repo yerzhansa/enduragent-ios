@@ -198,11 +198,11 @@ public enum MemoryFlushPolicy {
 }
 
 public struct Memory: Sendable {
-	private let store: any RecordLog
+	private let ledger: Ledger
 	private let clock: any Clock
 
-	public init(store: any RecordLog, clock: any Clock) {
-		self.store = store
+	package init(ledger: Ledger, clock: any Clock) {
+		self.ledger = ledger
 		self.clock = clock
 	}
 
@@ -248,19 +248,19 @@ public struct Memory: Sendable {
 		}
 
 		for record in snapshot.ledgerRecords {
-			guard record.civilDate >= from, record.civilDate <= to else { continue }
-			guard case .ledgerEvent(let body) = record.body else { continue }
+			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
+			guard body.date >= from, body.date <= to else { continue }
 			let line = serializeLedger(record, body: body)
 			if let needle, !line.lowercased().contains(needle) { continue }
 			collected.append(
-				(MemoryHit(date: record.civilDate, kind: .ledger(body.kind), text: line), order)
+				(MemoryHit(date: body.date, kind: .ledger(body.kind), text: line), order)
 			)
 			order += 1
 		}
 
 		for record in snapshot.journalRecords {
 			guard record.civilDate >= from, record.civilDate <= to else { continue }
-			guard case .journal(let body) = record.body else { continue }
+			guard case .synced(.journal(let body)) = record.body else { continue }
 			let parsed = parseJournalPreview(body.preview)
 			let section = parsed.section
 			let oldBody = parsed.oldBody
@@ -314,9 +314,9 @@ public struct Memory: Sendable {
 		return try await renderContext(excluding: injected)
 	}
 
-	public func writeSection(_ name: SectionName, content: String, source: LedgerSource)
-		async throws
-	{
+	public func writeSection(
+		_ name: SectionName, content: String, source: LedgerSource, stamp: OperationStamp
+	) async throws {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let snapshot = try await loadSnapshot()
 		let previous = UnionMerge.sectionText(snapshot.sections, name: name)
@@ -331,58 +331,63 @@ public struct Memory: Sendable {
 			unknown: logical,
 			contentSha256: sha256Hex(digestBody)
 		)
-		try await append(.provenance(provenance), civilDate: today)
 		let preview = JSONValue.object([
 			"newBody": .string(stamped),
 			"oldBody": previous.map(JSONValue.string) ?? .null,
 			"section": .string(name.rawValue),
 			"source": .string(source.rawValue),
 		]).canonicalDigestInput()
-		try await append(
-			.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
-		try await append(
-			.memorySection(MemorySectionBody(name: name, content: stamped)), civilDate: today)
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(provenance),
+				.journal(JournalBody(op: .writeSection, preview: preview)),
+				.memorySection(MemorySectionBody(name: name, content: stamped)),
+			],
+			stamp: stamp
+		)
 	}
 
-	public func appendDailyNote(_ note: String) async throws {
+	public func appendDailyNote(_ note: String, stamp: OperationStamp) async throws {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let snapshot = try await loadSnapshot()
 		let existing = snapshot.dailyNotesOnly(on: today)
 		if !existing.isEmpty, "\n\(existing)\n".contains("\n\(note)\n") {
 			return
 		}
-		try await append(.dailyNote(DailyNoteBody(note: note)), civilDate: today)
+		_ = try await ledger.commit(synced: [.dailyNote(DailyNoteBody(note: note))], stamp: stamp)
 	}
 
-	public func appendEvent(date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource)
-		async throws -> Bool
-	{
+	public func appendEvent(
+		date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource,
+		stamp: OperationStamp
+	) async throws -> Bool {
 		let snapshot = try await loadSnapshot()
 		let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: text)
 		for record in snapshot.ledgerRecords {
-			guard case .ledgerEvent(let body) = record.body else { continue }
-			if UnionMerge.ledgerDigest(date: record.civilDate, kind: body.kind, text: body.text)
-				== digest
+			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
+			if UnionMerge.ledgerDigest(date: body.date, kind: body.kind, text: body.text) == digest
 			{
 				return false
 			}
 		}
-		let body = LedgerEventBody(kind: kind, text: text, source: source)
+		let body = LedgerEventBody(date: date, kind: kind, text: text, source: source)
 		let line = serializeLedgerLine(
 			date: date, kind: kind, text: text, source: source, wallMs: wallMs(clock.now))
-		try await append(
-			.provenance(
-				ProvenanceBody(
-					key: "ledger:\(sha256Hex(line))",
-					garmin: false,
-					nonGarmin: false,
-					unknown: true,
-					contentSha256: sha256Hex(line)
-				)
-			),
-			civilDate: date
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(
+					ProvenanceBody(
+						key: "ledger:\(sha256Hex(line))",
+						garmin: false,
+						nonGarmin: false,
+						unknown: true,
+						contentSha256: sha256Hex(line)
+					)
+				),
+				.ledgerEvent(body),
+			],
+			stamp: stamp
 		)
-		try await append(.ledgerEvent(body), civilDate: date)
 		return true
 	}
 
@@ -391,7 +396,7 @@ public struct Memory: Sendable {
 	{
 		let pending = try await oldestUnconsumedFlush(chatId: chatId)
 		let effectiveTrigger: FlushTrigger = {
-			if let pending, case .flushPending(let body) = pending.body {
+			if let pending, case .deviceLocal(.flushPending(let body)) = pending.body {
 				return body.trigger
 			}
 			return trigger
@@ -401,13 +406,25 @@ public struct Memory: Sendable {
 		if conversation.isEmpty, pending == nil {
 			return
 		}
+		let job: FlushJobID
+		if let pending {
+			job = FlushJobID(ulid: pending.ulid)
+		} else {
+			job = FlushJobID(ulid: await ledger.nextULID())
+		}
+		let stamp = OperationStamp(
+			operation: .memoryFlush(job),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: ActionBinding(
+				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+		)
 		var attempt = 0
 		var lastWrites = 0
 		var lastLedger = 0
 		while attempt < MemoryFlushPolicy.maxAttempts {
 			attempt += 1
 			let outcome = try await runFlushGenerate(
-				conversation: conversation, transport: transport)
+				conversation: conversation, transport: transport, stamp: stamp)
 			lastWrites = outcome.writes
 			lastLedger = outcome.ledgerAppends
 			let zeroWrite =
@@ -422,7 +439,7 @@ public struct Memory: Sendable {
 		_ = lastWrites
 		_ = lastLedger
 		if let pending {
-			try await markConsumed(pending)
+			try await markConsumed(pending, stamp: stamp)
 		}
 	}
 
@@ -513,7 +530,8 @@ public struct Memory: Sendable {
 
 	private func runFlushGenerate(
 		conversation: [ChatMessage],
-		transport: any ModelTransport
+		transport: any ModelTransport,
+		stamp: OperationStamp
 	) async throws -> (writes: Int, ledgerAppends: Int) {
 		let current = (try? await fullContext()) ?? ""
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
@@ -556,7 +574,8 @@ public struct Memory: Sendable {
 					role: .assistant, content: step.text, toolCalls: step.calls, toolCallId: nil)
 			)
 			for call in step.calls {
-				let (payload, wroteSection, wroteLedger) = try await executeFlushTool(call)
+				let (payload, wroteSection, wroteLedger) = try await executeFlushTool(
+					call, stamp: stamp)
 				if wroteSection { writes += 1 }
 				if wroteLedger { ledgerAppends += 1 }
 				messages.append(
@@ -590,7 +609,9 @@ public struct Memory: Sendable {
 		return (text, calls, reason)
 	}
 
-	private func executeFlushTool(_ call: WireToolCall) async throws -> (String, Bool, Bool) {
+	private func executeFlushTool(_ call: WireToolCall, stamp: OperationStamp) async throws -> (
+		String, Bool, Bool
+	) {
 		let arguments = (try? JSONValue.parse(call.arguments)) ?? .object([:])
 		switch call.name {
 		case .memoryWrite:
@@ -603,7 +624,8 @@ public struct Memory: Sendable {
 					false, false
 				)
 			}
-			try await writeSection(SectionName(rawValue: section), content: content, source: .flush)
+			try await writeSection(
+				SectionName(rawValue: section), content: content, source: .flush, stamp: stamp)
 			return (JSONValue.object(["saved": .bool(true)]).canonicalDigestInput(), true, false)
 		case .ledgerAppend:
 			let fields = arguments.objectFields
@@ -621,7 +643,8 @@ public struct Memory: Sendable {
 					false
 				)
 			}
-			let recorded = try await appendEvent(date: date, kind: kind, text: text, source: .flush)
+			let recorded = try await appendEvent(
+				date: date, kind: kind, text: text, source: .flush, stamp: stamp)
 			if recorded {
 				return (
 					JSONValue.object(["recorded": .bool(true)]).canonicalDigestInput(), false, true
@@ -642,9 +665,9 @@ public struct Memory: Sendable {
 	}
 
 	private func oldestUnconsumedFlush(chatId: ChatID) async throws -> AthleteRecord? {
-		let pending = try await store.fetch(
-			RecordQuery(kinds: [.flushPending], chatId: chatId, deviceLocalOnly: true)
-		).sorted { $0.hlc < $1.hlc }
+		let pending = try await ledger.read(
+			RecordQuery(scope: .deviceLocal([.flushPending]), chatId: chatId)
+		).records
 		let consumed = try await consumedFlushIDs()
 		return pending.first { record in
 			!consumed.contains(record.ulid.rawValue)
@@ -652,10 +675,10 @@ public struct Memory: Sendable {
 	}
 
 	private func consumedFlushIDs() async throws -> Set<String> {
-		let records = try await store.fetch(RecordQuery(kinds: [.provenance]))
+		let records = try await ledger.read(RecordQuery(scope: .synced([.provenance]))).records
 		var ids: Set<String> = []
 		for record in records {
-			guard case .provenance(let body) = record.body else { continue }
+			guard case .synced(.provenance(let body)) = record.body else { continue }
 			if body.key.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) {
 				ids.insert(
 					String(body.key.dropFirst(MemoryFlushPolicy.consumedFlushKeyPrefix.count)))
@@ -664,19 +687,20 @@ public struct Memory: Sendable {
 		return ids
 	}
 
-	private func markConsumed(_ pending: AthleteRecord) async throws {
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		try await append(
-			.provenance(
-				ProvenanceBody(
-					key: MemoryFlushPolicy.consumedFlushKeyPrefix + pending.ulid.rawValue,
-					garmin: false,
-					nonGarmin: false,
-					unknown: false,
-					contentSha256: sha256Hex(pending.ulid.rawValue)
+	private func markConsumed(_ pending: AthleteRecord, stamp: OperationStamp) async throws {
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(
+					ProvenanceBody(
+						key: MemoryFlushPolicy.consumedFlushKeyPrefix + pending.ulid.rawValue,
+						garmin: false,
+						nonGarmin: false,
+						unknown: false,
+						contentSha256: sha256Hex(pending.ulid.rawValue)
+					)
 				)
-			),
-			civilDate: today
+			],
+			stamp: stamp
 		)
 	}
 
@@ -685,53 +709,25 @@ public struct Memory: Sendable {
 		chatId: ChatID,
 		pending: AthleteRecord?
 	) async throws -> [ChatMessage] {
-		let records = try await store.fetch(
-			RecordQuery(kinds: [.userMessage, .assistantMessage, .windowStart], chatId: chatId)
-		)
+		let page = try await ledger.read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
+		let conversation = ConversationFold.fold(
+			chat: chatId, synced: page.records, device: ledger.deviceId)
 		let ignoreWindow =
 			trigger == .trim || trigger == .preCompaction || trigger == .overflow
 			|| trigger == .explicitReset
-		if let pending, case .flushPending(let body) = pending.body, !body.messageUlids.isEmpty {
-			let wanted = Set(body.messageUlids.map(\.rawValue))
-			let byUlid = Dictionary(uniqueKeysWithValues: records.map { ($0.ulid.rawValue, $0) })
-			var messages: [ChatMessage] = []
-			for ulid in body.messageUlids {
-				guard
-					let record = byUlid[ulid.rawValue]
-						?? records.first(where: { $0.ulid.rawValue == ulid.rawValue })
-				else { continue }
-				_ = wanted
-				switch record.body {
-				case .userMessage(let message):
-					messages.append(
-						ChatMessage(
-							role: .user, text: message.athleteText, civilDate: record.civilDate))
-				case .assistantMessage(let message):
-					messages.append(
-						ChatMessage(
-							role: .assistant, text: message.text, civilDate: record.civilDate))
-				default:
-					break
-				}
-			}
-			let current = UnionMerge.conversation(records, chatId: chatId, deviceId: store.deviceId)
-			return mergeUnique(messages, current)
+		if let pending, case .deviceLocal(.flushPending(let body)) = pending.body,
+			!body.messageUlids.isEmpty
+		{
+			return mergeUnique(
+				conversation.messages(for: body.messageUlids),
+				conversation.current.promptHistory(excluding: nil).messages
+			)
 		}
 		if ignoreWindow {
-			return records.sorted { $0.hlc < $1.hlc }.compactMap { record in
-				switch record.body {
-				case .userMessage(let body) where body.chatId == chatId:
-					return ChatMessage(
-						role: .user, text: body.athleteText, civilDate: record.civilDate)
-				case .assistantMessage(let body) where body.chatId == chatId:
-					return ChatMessage(
-						role: .assistant, text: body.text, civilDate: record.civilDate)
-				default:
-					return nil
-				}
-			}
+			return conversation.current.messages
 		}
-		return UnionMerge.conversation(records, chatId: chatId, deviceId: store.deviceId)
+		return conversation.current.promptHistory(excluding: nil).messages
 	}
 
 	private func mergeUnique(_ first: [ChatMessage], _ second: [ChatMessage]) -> [ChatMessage] {
@@ -747,16 +743,32 @@ public struct Memory: Sendable {
 	}
 
 	private func loadSnapshot() async throws -> MemorySnapshot {
-		let sections = try await store.fetch(RecordQuery(kinds: [.memorySection]))
-		let daily = try await store.fetch(RecordQuery(kinds: [.dailyNote]))
-		let ledger = try await store.fetch(RecordQuery(kinds: [.ledgerEvent]))
-		let journal = try await store.fetch(RecordQuery(kinds: [.journal]))
-		let compaction = try await store.fetch(RecordQuery(kinds: [.compactionSummary]))
+		let records = try await ledger.read(
+			RecordQuery(
+				scope: .synced([
+					.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+				]))
+		).records
+		var sections: [AthleteRecord] = []
+		var daily: [AthleteRecord] = []
+		var events: [AthleteRecord] = []
+		var journal: [AthleteRecord] = []
+		var compaction: [AthleteRecord] = []
+		for record in records {
+			switch record.body {
+			case .synced(.memorySection): sections.append(record)
+			case .synced(.dailyNote): daily.append(record)
+			case .synced(.ledgerEvent): events.append(record)
+			case .synced(.journal): journal.append(record)
+			case .synced(.compactionSummary): compaction.append(record)
+			default: break
+			}
+		}
 		return MemorySnapshot(
 			sections: sections,
 			daily: daily,
-			ledgerRecords: ledger.sorted { $0.hlc < $1.hlc },
-			journalRecords: journal.sorted { $0.hlc < $1.hlc },
+			ledgerRecords: events,
+			journalRecords: journal,
 			compaction: compaction,
 			orphanNames: orphanNames(in: sections)
 		)
@@ -767,7 +779,7 @@ public struct Memory: Sendable {
 		var seen: Set<String> = []
 		var names: [String] = []
 		for record in records.sorted(by: { $0.hlc < $1.hlc }) {
-			guard case .memorySection(let body) = record.body else { continue }
+			guard case .synced(.memorySection(let body)) = record.body else { continue }
 			if declared.contains(body.name.rawValue) { continue }
 			if seen.insert(body.name.rawValue).inserted {
 				names.append(body.name.rawValue)
@@ -776,28 +788,6 @@ public struct Memory: Sendable {
 		return names
 	}
 
-	private func append(_ body: RecordBody, civilDate: CivilDate) async throws {
-		let last = try await maxHLC()
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let record = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: last),
-			timeZone: tz,
-			civilDate: civilDate,
-			body: body
-		)
-		try await store.append(record)
-	}
-
-	private func maxHLC() async throws -> HybridLogicalClock? {
-		let synced = RecordKind.allCases.filter { $0.locality == .synced }
-		let local = RecordKind.allCases.filter { $0.locality == .deviceLocal }
-		let first = try await store.fetch(RecordQuery(kinds: Set(synced)))
-		let second = try await store.fetch(RecordQuery(kinds: Set(local), deviceLocalOnly: true))
-		return (first + second).map(\.hlc).max()
-	}
 }
 
 public enum MemoryQuery {
@@ -846,7 +836,7 @@ private struct MemorySnapshot {
 
 	func dailyNotesOnly(on date: CivilDate) -> String {
 		daily.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .dailyNote(let body) = record.body else {
+			guard record.civilDate == date, case .synced(.dailyNote(let body)) = record.body else {
 				return nil
 			}
 			return body.note
@@ -859,7 +849,8 @@ private struct MemorySnapshot {
 			return notes
 		}
 		let extras = compaction.sorted { $0.hlc < $1.hlc }.compactMap { record -> String? in
-			guard record.civilDate == date, case .compactionSummary(let body) = record.body else {
+			guard record.civilDate == date, case .synced(.compactionSummary(let body)) = record.body
+			else {
 				return nil
 			}
 			return formatCompactionNote(body.markdown)
@@ -1001,7 +992,7 @@ private func renderLine(_ hit: MemoryHit) -> String {
 
 private func serializeLedger(_ record: AthleteRecord, body: LedgerEventBody) -> String {
 	serializeLedgerLine(
-		date: record.civilDate,
+		date: body.date,
 		kind: body.kind,
 		text: body.text,
 		source: body.source,

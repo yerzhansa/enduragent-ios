@@ -9,12 +9,13 @@ import Testing
 
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
-		try await memory.writeSection(.notes, content: "", source: .chat)
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
 		let view = try await memory.view()
 		let schemas = runtime(store: store).toolsForTurn(chatId: .main, memory: view)
 		#expect(!schemas.map(\.name).contains(.memoryRead))
-		try await memory.writeSection(.notes, content: "- Prefers hill repeats", source: .chat)
+		try await memory.writeSection(
+			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
 		let withNotes = try await memory.view()
 		let offered = runtime(store: store).toolsForTurn(chatId: .main, memory: withNotes)
 		#expect(offered.map(\.name).contains(.memoryRead))
@@ -72,9 +73,10 @@ import Testing
 
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
 		try await memory.writeSection(
-			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat)
+			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
+			stamp: testStamp())
 		let tools = runtime(store: store)
 		let view = try await memory.view()
 		let schema = tools.toolsForTurn(chatId: .main, memory: view).first {
@@ -103,7 +105,7 @@ import Testing
 			state: turnState()
 		)
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
-		let notes = try await store.fetch(RecordQuery(kinds: [.dailyNote]))
+		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
 		#expect(notes.count == 1)
 	}
 
@@ -119,7 +121,7 @@ import Testing
 	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
 		ToolRuntime(
 			intervals: intervals,
-			store: store,
+			ledger: Ledger(log: store, clock: clock),
 			planning: Planning(store: store, intervals: intervals, clock: clock),
 			clock: clock
 		)
@@ -134,7 +136,8 @@ import Testing
 			writesCommitted: 0,
 			flushedThisTurn: false,
 			lastFlushMessageCount: 0,
-			steps: 0
+			steps: 0,
+			stamp: testStamp()
 		)
 	}
 }
