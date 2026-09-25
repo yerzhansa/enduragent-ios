@@ -35,13 +35,17 @@ final class FixtureLaunchTests {
 		}
 	}
 
-	private func services(
-		store: FixtureStorePolicy = .fresh, keychain: FixtureKeychainPolicy = .unlocked
-	) throws -> AppServices {
+	private func services(keychain: FixtureKeychainPolicy = .unlocked) throws -> AppServices {
 		var launch = launch
-		launch.store = store
 		launch.keychain = keychain
 		return try AppServices.fixture(launch, defaults: defaults)
+	}
+
+	private func relaunch(_ store: FixtureStorePolicy) throws -> (AppServices, UserDefaults) {
+		var launch = launch
+		launch.store = store
+		let defaults = try launch.prepare()
+		return (try AppServices.fixture(launch, defaults: defaults), defaults)
 	}
 
 	private func model(_ services: AppServices) -> ShellModel {
@@ -186,22 +190,25 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		await first.send(TutorialCopy.weekQuestion)
 		#expect(first.seam.transcript.count == 2)
-		let second = try services(store: .keep)
+		let (second, kept) = try relaunch(.keep)
 		let restored = await second.coach.history(chatId: first.chatId)
 		#expect(restored.map(\.text).first == TutorialCopy.weekQuestion)
 		#expect(restored.last?.text.contains("Tuesday sweet spot") == true)
+		let reopened = ShellModel(
+			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+		#expect(reopened.route == .chat)
+		#expect(reopened.chatId == first.chatId)
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		await first.send(TutorialCopy.weekQuestion)
-		let wiped = try launch.prepare()
-		let second = try AppServices.fixture(launch, defaults: wiped)
+		let (second, wiped) = try relaunch(.fresh)
 		#expect(await second.coach.history(chatId: first.chatId).isEmpty)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
