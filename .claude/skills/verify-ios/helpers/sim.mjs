@@ -154,7 +154,10 @@ function install(id) {
 
 function launch(id, ...extra) {
   const { udid } = activeRun(id);
-  console.log(capture('xcrun', ['simctl', 'launch', '--terminate-running-process', udid, bundleId, ...fixtureArgs, ...extra]));
+  const keep = extra.includes('--keep');
+  const passthrough = extra.filter(argument => argument !== '--keep');
+  const storeArgs = ['-EnduragentFixtureStore', keep ? 'keep' : 'fresh'];
+  console.log(capture('xcrun', ['simctl', 'launch', '--terminate-running-process', udid, bundleId, ...fixtureArgs, ...storeArgs, ...passthrough]));
 }
 
 function shot(id, label) {

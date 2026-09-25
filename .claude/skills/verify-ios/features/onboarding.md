@@ -12,7 +12,7 @@ A first launch shows the health notice, then lets the athlete connect intervals.
 
 ## How to get to it (user POV)
 
-- Open the app. Every fixture launch starts here.
+- Open the app. Every fresh fixture launch starts here.
 - On the connect screen, enter a key and choose `Connect`.
 - On the connect screen, choose `Skip for now`.
 
@@ -33,7 +33,8 @@ Preconditions:
 ## Gotchas
 
 - `sim.mjs launch` always passes `-EnduragentFixture first-week`. A bare `simctl launch` without it starts the live app, which uses the real keychain and calls the credits worker at the starter step.
-- A relaunch returns to the notice, because fixture state lives in memory. The live app reopens in the chat instead, which a fixture run cannot show.
+- `sim.mjs launch <run id>` wipes the fixture state, so it returns to the notice even after onboarding. `sim.mjs launch <run id> --keep` reopens on the chat like the live app does.
+- `sim.mjs launch <run id> --keep -EnduragentFixtureKeychain locked` makes every keychain read fail as on a locked iPhone. Today the app reaches the chat and shows the raw `KeychainStoreError` text where a keychain read is needed.
 - Any non-empty key connects in fixture mode, so a connect proof does not prove key validation.
 - `starter.progress` with `Requesting starter credits` shows only until the fake grant resolves, which is too fast to capture.
 - A fresh simulator can show a `Ready for Apple Intelligence` banner over the top of the screen for a few seconds. Wait and capture again.
