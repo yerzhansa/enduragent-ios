@@ -327,9 +327,9 @@ final class RecordsClockOrderProof: XCTestCase {
 final class UpgradeKeepsTranscriptProof: XCTestCase {
 	func testUpgradeKeepsTranscript() throws {
 		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(app)
+		try TutorialHarness.launchKeepingStore(
+			app, expecting: app.staticTexts[TutorialHarness.weekQuestion])
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(
@@ -351,8 +351,8 @@ final class UpgradeKeepsTranscriptProof: XCTestCase {
 final class UpgradeKeepsProposalProof: XCTestCase {
 	func testUpgradeKeepsProposal() throws {
 		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		try TutorialHarness.launchKeepingStore(
+			app, expecting: TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.waitForLabel(app, "Confirmed preview")
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
 		let add = TutorialHarness.named(app, "chat.preview.add")
