@@ -6,31 +6,45 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-struct FixtureLaunchTests {
-	let launch: FixtureLaunch
+@Suite(.serialized)
+final class FixtureLaunchTests {
+	let launch = FixtureLaunch(
+		name: FixtureLaunch.firstWeekName,
+		store: .fresh,
+		keychain: .unlocked,
+		directory: FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-fixture-test", directoryHint: .isDirectory),
+		defaultsSuiteName: "enduragent.fixture.test"
+	)
 	let defaults: UserDefaults
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 
 	init() throws {
-		let stamp = UUID().uuidString
-		launch = FixtureLaunch(
-			name: FixtureLaunch.firstWeekName,
-			store: .fresh,
-			keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-fixture-\(stamp)", directoryHint: .isDirectory),
-			defaultsSuiteName: "enduragent.test.\(stamp)"
-		)
 		defaults = try launch.prepare()
 	}
 
-	private func services(
-		store: FixtureStorePolicy = .fresh, keychain: FixtureKeychainPolicy = .unlocked
-	) throws -> AppServices {
+	deinit {
+		let launch = launch
+		UserDefaults(suiteName: launch.defaultsSuiteName)?
+			.removePersistentDomain(forName: launch.defaultsSuiteName)
+		do {
+			try FileManager.default.removeItem(at: launch.directory)
+		} catch {
+			Issue.record(error, "fixture directory cleanup")
+		}
+	}
+
+	private func services(keychain: FixtureKeychainPolicy = .unlocked) throws -> AppServices {
 		var launch = launch
-		launch.store = store
 		launch.keychain = keychain
 		return try AppServices.fixture(launch, defaults: defaults)
+	}
+
+	private func relaunch(_ store: FixtureStorePolicy) throws -> (AppServices, UserDefaults) {
+		var launch = launch
+		launch.store = store
+		let defaults = try launch.prepare()
+		return (try AppServices.fixture(launch, defaults: defaults), defaults)
 	}
 
 	private func model(_ services: AppServices) -> ShellModel {
@@ -103,12 +117,9 @@ struct FixtureLaunchTests {
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
-		let model = model(services)
+		let model = model(try services())
 		model.startChatting()
-		await model.send("Give me a ride for tomorrow")
+		await model.send("fixture:fail finish")
 		let failure = model.builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
 		#expect(model.errorLine == failure)
 		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)
@@ -175,22 +186,25 @@ struct FixtureLaunchTests {
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		await first.send(TutorialCopy.weekQuestion)
 		#expect(first.seam.transcript.count == 2)
-		let second = try services(store: .keep)
+		let (second, kept) = try relaunch(.keep)
 		let restored = await second.coach.history(chatId: first.chatId)
 		#expect(restored.map(\.text).first == TutorialCopy.weekQuestion)
 		#expect(restored.last?.text.contains("Tuesday sweet spot") == true)
+		let reopened = ShellModel(
+			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+		#expect(reopened.route == .chat)
+		#expect(reopened.chatId == first.chatId)
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		await first.send(TutorialCopy.weekQuestion)
-		let wiped = try launch.prepare()
-		let second = try AppServices.fixture(launch, defaults: wiped)
+		let (second, wiped) = try relaunch(.fresh)
 		#expect(await second.coach.history(chatId: first.chatId).isEmpty)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
@@ -239,6 +253,30 @@ struct FixtureLaunchTests {
 		await model.send(TutorialCopy.weekQuestion)
 		#expect(model.errorLine?.contains("rejectedBatch") == true)
 		#expect(await services.coach.history(chatId: model.chatId).isEmpty)
+	}
+
+	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let model = model(services)
+		model.startChatting()
+		await model.send("fixture:fail bogus")
+		#expect(transport.requests.isEmpty)
+		#expect(model.seam.transcript.isEmpty)
+		#expect(model.errorLine == "Unknown fixture directive: fixture:fail bogus")
+		await model.send("fixture:storage fail-everything")
+		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func nextMessageClearsAQueuedFailure() throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let director = try #require(services.fixtureDirector)
+		#expect(director.prepare(for: "fixture:fail 500") == .sendToCoach)
+		#expect(transport.failures.count == 1)
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(transport.failures.isEmpty)
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {

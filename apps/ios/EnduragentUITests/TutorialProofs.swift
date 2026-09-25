@@ -245,17 +245,43 @@ final class RecordsAfterReplyProof: XCTestCase {
 	}
 }
 
-final class StorageFaultStoresNothingProof: XCTestCase {
-	func testStorageFaultStoresNothing() {
+final class HangWatchdogProof: XCTestCase {
+	func testHangWatchdog() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:hang")
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		TutorialHarness.attach(self, name: "hang-working", app: app)
+		let error = TutorialHarness.named(app, "chat.error")
+		TutorialHarness.wait(error, timeout: 40)
+		XCTAssertEqual(error.label, TutorialHarness.responseFailure)
+		XCTAssertFalse(working.exists)
+		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class StorageFaultProof: XCTestCase {
+	func testStorageFault() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:storage fail-next-append")
+		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.error"))
+		let error = TutorialHarness.named(app, "chat.error")
+		TutorialHarness.wait(error, timeout: 15)
+		XCTAssertTrue(error.label.contains("rejectedBatch"), error.label)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.composer").exists)
+		TutorialHarness.attach(self, name: "storage-fault", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "storage-fault-nothing-saved", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
@@ -299,9 +325,9 @@ final class RecordsClockOrderProof: XCTestCase {
 }
 
 final class UpgradeKeepsTranscriptProof: XCTestCase {
-	func testUpgradeKeepsTranscript() {
+	func testUpgradeKeepsTranscript() throws {
 		let app = XCUIApplication()
-		TutorialHarness.launchKeepingStore(app)
+		try TutorialHarness.launchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
@@ -323,9 +349,9 @@ final class UpgradeKeepsTranscriptProof: XCTestCase {
 }
 
 final class UpgradeKeepsProposalProof: XCTestCase {
-	func testUpgradeKeepsProposal() {
+	func testUpgradeKeepsProposal() throws {
 		let app = XCUIApplication()
-		TutorialHarness.launchKeepingStore(app)
+		try TutorialHarness.launchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.waitForLabel(app, "Confirmed preview")
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")

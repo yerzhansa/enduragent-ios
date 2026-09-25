@@ -70,10 +70,10 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | --- | --- |
 | `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
 | `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
-| `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds. |
+| `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow`, `fixture:fail finish` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds; `finish` is an unknown finish reason. |
 | `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
 
-Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow and hang settings.
+Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
 
 ## UI test run
 
@@ -87,7 +87,7 @@ Pass one or more proof classes, or `Class/testMethod`. The helper runs `test-wit
 xcodebuild test-without-building -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -destination id=<udid> -derivedDataPath DerivedData -parallel-testing-enabled NO -resultBundlePath <evidence>/uitest-<stamp>.xcresult -only-testing:EnduragentUITests/FirstConversationProof
 ```
 
-`-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On failure it prints the tail of the log and exits 1. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
+The helper first terminates a running copy of the app, because XCUITest cannot terminate an app that `sim.mjs launch` started and the proof would fail with `Failed to terminate icu.enduragent.app`. `-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On failure it prints the tail of the log and exits 1. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
@@ -113,7 +113,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-ready` | The `Confirmed preview` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
-| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary under the working row |
+| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary. The working row is gone once text arrives; the prototype keeps a spinner, which M1-03 restores |
 | `chat-failed` | After `fixture:fail 500`: `chat.error` reads `The coach couldn't respond. Please try again.` |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, `interruption-*` | No app screen yet |
 
