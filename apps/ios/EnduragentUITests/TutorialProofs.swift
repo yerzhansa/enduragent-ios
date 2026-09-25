@@ -229,3 +229,43 @@ final class FailedReplyProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class HangWatchdogProof: XCTestCase {
+	func testHangWatchdog() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:hang")
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		TutorialHarness.attach(self, name: "hang-working", app: app)
+		let error = TutorialHarness.named(app, "chat.error")
+		TutorialHarness.wait(error, timeout: 40)
+		XCTAssertEqual(error.label, TutorialHarness.responseFailure)
+		XCTAssertFalse(working.exists)
+		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class StorageFaultProof: XCTestCase {
+	func testStorageFault() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:storage fail-next-append")
+		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		let error = TutorialHarness.named(app, "chat.error")
+		TutorialHarness.wait(error, timeout: 15)
+		XCTAssertTrue(error.label.contains("RecordStorageFault"), error.label)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.composer").exists)
+		TutorialHarness.attach(self, name: "storage-fault", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "storage-fault-nothing-saved", app: app)
+	}
+}
