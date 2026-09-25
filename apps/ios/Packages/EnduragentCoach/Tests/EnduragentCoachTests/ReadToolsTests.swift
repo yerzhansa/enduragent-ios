@@ -87,7 +87,7 @@ struct ReadToolsTests {
 		let activityID = try #require(ActivityID(rawValue: "i1234567"))
 		intervals.activity = try JSONValue.parse(#"{"id":"i1234567","name":"Sunday long ride"}"#)
 		intervals.streams = try JSONValue.parse(
-			String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
+			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
 		intervals.events = [
 			CalendarEvent(
 				id: EventID(rawValue: 42),

@@ -7,7 +7,7 @@ import Testing
 struct SerializerTests {
 	@Test func matchesDesktopCases() throws {
 		let data = try fixtureData("serializer-cases")
-		let root = try JSONValue.parse(String(data: data, encoding: .utf8)!)
+		let root = try JSONValue.parse(try #require(String(data: data, encoding: .utf8)))
 		guard let cases = root.arrayValue else {
 			Issue.record("serializer-cases.json must be an array")
 			return

@@ -4,10 +4,14 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct SwiftDataRecordLogTests {
-	let amsterdam = IANATimeZone(identifier: "Europe/Amsterdam")!
+	let amsterdam: IANATimeZone
 	let phoneA = DeviceID(rawValue: "phone-a")
 	let phoneB = DeviceID(rawValue: "phone-b")
 	let expires = Date(timeIntervalSince1970: 899_164_800)
+
+	init() throws {
+		amsterdam = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
+	}
 
 	@Test func mixedLocalityQueryThrows() async throws {
 		let log = try makeSwiftDataLog(deviceId: phoneA)
@@ -63,7 +67,7 @@ import Testing
 
 	@Test func bodyRoundTripForEveryKind() async throws {
 		let log = try makeSwiftDataLog(deviceId: phoneA)
-		let samples = sampleBodies()
+		let samples = try sampleBodies()
 		#expect(Set(samples.map(\.kind)) == Set(RecordKind.allCases))
 		for (index, sample) in samples.enumerated() {
 			try await log.append(record(device: phoneA, wall: Int64(index + 1), body: sample.body))
@@ -94,7 +98,7 @@ import Testing
 		)
 	}
 
-	private func sampleBodies() -> [(kind: RecordKind, body: RecordBody)] {
+	private func sampleBodies() throws -> [(kind: RecordKind, body: RecordBody)] {
 		let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 		let workout = IntervalsWorkoutInput(
 			name: "Z2",
@@ -165,7 +169,8 @@ import Testing
 					ProposalBody(
 						chatId: .main,
 						nonce: Nonce(
-							rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!),
+							rawValue: try #require(
+								UUID(uuidString: "00000000-0000-0000-0000-000000000001"))),
 						tool: .intervalsCreateWorkout,
 						toolInput: .createWorkout(date: "1998-06-13", workout: workout),
 						summary: "Z2",
@@ -180,7 +185,8 @@ import Testing
 					ProposalClearedBody(
 						chatId: .main,
 						nonce: Nonce(
-							rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!),
+							rawValue: try #require(
+								UUID(uuidString: "00000000-0000-0000-0000-000000000001"))),
 						reason: .executed)
 				)
 			),

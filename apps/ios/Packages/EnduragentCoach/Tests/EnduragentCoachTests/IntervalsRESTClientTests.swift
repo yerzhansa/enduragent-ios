@@ -38,7 +38,7 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient()
 		let days = try await client.fetchWellness(oldest: "1998-06-12", newest: "1998-06-13")
 		#expect(days.count == 2)
-		let today = days.first { $0.date == "1998-06-13" }!
+		let today = try #require(days.first { $0.date == "1998-06-13" })
 		#expect(today.fitness == 55.2)
 		#expect(today.fatigue == 42.1)
 		#expect(today.form == 55.2 - 42.1)
@@ -83,7 +83,7 @@ struct IntervalsRESTClientTests {
 		let summary = try await client.fetchStreams(
 			id: try #require(ActivityID(rawValue: "i1234567")))
 		let expected = try JSONValue.parse(
-			String(data: try fixtureData("streams-ts"), encoding: .utf8)!)
+			try #require(String(data: try fixtureData("streams-ts"), encoding: .utf8)))
 		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
 		let encoded = canonicalJSON(summary)
 		#expect(!encoded.contains("\"data\""))
@@ -132,7 +132,8 @@ struct IntervalsRESTClientTests {
 		#expect(request.httpMethod == "POST")
 		#expect(request.url?.path.hasSuffix("/athlete/0/events") == true)
 		#expect(request.url?.query == "upsertOnUid=false")
-		let body = String(data: try #require(IntervalsURLProtocolStub.lastBody), encoding: .utf8)!
+		let data = try #require(IntervalsURLProtocolStub.lastBody)
+		let body = try #require(String(data: data, encoding: .utf8))
 		#expect(body.contains("\"start_date_local\""))
 		#expect(body.contains("\"external_id\""))
 		#expect(!body.contains("moving_time"))
@@ -230,12 +231,15 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 		Self.lock.unlock()
 		do {
 			let (status, body) = try handler?(request) ?? (500, Data())
-			let response = HTTPURLResponse(
-				url: request.url!,
-				statusCode: status,
-				httpVersion: "HTTP/1.1",
-				headerFields: ["Content-Type": "application/json"]
-			)!
+			let url = try #require(request.url)
+			let response = try #require(
+				HTTPURLResponse(
+					url: url,
+					statusCode: status,
+					httpVersion: "HTTP/1.1",
+					headerFields: ["Content-Type": "application/json"]
+				)
+			)
 			client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
 			client?.urlProtocol(self, didLoad: body)
 			client?.urlProtocolDidFinishLoading(self)

@@ -32,10 +32,11 @@ import Testing
 		}
 	}
 
-	@Test func stripsCommandsLinksCodeAndNumbersBeforeDetection() {
+	@Test func stripsCommandsLinksCodeAndNumbersBeforeDetection() throws {
+		let italian = try #require(DetectFixtures.messages[.it])[0]
 		let message =
 			"/review@coach https://example.com/日本語 ```한국어``` 123456 "
-			+ DetectFixtures.messages[.it]![0]
+			+ italian
 		#expect(Language.detectMessageLanguage(message) == .it)
 	}
 
@@ -43,10 +44,10 @@ import Testing
 		#expect(Language.detectMessageLanguage("```日本語") == nil)
 	}
 
-	@Test func inspectsAtMost512CodePoints() {
+	@Test func inspectsAtMost512CodePoints() throws {
+		let korean = try #require(DetectFixtures.messages[.ko])[0]
 		#expect(
-			Language.detectMessageLanguage(
-				String(repeating: "🚲", count: 512) + DetectFixtures.messages[.ko]![0]) == nil)
+			Language.detectMessageLanguage(String(repeating: "🚲", count: 512) + korean) == nil)
 		#expect(Language.detectMessageLanguage(String(repeating: "🚲", count: 511) + "한") == .ko)
 	}
 
@@ -58,10 +59,10 @@ import Testing
 		)
 	}
 
-	@Test func recognizesDecomposedLatinDiacritics() {
+	@Test func recognizesDecomposedLatinDiacritics() throws {
+		let polish = try #require(DetectFixtures.messages[.pl])[0]
 		#expect(
-			Language.detectMessageLanguage(
-				DetectFixtures.messages[.pl]![0].decomposedStringWithCanonicalMapping) == .pl)
+			Language.detectMessageLanguage(polish.decomposedStringWithCanonicalMapping) == .pl)
 	}
 }
 

@@ -165,7 +165,7 @@ import Testing
 		@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
 			let sse = try fixture("openrouter-text-usage", ext: "sse")
 			let state = HTTPCapture()
-			let transport = stubbedTransport()
+			let transport = try stubbedTransport()
 			let events = try await OpenRouterURLStub.withHandler({ request in
 				state.record(request)
 				return .ok(sse)
@@ -193,7 +193,7 @@ import Testing
 			let state = TimeoutCapture()
 			let transport = OpenRouterTransport(
 				apiKey: "test-key",
-				baseURL: URL(string: "https://openrouter.test/api/v1")!
+				baseURL: try #require(URL(string: "https://openrouter.test/api/v1"))
 			) { value in
 				state.value = value
 				let configuration = URLSessionConfiguration.ephemeral
@@ -221,7 +221,7 @@ import Testing
 		@Test func streamSurfaces401AsProviderAuthError() async throws {
 			let body = try fixture("openrouter-unauthorized", ext: "json")
 			let state = HTTPCapture()
-			let transport = stubbedTransport()
+			let transport = try stubbedTransport()
 			do {
 				_ = try await OpenRouterURLStub.withHandler({ request in
 					state.record(request)
@@ -384,10 +384,10 @@ private func httpBody(from request: URLRequest) -> Data? {
 	return data
 }
 
-private func stubbedTransport() -> OpenRouterTransport {
+private func stubbedTransport() throws -> OpenRouterTransport {
 	OpenRouterTransport(
 		apiKey: "test-key",
-		baseURL: URL(string: "https://openrouter.test/api/v1")!
+		baseURL: try #require(URL(string: "https://openrouter.test/api/v1"))
 	) { timeout in
 		let configuration = URLSessionConfiguration.ephemeral
 		configuration.timeoutIntervalForRequest = timeout

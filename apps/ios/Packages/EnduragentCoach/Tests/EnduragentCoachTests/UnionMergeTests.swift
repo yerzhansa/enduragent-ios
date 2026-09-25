@@ -4,9 +4,13 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct UnionMergeTests {
-	let amsterdam = IANATimeZone(identifier: "Europe/Amsterdam")!
+	let amsterdam: IANATimeZone
 	let phoneA = DeviceID(rawValue: "phone-a")
 	let phoneB = DeviceID(rawValue: "phone-b")
+
+	init() throws {
+		amsterdam = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
+	}
 
 	@Test func twoDeviceInterleave() {
 		let first = record(

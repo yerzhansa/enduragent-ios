@@ -87,7 +87,7 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let store = InMemoryRecordLog()
-		let tz = IANATimeZone(identifier: "Europe/Amsterdam")!
+		let tz = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
 		let first = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,

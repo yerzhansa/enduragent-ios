@@ -33,9 +33,13 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 }
 
 @Suite struct RecordLogTests {
-	let amsterdam = IANATimeZone(identifier: "Europe/Amsterdam")!
+	let amsterdam: IANATimeZone
 	let phoneA = DeviceID(rawValue: "phone-a")
 	let phoneB = DeviceID(rawValue: "phone-b")
+
+	init() throws {
+		amsterdam = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
+	}
 
 	@Test(arguments: RecordLogKind.allCases)
 	func deviceLocalAppendFromAnotherDeviceThrows(kind: RecordLogKind) async throws {
@@ -71,7 +75,7 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 	@Test(arguments: RecordLogKind.allCases)
 	func fetchHonoursEveryQueryField(kind: RecordLogKind) async throws {
 		let log = try makeRecordLog(kind, deviceId: phoneA)
-		let otherChat = ChatID(rawValue: "other")!
+		let otherChat = try #require(ChatID(rawValue: "other"))
 		try await log.append(
 			record(
 				device: phoneA,
@@ -144,7 +148,7 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 		#expect(Set(thisDevice.map(\.body.kind)) == [.userMessage, .pendingProposal])
 	}
 
-	@Test func hlcMonotonicUnderFrozenWallClock() {
+	@Test func hlcMonotonicUnderFrozenWallClock() throws {
 		let frozen = Date(timeIntervalSince1970: 899_164_800)
 		var last: HybridLogicalClock?
 		var ticks: [HybridLogicalClock] = []
@@ -164,9 +168,10 @@ func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
 			deviceId: phoneA,
 			last: ticks.last
 		)
-		#expect(later.wallMs > ticks.last!.wallMs)
+		let latest = try #require(ticks.last)
+		#expect(later.wallMs > latest.wallMs)
 		#expect(later.logical == 0)
-		#expect(ticks.last! < later)
+		#expect(latest < later)
 	}
 
 	private func record(
