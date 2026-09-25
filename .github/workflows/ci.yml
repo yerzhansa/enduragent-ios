@@ -35,6 +35,12 @@ jobs:
           echo /tmp/swiftlint >> "$GITHUB_PATH"
           /tmp/swiftlint/swiftlint version
       - run: pnpm lint:swift
+      - name: Check that the SwiftLint baseline only shrinks
+        env:
+          LINT_BASELINE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$LINT_BASELINE_BASE"
+          pnpm check:lint-baseline
       - run: xcodebuild -version
       - run: pnpm check:catalogs
       - run: pnpm test:swift

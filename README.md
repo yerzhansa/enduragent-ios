@@ -11,6 +11,7 @@ pnpm install --frozen-lockfile
 pnpm check:catalogs
 pnpm check:source
 pnpm lint:swift
+pnpm check:lint-baseline
 pnpm test:swift
 xcodegen generate --spec apps/ios/project.yml
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
@@ -18,7 +19,7 @@ xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configurat
 
 CI runs these focused checks on every pull request and every push to main.
 
-`pnpm lint:swift` enforces the rules in `.swiftlint.yml`. Violations that predate the linter are listed in `.swiftlint-baseline.json` and are ignored until the line changes. Fix a listed violation instead of adding new ones.
+`pnpm lint:swift` enforces the rules in `.swiftlint.yml`. Violations that predate the linter are listed in `.swiftlint-baseline.json` and are ignored until the line changes. `pnpm check:lint-baseline` fails when the baseline gains an entry compared with `origin/main`, so the baseline can only shrink.
 
 Swift live API tests are opt-in and skipped by `pnpm test:swift`. Optional REST test evidence is written only when `ENDURAGENT_TEST_EVIDENCE_DIRECTORY` names an existing test-owned directory.
 

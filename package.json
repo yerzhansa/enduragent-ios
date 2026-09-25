@@ -12,7 +12,8 @@
     "check:catalogs": "pnpm generate:catalogs && git diff --exit-code -- apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/I18n apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources",
     "test:swift": "env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY swift test --package-path apps/ios/Packages/EnduragentCoach",
     "check:source": "node --test tools/check-source.test.mjs && node tools/check-source.mjs",
-    "lint:swift": "swiftlint lint --strict --quiet"
+    "lint:swift": "swiftlint lint --strict --quiet",
+    "check:lint-baseline": "node --test tools/check-lint-baseline.test.mjs && node tools/check-lint-baseline.mjs"
   },
   "devDependencies": {
     "@types/node": "25.6.0"
