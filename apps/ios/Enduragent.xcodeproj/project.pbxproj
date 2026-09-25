@@ -24,6 +24,7 @@
 		8DB4BEAAE94936E8D48FB79D /* SlashListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DE1643D8AAF084B95462CB /* SlashListView.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
 		A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E410F19BC06DE08527699D1 /* Assets.xcassets */; };
+		A702FC8F1E012667637FA986 /* SidebarDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE898BFA4E10AB7DEEB3C79B /* SidebarDebugView.swift */; };
 		AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C001D5C325DA3FC53ECF139 /* RootView.swift */; };
 		AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE5043C9095F3E5521623E3 /* SidebarView.swift */; };
 		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
@@ -87,6 +88,7 @@
 		E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsView.swift; sourceTree = "<group>"; };
 		E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBlockingURLProtocol.swift; sourceTree = "<group>"; };
 		EFE5043C9095F3E5521623E3 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		FE898BFA4E10AB7DEEB3C79B /* SidebarDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarDebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -201,6 +203,7 @@
 		C8004B33A856E2C62F13F105 /* Sidebar */ = {
 			isa = PBXGroup;
 			children = (
+				FE898BFA4E10AB7DEEB3C79B /* SidebarDebugView.swift */,
 				EFE5043C9095F3E5521623E3 /* SidebarView.swift */,
 			);
 			path = Sidebar;
@@ -393,6 +396,7 @@
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
 				AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */,
 				A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */,
+				A702FC8F1E012667637FA986 /* SidebarDebugView.swift in Sources */,
 				AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */,
 				8DB4BEAAE94936E8D48FB79D /* SlashListView.swift in Sources */,
 				E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */,

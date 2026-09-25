@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct HistoryView: View {
@@ -15,7 +16,7 @@ struct HistoryView: View {
 			}
 			.accessibilityIdentifier("history.row.\(row.id.rawValue)")
 		}
-		.navigationTitle("History")
+		.navigationTitle(model.builder.phrasebook.say(Catalog.archiveHistory, [:]))
 		.task {
 			await model.reloadHistory()
 		}

@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct ChatView: View {
@@ -23,16 +24,16 @@ struct ChatView: View {
 				}
 				ComposerView(model: model)
 			}
-			.navigationTitle("Coach")
+			.navigationTitle(model.builder.phrasebook.say(Catalog.chatTitle, [:]))
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
-					Button("Menu") {
+					Button(model.builder.phrasebook.say(Catalog.chatMenu, [:])) {
 						model.showSidebar = true
 					}
 					.accessibilityIdentifier("chat.sidebar")
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("New chat") {
+					Button(model.builder.phrasebook.say(Catalog.sidebarNewChat, [:])) {
 						model.newChat()
 					}
 				}

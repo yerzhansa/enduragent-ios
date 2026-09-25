@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct SidebarView: View {
@@ -20,28 +21,6 @@ struct SidebarView: View {
 				.accessibilityIdentifier("sidebar.debug")
 			#endif
 		}
-		.navigationTitle("Menu")
+		.navigationTitle(model.builder.phrasebook.say(Catalog.sidebarMenu, [:]))
 	}
 }
-
-#if DEBUG
-	struct DebugMenuView: View {
-		var model: ShellModel
-
-		var body: some View {
-			List {
-				NavigationLink("Credits") {
-					CreditsDebugView()
-				}
-				NavigationLink("Records") {
-					RecordSyncDebugView()
-				}
-				if model.builder.isFixture {
-					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
-						.accessibilityIdentifier("fixture.requestCount")
-				}
-			}
-			.navigationTitle("Debug")
-		}
-	}
-#endif

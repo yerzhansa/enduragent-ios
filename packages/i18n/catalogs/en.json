@@ -11,6 +11,7 @@
       "title": "Delete this conversation?"
     },
     "empty": "No past conversations yet. Starting a new conversation keeps the old one here.",
+    "history": "History",
     "emptyConversation": "This conversation has no readable messages.",
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
@@ -32,6 +33,9 @@
     "unavailable": "This conversation is no longer available."
   },
   "chat": {
+    "addToCalendar": "Add to calendar",
+    "menu": "Menu",
+    "title": "Coach",
     "attachment": {
       "activity": "Recorded activity",
       "adding": "Adding files…",
@@ -110,9 +114,11 @@
       "attach": "Attach files",
       "finishPlanQuestion": "Finish the Plan question above",
       "label": "Message your coach",
+      "messageField": "Message",
       "messagePlaceholder": "Message your coach",
       "responding": "Coach is responding…",
       "send": "Send message",
+      "sendButton": "Send",
       "stop": "Stop responding"
     },
     "date": {
@@ -838,6 +844,17 @@
     "continue": "Continue",
     "save": "Save"
   },
+  "credits": {
+    "balance_one": "{{formattedCount}} credit",
+    "balance_other": "{{formattedCount}} credits",
+    "buy": "Buy",
+    "pack_one": "{{formattedCount}} credit",
+    "pack_other": "{{formattedCount}} credits",
+    "packPrice_one": "{{formattedCount}} credit · {{price}}",
+    "packPrice_other": "{{formattedCount}} credits · {{price}}",
+    "testers": "Testers cannot buy packs yet.",
+    "title": "Credits"
+  },
   "desktop": {
     "credentials": {
       "macRecovery": "unlock your login keychain",
@@ -928,8 +945,19 @@
     "continue": "Continue"
   },
   "onboarding": {
+    "connect": {
+      "action": "Connect",
+      "apiKey": "intervals.icu API key",
+      "fatigue": "Fatigue {{value}}",
+      "fitness": "Fitness {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Skip for now"
+    },
     "notice": {
       "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    },
+    "starter": {
+      "start": "Start chatting"
     }
   },
   "plan": {
@@ -2309,6 +2337,7 @@
     }
   },
   "sidebar": {
+    "menu": "Menu",
     "navigation": "Main navigation",
     "newChat": "New chat",
     "planAttention_one": "Plan, {{formattedCount}} item needs attention",

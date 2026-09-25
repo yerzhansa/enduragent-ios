@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct ConnectView: View {
@@ -6,11 +7,14 @@ struct ConnectView: View {
 	var body: some View {
 		NavigationStack {
 			Form {
-				TextField("intervals.icu API key", text: $model.connectKey)
-					.accessibilityIdentifier("connect.apiKey")
-					.autocorrectionDisabled()
-					.textInputAutocapitalization(.never)
-				Button("Connect") {
+				TextField(
+					model.builder.phrasebook.say(Catalog.onboardingConnectApiKey, [:]),
+					text: $model.connectKey
+				)
+				.accessibilityIdentifier("connect.apiKey")
+				.autocorrectionDisabled()
+				.textInputAutocapitalization(.never)
+				Button(model.builder.phrasebook.say(Catalog.onboardingConnectAction, [:])) {
 					Task { await model.connect() }
 				}
 				.accessibilityIdentifier("connect.connect")
@@ -18,7 +22,7 @@ struct ConnectView: View {
 					Text(connectError)
 				}
 				if !model.didConnect {
-					Button("Skip for now") {
+					Button(model.builder.phrasebook.say(Catalog.onboardingConnectSkip, [:])) {
 						model.skipConnect()
 					}
 					.accessibilityIdentifier("connect.skip")
@@ -27,14 +31,28 @@ struct ConnectView: View {
 					Text(athlete.name)
 						.accessibilityIdentifier("connect.athleteName")
 					if let wellness = model.todayWellness {
-						Text("Fitness \(wholeNumber(wellness.fitness))")
-							.accessibilityIdentifier("connect.fitness")
-						Text("Fatigue \(wholeNumber(wellness.fatigue))")
-							.accessibilityIdentifier("connect.fatigue")
-						Text("Form \(wholeNumber(wellness.form))")
-							.accessibilityIdentifier("connect.form")
+						Text(
+							model.builder.phrasebook.say(
+								Catalog.onboardingConnectFitness,
+								["value": wholeNumber(wellness.fitness)]
+							)
+						)
+						.accessibilityIdentifier("connect.fitness")
+						Text(
+							model.builder.phrasebook.say(
+								Catalog.onboardingConnectFatigue,
+								["value": wholeNumber(wellness.fatigue)]
+							)
+						)
+						.accessibilityIdentifier("connect.fatigue")
+						Text(
+							model.builder.phrasebook.say(
+								Catalog.onboardingConnectForm, ["value": wholeNumber(wellness.form)]
+							)
+						)
+						.accessibilityIdentifier("connect.form")
 					}
-					Button("Continue") {
+					Button(model.builder.phrasebook.say(Catalog.commonContinue, [:])) {
 						model.continueConnect()
 					}
 					.accessibilityIdentifier("connect.continue")
