@@ -779,7 +779,7 @@ public struct Memory: Sendable {
 	private func append(_ body: RecordBody, civilDate: CivilDate) async throws {
 		let last = try await maxHLC()
 		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,
@@ -1027,20 +1027,7 @@ private func serializeLedgerLine(
 
 private func isoFromWallMs(_ wallMs: Int64) -> String {
 	let date = Date(timeIntervalSince1970: TimeInterval(wallMs) / 1000)
-	var calendar = Calendar(identifier: .gregorian)
-	calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-	let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-	let millis = wallMs % 1000
-	return String(
-		format: "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
-		parts.year!,
-		parts.month!,
-		parts.day!,
-		parts.hour!,
-		parts.minute!,
-		parts.second!,
-		millis
-	)
+	return GregorianStamp.isoMillis(date)
 }
 
 private func wallMs(_ date: Date) -> Int64 {
@@ -1055,12 +1042,12 @@ private func historyBodySummary(_ body: String?, query: String?) -> String {
 	}
 	let lowered = text.lowercased()
 	let match = query.flatMap { lowered.range(of: $0)?.lowerBound }
-	if query == nil || match == nil {
+	guard let query, let match else {
 		return truncateUtf16Safe(text, maxChars: MemoryFlushPolicy.historyPreviewChars)
 	}
 	let utf16 = Array(text.utf16)
-	let queryUnits = Array((query ?? "").utf16)
-	let matchIndex = lowered.utf16.distance(from: lowered.utf16.startIndex, to: match!)
+	let queryUnits = Array(query.utf16)
+	let matchIndex = lowered.utf16.distance(from: lowered.utf16.startIndex, to: match)
 	var start = max(
 		0,
 		min(

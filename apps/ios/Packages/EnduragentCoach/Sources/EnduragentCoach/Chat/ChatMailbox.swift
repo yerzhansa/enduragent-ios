@@ -128,7 +128,7 @@ private struct RecordLogReset {
 
 	func run(chatId: ChatID) async throws {
 		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
 		let marker = ULID.generate(at: clock.now)
 		let record = AthleteRecord(
 			ulid: marker,

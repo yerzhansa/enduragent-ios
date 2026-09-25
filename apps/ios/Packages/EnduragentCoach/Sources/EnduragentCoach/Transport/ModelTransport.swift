@@ -111,13 +111,20 @@ public struct OpenRouterTransport: ModelTransport {
 	private let baseURL: URL
 	private let makeSession: @Sendable (TimeInterval) -> URLSession
 
-	public init(apiKey: String, baseURL: URL = URL(string: "https://openrouter.ai/api/v1")!) {
+	public static let apiBase: URL = {
+		guard let url = URL(string: "https://openrouter.ai/api/v1") else {
+			fatalError("https://openrouter.ai/api/v1 is invalid")
+		}
+		return url
+	}()
+
+	public init(apiKey: String, baseURL: URL = OpenRouterTransport.apiBase) {
 		self.init(apiKey: apiKey, baseURL: baseURL, makeSession: Self.makeDefaultSession)
 	}
 
 	package init(
 		apiKey: String,
-		baseURL: URL = URL(string: "https://openrouter.ai/api/v1")!,
+		baseURL: URL = OpenRouterTransport.apiBase,
 		makeSession: @escaping @Sendable (TimeInterval) -> URLSession
 	) {
 		self.apiKey = apiKey

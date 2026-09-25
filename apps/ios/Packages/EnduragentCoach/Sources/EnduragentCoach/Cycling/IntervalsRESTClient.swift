@@ -205,7 +205,9 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		for component in path {
 			url.append(path: component)
 		}
-		var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+		guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+			throw IntervalsError(code: "invalid_url", details: path.joined(separator: "/"))
+		}
 		if !query.isEmpty {
 			components.queryItems = query
 		}

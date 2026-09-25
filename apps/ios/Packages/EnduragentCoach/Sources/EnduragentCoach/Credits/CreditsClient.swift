@@ -251,7 +251,7 @@ public struct PhoneCreditsClient: CreditsClient {
 	public init(
 		secrets: any SecretStore,
 		workerBase: URL,
-		openRouterBase: URL = URL(string: "https://openrouter.ai/api/v1")!,
+		openRouterBase: URL = OpenRouterTransport.apiBase,
 		session: URLSession = .shared
 	) {
 		self.secrets = secrets

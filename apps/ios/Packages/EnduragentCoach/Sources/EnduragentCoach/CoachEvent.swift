@@ -79,7 +79,13 @@ public enum GatedToolName: String, Sendable {
 	case planSave = "plan_save"
 
 	public var toolName: ToolName {
-		ToolName(rawValue: rawValue)!
+		switch self {
+		case .intervalsCreateWorkout: .intervalsCreateWorkout
+		case .intervalsCreateStrengthWorkout: .intervalsCreateStrengthWorkout
+		case .intervalsDeleteWorkout: .intervalsDeleteWorkout
+		case .intervalsUpdateWorkout: .intervalsUpdateWorkout
+		case .planSave: .planSave
+		}
 	}
 
 	public static let all: Set<GatedToolName> = [

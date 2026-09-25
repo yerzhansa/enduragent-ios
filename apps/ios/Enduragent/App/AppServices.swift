@@ -19,12 +19,7 @@ enum ConnectFailure: Error {
 
 enum CivilDates {
 	static func today(clock: any Clock) -> CivilDate {
-		var calendar = Calendar(identifier: .gregorian)
-		calendar.locale = Locale(identifier: "en_US_POSIX")
-		calendar.timeZone = clock.timeZone
-		let parts = calendar.dateComponents([.year, .month, .day], from: clock.now)
-		return CivilDate(
-			rawValue: String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!))!
+		CivilDate(date: clock.now, timeZone: clock.timeZone)
 	}
 }
 

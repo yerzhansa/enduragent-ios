@@ -169,7 +169,7 @@ package enum ProposalPolicy {
 		last: inout HybridLogicalClock?
 	) async throws {
 		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? IANATimeZone(identifier: "GMT")!
+			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
 		let record = AthleteRecord(
 			ulid: ULID.generate(at: clock.now),
 			deviceId: store.deviceId,

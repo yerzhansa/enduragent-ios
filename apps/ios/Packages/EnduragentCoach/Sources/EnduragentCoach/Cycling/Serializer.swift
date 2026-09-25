@@ -229,14 +229,11 @@ public enum IntervalsSerializer {
 		-> String
 	{
 		let hasRange = power.low != nil && power.high != nil
-		let hasValue = power.value != nil
 		let prefix = isRamp ? "ramp " : ""
 		if isRamp && !hasRange {
 			throw InvalidWorkout(message: "\(path): ramp requires power.low and power.high")
 		}
-		if hasRange {
-			let low = power.low!
-			let high = power.high!
+		if let low = power.low, let high = power.high {
 			if low > high {
 				throw InvalidWorkout(
 					message:
@@ -246,8 +243,10 @@ public enum IntervalsSerializer {
 				try assertZone(low, path: "\(path).power.low")
 				try assertZone(high, path: "\(path).power.high")
 				if isRamp {
-					let lowPct = Int((ZoneMidpoints.values[Int(low)]! * 100).rounded())
-					let highPct = Int((ZoneMidpoints.values[Int(high)]! * 100).rounded())
+					let lowPct = Int(
+						(try zoneMidpoint(low, path: "\(path).power.low") * 100).rounded())
+					let highPct = Int(
+						(try zoneMidpoint(high, path: "\(path).power.high") * 100).rounded())
 					return "\(prefix)\(lowPct)-\(highPct)%"
 				}
 				return "Z\(jsString(low))-Z\(jsString(high))"
@@ -257,8 +256,7 @@ public enum IntervalsSerializer {
 			}
 			return "\(prefix)\(jsString(low))-\(jsString(high))w"
 		}
-		if hasValue {
-			let value = power.value!
+		if let value = power.value {
 			if power.kind == .zone {
 				try assertZone(value, path: "\(path).power.value")
 				return "Z\(jsString(value))"
@@ -272,23 +270,20 @@ public enum IntervalsSerializer {
 	}
 
 	private static func formatCadence(_ cadence: CadenceTarget, path: String) throws -> String {
-		let hasTarget = cadence.value != nil
 		let hasLow = cadence.low != nil
 		let hasHigh = cadence.high != nil
 		if hasLow != hasHigh {
 			throw InvalidWorkout(message: "\(path): cadence range requires both 'low' and 'high'")
 		}
-		if hasLow && hasHigh {
-			let low = cadence.low!
-			let high = cadence.high!
+		if let low = cadence.low, let high = cadence.high {
 			if low > high {
 				throw InvalidWorkout(
 					message: "\(path): cadence.low (\(low)) > cadence.high (\(high))")
 			}
 			return "\(low)-\(high)rpm"
 		}
-		if hasTarget {
-			return "\(cadence.value!)rpm"
+		if let value = cadence.value {
+			return "\(value)rpm"
 		}
 		throw InvalidWorkout(message: "\(path): cadence requires 'target' or 'low'+'high'")
 	}
@@ -338,6 +333,16 @@ public enum IntervalsSerializer {
 			visit(step, multiplier: 1)
 		}
 		return Int(total.rounded())
+	}
+
+	private static func zoneMidpoint(_ zone: Double, path: String) throws -> Double {
+		guard let midpoint = ZoneMidpoints.values[Int(zone)] else {
+			throw InvalidWorkout(
+				message:
+					"\(path): zone must be an integer \(minZone)-\(maxZone), got \(jsString(zone))"
+			)
+		}
+		return midpoint
 	}
 
 	private static func assertZone(_ value: Double, path: String) throws {
