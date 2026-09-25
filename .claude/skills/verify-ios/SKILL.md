@@ -113,7 +113,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-ready` | The `Confirmed preview` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
-| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary under the working row |
+| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary. The working row is gone once text arrives; the prototype keeps a spinner, which M1-03 restores |
 | `chat-failed` | After `fixture:fail 500`: `chat.error` reads `The coach couldn't respond. Please try again.` |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, `interruption-*` | No app screen yet |
 
