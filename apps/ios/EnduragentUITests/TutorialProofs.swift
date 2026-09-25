@@ -203,7 +203,7 @@ final class SlowReplyProof: XCTestCase {
 		XCTAssertEqual(working.label, TutorialHarness.working)
 		TutorialHarness.attach(self, name: "slow-reply-working", app: app)
 		TutorialHarness.waitForLabel(app, "This week has", timeout: 5)
-		XCTAssertTrue(working.exists)
+		XCTAssertFalse(app.staticTexts["quieter stretch between them."].exists)
 		TutorialHarness.attach(self, name: "slow-reply-streaming", app: app)
 		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 15)
 		XCTAssertFalse(working.exists)

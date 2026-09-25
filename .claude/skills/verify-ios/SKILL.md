@@ -68,7 +68,7 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 
 | Message | Effect |
 | --- | --- |
-| `fixture:slow` | Streams the week summary one word every 250 ms, so `chat.working` and then the growing reply are on screen for about eight seconds. |
+| `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
 | `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
 | `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds. |
 | `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |

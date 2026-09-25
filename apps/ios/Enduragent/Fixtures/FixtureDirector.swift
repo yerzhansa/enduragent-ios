@@ -8,6 +8,7 @@ enum FixtureDirective: Equatable {
 
 struct FixtureDirector: Sendable {
 	static let prefix = "fixture:"
+	static let slowFirstWordDelay: Duration = .seconds(2)
 	static let slowWordDelay: Duration = .milliseconds(250)
 
 	let transport: FakeModelTransport
@@ -15,12 +16,14 @@ struct FixtureDirector: Sendable {
 
 	func prepare(for text: String) -> FixtureDirective {
 		transport.hangUntilCancelled = false
+		transport.requestDelay = nil
 		transport.deltaDelay = nil
 		transport.script = FirstWeekFixture.script(for: text)
 		guard text.hasPrefix(Self.prefix) else { return .sendToCoach }
 		let words = text.dropFirst(Self.prefix.count).split(separator: " ").map(String.init)
 		switch words.first {
 		case "slow":
+			transport.requestDelay = Self.slowFirstWordDelay
 			transport.deltaDelay = Self.slowWordDelay
 			transport.script = FirstWeekFixture.weekSummaryByWord()
 			return .sendToCoach

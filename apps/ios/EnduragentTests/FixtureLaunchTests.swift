@@ -87,19 +87,16 @@ struct FixtureLaunchTests {
 	}
 
 	@Test func sendShowsAthleteTextBeforeCoachReplies() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		transport.requestDelay = .milliseconds(250)
-		let model = model(services)
-		let sendTask = Task { await model.send("hi") }
+		let model = model(try services())
+		let sendTask = Task { await model.send("fixture:slow") }
 		try await Task.sleep(for: .milliseconds(40))
 		#expect(model.composer.isEmpty)
 		#expect(model.seam.phase == .streaming)
 		#expect(model.seam.streamingText.isEmpty)
 		#expect(model.isWaitingForCoach)
-		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "hi" })
+		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "fixture:slow" })
 		await sendTask.value
-		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "hi" })
+		#expect(model.seam.transcript.contains { $0.role == .user && $0.text == "fixture:slow" })
 		#expect(model.seam.transcript.contains { $0.role == .assistant && !$0.text.isEmpty })
 		#expect(model.seam.streamingText.isEmpty)
 		#expect(!model.isWaitingForCoach)
@@ -213,7 +210,11 @@ struct FixtureLaunchTests {
 		await model.send("fixture:slow")
 		#expect(transport.requests.count == 1)
 		#expect(model.seam.transcript.last?.text == FirstWeekFixture.weekSummary)
+		#expect(transport.requestDelay == FixtureDirector.slowFirstWordDelay)
 		#expect(transport.deltaDelay == FixtureDirector.slowWordDelay)
+		await model.send(TutorialCopy.weekQuestion)
+		#expect(transport.requestDelay == nil)
+		#expect(transport.deltaDelay == nil)
 	}
 
 	@Test func failDirectiveShowsTheResponseFailureNotice() async throws {
