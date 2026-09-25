@@ -216,13 +216,23 @@
 		let purchases: StoreKitPurchaseCoordinator
 		let deviceCheck = DeviceCheckTokenProvider()
 
+		private static let workerBase: URL = {
+			guard
+				let url = URL(
+					string: "https://enduragent-credits-testflight.yerzhan-st.workers.dev")
+			else {
+				fatalError(
+					"https://enduragent-credits-testflight.yerzhan-st.workers.dev is invalid")
+			}
+			return url
+		}()
+
 		init() {
 			let secrets = ICloudKeychainStore()
 			self.secrets = secrets
 			let credits = PhoneCreditsClient(
 				secrets: secrets,
-				workerBase: URL(
-					string: "https://enduragent-credits-testflight.yerzhan-st.workers.dev")!
+				workerBase: Self.workerBase
 			)
 			self.credits = credits
 			self.purchases = StoreKitPurchaseCoordinator(credits: credits, secrets: secrets)

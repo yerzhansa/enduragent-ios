@@ -42,6 +42,14 @@ import Testing
 		)
 	}
 
+	@Test func stampsUseTheAthleteZoneAndGmt() {
+		let instant = Date(timeIntervalSince1970: 897_717_600.123)
+		let amsterdam = TimeZone(identifier: "Europe/Amsterdam") ?? .gmt
+		#expect(CivilDate(date: instant, timeZone: amsterdam).rawValue == "1998-06-13")
+		#expect(GregorianStamp.minuteUTC(instant) == "1998-06-13 06:00 UTC")
+		#expect(GregorianStamp.isoMillis(instant) == "1998-06-13T06:00:00.123Z")
+	}
+
 	@Test func jsonParseCanonicalSha256AndStringify() throws {
 		let parsed = try JSONValue.parse("{\"b\":1,\"a\":[true,null,\"x\"]}")
 		#expect(

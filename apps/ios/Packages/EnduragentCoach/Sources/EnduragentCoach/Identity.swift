@@ -26,7 +26,11 @@ public struct ULID: Hashable, Sendable, RawRepresentable {
 		for index in 10..<26 {
 			chars[index] = alphabet[Int(rng.next() % 32)]
 		}
-		return ULID(rawValue: String(chars))!
+		return ULID(characters: chars)
+	}
+
+	private init(characters: [Character]) {
+		self.rawValue = String(characters)
 	}
 }
 
@@ -107,21 +111,31 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 		return formatter.date(from: value) != nil
 	}
 
+	public init(date: Date, timeZone: TimeZone) {
+		self.rawValue = GregorianStamp.day(date, timeZone: timeZone)
+	}
+
+	public init(year: Int, month: Int, day: Int) {
+		self.rawValue = String(format: "%04d-%02d-%02d", year, month, day)
+	}
+
 	public func adding(days: Int) -> CivilDate {
 		var calendar = Calendar(identifier: .gregorian)
 		calendar.locale = Locale(identifier: "en_US_POSIX")
-		calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+		calendar.timeZone = .gmt
 		let parts = rawValue.split(separator: "-")
 		let components = DateComponents(
 			year: Int(parts[0]),
 			month: Int(parts[1]),
 			day: Int(parts[2])
 		)
-		let date = calendar.date(from: components)!
-		let shifted = calendar.date(byAdding: .day, value: days, to: date)!
-		let out = calendar.dateComponents([.year, .month, .day], from: shifted)
-		let formatted = String(format: "%04d-%02d-%02d", out.year!, out.month!, out.day!)
-		return CivilDate(rawValue: formatted)!
+		guard
+			let date = calendar.date(from: components),
+			let shifted = calendar.date(byAdding: .day, value: days, to: date)
+		else {
+			fatalError("civil date \(rawValue) is not a real day")
+		}
+		return CivilDate(date: shifted, timeZone: .gmt)
 	}
 }
 
@@ -133,15 +147,25 @@ public struct DateKey: Hashable, Sendable, Comparable {
 		self.rawValue = rawValue
 	}
 
+	public init(year: Int, month: Int, day: Int) {
+		self.rawValue = year * 10_000 + month * 100 + day
+	}
+
 	public static func from(_ date: CivilDate) -> DateKey {
-		DateKey(rawValue: Int(date.rawValue.replacingOccurrences(of: "-", with: ""))!)!
+		let parts = date.rawValue.split(separator: "-")
+		guard
+			parts.count == 3,
+			let year = Int(parts[0]),
+			let month = Int(parts[1]),
+			let day = Int(parts[2])
+		else {
+			fatalError("civil date \(date.rawValue) is not a date key")
+		}
+		return DateKey(year: year, month: month, day: day)
 	}
 
 	public var civil: CivilDate {
-		let year = rawValue / 10_000
-		let month = (rawValue / 100) % 100
-		let day = rawValue % 100
-		return CivilDate(rawValue: String(format: "%04d-%02d-%02d", year, month, day))!
+		CivilDate(year: rawValue / 10_000, month: (rawValue / 100) % 100, day: rawValue % 100)
 	}
 
 	public static func < (lhs: DateKey, rhs: DateKey) -> Bool {
@@ -156,6 +180,13 @@ public struct IANATimeZone: Hashable, Sendable {
 		guard TimeZone(identifier: identifier) != nil else { return nil }
 		self.identifier = identifier
 	}
+
+	public static let gmt: IANATimeZone = {
+		guard let zone = IANATimeZone(identifier: "GMT") else {
+			fatalError("IANA time zone GMT is invalid")
+		}
+		return zone
+	}()
 
 	public var timeZone: TimeZone {
 		TimeZone(identifier: identifier) ?? .gmt
@@ -237,21 +268,20 @@ public enum JSONValue: Sendable, Equatable {
 				separator: ",\n")
 			return "[\n\(inner)\n\(close)]"
 		case .object(let fields):
-			let keys = fields.keys.sorted()
-			if keys.isEmpty { return "{}" }
+			let pairs = fields.sorted { $0.key < $1.key }
+			if pairs.isEmpty { return "{}" }
 			if !pretty {
 				return "{"
-					+ keys.map {
-						encodeJSONString($0) + ":" + render(fields[$0]!, pretty: false, depth: 0)
+					+ pairs.map { key, value in
+						encodeJSONString(key) + ":" + render(value, pretty: false, depth: 0)
 					}
 					.joined(separator: ",")
 					+ "}"
 			}
 			let pad = String(repeating: "  ", count: depth + 1)
 			let close = String(repeating: "  ", count: depth)
-			let inner = keys.map {
-				pad + encodeJSONString($0) + ": "
-					+ render(fields[$0]!, pretty: true, depth: depth + 1)
+			let inner = pairs.map { key, value in
+				pad + encodeJSONString(key) + ": " + render(value, pretty: true, depth: depth + 1)
 			}.joined(separator: ",\n")
 			return "{\n\(inner)\n\(close)}"
 		}

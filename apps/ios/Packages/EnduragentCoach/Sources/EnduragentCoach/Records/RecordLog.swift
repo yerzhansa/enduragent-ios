@@ -1003,19 +1003,9 @@ public enum RecordLogSamples {
 			ulid: ULID.generate(at: now),
 			deviceId: deviceId,
 			hlc: HybridLogicalClock.tick(now: now, deviceId: deviceId, last: nil),
-			timeZone: IANATimeZone(identifier: TimeZone.current.identifier) ?? IANATimeZone(
-				identifier: "GMT")!,
-			civilDate: sampleCivilDate(now),
+			timeZone: IANATimeZone(identifier: TimeZone.current.identifier) ?? .gmt,
+			civilDate: CivilDate(date: now, timeZone: .current),
 			body: body
 		)
 	}
-}
-
-private func sampleCivilDate(_ now: Date) -> CivilDate {
-	let formatter = DateFormatter()
-	formatter.calendar = Calendar(identifier: .gregorian)
-	formatter.locale = Locale(identifier: "en_US_POSIX")
-	formatter.timeZone = .current
-	formatter.dateFormat = "yyyy-MM-dd"
-	return CivilDate(rawValue: formatter.string(from: now))!
 }

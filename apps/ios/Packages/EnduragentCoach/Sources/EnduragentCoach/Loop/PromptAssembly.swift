@@ -293,17 +293,7 @@ private func formatTimeInTZ(_ date: Date, timeZone: TimeZone) -> String? {
 }
 
 private func utcStamp(_ date: Date) -> String {
-	var calendar = Calendar(identifier: .gregorian)
-	calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-	let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
-	return String(
-		format: "%04d-%02d-%02d %02d:%02d UTC",
-		parts.year!,
-		parts.month!,
-		parts.day!,
-		parts.hour!,
-		parts.minute!
-	)
+	GregorianStamp.minuteUTC(date)
 }
 
 private func isoFallback(_ date: Date) -> String {

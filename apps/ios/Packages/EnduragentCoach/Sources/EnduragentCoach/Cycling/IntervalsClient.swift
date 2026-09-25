@@ -230,7 +230,12 @@ public enum IntervalsPolicy {
 	public static let listMaxRangeDays = 366
 	public static let reviewWindowDays = 7
 	public static let athletePath = "0"
-	public static let baseURL = URL(string: "https://intervals.icu/api/v1")!
+	public static let baseURL: URL = {
+		guard let url = URL(string: "https://intervals.icu/api/v1") else {
+			fatalError("https://intervals.icu/api/v1 is invalid")
+		}
+		return url
+	}()
 	public static let coachTag = "cycling-coach"
 	public static let formRecoveryThreshold = -30.0
 	public static let ftpRange = 50...600
@@ -251,12 +256,7 @@ public enum IntervalsPolicy {
 	}
 
 	package static func today(now: Date, timeZone: TimeZone) -> CivilDate {
-		var calendar = Calendar(identifier: .gregorian)
-		calendar.locale = Locale(identifier: "en_US_POSIX")
-		calendar.timeZone = timeZone
-		let parts = calendar.dateComponents([.year, .month, .day], from: now)
-		let formatted = String(format: "%04d-%02d-%02d", parts.year!, parts.month!, parts.day!)
-		return CivilDate(rawValue: formatted)!
+		CivilDate(date: now, timeZone: timeZone)
 	}
 
 	package static func inclusiveDayCount(from oldest: CivilDate, to newest: CivilDate) -> Int {
