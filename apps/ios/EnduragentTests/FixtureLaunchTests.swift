@@ -6,21 +6,20 @@ import Testing
 @testable import Enduragent
 
 @MainActor
+@Suite(.serialized)
 final class FixtureLaunchTests {
-	let launch: FixtureLaunch
+	let launch = FixtureLaunch(
+		name: FixtureLaunch.firstWeekName,
+		store: .fresh,
+		keychain: .unlocked,
+		directory: FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-fixture-test", directoryHint: .isDirectory),
+		defaultsSuiteName: "enduragent.fixture.test"
+	)
 	let defaults: UserDefaults
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 
 	init() throws {
-		let stamp = UUID().uuidString
-		launch = FixtureLaunch(
-			name: FixtureLaunch.firstWeekName,
-			store: .fresh,
-			keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-fixture-\(stamp)", directoryHint: .isDirectory),
-			defaultsSuiteName: "enduragent.test.\(stamp)"
-		)
 		defaults = try launch.prepare()
 	}
 
@@ -30,14 +29,8 @@ final class FixtureLaunchTests {
 			.removePersistentDomain(forName: launch.defaultsSuiteName)
 		do {
 			try FileManager.default.removeItem(at: launch.directory)
-			let preferences = try FileManager.default.url(
-				for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: false
-			).appending(path: "Preferences/\(launch.defaultsSuiteName).plist")
-			if FileManager.default.fileExists(atPath: preferences.path) {
-				try FileManager.default.removeItem(at: preferences)
-			}
 		} catch {
-			Issue.record(error, "fixture cleanup")
+			Issue.record(error, "fixture directory cleanup")
 		}
 	}
 
