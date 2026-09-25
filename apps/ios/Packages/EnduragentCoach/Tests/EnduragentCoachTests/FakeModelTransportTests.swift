@@ -107,6 +107,45 @@ import Testing
 		}
 		#expect(reason == .length)
 	}
+
+	@Test func deltaDelayPausesBeforeEachEvent() async throws {
+		let transport = FakeModelTransport()
+		transport.deltaDelay = .milliseconds(60)
+		transport.script = [.text("one"), .text("two"), .finish(reason: .stop)]
+		let clock = ContinuousClock()
+		let started = clock.now
+		var arrivals: [ContinuousClock.Instant] = []
+		for try await _ in transport.stream(request("Slowly")) {
+			arrivals.append(clock.now)
+		}
+		#expect(arrivals.count == 3)
+		var previous = started
+		for arrival in arrivals {
+			#expect(arrival - previous >= .milliseconds(60))
+			previous = arrival
+		}
+	}
+
+	@Test func failureQueueIsConsumedBeforeTheScript() async throws {
+		let transport = FakeModelTransport()
+		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		transport.script = [.text("after"), .finish(reason: .stop)]
+		await #expect(throws: OpenRouterHTTPError(statusCode: 500, body: "")) {
+			_ = try await collect(transport.stream(request("First")))
+		}
+		#expect(transport.failures.isEmpty)
+		let second = try await collect(transport.stream(request("Second")))
+		#expect(textDeltas(in: second) == ["after"])
+		#expect(transport.requests.count == 2)
+	}
+}
+
+private func request(_ content: String) -> CompletionRequest {
+	CompletionRequest.openRouter(
+		messages: [WireMessage(role: .user, content: content, toolCalls: [], toolCallId: nil)],
+		tools: [],
+		deadline: .seconds(30)
+	)
 }
 
 private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
