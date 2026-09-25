@@ -30,7 +30,7 @@ import Testing
 		)
 		let urlRequest = try OpenRouterHTTP.urlRequest(
 			apiKey: apiKey,
-			baseURL: URL(string: "https://openrouter.ai/api/v1")!,
+			baseURL: try #require(URL(string: "https://openrouter.ai/api/v1")),
 			request: request
 		)
 		let configuration = URLSessionConfiguration.ephemeral

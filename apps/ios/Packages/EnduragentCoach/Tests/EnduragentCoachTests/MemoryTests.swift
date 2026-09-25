@@ -54,7 +54,7 @@ import Testing
 				ulid: ULID.generate(at: now),
 				deviceId: other,
 				hlc: .tick(now: now, deviceId: other, last: nil),
-				timeZone: IANATimeZone(identifier: "Europe/Amsterdam")!,
+				timeZone: try #require(IANATimeZone(identifier: "Europe/Amsterdam")),
 				civilDate: "1998-06-13",
 				body: .ledgerEvent(
 					LedgerEventBody(kind: .decision, text: "Keep Saturdays free.", source: .chat))

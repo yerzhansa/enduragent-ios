@@ -8,10 +8,10 @@ import Testing
 struct CreditsClientTests {
 	@Test("grant minted stores key before returning")
 	func grantMintedStoresKeyBeforeReturning() async throws {
-		let athleteId = UUID(uuidString: "11111111-2222-4333-8444-555555555555")!
+		let athleteId = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let secrets = FakeSecretStore(appAccountToken: athleteId)
 		let deviceCheck = Data([0x01, 0x02, 0x03])
-		let client = makeClient(secrets: secrets)
+		let client = try makeClient(secrets: secrets)
 		let captured = Mutex<URLRequest?>(nil)
 		let outcome = try await CreditsURLStub.withHandler({ request in
 			captured.withLock { $0 = request }
@@ -35,7 +35,7 @@ struct CreditsClientTests {
 	@Test("grant alreadyGranted with empty keychain surfaces outcome")
 	func grantAlreadyGrantedWithEmptyKeychainSurfacesOutcome() async throws {
 		let secrets = FakeSecretStore()
-		let client = makeClient(secrets: secrets)
+		let client = try makeClient(secrets: secrets)
 		let outcome = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"kind":"grantAlreadyGranted"}"#)
 		}) {
@@ -51,7 +51,7 @@ struct CreditsClientTests {
 		let secrets = FakeSecretStore()
 		try secrets.storeOpenRouterKey("sk-or-test-existing")
 		let stored = secrets.storedOpenRouterKeys
-		let client = makeClient(secrets: secrets)
+		let client = try makeClient(secrets: secrets)
 		let outcome = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"kind":"grantToppedUp","added":200}"#)
 		}) {
@@ -64,7 +64,7 @@ struct CreditsClientTests {
 
 	@Test("banned maps from error code not status")
 	func bannedMapsFromErrorCodeNotStatus() async throws {
-		let client = makeClient(secrets: FakeSecretStore())
+		let client = try makeClient(secrets: FakeSecretStore())
 		try await CreditsURLStub.withHandler({ _ in
 			.json(403, #"{"error":"banned"}"#)
 		}) {
@@ -120,8 +120,8 @@ struct CreditsClientTests {
 	@Test("recover stores key and athlete id")
 	func recoverStoresKeyAndAthleteId() async throws {
 		let secrets = FakeSecretStore()
-		let athleteId = UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")!
-		let client = makeClient(secrets: secrets)
+		let athleteId = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
+		let client = try makeClient(secrets: secrets)
 		let recovery = try await CreditsURLStub.withHandler({ _ in
 			.json(
 				200,
@@ -140,7 +140,7 @@ struct CreditsClientTests {
 	func balanceFloors1999To199Credits() async throws {
 		let secrets = FakeSecretStore()
 		try secrets.storeOpenRouterKey("sk-or-test-0000")
-		let client = makeClient(secrets: secrets)
+		let client = try makeClient(secrets: secrets)
 		let scale = CreditScale(creditsPerUsd: 100)
 		let floored = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"data":{"limit_remaining":1.999}}"#)
@@ -155,7 +155,7 @@ struct CreditsClientTests {
 		}
 		#expect(nilRemaining == CreditBalance(credits: Credits(units: 0)))
 		let empty = FakeSecretStore()
-		let missing = makeClient(secrets: empty)
+		let missing = try makeClient(secrets: empty)
 		do {
 			_ = try await missing.balance(scale: scale)
 			Issue.record("expected noAthleteKey")
@@ -168,7 +168,7 @@ struct CreditsClientTests {
 
 	@Test("catalog decodes disabled packs")
 	func catalogDecodesDisabledPacks() async throws {
-		let client = makeClient(secrets: FakeSecretStore())
+		let client = try makeClient(secrets: FakeSecretStore())
 		let catalog = try await CreditsURLStub.withHandler({ request in
 			#expect(request.url?.path == "/catalog")
 			return .json(
@@ -194,15 +194,15 @@ struct CreditsClientTests {
 	}
 }
 
-private func makeClient(secrets: FakeSecretStore) -> PhoneCreditsClient {
+private func makeClient(secrets: FakeSecretStore) throws -> PhoneCreditsClient {
 	let configuration = URLSessionConfiguration.ephemeral
 	configuration.protocolClasses = [CreditsURLStub.self]
 	configuration.timeoutIntervalForRequest = 20
 	let session = URLSession(configuration: configuration)
 	return PhoneCreditsClient(
 		secrets: secrets,
-		workerBase: URL(string: "https://credits.test")!,
-		openRouterBase: URL(string: "https://openrouter.test/api/v1")!,
+		workerBase: try #require(URL(string: "https://credits.test")),
+		openRouterBase: try #require(URL(string: "https://openrouter.test/api/v1")),
 		session: session
 	)
 }

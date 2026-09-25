@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct IdentityTests {
-	@Test func ulidLengthAndTimeOrder() {
+	@Test func ulidLengthAndTimeOrder() throws {
 		let earlier = Date(timeIntervalSince1970: 899_164_800)
 		let later = Date(timeIntervalSince1970: 899_164_801)
 		let first = ULID.generate(at: earlier)
@@ -14,15 +14,15 @@ import Testing
 		#expect(ULID(rawValue: first.rawValue) == first)
 		#expect(first.rawValue < second.rawValue)
 		#expect(
-			ulidTimestamp(first.rawValue)
+			try ulidTimestamp(first.rawValue)
 				== UInt64((earlier.timeIntervalSince1970 * 1000).rounded(.down)))
 		#expect(
-			ulidTimestamp(second.rawValue)
+			try ulidTimestamp(second.rawValue)
 				== UInt64((later.timeIntervalSince1970 * 1000).rounded(.down)))
 	}
 
-	@Test func civilDateAndDateKeyRoundTripEveryDayOf1998() {
-		var date = CivilDate(rawValue: "1998-01-01")!
+	@Test func civilDateAndDateKeyRoundTripEveryDayOf1998() throws {
+		var date = try #require(CivilDate(rawValue: "1998-01-01"))
 		var count = 0
 		while date.rawValue.hasPrefix("1998") {
 			#expect(date.adding(days: 0) == date)
@@ -37,7 +37,9 @@ import Testing
 			#expect(count <= 366)
 		}
 		#expect(count == 365)
-		#expect(CivilDate(rawValue: "1998-12-31")!.adding(days: 1).rawValue == "1999-01-01")
+		#expect(
+			try #require(CivilDate(rawValue: "1998-12-31")).adding(days: 1).rawValue == "1999-01-01"
+		)
 	}
 
 	@Test func jsonParseCanonicalSha256AndStringify() throws {
@@ -72,11 +74,11 @@ import Testing
 	}
 }
 
-private func ulidTimestamp(_ raw: String) -> UInt64 {
+private func ulidTimestamp(_ raw: String) throws -> UInt64 {
 	let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 	var value: UInt64 = 0
 	for character in raw.prefix(10) {
-		value = value * 32 + UInt64(alphabet.firstIndex(of: character)!)
+		value = value * 32 + UInt64(try #require(alphabet.firstIndex(of: character)))
 	}
 	return value
 }
