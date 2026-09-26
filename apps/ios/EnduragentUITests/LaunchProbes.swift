@@ -37,7 +37,7 @@ final class LaunchLatencyProbe: XCTestCase {
 	func testLaunchRecoveringOneDeadClaim() {
 		let app = keptApp()
 		app.launch()
-		TutorialHarness.wait(app.staticTexts[Self.lastSeed], timeout: 60)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), timeout: 60)
 		TutorialHarness.send(app, "fixture:hang")
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim \(Self.seeds + 1)")
@@ -51,6 +51,10 @@ final class LaunchLatencyProbe: XCTestCase {
 		record(Date().timeIntervalSince(started), name: "recovery-launch-latency-ms")
 		XCTAssertTrue(notice.exists)
 		TutorialHarness.attach(self, name: "launch-recovering-one-dead-claim", app: app)
+		TutorialHarness.named(app, "chat.turn.tryAgain").tap()
+		let answered = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "exists == false"), object: notice)
+		XCTAssertEqual(XCTWaiter.wait(for: [answered], timeout: 30), .completed)
 	}
 
 	private func keptApp() -> XCUIApplication {
