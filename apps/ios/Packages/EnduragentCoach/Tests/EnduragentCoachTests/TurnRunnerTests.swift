@@ -135,8 +135,9 @@ import Testing
 		}
 		#expect(failed.failure == .model(row.failure))
 		#expect(failed.notice.key == row.key)
-		#expect(failed.notice.action == (row.offersTryAgain ? .tryAgain(turn) : nil))
-		#expect(english.say(failed.notice.key, failed.notice.vars) == row.english)
+		#expect(failed.notice.action.map { english.say($0.title) } == row.button)
+		#expect(settled.retryable == (row.button == "Try again"))
+		#expect(failed.notice.sentence(in: english) == row.english)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == row.calls)
 	}
 
@@ -215,7 +216,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
-		#expect(settled.retryable)
+		#expect(!settled.retryable)
 		#expect(transport.requestCount == 0)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
@@ -262,7 +263,7 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 	let scripted: ScriptedFailure
 	let failure: ModelFailure
 	let key: CatalogKey
-	let offersTryAgain: Bool
+	let button: String?
 	let english: String
 
 	var calls: Int {
@@ -279,51 +280,51 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 	static let all: [FailureRow] = [
 		FailureRow(
 			scripted: .http(status: 401), failure: .credentialRejected(.credits),
-			key: Catalog.coachErrorProviderCredentials, offersTryAgain: false,
-			english: "The model provider rejected the API key — check your provider credentials."),
+			key: Catalog.creditsErrorAccessRejected, button: "Restore purchases",
+			english: "Your Credits couldn't be used. Restore purchases to continue."),
 		FailureRow(
 			scripted: .http(status: 402), failure: .accessExhausted(.credits),
-			key: Catalog.coachErrorUnknown, offersTryAgain: false,
-			english: "Sorry, something went wrong. Please try again."),
+			key: Catalog.creditsErrorExhausted, button: "Buy Credits",
+			english: "You're out of Credits. Buy more, or switch to your OpenRouter account."),
 		FailureRow(
 			scripted: .http(status: 429, headers: ["retry-after": "7"]),
 			failure: .rateLimited(retryAfter: .seconds(7)),
-			key: Catalog.coachErrorRateLimitSeconds, offersTryAgain: true,
+			key: Catalog.coachErrorRateLimitSeconds, button: "Try again",
 			english: "Rate limited — please try again in ~7 seconds."),
 		FailureRow(
 			scripted: .http(status: 429, headers: ["retry-after": "90"]),
 			failure: .rateLimited(retryAfter: .seconds(90)),
-			key: Catalog.coachErrorRateLimitMinutes, offersTryAgain: true,
+			key: Catalog.coachErrorRateLimitMinutes, button: "Try again",
 			english: "Rate limited — please try again in ~2 minutes."),
 		FailureRow(
 			scripted: .http(status: 429), failure: .rateLimited(retryAfter: nil),
-			key: Catalog.coachErrorRateLimitDefault, offersTryAgain: true,
+			key: Catalog.coachErrorRateLimitDefault, button: "Try again",
 			english: "Rate limited — please try again in about a minute."),
 		FailureRow(
 			scripted: .http(status: 500), failure: .providerDown(.outage),
-			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			key: Catalog.coachErrorProviderDown, button: "Try again",
 			english: "The model provider is having trouble — try again in a few minutes."),
 		FailureRow(
 			scripted: .connection(.notConnectedToInternet), failure: .providerDown(.network),
-			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			key: Catalog.coachErrorProviderDown, button: "Try again",
 			english: "The model provider is having trouble — try again in a few minutes."),
 		FailureRow(
 			scripted: .connection(.timedOut), failure: .providerDown(.timeout),
-			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			key: Catalog.coachErrorProviderDown, button: "Try again",
 			english: "The model provider is having trouble — try again in a few minutes."),
 		FailureRow(
 			scripted: .http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#),
 			failure: .contextOverflow,
-			key: Catalog.coachErrorUnknown, offersTryAgain: true,
+			key: Catalog.coachErrorUnknown, button: "Try again",
 			english: "Sorry, something went wrong. Please try again."),
 		FailureRow(
 			scripted: .http(status: 400), failure: .invalidRequest,
-			key: Catalog.coachErrorUnknown, offersTryAgain: true,
+			key: Catalog.coachErrorUnknown, button: "Try again",
 			english: "Sorry, something went wrong. Please try again."),
 		FailureRow(
 			scripted: ScriptedFailure(.malformedStream),
 			failure: .generationFailed(.malformedStream),
-			key: Catalog.chatNoticeResponseFailure, offersTryAgain: true,
+			key: Catalog.chatNoticeResponseFailure, button: "Try again",
 			english: "The coach couldn't respond. Please try again."),
 	]
 }

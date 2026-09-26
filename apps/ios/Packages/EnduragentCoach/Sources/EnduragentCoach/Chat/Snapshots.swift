@@ -65,8 +65,7 @@ extension ChatSnapshot {
 				id: facts.turn,
 				athleteText: facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
-				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, now: now)
+				state: TurnLifecycle.state(of: facts, live: live, overlay: overlay, device: device)
 			)
 		}
 		if stopping {

@@ -11,6 +11,10 @@ public struct HybridLogicalClock: Sendable, Hashable, Comparable {
 		self.deviceId = deviceId
 	}
 
+	package var wallTime: Date {
+		Date(timeIntervalSince1970: Double(wallMs) / 1000)
+	}
+
 	public static func tick(now: Date, deviceId: DeviceID, last: HybridLogicalClock?)
 		-> HybridLogicalClock
 	{

@@ -95,44 +95,90 @@ public struct AthleteNotice: Sendable, Equatable {
 	public let key: CatalogKey
 	public let vars: [String: String]
 	public let action: RecoveryAction?
+
+	package init(key: CatalogKey, vars: [String: String] = [:], action: RecoveryAction?) {
+		self.key = key
+		self.vars = vars
+		self.action = action
+	}
+
+	public func sentence(in phrasebook: any Phrasebook) -> String {
+		phrasebook.say(key, vars).trimmingCharacters(in: .whitespacesAndNewlines)
+	}
 }
 
 public enum RecoveryAction: Sendable, Equatable {
 	case tryAgain(TurnID)
-}
+	case wait(until: Date, thenTryAgain: TurnID)
+	case restoreCredits
+	case buyCredits
+	case chooseAccessMethod
+	case signInToOpenRouter
 
-package enum AthleteNotices {
-	package static func notice(for failure: CoachFailure, turn: TurnID?, now: Date) -> AthleteNotice
-	{
-		_ = now
-		let tryAgain = turn.map(RecoveryAction.tryAgain)
-		switch failure {
-		case .model(.credentialRejected):
-			return AthleteNotice(key: Catalog.coachErrorProviderCredentials, vars: [:], action: nil)
-		case .model(.accessExhausted):
-			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: nil)
-		case .model(.rateLimited(let retryAfter)):
-			return rateLimitNotice(after: retryAfter, action: tryAgain)
-		case .model(.providerDown):
-			return AthleteNotice(key: Catalog.coachErrorProviderDown, vars: [:], action: tryAgain)
-		case .model(.generationFailed):
-			return AthleteNotice(
-				key: Catalog.chatNoticeResponseFailure, vars: [:], action: tryAgain)
-		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted),
-			.model(.accessUnavailable):
-			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: tryAgain)
-		case .local(.recordStorage):
-			return AthleteNotice(key: Catalog.coachHistoryDiskFull, vars: [:], action: nil)
+	public var title: CatalogKey {
+		switch self {
+		case .tryAgain, .wait: Catalog.chatTranscriptRetry
+		case .restoreCredits: Catalog.chatTurnRestorePurchases
+		case .buyCredits: Catalog.chatTurnBuyCredits
+		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
+		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
 		}
 	}
 
-	private static func rateLimitNotice(after wait: Duration?, action: RecoveryAction?)
+	public var opensAt: Date? {
+		guard case .wait(let until, _) = self else { return nil }
+		return until
+	}
+}
+
+package enum AthleteNotices {
+	private static let openRouter = "OpenRouter"
+	private static let defaultRateLimitWait: Duration = .seconds(60)
+
+	package static func notice(for failure: CoachFailure, turn: TurnID?, failedAt: Date)
 		-> AthleteNotice
 	{
-		guard let wait, wait > .zero else {
-			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, vars: [:], action: action)
+		let tryAgain = turn.map(RecoveryAction.tryAgain)
+		switch failure {
+		case .model(.credentialRejected(.credits)):
+			return AthleteNotice(key: Catalog.creditsErrorAccessRejected, action: .restoreCredits)
+		case .model(.credentialRejected(.openRouterAccount)):
+			return AthleteNotice(
+				key: Catalog.coachErrorReauth, vars: ["provider": openRouter],
+				action: .signInToOpenRouter)
+		case .model(.accessExhausted(.credits)):
+			return AthleteNotice(key: Catalog.creditsErrorExhausted, action: .buyCredits)
+		case .model(.accessExhausted(.openRouterAccount)):
+			return AthleteNotice(
+				key: Catalog.accessErrorOpenRouterFunds, action: .chooseAccessMethod)
+		case .model(.rateLimited(let retryAfter)):
+			return rateLimitNotice(after: retryAfter, turn: turn, failedAt: failedAt)
+		case .model(.providerDown):
+			return AthleteNotice(key: Catalog.coachErrorProviderDown, action: tryAgain)
+		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted):
+			return AthleteNotice(key: Catalog.coachErrorUnknown, action: tryAgain)
+		case .model(.generationFailed):
+			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, action: tryAgain)
+		case .model(.accessUnavailable(.secureStorageLocked)):
+			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
+		case .model(.accessUnavailable(.notConfigured)),
+			.model(.accessUnavailable(.secureStorageUnavailable)):
+			return AthleteNotice(key: Catalog.accessErrorNotConfigured, action: .chooseAccessMethod)
+		case .local(.recordStorage):
+			return AthleteNotice(key: Catalog.coachHistoryDiskFull, action: nil)
 		}
-		let seconds = Int((wait / .seconds(1)).rounded(.up))
+	}
+
+	private static func rateLimitNotice(after retryAfter: Duration?, turn: TurnID?, failedAt: Date)
+		-> AthleteNotice
+	{
+		let hinted = retryAfter.flatMap { $0 > .zero ? $0 : nil }
+		let opensAt = failedAt.addingTimeInterval((hinted ?? defaultRateLimitWait).timeInterval)
+		let action = turn.map { RecoveryAction.wait(until: opensAt, thenTryAgain: $0) }
+		guard let hinted else {
+			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, action: action)
+		}
+		let seconds = Int((hinted / .seconds(1)).rounded(.up))
 		if seconds < 60 {
 			return AthleteNotice(
 				key: Catalog.coachErrorRateLimitSeconds,
@@ -151,20 +197,22 @@ package enum AthleteNotices {
 	package static func notice(for outcome: SavedWorkOutcome) -> AthleteNotice {
 		switch outcome {
 		case .writesSaved:
-			return AthleteNotice(key: Catalog.coachFallbackWritesSaved, vars: [:], action: nil)
+			AthleteNotice(key: Catalog.coachFallbackWritesSaved, action: nil)
 		case .savedUnverified:
-			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: nil)
+			AthleteNotice(key: Catalog.chatNoticeSavedUnverified, action: nil)
 		}
 	}
 
 	package static func notice(
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID
 	) -> AthleteNotice {
-		_ = interruption
-		return AthleteNotice(
-			key: Catalog.chatNoticeResponseStopped,
-			vars: [:],
-			action: saved.isEmpty ? .tryAgain(turn) : nil
-		)
+		switch interruption {
+		case .athleteStopped, .processEnded, .stoppedBeforeStart:
+			guard saved.isEmpty else {
+				return AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil)
+			}
+			return AthleteNotice(
+				key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn))
+		}
 	}
 }

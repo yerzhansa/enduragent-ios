@@ -13,10 +13,12 @@ public enum TurnState: Sendable, Equatable {
 		case .accepted(.awaitingRestart):
 			return true
 		case .failed(let failed):
-			if case .tryAgain = failed.notice.action {
+			switch failed.notice.action {
+			case .tryAgain?, .wait?:
 				return true
+			case .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?, nil:
+				return false
 			}
-			return false
 		case .interrupted(let interrupted):
 			return interrupted.saved.isEmpty
 		case .accepted, .processing, .completed, .savedWork:
@@ -79,7 +81,7 @@ public enum RetryWaitReason: Sendable, Equatable {
 	case providerTrouble
 }
 
-public enum InterruptionCause: String, Sendable {
+public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
 	case processEnded
 	case stoppedBeforeStart
@@ -205,8 +207,7 @@ package enum TurnLifecycle {
 		of facts: TurnFacts,
 		live: LiveAttempt?,
 		overlay: AcceptedOverlay,
-		device: DeviceID,
-		now: Date
+		device: DeviceID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
 			!facts.settlements.contains(where: { $0.attempt == live.attempt })
@@ -237,7 +238,8 @@ package enum TurnLifecycle {
 					TurnState.Failed(
 						failure: failure,
 						saved: saved,
-						notice: AthleteNotices.notice(for: failure, turn: facts.turn, now: now)
+						notice: AthleteNotices.notice(
+							for: failure, turn: facts.turn, failedAt: latest.hlc.wallTime)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(

@@ -164,7 +164,7 @@ import Testing
 			savedWork.saved
 				== WriteSummary(memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		)
-		#expect(savedWork.notice.key == Catalog.coachErrorUnknown)
+		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.action == nil)
 		#expect(!settled.retryable)
 		#expect(chatRequests() == 2)
@@ -174,6 +174,34 @@ import Testing
 		}
 		let reopened = makeCoach()
 		#expect(try #require(await reopened.currentSnapshot(.main)).turns.first?.state == settled)
+	}
+
+	@Test func savedWorkReachesTheNextPromptAsTheCoachsReply() async throws {
+		transport.script = [
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.fail(.http(status: 500)),
+		]
+		let coach = makeCoach()
+		let saved = try await coach.sendAndSettle("Remember my Saturday ride")
+		guard case .savedWork = saved else {
+			Issue.record("expected saved work, got \(saved)")
+			return
+		}
+		transport.script = [.text("Saturdays are noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("Did you save it?")
+		let prompt = try #require(transport.requests.last(where: { $0.charge == .chatAttempt }))
+		let history = prompt.messages.filter { $0.role == .user || $0.role == .assistant }
+		#expect(
+			history.prefix(2).map(\.content) == [
+				"Remember my Saturday ride",
+				"I saved your information, but couldn't verify my response. Please try again.",
+			])
+		#expect(history.prefix(2).map(\.role) == [.user, .assistant])
 	}
 
 	@Test func observedTextIsTerminalExceptWindowExceeded() async throws {

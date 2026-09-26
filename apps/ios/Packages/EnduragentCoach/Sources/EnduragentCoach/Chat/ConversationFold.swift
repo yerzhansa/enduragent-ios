@@ -246,7 +246,7 @@ package struct Conversation: Sendable, Equatable {
 			turn.fragments.map(\.hlc) + turn.settlements.map(\.hlc)
 		}
 		guard let latest = stamps.max() else { return .none }
-		return .at(Date(timeIntervalSince1970: Double(latest.wallMs) / 1000))
+		return .at(latest.wallTime)
 	}
 
 	package func messages(for ulids: [ULID]) -> [ChatMessage] {
@@ -316,6 +316,9 @@ package struct Segment: Sendable, Equatable {
 }
 
 package struct TurnFacts: Sendable, Equatable {
+	private static let promptPhrasebook = CatalogPhrasebook(
+		tag: .en, locale: LanguageTag.en.defaultLocale)
+
 	package let turn: TurnID
 	package let chat: ChatID
 	package let origin: DeviceID
@@ -356,7 +359,9 @@ package struct TurnFacts: Sendable, Equatable {
 			replyText = text
 		case .interrupted(let partial, _, _) where !partial.isEmpty:
 			replyText = partial
-		case .interrupted, .failed, .savedWork:
+		case .savedWork(let outcome, _):
+			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
+		case .interrupted, .failed:
 			return []
 		}
 		return [

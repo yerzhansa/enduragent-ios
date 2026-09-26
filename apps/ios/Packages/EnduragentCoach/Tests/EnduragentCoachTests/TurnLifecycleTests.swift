@@ -137,28 +137,27 @@ import Testing
 
 	@Test func stateOfUnclaimedTurnAfterRelaunchIsAwaitingRestart() {
 		let state = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			of: accepted(), live: nil, overlay: .notInThisProcess, device: phoneA)
 		#expect(state == .accepted(.awaitingRestart))
 		#expect(state.retryable)
 		let dead = TurnLifecycle.state(
-			of: claimed(), live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			of: claimed(), live: nil, overlay: .notInThisProcess, device: phoneA)
 		#expect(dead == .accepted(.awaitingRestart))
 	}
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {
 		let state = TurnLifecycle.state(
-			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA,
-			now: now)
+			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA)
 		#expect(state == .accepted(.onOtherDevice))
 		#expect(!state.retryable)
 	}
 
 	@Test func stateFollowsTheWindowAndTheQueueWhileTheProcessLives() {
 		let collecting = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .collecting(until: now), device: phoneA, now: now)
+			of: accepted(), live: nil, overlay: .collecting(until: now), device: phoneA)
 		#expect(collecting == .accepted(.collecting(until: now)))
 		let queued = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .queued(position: 2), device: phoneA, now: now)
+			of: accepted(), live: nil, overlay: .queued(position: 2), device: phoneA)
 		#expect(queued == .accepted(.queued(position: 2)))
 		#expect(!queued.retryable)
 	}
@@ -167,7 +166,7 @@ import Testing
 		let live = LiveAttempt(
 			turn: minted, attempt: attempt, text: "Thursday", activity: .generating(step: 1))
 		let processing = TurnLifecycle.state(
-			of: claimed(), live: live, overlay: .notInThisProcess, device: phoneA, now: now)
+			of: claimed(), live: live, overlay: .notInThisProcess, device: phoneA)
 		#expect(
 			processing
 				== .processing(
@@ -175,7 +174,7 @@ import Testing
 						attempt: attempt, liveText: "Thursday", activity: .generating(step: 1))))
 		let done = TurnLifecycle.state(
 			of: settled(.replied(.model("Thursday is on."), lineage: nil)), live: live,
-			overlay: .notInThisProcess, device: phoneA, now: now)
+			overlay: .notInThisProcess, device: phoneA)
 		#expect(done == .completed(TurnState.Completed(reply: .model("Thursday is on."))))
 		#expect(!done.retryable)
 	}
@@ -183,7 +182,7 @@ import Testing
 	@Test func failedSettlementCarriesOneNoticeWithTryAgain() throws {
 		let state = TurnLifecycle.state(
 			of: settled(.failed(.model(.generationFailed(.emptyAfterError)), saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			live: nil, overlay: .notInThisProcess, device: phoneA)
 		guard case .failed(let failed) = state else {
 			Issue.record("expected failed, got \(state)")
 			return
@@ -193,7 +192,7 @@ import Testing
 		#expect(state.retryable)
 		let storage = TurnLifecycle.state(
 			of: settled(.failed(.local(.recordStorage), saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			live: nil, overlay: .notInThisProcess, device: phoneA)
 		guard case .failed(let unsaved) = storage else {
 			Issue.record("expected failed, got \(storage)")
 			return
@@ -206,20 +205,20 @@ import Testing
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {
 		let clean = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "Thursday is", cause: .athleteStopped, saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			live: nil, overlay: .notInThisProcess, device: phoneA)
 		guard case .interrupted(let interrupted) = clean else {
 			Issue.record("expected interrupted, got \(clean)")
 			return
 		}
 		#expect(interrupted.partial == "Thursday is")
-		#expect(interrupted.notice.key == Catalog.chatNoticeResponseStopped)
+		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(interrupted.notice.action == .tryAgain(minted))
 		#expect(clean.retryable)
 		let saved = WriteSummary(
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let afterWrite = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "", cause: .athleteStopped, saved: saved)),
-			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			live: nil, overlay: .notInThisProcess, device: phoneA)
 		#expect(!afterWrite.retryable)
 	}
 }
