@@ -5,17 +5,17 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 ## Sub-features
 
 - `chat-greeting` shows `Hello, Ada.`, or `Hello.` after a skipped connect, above an empty transcript, with the disclaimer `Not medical advice, and not a substitute for a doctor or a certified coach.` under the composer.
-- `chat-send` saves the athlete's message before the model runs, shows it in the transcript the moment Send is tapped, and clears the composer.
+- `chat-send` saves the athlete's message before the model runs, shows it in the transcript the moment Send is tapped, and clears the composer. `chat.send` is disabled while the message is being saved, and a second send of the same draft adds nothing.
 - `chat-draft` keeps typed, unsent text in the composer across a kill and relaunch, and shows `Not sent. Your draft is still here.` in `chat.composer.notSent` when the message could not be saved.
 - `chat-reply` shows the coach's reply under the message.
 - `chat-working` shows `Coach is working…` in `chat.working` under the message while the turn has no reply text yet.
 - `chat-streaming` shows the reply growing under the message with the working row staying under the reply text while the coach is still answering.
-- `chat-stop` shows `Stop responding` in `chat.stop` while a turn runs; tapping it stops the turn and shows `Response stopped. Your partial response is preserved.` with `Try again`.
+- `chat-stop` shows `Stop responding` in `chat.stop` while a turn runs or waits in the 1.5 second window; tapping it stops the turn and shows `Response stopped. Your partial response is preserved.` with `Try again`.
 - `chat-failed` shows `The coach couldn't respond. Please try again.` in `chat.turn.notice` under the message when the model fails, with a `Try again` button in `chat.turn.tryAgain` and no Swift type name. `chat.error` no longer exists for turns.
-- `chat-try-again` answers the same message again under a new attempt; Records lists one more `turnClaim` and the turn's `turnSettled`.
+- `chat-try-again` answers the same message again under a new attempt; Records lists one more `turnClaim` and the turn's `turnSettled`. A second tap before the attempt starts runs nothing more.
 - `chat-relaunch` reopens on the chat with the transcript after the app is killed and relaunched with the kept store.
 - `chat-accepted-relaunch` shows a message that was sent but never answered before the app closed once, with `Received before the app closed. Tap Try again to send it.` in `chat.turn.receivedBeforeClose` and `Try again`; nothing runs until the tap.
-- `chat-coalesce` joins two free-text messages sent within 1.5 seconds into one turn whose athlete text has both lines; Records lists `userMessage 2` with one turn.
+- `chat-coalesce` joins two free-text messages sent within 1.5 seconds into one turn whose athlete text has both lines, and the model receives both lines; Records lists `userMessage 2` with one turn. A message saved after the turn started gets its own turn.
 - `chat-review` answers `/review` with the Saturday group ride.
 - `chat-slash-list` lists `/review`, `/status`, `/workout`, and `/language` above the composer, and never `/plan`.
 - `chat-slash-fill` fills the composer with the chosen command and a space, which hides the list.
