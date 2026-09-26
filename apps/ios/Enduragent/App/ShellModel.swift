@@ -196,7 +196,8 @@ final class ShellModel {
 				continue
 			}
 			var snapshots = await services.coach.observe(id).makeAsyncIterator()
-			let title = await snapshots.next()?.turns.first?.athleteText ?? "New chat"
+			let turns = await snapshots.next()?.turns ?? []
+			let title = turns.lazy.compactMap(\.athleteText).first ?? "New chat"
 			rows.append(ChatSummary(id: id, title: title, civilDate: created))
 		}
 		history = rows

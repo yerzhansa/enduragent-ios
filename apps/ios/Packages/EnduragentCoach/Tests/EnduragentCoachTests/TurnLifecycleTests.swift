@@ -145,6 +145,16 @@ import Testing
 		#expect(dead == .accepted(.awaitingRestart))
 	}
 
+	@Test func v1QuestionWithoutAReplyIsBeforeUpgradeAndNeverClaimed() {
+		var legacy = accepted()
+		legacy.legacy = true
+		let state = TurnLifecycle.state(
+			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+		#expect(state == .accepted(.beforeUpgrade))
+		#expect(!state.retryable)
+		#expect(writes(.claim(attempt), on: legacy) == .failure(.alreadyAnswered))
+	}
+
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {
 		let state = TurnLifecycle.state(
 			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA,

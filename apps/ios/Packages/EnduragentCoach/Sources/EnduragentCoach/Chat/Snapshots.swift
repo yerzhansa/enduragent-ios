@@ -9,7 +9,7 @@ public struct ChatSnapshot: Sendable, Equatable {
 
 public struct TurnView: Sendable, Equatable, Identifiable {
 	public let id: TurnID
-	public let athleteText: String
+	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
 }
@@ -51,7 +51,11 @@ extension ChatSnapshot {
 		zone: TimeZone
 	) {
 		self.chat = chat
-		self.turns = conversation.current.turns.map { facts -> TurnView in
+		let current = conversation.current
+		self.turns = current.turns.compactMap { facts -> TurnView? in
+			if current.hidesWholly(facts) {
+				return nil
+			}
 			let overlay: AcceptedOverlay
 			if let window, window.turn == facts.turn {
 				overlay = .collecting(until: window.closesAt)
@@ -62,7 +66,7 @@ extension ChatSnapshot {
 			}
 			return TurnView(
 				id: facts.turn,
-				athleteText: facts.requestText,
+				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
 				state: TurnLifecycle.state(
 					of: facts, live: live, overlay: overlay, device: device, now: now)

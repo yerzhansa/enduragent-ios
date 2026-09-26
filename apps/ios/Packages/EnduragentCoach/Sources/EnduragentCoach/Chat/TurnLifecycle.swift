@@ -28,6 +28,7 @@ public enum TurnState: Sendable, Equatable {
 		case queued(position: Int)
 		case awaitingRestart
 		case onOtherDevice
+		case beforeUpgrade
 	}
 
 	public struct Processing: Sendable, Equatable {
@@ -164,6 +165,9 @@ package enum TurnLifecycle {
 		if facts.origin != device {
 			return .acceptedElsewhere
 		}
+		if facts.legacy {
+			return .alreadyAnswered
+		}
 		if case .replied? = facts.latestSettlement?.settlement {
 			return .alreadyAnswered
 		}
@@ -212,6 +216,9 @@ package enum TurnLifecycle {
 						notice: AthleteNotices.notice(for: cause, saved: saved, turn: facts.turn)
 					))
 			}
+		}
+		if facts.legacy {
+			return .accepted(.beforeUpgrade)
 		}
 		if facts.origin != device {
 			return .accepted(.onOtherDevice)

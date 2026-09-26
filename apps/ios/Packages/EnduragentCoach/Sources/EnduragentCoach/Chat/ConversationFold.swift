@@ -321,9 +321,21 @@ package struct Segment: Sendable, Equatable {
 		return history
 	}
 
+	package func hidesQuestion(of facts: TurnFacts) -> Bool {
+		facts.fragments.min { $0.index < $1.index }.map { isTrimmed($0.ulid) } ?? false
+	}
+
+	package func hidesWholly(_ facts: TurnFacts) -> Bool {
+		hidesQuestion(of: facts) && (facts.latestSettlement.map { isTrimmed($0.ulid) } ?? true)
+	}
+
 	private func visibleRows(of facts: TurnFacts) -> [(ulid: ULID, message: ChatMessage)] {
-		guard let legacyTrim else { return facts.messageRows }
-		return facts.messageRows.filter { $0.ulid >= legacyTrim }
+		facts.messageRows.filter { !isTrimmed($0.ulid) }
+	}
+
+	private func isTrimmed(_ ulid: ULID) -> Bool {
+		guard let legacyTrim else { return false }
+		return ulid < legacyTrim
 	}
 }
 
