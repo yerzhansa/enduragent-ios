@@ -9,7 +9,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package let origin: DeviceID
 	package var legacy = false
 	package var fragments: [Fragment] = []
-	package var claims: [TurnClaimBody] = []
+	package var claims: [ClaimedAttempt] = []
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
 
@@ -21,12 +21,22 @@ package struct TurnFacts: Sendable, Equatable {
 		fragments.min { $0.index < $1.index }?.slash
 	}
 
-	package var latestSettlement: SettledAttempt? {
-		settlements.max { $0.hlc < $1.hlc }
+	package var latestAttempt: AttemptID? {
+		let claimed = claims.map { (attempt: $0.attempt, started: $0.hlc) }
+		let unclaimed = settlements.filter { settled in
+			!claims.contains { $0.attempt == settled.attempt }
+		}.map { (attempt: $0.attempt, started: $0.hlc) }
+		return (claimed + unclaimed).max { $0.started < $1.started }?.attempt
 	}
 
-	package var openClaims: [TurnClaimBody] {
-		claims.filter { claim in !settlements.contains { $0.attempt == claim.attempt } }
+	package var latestSettlement: SettledAttempt? {
+		guard let latest = latestAttempt else { return nil }
+		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
+	}
+
+	package var openClaim: ClaimedAttempt? {
+		guard let latest = latestAttempt, latestSettlement == nil else { return nil }
+		return claims.first { $0.attempt == latest }
 	}
 
 	var lastUlid: ULID {
@@ -64,6 +74,14 @@ package struct TurnFacts: Sendable, Equatable {
 			ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
 		)
 	}
+}
+
+package struct ClaimedAttempt: Sendable, Equatable {
+	package let hlc: HybridLogicalClock
+	package let body: TurnClaimBody
+
+	package var attempt: AttemptID { body.attempt }
+	package var process: ProcessID? { body.process }
 }
 
 package struct Fragment: Sendable, Equatable {

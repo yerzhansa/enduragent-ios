@@ -98,11 +98,13 @@ The helper first terminates a running copy of the app, because XCUITest cannot t
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
-**Every proof in one run.** Pass every class at once:
+**Every proof in one run.** Pass every proof class at once:
 
 ```sh
-.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
+.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*Proof\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
 ```
+
+The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
 The run passes with zero failures and exactly two skips, `UpgradeKeepsTranscriptProof` and `UpgradeKeepsProposalProof`. Each opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the four upgrade steps below. On 2026-09-26 the run took 41 minutes.
 

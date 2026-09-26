@@ -49,6 +49,7 @@ extension ChatSnapshot {
 		stopping: Bool,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
+		process: ProcessID,
 		now: Date,
 		zone: TimeZone
 	) {
@@ -64,7 +65,8 @@ extension ChatSnapshot {
 				id: facts.turn,
 				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
-				state: TurnLifecycle.state(of: facts, live: live, overlay: overlay, device: device)
+				state: TurnLifecycle.state(
+					of: facts, live: live, overlay: overlay, device: device, process: process)
 			)
 		}
 		if stopping {

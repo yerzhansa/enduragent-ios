@@ -95,7 +95,7 @@ public enum InterruptionCause: String, Sendable, CaseIterable {
 
 package enum TurnEvent: Sendable, Equatable {
 	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
-	case claim(AttemptID)
+	case claim(AttemptID, process: ProcessID)
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
@@ -151,15 +151,14 @@ package enum TurnLifecycle {
 						)
 					)
 				]))
-		case .claim(let attempt):
+		case .claim(let attempt, let process):
 			guard let facts else { return .failure(.unknownTurn) }
 			if let refusal = claimRefusal(of: facts, device: device) {
 				return .failure(refusal)
 			}
-			return .success(
-				.local([.turnClaim(TurnClaimBody(chatId: chat, turn: facts.turn, attempt: attempt))]
-				)
-			)
+			let claim = TurnClaimBody(
+				chatId: chat, turn: facts.turn, attempt: attempt, process: process)
+			return .success(.local([.turnClaim(claim)]))
 		case .observeReply(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
 			if facts.replyObserved.contains(where: { $0.attempt == attempt }) {
@@ -184,7 +183,7 @@ package enum TurnLifecycle {
 				]))
 		case .stopBeforeStart(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
-			guard facts.openClaims.isEmpty else { return .failure(.attemptInFlight) }
+			guard facts.openClaim == nil else { return .failure(.attemptInFlight) }
 			return .success(
 				.synced([
 					.turnSettled(
@@ -240,7 +239,8 @@ package enum TurnLifecycle {
 		of facts: TurnFacts,
 		live: LiveAttempt?,
 		overlay: TurnOverlay,
-		device: DeviceID
+		device: DeviceID,
+		process: ProcessID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
 			!facts.settlements.contains(where: { $0.attempt == live.attempt })
@@ -257,9 +257,11 @@ package enum TurnLifecycle {
 		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
-		if let latest = facts.latestSettlement {
-			let retry = replayRefusal(after: latest.settlement) == nil ? facts.turn : nil
-			switch latest.settlement {
+		if let settlement = facts.latestSettlement?.settlement
+			?? unrecovered(facts, process: process)
+		{
+			let retry = replayRefusal(after: settlement) == nil ? facts.turn : nil
+			switch settlement {
 			case .replied(let reply, _):
 				return .completed(TurnState.Completed(reply: reply))
 			case .savedWork(let outcome, let saved):
@@ -292,6 +294,11 @@ package enum TurnLifecycle {
 			return .accepted(.onOtherDevice)
 		}
 		return .accepted(.awaitingRestart)
+	}
+
+	private static func unrecovered(_ facts: TurnFacts, process: ProcessID) -> Settlement? {
+		guard let open = facts.openClaim, open.process != process else { return nil }
+		return .interrupted(partial: "", cause: .processEnded, saved: .none)
 	}
 }
 

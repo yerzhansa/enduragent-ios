@@ -75,6 +75,14 @@ public struct AttemptID: Hashable, Sendable {
 	}
 }
 
+public struct ProcessID: Hashable, Sendable {
+	public let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
 public struct DraftID: Hashable, Sendable {
 	public let rawValue: UUID
 

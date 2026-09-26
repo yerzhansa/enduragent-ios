@@ -237,8 +237,10 @@ private func milliseconds(_ date: Date) -> Int64 {
 				now: now) == nil)
 		var claimed = facts(rateLimited(.seconds(7)), wallMs: wall)
 		claimed.claims.append(
-			TurnClaimBody(
-				chatId: .main, turn: rateLimitedTurn, attempt: AttemptID(ulid: fixedUlid(42))))
+			ClaimedAttempt(
+				hlc: HybridLogicalClock(wallMs: wall + 1, logical: 0, deviceId: phone),
+				body: TurnClaimBody(
+					chatId: .main, turn: rateLimitedTurn, attempt: AttemptID(ulid: fixedUlid(42)))))
 		#expect(RetryWaits.wait(of: claimed, now: now) == nil)
 	}
 }

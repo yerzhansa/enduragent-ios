@@ -137,7 +137,12 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 			ulid: fixedUlid(1), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phone),
 			civilDate: "1998-06-16", index: 0, draft: DraftID(), text: "Is Thursday on?",
 			slash: nil))
-	facts.claims.append(TurnClaimBody(chatId: .main, turn: turn, attempt: attempt))
+	facts.claims.append(
+		ClaimedAttempt(
+			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
+			body: TurnClaimBody(
+				chatId: .main, turn: turn, attempt: attempt, process: ProcessID(ulid: fixedUlid(60))
+			)))
 	facts.settlements.append(
 		SettledAttempt(
 			ulid: fixedUlid(3),
@@ -145,7 +150,8 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 				wallMs: Int64(failedAt.timeIntervalSince1970 * 1000), logical: 0, deviceId: phone),
 			civilDate: "1998-06-16", attempt: attempt, settlement: settlement))
 	return TurnLifecycle.state(
-		of: facts, live: nil, overlay: overlay, device: phone)
+		of: facts, live: nil, overlay: overlay, device: phone,
+		process: ProcessID(ulid: fixedUlid(60)))
 }
 
 private func notice(of state: TurnState) -> AthleteNotice? {

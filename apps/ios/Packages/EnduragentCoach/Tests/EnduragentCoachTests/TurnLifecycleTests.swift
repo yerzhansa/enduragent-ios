@@ -9,6 +9,8 @@ import Testing
 	let now = Date(timeIntervalSince1970: 897_984_000)
 	let minted = TurnID(ulid: fixedUlid(1))
 	let attempt = AttemptID(ulid: fixedUlid(2))
+	let process = ProcessID(ulid: fixedUlid(60))
+	let earlierProcess = ProcessID(ulid: fixedUlid(59))
 
 	func accepted(on device: DeviceID? = nil, draft: DraftID = DraftID()) -> TurnFacts {
 		var facts = TurnFacts(turn: minted, chat: .main, origin: device ?? phoneA)
@@ -20,9 +22,13 @@ import Testing
 		return facts
 	}
 
-	func claimed() -> TurnFacts {
+	func claimed(by claimer: ProcessID? = nil) -> TurnFacts {
 		var facts = accepted()
-		facts.claims.append(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))
+		facts.claims.append(
+			ClaimedAttempt(
+				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phoneA),
+				body: TurnClaimBody(
+					chatId: .main, turn: minted, attempt: attempt, process: claimer ?? process)))
 		return facts
 	}
 
@@ -75,38 +81,57 @@ import Testing
 	}
 
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
-		let result = try writes(.claim(attempt), on: accepted()).get()
+		let result = try writes(.claim(attempt, process: process), on: accepted()).get()
 		#expect(
 			result
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))]
+				== .local([
+					.turnClaim(
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: attempt, process: process))
+				]
 				))
 	}
 
 	@Test func claimOfATurnAcceptedElsewhereIsRefused() {
-		#expect(writes(.claim(attempt), on: accepted(on: phoneB)) == .failure(.acceptedElsewhere))
-		#expect(writes(.claim(attempt), on: nil) == .failure(.unknownTurn))
+		#expect(
+			writes(.claim(attempt, process: process), on: accepted(on: phoneB))
+				== .failure(.acceptedElsewhere))
+		#expect(writes(.claim(attempt, process: process), on: nil) == .failure(.unknownTurn))
 	}
 
 	@Test func claimIsAcceptedOnlyAfterAStopOrFailureThatSavedNothing() throws {
 		let replied = settled(.replied(.model("done"), lineage: nil))
-		#expect(writes(.claim(attempt), on: replied) == .failure(.alreadyAnswered))
+		#expect(
+			writes(.claim(attempt, process: process), on: replied) == .failure(.alreadyAnswered))
 		let failed = settled(.failed(.model(.providerDown(.outage)), saved: .none))
 		let retry = AttemptID(ulid: fixedUlid(9))
 		#expect(
-			try writes(.claim(retry), on: failed).get()
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: retry))]))
+			try writes(.claim(retry, process: process), on: failed).get()
+				== .local([
+					.turnClaim(
+						TurnClaimBody(chatId: .main, turn: minted, attempt: retry, process: process)
+					)
+				]))
 		let interrupted = settled(.interrupted(partial: "so", cause: .athleteStopped, saved: .none))
 		#expect(
-			try writes(.claim(retry), on: interrupted).get()
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: retry))]))
+			try writes(.claim(retry, process: process), on: interrupted).get()
+				== .local([
+					.turnClaim(
+						TurnClaimBody(chatId: .main, turn: minted, attempt: retry, process: process)
+					)
+				]))
 		let saved = WriteSummary(
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let failedAfterSave = settled(
 			.failed(.model(.budgetExhausted(.generateCalls)), saved: saved))
-		#expect(writes(.claim(retry), on: failedAfterSave) == .failure(.alreadyAnswered))
+		#expect(
+			writes(.claim(retry, process: process), on: failedAfterSave)
+				== .failure(.alreadyAnswered))
 		let stoppedAfterSave = settled(
 			.interrupted(partial: "so", cause: .athleteStopped, saved: saved))
-		#expect(writes(.claim(retry), on: stoppedAfterSave) == .failure(.alreadyAnswered))
+		#expect(
+			writes(.claim(retry, process: process), on: stoppedAfterSave)
+				== .failure(.alreadyAnswered))
 	}
 
 	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() throws {
@@ -145,34 +170,52 @@ import Testing
 
 	@Test func stateOfUnclaimedTurnAfterRelaunchIsAwaitingRestart() {
 		let state = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .notInThisProcess, device: phoneA)
+			of: accepted(), live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(state == .accepted(.awaitingRestart))
 		#expect(state.retryable)
+		let dead = TurnLifecycle.state(
+			of: claimed(by: earlierProcess), live: nil, overlay: .notInThisProcess, device: phoneA,
+			process: process)
+		#expect(
+			dead
+				== .interrupted(
+					TurnState.Interrupted(
+						partial: "", cause: .processEnded, saved: .none,
+						notice: AthleteNotice(
+							key: Catalog.chatTurnInterruptedNothingChanged,
+							action: .tryAgain(minted)))))
+		let running = TurnLifecycle.state(
+			of: claimed(), live: nil, overlay: .queued(position: 1), device: phoneA,
+			process: process)
+		#expect(running == .accepted(.queued(position: 1)))
 	}
 
 	@Test func v1QuestionWithoutAReplyIsBeforeUpgradeAndNeverClaimed() {
 		var legacy = accepted()
 		legacy.legacy = true
 		let state = TurnLifecycle.state(
-			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA)
+			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(state == .accepted(.beforeUpgrade))
 		#expect(!state.retryable)
-		#expect(writes(.claim(attempt), on: legacy) == .failure(.alreadyAnswered))
+		#expect(writes(.claim(attempt, process: process), on: legacy) == .failure(.alreadyAnswered))
 	}
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {
 		let state = TurnLifecycle.state(
-			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA)
+			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA,
+			process: process)
 		#expect(state == .accepted(.onOtherDevice))
 		#expect(!state.retryable)
 	}
 
 	@Test func stateFollowsTheWindowAndTheQueueWhileTheProcessLives() {
 		let collecting = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .collecting(until: now), device: phoneA)
+			of: accepted(), live: nil, overlay: .collecting(until: now), device: phoneA,
+			process: process)
 		#expect(collecting == .accepted(.collecting(until: now)))
 		let queued = TurnLifecycle.state(
-			of: accepted(), live: nil, overlay: .queued(position: 2), device: phoneA)
+			of: accepted(), live: nil, overlay: .queued(position: 2), device: phoneA,
+			process: process)
 		#expect(queued == .accepted(.queued(position: 2)))
 		#expect(!queued.retryable)
 	}
@@ -181,7 +224,7 @@ import Testing
 		let live = LiveAttempt(
 			turn: minted, attempt: attempt, text: "Thursday", activity: .generating(step: 1))
 		let processing = TurnLifecycle.state(
-			of: claimed(), live: live, overlay: .notInThisProcess, device: phoneA)
+			of: claimed(), live: live, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(
 			processing
 				== .processing(
@@ -189,7 +232,7 @@ import Testing
 						attempt: attempt, liveText: "Thursday", activity: .generating(step: 1))))
 		let done = TurnLifecycle.state(
 			of: settled(.replied(.model("Thursday is on."), lineage: nil)), live: live,
-			overlay: .notInThisProcess, device: phoneA)
+			overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(done == .completed(TurnState.Completed(reply: .model("Thursday is on."))))
 		#expect(!done.retryable)
 	}
@@ -197,7 +240,7 @@ import Testing
 	@Test func failedSettlementCarriesOneNoticeWithTryAgain() throws {
 		let state = TurnLifecycle.state(
 			of: settled(.failed(.model(.generationFailed(.emptyAfterError)), saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA)
+			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		guard case .failed(let failed) = state else {
 			Issue.record("expected failed, got \(state)")
 			return
@@ -207,7 +250,7 @@ import Testing
 		#expect(state.retryable)
 		let storage = TurnLifecycle.state(
 			of: settled(.failed(.local(.recordStorage), saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA)
+			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		guard case .failed(let unsaved) = storage else {
 			Issue.record("expected failed, got \(storage)")
 			return
@@ -222,7 +265,7 @@ import Testing
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let state = TurnLifecycle.state(
 			of: settled(.failed(.model(.budgetExhausted(.generateCalls)), saved: saved)),
-			live: nil, overlay: .notInThisProcess, device: phoneA)
+			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		guard case .failed(let failed) = state else {
 			Issue.record("expected failed, got \(state)")
 			return
@@ -235,7 +278,7 @@ import Testing
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {
 		let clean = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "Thursday is", cause: .athleteStopped, saved: .none)),
-			live: nil, overlay: .notInThisProcess, device: phoneA)
+			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		guard case .interrupted(let interrupted) = clean else {
 			Issue.record("expected interrupted, got \(clean)")
 			return
@@ -248,7 +291,7 @@ import Testing
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let afterWrite = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "", cause: .athleteStopped, saved: saved)),
-			live: nil, overlay: .notInThisProcess, device: phoneA)
+			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(!afterWrite.retryable)
 	}
 }

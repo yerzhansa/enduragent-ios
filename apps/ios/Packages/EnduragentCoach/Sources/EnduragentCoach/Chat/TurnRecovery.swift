@@ -2,7 +2,7 @@ import Foundation
 
 package struct RecoveryPlan: Sendable, Equatable {
 	package var interrupt: [DeadClaim]
-	package var drain: [FlushJobID]
+	package var drain: [FlushJobID] = []
 
 	package var isEmpty: Bool {
 		interrupt.isEmpty && drain.isEmpty
@@ -23,18 +23,29 @@ package enum TurnRecovery {
 	])
 
 	package static func plan(
-		turns: [TurnFacts], flushQueue: [FlushJob], writes: [AttemptID: WriteSummary],
-		device: DeviceID
+		turns: [TurnFacts], flushQueue: [FlushJob] = [], writes: [AttemptID: WriteSummary],
+		device: DeviceID, process: ProcessID
 	) -> RecoveryPlan {
 		RecoveryPlan(
-			interrupt: turns.filter { $0.origin == device }.flatMap { facts in
-				facts.openClaims.map { claim in
-					DeadClaim(
-						turn: facts.turn, attempt: claim.attempt,
-						saved: writes[claim.attempt, default: .none])
-				}
+			interrupt: turns.filter { $0.origin == device }.compactMap { facts in
+				guard let open = facts.openClaim, open.process != process else { return nil }
+				return DeadClaim(
+					turn: facts.turn, attempt: open.attempt,
+					saved: writes[open.attempt, default: .none])
 			},
 			drain: flushQueue.filter { !$0.settled }.map(\.id))
+	}
+
+	package static func chats(claimedOutside process: ProcessID, in claims: [AthleteRecord])
+		-> Set<ChatID>
+	{
+		Set(
+			claims.compactMap { record in
+				guard case .deviceLocal(.turnClaim(let claim)) = record.body,
+					claim.process != process
+				else { return nil }
+				return claim.chatId
+			})
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])
