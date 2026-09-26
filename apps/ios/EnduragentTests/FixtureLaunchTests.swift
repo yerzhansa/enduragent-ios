@@ -62,7 +62,7 @@ struct FixtureLaunchTests {
 		return try #require(model.chat?.turns.first)
 	}
 
-	private func firstSnapshot(_ services: AppServices, chat: ChatID) async -> ChatSnapshot? {
+	func firstSnapshot(_ services: AppServices, chat: ChatID) async -> ChatSnapshot? {
 		var iterator = await services.coach.observe(chat).makeAsyncIterator()
 		return await iterator.next()
 	}
