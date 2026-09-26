@@ -335,6 +335,7 @@ package actor ChatMailbox {
 		}
 		do {
 			try await commit(planned, stamp: stamp)
+			if active == .turn(turn) { active = nil }
 		} catch {
 			await settleUnsaved(turn, attempt: settled.attempt, settled.settlement)
 		}
@@ -344,6 +345,7 @@ package actor ChatMailbox {
 		let ulid = await ledger.nextULID()
 		conversation.settleUnsaved(
 			turn, attempt: attempt, settlement, ulid: ulid, device: ledger.deviceId, clock: clock)
+		if active == .turn(turn) { active = nil }
 	}
 
 	private func drainFlush(_ job: FlushJobID) async {

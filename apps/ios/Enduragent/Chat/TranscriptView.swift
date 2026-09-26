@@ -7,7 +7,7 @@ struct TranscriptView: View {
 	var body: some View {
 		ScrollViewReader { proxy in
 			ScrollView {
-				LazyVStack(alignment: .leading, spacing: 16) {
+				VStack(alignment: .leading, spacing: 16) {
 					if showsGreeting {
 						Text(
 							model.athleteFirstName.isEmpty
