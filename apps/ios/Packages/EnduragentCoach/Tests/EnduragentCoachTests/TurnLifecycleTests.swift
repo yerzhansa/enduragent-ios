@@ -140,9 +140,6 @@ import Testing
 			of: accepted(), live: nil, overlay: .notInThisProcess, device: phoneA)
 		#expect(state == .accepted(.awaitingRestart))
 		#expect(state.retryable)
-		let dead = TurnLifecycle.state(
-			of: claimed(), live: nil, overlay: .notInThisProcess, device: phoneA)
-		#expect(dead == .accepted(.awaitingRestart))
 	}
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {

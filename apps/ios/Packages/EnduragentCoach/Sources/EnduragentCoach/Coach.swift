@@ -17,6 +17,7 @@ public actor Coach {
 	private let tools: ToolRuntime
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
+	private var recovery: Task<Bool, Never>?
 
 	public init(
 		sport: SportID,
@@ -76,6 +77,19 @@ public actor Coach {
 
 	public func stop(_ chat: ChatID) async {
 		await mailbox(for: chat).stop()
+	}
+
+	public func lifecycle(_ event: AppLifecycleEvent) async {
+		switch event {
+		case .becameActive:
+			await recoverOnce()
+		case .willResignActive:
+			return
+		case .enteredBackground, .willTerminate:
+			for mailbox in mailboxes.values {
+				await mailbox.lifecycle(event)
+			}
+		}
 	}
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
@@ -170,7 +184,56 @@ public actor Coach {
 			credential: ProviderCredential(secret: secret, method: .credits), model: model)
 	}
 
-	private func mailbox(for chatId: ChatID) -> ChatMailbox {
+	private func recoverOnce() async {
+		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
+		recovery = recovering
+		if await !recovering.value, recovery == recovering {
+			recovery = nil
+		}
+	}
+
+	private func recoverDeadClaims() async -> Bool {
+		do {
+			for (chat, plan) in try await recoveryPlans() {
+				await makeMailbox(for: chat).recover(plan)
+			}
+			return true
+		} catch {
+			diagnostics.record(.recoveryUnavailable(error))
+			return false
+		}
+	}
+
+	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
+		let device = ledger.deviceId
+		let synced = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
+		).records
+		let claims = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
+		).records
+		var turns: [ChatID: [TurnFacts]] = [:]
+		for chat in Set(claims.compactMap(\.chatId)) {
+			turns[chat] = ConversationFold.fold(
+				chat: chat, synced: synced, local: claims, device: device
+			).segments.flatMap(\.turns)
+		}
+		let dead = Set(turns.values.joined().flatMap(\.openClaims).map(\.attempt))
+		guard !dead.isEmpty else { return [:] }
+		let stamped = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+		).records
+		let writes = TurnRecovery.writes(of: dead, in: stamped)
+		return turns.mapValues { TurnRecovery.plan(turns: $0, writes: writes, device: device) }
+			.filter { !$0.value.interrupt.isEmpty }
+	}
+
+	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
+		await recoverOnce()
+		return makeMailbox(for: chatId)
+	}
+
+	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
 		if let existing = mailboxes[chatId] {
 			return existing
 		}

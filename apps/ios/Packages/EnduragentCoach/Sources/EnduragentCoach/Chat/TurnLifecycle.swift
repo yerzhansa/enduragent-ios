@@ -83,6 +83,7 @@ public enum RetryWaitReason: Sendable, Equatable {
 
 public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
+	case appTerminating
 	case processEnded
 	case stoppedBeforeStart
 }
@@ -93,6 +94,7 @@ package enum TurnEvent: Sendable, Equatable {
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
+	case recoverDeadClaim(AttemptID, saved: WriteSummary)
 }
 
 package enum TurnWrites: Sendable, Equatable {
@@ -188,6 +190,11 @@ package enum TurnLifecycle {
 								partial: "", cause: .stoppedBeforeStart, saved: .none)
 						))
 				]))
+		case .recoverDeadClaim(let attempt, let saved):
+			return writes(
+				for: .settle(
+					attempt, .interrupted(partial: "", cause: .processEnded, saved: saved)),
+				on: facts, chat: chat, device: device, mint: mint)
 		}
 	}
 
@@ -258,11 +265,59 @@ package enum TurnLifecycle {
 	}
 }
 
+extension Conversation {
+	package mutating func settleUnsaved(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID,
+		device: DeviceID, clock: any Clock
+	) {
+		guard let facts = self.turn(turn) else { return }
+		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
+		let settled = SettledAttempt(
+			ulid: ulid,
+			hlc: HybridLogicalClock.tick(now: clock.now, deviceId: device, last: last),
+			civilDate: CivilDate(date: clock.now, timeZone: clock.timeZone),
+			attempt: attempt,
+			settlement: settlement
+		)
+		settle(turn, with: settled)
+	}
+}
+
 package struct LiveAttempt: Sendable, Equatable {
 	package let turn: TurnID
 	package let attempt: AttemptID
 	package var text: String
 	package var activity: TurnActivity
+}
+
+extension LiveAttempt {
+	package mutating func apply(_ progress: AttemptProgress) {
+		switch progress {
+		case .textDelta(let delta):
+			text += delta
+		case .attemptRestarted:
+			text = ""
+		case .activity(let next):
+			activity = next
+		case .proposalPending:
+			return
+		}
+	}
+}
+
+extension Ledger {
+	package func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure)
+		-> [AthleteRecord]
+	{
+		switch writes {
+		case .nothing:
+			return []
+		case .synced(let bodies):
+			return try await commit(synced: bodies, stamp: stamp)
+		case .local(let bodies):
+			return try await commit(local: bodies, stamp: stamp)
+		}
+	}
 }
 
 package enum AcceptedOverlay: Sendable, Equatable {
