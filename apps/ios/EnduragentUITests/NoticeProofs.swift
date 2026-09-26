@@ -60,3 +60,32 @@ final class AccessNoticeProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class StopNoticeProof: XCTestCase {
+	func testStopRunningAndQueuedTurns() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:text-then-hang")
+		let partial = app.staticTexts.containing(
+			NSPredicate(format: "label CONTAINS %@", "This week has Tuesday sweet spot")
+		).firstMatch
+		TutorialHarness.wait(partial)
+		TutorialHarness.send(app, TutorialHarness.draft)
+		TutorialHarness.wait(app.staticTexts[TutorialHarness.draft])
+		let stop = TutorialHarness.named(app, "chat.stop")
+		TutorialHarness.waitUntilHittable(stop)
+		stop.tap()
+		let stopped = app.staticTexts.matching(
+			NSPredicate(
+				format: "identifier == %@ AND label == %@", "chat.turn.notice",
+				TutorialHarness.interruptedNothingChanged))
+		XCTAssertTrue(
+			stopped.element(boundBy: 1).waitForExistence(timeout: 8), "missing the queued notice")
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
+		XCTAssertTrue(partial.exists)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.receivedBeforeClose].exists)
+		TutorialHarness.attach(self, name: "stop-running-and-queued", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}

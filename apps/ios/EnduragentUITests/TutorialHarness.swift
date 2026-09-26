@@ -29,6 +29,8 @@ enum TutorialHarness {
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
 		"This reply stopped before it finished. Some information was saved first."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
