@@ -27,6 +27,10 @@ enum TutorialHarness {
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
+	static let interruptedSomeSaved =
+		"This reply stopped before it finished. Some information was saved first."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let storeArgument = "-EnduragentFixtureStore"
@@ -78,6 +82,10 @@ enum TutorialHarness {
 
 	static func named(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+	}
+
+	static func text(_ app: XCUIApplication, containing fragment: String) -> XCUIElement {
+		app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", fragment)).firstMatch
 	}
 
 	static func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
@@ -153,6 +161,20 @@ enum TutorialHarness {
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
 		let element = named(app, "records.count.\(kind)")
 		return element.exists ? element.label : nil
+	}
+
+	static func waitForRecordCount(
+		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
+	) {
+		let deadline = Date().addingTimeInterval(timeout)
+		while recordCount(app, kind) != expected, Date() < deadline {
+			app.buttons["Refresh"].tap()
+		}
+		XCTAssertEqual(recordCount(app, kind), expected)
+	}
+
+	static func settlementRows(_ app: XCUIApplication) -> [String] {
+		recordRowLabels(app).filter { $0.hasPrefix("turnSettled") }
 	}
 
 	static func recordRowLabels(_ app: XCUIApplication) -> [String] {
