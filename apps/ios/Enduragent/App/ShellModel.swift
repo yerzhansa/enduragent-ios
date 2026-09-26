@@ -10,6 +10,7 @@ final class ShellModel {
 	private(set) var chat: ChatSnapshot?
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
+	private(set) var isSending = false
 	var retryRefusal: RetryRefusal?
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
@@ -242,7 +243,9 @@ final class ShellModel {
 
 	func send() async {
 		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty, let services else { return }
+		guard !text.isEmpty, !isSending, let services else { return }
+		isSending = true
+		defer { isSending = false }
 		notSent = false
 		errorLine = nil
 		confirmLine = nil
@@ -391,10 +394,4 @@ final class ShellModel {
 		}
 		return String(describing: error)
 	}
-}
-
-struct ChatSummary: Identifiable, Equatable {
-	var id: ChatID
-	var title: String
-	var civilDate: CivilDate
 }

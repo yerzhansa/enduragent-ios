@@ -28,6 +28,24 @@ extension FixtureLaunchTests {
 		#expect(!model.isWorking)
 	}
 
+	@Test func sendIsDisabledWhileTheMessageIsBeingAccepted() async throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		#expect(!model.isSending)
+		let first = Task { await model.send() }
+		await Task.yield()
+		#expect(model.isSending)
+		await model.send()
+		await first.value
+		#expect(!model.isSending)
+		#expect(replyText(try await settledTurn(model).state) != nil)
+		#expect(model.chat?.turns.count == 1)
+		#expect(transport.requests.count == 1)
+	}
+
 	@Test func sendKeepsDraftWhenAcceptFails() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
