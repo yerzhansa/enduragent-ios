@@ -291,6 +291,16 @@ enum RecordCodec {
 					messageUlids: try payload.messageUlids.map(decodeULID)
 				)
 			)
+		case .flushSettled:
+			let payload = try payload(
+				FlushSettledPayload.self, version: version, kind: name, data: data)
+			return .flushSettled(
+				FlushSettledBody(
+					chatId: try decodeChatID(payload.chatId),
+					job: FlushJobID(ulid: try decodeULID(payload.job)),
+					settlement: try payload.settlement()
+				)
+			)
 		case .planningCommand:
 			let payload = try payload(
 				PlanningCommandPayload.self, version: version, kind: name, data: data)

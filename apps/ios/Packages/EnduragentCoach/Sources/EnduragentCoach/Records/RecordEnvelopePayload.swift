@@ -108,6 +108,7 @@ enum DeviceLocalPayload: Encodable {
 	case pendingProposal(ProposalPayload)
 	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
+	case flushSettled(FlushSettledPayload)
 	case planningCommand(PlanningCommandPayload)
 	case planRevision(PlanRevisionPayload)
 	case mirrorJob(MirrorJobPayload)
@@ -160,6 +161,8 @@ enum DeviceLocalPayload: Encodable {
 					messageUlids: value.messageUlids.map(\.rawValue)
 				)
 			)
+		case .flushSettled(let value):
+			self = .flushSettled(FlushSettledPayload(value))
 		case .planningCommand(let value):
 			self = .planningCommand(
 				PlanningCommandPayload(
@@ -214,6 +217,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let payload): try payload.encode(to: encoder)
 		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)
+		case .flushSettled(let payload): try payload.encode(to: encoder)
 		case .planningCommand(let payload): try payload.encode(to: encoder)
 		case .planRevision(let payload): try payload.encode(to: encoder)
 		case .mirrorJob(let payload): try payload.encode(to: encoder)

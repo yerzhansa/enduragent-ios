@@ -198,6 +198,40 @@ struct FlushPendingPayload: Codable {
 	var messageUlids: [String]
 }
 
+struct FlushSettledPayload: Codable {
+	var chatId: String
+	var job: String
+	var outcome: String
+	var sections: Int
+	var events: Int
+
+	init(_ body: FlushSettledBody) {
+		chatId = body.chatId.rawValue
+		job = body.job.ulid.rawValue
+		switch body.settlement {
+		case .saved(let sections, let events):
+			outcome = "saved"
+			self.sections = sections
+			self.events = events
+		case .nothingToSave:
+			outcome = "nothingToSave"
+			sections = 0
+			events = 0
+		}
+	}
+
+	func settlement() throws -> FlushSettlement {
+		switch outcome {
+		case "saved":
+			return .saved(sections: sections, events: events)
+		case "nothingToSave":
+			return .nothingToSave
+		default:
+			throw RecordDecodeFailure(reason: "flushSettled")
+		}
+	}
+}
+
 struct CoachReplyLanguagePayload: Codable {
 	var tag: String?
 }

@@ -248,18 +248,6 @@ package struct Conversation: Sendable, Equatable {
 		guard let latest = stamps.max() else { return .none }
 		return .at(latest.wallTime)
 	}
-
-	package func messages(for ulids: [ULID]) -> [ChatMessage] {
-		var byUlid: [ULID: ChatMessage] = [:]
-		for segment in segments {
-			for turn in segment.turns {
-				for (ulid, message) in turn.messageRows {
-					byUlid[ulid] = message
-				}
-			}
-		}
-		return ulids.compactMap { byUlid[$0] }
-	}
 }
 
 package enum LastExchange: Sendable, Equatable {
@@ -348,11 +336,17 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
-		guard let first = fragments.min(by: { $0.index < $1.index }),
-			let settled = latestSettlement
-		else {
-			return []
-		}
+		guard let userRow, let replyRow else { return [] }
+		return [userRow, replyRow]
+	}
+
+	var userRow: (ulid: ULID, message: ChatMessage)? {
+		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
+		return (first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate))
+	}
+
+	var replyRow: (ulid: ULID, message: ChatMessage)? {
+		guard let settled = latestSettlement else { return nil }
 		let replyText: String
 		switch settled.settlement {
 		case .replied(.model(let text), _):
@@ -362,15 +356,12 @@ package struct TurnFacts: Sendable, Equatable {
 		case .savedWork(let outcome, _):
 			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
 		case .interrupted, .failed:
-			return []
+			return nil
 		}
-		return [
-			(first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)),
-			(
-				settled.ulid,
-				ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
-			),
-		]
+		return (
+			settled.ulid,
+			ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
+		)
 	}
 }
 
