@@ -13,8 +13,8 @@ struct ReadToolsTests {
 			name: .calculateZones,
 			arguments: try JSONValue.parse(#"{"ftpWatts":280}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
 			Issue.record("expected zone rows")
 			return
@@ -32,8 +32,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchActivities,
 			arguments: try JSONValue.parse(#"{"days":7}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls == [.activities(days: 7)])
 		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
 			Issue.record("expected activities")
@@ -47,8 +47,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls == [.wellness(oldest: "1998-06-07", newest: "1998-06-13")])
 	}
 
@@ -67,8 +67,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-13","newest":"1998-06-13"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected wellness")
 			return
@@ -115,8 +115,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchAthlete,
 			arguments: .object([:]),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let athleteJSON) = athlete else {
 			Issue.record("expected athlete")
 			return
@@ -127,21 +127,21 @@ struct ReadToolsTests {
 			name: .intervalsFetchActivity,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		_ = try await tools.execute(
 			name: .intervalsFetchStreams,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		let listed = try await tools.execute(
 			name: .intervalsListEvents,
 			arguments: try JSONValue.parse(
 				#"{"oldest":"1998-06-14","newest":"1998-06-20","coachCreatedOnly":true}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls.contains(.activity(activityID)))
 		#expect(intervals.calls.contains(.streams(activityID)))
 		#expect(intervals.calls.contains(.events(oldest: "1998-06-14", newest: "1998-06-20")))
@@ -159,8 +159,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchActivities,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-01-01","newest":"1999-01-02"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected error object")
 			return
@@ -219,17 +219,7 @@ struct ReadToolsTests {
 		)
 	}
 
-	private func attemptContext() -> AttemptContext {
-		AttemptContext(
-			chatId: .main,
-			messages: [],
-			windowStart: nil,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0,
-			stamp: testStamp()
-		)
+	private func turnScope() -> TurnScope {
+		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
 	}
 }

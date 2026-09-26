@@ -4,6 +4,7 @@ public enum TurnState: Sendable, Equatable {
 	case accepted(Accepted)
 	case processing(Processing)
 	case completed(Completed)
+	case savedWork(SavedWork)
 	case failed(Failed)
 	case interrupted(Interrupted)
 
@@ -18,7 +19,7 @@ public enum TurnState: Sendable, Equatable {
 			return false
 		case .interrupted(let interrupted):
 			return interrupted.saved.isEmpty
-		case .accepted, .processing, .completed:
+		case .accepted, .processing, .completed, .savedWork:
 			return false
 		}
 	}
@@ -40,6 +41,12 @@ public enum TurnState: Sendable, Equatable {
 		public let reply: ReplyText
 	}
 
+	public struct SavedWork: Sendable, Equatable {
+		public let outcome: SavedWorkOutcome
+		public let saved: WriteSummary
+		public let notice: AthleteNotice
+	}
+
 	public struct Failed: Sendable, Equatable {
 		public let failure: CoachFailure
 		public let saved: WriteSummary
@@ -57,8 +64,19 @@ public enum TurnState: Sendable, Equatable {
 public enum TurnActivity: Sendable, Equatable {
 	case generating(step: Int)
 	case runningTools([ToolName])
+	case waiting(RetryWait)
 	case compacting
 	case savingMemory
+}
+
+public struct RetryWait: Sendable, Equatable {
+	public let until: Date
+	public let reason: RetryWaitReason
+}
+
+public enum RetryWaitReason: Sendable, Equatable {
+	case rateLimited
+	case providerTrouble
 }
 
 public enum InterruptionCause: String, Sendable {
@@ -70,6 +88,7 @@ public enum InterruptionCause: String, Sendable {
 package enum TurnEvent: Sendable, Equatable {
 	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
 	case claim(AttemptID)
+	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
 }
@@ -131,6 +150,16 @@ package enum TurnLifecycle {
 				.local([.turnClaim(TurnClaimBody(chatId: chat, turn: facts.turn, attempt: attempt))]
 				)
 			)
+		case .observeReply(let attempt):
+			guard let facts else { return .failure(.unknownTurn) }
+			if facts.replyObserved.contains(where: { $0.attempt == attempt }) {
+				return .success(.nothing)
+			}
+			return .success(
+				.local([
+					.replyObserved(
+						ReplyObservedBody(chatId: chat, turn: facts.turn, attempt: attempt))
+				]))
 		case .settle(let attempt, let settlement):
 			guard let facts else { return .failure(.unknownTurn) }
 			if facts.settlements.contains(where: { $0.attempt == attempt }) {
@@ -164,10 +193,12 @@ package enum TurnLifecycle {
 		if facts.origin != device {
 			return .acceptedElsewhere
 		}
-		if case .replied? = facts.latestSettlement?.settlement {
+		switch facts.latestSettlement?.settlement {
+		case .replied?, .savedWork?:
 			return .alreadyAnswered
+		case .failed?, .interrupted?, nil:
+			return nil
 		}
-		return nil
 	}
 
 	package static func state(
@@ -196,6 +227,11 @@ package enum TurnLifecycle {
 			switch latest.settlement {
 			case .replied(let reply, _):
 				return .completed(TurnState.Completed(reply: reply))
+			case .savedWork(let outcome, let saved):
+				return .savedWork(
+					TurnState.SavedWork(
+						outcome: outcome, saved: saved, notice: AthleteNotices.notice(for: outcome))
+				)
 			case .failed(let failure, let saved):
 				return .failed(
 					TurnState.Failed(
@@ -246,6 +282,11 @@ public struct CoalescingPolicy: Sendable, Equatable {
 package enum MailboxWork: Sendable, Equatable {
 	case turn(TurnID)
 	case flush
+
+	package var turn: TurnID? {
+		guard case .turn(let turn) = self else { return nil }
+		return turn
+	}
 }
 
 package struct OpenWindow: Sendable, Equatable {

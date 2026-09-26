@@ -32,25 +32,26 @@ import Testing
 		transport.script = [
 			.text("truncated"),
 			.finish(reason: .length),
+			.text("after compact"),
+			.finish(reason: .stop),
+		]
+		transport.maintenanceScript = [
 			.text(
 				"## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"
 			),
 			.finish(reason: .stop),
-			.text("after compact"),
-			.finish(reason: .stop),
 		]
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Long history")
-		let text = try #require(replyText(settled))
-		#expect(text.contains("after compact") || text.contains("truncated"))
-		#expect(transport.requests.count >= 2)
+		#expect(replyText(settled) == "after compact")
+		#expect(transport.requests.map(\.charge) == [.chatAttempt, .compaction, .chatAttempt])
 		let records = try await store.fetch(
 			RecordQuery(scope: .synced([.compactionSummary, .windowStart]), chatId: "main")
 		).records
 		#expect(!records.isEmpty)
 	}
 
-	@Test func lifecycleRecordsAreWrittenInThreeBatchesAroundTheModelCall() async throws {
+	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		let recording = BatchRecordingLog(inner: store)
 		let coach = EnduragentCoachTests.makeCoach(
@@ -58,7 +59,10 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		#expect(recording.batches == [["userMessage"], ["turnClaim"], ["turnSettled"]])
+		#expect(
+			recording.batches == [
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+			])
 		let everyKind: [String] = recording.batches.flatMap { $0 }
 		#expect(!everyKind.contains("assistantMessage"))
 		let synced = try await store.fetch(
@@ -107,11 +111,11 @@ import Testing
 	}
 
 	@Test func providerErrorsSettleAsTypedFailures() async throws {
-		transport.failures = [.connection(.notConnectedToInternet)]
+		transport.script = Array(repeating: .fail(.connection(.notConnectedToInternet)), count: 3)
 		let coach = makeCoach()
 		let network = try await coach.sendAndSettle("one")
 		#expect(failure(network) == .model(.providerDown(.network)))
-		transport.failures = [ScriptedFailure(.unknownFinish)]
+		transport.script = [.fail(ScriptedFailure(.unknownFinish))]
 		let finish = try await coach.sendAndSettle("two")
 		#expect(failure(finish) == .model(.generationFailed(.unknownFinish)))
 		#expect(await coach.transcript(.main) == ["one", "two"])
@@ -121,7 +125,7 @@ import Testing
 
 	@Test(arguments: FailureRow.all)
 	func everyProviderFailureSettlesWithItsNotice(row: FailureRow) async throws {
-		transport.failures = [row.scripted]
+		transport.script = Array(repeating: .fail(row.scripted), count: row.calls)
 		let coach = makeCoach()
 		let turn = try #require(try await coach.send(draft("Plan my week"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
@@ -133,18 +137,17 @@ import Testing
 		#expect(failed.notice.key == row.key)
 		#expect(failed.notice.action == (row.offersTryAgain ? .tryAgain(turn) : nil))
 		#expect(english.say(failed.notice.key, failed.notice.vars) == row.english)
+		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == row.calls)
 	}
 
-	@Test func watchdogFireSettlesAsTimeoutFailure() async throws {
-		transport.hangUntilCancelled = true
+	@Test func watchdogFireIsATimeoutThatRetriesOnce() async throws {
+		transport.script = [.hang, .text("Back on track."), .finish(reason: .stop)]
 		let coach = makeCoach()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
-		#expect(failure(settled) == .model(.providerDown(.timeout)))
-		guard case .failed(let failed) = settled else { return }
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.action == .tryAgain(turn))
+		#expect(replyText(settled) == "Back on track.")
+		#expect(transport.requests.count == 2)
 		let claim = try #require(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
 				.records.first)
@@ -156,6 +159,55 @@ import Testing
 			coach.diagnostics.entries.map(\.event) == [
 				.providerFailure(attempt, .timeout(.firstToken), detail: "")
 			])
+	}
+
+	@Test func replyObservedIsWrittenBeforeFirstDeltaIsPublished() async throws {
+		transport.script = [.text("Thursday "), .text("is on."), .finish(reason: .stop)]
+		let gate = ReplyMarkGate(inner: store)
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: gate, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		var held = gate.held.makeAsyncIterator()
+		_ = await held.next()
+		let whileHeld = try #require(await coach.currentSnapshot(.main))
+		guard case .processing(let processing)? = whileHeld.turns.first?.state else {
+			Issue.record("expected processing, got \(String(describing: whileHeld.turns.first))")
+			return
+		}
+		#expect(processing.liveText.isEmpty)
+		gate.open()
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Thursday is on.")
+		let marks = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.replyObserved]), turn: turn)
+		).records
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		).records
+		#expect(marks.count == 1)
+		#expect(marks.first?.cause == claims.first?.cause)
+	}
+
+	@Test func replyObservedIsFoldedAfterRelaunch() async throws {
+		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let synced = try await ledger.read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
+		let local = try await ledger.read(
+			RecordQuery(scope: ConversationFold.localScope, chatId: .main))
+		let facts = try #require(
+			ConversationFold.fold(
+				chat: .main, synced: synced.records, local: local.records, device: store.deviceId
+			).turn(turn))
+		let attempt = try #require(facts.claims.first?.attempt)
+		#expect(facts.replyObserved.map(\.attempt) == [attempt])
+		#expect(
+			TurnLifecycle.writes(
+				for: .observeReply(attempt), on: facts, chat: .main, device: store.deviceId,
+				mint: { turn }) == .success(.nothing))
 	}
 
 	@Test func missingKeySettlesNotConfiguredWithoutARequest() async throws {
@@ -212,6 +264,15 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 	let key: CatalogKey
 	let offersTryAgain: Bool
 	let english: String
+
+	var calls: Int {
+		switch failure {
+		case .rateLimited, .contextOverflow: 4
+		case .providerDown(.timeout): 2
+		case .providerDown: 3
+		default: 1
+		}
+	}
 
 	var testDescription: String { "\(failure)" }
 
@@ -270,5 +331,55 @@ struct FailureRow: Sendable, CustomTestStringConvertible {
 extension Array {
 	fileprivate var only: Element? {
 		count == 1 ? first : nil
+	}
+}
+
+private final class ReplyMarkGate: RecordLog, @unchecked Sendable {
+	let inner: any RecordLog
+	let held: AsyncStream<Void>
+	private let entered: AsyncStream<Void>.Continuation
+	private let lock = NSLock()
+	private var waiting: CheckedContinuation<Void, Never>?
+	private var opened = false
+
+	init(inner: any RecordLog) {
+		self.inner = inner
+		(held, entered) = AsyncStream<Void>.makeStream()
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	var imports: AsyncStream<Void> { inner.imports }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		if batch.contains(where: { $0.body.kind == DeviceLocalKind.replyObserved.rawValue }) {
+			entered.yield()
+			await withCheckedContinuation { continuation in
+				let proceed = lock.withLock {
+					if opened {
+						return true
+					}
+					waiting = continuation
+					return false
+				}
+				if proceed {
+					continuation.resume()
+				}
+			}
+		}
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try await inner.fetch(query)
+	}
+
+	func open() {
+		let parked = lock.withLock {
+			opened = true
+			defer { waiting = nil }
+			return waiting
+		}
+		parked?.resume()
 	}
 }

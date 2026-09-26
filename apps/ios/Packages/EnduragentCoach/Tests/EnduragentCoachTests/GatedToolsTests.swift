@@ -9,13 +9,14 @@ struct GatedToolsTests {
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func createWorkoutReturnsPendingWithoutWriting() async throws {
-		let outcome = try await runtime().execute(
+		let execution = try await runtime().execute(
 			name: .intervalsCreateWorkout,
 			arguments: try JSONValue.parse(enduranceArguments),
 			chatId: .main,
-			state: attemptContext()
+			scope: turnScope()
 		)
-		guard case .pending(let proposal) = outcome else {
+		#expect(execution.commit == nil)
+		guard case .pending(let proposal) = execution.outcome else {
 			Issue.record("expected pending")
 			return
 		}
@@ -40,8 +41,8 @@ struct GatedToolsTests {
 			name: .planSave,
 			arguments: try JSONValue.parse(#"{"plan":{"name":"Base"}}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected result")
 			return
@@ -58,8 +59,8 @@ struct GatedToolsTests {
 				#"{"date":"1998-06-14","name":"Core","description":"20 min floor"}"#
 			),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .pending(let strengthProposal) = strength else {
 			Issue.record("expected strength pending")
 			return
@@ -70,8 +71,8 @@ struct GatedToolsTests {
 			name: .intervalsDeleteWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .pending = deleted else {
 			Issue.record("expected delete pending")
 			return
@@ -81,8 +82,8 @@ struct GatedToolsTests {
 			name: .intervalsUpdateWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42,"name":"Endurance 2"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .pending = updated else {
 			Issue.record("expected update pending")
 			return
@@ -121,8 +122,8 @@ struct GatedToolsTests {
 				#"{"date":"1998-06-12","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":60}}]}}"#
 			),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected error result")
 			return
@@ -148,17 +149,7 @@ struct GatedToolsTests {
 		)
 	}
 
-	private func attemptContext() -> AttemptContext {
-		AttemptContext(
-			chatId: .main,
-			messages: [],
-			windowStart: nil,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0,
-			stamp: testStamp()
-		)
+	private func turnScope() -> TurnScope {
+		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
 	}
 }

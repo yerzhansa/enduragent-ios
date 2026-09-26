@@ -6,52 +6,13 @@ package enum ToolOutcome: Sendable, Equatable {
 	case truncated(notice: String, estimatedTokens: Int)
 }
 
-private actor ToolMemoActor {
-	var values: [String: JSONValue] = [:]
-	var tasks: [String: Task<ToolOutcome, Error>] = [:]
-
-	func reset() {
-		values.removeAll()
-		tasks.removeAll()
-	}
-
-	func cached(_ key: String) -> JSONValue? {
-		values[key]
-	}
-
-	func task(for key: String) -> Task<ToolOutcome, Error>? {
-		tasks[key]
-	}
-
-	func store(task: Task<ToolOutcome, Error>, for key: String) {
-		tasks[key] = task
-	}
-
-	func store(value: JSONValue, for key: String) {
-		values[key] = value
-	}
-
-	func clearTask(_ key: String) {
-		tasks[key] = nil
-	}
-
-	func evictMemoryReads() {
-		let prefixes = ["memory_read ", "memory_query ", "plan_load "]
-		for key in Array(values.keys) where prefixes.contains(where: { key.hasPrefix($0) }) {
-			values[key] = nil
-		}
-		for key in Array(tasks.keys) where prefixes.contains(where: { key.hasPrefix($0) }) {
-			tasks[key] = nil
-		}
-	}
-}
-
 package struct ToolRuntime: Sendable {
+	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery, .planLoad]
+
 	private let intervals: any IntervalsClient
 	private let ledger: Ledger
 	private let planning: Planning
 	private let clock: any Clock
-	private let memo: ToolMemoActor
 
 	package init(
 		intervals: any IntervalsClient, ledger: Ledger, planning: Planning, clock: any Clock
@@ -60,91 +21,63 @@ package struct ToolRuntime: Sendable {
 		self.ledger = ledger
 		self.planning = planning
 		self.clock = clock
-		self.memo = ToolMemoActor()
-	}
-
-	package func beginTurn() async {
-		await memo.reset()
 	}
 
 	package func execute(
 		name: ToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		state: AttemptContext
-	) async throws -> ToolOutcome {
+		scope: TurnScope
+	) async throws -> ToolExecution {
+		let stamp = scope.stamp
 		if let gated = GatedToolName(rawValue: name.rawValue) {
-			return try await executeGated(
-				gated, arguments: arguments, chatId: chatId, stamp: state.stamp)
+			let outcome = try await executeGated(
+				gated, arguments: arguments, chatId: chatId, stamp: stamp)
+			return ToolExecution(outcome: outcome, commit: nil)
 		}
-		let key = name.rawValue + " " + canonicalJSON(arguments)
-		let replayUnsafe = ReplayUnsafeToolName(rawValue: name.rawValue) != nil
-		if !replayUnsafe, let cached = await memo.cached(key) {
-			return .result(cached)
-		}
-		if !replayUnsafe, let existing = await memo.task(for: key) {
-			return try await existing.value
-		}
-		let task = Task {
-			try await self.runPrepared(
-				name: name, arguments: arguments, chatId: chatId, state: state, key: key)
-		}
-		await memo.store(task: task, for: key)
-		do {
-			let outcome = try await task.value
-			if replayUnsafe {
-				await memo.clearTask(key)
+		if ReplayUnsafeToolName(rawValue: name.rawValue) != nil {
+			let execution = try await runPrepared(name: name, arguments: arguments, stamp: stamp)
+			await scope.evict(Self.memoryReads)
+			if let commit = execution.commit {
+				await scope.record(commit)
 			}
-			return outcome
-		} catch {
-			await memo.clearTask(key)
-			throw error
+			return execution
+		}
+		return try await scope.memoized(name, arguments: canonicalJSON(arguments)) {
+			try await self.runPrepared(name: name, arguments: arguments, stamp: stamp)
 		}
 	}
 
 	private func runPrepared(
 		name: ToolName,
 		arguments: JSONValue,
-		chatId: ChatID,
-		state: AttemptContext,
-		key: String
-	) async throws -> ToolOutcome {
-		let raw = try await executeBody(
-			name: name, arguments: arguments, chatId: chatId, state: state)
-		let outcome: ToolOutcome
-		switch raw {
-		case .result(let data):
-			let enveloped = UntrustedEnvelope.wrap(data)
-			let estimated = estimateTokens(enveloped.canonicalDigestInput())
-			if estimated > TurnPolicy.toolResultTokenCap {
-				outcome = .truncated(
+		stamp: OperationStamp
+	) async throws -> ToolExecution {
+		let raw = try await executeBody(name: name, arguments: arguments, stamp: stamp)
+		guard case .result(let data) = raw.outcome else {
+			return raw
+		}
+		let enveloped = UntrustedEnvelope.wrap(data)
+		let estimated = estimateTokens(enveloped.canonicalDigestInput())
+		if estimated > TurnPolicy.toolResultTokenCap {
+			return ToolExecution(
+				outcome: .truncated(
 					notice:
 						"Tool result too large (~\(estimated) tokens) and was omitted to protect context. "
 						+ "Rerun with narrower arguments (e.g. a smaller date range, fewer stream types, or a shorter activity).",
 					estimatedTokens: estimated
-				)
-			} else {
-				outcome = .result(enveloped)
-				if ReplayUnsafeToolName(rawValue: name.rawValue) == nil {
-					await memo.store(value: enveloped, for: key)
-				}
-			}
-		case .pending, .truncated:
-			outcome = raw
+				),
+				commit: raw.commit
+			)
 		}
-		if ReplayUnsafeToolName(rawValue: name.rawValue) != nil {
-			await memo.evictMemoryReads()
-		}
-		return outcome
+		return ToolExecution(outcome: .result(enveloped), commit: raw.commit)
 	}
 
 	private func executeBody(
 		name: ToolName,
 		arguments: JSONValue,
-		chatId: ChatID,
-		state: AttemptContext
-	) async throws -> ToolOutcome {
-		_ = chatId
+		stamp: OperationStamp
+	) async throws -> ToolExecution {
 		_ = planning
 		do {
 			switch name {
@@ -181,9 +114,9 @@ package struct ToolRuntime: Sendable {
 			case .memoryQuery:
 				return try await executeMemoryQuery(arguments)
 			case .memoryWrite:
-				return try await executeMemoryWrite(arguments, stamp: state.stamp)
+				return try await executeMemoryWrite(arguments, stamp: stamp)
 			case .ledgerAppend:
-				return try await executeLedgerAppend(arguments, stamp: state.stamp)
+				return try await executeLedgerAppend(arguments, stamp: stamp)
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")
@@ -563,7 +496,7 @@ package struct ToolRuntime: Sendable {
 		Memory(ledger: ledger, clock: clock)
 	}
 
-	private func executeMemoryRead() async throws -> ToolOutcome {
+	private func executeMemoryRead() async throws -> ToolExecution {
 		let text = try await memory().complementContext()
 		if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 			return .result(.string("Every stored section is already in your Athlete Context."))
@@ -571,7 +504,7 @@ package struct ToolRuntime: Sendable {
 		return .result(.string(text))
 	}
 
-	private func executeMemoryQuery(_ arguments: JSONValue) async throws -> ToolOutcome {
+	private func executeMemoryQuery(_ arguments: JSONValue) async throws -> ToolExecution {
 		let fields = arguments.objectFields
 		let fromRaw = fields["from"]?.stringValue ?? ""
 		let toRaw = fields["to"]?.stringValue ?? ""
@@ -592,7 +525,7 @@ package struct ToolRuntime: Sendable {
 	}
 
 	private func executeMemoryWrite(_ arguments: JSONValue, stamp: OperationStamp) async throws
-		-> ToolOutcome
+		-> ToolExecution
 	{
 		let fields = arguments.objectFields
 		let type = fields["type"]?.stringValue
@@ -621,14 +554,18 @@ package struct ToolRuntime: Sendable {
 			}
 			try await memory().writeSection(
 				SectionName(rawValue: section), content: content, source: .chat, stamp: stamp)
-			return .result(.object(["saved": .bool(true)]))
+			return ToolExecution(
+				outcome: .result(.object(["saved": .bool(true)])),
+				commit: CommittedWrite(tool: .memoryWrite))
 		}
-		try await memory().appendDailyNote(content, stamp: stamp)
-		return .result(.object(["saved": .bool(true)]))
+		let appended = try await memory().appendDailyNote(content, stamp: stamp)
+		return ToolExecution(
+			outcome: .result(.object(["saved": .bool(true)])),
+			commit: appended ? CommittedWrite(tool: .memoryWrite) : nil)
 	}
 
 	private func executeLedgerAppend(_ arguments: JSONValue, stamp: OperationStamp) async throws
-		-> ToolOutcome
+		-> ToolExecution
 	{
 		let fields = arguments.objectFields
 		guard
@@ -646,7 +583,9 @@ package struct ToolRuntime: Sendable {
 		let recorded = try await memory().appendEvent(
 			date: date, kind: kind, text: text, source: .chat, stamp: stamp)
 		if recorded {
-			return .result(.object(["recorded": .bool(true)]))
+			return ToolExecution(
+				outcome: .result(.object(["recorded": .bool(true)])),
+				commit: CommittedWrite(tool: .ledgerAppend))
 		}
 		return .result(.object(["duplicate": .bool(true), "recorded": .bool(false)]))
 	}
@@ -660,7 +599,7 @@ package struct ToolRuntime: Sendable {
 		return false
 	}
 
-	private func executeCalculateZones(_ arguments: JSONValue) throws -> ToolOutcome {
+	private func executeCalculateZones(_ arguments: JSONValue) throws -> ToolExecution {
 		guard let ftp = arguments.objectFields["ftpWatts"]?.intValue() else {
 			throw IntervalsError(code: "invalid_ftp", details: "ftpWatts is required.")
 		}

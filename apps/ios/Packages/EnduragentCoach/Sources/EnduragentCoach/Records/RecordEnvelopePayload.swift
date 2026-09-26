@@ -103,7 +103,8 @@ enum SyncedPayload: Encodable {
 }
 
 enum DeviceLocalPayload: Encodable {
-	case turnClaim(TurnClaimPayload)
+	case turnClaim(TurnAttemptPayload)
+	case replyObserved(TurnAttemptPayload)
 	case pendingProposal(ProposalPayload)
 	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
@@ -117,7 +118,15 @@ enum DeviceLocalPayload: Encodable {
 		switch body {
 		case .turnClaim(let value):
 			self = .turnClaim(
-				TurnClaimPayload(
+				TurnAttemptPayload(
+					chatId: value.chatId.rawValue,
+					turn: value.turn.ulid.rawValue,
+					attempt: value.attempt.ulid.rawValue
+				)
+			)
+		case .replyObserved(let value):
+			self = .replyObserved(
+				TurnAttemptPayload(
 					chatId: value.chatId.rawValue,
 					turn: value.turn.ulid.rawValue,
 					attempt: value.attempt.ulid.rawValue
@@ -201,6 +210,7 @@ enum DeviceLocalPayload: Encodable {
 	func encode(to encoder: Encoder) throws {
 		switch self {
 		case .turnClaim(let payload): try payload.encode(to: encoder)
+		case .replyObserved(let payload): try payload.encode(to: encoder)
 		case .pendingProposal(let payload): try payload.encode(to: encoder)
 		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)

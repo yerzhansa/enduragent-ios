@@ -27,6 +27,8 @@ struct TurnRowView: View {
 				case .model(let text):
 					Text(text)
 				}
+			case .savedWork(let savedWork):
+				notice(savedWork.notice)
 			case .failed(let failed):
 				notice(failed.notice)
 			case .interrupted(let interrupted):

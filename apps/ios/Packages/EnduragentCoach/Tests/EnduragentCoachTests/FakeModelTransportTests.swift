@@ -112,17 +112,69 @@ import Testing
 		}
 	}
 
-	@Test func failureQueueIsConsumedBeforeTheScript() async throws {
+	@Test func scriptedFailureFailsTheRequestThatReachesIt() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [.http(status: 500)]
-		transport.script = [.text("after"), .finish(reason: .stop)]
+		transport.script = [.fail(.http(status: 500)), .text("after"), .finish(reason: .stop)]
 		await #expect(throws: ProviderFailure.serverError(status: 500, retryAfter: nil)) {
 			_ = try await collect(transport.stream(request("First")))
 		}
-		#expect(transport.failures.isEmpty)
 		let second = try await collect(transport.stream(request("Second")))
 		#expect(textDeltas(in: second) == ["after"])
+		#expect(transport.script.isEmpty)
 		#expect(transport.requestCount == 2)
+	}
+
+	@Test func failureAfterTextStreamsTheTextThenThrows() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Thursday is "), .fail(.connection(.networkConnectionLost))]
+		var received: [TransportEvent] = []
+		await #expect(throws: ProviderFailure.network) {
+			for try await event in transport.stream(request("Thursday?")) {
+				received.append(event)
+			}
+		}
+		#expect(textDeltas(in: received) == ["Thursday is "])
+	}
+
+	@Test func compactionAndFlushReadTheMaintenanceScript() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.fail(.http(status: 429)), .text("reply"), .finish(reason: .stop)]
+		transport.maintenanceScript = [.text("summary"), .finish(reason: .stop)]
+		let compaction = CompletionRequest(
+			access: testAccess, attempt: AttemptID(ulid: fixedUlid(901)), charge: .compaction,
+			messages: [], tools: [], deadline: .seconds(30))
+		let summary = try await collect(transport.stream(compaction))
+		#expect(textDeltas(in: summary) == ["summary"])
+		await #expect(throws: ProviderFailure.rateLimited(retryAfter: nil)) {
+			_ = try await collect(transport.stream(request("Chat")))
+		}
+		let flush = try await collect(
+			transport.stream(
+				CompletionRequest(
+					access: testAccess, attempt: AttemptID(ulid: fixedUlid(902)),
+					charge: .memoryFlush, messages: [], tools: [], deadline: .seconds(30))))
+		#expect(flush.isEmpty)
+		#expect(textDeltas(in: try await collect(transport.stream(request("Chat")))) == ["reply"])
+	}
+
+	@Test func scriptedHangStreamsThenWaitsForCancellation() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Thursday is "), .hang, .text("next"), .finish(reason: .stop)]
+		let stream = transport.stream(request("Hang"))
+		let task = Task {
+			var texts: [String] = []
+			for try await event in stream {
+				if case .textDelta(let text) = event {
+					texts.append(text)
+				}
+			}
+			return texts
+		}
+		try await Task.sleep(for: .milliseconds(50))
+		task.cancel()
+		#expect(try await task.value == ["Thursday is "])
+		let next = try await collect(transport.stream(request("Again")))
+		#expect(textDeltas(in: next) == ["next"])
 	}
 
 	@Test func scriptedFailuresParseTheWireLikeTheTransport() {

@@ -24,7 +24,7 @@ struct FixtureLaunchTests {
 		defaults = try launch.prepare()
 	}
 
-	private func services(
+	func services(
 		store: FixtureStorePolicy = .fresh, keychain: FixtureKeychainPolicy = .unlocked
 	) throws -> AppServices {
 		var launch = launch
@@ -33,7 +33,7 @@ struct FixtureLaunchTests {
 		return try AppServices.fixture(launch, defaults: defaults)
 	}
 
-	private func model(_ services: AppServices) -> ShellModel {
+	func model(_ services: AppServices) -> ShellModel {
 		ShellModel(builder: builder(services))
 	}
 
@@ -41,7 +41,7 @@ struct FixtureLaunchTests {
 		ServicesBuilder(fixture: services, language: language, defaults: defaults)
 	}
 
-	private func settledTurn(
+	func settledTurn(
 		_ model: ShellModel, after previous: TurnState? = nil, within limit: Duration = .seconds(20)
 	) async throws -> TurnView {
 		let deadline = ContinuousClock.now + limit
@@ -158,27 +158,6 @@ struct FixtureLaunchTests {
 		#expect(!model.notSent)
 		#expect(model.draft.text.isEmpty)
 		#expect(try await firstTurn(model).athleteText == TutorialCopy.weekQuestion)
-	}
-
-	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "Give me a ride for tomorrow"
-		transport.failures = [
-			.http(status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#)
-		]
-		await model.send()
-		let turn = try await settledTurn(model)
-		guard case .failed(let failed) = turn.state else {
-			Issue.record("expected a failed turn, got \(turn.state)")
-			return
-		}
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.vars.isEmpty)
-		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.errorLine == nil)
 	}
 
 	@Test func intervalsLoadFailureShowsTheReason() async throws {
@@ -304,55 +283,6 @@ struct FixtureLaunchTests {
 		#expect(transport.deltaDelay == nil)
 	}
 
-	@Test(arguments: [
-		("fixture:fail 401", Catalog.coachErrorProviderCredentials, false),
-		("fixture:fail 402", Catalog.coachErrorUnknown, false),
-		("fixture:fail 429 7", Catalog.coachErrorRateLimitSeconds, true),
-		("fixture:fail network", Catalog.coachErrorProviderDown, true),
-		("fixture:fail timeout", Catalog.coachErrorProviderDown, true),
-		("fixture:fail overflow", Catalog.coachErrorUnknown, true),
-	])
-	func failDirectiveSettlesWithItsNotice(directive: String, key: CatalogKey, tryAgain: Bool)
-		async throws
-	{
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = directive
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == key)
-		#expect(failure.notice.action == (tryAgain ? .tryAgain(failed.id) : nil))
-		#expect(transport.requestCount == 1)
-		#expect(model.errorLine == nil)
-	}
-
-	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
-		let services = try services()
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:fail 500"
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failure.notice.action == .tryAgain(failed.id))
-		#expect(model.errorLine == nil)
-		await model.perform(.tryAgain(failed.id))
-		let retried = try await settledTurn(model, after: failed.state)
-		#expect(retried.id == failed.id)
-		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-		#expect(model.retryRefusal == nil)
-	}
-
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
@@ -373,7 +303,7 @@ private enum TutorialCopy {
 	static let weekQuestion = "What did my training look like this week?"
 }
 
-private func replyText(_ state: TurnState) -> String? {
+func replyText(_ state: TurnState) -> String? {
 	guard case .completed(let completed) = state, case .model(let text) = completed.reply else {
 		return nil
 	}
@@ -382,7 +312,7 @@ private func replyText(_ state: TurnState) -> String? {
 
 private func isSettled(_ state: TurnState) -> Bool {
 	switch state {
-	case .completed, .failed, .interrupted: true
+	case .completed, .savedWork, .failed, .interrupted: true
 	case .accepted, .processing: false
 	}
 }

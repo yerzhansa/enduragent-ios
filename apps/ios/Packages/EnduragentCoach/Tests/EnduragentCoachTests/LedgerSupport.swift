@@ -98,7 +98,7 @@ func messageText(_ record: AthleteRecord) -> String {
 		switch body.settlement {
 		case .replied(.model(let text), _): text
 		case .interrupted(let partial, _, _): partial
-		case .failed: ""
+		case .failed, .savedWork: ""
 		}
 	case .legacy(.userMessageV1(_, let text, _)): text
 	case .legacy(.assistantMessage(let body)): body.text

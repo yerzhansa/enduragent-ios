@@ -114,7 +114,7 @@ package actor ChatMailbox {
 		stopping = true
 		publish()
 		let queued = queuedTurns(includingActive: false)
-		work.removeAll { if case .turn = $0 { true } else { false } }
+		work.removeAll { $0.turn != nil }
 		for turn in queued {
 			let stamp = await stamp(for: turn)
 			await settle(
@@ -130,10 +130,7 @@ package actor ChatMailbox {
 
 	private func queuedTurns(includingActive: Bool) -> [TurnID] {
 		let items = includingActive ? [active].compactMap { $0 } + work : work
-		return items.compactMap { item -> TurnID? in
-			if case .turn(let turn) = item { return turn }
-			return nil
-		}
+		return items.compactMap(\.turn)
 	}
 
 	package func refreshProposal() async {
@@ -283,20 +280,22 @@ package actor ChatMailbox {
 		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
+		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
 			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
 		var softFlushDue = false
 		do {
-			let report = try await runner.run(request) { progress in
-				await self.apply(progress, attempt: attempt)
+			let report = try await runner.run(request, scope: scope) { progress in
+				await self.apply(progress, stamp: stamp)
 			}
 			settlement = Settlement(report.result)
 			softFlushDue = report.softFlushDue
 		} catch {
 			settlement = .interrupted(
-				partial: live?.text ?? "", cause: .athleteStopped, saved: .none)
+				partial: live?.text ?? "", cause: .athleteStopped,
+				saved: WriteSummary(await scope.written))
 		}
 		await settle(turn, attempt: attempt, settlement, stamp: stamp)
 		live = nil
@@ -350,8 +349,18 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func apply(_ progress: AttemptProgress, attempt: AttemptID) {
-		guard var current = live, current.attempt == attempt else { return }
+	private func apply(_ progress: AttemptProgress, stamp: OperationStamp) async {
+		guard let observing = live, observing.attempt == stamp.attempt else { return }
+		if case .textDelta(let delta) = progress, !delta.isEmpty,
+			case .success(let mark) = writes(.observeReply(stamp.attempt), for: observing.turn)
+		{
+			do {
+				try await commit(mark, stamp: stamp)
+			} catch {
+				diagnostics.record(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
+			}
+		}
+		guard var current = live, current.attempt == stamp.attempt else { return }
 		switch progress {
 		case .textDelta(let delta):
 			current.text += delta
