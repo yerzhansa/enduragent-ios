@@ -134,7 +134,10 @@ final class HangWatchdogProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
+		TutorialHarness.attach(self, name: "hang-watchdog-records", app: app)
+		TutorialHarness.closeMenu(app)
 	}
 }
 
