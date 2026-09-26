@@ -88,6 +88,7 @@ public enum RetryWaitReason: Sendable, Equatable {
 
 public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
+	case appTerminating
 	case processEnded
 	case stoppedBeforeStart
 }
@@ -98,6 +99,7 @@ package enum TurnEvent: Sendable, Equatable {
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
+	case recoverDeadClaim(AttemptID, saved: WriteSummary)
 }
 
 package enum TurnWrites: Sendable, Equatable {
@@ -194,6 +196,11 @@ package enum TurnLifecycle {
 								partial: "", cause: .stoppedBeforeStart, saved: .none)
 						))
 				]))
+		case .recoverDeadClaim(let attempt, let saved):
+			return writes(
+				for: .settle(
+					attempt, .interrupted(partial: "", cause: .processEnded, saved: saved)),
+				on: facts, chat: chat, device: device, mint: mint)
 		}
 	}
 
@@ -293,6 +300,21 @@ package struct LiveAttempt: Sendable, Equatable {
 	package let attempt: AttemptID
 	package var text: String
 	package var activity: TurnActivity
+}
+
+extension LiveAttempt {
+	package mutating func apply(_ progress: AttemptProgress) {
+		switch progress {
+		case .textDelta(let delta):
+			text += delta
+		case .attemptRestarted:
+			text = ""
+		case .activity(let next):
+			activity = next
+		case .proposalPending:
+			return
+		}
+	}
 }
 
 package enum TurnOverlay: Sendable, Equatable {

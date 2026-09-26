@@ -11,7 +11,7 @@ package actor ChatMailbox {
 
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
-	private var conversation: Conversation
+	private let records: TurnRecords
 	private var pendingProposal: PendingProposal?
 	private var work: [MailboxWork] = []
 	private var active: MailboxWork?
@@ -19,7 +19,8 @@ package actor ChatMailbox {
 	private var windowGeneration = 0
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
-	private var stopping = false
+	private var interruption: InterruptionCause?
+	private var terminating = false
 	private let admission = Admission()
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
@@ -42,7 +43,7 @@ package actor ChatMailbox {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
-		self.conversation = Conversation(chat: chatId, segments: [])
+		self.records = TurnRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
@@ -77,7 +78,7 @@ package actor ChatMailbox {
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
-		if let known = conversation.turn(withDraft: draft.id) {
+		if let known = records.conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
 		let joining: TurnID?
@@ -90,7 +91,7 @@ package actor ChatMailbox {
 		let minted = TurnID(ulid: await ledger.nextULID())
 		let writes = TurnLifecycle.writes(
 			for: .accept(draft, joining: joining, slash: slash),
-			on: joining.flatMap(conversation.turn),
+			on: joining.flatMap(records.conversation.turn),
 			chat: chatId,
 			device: ledger.deviceId,
 			mint: { minted }
@@ -102,7 +103,7 @@ package actor ChatMailbox {
 			return .accepted(joining)
 		}
 		do {
-			try await commit(.synced(bodies), stamp: await stamp(for: message.turn))
+			try await records.commit(.synced(bodies), stamp: await stamp(for: message.turn))
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
@@ -117,11 +118,11 @@ package actor ChatMailbox {
 		} catch {
 			throw RetryRefusal.unknownTurn
 		}
-		let waiting = waits.waiting(among: conversation.current.turns)
+		let waiting = waits.waiting(among: records.conversation.current.turns)
 		let queued = queuedTurns(includingActive: true)
 		let overlay = TurnOverlay(of: turn, window: window, queued: queued, waiting: waiting)
 		let refusal = TurnLifecycle.retryRefusal(
-			of: conversation.turn(turn), overlay: overlay, device: ledger.deviceId)
+			of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId)
 		if let refusal { throw RetryRefusal(refusal) }
 		enqueue(.turn(turn))
 	}
@@ -130,7 +131,7 @@ package actor ChatMailbox {
 		let active = running
 		guard active != nil || window != nil || !queuedTurns(includingActive: false).isEmpty
 		else { return }
-		stopping = true
+		interruption = .athleteStopped
 		publish()
 		active?.cancel()
 		await admission.enter()
@@ -139,16 +140,42 @@ package actor ChatMailbox {
 		work.removeAll { $0.turn != nil }
 		for turn in unstarted {
 			let stamp = await stamp(for: turn)
-			await settle(
-				turn, attempt: stamp.attempt,
-				.interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none),
-				stamp: stamp, beforeStart: true)
+			await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
 		}
 		admission.leave()
 		await active?.value
-		stopping = false
+		interruption = nil
 		publish()
 		drainIfIdle()
+	}
+
+	package func lifecycle(_ event: AppLifecycleEvent) async {
+		switch event {
+		case .becameActive, .willResignActive:
+			return
+		case .enteredBackground:
+			await admission.enter()
+			closeWindow()
+			admission.leave()
+		case .willTerminate:
+			terminating = true
+			let active = running
+			interruption = .appTerminating
+			active?.cancel()
+			await active?.value
+			interruption = nil
+			publish()
+		}
+	}
+
+	package func recover(_ plan: RecoveryPlan) async throws(LedgerFailure) {
+		try await load()
+		for dead in plan.interrupt {
+			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
+			await records.settle(
+				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
+		}
+		publish()
 	}
 
 	private func queuedTurns(includingActive: Bool) -> [TurnID] {
@@ -187,8 +214,10 @@ package actor ChatMailbox {
 			let local = try await ledger.read(
 				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
 			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
-			conversation = ConversationFold.fold(
-				chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
+			records.replace(
+				with: ConversationFold.fold(
+					chat: chatId, synced: synced.records, local: local.records,
+					device: ledger.deviceId))
 			loaded = true
 			return .success(())
 		} catch {
@@ -198,19 +227,6 @@ package actor ChatMailbox {
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
-	}
-
-	private func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure) {
-		let records: [AthleteRecord]
-		switch writes {
-		case .nothing:
-			return
-		case .synced(let bodies):
-			records = try await ledger.commit(synced: bodies, stamp: stamp)
-		case .local(let bodies):
-			records = try await ledger.commit(local: bodies, stamp: stamp)
-		}
-		conversation = ConversationFold.applying(records, to: conversation, device: ledger.deviceId)
 	}
 
 	private func armWindow(for turn: TurnID) {
@@ -246,7 +262,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, !stopping, !work.isEmpty else { return }
+		guard running == nil, interruption == nil, !terminating, !work.isEmpty else { return }
 		let next = work.removeFirst()
 		active = next
 		running = Task {
@@ -271,17 +287,17 @@ package actor ChatMailbox {
 	}
 
 	private func runTurn(_ turn: TurnID) async {
-		guard let facts = conversation.turn(turn) else { return }
+		guard let facts = records.conversation.turn(turn) else { return }
 		let stamp = await stamp(for: turn)
 		let attempt = stamp.attempt
-		guard case .success(let claim) = writes(.claim(attempt), for: turn) else {
+		guard case .success(let claim) = records.writes(.claim(attempt), for: turn) else {
 			publish()
 			return
 		}
 		do {
-			try await commit(claim, stamp: stamp)
+			try await records.commit(claim, stamp: stamp)
 		} catch {
-			await settleUnsaved(
+			await records.settleUnsaved(
 				turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))
 			publish()
 			return
@@ -291,7 +307,7 @@ package actor ChatMailbox {
 			access = try environment.access()
 		} catch {
 			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
-			await settle(turn, attempt: attempt, unavailable, stamp: stamp)
+			await records.settle(turn, .settle(attempt, unavailable), stamp: stamp)
 			publish()
 			return
 		}
@@ -311,9 +327,10 @@ package actor ChatMailbox {
 			softFlushDue = report.softFlushDue
 		} catch {
 			settlement = .interrupted(
-				partial: live?.text ?? "", cause: .athleteStopped, saved: await scope.summary)
+				partial: live?.text ?? "", cause: interruption ?? .athleteStopped,
+				saved: await scope.summary)
 		}
-		await settle(turn, attempt: attempt, settlement, stamp: stamp)
+		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		live = nil
 		if softFlushDue {
 			work.append(.flush)
@@ -321,55 +338,15 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	private func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {
-		TurnLifecycle.writes(
-			for: event, on: conversation.turn(turn), chat: chatId, device: ledger.deviceId,
-			mint: { turn })
-	}
-
-	private func settle(
-		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, stamp: OperationStamp,
-		beforeStart: Bool = false
-	) async {
-		let event: TurnEvent =
-			beforeStart ? .stopBeforeStart(attempt) : .settle(attempt, settlement)
-		guard case .success(let writes) = writes(event, for: turn) else { return }
-		do {
-			try await commit(writes, stamp: stamp)
-		} catch {
-			await settleUnsaved(turn, attempt: attempt, settlement)
-		}
-	}
-
-	private func settleUnsaved(_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement) async {
-		let ulid = await ledger.nextULID()
-		conversation.settleInMemory(
-			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, zone: clock.timeZone,
-			device: ledger.deviceId)
-	}
-
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
-		if case .textDelta(let delta) = progress, !delta.isEmpty,
-			case .success(let mark) = writes(.observeReply(stamp.attempt), for: turn)
-		{
-			do {
-				try await commit(mark, stamp: stamp)
-			} catch {
-				conversation.observeInMemory(turn, attempt: stamp.attempt)
-				ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
-			}
+		if case .textDelta(let delta) = progress, !delta.isEmpty {
+			await records.observeReply(turn, stamp: stamp)
 		}
 		guard var current = live, current.attempt == stamp.attempt else { return }
-		switch progress {
-		case .textDelta(let delta):
-			current.text += delta
-		case .attemptRestarted:
-			current.text = ""
-		case .activity(let activity):
-			current.activity = activity
-		case .proposalPending(let proposal):
+		if case .proposalPending(let proposal) = progress {
 			pendingProposal = proposal
 		}
+		current.apply(progress)
 		live = current
 		publish()
 	}
@@ -377,12 +354,12 @@ package actor ChatMailbox {
 	private func snapshot() -> ChatSnapshot {
 		ChatSnapshot(
 			chat: chatId,
-			conversation: conversation,
+			conversation: records.conversation,
 			live: live,
 			window: window,
 			queued: queuedTurns(includingActive: true),
-			waiting: waits.waiting(among: conversation.current.turns),
-			stopping: stopping,
+			waiting: waits.waiting(among: records.conversation.current.turns),
+			stopping: interruption != nil,
 			pendingProposal: pendingProposal,
 			device: ledger.deviceId,
 			now: clock.now,

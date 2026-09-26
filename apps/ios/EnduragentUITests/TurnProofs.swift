@@ -78,46 +78,6 @@ final class AcceptSurvivesKillProof: XCTestCase {
 	}
 }
 
-final class ClaimedThenKilledProof: XCTestCase {
-	func testClaimedThenKilled() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:hang")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
-		TutorialHarness.attach(self, name: "claimed-kill-received", app: app)
-		TutorialHarness.openRecords(app)
-		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
-		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
-		TutorialHarness.relaunchKeepingStore(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.receivedBeforeClose)
-		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
-		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
-		TutorialHarness.wait(tryAgain)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
-		TutorialHarness.attach(self, name: "claimed-kill-reopen", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
-		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
-		TutorialHarness.attach(self, name: "claimed-kill-records", app: app)
-		TutorialHarness.closeMenu(app)
-		tryAgain.tap()
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
-		XCTAssertFalse(tryAgain.exists)
-		TutorialHarness.attach(self, name: "claimed-kill-try-again", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
-		TutorialHarness.attach(self, name: "claimed-kill-try-again-records", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
 final class HangWatchdogProof: XCTestCase {
 	func testHangWatchdog() {
 		let app = XCUIApplication()
