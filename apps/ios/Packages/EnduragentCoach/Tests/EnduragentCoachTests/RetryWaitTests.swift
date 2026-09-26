@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -102,17 +103,36 @@ private func milliseconds(_ date: Date) -> Int64 {
 		#expect(clock.held.isEmpty)
 	}
 
-	@Test func aClaimDropsTheWaitAndANewRateLimitWaitsItsOwnHint() async throws {
+	@Test func aRetryDuringTheWaitIsRefusedWithoutAModelRequest() async throws {
+		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
+		let transport = FakeModelTransport()
+		transport.script = [.text("Back on track."), .finish(reason: .stop)]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
+			try await coach.retry(rateLimitedTurn, in: .main)
+		}
+		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first?.state)
+		#expect(!waiting.retryable)
+		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
+			try await coach.retry(rateLimitedTurn, in: .main)
+		}
+		#expect(transport.requestCount == 0)
+		try await openTryAgain(coach, after: .seconds(7))
+		try await coach.retry(rateLimitedTurn, in: .main)
+		let answered = try #require(
+			await coach.settledState(of: rateLimitedTurn, in: .main, within: .seconds(2)))
+		#expect(replyText(answered) == "Back on track.")
+		#expect(transport.requestCount == 1)
+	}
+
+	@Test func aClaimAfterTheWaitDropsItAndANewRateLimitWaitsItsOwnHint() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
 		transport.script = Array(
 			repeating: .fail(.http(status: 429, headers: ["retry-after": "3"])), count: 4)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
-		_ = await coach.currentSnapshot(.main)
-		try await clock.waitUntilHeld(.seconds(7))
+		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
-		try await clock.waitUntilHeld(.seconds(3))
-		#expect(!clock.held.contains(.seconds(7)), "the old wait outlived the claim")
 		let deadline = ContinuousClock.now + .seconds(5)
 		while transport.requestCount < 4, ContinuousClock.now < deadline {
 			clock.release(.seconds(3))
@@ -127,12 +147,47 @@ private func milliseconds(_ date: Date) -> Int64 {
 			return
 		}
 		#expect(failed.notice.action == .wait(thenTryAgain: rateLimitedTurn))
+		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
+			try await coach.retry(rateLimitedTurn, in: .main)
+		}
+		try await openTryAgain(coach, after: .seconds(3))
+		#expect(transport.requestCount == 4)
+	}
+
+	func openTryAgain(_ coach: Coach, after wait: Duration) async throws {
+		_ = await coach.currentSnapshot(.main)
+		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
-		clock.release(.seconds(3))
+		clock.release(wait)
 		let opened = await first(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
-		#expect(opened != nil)
+		try #require(opened != nil, "no snapshot opened Try again when the wait ended")
+	}
+
+	@Test func aNewAttemptCancelsTheOldSleeperAndAStaleEndIsRefused() async throws {
+		let wakes = Mutex<[AttemptID]>([])
+		let waits = RetryWaits(clock: clock) { _, attempt in wakes.withLock { $0.append(attempt) } }
+		let newer = AttemptID(ulid: fixedUlid(42))
+		let first = facts(rateLimited(.seconds(7)), wallMs: milliseconds(clock.now))
+		#expect(waits.waiting(among: [first]) == [rateLimitedTurn])
+		try await clock.waitUntilHeld(.seconds(7))
+		var second = first
+		second.settlements.append(
+			SettledAttempt(
+				ulid: fixedUlid(43),
+				hlc: HybridLogicalClock(
+					wallMs: milliseconds(clock.now) + 1, logical: 0, deviceId: phone),
+				civilDate: "1998-06-13", attempt: newer, settlement: rateLimited(.seconds(3))))
+		#expect(waits.waiting(among: [second]) == [rateLimitedTurn])
+		try await clock.waitUntilHeld(.seconds(3))
+		#expect(clock.held == [.seconds(3)])
+		#expect(!waits.end(rateLimitedTurn, attempt: failedAttempt))
+		#expect(waits.running == [rateLimitedTurn])
+		#expect(waits.end(rateLimitedTurn, attempt: newer))
+		#expect(!waits.end(rateLimitedTurn, attempt: newer))
+		#expect(waits.running.isEmpty)
+		#expect(wakes.withLock { $0 }.isEmpty)
 	}
 
 	@Test func aWaitThatEndedBeforeTheChatOpenedOffersTryAgainAtOnce() async throws {

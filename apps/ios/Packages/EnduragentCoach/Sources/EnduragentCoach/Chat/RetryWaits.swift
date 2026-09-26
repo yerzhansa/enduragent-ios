@@ -8,6 +8,8 @@ package struct TryAgainWait: Sendable, Equatable {
 final class RetryWaits {
 	typealias Wake = @Sendable (TurnID, AttemptID) async -> Void
 
+	private let clock: any Clock
+	private let wake: Wake
 	private var alarms: [TurnID: Alarm] = [:]
 
 	private struct Alarm {
@@ -15,11 +17,16 @@ final class RetryWaits {
 		var sleeping: Task<Void, Never>?
 	}
 
+	init(clock: any Clock, wake: @escaping Wake) {
+		self.clock = clock
+		self.wake = wake
+	}
+
 	var running: Set<TurnID> {
 		Set(alarms.compactMap { $0.value.sleeping == nil ? nil : $0.key })
 	}
 
-	func track(_ turns: [TurnFacts], clock: any Clock, wake: @escaping Wake) {
+	func waiting(among turns: [TurnFacts]) -> Set<TurnID> {
 		let now = clock.now
 		let shown = Set(turns.map(\.turn))
 		for turn in alarms.keys where !shown.contains(turn) {
@@ -34,8 +41,9 @@ final class RetryWaits {
 			drop(facts.turn)
 			alarms[facts.turn] = Alarm(
 				attempt: wait.attempt,
-				sleeping: sleep(wait, turn: facts.turn, clock: clock, wake: wake))
+				sleeping: sleep(wait, turn: facts.turn))
 		}
+		return running
 	}
 
 	func end(_ turn: TurnID, attempt: AttemptID) -> Bool {
@@ -57,10 +65,10 @@ final class RetryWaits {
 		return TryAgainWait(attempt: latest.attempt, remaining: .seconds(max(left, 0)))
 	}
 
-	private func sleep(_ wait: TryAgainWait, turn: TurnID, clock: any Clock, wake: @escaping Wake)
-		-> Task<Void, Never>?
-	{
+	private func sleep(_ wait: TryAgainWait, turn: TurnID) -> Task<Void, Never>? {
 		guard wait.remaining > .zero else { return nil }
+		let clock = self.clock
+		let wake = self.wake
 		return Task {
 			do {
 				try await clock.sleep(for: wait.remaining)

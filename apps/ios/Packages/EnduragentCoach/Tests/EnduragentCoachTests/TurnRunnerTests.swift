@@ -189,7 +189,8 @@ import Testing
 		#expect(failed.failure == .model(row.failure))
 		#expect(failed.notice.key == row.key)
 		#expect(failed.notice.action.map { english.say($0.title) } == row.button)
-		#expect(settled.retryable == (row.button == "Try again"))
+		let waits = CoachFailure.model(row.failure).tryAgainWait != nil
+		#expect(settled.retryable == (row.button == "Try again" && !waits))
 		#expect(failed.notice.sentence(in: english) == row.english)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == row.calls)
 	}
