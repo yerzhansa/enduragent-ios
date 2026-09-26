@@ -526,7 +526,7 @@ package struct TurnRunner: Sendable {
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
-						outcome = .result(.object(["error": .string(toolErrorText(error))]))
+						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
 				}
@@ -663,16 +663,6 @@ private struct Transcript: Sendable {
 		guard let index = messages.firstIndex(of: message) else { return nil }
 		return ulids[index]
 	}
-}
-
-private func toolErrorText(_ error: any Error) -> String {
-	if let intervals = error as? IntervalsError {
-		return intervals.details
-	}
-	if let workout = error as? InvalidWorkout {
-		return workout.message
-	}
-	return String(describing: error)
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {
