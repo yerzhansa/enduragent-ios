@@ -32,7 +32,7 @@ final class RateLimitWaitProof: XCTestCase {
 		let elapsed = Date().timeIntervalSince(sent)
 		XCTAssertGreaterThanOrEqual(elapsed, 7)
 		stamp(self, name: "rate-limit-wait-seconds", seconds: elapsed)
-		XCTAssertFalse(working.exists)
+		waitUntilGone(working)
 		TutorialHarness.attach(self, name: "rate-limit-wait-reply", app: app)
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(working)
@@ -131,6 +131,13 @@ private func containing(_ app: XCUIApplication, _ text: String) -> XCUIElement {
 	app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
 }
 
+private func waitUntilGone(_ element: XCUIElement) {
+	let gone = XCTNSPredicateExpectation(
+		predicate: NSPredicate(format: "exists == false"), object: element)
+	XCTAssertEqual(
+		XCTWaiter.wait(for: [gone], timeout: 10), .completed, "still on screen \(element)")
+}
+
 private func stamp(_ test: XCTestCase, name: String, seconds: TimeInterval) {
 	let sample = XCTAttachment(string: String(format: "%.2f s", seconds))
 	sample.name = name
@@ -141,11 +148,7 @@ private func stamp(_ test: XCTestCase, name: String, seconds: TimeInterval) {
 private func assertModelRequests(
 	_ app: XCUIApplication, _ expected: Int, test: XCTestCase, name: String
 ) {
-	let idle = XCTNSPredicateExpectation(
-		predicate: NSPredicate(format: "exists == false"),
-		object: TutorialHarness.named(app, "chat.working"))
-	XCTAssertEqual(
-		XCTWaiter.wait(for: [idle], timeout: 10), .completed, "the turn is still working")
+	waitUntilGone(TutorialHarness.named(app, "chat.working"))
 	TutorialHarness.openSidebar(app)
 	TutorialHarness.named(app, "sidebar.debug").tap()
 	let model = TutorialHarness.named(app, "fixture.modelRequestCount")
