@@ -238,6 +238,10 @@ package enum PromptStaticBlocks {
 
 	package static let recoveryPrompt = "summarize what you did and what's left"
 
+	package static let toolSaveFailure = "The change could not be saved on this device."
+
+	package static let toolFailure = "The tool could not finish."
+
 	package static let stepLimitCopy =
 		"I ran out of steps gathering data — ask me to continue and I'll pick up where I left off."
 

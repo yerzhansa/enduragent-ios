@@ -27,6 +27,10 @@ struct SettlementPayload: Codable {
 	var modelText: String?
 	var templateHash: String?
 	var assembledHash: String?
+	var failure: FailurePayload?
+	var partial: String?
+	var cause: String?
+	var saved: WriteSummaryPayload?
 
 	init(_ settlement: Settlement) {
 		switch settlement {
@@ -38,22 +42,134 @@ struct SettlementPayload: Codable {
 			}
 			templateHash = lineage?.templateHash
 			assembledHash = lineage?.assembledHash
+		case .failed(let failure, let saved):
+			kind = "failed"
+			self.failure = FailurePayload(failure)
+			self.saved = WriteSummaryPayload(saved)
+		case .interrupted(let partial, let cause, let saved):
+			kind = "interrupted"
+			self.partial = partial
+			self.cause = cause.rawValue
+			self.saved = WriteSummaryPayload(saved)
 		}
 	}
 
 	func settlement() throws -> Settlement {
-		guard kind == "replied", let modelText else {
+		switch kind {
+		case "replied":
+			guard let modelText else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			let lineage: ReplyLineage?
+			if let templateHash, let assembledHash {
+				lineage = ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
+			} else {
+				lineage = nil
+			}
+			return .replied(.model(modelText), lineage: lineage)
+		case "failed":
+			guard let failure, let saved else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .failed(try failure.failure(), saved: saved.summary)
+		case "interrupted":
+			guard let partial, let cause = cause.flatMap(InterruptionCause.init(rawValue:)),
+				let saved
+			else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .interrupted(partial: partial, cause: cause, saved: saved.summary)
+		default:
 			throw RecordDecodeFailure(reason: "settlement")
 		}
-		let text = ReplyText.model(modelText)
-		let lineage: ReplyLineage?
-		if let templateHash, let assembledHash {
-			lineage = ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
-		} else {
-			lineage = nil
-		}
-		return .replied(text, lineage: lineage)
 	}
+}
+
+struct FailurePayload: Codable {
+	var domain: String
+	var code: String
+	var detail: String?
+
+	init(_ failure: CoachFailure) {
+		switch failure {
+		case .model(.providerDown(let trouble)):
+			domain = "model"
+			code = "providerDown"
+			detail = trouble.rawValue
+		case .model(.contextOverflow):
+			domain = "model"
+			code = "contextOverflow"
+		case .model(.generationFailed(let fault)):
+			domain = "model"
+			code = "generationFailed"
+			detail = fault.rawValue
+		case .model(.budgetExhausted(let kind)):
+			domain = "model"
+			code = "budgetExhausted"
+			detail = kind.rawValue
+		case .local(let local):
+			domain = "local"
+			code = local.rawValue
+		}
+	}
+
+	func failure() throws -> CoachFailure {
+		switch (domain, code) {
+		case ("model", "providerDown"):
+			guard let trouble = detail.flatMap(ProviderTrouble.init(rawValue:)) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .model(.providerDown(trouble))
+		case ("model", "contextOverflow"):
+			return .model(.contextOverflow)
+		case ("model", "generationFailed"):
+			guard let fault = detail.flatMap(GenerationFault.init(rawValue:)) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .model(.generationFailed(fault))
+		case ("model", "budgetExhausted"):
+			guard let kind = detail.flatMap(TurnBudgetExceeded.Kind.init(rawValue:)) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .model(.budgetExhausted(kind))
+		case ("local", _):
+			guard let local = LocalFailure(rawValue: code) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .local(local)
+		default:
+			throw RecordDecodeFailure(reason: "failure")
+		}
+	}
+}
+
+struct WriteSummaryPayload: Codable {
+	var memorySections: Int
+	var ledgerEvents: Int
+	var planSaves: Int
+	var calendarWrites: Int
+
+	init(_ summary: WriteSummary) {
+		memorySections = summary.memorySections
+		ledgerEvents = summary.ledgerEvents
+		planSaves = summary.planSaves
+		calendarWrites = summary.calendarWrites
+	}
+
+	var summary: WriteSummary {
+		WriteSummary(
+			memorySections: memorySections,
+			ledgerEvents: ledgerEvents,
+			planSaves: planSaves,
+			calendarWrites: calendarWrites
+		)
+	}
+}
+
+struct TurnClaimPayload: Codable {
+	var chatId: String
+	var turn: String
+	var attempt: String
 }
 
 struct AssistantMessagePayload: Codable {

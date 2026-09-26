@@ -71,7 +71,7 @@ package struct ToolRuntime: Sendable {
 		name: ToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		state: TurnState
+		state: AttemptContext
 	) async throws -> ToolOutcome {
 		if let gated = GatedToolName(rawValue: name.rawValue) {
 			return try await executeGated(
@@ -106,7 +106,7 @@ package struct ToolRuntime: Sendable {
 		name: ToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		state: TurnState,
+		state: AttemptContext,
 		key: String
 	) async throws -> ToolOutcome {
 		let raw = try await executeBody(
@@ -142,7 +142,7 @@ package struct ToolRuntime: Sendable {
 		name: ToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		state: TurnState
+		state: AttemptContext
 	) async throws -> ToolOutcome {
 		_ = chatId
 		_ = planning

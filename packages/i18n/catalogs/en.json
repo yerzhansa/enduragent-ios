@@ -111,6 +111,7 @@
       "finishPlanQuestion": "Finish the Plan question above",
       "label": "Message your coach",
       "messagePlaceholder": "Message your coach",
+      "notSent": "Not sent. Your draft is still here.",
       "responding": "Coach is responding…",
       "send": "Send message",
       "stop": "Stop responding"
@@ -604,6 +605,9 @@
         "retry": "The request is saved. Trying again will not create a duplicate.",
         "review": "Review the structured Proposal in Plan; the active Plan is unchanged."
       }
+    },
+    "turn": {
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it."
     },
     "view": {
       "closeContext": "Close",

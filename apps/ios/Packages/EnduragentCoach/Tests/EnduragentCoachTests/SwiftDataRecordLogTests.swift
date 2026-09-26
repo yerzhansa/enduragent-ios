@@ -114,6 +114,42 @@ extension SwiftDataSuites {
 			}
 		}
 
+		@Test func failedAndInterruptedSettlementsRoundTrip() async throws {
+			let log = try makeSwiftDataLog(deviceId: phoneA)
+			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
+			let turn = TurnID(ulid: ulid)
+			let saved = WriteSummary(
+				memorySections: 1, ledgerEvents: 2, planSaves: 0, calendarWrites: 0)
+			let bodies: [SyncedRecordBody] = [
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .failed(.model(.providerDown(.timeout)), saved: .none))),
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .failed(.model(.budgetExhausted(.wallClock)), saved: saved))),
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .failed(.local(.recordStorage), saved: .none))),
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .interrupted(
+							partial: "Thursday is", cause: .athleteStopped, saved: saved))),
+			]
+			for (index, body) in bodies.enumerated() {
+				try await log.append(
+					[storedRecord(device: phoneA, wall: Int64(index + 1), body: .synced(body))],
+					locality: .synced)
+			}
+			let fetched = try await log.fetch(
+				RecordQuery(scope: .synced([.turnSettled]), turn: turn))
+			#expect(fetched.skipped.isEmpty)
+			#expect(fetched.records.map(\.body) == bodies.map(RecordBody.synced))
+		}
+
 		@Test func appendThousandRowsThenFetchOneChat() async throws {
 			let log = try makeSwiftDataLog(deviceId: phoneA)
 			let otherChat = try #require(ChatID(rawValue: "other"))
@@ -207,6 +243,8 @@ extension SwiftDataSuites {
 						planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)),
 			]
 			let local: [DeviceLocalRecordBody] = [
+				.turnClaim(
+					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(
 					ProposalBody(
 						chatId: .main,

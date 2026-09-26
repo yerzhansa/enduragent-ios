@@ -30,7 +30,7 @@ import Testing
 				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
 			),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		let second = try await tools.execute(
 			name: .ledgerAppend,
@@ -38,7 +38,7 @@ import Testing
 				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
 			),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		#expect(unwrap(first).objectFields["recorded"]?.boolValue == true)
 		#expect(unwrap(second).objectFields["recorded"]?.boolValue == false)
@@ -50,7 +50,7 @@ import Testing
 			name: .memoryQuery,
 			arguments: try JSONValue.parse(#"{"from":"1998-06-30","to":"1998-06-01"}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		#expect(
 			unwrapString(outcome)
@@ -63,7 +63,7 @@ import Testing
 			name: .memoryQuery,
 			arguments: try JSONValue.parse(#"{"from":"1998-02-31","to":"1998-03-01"}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		#expect(
 			unwrapString(outcome)
@@ -90,7 +90,7 @@ import Testing
 				#"{"type":"memory","section":"random-legacy","content":"updated orphan"}"#
 			),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
 	}
@@ -102,7 +102,7 @@ import Testing
 			arguments: try JSONValue.parse(
 				#"{"type":"daily","content":"Group ride on Saturdays"}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
 		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
@@ -127,8 +127,8 @@ import Testing
 		)
 	}
 
-	private func turnState() -> TurnState {
-		TurnState(
+	private func attemptContext() -> AttemptContext {
+		AttemptContext(
 			chatId: .main,
 			messages: [],
 			windowStart: nil,

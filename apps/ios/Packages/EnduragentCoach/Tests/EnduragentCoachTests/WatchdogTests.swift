@@ -25,20 +25,8 @@ import Testing
 	@Test func neverEmittingTransportFailsTheTurn() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
-		let coach = Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-			store: InMemoryRecordLog(),
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
-			language: .init(ui: .en, coachReply: nil)
-		)
-		var failed: String?
-		for try await event in coach.send("Hello", chatId: "main") {
-			if case .failed(let message) = event {
-				failed = message
-			}
-		}
-		#expect(failed == "CHAT_TTFT_TIMEOUT")
+		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let settled = try await coach.sendAndSettle("Hello", within: .seconds(60))
+		#expect(failure(settled) == .model(.providerDown(.timeout)))
 	}
 }

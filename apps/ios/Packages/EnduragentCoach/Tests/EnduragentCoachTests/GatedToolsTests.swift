@@ -13,7 +13,7 @@ struct GatedToolsTests {
 			name: .intervalsCreateWorkout,
 			arguments: try JSONValue.parse(enduranceArguments),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .pending(let proposal) = outcome else {
 			Issue.record("expected pending")
@@ -40,7 +40,7 @@ struct GatedToolsTests {
 			name: .planSave,
 			arguments: try JSONValue.parse(#"{"plan":{"name":"Base"}}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .result(let json) = outcome else {
 			Issue.record("expected result")
@@ -58,7 +58,7 @@ struct GatedToolsTests {
 				#"{"date":"1998-06-14","name":"Core","description":"20 min floor"}"#
 			),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .pending(let strengthProposal) = strength else {
 			Issue.record("expected strength pending")
@@ -70,7 +70,7 @@ struct GatedToolsTests {
 			name: .intervalsDeleteWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .pending = deleted else {
 			Issue.record("expected delete pending")
@@ -81,7 +81,7 @@ struct GatedToolsTests {
 			name: .intervalsUpdateWorkout,
 			arguments: try JSONValue.parse(#"{"eventId":42,"name":"Endurance 2"}"#),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .pending = updated else {
 			Issue.record("expected update pending")
@@ -121,7 +121,7 @@ struct GatedToolsTests {
 				#"{"date":"1998-06-12","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":60}}]}}"#
 			),
 			chatId: .main,
-			state: turnState()
+			state: attemptContext()
 		)
 		guard case .result(let json) = outcome else {
 			Issue.record("expected error result")
@@ -148,8 +148,8 @@ struct GatedToolsTests {
 		)
 	}
 
-	private func turnState() -> TurnState {
-		TurnState(
+	private func attemptContext() -> AttemptContext {
+		AttemptContext(
 			chatId: .main,
 			messages: [],
 			windowStart: nil,

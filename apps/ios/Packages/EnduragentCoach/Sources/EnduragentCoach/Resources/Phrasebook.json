@@ -12923,6 +12923,16 @@
         }
       }
     },
+    "chat.composer.notSent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        }
+      }
+    },
     "chat.composer.responding": {
       "localizations": {
         "en": {
@@ -69115,6 +69125,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "請在計畫中檢視結構化方案，目前啟用的計畫未變更。"
+          }
+        }
+      }
+    },
+    "chat.turn.receivedBeforeClose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
           }
         }
       }

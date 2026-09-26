@@ -11,6 +11,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var failures: [any Error]
 	public private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
+	public var hangAfterScript = false
 	public var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	public var deltaDelay: Duration?
@@ -52,6 +53,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		}
 		let delay = requestDelay
 		let pause = deltaDelay
+		let hangAfter = hangAfterScript
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
@@ -63,6 +65,9 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 							try await Task.sleep(for: pause)
 						}
 						continuation.yield(event)
+					}
+					while hangAfter, !Task.isCancelled {
+						try await Task.sleep(for: .seconds(60))
 					}
 					continuation.finish()
 				} catch is CancellationError {

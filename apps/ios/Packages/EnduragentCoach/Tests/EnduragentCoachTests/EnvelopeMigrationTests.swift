@@ -97,9 +97,56 @@ extension SwiftDataSuites {
 				language: .init(ui: .en, coachReply: nil)
 			)
 			#expect(
-				await coach.history(chatId: .main).map(\.text) == [
+				await coach.transcript(.main) == [
 					"How was Tuesday?", "Tuesday was hard.",
 				])
+		}
+
+		@Test func v1ChatShowsTheRowsTrunkShowedBehindATrimWindow() async throws {
+			let log = InMemoryRecordLog(deviceId: phoneA)
+			try await seed(
+				log,
+				[
+					storedRecord(
+						device: phoneA, wall: 1, ulid: fixedUlid(1),
+						body: legacyUser(chatId: .main, text: "How was Monday?")),
+					storedRecord(
+						device: phoneA, wall: 2, ulid: fixedUlid(2),
+						body: legacyReply(chatId: .main, text: "Monday was easy.")),
+					storedRecord(
+						device: phoneA, wall: 3, ulid: fixedUlid(3),
+						body: legacyUser(chatId: .main, text: "And Tuesday?")),
+					storedRecord(
+						device: phoneA, wall: 4, ulid: fixedUlid(4),
+						body: legacyReply(chatId: .main, text: "Tuesday was hard.")),
+					storedRecord(
+						device: phoneA, wall: 5, ulid: fixedUlid(5),
+						body: legacyUser(chatId: .main, text: "Is Thursday on?")),
+					storedRecord(
+						device: phoneA, wall: 6, ulid: fixedUlid(6),
+						body: .legacy(
+							.windowStartV1(chatId: .main, firstIncludedUlid: fixedUlid(4)))),
+				])
+			let coach = Coach(
+				sport: .cycling,
+				transport: FakeModelTransport(),
+				intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+				store: log,
+				clock: clock,
+				language: .init(ui: .en, coachReply: nil)
+			)
+			#expect(
+				await coach.transcript(.main) == [
+					"Tuesday was hard.", "Is Thursday on?",
+				])
+			let snapshot = try #require(await coach.currentSnapshot(.main))
+			#expect(snapshot.turns.map(\.athleteText) == [nil, "Is Thursday on?"])
+			let unanswered = try #require(snapshot.turns.last)
+			#expect(unanswered.state == .accepted(.beforeUpgrade))
+			#expect(!unanswered.state.retryable)
+			await #expect(throws: RetryRefusal.alreadyAnswered) {
+				try await coach.retry(unanswered.id, in: .main)
+			}
 		}
 
 		@Test func upgradedStoreAcceptsEnvelopeV2Writes() async throws {

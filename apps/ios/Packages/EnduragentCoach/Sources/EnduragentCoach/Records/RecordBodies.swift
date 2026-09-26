@@ -18,6 +18,14 @@ public struct TurnSettledBody: Sendable, Equatable {
 
 public enum Settlement: Sendable, Equatable {
 	case replied(ReplyText, lineage: ReplyLineage?)
+	case failed(CoachFailure, saved: WriteSummary)
+	case interrupted(partial: String, cause: InterruptionCause, saved: WriteSummary)
+}
+
+public struct TurnClaimBody: Sendable, Equatable {
+	public var chatId: ChatID
+	public var turn: TurnID
+	public var attempt: AttemptID
 }
 
 public enum ReplyText: Sendable, Equatable {

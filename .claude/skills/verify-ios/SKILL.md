@@ -29,7 +29,7 @@ The feature map in [features/README.md](features/README.md) is the recipe for ea
 1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. A clean build took 36 seconds on 2026-09-25. If XcodeGen changes `apps/ios/Enduragent.xcodeproj`, the change belongs in your commit, because `project.yml` changed.
 2. Create the run with `sim.mjs create <kebab-slug>`. It creates and boots the simulator, waits for `simctl bootstatus`, sets the status bar to 9:41 with full signal and battery like the prototype captures, sets light appearance, and writes `run.json` into the evidence folder. The first boot takes about a minute.
 3. Install with `sim.mjs install <run id>`. Install again after every build.
-4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would.
+4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would, and `-EnduragentFixtureCoalescing <milliseconds>`, which replaces the 1.5 second window in which a second message joins the first. XCUITest needs about two seconds between two Send taps, so proofs that need a joined turn, a shot before the reply, or a kill before the claim pass `TutorialHarness.launch(app, coalescingMilliseconds:)`.
 
 The first launch on a new simulator can block for minutes while first-boot services run and the home screen still shows blank icons. On 2026-09-25, with the Mac at a load average near 250, it took about six minutes and then succeeded. Check `uptime` before you suspect the app, and let the command finish. Launching again terminates the app and opens it again. Teardown is **Cleanup**.
 
@@ -55,7 +55,8 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Notice | `notice.continue` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.working`, `chat.error`, `chat.slash.<command>` |
+| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
+| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Confirmed preview` group |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
@@ -71,7 +72,7 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
 | `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
 | `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow`, `fixture:fail finish` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds; `finish` is an unknown finish reason. |
-| `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
+| `fixture:storage fail-next-append` | Arms the record store before this message is saved, so the directive itself is the message that fails. The composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
 
@@ -113,9 +114,11 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-ready` | The `Confirmed preview` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
-| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary. The working row is gone once text arrives; the prototype keeps a spinner, which M1-03 restores |
-| `chat-failed` | After `fixture:fail 500`: `chat.error` reads `The coach couldn't respond. Please try again.` |
-| `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, `interruption-*` | No app screen yet |
+| `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |
+| `chat-failed` | After `fixture:fail 500`: `chat.turn.notice` under the message reads `The coach couldn't respond. Please try again.` with `Try again` in `chat.turn.tryAgain` |
+| `interruption-accepted` | After `fixture:hang`, a kill, and `sim.mjs launch <run id> --keep`: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
+| `interruption-draft` | After `fixture:storage fail-next-append`: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
+| `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
 
 ## Evidence
 

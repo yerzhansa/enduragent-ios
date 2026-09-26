@@ -9,6 +9,7 @@ public actor Coach {
 	private let intervals: any IntervalsClient
 	private let ledger: Ledger
 	private let clock: any Clock
+	private let coalescing: CoalescingPolicy
 	private var language: LanguagePreference
 	private let tools: ToolRuntime
 	private let runner: TurnRunner
@@ -20,7 +21,8 @@ public actor Coach {
 		intervals: any IntervalsClient,
 		store: any RecordLog,
 		clock: any Clock,
-		language: LanguagePreference
+		language: LanguagePreference,
+		coalescing: CoalescingPolicy = .npm
 	) {
 		self.sport = sport
 		self.transport = transport
@@ -28,6 +30,7 @@ public actor Coach {
 		let ledger = Ledger(log: store, clock: clock)
 		self.ledger = ledger
 		self.clock = clock
+		self.coalescing = coalescing
 		self.language = language
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: store, intervals: intervals, clock: clock)
@@ -46,45 +49,26 @@ public actor Coach {
 		self.mailboxes = [:]
 	}
 
-	public nonisolated func send(_ text: String, chatId: ChatID) -> AsyncThrowingStream<
-		CoachEvent, Error
-	> {
-		AsyncThrowingStream { continuation in
-			let task = Task {
-				do {
-					let stream = await self.streamFromMailbox(text, chatId: chatId)
-					for try await event in stream {
-						continuation.yield(event)
-					}
-					continuation.finish()
-				} catch {
-					continuation.finish(throwing: error)
-				}
-			}
-			continuation.onTermination = { termination in
-				guard case .cancelled = termination else { return }
-				task.cancel()
-			}
-		}
+	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
+		await mailbox(for: chat).observe()
 	}
 
-	public func history(chatId: ChatID) async -> [ChatMessage] {
-		(try? await loadHistory(chatId: chatId)) ?? []
+	public func send(_ draft: Draft, to chat: ChatID) async throws(AcceptFailure) -> SendOutcome {
+		try await mailbox(for: chat).accept(draft)
+	}
+
+	public func retry(_ turn: TurnID, in chat: ChatID) async throws(RetryRefusal) {
+		try await mailbox(for: chat).retry(turn)
+	}
+
+	public func stop(_ chat: ChatID) async {
+		await mailbox(for: chat).stop()
 	}
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
 		let records = (try? await ledger.read(ProposalPolicy.proposalQuery(chatId)).records) ?? []
-		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
-		else {
-			return nil
-		}
-		return PendingProposal(
-			chatId: current.chatId,
-			nonce: current.nonce,
-			summary: current.summary,
-			description: current.description,
-			expiresAt: current.expiresAt
-		)
+		return UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
+			.map(PendingProposal.init)
 	}
 
 	public func confirm(chatId: ChatID, nonce: Nonce) async throws -> ConfirmOutcome {
@@ -92,6 +76,9 @@ public actor Coach {
 		_ = transport
 		_ = intervals
 		let tools = self.tools
+		defer {
+			Task { await self.mailbox(for: chatId).refreshProposal() }
+		}
 		do {
 			let lookup = try await ProposalPolicy.take(
 				chatId: chatId,
@@ -145,42 +132,8 @@ public actor Coach {
 
 	public func waitForMemoryFlush() async {
 		for box in mailboxes.values {
-			await box.runQueuedFlush()
+			await box.flushAndDrain()
 		}
-	}
-
-	public func stop(chatId: ChatID) async {
-		await mailbox(for: chatId).stop()
-	}
-
-	public func snapshot(chatId: ChatID) async -> ViewSeam {
-		let transcript = await history(chatId: chatId)
-		let pending = await pendingProposal(chatId: chatId)
-		let box = mailbox(for: chatId)
-		let busy = await box.busy
-		let phase: TurnPhase
-		if busy {
-			phase = .streaming
-		} else if pending != nil {
-			phase = .awaitingConfirmation
-		} else {
-			phase = .idle
-		}
-		return ViewSeam(
-			transcript: transcript,
-			streamingText: "",
-			leadFact: nil,
-			commands: SlashCommand.all,
-			pendingWrite: pending,
-			planCards: [],
-			phase: phase
-		)
-	}
-
-	private func streamFromMailbox(_ text: String, chatId: ChatID) async -> AsyncThrowingStream<
-		CoachEvent, Error
-	> {
-		await mailbox(for: chatId).send(text, language: language)
 	}
 
 	private func mailbox(for chatId: ChatID) -> ChatMailbox {
@@ -189,20 +142,15 @@ public actor Coach {
 		}
 		let created = ChatMailbox(
 			chatId: chatId,
+			ledger: ledger,
 			runner: runner,
 			memory: memory,
-			ledger: ledger,
+			transport: transport,
 			clock: clock,
-			transport: transport
+			coalescing: coalescing,
+			environment: EnvironmentResolver(language: { await self.language })
 		)
 		mailboxes[chatId] = created
 		return created
-	}
-
-	private func loadHistory(chatId: ChatID) async throws -> [ChatMessage] {
-		let page = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		return ConversationFold.fold(chat: chatId, synced: page.records, device: ledger.deviceId)
-			.current.messages
 	}
 }

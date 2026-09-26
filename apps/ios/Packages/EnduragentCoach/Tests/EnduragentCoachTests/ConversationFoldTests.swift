@@ -80,6 +80,9 @@ import Testing
 			storedRecord(
 				device: phoneA, wall: 4, ulid: ulid(4),
 				body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(5),
+				body: .synced(sampleReply(chatId: .main, turn: after, text: "after reply"))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.segments.count == 2)
@@ -87,7 +90,7 @@ import Testing
 		#expect(conversation.segments[0].messages.map(\.text) == ["before", "before reply"])
 		#expect(conversation.current.openedBy == .reset(.explicit(resetId)))
 		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
-		#expect(conversation.current.messages.map(\.text) == ["after"])
+		#expect(conversation.current.messages.map(\.text) == ["after", "after reply"])
 		#expect(conversation.current.promptHistory(excluding: after).messages.isEmpty)
 	}
 
@@ -109,17 +112,24 @@ import Testing
 				body: .synced(
 					.windowStart(
 						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(3), reason: .trim)))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(5),
+				body: .synced(sampleReply(chatId: .main, turn: second, text: "second reply"))),
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(onA.current.promptWindow.firstIncluded == nil)
 		#expect(
 			onA.current.promptHistory(excluding: nil).messages.map(\.text) == [
-				"first", "first reply", "second",
+				"first", "first reply", "second", "second reply",
 			])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
 		#expect(onB.current.promptWindow.firstIncluded == ulid(3))
-		#expect(onB.current.promptHistory(excluding: nil).messages.map(\.text) == ["second"])
-		#expect(onB.current.messages.map(\.text) == ["first", "first reply", "second"])
+		#expect(
+			onB.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				"second", "second reply",
+			])
+		#expect(
+			onB.current.messages.map(\.text) == ["first", "first reply", "second", "second reply"])
 		#expect(onB.segments.count == 1)
 	}
 
@@ -195,6 +205,51 @@ import Testing
 		let turns = conversation.current.turns
 		#expect(turns.map(\.origin) == [phoneA, phoneB])
 		#expect(turns.map { $0.settlements.count } == [1, 1])
+	}
+
+	@Test func unsettledFailedAndStoppedTurnsAreNotPromptHistory() throws {
+		let answered = TurnID(ulid: ulid(1))
+		let pending = TurnID(ulid: ulid(3))
+		let failed = TurnID(ulid: ulid(4))
+		let stopped = TurnID(ulid: ulid(6))
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: .synced(sampleUser(chatId: .main, text: "answered", turn: answered))),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: .synced(sampleReply(chatId: .main, turn: answered, text: "reply"))),
+			storedRecord(
+				device: phoneA, wall: 3, ulid: ulid(3),
+				body: .synced(sampleUser(chatId: .main, text: "pending", turn: pending))),
+			storedRecord(
+				device: phoneA, wall: 4, ulid: ulid(4),
+				body: .synced(sampleUser(chatId: .main, text: "failed", turn: failed))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(5),
+				body: .synced(
+					.turnSettled(
+						TurnSettledBody(
+							chatId: .main, turn: failed, attempt: AttemptID(ulid: ulid(5)),
+							settlement: .failed(.model(.contextOverflow), saved: .none))))),
+			storedRecord(
+				device: phoneA, wall: 6, ulid: ulid(6),
+				body: .synced(sampleUser(chatId: .main, text: "stopped", turn: stopped))),
+			storedRecord(
+				device: phoneA, wall: 7, ulid: ulid(7),
+				body: .synced(
+					.turnSettled(
+						TurnSettledBody(
+							chatId: .main, turn: stopped, attempt: AttemptID(ulid: ulid(7)),
+							settlement: .interrupted(
+								partial: "half an", cause: .athleteStopped, saved: .none))))),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		#expect(conversation.current.turns.map(\.turn) == [answered, pending, failed, stopped])
+		#expect(
+			conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				"answered", "reply", "stopped", "half an",
+			])
 	}
 
 	@Test func messagesForUlidsResolveFragmentsAndSettlements() throws {

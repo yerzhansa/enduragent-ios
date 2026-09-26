@@ -76,6 +76,7 @@ final class ReviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.reviewReply)
 		TutorialHarness.waitForLabel(app, "Training Load")
 		TutorialHarness.attach(self, name: "05-review", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -110,6 +111,7 @@ final class ConfirmedPreviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.warmup)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.cancel").exists)
 		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -124,6 +126,7 @@ final class AddedToCalendarProof: XCTestCase {
 		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -151,6 +154,7 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.history").tap()
 		let row = app.descendants(matching: .any).matching(
@@ -172,6 +176,7 @@ final class ConfirmedPreviewDarkProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.waitForLabel(app, "Confirmed preview")
 		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -192,44 +197,6 @@ final class RelaunchKeepsChatProof: XCTestCase {
 	}
 }
 
-final class SlowReplyProof: XCTestCase {
-	func testSlowReply() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:slow")
-		let working = TutorialHarness.named(app, "chat.working")
-		TutorialHarness.wait(working, timeout: 2)
-		XCTAssertEqual(working.label, TutorialHarness.working)
-		TutorialHarness.attach(self, name: "slow-reply-working", app: app)
-		TutorialHarness.waitForLabel(app, "This week has", timeout: 5)
-		XCTAssertFalse(app.staticTexts["quieter stretch between them."].exists)
-		TutorialHarness.attach(self, name: "slow-reply-streaming", app: app)
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 15)
-		XCTAssertFalse(working.exists)
-		TutorialHarness.attach(self, name: "slow-reply-done", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class FailedReplyProof: XCTestCase {
-	func testFailedReply() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 500")
-		let error = TutorialHarness.named(app, "chat.error")
-		TutorialHarness.wait(error)
-		XCTAssertEqual(error.label, TutorialHarness.responseFailure)
-		XCTAssertFalse(
-			app.staticTexts.containing(
-				NSPredicate(format: "label CONTAINS %@", "OpenRouterHTTPError")
-			).firstMatch.exists)
-		TutorialHarness.attach(self, name: "failed-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
 final class RecordsAfterReplyProof: XCTestCase {
 	func testRecordsAfterReply() {
 		let app = XCUIApplication()
@@ -239,53 +206,10 @@ final class RecordsAfterReplyProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		XCTAssertNil(TutorialHarness.recordCount(app, "assistantMessage"))
 		TutorialHarness.attach(self, name: "records-after-reply", app: app)
-	}
-}
-
-final class HangWatchdogProof: XCTestCase {
-	func testHangWatchdog() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:hang")
-		let working = TutorialHarness.named(app, "chat.working")
-		TutorialHarness.wait(working, timeout: 2)
-		TutorialHarness.attach(self, name: "hang-working", app: app)
-		let error = TutorialHarness.named(app, "chat.error")
-		TutorialHarness.wait(error, timeout: 40)
-		XCTAssertEqual(error.label, TutorialHarness.responseFailure)
-		XCTAssertFalse(working.exists)
-		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class StorageFaultProof: XCTestCase {
-	func testStorageFault() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:storage fail-next-append")
-		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		let error = TutorialHarness.named(app, "chat.error")
-		TutorialHarness.wait(error, timeout: 15)
-		XCTAssertTrue(error.label.contains("rejectedBatch"), error.label)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.composer").exists)
-		TutorialHarness.attach(self, name: "storage-fault", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-		TutorialHarness.relaunchKeepingStore(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
-		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.attach(self, name: "storage-fault-nothing-saved", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
-		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
-		TutorialHarness.attach(self, name: "storage-fault-records", app: app)
 	}
 }
 
@@ -309,13 +233,14 @@ final class RecordsClockOrderProof: XCTestCase {
 		let clocks = rows.compactMap(\.last)
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
 		let causal = rows.compactMap(\.first).filter {
-			["userMessage", "turnSettled", "pendingProposal", "proposalCleared"].contains($0)
+			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]
+				.contains($0)
 		}
 		XCTAssertEqual(
 			causal,
 			[
-				"userMessage", "turnSettled", "pendingProposal", "userMessage", "turnSettled",
-				"proposalCleared",
+				"userMessage", "turnClaim", "turnSettled", "userMessage", "turnClaim",
+				"pendingProposal", "turnSettled", "proposalCleared",
 			],
 			"rows in HLC order follow the order the app wrote them: \(labels)")
 	}

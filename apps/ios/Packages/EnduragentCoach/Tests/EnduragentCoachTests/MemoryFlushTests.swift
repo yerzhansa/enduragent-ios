@@ -18,6 +18,7 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let store = InMemoryRecordLog()
+		let turn = TurnID(ulid: fixedUlid(1))
 		try await seed(
 			store,
 			[
@@ -26,8 +27,14 @@ import Testing
 					wall: 1,
 					body: .synced(
 						sampleUser(
-							chatId: .main, text: "Remember that I ride with a group on Saturdays"))
-				)
+							chatId: .main, text: "Remember that I ride with a group on Saturdays",
+							turn: turn))
+				),
+				storedRecord(
+					device: store.deviceId,
+					wall: 2,
+					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Noted."))
+				),
 			]
 		)
 		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
@@ -52,26 +59,12 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let store = InMemoryRecordLog()
-		let coach = Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-			store: store,
-			clock: clock,
-			language: .init(ui: .en, coachReply: nil)
-		)
-		var finished = false
-		var sawLedgerBeforeFinish = false
-		for try await event in coach.send("Remember Saturdays", chatId: "main") {
-			if case .finished = event {
-				finished = true
-				let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
-					.records
-				sawLedgerBeforeFinish = !events.isEmpty
-			}
-		}
-		#expect(finished)
-		#expect(sawLedgerBeforeFinish == false)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let settled = try await coach.sendAndSettle("Remember Saturdays")
+		#expect(replyText(settled) == "Noted.")
+		let eventsAtSettle = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
+			.records
+		#expect(eventsAtSettle.isEmpty)
 		await coach.waitForMemoryFlush()
 		let hits = try await coach.memory.query(
 			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
@@ -131,12 +124,16 @@ import Testing
 		script.append(.finish(reason: .stop))
 		transport.script = script
 		let store = InMemoryRecordLog()
+		let turn = TurnID(ulid: fixedUlid(1))
 		try await seed(
 			store,
 			[
 				storedRecord(
 					device: store.deviceId, wall: 1,
-					body: .synced(sampleUser(chatId: .main, text: "note")))
+					body: .synced(sampleUser(chatId: .main, text: "note", turn: turn))),
+				storedRecord(
+					device: store.deviceId, wall: 2,
+					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Noted."))),
 			]
 		)
 		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
