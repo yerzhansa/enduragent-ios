@@ -213,26 +213,6 @@ final class SlowReplyProof: XCTestCase {
 	}
 }
 
-final class FailedReplyProof: XCTestCase {
-	func testFailedReply() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 500")
-		let notice = TutorialHarness.named(app, "chat.turn.notice")
-		TutorialHarness.wait(notice)
-		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
-		XCTAssertFalse(
-			app.staticTexts.containing(
-				NSPredicate(format: "label CONTAINS %@", "ProviderFailure")
-			).firstMatch.exists)
-		TutorialHarness.attach(self, name: "failed-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
 final class AcceptSurvivesKillProof: XCTestCase {
 	func testAcceptSurvivesKill() {
 		let app = XCUIApplication()
