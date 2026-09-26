@@ -87,7 +87,7 @@ import Testing
 		#expect(writes(.claim(attempt), on: nil) == .failure(.unknownTurn))
 	}
 
-	@Test func claimOfARepliedTurnIsRefusedAndAFailedOneIsNot() throws {
+	@Test func claimIsAcceptedOnlyAfterAStopOrFailureThatSavedNothing() throws {
 		let replied = settled(.replied(.model("done"), lineage: nil))
 		#expect(writes(.claim(attempt), on: replied) == .failure(.alreadyAnswered))
 		let failed = settled(.failed(.model(.providerDown(.outage)), saved: .none))
@@ -99,6 +99,14 @@ import Testing
 		#expect(
 			try writes(.claim(retry), on: interrupted).get()
 				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: retry))]))
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		let failedAfterSave = settled(
+			.failed(.model(.budgetExhausted(.generateCalls)), saved: saved))
+		#expect(writes(.claim(retry), on: failedAfterSave) == .failure(.alreadyAnswered))
+		let stoppedAfterSave = settled(
+			.interrupted(partial: "so", cause: .athleteStopped, saved: saved))
+		#expect(writes(.claim(retry), on: stoppedAfterSave) == .failure(.alreadyAnswered))
 	}
 
 	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() throws {
@@ -210,6 +218,21 @@ import Testing
 		#expect(unsaved.notice.key == Catalog.coachHistoryDiskFull)
 		#expect(unsaved.notice.action == nil)
 		#expect(!storage.retryable)
+	}
+
+	@Test func failedSettlementAfterSavedWorkOffersNoTryAgain() {
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		let state = TurnLifecycle.state(
+			of: settled(.failed(.model(.budgetExhausted(.generateCalls)), saved: saved)),
+			live: nil, overlay: .notInThisProcess, device: phoneA)
+		guard case .failed(let failed) = state else {
+			Issue.record("expected failed, got \(state)")
+			return
+		}
+		#expect(failed.notice.key == Catalog.coachErrorUnknown)
+		#expect(failed.notice.action == nil)
+		#expect(!state.retryable)
 	}
 
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {

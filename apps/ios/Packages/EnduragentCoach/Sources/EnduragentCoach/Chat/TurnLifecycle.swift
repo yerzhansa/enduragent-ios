@@ -20,7 +20,10 @@ public enum TurnState: Sendable, Equatable {
 				return false
 			}
 		case .interrupted(let interrupted):
-			return interrupted.saved.isEmpty
+			if case .tryAgain = interrupted.notice.action {
+				return true
+			}
+			return false
 		case .accepted, .processing, .completed, .savedWork:
 			return false
 		}
@@ -199,10 +202,16 @@ package enum TurnLifecycle {
 		if facts.legacy {
 			return .alreadyAnswered
 		}
-		switch facts.latestSettlement?.settlement {
+		return replayRefusal(after: facts.latestSettlement?.settlement)
+	}
+
+	package static func replayRefusal(after settlement: Settlement?) -> TurnRefusal? {
+		switch settlement {
 		case .replied?, .savedWork?:
 			return .alreadyAnswered
-		case .failed?, .interrupted?, nil:
+		case .failed(_, let saved)?, .interrupted(_, _, let saved)?:
+			return saved.isEmpty ? nil : .alreadyAnswered
+		case nil:
 			return nil
 		}
 	}
@@ -229,6 +238,7 @@ package enum TurnLifecycle {
 			break
 		}
 		if let latest = facts.latestSettlement {
+			let retry = replayRefusal(after: latest.settlement) == nil ? facts.turn : nil
 			switch latest.settlement {
 			case .replied(let reply, _):
 				return .completed(TurnState.Completed(reply: reply))
@@ -243,7 +253,7 @@ package enum TurnLifecycle {
 						failure: failure,
 						saved: saved,
 						notice: AthleteNotices.notice(
-							for: failure, turn: facts.turn, failedAt: latest.hlc.wallTime)
+							for: failure, turn: retry, failedAt: latest.hlc.wallTime)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -251,7 +261,7 @@ package enum TurnLifecycle {
 						partial: partial,
 						cause: cause,
 						saved: saved,
-						notice: AthleteNotices.notice(for: cause, saved: saved, turn: facts.turn)
+						notice: AthleteNotices.notice(for: cause, saved: saved, turn: retry)
 					))
 			}
 		}

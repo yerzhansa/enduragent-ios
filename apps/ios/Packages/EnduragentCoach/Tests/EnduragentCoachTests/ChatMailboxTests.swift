@@ -301,6 +301,74 @@ import Testing
 		#expect(claims.count == 2)
 	}
 
+	@Test func tryAgainAfterSavedWorkIsRefusedWithoutAModelRequest() async throws {
+		let store = InMemoryRecordLog()
+		let failedTurn = TurnID(ulid: fixedUlid(40))
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId, wall: 1,
+					body: .synced(
+						sampleUser(chatId: .main, text: "Remember Saturdays", turn: failedTurn))),
+				storedRecord(
+					device: store.deviceId, wall: 2,
+					body: .synced(
+						.turnSettled(
+							TurnSettledBody(
+								chatId: .main, turn: failedTurn,
+								attempt: AttemptID(ulid: fixedUlid(41)),
+								settlement: .failed(
+									.model(.budgetExhausted(.generateCalls)), saved: saved)
+							)))),
+			])
+		let transport = FakeModelTransport()
+		transport.script = [.text("Saved again."), .finish(reason: .stop)]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await coach.retry(failedTurn, in: .main)
+		}
+		await coach.waitForMemoryFlush()
+		#expect(transport.requestCount == 0)
+		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
+		#expect(!failed.retryable)
+		transport.script = [
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.hang,
+		]
+		let stoppedTurn = try #require(
+			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
+		for await snapshot in await coach.observe(.main) {
+			if case .processing(let processing)? = snapshot.turns.last?.state,
+				processing.activity == .generating(step: 2)
+			{
+				break
+			}
+		}
+		await coach.stop(.main)
+		let stopped = try #require(await coach.settledState(of: stoppedTurn, in: .main))
+		guard case .interrupted(let interrupted) = stopped else {
+			Issue.record("expected interrupted, got \(stopped)")
+			return
+		}
+		#expect(interrupted.saved.memorySections == 1)
+		#expect(!stopped.retryable)
+		let requests = transport.requestCount
+		transport.script = [.text("Saved again."), .finish(reason: .stop)]
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await coach.retry(stoppedTurn, in: .main)
+		}
+		await coach.waitForMemoryFlush()
+		#expect(transport.requestCount == requests)
+	}
+
 	@Test func retryOfAnUnknownTurnIsRefused() async throws {
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), clock: clock)

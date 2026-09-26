@@ -215,6 +215,42 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		}
 	}
 
+	@Test(arguments: [
+		(
+			CoachFailure.model(.rateLimited(retryAfter: .seconds(7))),
+			"Rate limited — please try again in ~7 seconds.", RecoveryAction?.none
+		),
+		(.model(.providerDown(.network)), providerDown, nil),
+		(
+			.model(.accessUnavailable(.secureStorageLocked)),
+			"Unlock your iPhone to continue. Your message is saved.", nil
+		),
+		(
+			.model(.accessExhausted(.credits)),
+			"You're out of Credits. Buy more, or switch to your OpenRouter account.", .buyCredits
+		),
+	])
+	func failureAfterSavedWorkKeepsItsSentenceAndOffersNoReplay(
+		failure: CoachFailure, sentence: String, action: RecoveryAction?
+	) throws {
+		let state = settledState(.failed(failure, saved: memorySaved))
+		let shown = try #require(notice(of: state))
+		#expect(shown.sentence(in: english) == sentence)
+		#expect(shown.action == action)
+		#expect(!state.retryable)
+	}
+
+	@Test func savedWorkPicksTheInterruptedSentenceAndTheTurnAloneDecidesTryAgain() {
+		for cause in InterruptionCause.allCases {
+			let offered = AthleteNotices.notice(for: cause, saved: memorySaved, turn: turn)
+			#expect(offered.key == Catalog.chatTurnInterruptedSomeSaved)
+			#expect(offered.action == .tryAgain(turn))
+			let refused = AthleteNotices.notice(for: cause, saved: .none, turn: nil)
+			#expect(refused.key == Catalog.chatTurnInterruptedNothingChanged)
+			#expect(refused.action == nil)
+		}
+	}
+
 	@Test func savedUnverifiedOffersNoAction() {
 		let state = settledState(.savedWork(.savedUnverified, saved: memorySaved))
 		#expect(notice(of: state)?.key == Catalog.chatNoticeSavedUnverified)
