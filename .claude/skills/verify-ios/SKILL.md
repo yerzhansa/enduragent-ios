@@ -55,7 +55,8 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Notice | `notice.continue` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.working`, `chat.error`, `chat.slash.<command>` |
+| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
+| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Confirmed preview` group |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
