@@ -235,9 +235,21 @@ package struct Conversation: Sendable, Equatable {
 		return nil
 	}
 
-	package mutating func settle(_ turn: TurnID, with settled: SettledAttempt) {
+	package mutating func settleInMemory(
+		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID, now: Date,
+		zone: TimeZone, device: DeviceID
+	) {
 		guard let position = position(of: turn) else { return }
-		segments[position.segment].turns[position.turn].settlements.append(settled)
+		let facts = segments[position.segment].turns[position.turn]
+		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
+		segments[position.segment].turns[position.turn].settlements.append(
+			SettledAttempt(
+				ulid: ulid,
+				hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
+				civilDate: CivilDate(date: now, timeZone: zone),
+				attempt: attempt,
+				settlement: settlement
+			))
 	}
 
 	fileprivate mutating func appendToCurrent(_ facts: TurnFacts) {

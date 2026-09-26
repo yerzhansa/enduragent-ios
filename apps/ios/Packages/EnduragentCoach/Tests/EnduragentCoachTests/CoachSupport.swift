@@ -77,3 +77,26 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 
 	var imports: AsyncStream<Void> { inner.imports }
 }
+
+final class SlowAppendLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let delay: Duration
+
+	init(inner: any RecordLog, delay: Duration) {
+		self.inner = inner
+		self.delay = delay
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		try await Task.sleep(for: delay)
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try await inner.fetch(query)
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}

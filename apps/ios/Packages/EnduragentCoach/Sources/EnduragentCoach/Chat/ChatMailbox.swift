@@ -20,6 +20,7 @@ package actor ChatMailbox {
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
 	private var stopping = false
+	private let admission = Admission()
 	private var observers: [UUID: AsyncStream<ChatSnapshot>.Continuation] = [:]
 
 	package init(
@@ -61,6 +62,14 @@ package actor ChatMailbox {
 		if slash == .language {
 			return .showLanguagePicker
 		}
+		await admission.enter()
+		defer { admission.leave() }
+		return try await admit(Draft(id: draft.id, text: text), slash: slash)
+	}
+
+	private func admit(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
+		-> SendOutcome
+	{
 		do {
 			try await load()
 		} catch {
@@ -78,7 +87,7 @@ package actor ChatMailbox {
 		}
 		let minted = TurnID(ulid: await ledger.nextULID())
 		let writes = TurnLifecycle.writes(
-			for: .accept(Draft(id: draft.id, text: text), joining: joining, slash: slash),
+			for: .accept(draft, joining: joining, slash: slash),
 			on: joining.flatMap(conversation.turn),
 			chat: chatId,
 			device: ledger.deviceId,
@@ -113,9 +122,13 @@ package actor ChatMailbox {
 	}
 
 	package func stop() async {
+		await admission.enter()
 		let active = running
 		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
-		guard active != nil || !unstarted.isEmpty else { return }
+		guard active != nil || !unstarted.isEmpty else {
+			admission.leave()
+			return
+		}
 		stopping = true
 		window = nil
 		publish()
@@ -127,6 +140,7 @@ package actor ChatMailbox {
 				.interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none),
 				stamp: stamp, beforeStart: true)
 		}
+		admission.leave()
 		if let active {
 			active.cancel()
 			await active.value
@@ -221,7 +235,9 @@ package actor ChatMailbox {
 			} catch {
 				fatalError("Task.sleep failed: \(error)")
 			}
+			await self.admission.enter()
 			self.closeWindow(ifGeneration: generation)
+			self.admission.leave()
 		}
 	}
 
@@ -324,16 +340,10 @@ package actor ChatMailbox {
 	}
 
 	private func settleUnsaved(_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement) async {
-		guard let facts = conversation.turn(turn) else { return }
-		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
-		let settled = SettledAttempt(
-			ulid: await ledger.nextULID(),
-			hlc: HybridLogicalClock.tick(now: clock.now, deviceId: ledger.deviceId, last: last),
-			civilDate: CivilDate(date: clock.now, timeZone: clock.timeZone),
-			attempt: attempt,
-			settlement: settlement
-		)
-		conversation.settle(turn, with: settled)
+		let ulid = await ledger.nextULID()
+		conversation.settleInMemory(
+			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, zone: clock.timeZone,
+			device: ledger.deviceId)
 	}
 
 	private func drainFlush() async {

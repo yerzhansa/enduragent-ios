@@ -44,6 +44,46 @@ extension SwiftDataSuites {
 			#expect(snapshot.turns.count == 1)
 		}
 
+		@Test func concurrentAcceptsOfOneDraftWriteOneMessage() async throws {
+			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+			let coach = makeCoach(
+				transport: transport, store: recording, clock: clock,
+				coalescing: CoalescingPolicy(window: .seconds(60)))
+			let sent = draft("How was my week?")
+			async let first = coach.send(sent, to: .main)
+			async let second = coach.send(sent, to: .main)
+			let outcomes = try await [first, second]
+			#expect(outcomes[0] == outcomes[1])
+			#expect(recording.batches == [["userMessage"]])
+			#expect(try #require(await coach.currentSnapshot(.main)).turns.count == 1)
+		}
+
+		@Test func aFragmentSavedWhileTheWindowClosesReachesTheModel() async throws {
+			transport.script = [.text("Both days are on."), .finish(reason: .stop)]
+			let slow = SlowAppendLog(inner: InMemoryRecordLog(), delay: .milliseconds(200))
+			let coach = makeCoach(
+				transport: transport, store: slow, clock: clock,
+				coalescing: CoalescingPolicy(window: .milliseconds(300)))
+			let first = try #require(
+				try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+			try await Task.sleep(for: .milliseconds(200))
+			let second = try #require(
+				try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
+			_ = try #require(await coach.settledState(of: first, in: .main))
+			_ = try #require(await coach.settledState(of: second, in: .main))
+			let snapshot = try #require(await coach.currentSnapshot(.main))
+			let requested = transport.requests.compactMap {
+				$0.messages.last(where: { $0.role == .user })?.content
+			}
+			#expect(requested.count == snapshot.turns.count)
+			for turn in snapshot.turns {
+				let text = try #require(turn.athleteText)
+				#expect(
+					requested.contains { $0.hasPrefix(text) },
+					"turn \(text) never reached the model: \(requested)")
+			}
+		}
+
 		@Test func acceptWithFailingLedgerThrowsStorageUnavailable() async throws {
 			let store = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 			store.failNextAppend = true
