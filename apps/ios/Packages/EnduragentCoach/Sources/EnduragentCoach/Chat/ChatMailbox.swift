@@ -113,20 +113,24 @@ package actor ChatMailbox {
 	}
 
 	package func stop() async {
-		guard let running else { return }
+		let active = running
+		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
+		guard active != nil || !unstarted.isEmpty else { return }
 		stopping = true
+		window = nil
 		publish()
-		let queued = queuedTurns(includingActive: false)
 		work.removeAll { if case .turn = $0 { true } else { false } }
-		for turn in queued {
+		for turn in unstarted {
 			let stamp = await stamp(for: turn)
 			await settle(
 				turn, attempt: stamp.attempt,
 				.interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none),
 				stamp: stamp, beforeStart: true)
 		}
-		running.cancel()
-		await running.value
+		if let active {
+			active.cancel()
+			await active.value
+		}
 		stopping = false
 		publish()
 	}

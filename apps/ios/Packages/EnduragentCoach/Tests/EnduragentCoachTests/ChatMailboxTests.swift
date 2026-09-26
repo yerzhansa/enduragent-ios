@@ -100,6 +100,28 @@ import Testing
 		#expect(await coach.transcript(.main) == ["one", "two"])
 	}
 
+	@Test func stopInsideTheWindowSettlesTheTurnBeforeItStarts() async throws {
+		let transport = FakeModelTransport()
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = makeCoach(
+			transport: transport, store: recording, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.stop(.main)
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		guard
+			case .interrupted(let stopped)? = snapshot.turns.first(where: { $0.id == turn })?.state
+		else {
+			Issue.record("expected an interrupted turn, got \(snapshot.turns)")
+			return
+		}
+		#expect(stopped.cause == .stoppedBeforeStart)
+		#expect(stopped.notice.action == .tryAgain(turn))
+		#expect(snapshot.activity == .idle)
+		#expect(recording.batches == [["userMessage"], ["turnSettled"]])
+		#expect(transport.requests.isEmpty)
+	}
+
 	@Test func retryOfAwaitingRestartTurnClaimsUnderNewAttempt() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
