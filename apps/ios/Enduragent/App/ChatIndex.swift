@@ -12,6 +12,7 @@ final class ChatIndex {
 	private let isFixture: Bool
 	private let defaults: UserDefaults
 	private var entries: [ChatIndexEntry]
+	private(set) var loadError: Error?
 
 	init(isFixture: Bool, defaults: UserDefaults = .standard) {
 		self.isFixture = isFixture
@@ -20,10 +21,13 @@ final class ChatIndex {
 			entries = []
 			return
 		}
-		if let data = defaults.data(forKey: Self.defaultsKey),
-			let decoded = try? JSONDecoder().decode([ChatIndexEntry].self, from: data)
-		{
-			entries = decoded
+		if let data = defaults.data(forKey: Self.defaultsKey) {
+			do {
+				entries = try JSONDecoder().decode([ChatIndexEntry].self, from: data)
+			} catch {
+				entries = []
+				loadError = error
+			}
 		} else {
 			entries = []
 		}
@@ -33,12 +37,11 @@ final class ChatIndex {
 		entries
 	}
 
-	func add(id: ChatID, created: CivilDate) {
+	func add(id: ChatID, created: CivilDate) throws {
 		guard !entries.contains(where: { $0.id == id.rawValue }) else { return }
 		entries.insert(ChatIndexEntry(id: id.rawValue, created: created.rawValue), at: 0)
 		if isFixture { return }
-		if let data = try? JSONEncoder().encode(entries) {
-			defaults.set(data, forKey: Self.defaultsKey)
-		}
+		let data = try JSONEncoder().encode(entries)
+		defaults.set(data, forKey: Self.defaultsKey)
 	}
 }

@@ -4,6 +4,15 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct PromptAssemblyTests {
+	@Test func bundledPromptFilesLoad() {
+		#expect(!PromptResources.soul().isEmpty)
+		let skills = PromptResources.cyclingSkills()
+		#expect(!skills.isEmpty)
+		for skill in skills {
+			#expect(!skill.body.isEmpty)
+		}
+	}
+
 	@Test func prefixIsByteStableAcrossTwoCoaches() {
 		let first = PromptAssembly.cyclingPrefix(gated: false)
 		let second = PromptAssembly.cyclingPrefix(gated: false)

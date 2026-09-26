@@ -127,6 +127,9 @@ final class ShellModel {
 	}
 
 	func appear() async {
+		if let loadError = chatIndex.loadError {
+			errorLine = athleteFacing(failureMessage(loadError))
+		}
 		guard persistSession, route == .chat else { return }
 		do {
 			let services = try builder.completedServices()
@@ -141,7 +144,7 @@ final class ShellModel {
 	func startChatting() {
 		do {
 			_ = try builder.completedServices()
-			beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+			try beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
 			saveSession()
 			route = .chat
 		} catch {
@@ -150,14 +153,18 @@ final class ShellModel {
 	}
 
 	func newChat() {
-		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-		saveSession()
-		seam = .empty
-		confirmLine = nil
-		errorLine = nil
-		composer = ""
-		slashListVisible = false
-		showSidebar = false
+		do {
+			try beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+			saveSession()
+			seam = .empty
+			confirmLine = nil
+			errorLine = nil
+			composer = ""
+			slashListVisible = false
+			showSidebar = false
+		} catch {
+			errorLine = athleteFacing(failureMessage(error))
+		}
 	}
 
 	func openChat(_ id: ChatID) async {
@@ -181,17 +188,21 @@ final class ShellModel {
 			return
 		}
 		var rows: [ChatSummary] = []
-		for entry in chatIndex.all() {
-			guard let id = ChatID(rawValue: entry.id),
-				let created = CivilDate(rawValue: entry.created)
-			else {
-				continue
+		do {
+			for entry in chatIndex.all() {
+				guard let id = ChatID(rawValue: entry.id),
+					let created = CivilDate(rawValue: entry.created)
+				else {
+					continue
+				}
+				let messages = try await services.coach.history(chatId: id)
+				let title = messages.first(where: { $0.role == .user })?.text ?? "New chat"
+				rows.append(ChatSummary(id: id, title: title, civilDate: created))
 			}
-			let messages = await services.coach.history(chatId: id)
-			let title = messages.first(where: { $0.role == .user })?.text ?? "New chat"
-			rows.append(ChatSummary(id: id, title: title, civilDate: created))
+			history = rows
+		} catch {
+			errorLine = athleteFacing(failureMessage(error))
 		}
-		history = rows
 	}
 
 	func loadCredits() async {
@@ -294,10 +305,10 @@ final class ShellModel {
 		}
 	}
 
-	private func beginChat(_ id: ChatID?) {
+	private func beginChat(_ id: ChatID?) throws {
 		guard let id else { return }
 		chatId = id
-		chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
+		try chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
 	}
 
 	private func restoreSessionIfNeeded() {
@@ -336,9 +347,13 @@ final class ShellModel {
 	}
 
 	private func refreshSeam(from services: AppServices) async {
-		var next = await services.coach.snapshot(chatId: chatId)
-		next.streamingText = ""
-		seam = next
+		do {
+			var next = try await services.coach.snapshot(chatId: chatId)
+			next.streamingText = ""
+			seam = next
+		} catch {
+			errorLine = athleteFacing(failureMessage(error))
+		}
 	}
 
 	private func failureMessage(_ error: Error) -> String {

@@ -21,7 +21,44 @@ import Testing
 
 	@Test func coachStartsWithNoHistory() async throws {
 		let coach = makeCoach()
-		#expect(await coach.history(chatId: "main").isEmpty)
+		#expect(try await coach.history(chatId: "main").isEmpty)
+	}
+
+	@Test func historyPropagatesARecordReadFailure() async {
+		let coach = Coach(
+			sport: .cycling,
+			transport: transport,
+			intervals: intervals,
+			store: FetchFailingLog(),
+			clock: clock,
+			language: .init(ui: .en, coachReply: nil)
+		)
+		await #expect(throws: RecordDecodeFailure.self) {
+			try await coach.history(chatId: "main")
+		}
+	}
+
+	@Test func wellnessFailureFailsTheTurn() async {
+		intervals.loadFailure = IntervalsError(
+			code: "unavailable", details: "wellness unavailable")
+		transport.script = [.text("hi"), .finish(reason: .stop)]
+		let coach = makeCoach()
+		await #expect(throws: IntervalsError.self) {
+			for try await _ in coach.send("hello", chatId: "main") {}
+		}
+	}
+
+	@Test func invalidToolArgumentsReturnAToolError() async throws {
+		transport.script = [
+			.toolCall(name: "memory_read", arguments: "not-json"),
+			.finish(reason: .toolCalls),
+			.text("ok"),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach()
+		for try await _ in coach.send("read memory", chatId: "main") {}
+		let followUp = try #require(transport.requests.dropFirst().first)
+		#expect(followUp.messages.contains { $0.content.contains("invalid_arguments") })
 	}
 
 	@Test func replyStreamsTextThenFinishes() async throws {
@@ -42,7 +79,7 @@ import Testing
 
 		#expect(text == "Your week: two rides, 3 h 10 min.")
 		#expect(finished)
-		#expect(await coach.history(chatId: "main").count == 2)
+		#expect(try await coach.history(chatId: "main").count == 2)
 
 		let request = transport.requests[0]
 		#expect(request.stream == true)
@@ -72,7 +109,7 @@ import Testing
 		#expect(finished)
 		#expect(failed == nil)
 		#expect(
-			await coach.history(chatId: "main").map(\.text) == [
+			try await coach.history(chatId: "main").map(\.text) == [
 				"Give me a ride for tomorrow",
 				"Tomorrow's ride is queued.",
 			])
@@ -96,7 +133,7 @@ import Testing
 		#expect(finished)
 		#expect(failed == nil)
 		#expect(
-			await coach.history(chatId: "main").map(\.text) == [
+			try await coach.history(chatId: "main").map(\.text) == [
 				"Give me a ride for tomorrow",
 				"Tomorrow's ride is queued.",
 			])
@@ -112,7 +149,7 @@ import Testing
 			}
 		}
 		#expect(failed == "CHAT_PROVIDER_ERROR")
-		#expect(await coach.history(chatId: "main").isEmpty)
+		#expect(try await coach.history(chatId: "main").isEmpty)
 	}
 
 	@Test func toolCallRunsAndFeedsBackIntoTheTurn() async throws {
@@ -156,7 +193,7 @@ import Testing
 		for try await _ in coach.send(
 			"Remember that I ride with a group on Saturdays", chatId: "main")
 		{}
-		await coach.waitForMemoryFlush()
+		try await coach.waitForMemoryFlush()
 
 		let hits = try await coach.memory.query(
 			from: "1998-06-01", to: "1998-06-30", contains: "Saturdays")
@@ -191,7 +228,7 @@ import Testing
 				return false
 			}
 		)
-		#expect(await coach.pendingProposal(chatId: "main")?.nonce == pending.nonce)
+		#expect(try await coach.pendingProposal(chatId: "main")?.nonce == pending.nonce)
 	}
 
 	@Test func calendarProposalSurvivesProviderErrorFinish() async throws {
@@ -218,9 +255,9 @@ import Testing
 		#expect(failed == nil)
 		#expect(try #require(proposal).summary == "Create workout \"Endurance\" on 1998-06-14")
 		#expect(
-			await coach.history(chatId: "main").map(\.text).contains(
+			try await coach.history(chatId: "main").map(\.text).contains(
 				"I've prepared the ride. Confirm to add it."))
-		#expect(await coach.pendingProposal(chatId: "main") != nil)
+		#expect(try await coach.pendingProposal(chatId: "main") != nil)
 	}
 
 	@Test func confirmRunsTheWriteOnce() async throws {
@@ -234,7 +271,7 @@ import Testing
 			intervals.calls.last
 				== .createEvent(
 					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
-		#expect(await coach.pendingProposal(chatId: "main") == nil)
+		#expect(try await coach.pendingProposal(chatId: "main") == nil)
 
 		let again = try await coach.confirm(chatId: "main", nonce: pending.nonce)
 		#expect(again == .none)
@@ -257,5 +294,15 @@ import Testing
 			if case .proposalPending(let pending) = event { proposal = pending }
 		}
 		return try #require(proposal)
+	}
+}
+
+private struct FetchFailingLog: RecordLog {
+	let deviceId = DeviceID()
+
+	func append(_ record: AthleteRecord) async throws {}
+
+	func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
+		throw RecordDecodeFailure(reason: "unreadable")
 	}
 }

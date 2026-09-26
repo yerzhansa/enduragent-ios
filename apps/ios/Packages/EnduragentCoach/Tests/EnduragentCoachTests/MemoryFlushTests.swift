@@ -73,7 +73,7 @@ import Testing
 		}
 		#expect(finished)
 		#expect(sawLedgerBeforeFinish == false)
-		await coach.waitForMemoryFlush()
+		try await coach.waitForMemoryFlush()
 		let hits = try await coach.memory.query(
 			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
 		#expect(hits.count == 1)

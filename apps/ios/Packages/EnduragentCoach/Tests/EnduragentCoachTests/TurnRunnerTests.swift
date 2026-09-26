@@ -78,7 +78,7 @@ import Testing
 		}
 		#expect(events == [.finished])
 		#expect(transport.requests.isEmpty)
-		#expect(await coach.history(chatId: "main").isEmpty)
+		#expect(try await coach.history(chatId: "main").isEmpty)
 	}
 
 	private func makeCoach() -> Coach {

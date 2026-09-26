@@ -1681,6 +1681,16 @@
         }
       }
     },
+    "archive.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        }
+      }
+    },
     "archive.listFailure": {
       "localizations": {
         "en": {
@@ -3791,6 +3801,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "此對話已無法使用。"
+          }
+        }
+      }
+    },
+    "chat.addToCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to calendar"
           }
         }
       }
@@ -12817,6 +12837,16 @@
         }
       }
     },
+    "chat.composer.messageField": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        }
+      }
+    },
     "chat.composer.messagePlaceholder": {
       "localizations": {
         "en": {
@@ -13131,6 +13161,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "傳送訊息"
+          }
+        }
+      }
+    },
+    "chat.composer.sendButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
           }
         }
       }
@@ -16537,6 +16577,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "重試載入記錄"
+          }
+        }
+      }
+    },
+    "chat.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
           }
         }
       }
@@ -62285,6 +62335,16 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "chat.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
           }
         }
       }
@@ -110217,6 +110277,124 @@
         }
       }
     },
+    "credits.balance": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.buy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy"
+          }
+        }
+      }
+    },
+    "credits.pack": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.packPrice": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.testers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testers cannot buy packs yet."
+          }
+        }
+      }
+    },
+    "credits.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits"
+          }
+        }
+      }
+    },
     "desktop.credentials.macRecovery": {
       "localizations": {
         "en": {
@@ -121143,12 +121321,100 @@
         }
       }
     },
+    "onboarding.connect.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        }
+      }
+    },
+    "onboarding.connect.apiKey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API key"
+          }
+        }
+      }
+    },
+    "onboarding.connect.fatigue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatigue %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.fitness": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitness %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.form": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip for now"
+          }
+        }
+      }
+    },
     "onboarding.notice.health": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        }
+      }
+    },
+    "onboarding.starter.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start chatting"
           }
         }
       }
@@ -283543,6 +283809,16 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "sidebar.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
           }
         }
       }

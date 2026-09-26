@@ -205,14 +205,22 @@ public enum JSONValue: Sendable, Equatable {
 	case array([JSONValue])
 	case object([String: JSONValue])
 
-	public static func parse(_ raw: String) throws -> JSONValue {
-		guard let data = raw.data(using: .utf8) else {
+	public static func parse(_ raw: String) throws(DecodingError) -> JSONValue {
+		do {
+			guard let data = raw.data(using: .utf8) else {
+				throw DecodingError.dataCorrupted(
+					.init(codingPath: [], debugDescription: "invalid JSON")
+				)
+			}
+			let object = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+			return try JSONValue.fromJSONObject(object)
+		} catch let error as DecodingError {
+			throw error
+		} catch {
 			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: "invalid JSON")
+				.init(codingPath: [], debugDescription: String(describing: error))
 			)
 		}
-		let object = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-		return try JSONValue.fromJSONObject(object)
 	}
 
 	public func canonicalDigestInput() -> String {

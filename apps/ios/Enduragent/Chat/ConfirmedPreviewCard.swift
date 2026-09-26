@@ -11,11 +11,11 @@ struct ConfirmedPreviewCard: View {
 				Text(pending.description)
 					.frame(maxWidth: .infinity, alignment: .leading)
 				HStack {
-					Button("Cancel") {
+					Button(model.builder.phrasebook.say(Catalog.commonCancel, [:])) {
 						model.cancelPending()
 					}
 					.accessibilityIdentifier("chat.preview.cancel")
-					Button("Add to calendar") {
+					Button(model.builder.phrasebook.say(Catalog.chatAddToCalendar, [:])) {
 						Task { await model.confirmPending() }
 					}
 					.accessibilityIdentifier("chat.preview.add")

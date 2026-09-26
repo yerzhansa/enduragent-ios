@@ -27,7 +27,7 @@ import Testing
 		async let second = collectText(coach.send("two", chatId: "main"))
 		let texts = try await [first, second]
 		#expect(texts == ["first", "second"])
-		let history = await coach.history(chatId: "main")
+		let history = try await coach.history(chatId: "main")
 		#expect(history.map(\.text) == ["one", "first", "two", "second"])
 	}
 
@@ -44,7 +44,7 @@ import Testing
 		)
 		let stream = coach.send("hang", chatId: "main")
 		for _ in 0..<80 {
-			if await coach.snapshot(chatId: "main").phase == .streaming {
+			if try await coach.snapshot(chatId: "main").phase == .streaming {
 				break
 			}
 			try await Task.sleep(for: .milliseconds(10))

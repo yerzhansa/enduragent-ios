@@ -5,8 +5,18 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2417)
-		#expect(Catalog.keyCount == 2453)
+		#expect(Catalog.englishLeafCount == 2440)
+		#expect(Catalog.keyCount == 2479)
+	}
+
+	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {
+		let book = CatalogPhrasebook(tag: .en, locale: "en")
+		#expect(book.say(Catalog.onboardingConnectApiKey) == "intervals.icu API key")
+		#expect(
+			book.say(Catalog.creditsBalance, ["count": "1", "formattedCount": "1"]) == "1 credit")
+		#expect(
+			book.say(Catalog.creditsBalance, ["count": "12", "formattedCount": "12"])
+				== "12 credits")
 	}
 
 	@Test func italianCancelUsesTheItalianCatalog() {

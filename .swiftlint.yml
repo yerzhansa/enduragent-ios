@@ -5,8 +5,6 @@ excluded:
   - apps/ios/Packages/EnduragentCoach/.build
   - apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/I18n/CatalogKey.generated.swift
 
-baseline: .swiftlint-baseline.json
-
 only_rules:
   - custom_rules
   - fatal_error_message

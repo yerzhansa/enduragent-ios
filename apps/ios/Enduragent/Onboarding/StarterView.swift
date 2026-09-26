@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct StarterView: View {
@@ -11,7 +12,7 @@ struct StarterView: View {
 						.accessibilityIdentifier("starter.credits")
 				}
 				if model.starterResolved {
-					Button("Start chatting") {
+					Button(model.builder.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
 						model.startChatting()
 					}
 					.accessibilityIdentifier("starter.start")

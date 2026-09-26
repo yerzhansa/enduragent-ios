@@ -67,17 +67,16 @@ public actor Coach {
 		}
 	}
 
-	public func history(chatId: ChatID) async -> [ChatMessage] {
-		(try? await loadHistory(chatId: chatId)) ?? []
+	public func history(chatId: ChatID) async throws -> [ChatMessage] {
+		try await loadHistory(chatId: chatId)
 	}
 
-	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
-		let records =
-			(try? await store.fetch(
-				RecordQuery(
-					kinds: [.pendingProposal, .proposalCleared], chatId: chatId,
-					deviceLocalOnly: true)
-			)) ?? []
+	public func pendingProposal(chatId: ChatID) async throws -> PendingProposal? {
+		let records = try await store.fetch(
+			RecordQuery(
+				kinds: [.pendingProposal, .proposalCleared], chatId: chatId,
+				deviceLocalOnly: true)
+		)
 		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
 		else {
 			return nil
@@ -125,7 +124,7 @@ public actor Coach {
 		}
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async {
+	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
 		language.coachReply = tag
 		let tz =
 			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
@@ -137,12 +136,12 @@ public actor Coach {
 			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
 			body: .coachReplyLanguage(CoachReplyLanguageBody(tag: tag))
 		)
-		try? await store.append(record)
+		try await store.append(record)
 	}
 
-	public func waitForMemoryFlush() async {
+	public func waitForMemoryFlush() async throws {
 		for box in mailboxes.values {
-			await box.runQueuedFlush()
+			try await box.runQueuedFlush()
 		}
 	}
 
@@ -150,9 +149,9 @@ public actor Coach {
 		await mailbox(for: chatId).stop()
 	}
 
-	public func snapshot(chatId: ChatID) async -> ViewSeam {
-		let transcript = await history(chatId: chatId)
-		let pending = await pendingProposal(chatId: chatId)
+	public func snapshot(chatId: ChatID) async throws -> ViewSeam {
+		let transcript = try await history(chatId: chatId)
+		let pending = try await pendingProposal(chatId: chatId)
 		let box = mailbox(for: chatId)
 		let busy = await box.busy
 		let phase: TurnPhase

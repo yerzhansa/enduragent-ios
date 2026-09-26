@@ -78,27 +78,49 @@ package actor ChatMailbox {
 		current?.cancel()
 	}
 
-	package func reset() async {
-		await enqueue {
-			let writerWait = RecordLogReset(store: self.store, clock: self.clock)
-			try? await writerWait.run(chatId: self.chatId)
+	private var flushFailure: Error?
+
+	package func reset() async throws {
+		let previous = tail
+		let next = Task {
+			await previous.value
+			guard !Task.isCancelled else { return }
+			do {
+				let writerWait = RecordLogReset(store: self.store, clock: self.clock)
+				try await writerWait.run(chatId: self.chatId)
+			} catch is CancellationError {
+				return
+			} catch {
+				self.noteFailure(error)
+			}
 		}
+		tail = next
+		current = next
+		await next.value
+		try throwFlushFailure()
 	}
 
-	package func runQueuedFlush() async {
+	package func runQueuedFlush() async throws {
 		if let inFlight = flushTask {
 			await inFlight.value
+			try throwFlushFailure()
 			return
 		}
 		let previous = tail
 		let next = Task {
 			await previous.value
 			guard !Task.isCancelled else { return }
-			try? await self.memory.flush(
-				trigger: .softThreshold,
-				chatId: self.chatId,
-				transport: self.transport
-			)
+			do {
+				try await self.memory.flush(
+					trigger: .softThreshold,
+					chatId: self.chatId,
+					transport: self.transport
+				)
+			} catch is CancellationError {
+				return
+			} catch {
+				self.noteFailure(error)
+			}
 		}
 		tail = next
 		current = next
@@ -106,6 +128,18 @@ package actor ChatMailbox {
 		await next.value
 		if flushTask != nil {
 			flushTask = nil
+		}
+		try throwFlushFailure()
+	}
+
+	private func noteFailure(_ error: Error) {
+		flushFailure = error
+	}
+
+	private func throwFlushFailure() throws {
+		if let flushFailure {
+			self.flushFailure = nil
+			throw flushFailure
 		}
 	}
 
