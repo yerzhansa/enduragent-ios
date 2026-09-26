@@ -169,6 +169,12 @@ import Testing
 		#expect(!settled.retryable)
 		#expect(chatRequests() == 2)
 		#expect(clock.slept.isEmpty)
+		let section = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records.first)
+		let claim = try #require(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
+				.records.first)
+		#expect(section.cause == claim.cause)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(turn, in: .main)
 		}

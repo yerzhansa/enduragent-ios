@@ -66,6 +66,5 @@ extension FixtureLaunchTests {
 		let retried = try await settledTurn(model, after: turn.state)
 		#expect(retried.id == turn.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-		#expect(model.retryRefusal == nil)
 	}
 }

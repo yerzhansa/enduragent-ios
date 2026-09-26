@@ -34,6 +34,7 @@ package struct DiagnosticsEntry: Sendable, Equatable {
 
 package enum DiagnosticsEvent: Sendable, Equatable {
 	case providerFailure(AttemptID, ProviderFailure, detail: String)
+	case toolFailed(AttemptID, ToolName, detail: String)
 	case memoryFlushFailed(ChatID, detail: String)
 	case compactionFailed(ChatID, detail: String)
 	case replyObservedUnsaved(AttemptID, detail: String)
@@ -43,6 +44,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 		switch self {
 		case .providerFailure(let attempt, let failure, let detail):
 			return .providerFailure(attempt, failure, detail: Redaction.clean(detail, secrets))
+		case .toolFailed(let attempt, let tool, let detail):
+			return .toolFailed(attempt, tool, detail: Redaction.clean(detail, secrets))
 		case .memoryFlushFailed(let chat, let detail):
 			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .compactionFailed(let chat, let detail):
