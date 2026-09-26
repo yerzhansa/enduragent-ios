@@ -5,24 +5,29 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 ## Sub-features
 
 - `chat-greeting` shows `Hello, Ada.`, or `Hello.` after a skipped connect, above an empty transcript, with the disclaimer `Not medical advice, and not a substitute for a doctor or a certified coach.` under the composer.
-- `chat-send` posts the athlete's message and clears the composer.
+- `chat-send` saves the athlete's message before the model runs, shows it in the transcript the moment Send is tapped, and clears the composer.
+- `chat-draft` keeps typed, unsent text in the composer across a kill and relaunch, and shows `Not sent. Your draft is still here.` in `chat.composer.notSent` when the message could not be saved.
 - `chat-reply` shows the coach's reply under the message.
-- `chat-working` shows `Coach is working…` in `chat.working` while the turn has no reply text yet.
-- `chat-streaming` shows the reply growing under the working row while the coach is still answering.
-- `chat-failed` shows `The coach couldn't respond. Please try again.` in `chat.error` when the model fails, with no Swift type name.
+- `chat-working` shows `Coach is working…` in `chat.working` under the message while the turn has no reply text yet.
+- `chat-streaming` shows the reply growing under the message with the working row staying under the reply text while the coach is still answering.
+- `chat-stop` shows `Stop responding` in `chat.stop` while a turn runs; tapping it stops the turn and shows `Response stopped. Your partial response is preserved.` with `Try again`.
+- `chat-failed` shows `The coach couldn't respond. Please try again.` in `chat.turn.notice` under the message when the model fails, with a `Try again` button in `chat.turn.tryAgain` and no Swift type name. `chat.error` no longer exists for turns.
+- `chat-try-again` answers the same message again under a new attempt; Records lists one more `turnClaim` and the turn's `turnSettled`.
 - `chat-relaunch` reopens on the chat with the transcript after the app is killed and relaunched with the kept store.
+- `chat-accepted-relaunch` shows a message that was sent but never answered before the app closed once, with `Received before the app closed. Tap Try again to send it.` in `chat.turn.receivedBeforeClose` and `Try again`; nothing runs until the tap.
+- `chat-coalesce` joins two free-text messages sent within 1.5 seconds into one turn whose athlete text has both lines; Records lists `userMessage 2` with one turn.
 - `chat-review` answers `/review` with the Saturday group ride.
 - `chat-slash-list` lists `/review`, `/status`, `/workout`, and `/language` above the composer, and never `/plan`.
 - `chat-slash-fill` fills the composer with the chosen command and a space, which hides the list.
-- `chat-plan` answers `/plan` with `Plans arrive in the next TestFlight.` in `chat.error` and adds nothing to the transcript.
+- `chat-plan` sends `/plan` to the coach as an ordinary message; the fixture answers with the week summary.
 - `chat-new` clears the transcript back to the greeting.
 - `chat-no-network` keeps `fixture.requestCount` at `0 requests` through every turn.
 
 ## How to get to it (user POV)
 
 - Finish onboarding. The chat opens.
-- Tap `Message`, type, and choose `Send`.
-- Type `/` as the first character in `Message`.
+- Tap `Message your coach`, type, and choose `Send message`.
+- Type `/` as the first character in `Message your coach`.
 - Choose `New chat` in the top bar.
 - Choose `Menu`, then `Debug`, to read the request count.
 
@@ -37,20 +42,25 @@ Preconditions:
 - **Review command.** Send `/review`. Run `sim.mjs test <run id> ReviewProof`. The reply contains `Saturday group ride` and `Training Load`. Attachment `05-review` shows it.
 - **Slash list.** Tap `chat.composer` and type `/`. Run `sim.mjs test <run id> SlashListNoPlanProof`. `chat.slash.review`, `chat.slash.status`, `chat.slash.workout`, and `chat.slash.language` exist, and `chat.slash.plan` does not. Attachment `slash-list-no-plan` shows the list.
 - **Fill from the list.** This step is interactive. With the list open, tap `chat.slash.status`. The composer reads `/status ` and the list disappears. Capture it with `sim.mjs shot <run id> slash-filled`.
-- **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `chat.error` reads `Plans arrive in the next TestFlight.`, no `/plan` message appears in the transcript, the composer still reads `/plan`, and the slash list stays open. Capture it with `sim.mjs shot <run id> plan-refused`.
+- **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `/plan` appears as the athlete's message and the week summary follows. Capture it with `sim.mjs shot <run id> plan-sent`.
 - **New chat.** This step is interactive. After a reply, tap the `New chat` button. The transcript returns to the greeting and the composer is empty. Capture it with `sim.mjs shot <run id> new-chat`.
 - **No network.** Tap `chat.sidebar`, then `sidebar.debug`. `fixture.requestCount` reads `0 requests`. Capture it with `sim.mjs shot <run id> request-count`. `FirstConversationProof` asserts the same value.
-- **Working and streaming.** Send `fixture:slow`. Run `sim.mjs test <run id> SlowReplyProof`. Attachment `slow-reply-working` shows `Coach is working…` with no reply text, `slow-reply-streaming` shows part of the week summary under the working row, and `slow-reply-done` shows the whole reply with the working row gone. Interactively, send `fixture:slow` and take `sim.mjs shot <run id> working` within one second and `sim.mjs shot <run id> streaming` at about three seconds.
-- **Failed reply.** Send `fixture:fail 500`. Run `sim.mjs test <run id> FailedReplyProof`. `chat.error` reads `The coach couldn't respond. Please try again.` and nothing on screen names `OpenRouterHTTPError`. Attachment `failed-reply` shows it. `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, and `fixture:fail overflow` fail the next request with the matching error.
-- **Hang and watchdog.** This step is interactive. Send `fixture:hang` and wait 35 seconds. `chat.working` shows for 30 seconds, then `chat.error` reads `The coach couldn't respond. Please try again.` Capture it with `sim.mjs shot <run id> hang-watchdog`.
-- **Storage fault.** This step is interactive. Send `fixture:storage fail-next-append`; the composer clears and the transcript does not change. Then send `What did my training look like this week?`. The reply streams, then the turn fails when it saves, and the failure text appears in `chat.error`. Menu, Debug, Records lists no `userMessage` row for the question. Capture it with `sim.mjs shot <run id> storage-fault`.
+- **Working and streaming.** Send `fixture:slow`. Run `sim.mjs test <run id> SlowReplyProof`. Attachment `slow-reply-working` shows `Coach is working…` under the message with no reply text, `slow-reply-streaming` shows part of the week summary with the working row still under it, and `slow-reply-done` shows the whole reply with the working row gone. Interactively, send `fixture:slow` and take `sim.mjs shot <run id> working` within one second and `sim.mjs shot <run id> streaming` at about three seconds.
+- **Failed reply and Try again.** Send `fixture:fail 500`. Run `sim.mjs test <run id> FailedReplyProof`. `chat.turn.notice` reads `The coach couldn't respond. Please try again.` with `chat.turn.tryAgain` under it, `chat.error` does not exist, and nothing on screen names `OpenRouterHTTPError`. Attachment `failed-reply` shows it. Tapping `chat.turn.tryAgain` answers the message with the week summary. `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, and `fixture:fail overflow` fail the next request with the matching error.
+- **Hang and watchdog.** This step is interactive. Send `fixture:hang` and wait 35 seconds. `chat.working` shows for 30 seconds, then `chat.turn.notice` reads `The coach couldn't respond. Please try again.` with `Try again`. Capture it with `sim.mjs shot <run id> hang-watchdog`.
+- **Send, kill, reopen, Try again.** Send `fixture:hang`, terminate the app, and relaunch with the kept store. Run `sim.mjs test <run id> AcceptSurvivesKillProof`. Attachment `accept-kill-reopen` shows the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`, `accept-kill-records` lists `userMessage 1` and `turnClaim 1` with no `turnSettled`, and `accept-kill-try-again` shows the week summary after the tap with `turnClaim 2` and `turnSettled 1`. Interactively, send `fixture:hang`, run `sim.mjs launch <run id> --keep`, and tap `chat.turn.tryAgain`.
+- **Storage fault.** Send `fixture:storage fail-next-append`. Run `sim.mjs test <run id> StorageFaultStoresNothingProof`. The directive itself is the message that fails to save: the composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. After a relaunch with the kept store the composer still holds the text and Records lists no `userMessage`. Attachments `storage-fault-not-sent` and `storage-fault-records` show it.
+- **Stop.** This step is interactive. Send `fixture:slow`, wait about three seconds, and tap `chat.stop`. The streamed text stays dimmed under the message with `Response stopped. Your partial response is preserved.` and `Try again`. Capture it with `sim.mjs shot <run id> stopped`.
+- **Coalescing.** This step is interactive. Send two plain messages within one second. The transcript shows one turn whose athlete text has both lines, and Menu, Debug, Records lists `userMessage 2`. Capture it with `sim.mjs shot <run id> coalesce`.
+- **Draft survives.** This step is interactive. Type a message, do not send, and run `sim.mjs launch <run id> --keep`. The composer holds the typed text and the transcript has no new message. Capture it with `sim.mjs shot <run id> draft-survives`.
 - **Relaunch with the kept store.** After a reply, kill and reopen the app with the kept store. Run `sim.mjs test <run id> RelaunchKeepsChatProof`. The chat shows the question and the reply and the notice is not on screen. Attachment `relaunch-keeps-chat` shows it. Interactively, run `sim.mjs launch <run id> --keep` after a reply.
 
 ## Gotchas
 
 - The fixture transport answers with no delay unless the message is `fixture:slow`. Only that directive keeps `chat.working` and the streamed text on screen long enough to capture.
-- A `fixture:` directive is typed as a message. `fixture:slow`, `fixture:hang`, and `fixture:fail ...` appear in the transcript as the athlete's message. `fixture:storage fail-next-append` does not: it arms the next write and sends nothing.
-- `fixture:slow` and `fixture:hang` apply to that message only. The next plain message answers at once.
+- A `fixture:` directive is typed as a message. `fixture:slow`, `fixture:hang`, and `fixture:fail ...` appear in the transcript as the athlete's message. `fixture:storage fail-next-append` arms the record store before its own save, so it is the message that fails and stays in the composer.
+- `fixture:slow` and `fixture:hang` apply to that message only. The next plain message answers at once. `Try again` on a directive message replays only the scripted reply, never the directive, so a retried `fixture:hang` answers with the week summary.
+- Every send waits 1.5 seconds for a second message to join the same turn before the coach starts. Replies arrive that much later than the tap.
 - After `fixture:hang`, wait the full 30 seconds. Sending another message before the watchdog fires queues it behind the hung turn.
 - The fixture picks a reply from the message text, and any unmatched text gets the week summary. A wrong prompt still gets a reply, so assert the specific reply text.
 - `/status` and `/workout` get the week summary in the fixture, and the command itself appears as the athlete's message. The workout preview needs a message containing `endurance ride`.

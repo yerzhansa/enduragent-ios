@@ -15,6 +15,9 @@ enum TutorialHarness {
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let responseFailure = "The coach couldn't respond. Please try again."
+	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
+	static let notSent = "Not sent. Your draft is still here."
+	static let tryAgain = "Try again"
 	static let storeArgument = "-EnduragentFixtureStore"
 
 	static func launch(_ app: XCUIApplication, dark: Bool = false) {
