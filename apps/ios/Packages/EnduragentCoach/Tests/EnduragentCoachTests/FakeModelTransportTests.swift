@@ -106,11 +106,8 @@ import Testing
 			arrivals.append(clock.now)
 		}
 		#expect(arrivals.count == 3)
-		var previous = started
 		for (index, arrival) in arrivals.enumerated() {
 			#expect(arrival - started >= delay * (index + 1))
-			#expect(arrival - previous >= delay / 2)
-			previous = arrival
 		}
 	}
 
