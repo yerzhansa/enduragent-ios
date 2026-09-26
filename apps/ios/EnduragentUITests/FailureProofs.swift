@@ -5,7 +5,7 @@ final class FailedReplyProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 500")
+		TutorialHarness.send(app, "fixture:fail 500 x3")
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
 		TutorialHarness.wait(notice)
 		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
@@ -26,18 +26,49 @@ final class FailureCopyProof: XCTestCase {
 		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerCredentials))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "failure-copy-credentials", app: app)
-		TutorialHarness.send(app, "fixture:fail network")
+		TutorialHarness.send(app, "fixture:fail network x3")
 		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerDown))
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.turn.tryAgain"))
 		TutorialHarness.attach(self, name: "failure-copy-network", app: app)
-		TutorialHarness.send(app, "fixture:fail 429 7")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.rateLimitSevenSeconds))
+		TutorialHarness.send(app, "fixture:fail 429 7 x4")
+		TutorialHarness.wait(
+			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-copy-rate-limited", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class RetryLadderProof: XCTestCase {
+	func testRetryLadder() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:fail 500")
+		let sent = Date()
+		let weekReply = app.staticTexts.containing(
+			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply)
+		).firstMatch
+		TutorialHarness.wait(weekReply, timeout: 20)
+		let reply = XCTAttachment(
+			string: String(format: "send-to-reply %.2f s", Date().timeIntervalSince(sent)))
+		reply.name = "retry-ladder-send-to-reply"
+		reply.lifetime = .keepAlways
+		add(reply)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		TutorialHarness.attach(self, name: "retry-ladder-reply", app: app)
+		TutorialHarness.send(app, "fixture:fail 429 7 x4")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
+		TutorialHarness.wait(
+			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		assertNoWireDetail(app)
+		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
+	}
+}
+
+private let rateLimitWait: TimeInterval = 40
 
 private func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
 	app.staticTexts.matching(
