@@ -98,7 +98,7 @@ public struct RecordPage: Sendable, Equatable {
 	}
 }
 
-public enum SkippedRow: Error, Sendable, Equatable {
+public enum SkippedRow: Error, Sendable, Hashable {
 	case newerKind(kind: String, ulid: String)
 	case newerVersion(kind: String, version: Int, ulid: String)
 	case malformed(kind: String, ulid: String)

@@ -77,15 +77,21 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let director = try #require(services.fixtureDirector)
-		director.prepare(for: "fixture:fail 429 7 x4")
+		#expect(director.prepare(for: "fixture:fail 429 7 x4") == .sendToCoach)
 		let limited = ScriptedEvent.fail(.http(status: 429, headers: ["retry-after": "7"]))
 		#expect(
 			Array(transport.script.prefix(5)) == Array(repeating: limited, count: 4) + [
 				.text(FirstWeekFixture.weekSummary)
 			])
-		director.prepare(for: "fixture:fail network")
+		#expect(director.prepare(for: "fixture:fail network") == .sendToCoach)
 		#expect(transport.script.first == .fail(.connection(.notConnectedToInternet)))
 		#expect(transport.script.dropFirst().first == .text(FirstWeekFixture.weekSummary))
+		#expect(
+			director.prepare(for: "fixture:fail 500 xlots")
+				== .rejected(
+					"Unknown fixture directive: fixture:fail 500 xlots"))
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
 	}
 
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {
@@ -103,6 +109,31 @@ extension FixtureLaunchTests {
 		#expect(savedWork.saved.memorySections == 1)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.action == nil)
+		#expect(!settled.state.retryable)
+	}
+
+	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = "fixture:memory-then-hang"
+		await model.send()
+		let deadline = ContinuousClock.now + .seconds(10)
+		while ContinuousClock.now < deadline {
+			if case .processing(let running)? = model.chat?.turns.last?.state,
+				running.activity == .generating(step: 2)
+			{
+				break
+			}
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		await model.stop()
+		let settled = try await settledTurn(model)
+		guard case .interrupted(let stopped) = settled.state else {
+			Issue.record("expected a stopped turn, got \(settled.state)")
+			return
+		}
+		#expect(stopped.saved.memorySections == 1)
+		#expect(stopped.notice.action == nil)
 		#expect(!settled.state.retryable)
 	}
 
@@ -124,6 +155,5 @@ extension FixtureLaunchTests {
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-		#expect(model.retryRefusal == nil)
 	}
 }

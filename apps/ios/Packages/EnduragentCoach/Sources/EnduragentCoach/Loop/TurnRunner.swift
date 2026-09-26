@@ -102,7 +102,7 @@ package struct TurnRunner: Sendable {
 			return AttemptReport(
 				result: .failed(
 					failure.coachFailure(for: attempt.access.method),
-					saved: WriteSummary(await scope.written)),
+					saved: await scope.summary),
 				softFlushDue: false
 			)
 		}
@@ -140,7 +140,7 @@ package struct TurnRunner: Sendable {
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
 				)
-				let saved = WriteSummary(await scope.written)
+				let saved = await scope.summary
 				switch ladder.decide(failure, situation: situation, counters: counters) {
 				case .terminal(let coachFailure):
 					return AttemptReport(
@@ -506,7 +506,10 @@ package struct TurnRunner: Sendable {
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
-						outcome = .result(.object(["error": .string(toolErrorText(error))]))
+						self.diagnostics.record(
+							.toolFailed(
+								scope.stamp.attempt, call.name, detail: String(describing: error)))
+						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
 				}
@@ -685,16 +688,6 @@ private struct Transcript: Sendable {
 		guard let index = messages.firstIndex(of: message) else { return nil }
 		return ulids[index]
 	}
-}
-
-private func toolErrorText(_ error: any Error) -> String {
-	if let intervals = error as? IntervalsError {
-		return intervals.details
-	}
-	if let workout = error as? InvalidWorkout {
-		return workout.message
-	}
-	return String(describing: error)
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {

@@ -26,20 +26,27 @@ enum TutorialHarness {
 	static let restorePurchases = "Restore purchases"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
-	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
-	static let interruptedNothingChanged =
-		"This reply stopped before it finished. Nothing was changed."
+	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
+	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
 		"This reply stopped before it finished. Some information was saved first."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
+	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
+	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
+	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 
-	static func launch(_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil) {
+	static func launch(
+		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
+		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
+	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
@@ -47,16 +54,23 @@ enum TutorialHarness {
 		if let keychain {
 			app.launchArguments += [keychainArgument, keychain]
 		}
+		if let coalescingMilliseconds {
+			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication) {
+	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "keep",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		if !element.waitForExistence(timeout: 10) {
+			throw XCTSkip(
+				"needs the fixture store an earlier build left; run it after a trunk proof")
+		}
 	}
 
 	static func relaunchKeepingStore(_ app: XCUIApplication) {
@@ -96,6 +110,14 @@ enum TutorialHarness {
 
 	static func wait(_ element: XCUIElement, timeout: TimeInterval = 8) {
 		XCTAssertTrue(element.waitForExistence(timeout: timeout), "missing \(element)")
+	}
+
+	static func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
+		)
 	}
 
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
@@ -140,14 +162,18 @@ enum TutorialHarness {
 	}
 
 	static func openSidebar(_ app: XCUIApplication) {
-		named(app, "chat.sidebar").tap()
+		let sidebar = named(app, "chat.sidebar")
+		waitUntilHittable(sidebar)
+		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
 	}
 
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		wait(named(app, "fixture.requestCount"))
+		let count = named(app, "fixture.requestCount")
+		wait(count)
+		XCTAssertEqual(count.label, "0 requests")
 		named(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
@@ -155,6 +181,7 @@ enum TutorialHarness {
 	static func closeMenu(_ app: XCUIApplication) {
 		app.swipeDown(velocity: .fast)
 		app.swipeDown(velocity: .fast)
+		waitUntilHittable(named(app, "chat.sidebar"))
 		wait(named(app, "chat.composer"))
 	}
 
@@ -204,7 +231,6 @@ enum TutorialHarness {
 		let count = named(app, "fixture.requestCount")
 		wait(count)
 		XCTAssertEqual(count.label, "0 requests")
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 	}
 }

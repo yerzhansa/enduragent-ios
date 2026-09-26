@@ -195,7 +195,7 @@ package struct OpenRouterTransport: ModelTransport {
 			throw ExchangeFault.rejected(
 				status: http.statusCode,
 				headers: OpenRouterHTTP.headers(of: http),
-				body: try await OpenRouterHTTP.utf8String(from: bytes)
+				body: try await OpenRouterHTTP.errorBody(from: bytes)
 			)
 		}
 		try await OpenRouterSSEParser.parse(lines: bytes.lines, yield: yield)
@@ -279,10 +279,16 @@ package enum OpenRouterHTTP {
 		return headers
 	}
 
-	package static func utf8String(from bytes: URLSession.AsyncBytes) async throws -> String {
+	package static let errorBodyLimit = 16_384
+
+	package static func errorBody<Bytes: AsyncSequence>(from bytes: Bytes) async throws -> String
+	where Bytes.Element == UInt8 {
 		var data = Data()
 		for try await byte in bytes {
 			data.append(byte)
+			if data.count >= errorBodyLimit {
+				break
+			}
 		}
 		return String(decoding: data, as: UTF8.self)
 	}

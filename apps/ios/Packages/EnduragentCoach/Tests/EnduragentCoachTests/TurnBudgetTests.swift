@@ -69,6 +69,35 @@ import Testing
 		#expect(clock.slept == [.seconds(7), .seconds(7)])
 	}
 
+	@Test func budgetFailureAfterAMemoryWriteKeepsTheWriteInTheSettlement() async throws {
+		transport.script = [
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.finish(reason: .toolCalls),
+		]
+		let oneCall = TurnBudgetPolicy(
+			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
+			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let report = try await runner().run(
+			attempt("Remember Saturdays", scope: scope), scope: scope
+		) {
+			_ in
+		}
+		#expect(
+			report.result
+				== .failed(
+					.model(.budgetExhausted(.generateCalls)),
+					saved: WriteSummary(
+						memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+				))
+		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt])
+	}
+
 	private func runner() -> TurnRunner {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)

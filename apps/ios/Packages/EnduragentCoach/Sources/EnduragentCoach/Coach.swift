@@ -195,7 +195,7 @@ public actor Coach {
 	private func recoverDeadClaims() async -> Bool {
 		do {
 			for (chat, plan) in try await recoveryPlans() {
-				await makeMailbox(for: chat).recover(plan)
+				try await makeMailbox(for: chat).recover(plan)
 			}
 			return true
 		} catch {
@@ -241,12 +241,11 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			memory: memory,
-			transport: transport,
+			flushes: FlushDrain(
+				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language }, access: access),
-			diagnostics: diagnostics
+			environment: EnvironmentResolver(language: { await self.language }, access: access)
 		)
 		mailboxes[chatId] = created
 		return created

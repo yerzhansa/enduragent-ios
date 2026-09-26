@@ -20,7 +20,10 @@ public enum TurnState: Sendable, Equatable {
 				return false
 			}
 		case .interrupted(let interrupted):
-			return interrupted.saved.isEmpty
+			if case .tryAgain = interrupted.notice.action {
+				return true
+			}
+			return false
 		case .accepted, .processing, .completed, .savedWork:
 			return false
 		}
@@ -31,6 +34,7 @@ public enum TurnState: Sendable, Equatable {
 		case queued(position: Int)
 		case awaitingRestart
 		case onOtherDevice
+		case beforeUpgrade
 	}
 
 	public struct Processing: Sendable, Equatable {
@@ -202,10 +206,19 @@ package enum TurnLifecycle {
 		if facts.origin != device {
 			return .acceptedElsewhere
 		}
-		switch facts.latestSettlement?.settlement {
+		if facts.legacy {
+			return .alreadyAnswered
+		}
+		return replayRefusal(after: facts.latestSettlement?.settlement)
+	}
+
+	package static func replayRefusal(after settlement: Settlement?) -> TurnRefusal? {
+		switch settlement {
 		case .replied?, .savedWork?:
 			return .alreadyAnswered
-		case .failed?, .interrupted?, nil:
+		case .failed(_, let saved)?, .interrupted(_, _, let saved)?:
+			return saved.isEmpty ? nil : .alreadyAnswered
+		case nil:
 			return nil
 		}
 	}
@@ -232,6 +245,7 @@ package enum TurnLifecycle {
 			break
 		}
 		if let latest = facts.latestSettlement {
+			let retry = replayRefusal(after: latest.settlement) == nil ? facts.turn : nil
 			switch latest.settlement {
 			case .replied(let reply, _):
 				return .completed(TurnState.Completed(reply: reply))
@@ -246,7 +260,7 @@ package enum TurnLifecycle {
 						failure: failure,
 						saved: saved,
 						notice: AthleteNotices.notice(
-							for: failure, turn: facts.turn, failedAt: latest.hlc.wallTime)
+							for: failure, turn: retry, failedAt: latest.hlc.wallTime)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -254,32 +268,17 @@ package enum TurnLifecycle {
 						partial: partial,
 						cause: cause,
 						saved: saved,
-						notice: AthleteNotices.notice(for: cause, saved: saved, turn: facts.turn)
+						notice: AthleteNotices.notice(for: cause, saved: saved, turn: retry)
 					))
 			}
+		}
+		if facts.legacy {
+			return .accepted(.beforeUpgrade)
 		}
 		if facts.origin != device {
 			return .accepted(.onOtherDevice)
 		}
 		return .accepted(.awaitingRestart)
-	}
-}
-
-extension Conversation {
-	package mutating func settleUnsaved(
-		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID,
-		device: DeviceID, clock: any Clock
-	) {
-		guard let facts = self.turn(turn) else { return }
-		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
-		let settled = SettledAttempt(
-			ulid: ulid,
-			hlc: HybridLogicalClock.tick(now: clock.now, deviceId: device, last: last),
-			civilDate: CivilDate(date: clock.now, timeZone: clock.timeZone),
-			attempt: attempt,
-			settlement: settlement
-		)
-		settle(turn, with: settled)
 	}
 }
 
@@ -301,21 +300,6 @@ extension LiveAttempt {
 			activity = next
 		case .proposalPending:
 			return
-		}
-	}
-}
-
-extension Ledger {
-	package func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure)
-		-> [AthleteRecord]
-	{
-		switch writes {
-		case .nothing:
-			return []
-		case .synced(let bodies):
-			return try await commit(synced: bodies, stamp: stamp)
-		case .local(let bodies):
-			return try await commit(local: bodies, stamp: stamp)
 		}
 	}
 }
