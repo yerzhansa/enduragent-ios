@@ -25,6 +25,7 @@
 		7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */; };
 		75B6936C93B9BF6207DBE14B /* ComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */; };
 		7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FFE0F37052EAEFF6684E41 /* ChatView.swift */; };
+		89DDCBC01432531E47482E41 /* ChatSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF577CCD5213CEE1A3F7625 /* ChatSummary.swift */; };
 		8DB4BEAAE94936E8D48FB79D /* SlashListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DE1643D8AAF084B95462CB /* SlashListView.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
 		A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E410F19BC06DE08527699D1 /* Assets.xcassets */; };
@@ -63,6 +64,7 @@
 /* Begin PBXFileReference section */
 		05DE1643D8AAF084B95462CB /* SlashListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlashListView.swift; sourceTree = "<group>"; };
 		1041134C33C16BE411AFAA91 /* Enduragent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Enduragent.entitlements; sourceTree = "<group>"; };
+		1AF577CCD5213CEE1A3F7625 /* ChatSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatSummary.swift; sourceTree = "<group>"; };
 		20BFB776A369E9C4E27001B2 /* TranscriptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptView.swift; sourceTree = "<group>"; };
 		28CB01ECD4F0385933736762 /* StarterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterView.swift; sourceTree = "<group>"; };
 		2BB34221AE8B0EB8B664B7BE /* ChatIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatIndex.swift; sourceTree = "<group>"; };
@@ -201,6 +203,7 @@
 		85E6618BF355D082906017F2 /* History */ = {
 			isa = PBXGroup;
 			children = (
+				1AF577CCD5213CEE1A3F7625 /* ChatSummary.swift */,
 				50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */,
 			);
 			path = History;
@@ -398,6 +401,7 @@
 			files = (
 				30D1217FDEE03BDDC51541DB /* AppServices.swift in Sources */,
 				BBB6B0000B1C48D6C8FEE78E /* ChatIndex.swift in Sources */,
+				89DDCBC01432531E47482E41 /* ChatSummary.swift in Sources */,
 				7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */,
 				75B6936C93B9BF6207DBE14B /* ComposerView.swift in Sources */,
 				23BA97B185E8F0CA4A991324 /* ConfirmedPreviewCard.swift in Sources */,
