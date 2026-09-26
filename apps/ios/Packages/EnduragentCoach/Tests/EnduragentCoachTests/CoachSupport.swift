@@ -111,6 +111,46 @@ final class SlowAppendLog: RecordLog, Sendable {
 	var imports: AsyncStream<Void> { inner.imports }
 }
 
+final class SlowConversationReadLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let delay: Duration
+	let fails: Bool
+	let reached: AsyncStream<Void>
+	private let reachedContinuation: AsyncStream<Void>.Continuation
+	private let slowed = Mutex(false)
+
+	init(inner: any RecordLog, delay: Duration, fails: Bool = false) {
+		self.inner = inner
+		self.delay = delay
+		self.fails = fails
+		(reached, reachedContinuation) = AsyncStream.makeStream()
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		let page = try await inner.fetch(query)
+		let slow = slowed.withLock { done -> Bool in
+			guard !done, query.scope == ConversationFold.syncedScope else { return false }
+			done = true
+			return true
+		}
+		guard slow else { return page }
+		reachedContinuation.yield()
+		try await Task.sleep(for: delay)
+		if fails {
+			throw RecordStorageFault(operation: .fetch)
+		}
+		return page
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}
+
 final class HeldAppendLog: RecordLog, Sendable {
 	let inner: any RecordLog
 	let kind: String

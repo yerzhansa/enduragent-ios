@@ -11,6 +11,7 @@ package actor ChatMailbox {
 	private let environment: EnvironmentResolver
 
 	private var loaded = false
+	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private var conversation: Conversation
 	private var pendingProposal: PendingProposal?
 	private var work: [MailboxWork] = []
@@ -21,7 +22,7 @@ package actor ChatMailbox {
 	private var running: Task<Void, Never>?
 	private var stopping = false
 	private let admission = Admission()
-	private var observers: [UUID: AsyncStream<ChatSnapshot>.Continuation] = [:]
+	private let feed = SnapshotFeed()
 
 	package init(
 		chatId: ChatID,
@@ -45,14 +46,15 @@ package actor ChatMailbox {
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		await loadIfNeeded()
-		let id = UUID()
-		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
-		observers[id] = continuation
-		continuation.onTermination = { _ in Task { await self.removeObserver(id) } }
-		continuation.yield(snapshot())
-		return stream
+		do {
+			try await load()
+		} catch {
+			switch error {
+			case .unavailable, .rejectedBatch:
+				break
+			}
+		}
+		return feed.subscribe(from: snapshot())
 	}
 
 	package func accept(_ draft: Draft) async throws(AcceptFailure) -> SendOutcome {
@@ -110,7 +112,11 @@ package actor ChatMailbox {
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
-		await loadIfNeeded()
+		do {
+			try await load()
+		} catch {
+			throw RetryRefusal.unknownTurn
+		}
 		guard let facts = conversation.turn(turn) else { throw RetryRefusal.unknownTurn }
 		if window?.turn == turn || queuedTurns(includingActive: true).contains(turn) {
 			throw RetryRefusal.alreadyRunning
@@ -170,24 +176,28 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func loadIfNeeded() async {
-		do {
-			try await load()
-		} catch {
-			conversation = Conversation(chat: chatId, segments: [])
-		}
-	}
-
 	private func load() async throws(LedgerFailure) {
 		guard !loaded else { return }
-		let synced = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let local = try await ledger.read(
-			RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
-		conversation = ConversationFold.fold(
-			chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
-		try await loadProposal()
-		loaded = true
+		let reading = loading ?? Task { await self.read() }
+		loading = reading
+		try await reading.value.get()
+	}
+
+	private func read() async -> Result<Void, LedgerFailure> {
+		defer { loading = nil }
+		do {
+			let synced = try await ledger.read(
+				RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
+			let local = try await ledger.read(
+				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
+			try await loadProposal()
+			conversation = ConversationFold.fold(
+				chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
+			loaded = true
+			return .success(())
+		} catch {
+			return .failure(error)
+		}
 	}
 
 	private func loadProposal() async throws(LedgerFailure) {
@@ -383,13 +393,6 @@ package actor ChatMailbox {
 	}
 
 	private func publish() {
-		let current = snapshot()
-		for continuation in observers.values {
-			continuation.yield(current)
-		}
-	}
-
-	private func removeObserver(_ id: UUID) {
-		observers[id] = nil
+		feed.publish(snapshot())
 	}
 }

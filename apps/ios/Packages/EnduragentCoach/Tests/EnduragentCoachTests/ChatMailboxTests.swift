@@ -122,6 +122,60 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
+	@Test func aSlowFirstReadKeepsAMessageSavedWhileItRead() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let inner = InMemoryRecordLog()
+		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500))
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		async let observed = coach.currentSnapshot(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		let turn = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		_ = await observed
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), chatId: .main))
+		#expect(saved.records.count == 1)
+		#expect(transport.requests.count == 1)
+	}
+
+	@Test func aFailedFirstReadWipesNothingSavedAfterIt() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let inner = InMemoryRecordLog()
+		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500), fails: true)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		async let observed = coach.currentSnapshot(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		let sent = draft("Is Thursday on?")
+		let first: SendOutcome?
+		do {
+			first = try await coach.send(sent, to: .main)
+		} catch {
+			#expect(error == .storageUnavailable)
+			first = nil
+		}
+		_ = await observed
+		let outcome = try await coach.send(sent, to: .main)
+		let turn = try #require(outcome.acceptedTurn)
+		if let first {
+			#expect(first == outcome)
+		}
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.userMessage]), chatId: .main))
+		#expect(saved.records.count == 1)
+	}
+
 	@Test func stopCancelsTheRunningReplyWhileASendWaitsOnTheStore() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
