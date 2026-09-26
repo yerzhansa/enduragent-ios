@@ -338,3 +338,19 @@ final class LockedKeychainProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class StorageUnavailableProof: XCTestCase {
+	func testUnreadableStoreShowsTheNotice() {
+		let app = XCUIApplication()
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "unreadable",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		TutorialHarness.wait(TutorialHarness.named(app, "launch.storageUnavailable"))
+		TutorialHarness.waitForLabel(app, "Conversation history is temporarily unavailable.")
+		TutorialHarness.waitForLabel(app, "Quit and reopen Enduragent.")
+		XCTAssertEqual(app.state, .runningForeground)
+		TutorialHarness.attach(self, name: "storage-unavailable", app: app)
+	}
+}

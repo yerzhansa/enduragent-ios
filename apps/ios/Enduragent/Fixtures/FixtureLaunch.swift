@@ -4,6 +4,7 @@ import Foundation
 enum FixtureStorePolicy: String {
 	case fresh
 	case keep
+	case unreadable
 }
 
 enum FixtureKeychainPolicy: String {
@@ -61,13 +62,18 @@ struct FixtureLaunch {
 			throw FixtureLaunchError.defaultsSuiteUnavailable(defaultsSuiteName)
 		}
 		let files = FileManager.default
-		if store == .fresh {
+		if store != .keep {
 			defaults.removePersistentDomain(forName: defaultsSuiteName)
 			if files.fileExists(atPath: directory.path) {
 				try files.removeItem(at: directory)
 			}
 		}
 		try files.createDirectory(at: directory, withIntermediateDirectories: true)
+		if store == .unreadable {
+			try files.createDirectory(
+				at: directory.appending(path: ModelContainerHandle.syncedStoreFileName),
+				withIntermediateDirectories: true)
+		}
 		return defaults
 	}
 

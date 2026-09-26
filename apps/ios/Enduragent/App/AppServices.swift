@@ -170,29 +170,6 @@ final class ServicesBuilder {
 		services.isFixture
 	}
 
-	static func bootstrap() -> ServicesBuilder {
-		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		do {
-			guard let launch = try fixtureLaunch() else {
-				return ServicesBuilder(
-					services: try AppServices.live(language: language), language: language,
-					defaults: .standard)
-			}
-			let defaults = try launch.prepare()
-			let services = try AppServices.fixture(launch, defaults: defaults)
-			return ServicesBuilder(services: services, language: language, defaults: defaults)
-		} catch {
-			fatalError("The app services failed to start: \(error)")
-		}
-	}
-
-	private static func fixtureLaunch() throws -> FixtureLaunch? {
-		if let launch = try FixtureLaunch.fromArguments() {
-			return launch
-		}
-		return isHostedByTests ? try FixtureLaunch.firstWeek() : nil
-	}
-
 	static var isHostedByTests: Bool {
 		ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 			|| ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil

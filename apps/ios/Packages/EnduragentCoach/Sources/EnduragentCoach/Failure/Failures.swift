@@ -153,6 +153,12 @@ extension CoachFailure {
 }
 
 extension AthleteNotice {
+	public static let recordStoreUnavailable = [
+		AthleteNotice(key: Catalog.chatHistoryFailure, action: nil),
+		AthleteNotice(
+			key: Catalog.chatFirstSyncReconnectDetail, vars: ["product": "Enduragent"], action: nil),
+	]
+
 	public static func credits(failure: any Error) -> AthleteNotice {
 		AthleteNotices.notice(forCredits: failure)
 	}
