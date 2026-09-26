@@ -246,8 +246,11 @@ final class SendLatencyProbe: XCTestCase {
 		let bubble = app.staticTexts[TutorialHarness.weekQuestion]
 		let tapped = Date()
 		send.tap()
-		XCTAssertTrue(bubble.waitForExistence(timeout: 10))
+		while !bubble.exists, Date().timeIntervalSince(tapped) < 10 {
+			continue
+		}
 		let latency = Date().timeIntervalSince(tapped)
+		XCTAssertTrue(bubble.exists)
 		let sample = XCTAttachment(string: String(format: "%.0f", latency * 1_000))
 		sample.name = "send-latency-ms"
 		sample.lifetime = .keepAlways
