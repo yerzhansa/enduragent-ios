@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2430
-	public static let keyCount = 2466
+	public static let englishLeafCount = 2432
+	public static let keyCount = 2468
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -764,8 +764,10 @@ public enum Catalog {
 	public static let commonCancel = CatalogKey(rawValue: "common.cancel")
 	public static let commonContinue = CatalogKey(rawValue: "common.continue")
 	public static let commonSave = CatalogKey(rawValue: "common.save")
+	public static let connectErrorRejected = CatalogKey(rawValue: "connect.error.rejected")
 	public static let creditsErrorAccessRejected = CatalogKey(rawValue: "credits.error.accessRejected")
 	public static let creditsErrorExhausted = CatalogKey(rawValue: "credits.error.exhausted")
+	public static let creditsErrorUnavailable = CatalogKey(rawValue: "credits.error.unavailable")
 	public static let desktopCredentialsMacRecovery = CatalogKey(rawValue: "desktop.credentials.macRecovery")
 	public static let desktopCredentialsMacUnavailable = CatalogKey(rawValue: "desktop.credentials.macUnavailable")
 	public static let desktopCredentialsWindowsIdentityFailed = CatalogKey(rawValue: "desktop.credentials.windowsIdentityFailed")

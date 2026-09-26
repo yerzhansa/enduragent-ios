@@ -26,13 +26,13 @@ public struct OperationStamp: Hashable, Sendable {
 }
 
 extension OperationStamp {
-	package static func turn(_ turn: TurnID, attempt: AttemptID, clock: any Clock) -> OperationStamp
-	{
+	package static func turn(
+		_ turn: TurnID, attempt: AttemptID, account: TrainingAccount, clock: any Clock
+	) -> OperationStamp {
 		OperationStamp(
 			operation: .turn(turn),
 			attempt: attempt,
-			binding: ActionBinding(
-				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+			binding: ActionBinding(account: account, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
 	}
 }

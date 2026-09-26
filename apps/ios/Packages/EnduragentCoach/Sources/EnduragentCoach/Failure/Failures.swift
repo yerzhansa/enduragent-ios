@@ -46,6 +46,25 @@ public enum AccessUnavailable: Error, Sendable, Equatable {
 	case notConfigured(AccessMethod)
 	case secureStorageLocked
 	case secureStorageUnavailable
+	case malformedStoredCredential(CredentialSlot)
+}
+
+public enum TrainingFailure: Sendable, Equatable {
+	case credentialRejected
+	case temporarilyUnavailable
+	case requestRejected
+
+	init(_ error: any Error) {
+		guard let intervals = error as? IntervalsError, let status = intervals.status else {
+			self = .temporarilyUnavailable
+			return
+		}
+		switch status {
+		case 401, 403: self = .credentialRejected
+		case 400..<500: self = .requestRejected
+		default: self = .temporarilyUnavailable
+		}
+	}
 }
 
 public enum ProviderTrouble: String, Sendable {
@@ -133,8 +152,15 @@ extension CoachFailure {
 	}
 }
 
+extension AthleteNotice {
+	public static func credits(failure: any Error) -> AthleteNotice {
+		AthleteNotices.notice(forCredits: failure)
+	}
+}
+
 package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
+	private static let intervals = "intervals.icu"
 
 	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice
@@ -164,7 +190,8 @@ package enum AthleteNotices {
 		case .model(.accessUnavailable(.secureStorageLocked)):
 			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
 		case .model(.accessUnavailable(.notConfigured)),
-			.model(.accessUnavailable(.secureStorageUnavailable)):
+			.model(.accessUnavailable(.secureStorageUnavailable)),
+			.model(.accessUnavailable(.malformedStoredCredential)):
 			return AthleteNotice(key: Catalog.accessErrorNotConfigured, action: .chooseAccessMethod)
 		case .local(.recordStorage):
 			return AthleteNotice(key: Catalog.coachHistoryDiskFull, action: nil)
@@ -191,6 +218,42 @@ package enum AthleteNotices {
 			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],
 			action: action
 		)
+	}
+
+	package static func notice(for status: CoachStatus) -> AthleteNotice? {
+		if case .accessTemporarilyUnavailable(let unavailable) = status.setup {
+			return notice(outsideTurn: unavailable)
+		}
+		guard case .connected(let summary, _) = status.training else { return nil }
+		return summary.displayUnavailable.map(notice(for:))
+	}
+
+	package static func notice(for training: TrainingFailure) -> AthleteNotice {
+		switch training {
+		case .credentialRejected, .requestRejected:
+			AthleteNotice(
+				key: Catalog.coachErrorIntervalsCredentials, vars: ["service": intervals],
+				action: nil)
+		case .temporarilyUnavailable:
+			AthleteNotice(
+				key: Catalog.coachErrorIntervalsTransient, vars: ["service": intervals], action: nil
+			)
+		}
+	}
+
+	package static func notice(forCredits failure: any Error) -> AthleteNotice {
+		if let unavailable = failure as? AccessUnavailable {
+			return notice(outsideTurn: unavailable)
+		}
+		guard case .noAthleteKey? = failure as? CreditsFailure else {
+			return AthleteNotice(key: Catalog.creditsErrorUnavailable, action: nil)
+		}
+		return notice(outsideTurn: .notConfigured(.credits))
+	}
+
+	private static func notice(outsideTurn unavailable: AccessUnavailable) -> AthleteNotice {
+		let turn = notice(for: .model(.accessUnavailable(unavailable)), turn: nil, waiting: false)
+		return AthleteNotice(key: turn.key, vars: turn.vars, action: nil)
 	}
 
 	package static func notice(for outcome: SavedWorkOutcome) -> AthleteNotice {

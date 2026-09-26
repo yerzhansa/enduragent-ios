@@ -30,6 +30,35 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 	case storageUnavailable
 }
 
+public struct CoachStatus: Sendable, Equatable {
+	public let setup: SetupState
+	public let training: TrainingStatus
+
+	public var notice: AthleteNotice? {
+		AthleteNotices.notice(for: self)
+	}
+
+	package var trainingAccount: TrainingAccount? {
+		switch training {
+		case .unconnected: .unconnected
+		case .connected(_, let account): account
+		case .unavailable: nil
+		}
+	}
+}
+
+public enum SetupState: Sendable, Equatable {
+	case needsAccessMethod
+	case ready
+	case accessTemporarilyUnavailable(AccessUnavailable)
+}
+
+public enum TrainingStatus: Sendable, Equatable {
+	case unconnected
+	case connected(IntervalsSummary, account: TrainingAccount)
+	case unavailable(AccessUnavailable)
+}
+
 public enum RetryRefusal: Error, Sendable, Equatable {
 	case unknownTurn
 	case acceptedOnOtherDevice
@@ -91,13 +120,19 @@ extension RetryRefusal {
 }
 
 extension PendingProposal {
-	package init(_ body: ProposalBody) {
+	public func confirmable(under status: CoachStatus?) -> Bool {
+		guard let current = status?.trainingAccount else { return true }
+		return account.authority(under: current) != .changed
+	}
+
+	package init(_ body: ProposalBody, account: TrainingAccount) {
 		self.init(
 			chatId: body.chatId,
 			nonce: body.nonce,
 			summary: body.summary,
 			description: body.description,
-			expiresAt: body.expiresAt
+			expiresAt: body.expiresAt,
+			account: account
 		)
 	}
 }

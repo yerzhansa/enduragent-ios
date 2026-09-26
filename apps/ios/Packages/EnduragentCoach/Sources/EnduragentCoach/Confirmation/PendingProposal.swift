@@ -6,6 +6,7 @@ public struct PendingProposal: Sendable, Equatable {
 	public var summary: String
 	public var description: String
 	public var expiresAt: Date
+	public var account: TrainingAccount
 }
 
 public enum GatedToolInput: Sendable, Equatable {
@@ -69,7 +70,8 @@ package enum ProposalPolicy {
 			nonce: nonce,
 			summary: summary,
 			description: description,
-			expiresAt: expiresAt
+			expiresAt: expiresAt,
+			account: stamp.binding.account
 		)
 	}
 
@@ -141,12 +143,12 @@ package enum ProposalPolicy {
 		RecordQuery(scope: .deviceLocal([.pendingProposal, .proposalCleared]), chatId: chatId)
 	}
 
-	package static func pending(_ chatId: ChatID, from ledger: Ledger, at now: Date)
-		async throws(LedgerFailure) -> PendingProposal?
+	package static func pending(in records: [AthleteRecord], chatId: ChatID, now: Date)
+		-> PendingProposal?
 	{
-		let records = try await ledger.read(proposalQuery(chatId)).records
-		return UnionMerge.pendingProposal(records, chatId: chatId, now: now)
-			.map(PendingProposal.init)
+		UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now).map {
+			PendingProposal($0.body, account: $0.account)
+		}
 	}
 
 	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?

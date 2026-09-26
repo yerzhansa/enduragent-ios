@@ -10,14 +10,28 @@ let testKey = "sk-or-test-credits-key"
 let testAccess = ResolvedAccess(
 	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
 
+let testConnection = IntervalsConnection(
+	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
+	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
+
 func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
 	let secrets = FakeSecretStore()
 	do {
 		try secrets.storeOpenRouterKey(key)
+		try secrets.storeIntervalsConnection(testConnection)
 	} catch {
 		Issue.record(error)
 	}
 	return secrets
+}
+
+func testVault(
+	_ store: any SecretStore,
+	training: TrainingService = .fake { _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
+	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+) -> CredentialVault {
+	CredentialVault(
+		store: store, training: training, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 }
 
 func testRequest(
@@ -39,12 +53,10 @@ func makeCoach(
 ) -> Coach {
 	Coach(
 		sport: .cycling,
-		models: .scripted(transport),
+		ports: CoachPorts(
+			records: store, secrets: secrets, models: .scripted(transport),
+			training: .fake { _ in intervals }, credits: .fake(FakeCreditsClient()), clock: clock),
 		builtInModel: testModel,
-		secrets: secrets,
-		intervals: intervals,
-		store: store,
-		clock: clock,
 		language: .init(ui: .en, coachReply: nil),
 		coalescing: coalescing
 	)

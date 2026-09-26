@@ -8,6 +8,13 @@ public enum TurnState: Sendable, Equatable {
 	case failed(Failed)
 	case interrupted(Interrupted)
 
+	package var isSettled: Bool {
+		switch self {
+		case .completed, .savedWork, .failed, .interrupted: true
+		case .accepted, .processing: false
+		}
+	}
+
 	public var retryable: Bool {
 		switch self {
 		case .accepted(.awaitingRestart):
@@ -337,19 +344,6 @@ package enum MailboxWork: Sendable, Equatable {
 package struct OpenWindow: Sendable, Equatable {
 	package let turn: TurnID
 	package let closesAt: Date
-}
-
-package struct EnvironmentResolver: Sendable {
-	package let language: @Sendable () async -> LanguagePreference
-	package let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
-
-	package init(
-		language: @escaping @Sendable () async -> LanguagePreference,
-		access: @escaping @Sendable () throws(AccessUnavailable) -> ResolvedAccess
-	) {
-		self.language = language
-		self.access = access
-	}
 }
 
 extension Duration {

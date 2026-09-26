@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2430)
-		#expect(Catalog.keyCount == 2466)
+		#expect(Catalog.englishLeafCount == 2432)
+		#expect(Catalog.keyCount == 2468)
 	}
 
 	@Test(arguments: [
@@ -24,6 +24,8 @@ import Testing
 		),
 		(Catalog.accessErrorLocked, "Unlock your iPhone to continue. Your message is saved."),
 		(Catalog.accessErrorNotConfigured, "Choose how the coach reaches a model to continue."),
+		(Catalog.connectErrorRejected, "intervals.icu did not accept that key."),
+		(Catalog.creditsErrorUnavailable, "Credits are unavailable right now. Try again later."),
 		(
 			Catalog.chatTurnInterruptedNothingChanged,
 			"This reply stopped before it finished. Nothing was changed."

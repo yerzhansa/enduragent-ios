@@ -40,10 +40,13 @@ struct FailurePayload: Codable {
 			return ("accessUnavailable", "secureStorageLocked")
 		case .accessUnavailable(.secureStorageUnavailable):
 			return ("accessUnavailable", "secureStorageUnavailable")
+		case .accessUnavailable(.malformedStoredCredential(let slot)):
+			return ("accessUnavailable", Self.malformedPrefix + slot.rawValue)
 		}
 	}
 
 	private static let notConfiguredPrefix = "notConfigured."
+	private static let malformedPrefix = "malformedStoredCredential."
 
 	func failure() throws -> CoachFailure {
 		switch (domain, code) {
@@ -111,6 +114,14 @@ struct FailurePayload: Codable {
 				throw RecordDecodeFailure(reason: "failure")
 			}
 			return .notConfigured(method)
+		case let stored? where stored.hasPrefix(Self.malformedPrefix):
+			guard
+				let slot = CredentialSlot(
+					rawValue: String(stored.dropFirst(Self.malformedPrefix.count)))
+			else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .malformedStoredCredential(slot)
 		default:
 			throw RecordDecodeFailure(reason: "failure")
 		}

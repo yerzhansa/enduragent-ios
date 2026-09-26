@@ -158,7 +158,7 @@ package actor ChatMailbox {
 
 	package func refreshProposal() async {
 		do {
-			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
+			pendingProposal = try await ledger.pendingProposal(chatId, now: clock.now)
 		} catch {
 			pendingProposal = nil
 		}
@@ -182,13 +182,8 @@ package actor ChatMailbox {
 	private func read() async -> Result<Void, LedgerFailure> {
 		defer { loading = nil }
 		do {
-			let synced = try await ledger.read(
-				RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-			let local = try await ledger.read(
-				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
-			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
-			conversation = ConversationFold.fold(
-				chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
+			conversation = try await ledger.conversation(chatId)
+			pendingProposal = try await ledger.pendingProposal(chatId, now: clock.now)
 			loaded = true
 			return .success(())
 		} catch {
@@ -196,8 +191,11 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func stamp(for turn: TurnID) async -> OperationStamp {
-		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
+	private func stamp(for turn: TurnID, account: TrainingAccount = .unconnected) async
+		-> OperationStamp
+	{
+		.turn(
+			turn, attempt: AttemptID(ulid: await ledger.nextULID()), account: account, clock: clock)
 	}
 
 	private func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure) {
@@ -272,7 +270,8 @@ package actor ChatMailbox {
 
 	private func runTurn(_ turn: TurnID) async {
 		guard let facts = conversation.turn(turn) else { return }
-		let stamp = await stamp(for: turn)
+		let resolution = await environment.resolve()
+		let stamp = await stamp(for: turn, account: resolution.account)
 		let attempt = stamp.attempt
 		guard case .success(let claim) = writes(.claim(attempt), for: turn) else {
 			publish()
@@ -286,9 +285,9 @@ package actor ChatMailbox {
 			publish()
 			return
 		}
-		let access: ResolvedAccess
+		let resolved: AttemptEnvironment
 		do {
-			access = try environment.access()
+			resolved = try resolution.get()
 		} catch {
 			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
 			await settle(turn, attempt: attempt, unavailable, stamp: stamp)
@@ -298,9 +297,8 @@ package actor ChatMailbox {
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		let request = TurnAttempt(
-			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language(), access: access)
+		let request = await environment.attempt(
+			of: facts, attempt: attempt, chat: chatId, in: resolved)
 		let settlement: Settlement
 		var softFlushDue = false
 		do {

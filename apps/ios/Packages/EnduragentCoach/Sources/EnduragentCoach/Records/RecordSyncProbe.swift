@@ -33,7 +33,8 @@
 						id: record.ulid.rawValue,
 						kind: record.body.kind,
 						deviceId: record.deviceId.rawValue,
-						hlc: hlcText(record.hlc)
+						hlc: hlcText(record.hlc),
+						account: record.account.storedValue
 					)
 				},
 				skipped: synced.skipped.count + local.skipped.count
@@ -101,5 +102,6 @@
 		public let kind: String
 		public let deviceId: String
 		public let hlc: String
+		public let account: String
 	}
 #endif

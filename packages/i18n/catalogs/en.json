@@ -855,10 +855,16 @@
     "continue": "Continue",
     "save": "Save"
   },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
+    }
+  },
   "credits": {
     "error": {
       "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
     }
   },
   "desktop": {

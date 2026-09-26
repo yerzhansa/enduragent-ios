@@ -1,60 +1,52 @@
 import Foundation
-import Security
 
 public actor Coach {
 	public let memory: Memory
 	public let planning: Planning
+	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
 
 	private let sport: SportID
 	private let transport: any ModelTransport
-	private let intervals: any IntervalsClient
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private var language: LanguagePreference
-	private let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
-	private let tools: ToolRuntime
+	private let builtInModel: ModelID
+	private let vault: CredentialVault
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
 
 	public init(
 		sport: SportID,
-		models: ModelService,
+		ports: CoachPorts,
 		builtInModel: ModelID,
-		secrets: any SecretStore,
-		intervals: any IntervalsClient,
-		store: any RecordLog,
-		clock: any Clock,
 		language: LanguagePreference,
 		coalescing: CoalescingPolicy = .npm
 	) {
+		let clock = ports.clock
 		let diagnostics = DiagnosticsLog(clock: clock)
-		let transport = models.makeTransport(diagnostics)
+		let transport = ports.models.makeTransport(diagnostics)
+		let vault = CredentialVault(
+			store: ports.secrets, training: ports.training, clock: clock, diagnostics: diagnostics)
 		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
-		self.intervals = intervals
-		self.access = { () throws(AccessUnavailable) in
-			try Coach.creditsAccess(secrets: secrets, model: builtInModel)
-		}
-		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
+		self.vault = vault
+		self.credits = ports.credits.makeClient(vault)
+		self.builtInModel = builtInModel
+		let ledger = Ledger(log: ports.records, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
 		self.language = language
 		self.memory = Memory(ledger: ledger, clock: clock)
-		let planning = Planning(store: store, intervals: intervals, clock: clock)
+		let planning = Planning(store: ports.records, clock: clock)
 		self.planning = planning
-		let tools = ToolRuntime(
-			intervals: intervals, ledger: ledger, planning: planning, clock: clock)
-		self.tools = tools
 		self.runner = TurnRunner(
 			transport: transport,
-			intervals: intervals,
 			ledger: ledger,
 			clock: clock,
-			tools: tools,
 			planning: planning,
 			diagnostics: diagnostics,
 			ladder: .npm
@@ -80,24 +72,25 @@ public actor Coach {
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
 		let records = (try? await ledger.read(ProposalPolicy.proposalQuery(chatId)).records) ?? []
-		return UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
-			.map(PendingProposal.init)
+		return ProposalPolicy.pending(in: records, chatId: chatId, now: clock.now)
 	}
 
 	public func confirm(chatId: ChatID, nonce: Nonce) async throws -> ConfirmOutcome {
 		_ = sport
 		_ = transport
-		_ = intervals
-		let tools = self.tools
 		defer {
 			Task { await self.mailbox(for: chatId).refreshProposal() }
 		}
 		do {
+			let training = try await vault.trainingConnection()
+			let tools = ToolRuntime(
+				intervals: training.client, ledger: ledger, planning: planning, clock: clock)
 			let lookup = try await ProposalPolicy.take(
 				chatId: chatId,
 				nonce: nonce,
 				ledger: ledger,
-				binding: binding,
+				binding: ActionBinding(
+					account: training.account, zone: AthleteCalendar(clock: clock).deviceZone),
 				now: clock.now,
 				run: { input in
 					try await tools.rebuildConfirmed(input)
@@ -120,6 +113,47 @@ public actor Coach {
 		} catch {
 			return .failed(message: "\(error)")
 		}
+	}
+
+	public func status() async -> CoachStatus {
+		CoachStatus(
+			setup: await vault.setup(builtInModel: builtInModel),
+			training: await vault.trainingStatus())
+	}
+
+	public func changeTraining(_ change: IntervalsConnectionChange) async
+		-> CredentialOutcome<IntervalsSummary>
+	{
+		await vault.change(change) { await self.holdsBoundWork() }
+	}
+
+	public func changeModelAccess(_ change: ModelAccessChange) async
+		-> CredentialOutcome<AccessSummary>
+	{
+		await vault.change(change)
+	}
+
+	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
+		try await vault.creditsIdentity()
+	}
+
+	#if DEBUG
+		public func replaceAppAccountToken() async throws(AccessUnavailable) {
+			try await vault.replaceAppAccountToken()
+		}
+	#endif
+
+	private func holdsBoundWork() async -> Bool {
+		for mailbox in mailboxes.values {
+			var snapshots = await mailbox.observe().makeAsyncIterator()
+			guard let snapshot = await snapshots.next() else { continue }
+			if snapshot.pendingProposal != nil
+				|| snapshot.turns.contains(where: { !$0.state.isSettled })
+			{
+				return true
+			}
+		}
+		return false
 	}
 
 	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
@@ -149,30 +183,15 @@ public actor Coach {
 		}
 	}
 
-	private static func creditsAccess(secrets: any SecretStore, model: ModelID)
-		throws(AccessUnavailable) -> ResolvedAccess
-	{
-		let stored: String?
-		do {
-			stored = try secrets.openRouterKey()
-		} catch let keychain as KeychainStoreError
-			where keychain.status == errSecInteractionNotAllowed
-		{
-			throw .secureStorageLocked
-		} catch {
-			throw .secureStorageUnavailable
-		}
-		let secret = stored?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-		guard !secret.isEmpty else {
-			throw .notConfigured(.credits)
-		}
-		return ResolvedAccess(
-			credential: ProviderCredential(secret: secret, method: .credits), model: model)
-	}
-
 	private func mailbox(for chatId: ChatID) -> ChatMailbox {
 		if let existing = mailboxes[chatId] {
 			return existing
+		}
+		let vault = self.vault
+		let builtInModel = self.builtInModel
+		let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
+			() async throws(AccessUnavailable) in
+			try await vault.modelAccess(builtInModel: builtInModel)
 		}
 		let created = ChatMailbox(
 			chatId: chatId,
@@ -182,7 +201,11 @@ public actor Coach {
 				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language }, access: access)
+			environment: EnvironmentResolver(
+				language: { await self.language }, access: access,
+				training: { () async throws(AccessUnavailable) in
+					try await vault.trainingConnection()
+				})
 		)
 		mailboxes[chatId] = created
 		return created

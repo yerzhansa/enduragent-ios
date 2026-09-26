@@ -16,6 +16,9 @@ private let providerDown = "The model provider is having trouble — try again i
 private let unknown = "Sorry, something went wrong. Please try again."
 private let responseFailure = "The coach couldn't respond. Please try again."
 private let notConfigured = "Choose how the coach reaches a model to continue."
+private let lockedSentence = "Unlock your iPhone to continue. Your message is saved."
+private let intervalsRejected =
+	"intervals.icu rejected the request — check your intervals.icu connection or API key."
 private let nothingChanged = "This reply stopped before it finished. Nothing was changed."
 private let someSaved =
 	"This reply stopped before it finished. Some information was saved first."
@@ -95,6 +98,12 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 		failed(
 			.model(.accessUnavailable(.secureStorageUnavailable)), notConfigured,
 			.chooseAccessMethod, "Choose access method"),
+		failed(
+			.model(.accessUnavailable(.malformedStoredCredential(.creditsKey))), notConfigured,
+			.chooseAccessMethod, "Choose access method"),
+		failed(
+			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),
+			notConfigured, .chooseAccessMethod, "Choose access method"),
 		failed(
 			.local(.recordStorage),
 			"(Heads up: my disk is full, so I couldn't save this to our history — but your message went through. Please free up some space when you can.)",
@@ -300,5 +309,43 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let exhausted = AthleteNotices.notice(
 			for: .model(.accessExhausted(.credits)), turn: nil, waiting: true)
 		#expect(exhausted.action == .buyCredits)
+	}
+
+	@Test func creditsFailuresOutsideATurnReadCatalogSentences() {
+		let unavailable = "Credits are unavailable right now. Try again later."
+		for failure in [CreditsFailure.banned, .unavailable, .unexpectedResponse(status: 500)] {
+			#expect(AthleteNotice.credits(failure: failure).sentence(in: english) == unavailable)
+		}
+		#expect(
+			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(in: english)
+				== notConfigured)
+		let locked = AthleteNotice.credits(failure: AccessUnavailable.secureStorageLocked)
+		#expect(locked.sentence(in: english) == lockedSentence)
+		#expect(locked.action == nil)
+	}
+
+	@Test func statusNoticeNamesALockedKeychainOrAnUnreadableProfile() {
+		let summary = IntervalsSummary(
+			keySuffix: "-key", athleteName: nil, today: nil,
+			displayUnavailable: .temporarilyUnavailable)
+		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
+		let locked = CoachStatus(
+			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
+			training: .unavailable(.secureStorageLocked))
+		#expect(locked.notice?.sentence(in: english) == lockedSentence)
+		let offline = CoachStatus(setup: .ready, training: .connected(summary, account: account))
+		#expect(
+			offline.notice?.sentence(in: english)
+				== "Couldn't reach intervals.icu right now — try again shortly.")
+		let rejected = CoachStatus(
+			setup: .ready,
+			training: .connected(
+				IntervalsSummary(
+					keySuffix: "-key", athleteName: nil, today: nil,
+					displayUnavailable: .credentialRejected),
+				account: account))
+		#expect(rejected.notice?.sentence(in: english) == intervalsRejected)
+		#expect(CoachStatus(setup: .needsAccessMethod, training: .unconnected).notice == nil)
+		#expect(CoachStatus(setup: .ready, training: .unconnected).notice == nil)
 	}
 }
