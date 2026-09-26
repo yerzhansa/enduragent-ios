@@ -82,7 +82,9 @@ struct AppServices: Sendable {
 			)
 		)
 		let secrets = try FakeSecretStore(directory: launch.directory)
-		try FirstWeekFixture.install(on: secrets)
+		if launch.keychain != .empty {
+			try FirstWeekFixture.install(on: secrets)
+		}
 		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)

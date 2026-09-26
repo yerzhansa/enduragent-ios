@@ -44,6 +44,7 @@ extension ChatSnapshot {
 		live: LiveAttempt?,
 		window: OpenWindow?,
 		queued: [TurnID],
+		waiting: Set<TurnID>,
 		stopping: Bool,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
@@ -56,11 +57,13 @@ extension ChatSnapshot {
 			if current.hidesWholly(facts) {
 				return nil
 			}
-			let overlay: AcceptedOverlay
+			let overlay: TurnOverlay
 			if let window, window.turn == facts.turn {
 				overlay = .collecting(until: window.closesAt)
 			} else if let index = queued.firstIndex(of: facts.turn) {
 				overlay = .queued(position: index + 1)
+			} else if waiting.contains(facts.turn) {
+				overlay = .waitingToTryAgain
 			} else {
 				overlay = .notInThisProcess
 			}
@@ -68,8 +71,7 @@ extension ChatSnapshot {
 				id: facts.turn,
 				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
-				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, now: now)
+				state: TurnLifecycle.state(of: facts, live: live, overlay: overlay, device: device)
 			)
 		}
 		if stopping {

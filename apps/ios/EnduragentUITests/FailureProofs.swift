@@ -6,16 +6,20 @@ final class FailureCopyProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail 401")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerCredentials))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.accessRejected))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.turn.restorePurchases").label,
+			TutorialHarness.restorePurchases)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "failure-copy-credentials", app: app)
 		TutorialHarness.send(app, "fixture:fail network x3")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerDown))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.turn.tryAgain"))
 		TutorialHarness.attach(self, name: "failure-copy-network", app: app)
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(
-			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
+			timeout: rateLimitWait)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-copy-rate-limited", app: app)
@@ -29,26 +33,22 @@ final class FailureCopyProof: XCTestCase {
 	}
 }
 
-final class FailurePlaceholderProof: XCTestCase {
-	func testFailurePlaceholders() {
+final class FailureNoticesProof: XCTestCase {
+	func testFailureNotices() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail timeout x2")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerDown))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 1)
 		TutorialHarness.attach(self, name: "failure-timeout", app: app)
 		TutorialHarness.send(app, "fixture:fail 402")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.unknownFailure))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.buyCredits").exists)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 1)
 		TutorialHarness.attach(self, name: "failure-exhausted", app: app)
 		TutorialHarness.send(app, "fixture:fail overflow x4")
-		let notices = app.staticTexts.matching(
-			NSPredicate(
-				format: "identifier == %@ AND label == %@", "chat.turn.notice",
-				TutorialHarness.unknownFailure))
-		XCTAssertTrue(
-			notices.element(boundBy: 1).waitForExistence(timeout: 8), "missing overflow notice")
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.unknownFailure))
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		XCTAssertFalse(
 			app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "131072"))
@@ -65,7 +65,7 @@ final class FailedNetworkDarkProof: XCTestCase {
 		TutorialHarness.launch(app, dark: true)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail network x3")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerDown))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.turn.tryAgain"))
 		TutorialHarness.attach(self, name: "failed-network-dark", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -119,7 +119,8 @@ final class RetryLadderProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
 		TutorialHarness.wait(
-			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
+			timeout: rateLimitWait)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
@@ -133,7 +134,7 @@ final class SavedUnverifiedProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:memory-then-fail")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.unknownFailure))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.savedUnverified))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "saved-unverified", app: app)
@@ -149,7 +150,8 @@ final class SavedUnverifiedProof: XCTestCase {
 		let stop = TutorialHarness.named(app, "chat.stop")
 		TutorialHarness.waitUntilHittable(stop)
 		stop.tap()
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.responseStopped))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "stopped-after-save", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -157,12 +159,6 @@ final class SavedUnverifiedProof: XCTestCase {
 }
 
 private let rateLimitWait: TimeInterval = 40
-
-private func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
-	app.staticTexts.matching(
-		NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
-	).firstMatch
-}
 
 func assertNoWireDetail(_ app: XCUIApplication) {
 	for raw in ["ProviderFailure", "statusCode", "URLError", "retry-after", "error\":"] {

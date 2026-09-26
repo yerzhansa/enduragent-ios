@@ -1,6 +1,36 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "access.error.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        }
+      }
+    },
+    "access.error.notConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        }
+      }
+    },
+    "access.error.openRouterFunds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        }
+      }
+    },
     "archive.athlete": {
       "localizations": {
         "en": {
@@ -19727,112 +19757,6 @@
         }
       }
     },
-    "chat.notice.responseStopped": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Response stopped. Your partial response is preserved."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Respuesta detenida. Se conserva la respuesta parcial."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réponse arrêtée. La réponse partielle est conservée."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Risposta interrotta. La risposta parziale è conservata."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Svaret er stoppet. Det delvise svar bliver bevaret."
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Svaret stoppades. Den del av svaret som kom fram finns kvar."
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Svaret er stoppet. Den ferdige delen av svaret er bevart."
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vastaus pysäytetty. Osittainen vastaus säilyy."
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resposta interrompida. A resposta parcial mantém-se."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resposta interrompida. A resposta parcial foi preservada."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "回答を停止しました。途中までの回答は残っています。"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止回复。已生成的部分回复已保留。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已停止回覆。已產生的部分回覆已保留。"
-          }
-        }
-      }
-    },
     "chat.notice.retryMessage": {
       "localizations": {
         "en": {
@@ -20041,6 +19965,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "已儲存的選擇"
+          }
+        }
+      }
+    },
+    "chat.notice.savedUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
           }
         }
       }
@@ -69129,12 +69063,72 @@
         }
       }
     },
+    "chat.turn.buyCredits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        }
+      }
+    },
+    "chat.turn.chooseAccessMethod": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        }
+      }
+    },
+    "chat.turn.interruptedNothingChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        }
+      }
+    },
+    "chat.turn.interruptedSomeSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        }
+      }
+    },
     "chat.turn.receivedBeforeClose": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Received before the app closed. Tap Try again to send it."
+          }
+        }
+      }
+    },
+    "chat.turn.restorePurchases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        }
+      }
+    },
+    "chat.turn.signInAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
           }
         }
       }
@@ -110233,6 +110227,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存"
+          }
+        }
+      }
+    },
+    "credits.error.accessRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        }
+      }
+    },
+    "credits.error.exhausted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
           }
         }
       }

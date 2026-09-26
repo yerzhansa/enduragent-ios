@@ -28,6 +28,7 @@ final class ShellModel {
 	var confirmLine: String?
 	var chatId: ChatID = .main
 	var showSidebar = false
+	var showCredits = false
 	var packPrices: [String: String] = [:]
 
 	let builder: ServicesBuilder
@@ -265,24 +266,6 @@ final class ShellModel {
 			switch error {
 			case .storageUnavailable:
 				notSent = true
-			}
-		}
-	}
-
-	func perform(_ action: RecoveryAction) async {
-		guard let services else { return }
-		switch action {
-		case .tryAgain(let turn):
-			if let text = chat?.turns.first(where: { $0.id == turn })?.athleteText {
-				services.fixtureDirector?.prepareRetry(of: text)
-			}
-			do {
-				try await services.coach.retry(turn, in: chatId)
-			} catch {
-				switch error {
-				case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn:
-					return
-				}
 			}
 		}
 	}

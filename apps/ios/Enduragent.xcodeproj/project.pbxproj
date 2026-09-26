@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */; };
 		0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */; };
+		1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */; };
+		225211C880C7EBC5688C16BE /* RecoveryActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */; };
 		23BA97B185E8F0CA4A991324 /* ConfirmedPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */; };
 		27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */; };
 		28115121B0FED40730769B04 /* EnduragentCoach in Frameworks */ = {isa = PBXBuildFile; productRef = E957E38AABE221883FA39FAE /* EnduragentCoach */; };
@@ -33,6 +35,7 @@
 		9338CBBEA702D310B6381607 /* FailureProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D67C5124B3375A468FB7488 /* FailureProofs.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
 		A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E410F19BC06DE08527699D1 /* Assets.xcassets */; };
+		AA4AAD1A684A6632A3CCEB2D /* NoticeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D14394F58238C2E63C9FD /* NoticeActionTests.swift */; };
 		AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C001D5C325DA3FC53ECF139 /* RootView.swift */; };
 		AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFE5043C9095F3E5521623E3 /* SidebarView.swift */; };
 		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
@@ -76,6 +79,7 @@
 		2BB34221AE8B0EB8B664B7BE /* ChatIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatIndex.swift; sourceTree = "<group>"; };
 		30D10C84C333E7498713547A /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		30DA796E304FA8860C541078 /* ShellModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellModel.swift; sourceTree = "<group>"; };
+		335D14394F58238C2E63C9FD /* NoticeActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeActionTests.swift; sourceTree = "<group>"; };
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
 		490EB5C3EA005CDE6D16CB16 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
 		50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
@@ -91,9 +95,11 @@
 		7D3959BCDD350AB804E93846 /* Enduragent.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Enduragent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84FFE0F37052EAEFF6684E41 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		8D67C5124B3375A468FB7488 /* FailureProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureProofs.swift; sourceTree = "<group>"; };
+		8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryActions.swift; sourceTree = "<group>"; };
 		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
 		9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseCoordinator.swift; sourceTree = "<group>"; };
 		9C001D5C325DA3FC53ECF139 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeProofs.swift; sourceTree = "<group>"; };
 		9D8D3A3B2A059733579AEDA6 /* FixtureDirector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureDirector.swift; sourceTree = "<group>"; };
 		9E410F19BC06DE08527699D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9FF96790E55864A7E928A05B /* EnduragentCoach */ = {isa = PBXFileReference; lastKnownFileType = folder; name = EnduragentCoach; path = Packages/EnduragentCoach; sourceTree = SOURCE_ROOT; };
@@ -131,6 +137,7 @@
 				CA5D53376E7ADD5F2A653595 /* FixtureChatTests.swift */,
 				F4ABCE2F18CBD408A1E72974 /* FixtureFailureTests.swift */,
 				7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */,
+				335D14394F58238C2E63C9FD /* NoticeActionTests.swift */,
 				BEA0399B8EE30AFDF2D4D3BB /* SlashListTests.swift */,
 			);
 			path = EnduragentTests;
@@ -158,6 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				8D67C5124B3375A468FB7488 /* FailureProofs.swift */,
+				9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */,
 				CD1E8EB2C3AB6B75EBB31C9A /* RetryProofs.swift */,
 				61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */,
 				5502A456F209EE30186C41C0 /* TutorialHarness.swift */,
@@ -172,6 +180,7 @@
 				84FFE0F37052EAEFF6684E41 /* ChatView.swift */,
 				A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */,
 				B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */,
+				8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */,
 				05DE1643D8AAF084B95462CB /* SlashListView.swift */,
 				20BFB776A369E9C4E27001B2 /* TranscriptView.swift */,
 				D6932D7AAEE51A2B4AD64EA7 /* TurnRowView.swift */,
@@ -395,6 +404,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9338CBBEA702D310B6381607 /* FailureProofs.swift in Sources */,
+				1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */,
 				468F0B548FF44D5CA24BD1F8 /* RetryProofs.swift in Sources */,
 				0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */,
 				6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */,
@@ -409,6 +419,7 @@
 				2A2CDA75AEF898C2593A8DF7 /* FixtureChatTests.swift in Sources */,
 				CED72381387A7FA14EFCA529 /* FixtureFailureTests.swift in Sources */,
 				499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */,
+				AA4AAD1A684A6632A3CCEB2D /* NoticeActionTests.swift in Sources */,
 				3DDB9A3AE6D9264D6AA313EA /* SlashListTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -438,6 +449,7 @@
 				27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */,
 				CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */,
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
+				225211C880C7EBC5688C16BE /* RecoveryActions.swift in Sources */,
 				AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */,
 				A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */,
 				AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */,

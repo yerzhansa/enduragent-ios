@@ -8,7 +8,8 @@ final class RateLimitExhaustedProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
 		TutorialHarness.wait(
-			turnNotice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: 40)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: 40
+		)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "rate-limit-exhausted", app: app)
 		assertModelRequests(app, 4, test: self, name: "rate-limit-exhausted-requests")
@@ -37,7 +38,8 @@ final class RateLimitWaitProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(working)
 		TutorialHarness.wait(
-			turnNotice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: 40)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: 40
+		)
 		TutorialHarness.attach(self, name: "rate-limit-wait-exhausted", app: app)
 		assertModelRequests(app, 2 + 4, test: self, name: "rate-limit-wait-requests")
 	}
@@ -53,7 +55,8 @@ final class NetworkRetryProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "network-retry", app: app)
 		TutorialHarness.send(app, "fixture:fail network x3")
-		TutorialHarness.wait(turnNotice(app, reading: TutorialHarness.providerDown), timeout: 20)
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.providerDown), timeout: 20)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "network-exhausted", app: app)
 		assertModelRequests(app, 6, test: self, name: "network-requests")
@@ -66,7 +69,8 @@ final class OverflowExhaustedProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail overflow x4")
-		TutorialHarness.wait(turnNotice(app, reading: TutorialHarness.unknownFailure), timeout: 20)
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.unknownFailure), timeout: 20)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "overflow-exhausted", app: app)
 		TutorialHarness.openRecords(app)
@@ -91,7 +95,8 @@ final class ReplyObservedProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"), "the reply already settled")
 		TutorialHarness.attach(self, name: "observed-text-records", app: app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.wait(turnNotice(app, reading: TutorialHarness.providerDown), timeout: 40)
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.providerDown), timeout: 40)
 		TutorialHarness.attach(self, name: "observed-text-timeout", app: app)
 		assertModelRequests(app, 1, test: self, name: "observed-text-requests")
 	}
@@ -115,12 +120,6 @@ final class NoCrossChatMemoProof: XCTestCase {
 		TutorialHarness.attach(self, name: "no-cross-chat-memo", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
-}
-
-private func turnNotice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
-	app.staticTexts.matching(
-		NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
-	).firstMatch
 }
 
 private func weekReply(_ app: XCUIApplication) -> XCUIElement {

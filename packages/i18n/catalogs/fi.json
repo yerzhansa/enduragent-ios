@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Tallennettuja viestejäsi ei voitu tarkistaa. Yhdistä uudelleen ja yritä uudelleen.",
       "queueRemoveFailure": "Tallennettua viestiä ei voitu poistaa. Yritä uudelleen.",
       "responseFailure": "Valmentaja ei voinut vastata. Yritä uudelleen.",
-      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "retryMessage": "Yritä viestiä uudelleen",
       "savedChoice": "Tallennettu valinta",
       "working": "Valmentaja työskentelee…"

@@ -13,10 +13,12 @@ public enum TurnState: Sendable, Equatable {
 		case .accepted(.awaitingRestart):
 			return true
 		case .failed(let failed):
-			if case .tryAgain = failed.notice.action {
+			switch failed.notice.action {
+			case .tryAgain?, .wait?:
 				return true
+			case .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?, nil:
+				return false
 			}
-			return false
 		case .interrupted(let interrupted):
 			if case .tryAgain = interrupted.notice.action {
 				return true
@@ -83,7 +85,7 @@ public enum RetryWaitReason: Sendable, Equatable {
 	case providerTrouble
 }
 
-public enum InterruptionCause: String, Sendable {
+public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
 	case processEnded
 	case stoppedBeforeStart
@@ -217,9 +219,8 @@ package enum TurnLifecycle {
 	package static func state(
 		of facts: TurnFacts,
 		live: LiveAttempt?,
-		overlay: AcceptedOverlay,
-		device: DeviceID,
-		now: Date
+		overlay: TurnOverlay,
+		device: DeviceID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
 			!facts.settlements.contains(where: { $0.attempt == live.attempt })
@@ -233,7 +234,7 @@ package enum TurnLifecycle {
 			return .accepted(.collecting(until: until))
 		case .queued(let position):
 			return .accepted(.queued(position: position))
-		case .notInThisProcess:
+		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
 		if let latest = facts.latestSettlement {
@@ -251,7 +252,8 @@ package enum TurnLifecycle {
 					TurnState.Failed(
 						failure: failure,
 						saved: saved,
-						notice: AthleteNotices.notice(for: failure, turn: retry, now: now)
+						notice: AthleteNotices.notice(
+							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -259,7 +261,7 @@ package enum TurnLifecycle {
 						partial: partial,
 						cause: cause,
 						saved: saved,
-						notice: AthleteNotices.notice(for: cause, turn: retry)
+						notice: AthleteNotices.notice(for: cause, saved: saved, turn: retry)
 					))
 			}
 		}
@@ -280,9 +282,10 @@ package struct LiveAttempt: Sendable, Equatable {
 	package var activity: TurnActivity
 }
 
-package enum AcceptedOverlay: Sendable, Equatable {
+package enum TurnOverlay: Sendable, Equatable {
 	case collecting(until: Date)
 	case queued(position: Int)
+	case waitingToTryAgain
 	case notInThisProcess
 }
 

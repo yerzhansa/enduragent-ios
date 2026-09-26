@@ -15,27 +15,45 @@ enum TutorialHarness {
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."
-	static let providerCredentials =
-		"The model provider rejected the API key — check your provider credentials."
+	static let accessRejected = "Your Credits couldn't be used. Restore purchases to continue."
+	static let creditsExhausted =
+		"You're out of Credits. Buy more, or switch to your OpenRouter account."
+	static let savedUnverified =
+		"I saved your information, but couldn't verify my response. Please try again."
+	static let notConfigured = "Choose how the coach reaches a model to continue."
+	static let locked = "Unlock your iPhone to continue. Your message is saved."
+	static let buyCredits = "Buy Credits"
+	static let restorePurchases = "Restore purchases"
+	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
+	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
+	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
-	static let responseStopped = "Response stopped. Your partial response is preserved."
+	static let interruptedSomeSaved =
+		"This reply stopped before it finished. Some information was saved first."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
+	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 
 	static func launch(
-		_ app: XCUIApplication, dark: Bool = false, coalescingMilliseconds: Int? = nil
+		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
+		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
+		}
+		if let keychain {
+			app.launchArguments += [keychainArgument, keychain]
 		}
 		if let coalescingMilliseconds {
 			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
@@ -79,6 +97,12 @@ enum TutorialHarness {
 
 	static func named(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+	}
+
+	static func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
+		app.staticTexts.matching(
+			NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
+		).firstMatch
 	}
 
 	static func wait(_ element: XCUIElement, timeout: TimeInterval = 8) {

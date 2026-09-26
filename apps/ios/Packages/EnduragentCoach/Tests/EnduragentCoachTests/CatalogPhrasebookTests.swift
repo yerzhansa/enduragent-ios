@@ -5,8 +5,47 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2419)
-		#expect(Catalog.keyCount == 2455)
+		#expect(Catalog.englishLeafCount == 2430)
+		#expect(Catalog.keyCount == 2466)
+	}
+
+	@Test(arguments: [
+		(
+			Catalog.creditsErrorAccessRejected,
+			"Your Credits couldn't be used. Restore purchases to continue."
+		),
+		(
+			Catalog.creditsErrorExhausted,
+			"You're out of Credits. Buy more, or switch to your OpenRouter account."
+		),
+		(
+			Catalog.accessErrorOpenRouterFunds,
+			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+		),
+		(Catalog.accessErrorLocked, "Unlock your iPhone to continue. Your message is saved."),
+		(Catalog.accessErrorNotConfigured, "Choose how the coach reaches a model to continue."),
+		(
+			Catalog.chatTurnInterruptedNothingChanged,
+			"This reply stopped before it finished. Nothing was changed."
+		),
+		(
+			Catalog.chatTurnInterruptedSomeSaved,
+			"This reply stopped before it finished. Some information was saved first."
+		),
+		(
+			Catalog.chatNoticeSavedUnverified,
+			"I saved your information, but couldn't verify my response. Please try again."
+		),
+		(Catalog.chatTurnBuyCredits, "Buy Credits"),
+		(Catalog.chatTurnRestorePurchases, "Restore purchases"),
+		(Catalog.chatTurnChooseAccessMethod, "Choose access method"),
+		(Catalog.chatTurnSignInAgain, "Sign in again"),
+	])
+	func newKeysRenderInEnglishAndFallBackForOtherTags(key: CatalogKey, english: String) {
+		#expect(CatalogPhrasebook(tag: .en, locale: "en-US").say(key) == english)
+		for tag in LanguageTag.allCases where tag != .en {
+			#expect(CatalogPhrasebook(tag: tag, locale: tag.defaultLocale).say(key) == english)
+		}
 	}
 
 	@Test func italianCancelUsesTheItalianCatalog() {

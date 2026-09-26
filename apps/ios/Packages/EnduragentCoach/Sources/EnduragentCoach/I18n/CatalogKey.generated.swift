@@ -1,6 +1,9 @@
 public enum Catalog {
-	public static let englishLeafCount = 2419
-	public static let keyCount = 2455
+	public static let englishLeafCount = 2430
+	public static let keyCount = 2466
+	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
+	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
+	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
 	public static let archiveAthlete = CatalogKey(rawValue: "archive.athlete")
 	public static let archiveBack = CatalogKey(rawValue: "archive.back")
 	public static let archiveCoach = CatalogKey(rawValue: "archive.coach")
@@ -159,9 +162,9 @@ public enum Catalog {
 	public static let chatNoticeQueueLoadFailure = CatalogKey(rawValue: "chat.notice.queueLoadFailure")
 	public static let chatNoticeQueueRemoveFailure = CatalogKey(rawValue: "chat.notice.queueRemoveFailure")
 	public static let chatNoticeResponseFailure = CatalogKey(rawValue: "chat.notice.responseFailure")
-	public static let chatNoticeResponseStopped = CatalogKey(rawValue: "chat.notice.responseStopped")
 	public static let chatNoticeRetryMessage = CatalogKey(rawValue: "chat.notice.retryMessage")
 	public static let chatNoticeSavedChoice = CatalogKey(rawValue: "chat.notice.savedChoice")
+	public static let chatNoticeSavedUnverified = CatalogKey(rawValue: "chat.notice.savedUnverified")
 	public static let chatNoticeWorking = CatalogKey(rawValue: "chat.notice.working")
 	public static let chatPlanChangeActivePlan = CatalogKey(rawValue: "chat.planChange.activePlan")
 	public static let chatPlanChangeAffectedWorkouts = CatalogKey(rawValue: "chat.planChange.affectedWorkouts")
@@ -541,7 +544,13 @@ public enum Catalog {
 	public static let chatTranscriptSummaryOpening = CatalogKey(rawValue: "chat.transcript.summary.opening")
 	public static let chatTranscriptSummaryRetry = CatalogKey(rawValue: "chat.transcript.summary.retry")
 	public static let chatTranscriptSummaryReview = CatalogKey(rawValue: "chat.transcript.summary.review")
+	public static let chatTurnBuyCredits = CatalogKey(rawValue: "chat.turn.buyCredits")
+	public static let chatTurnChooseAccessMethod = CatalogKey(rawValue: "chat.turn.chooseAccessMethod")
+	public static let chatTurnInterruptedNothingChanged = CatalogKey(rawValue: "chat.turn.interruptedNothingChanged")
+	public static let chatTurnInterruptedSomeSaved = CatalogKey(rawValue: "chat.turn.interruptedSomeSaved")
 	public static let chatTurnReceivedBeforeClose = CatalogKey(rawValue: "chat.turn.receivedBeforeClose")
+	public static let chatTurnRestorePurchases = CatalogKey(rawValue: "chat.turn.restorePurchases")
+	public static let chatTurnSignInAgain = CatalogKey(rawValue: "chat.turn.signInAgain")
 	public static let chatViewCloseContext = CatalogKey(rawValue: "chat.view.closeContext")
 	public static let chatViewConfirmation = CatalogKey(rawValue: "chat.view.confirmation")
 	public static let chatViewContextDetail = CatalogKey(rawValue: "chat.view.contextDetail")
@@ -755,6 +764,8 @@ public enum Catalog {
 	public static let commonCancel = CatalogKey(rawValue: "common.cancel")
 	public static let commonContinue = CatalogKey(rawValue: "common.continue")
 	public static let commonSave = CatalogKey(rawValue: "common.save")
+	public static let creditsErrorAccessRejected = CatalogKey(rawValue: "credits.error.accessRejected")
+	public static let creditsErrorExhausted = CatalogKey(rawValue: "credits.error.exhausted")
 	public static let desktopCredentialsMacRecovery = CatalogKey(rawValue: "desktop.credentials.macRecovery")
 	public static let desktopCredentialsMacUnavailable = CatalogKey(rawValue: "desktop.credentials.macUnavailable")
 	public static let desktopCredentialsWindowsIdentityFailed = CatalogKey(rawValue: "desktop.credentials.windowsIdentityFailed")
