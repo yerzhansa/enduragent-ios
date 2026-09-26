@@ -99,6 +99,10 @@ enum TutorialHarness {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
 	}
 
+	static func text(_ app: XCUIApplication, containing fragment: String) -> XCUIElement {
+		app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", fragment)).firstMatch
+	}
+
 	static func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
 		app.staticTexts.matching(
 			NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
@@ -195,6 +199,10 @@ enum TutorialHarness {
 			app.buttons["Refresh"].tap()
 		}
 		XCTAssertEqual(recordCount(app, kind), expected)
+	}
+
+	static func settlementRows(_ app: XCUIApplication) -> [String] {
+		recordRowLabels(app).filter { $0.hasPrefix("turnSettled") }
 	}
 
 	static func recordRowLabels(_ app: XCUIApplication) -> [String] {

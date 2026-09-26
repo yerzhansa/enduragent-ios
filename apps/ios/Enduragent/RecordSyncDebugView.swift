@@ -38,6 +38,10 @@
 						ForEach(snapshot?.rows ?? []) { row in
 							VStack(alignment: .leading, spacing: 4) {
 								Text(row.kind)
+								if !row.detail.isEmpty {
+									Text(row.detail)
+										.font(.caption)
+								}
 								Text(row.deviceId)
 									.font(.caption)
 								Text(row.hlc)
@@ -45,7 +49,10 @@
 									.monospaced()
 							}
 							.accessibilityElement(children: .ignore)
-							.accessibilityLabel("\(row.kind) \(row.deviceId) \(row.hlc)")
+							.accessibilityLabel(
+								[row.kind, row.detail, row.deviceId, row.hlc].filter { !$0.isEmpty }
+									.joined(separator: " ")
+							)
 							.accessibilityIdentifier("records.row.\(row.id)")
 						}
 					}

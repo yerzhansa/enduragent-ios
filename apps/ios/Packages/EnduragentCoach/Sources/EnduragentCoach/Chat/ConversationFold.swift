@@ -134,7 +134,7 @@ package enum ConversationFold {
 		where record.chatId == chat && record.deviceId == device {
 			switch record.body {
 			case .deviceLocal(.turnClaim(let body)):
-				turns[body.turn]?.claims.append(body)
+				turns[body.turn]?.claims.append(ClaimedAttempt(hlc: record.hlc, body: body))
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
 			default:
@@ -196,7 +196,8 @@ package enum ConversationFold {
 					))
 			case .deviceLocal(.turnClaim(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
-				next.segments[position.segment].turns[position.turn].claims.append(body)
+				next.segments[position.segment].turns[position.turn].claims.append(
+					ClaimedAttempt(hlc: record.hlc, body: body))
 			case .deviceLocal(.replyObserved(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
@@ -255,7 +256,9 @@ package struct Conversation: Sendable, Equatable {
 	) {
 		guard let position = position(of: turn) else { return }
 		let facts = segments[position.segment].turns[position.turn]
-		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
+		let last =
+			(facts.fragments.map(\.hlc) + facts.claims.map(\.hlc)
+			+ facts.settlements.map(\.hlc)).max()
 		segments[position.segment].turns[position.turn].settlements.append(
 			SettledAttempt(
 				ulid: ulid,

@@ -134,6 +134,19 @@ package actor Ledger {
 			self.cursor = seen
 		}
 	}
+
+	package func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure)
+		-> [AthleteRecord]
+	{
+		switch writes {
+		case .nothing:
+			return []
+		case .synced(let bodies):
+			return try await commit(synced: bodies, stamp: stamp)
+		case .local(let bodies):
+			return try await commit(local: bodies, stamp: stamp)
+		}
+	}
 }
 
 package enum LedgerFailure: Error, Sendable, Equatable {
