@@ -40,7 +40,7 @@ import Testing
 		let (bytes, response) = try await session.bytes(for: urlRequest)
 		let http = try #require(response as? HTTPURLResponse)
 		guard http.statusCode == 200 else {
-			let body = try await OpenRouterHTTP.utf8String(from: bytes)
+			let body = try await OpenRouterHTTP.errorBody(from: bytes)
 			Issue.record("OpenRouter answered \(http.statusCode): \(body)")
 			return
 		}

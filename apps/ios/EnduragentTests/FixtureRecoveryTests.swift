@@ -7,12 +7,13 @@ import UIKit
 
 extension FixtureLaunchTests {
 	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
-		let killed = model(try services(store: .keep))
+		let killed = model(try services())
 		killed.startChatting()
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
-		let relaunched = model(try services(store: .keep))
+		let (kept, _) = try relaunch(.keep)
+		let relaunched = model(kept)
 		await relaunched.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
 		#expect(cause(recovered.state) == .processEnded)
@@ -29,7 +30,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
-		let services = try services(store: .keep)
+		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let model = model(services)
 		model.startChatting()
@@ -43,8 +44,8 @@ extension FixtureLaunchTests {
 		for kind in SyncedKind.allCases {
 			records.failAppends(ofKind: kind)
 		}
-		let reopened = try #require(
-			await firstSnapshot(try self.services(store: .keep), chat: model.chatId))
+		let (kept, _) = try relaunch(.keep)
+		let reopened = try #require(await firstSnapshot(kept, chat: model.chatId))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -57,7 +58,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
-		let services = try services(store: .keep)
+		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let killed = model(services)
 		killed.startChatting()
@@ -71,8 +72,8 @@ extension FixtureLaunchTests {
 		{
 			try await Task.sleep(for: .milliseconds(20))
 		}
-		let reopened = try #require(
-			await firstSnapshot(try self.services(store: .keep), chat: killed.chatId))
+		let (kept, _) = try relaunch(.keep)
+		let reopened = try #require(await firstSnapshot(kept, chat: killed.chatId))
 		let state = try #require(reopened.turns.first { $0.id == dead.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")

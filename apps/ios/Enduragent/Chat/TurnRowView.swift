@@ -7,13 +7,15 @@ struct TurnRowView: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(turn.athleteText)
+			if let athleteText = turn.athleteText {
+				Text(athleteText)
+			}
 			switch turn.state {
 			case .accepted(.awaitingRestart):
 				Text(say(Catalog.chatTurnReceivedBeforeClose))
 					.accessibilityIdentifier("chat.turn.receivedBeforeClose")
 				actionButton(.tryAgain(turn.id))
-			case .accepted(.onOtherDevice):
+			case .accepted(.onOtherDevice), .accepted(.beforeUpgrade):
 				EmptyView()
 			case .accepted(.collecting), .accepted(.queued):
 				working

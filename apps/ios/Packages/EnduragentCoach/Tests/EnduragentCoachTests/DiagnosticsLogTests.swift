@@ -51,28 +51,133 @@ import Testing
 		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
 	}
 
-	@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
-		let store = try V1Store.materialize()
-		let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
-		try store.insertRaw(kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
-		let transport = FakeModelTransport()
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: log, clock: clock)
-		let before = await coach.transcript(.main)
-		_ = try await coach.sendAndSettle("Still on for Saturday?")
-		let after = await coach.transcript(.main)
-		#expect(after == before + ["Still on for Saturday?", "Noted."])
-		#expect(
-			coach.diagnostics.entries.map(\.event) == [
-				.skippedRecord(.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
+	@Test func requestKeyIsRedactedEvenWithoutAKnownPrefix() async throws {
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let key = "fixture-credits-key"
+		let transport = try OpenRouterStub.transport(diagnostics: diagnostics) { _ in
+			.reply(.json(401, #"{"error":{"message":"Key \#(key) is not valid."}}"#))
+		}
+		let access = ResolvedAccess(
+			credential: ProviderCredential(secret: key, method: .credits), model: testModel)
+		let request = CompletionRequest(
+			access: access, attempt: AttemptID(ulid: fixedUlid(42)), charge: .chatAttempt,
+			messages: [WireMessage(role: .user, content: "Hi", toolCalls: [], toolCallId: nil)],
+			tools: [], deadline: .seconds(30))
+		await #expect(throws: ProviderFailure.credentialRejected(status: 401)) {
+			_ = try await collect(transport.stream(request))
+		}
+		let entry = try #require(diagnostics.entries.only)
+		guard case .providerFailure(_, _, let detail) = entry.event else {
+			Issue.record("expected a provider failure, got \(entry.event)")
+			return
+		}
+		#expect(!detail.contains(key))
+		#expect(detail.contains("Key [redacted] is not valid."))
+	}
+
+	@Test func unreadableRowsCannotFlushProviderFailuresOutOfTheRing() async throws {
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let failure = DiagnosticsEvent.providerFailure(
+			AttemptID(ulid: fixedUlid(43)), .network, detail: "URLError -1009")
+		diagnostics.record(failure)
+		let rows = (0..<250).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
+		let ledger = Ledger(log: UnreadableLog(rows: rows), clock: clock, diagnostics: diagnostics)
+		_ = try await ledger.read(RecordQuery(scope: .everySynced))
+		_ = try await ledger.read(RecordQuery(scope: .everySynced))
+		let events = diagnostics.entries.map(\.event)
+		#expect(events.first == failure)
+		#expect(events.count == 1 + Ledger.reportedSkipLimit)
+		let skipped = events.compactMap { event -> SkippedRow? in
+			guard case .skippedRecord(let row) = event else { return nil }
+			return row
+		}
+		#expect(Set(skipped).count == Ledger.reportedSkipLimit)
+	}
+
+	@Test(arguments: [true, false])
+	func flushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
+		let store = InMemoryRecordLog()
+		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		let at = clock.now.addingTimeInterval(-5)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: at, ulid: ULID.generate(at: at),
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [history[0].user, history[0].reply]))))
 			])
+		let transport = FakeModelTransport()
+		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		let secrets = keyedSecrets()
+		secrets.locked = !keyStored
+		let coach = makeCoach(
+			transport: transport, store: store, clock: clock, secrets: secrets)
+		await coach.lifecycle(.becameActive)
+		let deadline = ContinuousClock.now + .seconds(5)
+		var flushFailures: [String] = []
+		while flushFailures.isEmpty, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(10))
+			flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
+				guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
+				return detail
+			}
+		}
+		let expected = keyStored ? "providerDown" : "secureStorageLocked"
+		#expect(flushFailures.count == 1)
+		#expect(flushFailures.first?.contains(expected) == true)
+		#expect(transport.requestCount == (keyStored ? 2 : 0))
+	}
+}
+
+extension SwiftDataSuites {
+	@Suite struct SkippedRowDiagnosticsTests {
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+		@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
+			let store = try V1Store.materialize()
+			let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
+			try store.insertRaw(
+				kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
+			let transport = FakeModelTransport()
+			transport.script = [.text("Noted."), .finish(reason: .stop)]
+			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let before = await coach.transcript(.main)
+			_ = try await coach.sendAndSettle("Still on for Saturday?")
+			let after = await coach.transcript(.main)
+			#expect(after == before + ["Still on for Saturday?", "Noted."])
+			#expect(
+				coach.diagnostics.entries.map(\.event) == [
+					.skippedRecord(
+						.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
+				])
+		}
+	}
+}
+
+private struct UnreadableLog: RecordLog {
+	let deviceId = DeviceID(rawValue: "phone-a")
+	let rows: [SkippedRow]
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		RecordPage(records: [], skipped: rows)
+	}
+
+	var imports: AsyncStream<Void> {
+		AsyncStream { _ in }
 	}
 }
 
 private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
-	case .providerFailure(_, _, let detail), .memoryFlushFailed(_, let detail),
-		.compactionFailed(_, let detail), .replyObservedUnsaved(_, let detail):
+	case .providerFailure(_, _, let detail), .toolFailed(_, _, let detail),
+		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
+		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .skippedRecord, .recoveryUnavailable:
 		return nil

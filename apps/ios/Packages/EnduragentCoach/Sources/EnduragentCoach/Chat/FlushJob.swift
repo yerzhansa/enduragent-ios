@@ -214,22 +214,18 @@ package struct FlushWork: Sendable {
 	package func drain(
 		_ id: FlushJobID, in conversation: Conversation,
 		access: () throws(AccessUnavailable) -> ResolvedAccess
-	) async throws(CancellationError) {
-		let job: FlushJob
-		let resolved: ResolvedAccess
+	) async {
 		do {
-			guard let pending = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
-				!pending.settled
+			guard let job = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
+				!job.settled
 			else {
 				return
 			}
-			job = pending
-			resolved = try access()
+			_ = try await run(
+				job, messages: conversation.flushMessages(for: job), access: try access(),
+				scope: nil)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-			return
 		}
-		_ = try await run(
-			job, messages: conversation.flushMessages(for: job), access: resolved, scope: nil)
 	}
 }

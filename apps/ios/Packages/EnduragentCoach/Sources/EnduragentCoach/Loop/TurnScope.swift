@@ -76,6 +76,10 @@ package actor TurnScope {
 		commits
 	}
 
+	package var summary: WriteSummary {
+		WriteSummary(commits)
+	}
+
 	package func memoized(
 		_ tool: ToolName,
 		arguments: String,

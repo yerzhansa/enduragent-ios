@@ -204,11 +204,11 @@ package enum AthleteNotices {
 	}
 
 	package static func notice(
-		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID
+		for interruption: InterruptionCause, turn: TurnID?
 	) -> AthleteNotice {
 		switch interruption {
 		case .athleteStopped, .appTerminating, .processEnded, .stoppedBeforeStart:
-			guard saved.isEmpty else {
+			guard let turn else {
 				return AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil)
 			}
 			return AthleteNotice(

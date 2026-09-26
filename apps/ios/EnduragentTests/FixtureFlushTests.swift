@@ -18,7 +18,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func flushPartialLeavesTheJobPendingUntilTheNextLaunchDrainsIt() async throws {
-		let services = try services(store: .keep)
+		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
@@ -30,7 +30,8 @@ extension FixtureLaunchTests {
 		#expect(try await count(.synced([.memorySection]), in: records) == 1)
 		#expect(try await count(.synced([.ledgerEvent]), in: records) == 1)
 
-		let relaunched = self.model(try self.services(store: .keep))
+		let (kept, _) = try relaunch(.keep)
+		let relaunched = self.model(kept)
 		let drained = try #require(relaunched.services?.fixtureRecordLog)
 		await relaunched.lifecycle.forward(.becameActive)
 		try await waitUntil { try await count(.deviceLocal([.flushSettled]), in: drained) == 1 }

@@ -95,8 +95,7 @@ package struct TurnRunner: Sendable {
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
-				failure.coachFailure(for: attempt.access.method),
-				saved: WriteSummary(await scope.written))
+				failure.coachFailure(for: attempt.access.method), saved: await scope.summary)
 		}
 		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 	}
@@ -132,7 +131,7 @@ package struct TurnRunner: Sendable {
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
 				)
-				let saved = WriteSummary(await scope.written)
+				let saved = await scope.summary
 				switch ladder.decide(failure, situation: situation, counters: counters) {
 				case .terminal(let coachFailure):
 					return .failed(coachFailure, saved: saved)
@@ -547,7 +546,10 @@ package struct TurnRunner: Sendable {
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
-						outcome = .result(.object(["error": .string(toolErrorText(error))]))
+						self.diagnostics.record(
+							.toolFailed(
+								scope.stamp.attempt, call.name, detail: String(describing: error)))
+						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
 				}
@@ -707,16 +709,6 @@ private struct Transcript: Sendable {
 			history: PromptHistory(summary: nil, messages: [], ulids: []), unflushed: [],
 			flushPending: flushPending || !unflushed.isEmpty, current: current, lastDate: nil)
 	}
-}
-
-private func toolErrorText(_ error: any Error) -> String {
-	if let intervals = error as? IntervalsError {
-		return intervals.details
-	}
-	if let workout = error as? InvalidWorkout {
-		return workout.message
-	}
-	return String(describing: error)
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {

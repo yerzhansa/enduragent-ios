@@ -246,12 +246,12 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			memory: memory,
-			transport: transport,
+			flushes: FlushWork(
+				chat: chatId, ledger: ledger, memory: memory, transport: transport, clock: clock,
+				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language }, access: access),
-			diagnostics: diagnostics
+			environment: EnvironmentResolver(language: { await self.language }, access: access)
 		)
 		mailboxes[chatId] = created
 		return created

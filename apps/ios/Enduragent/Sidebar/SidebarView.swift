@@ -38,10 +38,7 @@ struct SidebarView: View {
 				}
 				.accessibilityIdentifier("debug.records")
 				if model.builder.isFixture {
-					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
-						.accessibilityIdentifier("fixture.requestCount")
-					Text(model.services?.fixtureTransport?.lastChatHistoryHead ?? "—")
-						.accessibilityIdentifier("fixture.historyHead")
+					FixtureCountsDebugView(services: model.services)
 				}
 			}
 			.navigationTitle("Debug")
