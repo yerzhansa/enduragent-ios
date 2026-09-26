@@ -105,10 +105,8 @@ import Testing
 			arrivals.append(clock.now)
 		}
 		#expect(arrivals.count == 3)
-		var previous = started
-		for arrival in arrivals {
-			#expect(arrival - previous >= .milliseconds(60))
-			previous = arrival
+		for (index, arrival) in arrivals.enumerated() {
+			#expect(arrival - started >= .milliseconds(60) * (index + 1))
 		}
 	}
 
