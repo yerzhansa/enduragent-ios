@@ -51,14 +51,49 @@ import Testing
 		let page = try await log.fetch(
 			RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
 		let conversation = ConversationFold.fold(chat: .main, synced: page.records, device: phoneA)
+		#expect(conversation.segments.count == 1)
 		#expect(
 			conversation.current.messages.map(\.text) == [
-				"What did my week look like?", "Your week: two rides, 3 h 10 min.", "/review",
-				"Saturday group ride summary.",
+				"/review", "Saturday group ride summary.",
 			])
 		#expect(
 			conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
 				"/review", "Saturday group ride summary.",
+			])
+	}
+
+	@Test func twoDaysOnTrunkReopenOnTheSecondDayAfterTheUpgrade() async throws {
+		let log = InMemoryRecordLog(deviceId: phoneA)
+		try await seed(
+			log,
+			[
+				storedRecord(
+					device: phoneA, wall: 1, ulid: fixedUlid(1),
+					body: legacyUser(chatId: .main, text: "How was Monday?")),
+				storedRecord(
+					device: phoneA, wall: 2, ulid: fixedUlid(2),
+					body: legacyReply(chatId: .main, text: "Monday was easy.")),
+				storedRecord(
+					device: phoneA, wall: 3, ulid: fixedUlid(4),
+					body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: fixedUlid(3)))),
+				storedRecord(
+					device: phoneA, wall: 4, ulid: fixedUlid(5),
+					body: legacyUser(chatId: .main, text: "How was Tuesday?")),
+				storedRecord(
+					device: phoneA, wall: 5, ulid: fixedUlid(6),
+					body: legacyReply(chatId: .main, text: "Tuesday was hard.")),
+			])
+		let coach = Coach(
+			sport: .cycling,
+			transport: FakeModelTransport(),
+			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+			store: log,
+			clock: clock,
+			language: .init(ui: .en, coachReply: nil)
+		)
+		#expect(
+			await coach.history(chatId: .main).map(\.text) == [
+				"How was Tuesday?", "Tuesday was hard.",
 			])
 	}
 

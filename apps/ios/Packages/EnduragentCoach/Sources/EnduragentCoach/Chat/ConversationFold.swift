@@ -10,12 +10,29 @@ package enum ConversationFold {
 		-> Conversation
 	{
 		let ordered = synced.filter { $0.chatId == chat }.sorted { $0.hlc < $1.hlc }
+		let legacyMessages = Set(
+			ordered.compactMap { record -> ULID? in
+				switch record.body {
+				case .legacy(.userMessageV1), .legacy(.assistantMessage): record.ulid
+				default: nil
+				}
+			})
 		var boundaries: [(ulid: ULID, opening: SegmentOpening)] = []
+		var legacyTrims: [ULID] = []
 		for record in ordered {
-			if case .synced(.windowStart(let body)) = record.body,
-				case .reset(let kind) = body.reason
-			{
-				boundaries.append((body.firstIncludedUlid, .reset(kind)))
+			switch record.body {
+			case .synced(.windowStart(let body)):
+				if case .reset(let kind) = body.reason {
+					boundaries.append((body.firstIncludedUlid, .reset(kind)))
+				}
+			case .legacy(.windowStartV1(_, let firstIncluded)):
+				if legacyMessages.contains(firstIncluded) {
+					legacyTrims.append(firstIncluded)
+				} else {
+					boundaries.append((firstIncluded, .reset(.daily)))
+				}
+			default:
+				break
 			}
 		}
 		boundaries.sort { $0.ulid < $1.ulid }
@@ -111,24 +128,17 @@ package enum ConversationFold {
 			guard let facts = turns[turn], let first = facts.fragments.first else { continue }
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
 		}
+		for firstIncluded in legacyTrims {
+			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
+		}
 		for record in ordered where record.deviceId == device {
-			let window: (ulid: ULID, firstIncluded: ULID)?
-			switch record.body {
-			case .synced(.windowStart(let body)):
-				switch body.reason {
-				case .trim, .compaction:
-					window = (record.ulid, body.firstIncludedUlid)
-				case .reset:
-					window = nil
-				}
-			case .legacy(.windowStartV1(_, let firstIncluded)):
-				window = (record.ulid, firstIncluded)
-			default:
-				window = nil
-			}
-			if let window {
-				segments[segmentIndex(for: window.ulid)].promptWindow = PromptWindow(
-					firstIncluded: window.firstIncluded)
+			guard case .synced(.windowStart(let body)) = record.body else { continue }
+			switch body.reason {
+			case .trim, .compaction:
+				segments[segmentIndex(for: record.ulid)].promptWindow = PromptWindow(
+					firstIncluded: body.firstIncludedUlid)
+			case .reset:
+				break
 			}
 		}
 		return Conversation(chat: chat, segments: segments)
@@ -200,9 +210,10 @@ package struct Segment: Sendable, Equatable {
 	package let openedBy: SegmentOpening
 	package var turns: [TurnFacts] = []
 	package var promptWindow = PromptWindow(firstIncluded: nil)
+	package var legacyTrim: ULID?
 
 	package var messages: [ChatMessage] {
-		turns.flatMap { $0.messageRows.map(\.message) }
+		turns.flatMap { visibleRows(of: $0).map(\.message) }
 	}
 
 	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
@@ -211,12 +222,17 @@ package struct Segment: Sendable, Equatable {
 			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
 				continue
 			}
-			for (ulid, message) in facts.messageRows {
+			for (ulid, message) in visibleRows(of: facts) {
 				history.messages.append(message)
 				history.ulids.append(ulid)
 			}
 		}
 		return history
+	}
+
+	private func visibleRows(of facts: TurnFacts) -> [(ulid: ULID, message: ChatMessage)] {
+		guard let legacyTrim else { return facts.messageRows }
+		return facts.messageRows.filter { $0.ulid >= legacyTrim }
 	}
 }
 
