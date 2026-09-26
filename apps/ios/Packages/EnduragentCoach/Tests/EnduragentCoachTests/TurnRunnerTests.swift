@@ -26,34 +26,6 @@ import Testing
 		#expect(transport.requests.count == 10)
 	}
 
-	@Test func overflowLengthCompactsAndRetries() async throws {
-		transport.finishUsage = Usage(
-			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
-		transport.script = [
-			.text("truncated"),
-			.finish(reason: .length),
-			.text("after compact"),
-			.finish(reason: .stop),
-		]
-		transport.summaryScript = [
-			.text(
-				"## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"
-			),
-			.finish(reason: .stop),
-		]
-		let coach = makeCoach()
-		let settled = try await coach.sendAndSettle("Long history")
-		#expect(replyText(settled) == "after compact")
-		#expect(
-			transport.requests.map(\.charge) == [
-				.chatAttempt, .memoryFlush, .compaction, .chatAttempt,
-			])
-		let records = try await store.fetch(
-			RecordQuery(scope: .synced([.compactionSummary, .windowStart]), chatId: "main")
-		).records
-		#expect(!records.isEmpty)
-	}
-
 	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		let recording = BatchRecordingLog(inner: store)

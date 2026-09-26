@@ -82,24 +82,7 @@ import Testing
 		let crowded = try await makeCoach(transport: large).sendAndSettle(longRequest)
 		#expect(failure(crowded) == .model(.providerDown(.timeout)))
 		#expect(large.requests.filter { $0.charge == .chatAttempt }.count == 3)
-		#expect(large.requests.filter { $0.charge == .compaction }.count == 2)
-	}
-
-	@Test func overflowFlushesOnceThenCompactsThreeTimes() async throws {
-		transport.script =
-			[.text("Yes, rest."), .finish(reason: .stop)]
-			+ Array(repeating: .fail(overflow), count: 5)
-		let coach = makeCoach()
-		_ = try await coach.sendAndSettle("Rest day?")
-		let settled = try await coach.sendAndSettle("How was my week?")
-		#expect(failure(settled) == .model(.contextOverflow))
-		#expect(chatRequests() == 1 + 4)
-		#expect(requests(.memoryFlush) == 1)
-		#expect(requests(.compaction) == 3)
-		let summaries = try await store.fetch(
-			RecordQuery(scope: .synced([.compactionSummary]), chatId: .main)
-		).records
-		#expect(summaries.count == 3)
+		#expect(large.requests.filter { $0.charge == .compaction }.isEmpty)
 	}
 
 	@Test func budgetExceededIsTerminalBeforeAnyRung() async throws {
@@ -225,7 +208,7 @@ import Testing
 		let rescued = try await makeCoach(transport: window).sendAndSettle("Long history")
 		#expect(replyText(rescued) == "after compact")
 		#expect(window.requests.filter { $0.charge == .chatAttempt }.count == 2)
-		#expect(window.requests.filter { $0.charge == .compaction }.count == 1)
+		#expect(window.requests.filter { $0.charge == .compaction }.isEmpty)
 
 		let observed = situation(observedText: true)
 		#expect(
@@ -239,22 +222,6 @@ import Testing
 			return
 		}
 		#expect(preparations == [.flushMemory(.overflow), .compactInTurn])
-	}
-
-	@Test func failedCompactionRescueEndsWithTheOriginalFailure() async throws {
-		let faulty = FaultInjectingRecordLog(wrapping: store)
-		faulty.failAppends(ofKind: .compactionSummary)
-		transport.script = [.fail(overflow), .text("Never sent."), .finish(reason: .stop)]
-		let coach = EnduragentCoachTests.makeCoach(
-			transport: transport, store: faulty, clock: clock)
-		let settled = try await coach.sendAndSettle("How was my week?")
-		#expect(failure(settled) == .model(.contextOverflow))
-		#expect(chatRequests() == 1)
-		#expect(
-			coach.diagnostics.entries.contains { entry in
-				if case .compactionFailed(.main, _) = entry.event { return true }
-				return false
-			})
 	}
 
 	@Test func waitShowsTheWorkingStateWithItsReason() async throws {

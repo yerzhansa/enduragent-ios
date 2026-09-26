@@ -166,9 +166,6 @@ package struct TurnRunner: Sendable {
 				} catch is CancellationError {
 					throw CancellationError()
 				} catch {
-					diagnostics.record(
-						.compactionFailed(attempt.chat, detail: String(describing: error)),
-						redacting: [attempt.access.credential.secret])
 					throw AttemptFailure.rescueFailed(retry.failure)
 				}
 			case .wait(let duration, let reason):
@@ -569,31 +566,27 @@ package struct TurnRunner: Sendable {
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws {
-		await progress(.activity(.compacting))
-		try await scope.chargeCall()
-		let keep = Array(prompt.wire.suffix(4))
 		let dropped = Array(prompt.wire.dropLast(min(4, prompt.wire.count)))
-		let summary = try await summarize(
-			PromptAssembly.compactionRequest(
-				previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
-			charge: .compaction, attempt: attempt)
-		var bodies: [SyncedRecordBody] = []
-		if !keep.isEmpty {
-			bodies.append(
-				.windowStart(
-					WindowStartBody(
-						chatId: attempt.chat,
-						firstIncludedUlid: await ledger.nextULID(),
-						reason: .compaction
-					)
-				)
-			)
+		if !dropped.isEmpty {
+			await progress(.activity(.compacting))
+			try await scope.chargeCall()
+			do {
+				prompt.summary = try await summarize(
+					PromptAssembly.compactionRequest(
+						previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
+					charge: .compaction, attempt: attempt)
+				prompt.wire = Array(prompt.wire.suffix(4))
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(attempt.chat, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+			}
 		}
-		bodies.append(
-			.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)))
-		_ = try await ledger.commit(synced: bodies, stamp: scope.stamp)
-		prompt.summary = summary
-		prompt.wire = keep
+		if prompt.overBudget {
+			throw AttemptFailure.rescueFailed(.windowExceededFinish)
+		}
 	}
 
 	private func loadSnapshot() async -> AthleteSnapshot? {
