@@ -18,15 +18,22 @@ enum TutorialHarness {
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
+	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
+	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 
-	static func launch(_ app: XCUIApplication, dark: Bool = false) {
+	static func launch(
+		_ app: XCUIApplication, dark: Bool = false, coalescingMilliseconds: Int? = nil
+	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
+		}
+		if let coalescingMilliseconds {
+			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
 		}
 		app.launch()
 	}
@@ -136,6 +143,16 @@ enum TutorialHarness {
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
 		let element = named(app, "records.count.\(kind)")
 		return element.exists ? element.label : nil
+	}
+
+	static func waitForRecordCount(
+		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
+	) {
+		let deadline = Date().addingTimeInterval(timeout)
+		while recordCount(app, kind) != expected, Date() < deadline {
+			app.buttons["Refresh"].tap()
+		}
+		XCTAssertEqual(recordCount(app, kind), expected)
 	}
 
 	static func recordRowLabels(_ app: XCUIApplication) -> [String] {

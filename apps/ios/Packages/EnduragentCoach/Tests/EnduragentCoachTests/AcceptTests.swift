@@ -104,6 +104,10 @@ extension SwiftDataSuites {
 				samples.append(ContinuousClock.now - started)
 			}
 			let median = try #require(samples.sorted().dropFirst().first)
+			Attachment.record(
+				samples.map { String(format: "%.2f", $0 / .milliseconds(1)) }.joined(
+					separator: " "),
+				named: "accept-commit-ms.txt")
 			#expect(median < .milliseconds(100), "accept commit samples \(samples)")
 		}
 	}
