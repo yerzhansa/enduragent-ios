@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -101,6 +102,52 @@ final class SlowAppendLog: RecordLog, Sendable {
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		try await Task.sleep(for: delay)
 		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try await inner.fetch(query)
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}
+
+final class HeldAppendLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let kind: String
+	let occurrence: Int
+	let reached: AsyncStream<Void>
+	private let reachedContinuation: AsyncStream<Void>.Continuation
+	private let state = Mutex<(seen: Int, held: CheckedContinuation<Void, Never>?)>((0, nil))
+
+	init(inner: any RecordLog, holding kind: String, occurrence: Int) {
+		self.inner = inner
+		self.kind = kind
+		self.occurrence = occurrence
+		(reached, reachedContinuation) = AsyncStream.makeStream()
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		let hold = state.withLock { current -> Bool in
+			guard batch.contains(where: { $0.body.kind == kind }) else { return false }
+			current.seen += 1
+			return current.seen == occurrence
+		}
+		if hold {
+			await withCheckedContinuation { continuation in
+				state.withLock { $0.held = continuation }
+				reachedContinuation.yield()
+			}
+		}
+		try await inner.append(batch, locality: locality)
+	}
+
+	func release() {
+		state.withLock { current in
+			current.held?.resume()
+			current.held = nil
+		}
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {

@@ -122,6 +122,35 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
+	@Test func stopCancelsTheRunningReplyWhileASendWaitsOnTheStore() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let second = coach.send(draft("two"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		let interrupted = await coach.settledState(of: running, in: .main, within: .seconds(3))
+		store.release()
+		await stopped
+		let queued = try #require(try await second.acceptedTurn)
+		guard case .interrupted(let first)? = interrupted else {
+			Issue.record(
+				"the running reply did not stop while the send waited: \(String(describing: interrupted))"
+			)
+			return
+		}
+		#expect(first.cause == .athleteStopped)
+		guard case .interrupted(let later)? = await coach.settledState(of: queued, in: .main) else {
+			Issue.record("the waiting send was not stopped")
+			return
+		}
+		#expect(later.cause == .stoppedBeforeStart)
+	}
+
 	@Test func retryOfAwaitingRestartTurnClaimsUnderNewAttempt() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]

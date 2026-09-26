@@ -122,16 +122,15 @@ package actor ChatMailbox {
 	}
 
 	package func stop() async {
-		await admission.enter()
 		let active = running
-		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
-		guard active != nil || !unstarted.isEmpty else {
-			admission.leave()
-			return
-		}
+		guard active != nil || window != nil || !queuedTurns(includingActive: false).isEmpty
+		else { return }
 		stopping = true
-		window = nil
 		publish()
+		active?.cancel()
+		await admission.enter()
+		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
+		window = nil
 		work.removeAll { if case .turn = $0 { true } else { false } }
 		for turn in unstarted {
 			let stamp = await stamp(for: turn)
@@ -141,12 +140,10 @@ package actor ChatMailbox {
 				stamp: stamp, beforeStart: true)
 		}
 		admission.leave()
-		if let active {
-			active.cancel()
-			await active.value
-		}
+		await active?.value
 		stopping = false
 		publish()
+		drainIfIdle()
 	}
 
 	private func queuedTurns(includingActive: Bool) -> [TurnID] {
@@ -254,7 +251,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, !work.isEmpty else { return }
+		guard running == nil, !stopping, !work.isEmpty else { return }
 		let next = work.removeFirst()
 		active = next
 		running = Task {
