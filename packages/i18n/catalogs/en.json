@@ -1,4 +1,11 @@
 {
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
   "archive": {
     "athlete": "You",
     "back": "All past chats",
@@ -185,6 +192,7 @@
       "responseStopped": "Response stopped. Your partial response is preserved.",
       "retryMessage": "Retry message",
       "savedChoice": "Saved choice",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
       "working": "Coach is working…"
     },
     "planChange": {
@@ -607,7 +615,13 @@
       }
     },
     "turn": {
-      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it."
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
     },
     "view": {
       "closeContext": "Close",
@@ -841,6 +855,12 @@
     "cancel": "Cancel",
     "continue": "Continue",
     "save": "Save"
+  },
+  "credits": {
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+    }
   },
   "desktop": {
     "credentials": {

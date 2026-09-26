@@ -1,6 +1,36 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "access.error.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        }
+      }
+    },
+    "access.error.notConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        }
+      }
+    },
+    "access.error.openRouterFunds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        }
+      }
+    },
     "archive.athlete": {
       "localizations": {
         "en": {
@@ -20041,6 +20071,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "已儲存的選擇"
+          }
+        }
+      }
+    },
+    "chat.notice.savedUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
           }
         }
       }
@@ -69129,12 +69169,72 @@
         }
       }
     },
+    "chat.turn.buyCredits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        }
+      }
+    },
+    "chat.turn.chooseAccessMethod": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        }
+      }
+    },
+    "chat.turn.interruptedNothingChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        }
+      }
+    },
+    "chat.turn.interruptedSomeSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        }
+      }
+    },
     "chat.turn.receivedBeforeClose": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Received before the app closed. Tap Try again to send it."
+          }
+        }
+      }
+    },
+    "chat.turn.restorePurchases": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        }
+      }
+    },
+    "chat.turn.signInAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
           }
         }
       }
@@ -110233,6 +110333,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "儲存"
+          }
+        }
+      }
+    },
+    "credits.error.accessRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        }
+      }
+    },
+    "credits.error.exhausted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
           }
         }
       }
