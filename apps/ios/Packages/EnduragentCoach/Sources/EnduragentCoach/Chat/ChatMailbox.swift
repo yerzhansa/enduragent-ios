@@ -22,7 +22,9 @@ package actor ChatMailbox {
 	private var interruption: InterruptionCause?
 	private var terminating = false
 	private let admission = Admission()
-	private let waits = RetryWaits()
+	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
+		await self?.waitEnded($0, $1)
+	}
 	private let feed = SnapshotFeed()
 
 	package init(
@@ -116,13 +118,12 @@ package actor ChatMailbox {
 		} catch {
 			throw RetryRefusal.unknownTurn
 		}
-		guard let facts = records.conversation.turn(turn) else { throw RetryRefusal.unknownTurn }
-		if window?.turn == turn || queuedTurns(includingActive: true).contains(turn) {
-			throw RetryRefusal.alreadyRunning
-		}
-		if let refusal = TurnLifecycle.claimRefusal(of: facts, device: ledger.deviceId) {
-			throw RetryRefusal(refusal)
-		}
+		let waiting = waits.waiting(among: records.conversation.current.turns)
+		let queued = queuedTurns(includingActive: true)
+		let overlay = TurnOverlay(of: turn, window: window, queued: queued, waiting: waiting)
+		let refusal = TurnLifecycle.retryRefusal(
+			of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId)
+		if let refusal { throw RetryRefusal(refusal) }
 		enqueue(.turn(turn))
 	}
 
@@ -351,16 +352,13 @@ package actor ChatMailbox {
 	}
 
 	private func snapshot() -> ChatSnapshot {
-		waits.track(records.conversation.current.turns, clock: clock) {
-			await self.waitEnded($0, $1)
-		}
-		return ChatSnapshot(
+		ChatSnapshot(
 			chat: chatId,
 			conversation: records.conversation,
 			live: live,
 			window: window,
 			queued: queuedTurns(includingActive: true),
-			waiting: waits.running,
+			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption != nil,
 			pendingProposal: pendingProposal,
 			device: ledger.deviceId,

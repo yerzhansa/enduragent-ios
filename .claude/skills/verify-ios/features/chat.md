@@ -15,7 +15,7 @@ The athlete writes to the coach in the composer, sees the message and the coach'
   - a server error, a network failure, a timeout, or the watchdog: `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain`;
   - a rejected Credits key (401 or 403): `Your Credits couldn't be used. Restore purchases to continue.` with `Restore purchases` in `chat.turn.restorePurchases`, which opens Credits;
   - no Credits left (402): `You're out of Credits. Buy more, or switch to your OpenRouter account.` with `Buy Credits` in `chat.turn.buyCredits`, which opens Credits;
-  - a rate limit: `Rate limited — please try again in ~7 seconds.` for a 7 second hint, `~2 minutes` for 90 seconds, or `about a minute` with no hint, with a `Try again` that stays disabled until the wait ends;
+  - a rate limit: `Rate limited — please try again in ~7 seconds.` for a 7 second hint, `~2 minutes` for 90 seconds, or `about a minute` with no hint, with a `Try again` that stays disabled until the wait ends, and the coach refuses a Try again sent before then;
   - an overflow, a bad request, or a spent turn budget: `Sorry, something went wrong. Please try again.` with `Try again`;
   - a broken or unknown stream: `The coach couldn't respond. Please try again.` with `Try again`;
   - a locked keychain: `Unlock your iPhone to continue. Your message is saved.` with `Try again`;

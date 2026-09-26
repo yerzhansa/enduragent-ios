@@ -21,7 +21,8 @@ extension ShellModel {
 			try await services.coach.retry(turn, in: chatId)
 		} catch {
 			switch error {
-			case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn:
+			case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn,
+				.rateLimitWaitRunning:
 				return
 			}
 		}
