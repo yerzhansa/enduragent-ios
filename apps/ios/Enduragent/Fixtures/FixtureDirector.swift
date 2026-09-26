@@ -37,6 +37,8 @@ struct FixtureDirector: Sendable {
 			transport.script = Self.savedMemory + [.fail(.http(status: 500))]
 		case "memory-then-hang" where arguments.isEmpty:
 			transport.script = Self.savedMemory + [.hang]
+		case "text-then-hang" where arguments.isEmpty:
+			transport.script = [.text(Self.partialReply), .hang]
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
 		default:
@@ -55,6 +57,8 @@ struct FixtureDirector: Sendable {
 		transport.deltaDelay = nil
 		transport.script = FirstWeekFixture.script(for: text)
 	}
+
+	static let partialReply = "This week has Tuesday sweet spot"
 
 	static let savedMemory: [ScriptedEvent] = [
 		.toolCall(

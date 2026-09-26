@@ -82,20 +82,18 @@ final class ReplyObservedProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.waitForLabel(app, "This week has", timeout: 5)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		TutorialHarness.send(app, "fixture:text-then-hang")
+		TutorialHarness.wait(containing(app, "This week has Tuesday sweet spot"))
+		XCTAssertTrue(TutorialHarness.named(app, "chat.working").exists)
+		TutorialHarness.attach(self, name: "observed-text", app: app)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "replyObserved", "replyObserved 1")
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"), "the reply already settled")
 		TutorialHarness.attach(self, name: "observed-text-records", app: app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 15)
-		TutorialHarness.openRecords(app)
-		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "replyObserved"), "replyObserved 1")
-		TutorialHarness.attach(self, name: "observed-text-settled-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.wait(turnNotice(app, reading: TutorialHarness.providerDown), timeout: 40)
+		TutorialHarness.attach(self, name: "observed-text-timeout", app: app)
+		assertModelRequests(app, 1, test: self, name: "observed-text-requests")
 	}
 }
 
@@ -108,10 +106,11 @@ final class NoCrossChatMemoProof: XCTestCase {
 		let add = TutorialHarness.named(app, "chat.preview.add")
 		TutorialHarness.wait(add)
 		add.tap()
-		TutorialHarness.waitForLabel(app, TutorialHarness.done)
+		TutorialHarness.wait(containing(app, TutorialHarness.done))
+		TutorialHarness.attach(self, name: "no-cross-chat-memo-done", app: app)
 		TutorialHarness.send(app, "fixture:fail 500")
 		TutorialHarness.wait(weekReply(app), timeout: 20)
-		XCTAssertTrue(app.staticTexts[TutorialHarness.done].exists)
+		XCTAssertTrue(containing(app, "I've prepared the ride.").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "no-cross-chat-memo", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -125,8 +124,11 @@ private func turnNotice(_ app: XCUIApplication, reading sentence: String) -> XCU
 }
 
 private func weekReply(_ app: XCUIApplication) -> XCUIElement {
-	app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply))
-		.firstMatch
+	containing(app, TutorialHarness.weekReply)
+}
+
+private func containing(_ app: XCUIApplication, _ text: String) -> XCUIElement {
+	app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
 }
 
 private func stamp(_ test: XCTestCase, name: String, seconds: TimeInterval) {
@@ -139,6 +141,11 @@ private func stamp(_ test: XCTestCase, name: String, seconds: TimeInterval) {
 private func assertModelRequests(
 	_ app: XCUIApplication, _ expected: Int, test: XCTestCase, name: String
 ) {
+	let idle = XCTNSPredicateExpectation(
+		predicate: NSPredicate(format: "exists == false"),
+		object: TutorialHarness.named(app, "chat.working"))
+	XCTAssertEqual(
+		XCTWaiter.wait(for: [idle], timeout: 10), .completed, "the turn is still working")
 	TutorialHarness.openSidebar(app)
 	TutorialHarness.named(app, "sidebar.debug").tap()
 	let model = TutorialHarness.named(app, "fixture.modelRequestCount")
