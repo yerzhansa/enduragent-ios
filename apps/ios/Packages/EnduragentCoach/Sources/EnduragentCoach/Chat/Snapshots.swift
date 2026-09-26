@@ -35,6 +35,7 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 	case acceptedOnOtherDevice
 	case alreadyAnswered
 	case alreadyRunning
+	case rateLimitWaitRunning
 }
 
 extension ChatSnapshot {
@@ -44,6 +45,7 @@ extension ChatSnapshot {
 		live: LiveAttempt?,
 		window: OpenWindow?,
 		queued: [TurnID],
+		waiting: Set<TurnID>,
 		stopping: Bool,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
@@ -56,14 +58,8 @@ extension ChatSnapshot {
 			if current.hidesWholly(facts) {
 				return nil
 			}
-			let overlay: AcceptedOverlay
-			if let window, window.turn == facts.turn {
-				overlay = .collecting(until: window.closesAt)
-			} else if let index = queued.firstIndex(of: facts.turn) {
-				overlay = .queued(position: index + 1)
-			} else {
-				overlay = .notInThisProcess
-			}
+			let overlay = TurnOverlay(
+				of: facts.turn, window: window, queued: queued, waiting: waiting)
 			return TurnView(
 				id: facts.turn,
 				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
@@ -89,6 +85,7 @@ extension RetryRefusal {
 		case .acceptedElsewhere: self = .acceptedOnOtherDevice
 		case .alreadyAnswered: self = .alreadyAnswered
 		case .attemptInFlight: self = .alreadyRunning
+		case .rateLimitWaitRunning: self = .rateLimitWaitRunning
 		}
 	}
 }

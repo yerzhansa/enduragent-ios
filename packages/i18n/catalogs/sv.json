@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Det gick inte att kontrollera dina sparade meddelanden. Anslut på nytt och försök igen.",
       "queueRemoveFailure": "Det sparade meddelandet kunde inte tas bort. Försök igen.",
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
-      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
       "retryMessage": "Försök skicka meddelandet igen",
       "savedChoice": "Sparat val",
       "working": "Tränaren arbetar…"

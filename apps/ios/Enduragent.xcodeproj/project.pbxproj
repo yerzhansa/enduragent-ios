@@ -10,6 +10,7 @@
 		01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */; };
 		0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */; };
 		1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */; };
+		225211C880C7EBC5688C16BE /* RecoveryActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */; };
 		23BA97B185E8F0CA4A991324 /* ConfirmedPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */; };
 		27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */; };
 		28115121B0FED40730769B04 /* EnduragentCoach in Frameworks */ = {isa = PBXBuildFile; productRef = E957E38AABE221883FA39FAE /* EnduragentCoach */; };
@@ -53,6 +54,7 @@
 		E142663BABE047CA2DEFC1D5 /* FixtureFlushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB228C186B626D9D1D2CB5 /* FixtureFlushTests.swift */; };
 		E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CB01ECD4F0385933736762 /* StarterView.swift */; };
 		E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */; };
+		E8E6266759E102EA6DFBF575 /* LaunchProbes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6945966E8651AE367F932455 /* LaunchProbes.swift */; };
 		EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C05184A97F24A77692DE4E /* EnduragentApp.swift */; };
 		F58B25BCD97459A9F7D629DD /* FixtureBlockingURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */; };
 /* End PBXBuildFile section */
@@ -99,11 +101,13 @@
 		648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialProofs.swift; sourceTree = "<group>"; };
 		64DA39242E045EB31BBC8ABB /* FixtureCountsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureCountsDebugView.swift; sourceTree = "<group>"; };
 		693C14D44F213C3559B276D0 /* FixtureLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLaunch.swift; sourceTree = "<group>"; };
+		6945966E8651AE367F932455 /* LaunchProbes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchProbes.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
 		7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLaunchTests.swift; sourceTree = "<group>"; };
 		7D3959BCDD350AB804E93846 /* Enduragent.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Enduragent.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		84FFE0F37052EAEFF6684E41 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		8D67C5124B3375A468FB7488 /* FailureProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FailureProofs.swift; sourceTree = "<group>"; };
+		8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryActions.swift; sourceTree = "<group>"; };
 		94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsDebugView.swift; sourceTree = "<group>"; };
 		9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPurchaseCoordinator.swift; sourceTree = "<group>"; };
 		9C001D5C325DA3FC53ECF139 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -178,6 +182,7 @@
 			children = (
 				8D67C5124B3375A468FB7488 /* FailureProofs.swift */,
 				54C69207093FE40792AD4922 /* FlushProofs.swift */,
+				6945966E8651AE367F932455 /* LaunchProbes.swift */,
 				9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */,
 				E9C0C6082DC2129FC43FB3DA /* RecoveryProofs.swift */,
 				CD1E8EB2C3AB6B75EBB31C9A /* RetryProofs.swift */,
@@ -195,6 +200,7 @@
 				84FFE0F37052EAEFF6684E41 /* ChatView.swift */,
 				A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */,
 				B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */,
+				8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */,
 				05DE1643D8AAF084B95462CB /* SlashListView.swift */,
 				20BFB776A369E9C4E27001B2 /* TranscriptView.swift */,
 				D6932D7AAEE51A2B4AD64EA7 /* TurnRowView.swift */,
@@ -420,6 +426,7 @@
 			files = (
 				9338CBBEA702D310B6381607 /* FailureProofs.swift in Sources */,
 				9D824167E6DDBE222B9B0B8E /* FlushProofs.swift in Sources */,
+				E8E6266759E102EA6DFBF575 /* LaunchProbes.swift in Sources */,
 				1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */,
 				8FF9731D68877106F9903417 /* RecoveryProofs.swift in Sources */,
 				468F0B548FF44D5CA24BD1F8 /* RetryProofs.swift in Sources */,
@@ -470,6 +477,7 @@
 				27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */,
 				CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */,
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
+				225211C880C7EBC5688C16BE /* RecoveryActions.swift in Sources */,
 				AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */,
 				A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */,
 				AF535F31B2177447D1C00D56 /* SidebarView.swift in Sources */,

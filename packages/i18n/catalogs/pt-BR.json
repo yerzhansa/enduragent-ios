@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Não foi possível verificar suas mensagens salvas. Reconecte e tente novamente.",
       "queueRemoveFailure": "Não foi possível remover essa mensagem salva. Tente novamente.",
       "responseFailure": "O treinador não conseguiu responder. Tente novamente.",
-      "responseStopped": "Resposta interrompida. A resposta parcial foi preservada.",
       "retryMessage": "Tentar enviar a mensagem novamente",
       "savedChoice": "Escolha salva",
       "working": "O treinador está trabalhando…"

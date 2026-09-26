@@ -189,7 +189,7 @@ public actor Coach {
 	private func recoverDeadClaims() async -> Bool {
 		do {
 			for (chat, plan) in try await recoveryPlans() {
-				await makeMailbox(for: chat).recover(plan)
+				try await makeMailbox(for: chat).recover(plan)
 			}
 			return true
 		} catch {

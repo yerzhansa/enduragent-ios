@@ -26,12 +26,14 @@ enum TutorialHarness {
 	static let restorePurchases = "Restore purchases"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
+	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
+	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
-	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
-	static let interruptedNothingChanged =
-		"This reply stopped before it finished. Nothing was changed."
 	static let interruptedSomeSaved =
 		"This reply stopped before it finished. Some information was saved first."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
+	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
@@ -42,11 +44,11 @@ enum TutorialHarness {
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
-		coalescingMilliseconds: Int? = nil
+		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]

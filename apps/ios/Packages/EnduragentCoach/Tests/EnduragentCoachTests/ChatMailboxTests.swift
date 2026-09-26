@@ -99,6 +99,9 @@ import Testing
 		}
 		#expect(running.cause == .athleteStopped)
 		#expect(queued.cause == .stoppedBeforeStart)
+		#expect(running.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(queued.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(queued.notice.action == .tryAgain(second))
 		#expect(await coach.transcript(.main) == ["one", "two"])
 	}
 
@@ -118,6 +121,7 @@ import Testing
 			return
 		}
 		#expect(stopped.cause == .stoppedBeforeStart)
+		#expect(stopped.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(stopped.notice.action == .tryAgain(turn))
 		#expect(snapshot.activity == .idle)
 		#expect(recording.batches == [["userMessage"], ["turnSettled"]])

@@ -189,7 +189,6 @@
       "queueLoadFailure": "We couldn’t check your saved messages. Reconnect and try again.",
       "queueRemoveFailure": "We couldn’t remove that saved message. Try again.",
       "responseFailure": "The coach couldn't respond. Please try again.",
-      "responseStopped": "Response stopped. Your partial response is preserved.",
       "retryMessage": "Retry message",
       "savedChoice": "Saved choice",
       "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",

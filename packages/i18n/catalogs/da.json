@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Vi kunne ikke kontrollere dine gemte beskeder. Opret forbindelse igen, og prøv igen.",
       "queueRemoveFailure": "Vi kunne ikke fjerne den gemte besked. Prøv igen.",
       "responseFailure": "Træneren kunne ikke svare. Prøv igen.",
-      "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
       "retryMessage": "Prøv beskeden igen",
       "savedChoice": "Gemt valg",
       "working": "Træneren arbejder…"

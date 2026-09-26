@@ -14,9 +14,10 @@ public enum TurnState: Sendable, Equatable {
 			return true
 		case .failed(let failed):
 			switch failed.notice.action {
-			case .tryAgain?, .wait?:
+			case .tryAgain?:
 				return true
-			case .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?, nil:
+			case .wait?, .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?,
+				nil:
 				return false
 			}
 		case .interrupted(let interrupted):
@@ -112,6 +113,7 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 	case acceptedElsewhere
 	case alreadyAnswered
 	case attemptInFlight
+	case rateLimitWaitRunning
 }
 
 package enum TurnLifecycle {
@@ -212,6 +214,17 @@ package enum TurnLifecycle {
 		return replayRefusal(after: facts.latestSettlement?.settlement)
 	}
 
+	package static func retryRefusal(of facts: TurnFacts?, overlay: TurnOverlay, device: DeviceID)
+		-> TurnRefusal?
+	{
+		guard let facts else { return .unknownTurn }
+		switch overlay {
+		case .collecting, .queued: return .attemptInFlight
+		case .waitingToTryAgain: return .rateLimitWaitRunning
+		case .notInThisProcess: return claimRefusal(of: facts, device: device)
+		}
+	}
+
 	package static func replayRefusal(after settlement: Settlement?) -> TurnRefusal? {
 		switch settlement {
 		case .replied?, .savedWork?:
@@ -226,7 +239,7 @@ package enum TurnLifecycle {
 	package static func state(
 		of facts: TurnFacts,
 		live: LiveAttempt?,
-		overlay: AcceptedOverlay,
+		overlay: TurnOverlay,
 		device: DeviceID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
@@ -241,7 +254,7 @@ package enum TurnLifecycle {
 			return .accepted(.collecting(until: until))
 		case .queued(let position):
 			return .accepted(.queued(position: position))
-		case .notInThisProcess:
+		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
 		if let latest = facts.latestSettlement {
@@ -260,7 +273,7 @@ package enum TurnLifecycle {
 						failure: failure,
 						saved: saved,
 						notice: AthleteNotices.notice(
-							for: failure, turn: retry, failedAt: latest.hlc.wallTime)
+							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -268,7 +281,7 @@ package enum TurnLifecycle {
 						partial: partial,
 						cause: cause,
 						saved: saved,
-						notice: AthleteNotices.notice(for: cause, turn: retry)
+						notice: AthleteNotices.notice(for: cause, saved: saved, turn: retry)
 					))
 			}
 		}
@@ -304,25 +317,23 @@ extension LiveAttempt {
 	}
 }
 
-extension Ledger {
-	package func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure)
-		-> [AthleteRecord]
-	{
-		switch writes {
-		case .nothing:
-			return []
-		case .synced(let bodies):
-			return try await commit(synced: bodies, stamp: stamp)
-		case .local(let bodies):
-			return try await commit(local: bodies, stamp: stamp)
-		}
-	}
-}
-
-package enum AcceptedOverlay: Sendable, Equatable {
+package enum TurnOverlay: Sendable, Equatable {
 	case collecting(until: Date)
 	case queued(position: Int)
+	case waitingToTryAgain
 	case notInThisProcess
+
+	package init(of turn: TurnID, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>) {
+		if let window, window.turn == turn {
+			self = .collecting(until: window.closesAt)
+		} else if let index = queued.firstIndex(of: turn) {
+			self = .queued(position: index + 1)
+		} else if waiting.contains(turn) {
+			self = .waitingToTryAgain
+		} else {
+			self = .notInThisProcess
+		}
+	}
 }
 
 public struct CoalescingPolicy: Sendable, Equatable {

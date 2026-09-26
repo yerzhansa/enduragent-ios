@@ -295,7 +295,7 @@ package struct Conversation: Sendable, Equatable {
 			turn.fragments.map(\.hlc) + turn.settlements.map(\.hlc)
 		}
 		guard let latest = stamps.max() else { return .none }
-		return .at(Date(timeIntervalSince1970: Double(latest.wallMs) / 1000))
+		return .at(latest.wallTime)
 	}
 }
 

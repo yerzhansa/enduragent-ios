@@ -60,23 +60,17 @@ struct TurnRowView: View {
 		}
 	}
 
-	@ViewBuilder
 	private func actionButton(_ action: RecoveryAction) -> some View {
-		if let opensAt = action.opensAt {
-			TimelineView(.explicit([opensAt])) { _ in
-				button(for: action)
-					.disabled(Date.now < opensAt)
-			}
-		} else {
-			button(for: action)
-		}
-	}
-
-	private func button(for action: RecoveryAction) -> some View {
 		Button(say(action.title)) {
 			Task { await model.perform(action) }
 		}
+		.disabled(isWaiting(action))
 		.accessibilityIdentifier(identifier(for: action))
+	}
+
+	private func isWaiting(_ action: RecoveryAction) -> Bool {
+		guard case .wait = action else { return false }
+		return true
 	}
 
 	private func identifier(for action: RecoveryAction) -> String {
