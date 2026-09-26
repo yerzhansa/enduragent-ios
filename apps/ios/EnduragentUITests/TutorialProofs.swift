@@ -303,24 +303,21 @@ final class RecordsClockOrderProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.attach(self, name: "records-clock-order", app: app)
 		let labels = TutorialHarness.recordRowLabels(app)
-		let clocks = labels.compactMap { label -> (Int64, Int64)? in
-			guard let stamp = label.split(separator: " ").last?.split(separator: "@").first else {
-				return nil
-			}
-			let parts = stamp.split(separator: ".")
-			guard parts.count == 2, let wall = Int64(parts[0]), let logical = Int64(parts[1])
-			else {
-				return nil
-			}
-			return (wall, logical)
+		let rows = labels.map { $0.split(separator: " ").map(String.init) }
+		XCTAssertTrue(
+			rows.allSatisfy { $0.count == 3 }, "every row shows kind, device, and HLC: \(labels)")
+		let clocks = rows.compactMap(\.last)
+		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
+		let causal = rows.compactMap(\.first).filter {
+			["userMessage", "turnSettled", "pendingProposal", "proposalCleared"].contains($0)
 		}
-		XCTAssertEqual(clocks.count, labels.count, "every row shows an HLC: \(labels)")
-		XCTAssertGreaterThanOrEqual(clocks.count, 6, "rows: \(labels)")
-		for index in 1..<clocks.count {
-			XCTAssertTrue(
-				clocks[index - 1] < clocks[index],
-				"HLC at row \(index) does not increase: \(labels)")
-		}
+		XCTAssertEqual(
+			causal,
+			[
+				"userMessage", "turnSettled", "pendingProposal", "userMessage", "turnSettled",
+				"proposalCleared",
+			],
+			"rows in HLC order follow the order the app wrote them: \(labels)")
 	}
 }
 
