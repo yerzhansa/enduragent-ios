@@ -28,7 +28,8 @@ extension FixtureLaunchTests {
 		await killed.stop()
 	}
 
-	@Test func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
+	@Test(.timeLimit(.minutes(1)))
+	func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
 		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let model = model(services)

@@ -4,6 +4,8 @@ import UIKit
 
 @MainActor
 final class AppLifecycle {
+	private static let terminationBudget: DispatchTimeInterval = .seconds(4)
+
 	private let builder: ServicesBuilder
 	private var termination: (any NSObjectProtocol)?
 
@@ -33,6 +35,6 @@ final class AppLifecycle {
 			await coach.lifecycle(.willTerminate)
 			interrupted.signal()
 		}
-		interrupted.wait()
+		_ = interrupted.wait(timeout: .now() + Self.terminationBudget)
 	}
 }
