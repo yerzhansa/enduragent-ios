@@ -124,6 +124,13 @@ struct TurnAttemptPayload: Codable {
 	var attempt: String
 }
 
+struct TurnClaimPayload: Codable {
+	var chatId: String
+	var turn: String
+	var attempt: String
+	var lease: String?
+}
+
 struct AssistantMessagePayload: Codable {
 	var chatId: String
 	var text: String

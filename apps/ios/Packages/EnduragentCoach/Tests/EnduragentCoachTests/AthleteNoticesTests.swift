@@ -19,6 +19,7 @@ private let notConfigured = "Choose how the coach reaches a model to continue."
 private let nothingChanged = "This reply stopped before it finished. Nothing was changed."
 private let someSaved =
 	"This reply stopped before it finished. Some information was saved first."
+private let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 
 struct NoticeRow: Sendable, CustomTestStringConvertible {
 	let settlement: Settlement
@@ -109,7 +110,8 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 		[
 			NoticeRow(
 				settlement: .interrupted(partial: "Thursday is", cause: cause, saved: .none),
-				sentence: nothingChanged, action: .tryAgain(turn), button: tryAgain),
+				sentence: cause == .stoppedBeforeStart ? receivedBeforeClose : nothingChanged,
+				action: .tryAgain(turn), button: tryAgain),
 			NoticeRow(
 				settlement: .interrupted(partial: "", cause: cause, saved: memorySaved),
 				sentence: someSaved, action: nil, button: nil),
@@ -139,7 +141,8 @@ private func settledState(_ settlement: Settlement, at date: Date = failedAt) ->
 			ulid: fixedUlid(1), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phone),
 			civilDate: "1998-06-16", index: 0, draft: DraftID(), text: "Is Thursday on?",
 			slash: nil))
-	facts.claims.append(TurnClaimBody(chatId: .main, turn: turn, attempt: attempt))
+	facts.claims.append(
+		TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing))
 	facts.settlements.append(
 		SettledAttempt(
 			ulid: fixedUlid(3),
@@ -210,7 +213,10 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			#expect(notice(of: state)?.action == nil)
 			#expect(!state.retryable)
 			let clean = settledState(.interrupted(partial: "", cause: cause, saved: .none))
-			#expect(notice(of: clean)?.key == Catalog.chatTurnInterruptedNothingChanged)
+			let expected =
+				cause == .stoppedBeforeStart
+				? Catalog.chatTurnReceivedBeforeClose : Catalog.chatTurnInterruptedNothingChanged
+			#expect(notice(of: clean)?.key == expected)
 			#expect(clean.retryable)
 		}
 	}

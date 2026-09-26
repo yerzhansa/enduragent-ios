@@ -38,6 +38,12 @@ struct AppServices: Sendable {
 		}
 		return ModelID(rawValue: raw)
 	}
+	static var bundleIdentifier: String {
+		guard let identifier = Bundle.main.bundleIdentifier else {
+			preconditionFailure("The app bundle has no identifier")
+		}
+		return identifier
+	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 
 	var coach: Coach
@@ -49,6 +55,7 @@ struct AppServices: Sendable {
 	var clock: any Clock
 	var isFixture: Bool
 	var fixtureDirector: FixtureDirector?
+	var leases: @Sendable () async -> [LeaseRecord]
 
 	var fixtureTransport: FakeModelTransport? {
 		fixtureDirector?.transport
@@ -88,6 +95,7 @@ struct AppServices: Sendable {
 		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
+		let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
 		let coach = Coach(
 			sport: .cycling,
 			models: .scripted(transport),
@@ -96,7 +104,8 @@ struct AppServices: Sendable {
 			intervals: intervals,
 			store: records,
 			clock: clock,
-			language: LanguagePreference(ui: language, coachReply: nil)
+			language: LanguagePreference(ui: language, coachReply: nil),
+			host: host
 		)
 		return AppServices(
 			coach: coach,
@@ -107,10 +116,12 @@ struct AppServices: Sendable {
 			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: true,
-			fixtureDirector: FixtureDirector(transport: transport, records: records)
+			fixtureDirector: FixtureDirector(transport: transport, records: records, host: host),
+			leases: { host.leases }
 		)
 	}
 
+	@MainActor
 	static func live(language: LanguageTag) throws -> AppServices {
 		let secrets = ICloudKeychainStore()
 		let clock = SystemClock()
@@ -128,6 +139,9 @@ struct AppServices: Sendable {
 		)
 		let credits = PhoneCreditsClient(secrets: secrets, workerBase: creditsWorkerBase)
 		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
+		let host = ContinuedProcessingHost(
+			phrasebook: phrasebook, bundleIdentifier: bundleIdentifier,
+			system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,
 			models: .openRouter(baseURL: ModelService.openRouterAPI),
@@ -136,7 +150,8 @@ struct AppServices: Sendable {
 			intervals: intervals,
 			store: store,
 			clock: clock,
-			language: LanguagePreference(ui: language, coachReply: nil)
+			language: LanguagePreference(ui: language, coachReply: nil),
+			host: host
 		)
 		return AppServices(
 			coach: coach,
@@ -147,7 +162,8 @@ struct AppServices: Sendable {
 			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: false,
-			fixtureDirector: nil
+			fixtureDirector: nil,
+			leases: { await host.leases }
 		)
 	}
 

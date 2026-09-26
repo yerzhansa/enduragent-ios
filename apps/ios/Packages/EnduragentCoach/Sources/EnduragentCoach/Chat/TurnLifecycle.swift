@@ -83,6 +83,8 @@ public enum RetryWaitReason: Sendable, Equatable {
 
 public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
+	case systemExpired
+	case graceEnded
 	case appTerminating
 	case processEnded
 	case stoppedBeforeStart
@@ -90,7 +92,7 @@ public enum InterruptionCause: String, Sendable, CaseIterable {
 
 package enum TurnEvent: Sendable, Equatable {
 	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
-	case claim(AttemptID)
+	case claim(AttemptID, lease: LeaseKind)
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
@@ -145,15 +147,17 @@ package enum TurnLifecycle {
 						)
 					)
 				]))
-		case .claim(let attempt):
+		case .claim(let attempt, let lease):
 			guard let facts else { return .failure(.unknownTurn) }
 			if let refusal = claimRefusal(of: facts, device: device) {
 				return .failure(refusal)
 			}
 			return .success(
-				.local([.turnClaim(TurnClaimBody(chatId: chat, turn: facts.turn, attempt: attempt))]
-				)
-			)
+				.local([
+					.turnClaim(
+						TurnClaimBody(
+							chatId: chat, turn: facts.turn, attempt: attempt, lease: lease))
+				]))
 		case .observeReply(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
 			if facts.replyObserved.contains(where: { $0.attempt == attempt }) {
@@ -283,6 +287,22 @@ extension Conversation {
 	}
 }
 
+extension TurnFacts {
+	package var reply: ReplyText? {
+		guard case .replied(let text, _)? = latestSettlement?.settlement else { return nil }
+		return text
+	}
+}
+
+extension Conversation {
+	package func writes(_ event: TurnEvent, for turn: TurnID, device: DeviceID)
+		-> Result<TurnWrites, TurnRefusal>
+	{
+		TurnLifecycle.writes(
+			for: event, on: self.turn(turn), chat: chat, device: device, mint: { turn })
+	}
+}
+
 package struct LiveAttempt: Sendable, Equatable {
 	package let turn: TurnID
 	package let attempt: AttemptID
@@ -344,11 +364,6 @@ package enum MailboxWork: Sendable, Equatable {
 		guard case .turn(let turn) = self else { return nil }
 		return turn
 	}
-}
-
-package struct OpenWindow: Sendable, Equatable {
-	package let turn: TurnID
-	package let closesAt: Date
 }
 
 package struct EnvironmentResolver: Sendable {

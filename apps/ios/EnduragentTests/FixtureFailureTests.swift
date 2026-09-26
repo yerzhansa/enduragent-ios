@@ -76,17 +76,17 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 2)
 	}
 
-	@Test func failDirectiveRepeatsOnlyWithACount() throws {
+	@Test func failDirectiveRepeatsOnlyWithACount() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let director = try #require(services.fixtureDirector)
-		director.prepare(for: "fixture:fail 429 7 x4")
+		await director.prepare(for: "fixture:fail 429 7 x4")
 		let limited = ScriptedEvent.fail(.http(status: 429, headers: ["retry-after": "7"]))
 		#expect(
 			Array(transport.script.prefix(5)) == Array(repeating: limited, count: 4) + [
 				.text(FirstWeekFixture.weekSummary)
 			])
-		director.prepare(for: "fixture:fail network")
+		await director.prepare(for: "fixture:fail network")
 		#expect(transport.script.first == .fail(.connection(.notConnectedToInternet)))
 		#expect(transport.script.dropFirst().first == .text(FirstWeekFixture.weekSummary))
 	}

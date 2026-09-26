@@ -8,8 +8,9 @@ struct FixtureDirector: Sendable {
 
 	let transport: FakeModelTransport
 	let records: FaultInjectingRecordLog
+	let host: ImmediateExecutionHost
 
-	func prepare(for text: String) {
+	func prepare(for text: String) async {
 		reset(replyingTo: text)
 		guard text.hasPrefix(Self.prefix) else { return }
 		let words = text.dropFirst(Self.prefix.count).split(separator: " ").map(String.init)
@@ -39,6 +40,8 @@ struct FixtureDirector: Sendable {
 			transport.script = [.text(FirstWeekFixture.longReply), .finish(reason: .stop)]
 		case "flush-partial":
 			transport.flushScript = Self.flushPartial
+		case "expire":
+			await host.expire(.systemExpired)
 		case "storage":
 			if words.dropFirst().first == "fail-next-append" {
 				records.failNextAppend = true

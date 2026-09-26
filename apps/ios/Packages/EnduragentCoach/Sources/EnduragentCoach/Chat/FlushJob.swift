@@ -214,7 +214,7 @@ package struct FlushWork: Sendable {
 	package func drain(
 		_ id: FlushJobID, in conversation: Conversation,
 		access: () throws(AccessUnavailable) -> ResolvedAccess
-	) async throws(CancellationError) {
+	) async {
 		let job: FlushJob
 		let resolved: ResolvedAccess
 		do {
@@ -229,7 +229,11 @@ package struct FlushWork: Sendable {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return
 		}
-		_ = try await run(
-			job, messages: conversation.flushMessages(for: job), access: resolved, scope: nil)
+		do {
+			_ = try await run(
+				job, messages: conversation.flushMessages(for: job), access: resolved, scope: nil)
+		} catch {
+			diagnostics.record(.memoryFlushFailed(chat, detail: String(describing: error)))
+		}
 	}
 }

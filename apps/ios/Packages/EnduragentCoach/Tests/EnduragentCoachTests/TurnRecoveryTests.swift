@@ -185,7 +185,8 @@ import Testing
 				ulid: fixedUlid(1),
 				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: device),
 				civilDate: "1998-06-13", index: 0, draft: DraftID(), text: "Thursday?", slash: nil))
-		facts.claims.append(TurnClaimBody(chatId: .main, turn: turn, attempt: attempt))
+		facts.claims.append(
+			TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing))
 		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
 		let plan = TurnRecovery.plan(turns: [facts], flushQueue: [], writes: [:], device: device)
 		#expect(

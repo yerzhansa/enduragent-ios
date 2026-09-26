@@ -22,7 +22,9 @@ import Testing
 
 	func claimed() -> TurnFacts {
 		var facts = accepted()
-		facts.claims.append(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))
+		facts.claims.append(
+			TurnClaimBody(
+				chatId: .main, turn: minted, attempt: attempt, lease: .continuedProcessing))
 		return facts
 	}
 
@@ -75,30 +77,50 @@ import Testing
 	}
 
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
-		let result = try writes(.claim(attempt), on: accepted()).get()
+		let result = try writes(.claim(attempt, lease: .continuedProcessing), on: accepted()).get()
 		#expect(
 			result
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))]
+				== .local([
+					.turnClaim(
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: attempt,
+							lease: .continuedProcessing))
+				]
 				))
 	}
 
 	@Test func claimOfATurnAcceptedElsewhereIsRefused() {
-		#expect(writes(.claim(attempt), on: accepted(on: phoneB)) == .failure(.acceptedElsewhere))
-		#expect(writes(.claim(attempt), on: nil) == .failure(.unknownTurn))
+		#expect(
+			writes(.claim(attempt, lease: .continuedProcessing), on: accepted(on: phoneB))
+				== .failure(.acceptedElsewhere))
+		#expect(
+			writes(.claim(attempt, lease: .continuedProcessing), on: nil) == .failure(.unknownTurn))
 	}
 
 	@Test func claimOfARepliedTurnIsRefusedAndAFailedOneIsNot() throws {
 		let replied = settled(.replied(.model("done"), lineage: nil))
-		#expect(writes(.claim(attempt), on: replied) == .failure(.alreadyAnswered))
+		#expect(
+			writes(.claim(attempt, lease: .continuedProcessing), on: replied)
+				== .failure(.alreadyAnswered))
 		let failed = settled(.failed(.model(.providerDown(.outage)), saved: .none))
 		let retry = AttemptID(ulid: fixedUlid(9))
 		#expect(
-			try writes(.claim(retry), on: failed).get()
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: retry))]))
+			try writes(.claim(retry, lease: .continuedProcessing), on: failed).get()
+				== .local([
+					.turnClaim(
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: retry, lease: .continuedProcessing
+						))
+				]))
 		let interrupted = settled(.interrupted(partial: "so", cause: .athleteStopped, saved: .none))
 		#expect(
-			try writes(.claim(retry), on: interrupted).get()
-				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: retry))]))
+			try writes(.claim(retry, lease: .continuedProcessing), on: interrupted).get()
+				== .local([
+					.turnClaim(
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: retry, lease: .continuedProcessing
+						))
+				]))
 	}
 
 	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() throws {

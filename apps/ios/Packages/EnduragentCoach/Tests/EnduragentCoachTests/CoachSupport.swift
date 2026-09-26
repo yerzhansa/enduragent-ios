@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -34,7 +35,8 @@ func makeCoach(
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
-	secrets: any SecretStore = keyedSecrets()
+	secrets: any SecretStore = keyedSecrets(),
+	host: any ExecutionHost = ImmediateExecutionHost()
 ) -> Coach {
 	Coach(
 		sport: .cycling,
@@ -45,6 +47,7 @@ func makeCoach(
 		store: store,
 		clock: clock,
 		language: .init(ui: .en, coachReply: nil),
+		host: host,
 		coalescing: coalescing
 	)
 }
@@ -212,4 +215,90 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 
 func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
 	transport.requests.filter { $0.charge == charge }
+}
+
+final class HeldAppendLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let kind: String
+	let occurrence: Int
+	let reached: AsyncStream<Void>
+	private let reachedContinuation: AsyncStream<Void>.Continuation
+	private let state = Mutex<(seen: Int, held: CheckedContinuation<Void, Never>?)>((0, nil))
+
+	init(inner: any RecordLog, holding kind: String, occurrence: Int) {
+		self.inner = inner
+		self.kind = kind
+		self.occurrence = occurrence
+		(reached, reachedContinuation) = AsyncStream.makeStream()
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		let hold = state.withLock { current -> Bool in
+			guard batch.contains(where: { $0.body.kind == kind }) else { return false }
+			current.seen += 1
+			return current.seen == occurrence
+		}
+		if hold {
+			await withCheckedContinuation { continuation in
+				state.withLock { $0.held = continuation }
+				reachedContinuation.yield()
+			}
+		}
+		try await inner.append(batch, locality: locality)
+	}
+
+	func release() {
+		state.withLock { current in
+			current.held?.resume()
+			current.held = nil
+		}
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try await inner.fetch(query)
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}
+
+final class KeepingHost: ExecutionHost {
+	private let inner = ImmediateExecutionHost()
+	private let expiries = Mutex<[@Sendable (ExpiryCause) async -> Void]>([])
+
+	func beginLease(
+		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
+	) async -> any ExecutionLease {
+		expiries.withLock { $0.append(onExpiry) }
+		return await inner.beginLease(request, onExpiry: onExpiry)
+	}
+
+	func expire(lease index: Int, _ cause: ExpiryCause) async {
+		let handler = expiries.withLock { $0[index] }
+		await handler(cause)
+	}
+}
+
+final class GraceOnlyHost: ExecutionHost {
+	private let inner = ImmediateExecutionHost()
+
+	func beginLease(
+		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
+	) async -> any ExecutionLease {
+		GraceLease(inner: await inner.beginLease(request, onExpiry: onExpiry))
+	}
+}
+
+private struct GraceLease: ExecutionLease {
+	let inner: any ExecutionLease
+	let kind: LeaseKind = .gracePeriodOnly
+
+	func report(_ progress: LeaseProgress) async {
+		await inner.report(progress)
+	}
+
+	func end(_ ending: LeaseEnding) async {
+		await inner.end(ending)
+	}
 }

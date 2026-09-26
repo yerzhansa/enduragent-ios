@@ -206,11 +206,13 @@ package enum AthleteNotices {
 	package static func notice(
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID
 	) -> AthleteNotice {
+		guard saved.isEmpty else {
+			return AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil)
+		}
 		switch interruption {
-		case .athleteStopped, .appTerminating, .processEnded, .stoppedBeforeStart:
-			guard saved.isEmpty else {
-				return AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil)
-			}
+		case .stoppedBeforeStart:
+			return AthleteNotice(key: Catalog.chatTurnReceivedBeforeClose, action: .tryAgain(turn))
+		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded:
 			return AthleteNotice(
 				key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn))
 		}

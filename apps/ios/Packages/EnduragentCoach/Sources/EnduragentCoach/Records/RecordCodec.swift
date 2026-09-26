@@ -63,6 +63,14 @@ enum RecordCodec {
 		return try decoder.decode(Payload.self, from: data)
 	}
 
+	private static func decodeLease(_ raw: String?) throws -> LeaseKind {
+		guard let raw else { return .gracePeriodOnly }
+		guard let lease = LeaseKind(rawValue: raw) else {
+			throw RecordDecodeFailure(reason: "lease")
+		}
+		return lease
+	}
+
 	private static func legacyBody(_ kind: SyncedKind, data: Data) throws -> LegacyRecordBody? {
 		switch kind {
 		case .userMessage:
@@ -230,12 +238,13 @@ enum RecordCodec {
 		switch kind {
 		case .turnClaim:
 			let payload = try payload(
-				TurnAttemptPayload.self, version: version, kind: name, data: data)
+				TurnClaimPayload.self, version: version, kind: name, data: data)
 			return .turnClaim(
 				TurnClaimBody(
 					chatId: try decodeChatID(payload.chatId),
 					turn: TurnID(ulid: try decodeULID(payload.turn)),
-					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
+					attempt: AttemptID(ulid: try decodeULID(payload.attempt)),
+					lease: try decodeLease(payload.lease)
 				)
 			)
 		case .replyObserved:
