@@ -98,6 +98,29 @@ The helper first terminates a running copy of the app, because XCUITest cannot t
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
+**Every proof in one run.** Pass every class at once:
+
+```sh
+.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
+```
+
+The run passes with zero failures and exactly two skips, `UpgradeKeepsTranscriptProof` and `UpgradeKeepsProposalProof`. Each opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the four upgrade steps below. On 2026-09-26 the run took 41 minutes.
+
+**Upgrade proofs.** These two prove that the app opens a store the last v1 build wrote. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. Then alternate the two builds on one run. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so each trunk proof leaves its state for the head proof that follows:
+
+```sh
+git worktree add --detach .worktrees/v1-trunk 82254bb
+TRUNK=.worktrees/v1-trunk/.claude/skills/verify-ios/helpers/sim.mjs
+SIM=.claude/skills/verify-ios/helpers/sim.mjs
+$TRUNK build
+$TRUNK test <run id> RelaunchKeepsChatProof
+$SIM test <run id> UpgradeKeepsTranscriptProof
+$TRUNK test <run id> ConfirmedPreviewProof
+$SIM test <run id> UpgradeKeepsProposalProof
+```
+
+Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove .worktrees/v1-trunk` when the run is done.
+
 ## Compare with the prototype
 
 The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs named `native-<prototype>-<state>-<theme>.png` in `~/projects/enduragent/desktop/docs/prototypes/ios/captures-2026-09-25/`. Set `ENDURAGENT_PROTOTYPE_CAPTURES` to use another folder. Parity is by state and copy, not pixels, because SwiftUI system rendering differs from the HTML. Do not add a pixel-diff tool.

@@ -67,11 +67,18 @@ enum TutorialHarness {
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		if !element.waitForExistence(timeout: 10) {
-			throw XCTSkip(
-				"needs the fixture store an earlier build left; run it after a trunk proof")
+		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(v1StoreMissing)
 		}
+		openRecords(app)
+		let written = recordCount(app, "assistantMessage") != nil
+		closeMenu(app)
+		guard written else { throw XCTSkip(v1StoreMissing) }
+		wait(element)
 	}
+
+	private static let v1StoreMissing =
+		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
 	static func relaunchKeepingStore(_ app: XCUIApplication) {
 		app.terminate()
