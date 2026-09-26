@@ -11,6 +11,7 @@ The menu's Credits screen shows the athlete's credit balance and the credit pack
 ## How to get to it (user POV)
 
 - In the chat, choose `Menu`, then `Credits`.
+- In the chat, tap `Buy Credits` or `Restore purchases` under a Credits notice. Credits opens on the chat's navigation stack with a back button.
 - The starter grant during onboarding is covered in [onboarding.md](./onboarding.md).
 
 ## Driving it with sim.mjs and XCUITest
@@ -21,6 +22,7 @@ Preconditions:
 - For interactive steps, the app is on the chat after onboarding.
 
 - **Open credits.** Tap `chat.sidebar`, then `sidebar.credits`. Run `sim.mjs test <run id> CreditsProof`. `credits.balance` reads `200 credits`, `credits.note` reads `Testers cannot buy packs yet.`, and both pack rows exist. Attachment `06-credits` shows the screen.
+- **From a notice.** Send `fixture:fail 402` and tap `chat.turn.buyCredits`. Run `sim.mjs test <run id> NoticeCopyProof`. Attachment `notice-copy-buy-credits-opens-credits` shows `credits.balance` reading `200 credits`.
 - **Buy is disabled.** This step is interactive. Tap `Buy` on the 500-credit row. Nothing changes and the button stays dimmed. Capture `sim.mjs shot <run id> credits-buy-disabled` after the tap.
 
 ## Gotchas
