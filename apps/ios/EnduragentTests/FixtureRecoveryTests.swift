@@ -86,6 +86,54 @@ extension FixtureLaunchTests {
 		await killed.stop()
 	}
 
+	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {
+		var quick = launch
+		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
+		let seeded = model(try AppServices.fixture(quick, defaults: defaults))
+		seeded.startChatting()
+		for index in 1...200 {
+			seeded.draft.text = "Seed \(index)"
+			await seeded.send()
+			try await answered("Seed \(index)", in: seeded)
+		}
+		seeded.draft.text = "fixture:hang"
+		await seeded.send()
+		let dead = try await turn(in: seeded, where: isProcessing)
+		let clock = ContinuousClock()
+		let (recovering, _) = try relaunch(.keep)
+		let recovery = await clock.measure { await recovering.coach.lifecycle(.becameActive) }
+		var reopened: ChatSnapshot?
+		let firstShow = await clock.measure {
+			reopened = await firstSnapshot(recovering, chat: seeded.chatId)
+		}
+		let (clean, _) = try relaunch(.keep)
+		let cleanOpen = await clock.measure { await clean.coach.lifecycle(.becameActive) }
+		let cleanShow = await clock.measure { _ = await firstSnapshot(clean, chat: seeded.chatId) }
+		let overhead = recovery + firstShow - cleanOpen - cleanShow
+		Attachment.record(
+			"recovery \(recovery), first snapshot \(firstShow), clean open \(cleanOpen), "
+				+ "clean first snapshot \(cleanShow), overhead \(overhead)",
+			named: "recovery-of-one-dead-claim")
+		let snapshot = try #require(reopened)
+		#expect(snapshot.turns.count == 201)
+		let state = try #require(snapshot.turns.first { $0.id == dead.id }?.state)
+		#expect(cause(state) == .processEnded)
+		#expect(overhead < .milliseconds(300), "recovery overhead \(overhead)")
+		await seeded.stop()
+	}
+
+	private func answered(_ text: String, in model: ShellModel) async throws {
+		let deadline = ContinuousClock.now + .seconds(10)
+		while ContinuousClock.now < deadline {
+			if let last = model.chat?.turns.last, last.athleteText == text, isCompleted(last.state)
+			{
+				return
+			}
+			try await Task.sleep(for: .milliseconds(5))
+		}
+		Issue.record("\(text) was not answered")
+	}
+
 	private func turn(
 		_ id: TurnID? = nil, in model: ShellModel, within limit: Duration = .seconds(5),
 		where matches: (TurnState) -> Bool
@@ -107,6 +155,10 @@ extension FixtureLaunchTests {
 
 private func isProcessing(_ state: TurnState) -> Bool {
 	if case .processing = state { true } else { false }
+}
+
+private func isCompleted(_ state: TurnState) -> Bool {
+	if case .completed = state { true } else { false }
 }
 
 private func isInterrupted(_ state: TurnState) -> Bool {
