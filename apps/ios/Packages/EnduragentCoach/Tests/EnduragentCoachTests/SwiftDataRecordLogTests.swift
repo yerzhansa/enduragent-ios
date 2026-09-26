@@ -243,7 +243,8 @@ extension SwiftDataSuites {
 						planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)),
 			]
 			let local: [DeviceLocalRecordBody] = [
-				.turnClaim(TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+				.turnClaim(
+					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(
 					ProposalBody(
 						chatId: .main,

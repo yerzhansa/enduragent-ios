@@ -67,7 +67,8 @@ package enum AthleteNotices {
 		let tryAgain = turn.map(RecoveryAction.tryAgain)
 		switch failure {
 		case .model(.providerDown), .model(.generationFailed):
-			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, vars: [:], action: tryAgain)
+			return AthleteNotice(
+				key: Catalog.chatNoticeResponseFailure, vars: [:], action: tryAgain)
 		case .model(.contextOverflow), .model(.budgetExhausted):
 			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: tryAgain)
 		case .local(.recordStorage):

@@ -128,7 +128,8 @@ package enum TurnLifecycle {
 				return .failure(refusal)
 			}
 			return .success(
-				.local([.turnClaim(TurnClaimBody(chatId: chat, turn: facts.turn, attempt: attempt))])
+				.local([.turnClaim(TurnClaimBody(chatId: chat, turn: facts.turn, attempt: attempt))]
+				)
 			)
 		case .settle(let attempt, let settlement):
 			guard let facts else { return .failure(.unknownTurn) }
@@ -139,7 +140,8 @@ package enum TurnLifecycle {
 				.synced([
 					.turnSettled(
 						TurnSettledBody(
-							chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement))
+							chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement
+						))
 				]))
 		case .stopBeforeStart(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
@@ -179,7 +181,8 @@ package enum TurnLifecycle {
 			!facts.settlements.contains(where: { $0.attempt == live.attempt })
 		{
 			return .processing(
-				TurnState.Processing(attempt: live.attempt, liveText: live.text, activity: live.activity))
+				TurnState.Processing(
+					attempt: live.attempt, liveText: live.text, activity: live.activity))
 		}
 		switch overlay {
 		case .collecting(let until):
