@@ -14,9 +14,10 @@ public enum TurnState: Sendable, Equatable {
 			return true
 		case .failed(let failed):
 			switch failed.notice.action {
-			case .tryAgain?, .wait?:
+			case .tryAgain?:
 				return true
-			case .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?, nil:
+			case .wait?, .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?,
+				nil:
 				return false
 			}
 		case .interrupted(let interrupted):
@@ -110,6 +111,7 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 	case acceptedElsewhere
 	case alreadyAnswered
 	case attemptInFlight
+	case rateLimitWaitRunning
 }
 
 package enum TurnLifecycle {
@@ -205,6 +207,17 @@ package enum TurnLifecycle {
 		return replayRefusal(after: facts.latestSettlement?.settlement)
 	}
 
+	package static func retryRefusal(of facts: TurnFacts?, overlay: TurnOverlay, device: DeviceID)
+		-> TurnRefusal?
+	{
+		guard let facts else { return .unknownTurn }
+		switch overlay {
+		case .collecting, .queued: return .attemptInFlight
+		case .waitingToTryAgain: return .rateLimitWaitRunning
+		case .notInThisProcess: return claimRefusal(of: facts, device: device)
+		}
+	}
+
 	package static func replayRefusal(after settlement: Settlement?) -> TurnRefusal? {
 		switch settlement {
 		case .replied?, .savedWork?:
@@ -287,6 +300,18 @@ package enum TurnOverlay: Sendable, Equatable {
 	case queued(position: Int)
 	case waitingToTryAgain
 	case notInThisProcess
+
+	package init(of turn: TurnID, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>) {
+		if let window, window.turn == turn {
+			self = .collecting(until: window.closesAt)
+		} else if let index = queued.firstIndex(of: turn) {
+			self = .queued(position: index + 1)
+		} else if waiting.contains(turn) {
+			self = .waitingToTryAgain
+		} else {
+			self = .notInThisProcess
+		}
+	}
 }
 
 public struct CoalescingPolicy: Sendable, Equatable {

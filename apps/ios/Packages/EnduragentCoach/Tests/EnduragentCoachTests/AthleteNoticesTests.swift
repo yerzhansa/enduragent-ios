@@ -282,6 +282,8 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(shown.sentence(in: english) == "Rate limited — please try again in ~7 seconds.")
 		#expect(shown.action == .wait(thenTryAgain: turn))
 		#expect(shown.action.map { english.say($0.title) } == tryAgain)
+		#expect(!waiting.retryable)
+		#expect(settledState(failure).retryable)
 		#expect(notice(of: settledState(failure))?.action == .tryAgain(turn))
 		let down = settledState(
 			.failed(.model(.providerDown(.network)), saved: .none), overlay: .waitingToTryAgain)

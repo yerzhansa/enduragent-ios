@@ -18,7 +18,7 @@ import Testing
 		#expect(transport.requests.count == 4)
 		#expect(clock.slept.prefix(3) == [.seconds(7), .seconds(7), .seconds(7)])
 		#expect(failure(settled) == .model(.rateLimited(retryAfter: .seconds(7))))
-		#expect(settled.retryable)
+		#expect(!settled.retryable)
 	}
 
 	@Test(arguments: [
