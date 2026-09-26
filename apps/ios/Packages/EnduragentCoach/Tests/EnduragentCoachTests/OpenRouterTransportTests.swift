@@ -214,6 +214,12 @@ import Testing
 		}
 	}
 
+	@Test(.timeLimit(.minutes(1))) func errorBodyReadStopsAtItsLimit() async throws {
+		let endless = AsyncStream<UInt8>(unfolding: { UInt8(ascii: "x") })
+		let body = try await OpenRouterHTTP.errorBody(from: endless)
+		#expect(body.count == OpenRouterHTTP.errorBodyLimit)
+	}
+
 	@Test func credentialNeverAppearsInDescription() {
 		let request = sampleRequest(tools: true)
 		var dumped = ""

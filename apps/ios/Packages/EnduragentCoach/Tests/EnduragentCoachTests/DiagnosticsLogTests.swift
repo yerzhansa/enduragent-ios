@@ -51,6 +51,49 @@ import Testing
 		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
 	}
 
+	@Test func requestKeyIsRedactedEvenWithoutAKnownPrefix() async throws {
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let key = "fixture-credits-key"
+		let transport = try OpenRouterStub.transport(diagnostics: diagnostics) { _ in
+			.reply(.json(401, #"{"error":{"message":"Key \#(key) is not valid."}}"#))
+		}
+		let access = ResolvedAccess(
+			credential: ProviderCredential(secret: key, method: .credits), model: testModel)
+		let request = CompletionRequest(
+			access: access, attempt: AttemptID(ulid: fixedUlid(42)), charge: .chatAttempt,
+			messages: [WireMessage(role: .user, content: "Hi", toolCalls: [], toolCallId: nil)],
+			tools: [], deadline: .seconds(30))
+		await #expect(throws: ProviderFailure.credentialRejected(status: 401)) {
+			_ = try await collect(transport.stream(request))
+		}
+		let entry = try #require(diagnostics.entries.only)
+		guard case .providerFailure(_, _, let detail) = entry.event else {
+			Issue.record("expected a provider failure, got \(entry.event)")
+			return
+		}
+		#expect(!detail.contains(key))
+		#expect(detail.contains("Key [redacted] is not valid."))
+	}
+
+	@Test func unreadableRowsCannotFlushProviderFailuresOutOfTheRing() async throws {
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let failure = DiagnosticsEvent.providerFailure(
+			AttemptID(ulid: fixedUlid(43)), .network, detail: "URLError -1009")
+		diagnostics.record(failure)
+		let rows = (0..<250).map { SkippedRow.malformed(kind: "userMessage", ulid: "row-\($0)") }
+		let ledger = Ledger(log: UnreadableLog(rows: rows), clock: clock, diagnostics: diagnostics)
+		_ = try await ledger.read(RecordQuery(scope: .everySynced))
+		_ = try await ledger.read(RecordQuery(scope: .everySynced))
+		let events = diagnostics.entries.map(\.event)
+		#expect(events.first == failure)
+		#expect(events.count == 1 + Ledger.reportedSkipLimit)
+		let skipped = events.compactMap { event -> SkippedRow? in
+			guard case .skippedRecord(let row) = event else { return nil }
+			return row
+		}
+		#expect(Set(skipped).count == Ledger.reportedSkipLimit)
+	}
+
 	@Test(arguments: [true, false])
 	func softFlushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
 		let transport = FakeModelTransport()
@@ -97,6 +140,21 @@ extension SwiftDataSuites {
 						.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
 				])
 		}
+	}
+}
+
+private struct UnreadableLog: RecordLog {
+	let deviceId = DeviceID(rawValue: "phone-a")
+	let rows: [SkippedRow]
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		RecordPage(records: [], skipped: rows)
+	}
+
+	var imports: AsyncStream<Void> {
+		AsyncStream { _ in }
 	}
 }
 

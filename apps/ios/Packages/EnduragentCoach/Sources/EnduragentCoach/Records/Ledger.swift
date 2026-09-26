@@ -1,13 +1,15 @@
 import Foundation
 
 package actor Ledger {
+	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
+
 	private let log: any RecordLog
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
 	private var cursor: HybridLogicalClock?
 	private var lastUlid: ULID?
 	private var opened = false
-	private var reportedSkips: [SkippedRow] = []
+	private var reportedSkips: Set<SkippedRow> = []
 
 	package init(log: any RecordLog, clock: any Clock, diagnostics: DiagnosticsLog) {
 		self.log = log
@@ -79,9 +81,10 @@ package actor Ledger {
 		for record in page.records {
 			fold(record.hlc)
 		}
-		for skipped in page.skipped where !reportedSkips.contains(skipped) {
-			reportedSkips.append(skipped)
-			diagnostics.record(.skippedRecord(skipped))
+		for skipped in page.skipped where reportedSkips.count < Self.reportedSkipLimit {
+			if reportedSkips.insert(skipped).inserted {
+				diagnostics.record(.skippedRecord(skipped))
+			}
 		}
 		return page
 	}
