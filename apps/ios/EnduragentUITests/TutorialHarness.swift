@@ -238,7 +238,7 @@ enum TutorialHarness {
 				labels.append(row.label)
 				added = true
 			}
-			if !added {
+			if !added, !labels.isEmpty {
 				break
 			}
 			app.swipeUp()
