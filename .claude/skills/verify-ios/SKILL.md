@@ -70,8 +70,8 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | Message | Effect |
 | --- | --- |
 | `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
-| `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
-| `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow`, `fixture:fail finish` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds; `finish` is an unknown finish reason. |
+| `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `coach.error.providerDown`. |
+| `fixture:fail 500`, `fixture:fail 401`, `fixture:fail 402`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow`, `fixture:fail finish` | The next model request fails before any reply text with the HTTP status, connection error, or stream end the directive names, parsed by the same rules as the real transport. `429 7` carries a `retry-after` of 7 seconds; `finish` is an unknown finish reason. |
 | `fixture:storage fail-next-append` | Arms the record store before this message is saved, so the directive itself is the message that fails. The composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
@@ -115,7 +115,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |
-| `chat-failed` | After `fixture:fail 500`: `chat.turn.notice` under the message reads `The coach couldn't respond. Please try again.` with `Try again` in `chat.turn.tryAgain` |
+| `chat-failed` | After `fixture:fail network`: `chat.turn.notice` under the message reads `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain` |
 | `interruption-accepted` | After `fixture:hang`, a kill, and `sim.mjs launch <run id> --keep`: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
 | `interruption-draft` | After `fixture:storage fail-next-append`: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |

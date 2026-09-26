@@ -146,7 +146,7 @@ final class ShellModel {
 			await reloadHistory()
 			try await refreshAthlete()
 		} catch {
-			errorLine = athleteFacing(failureMessage(error))
+			errorLine = failureMessage(error)
 		}
 	}
 
@@ -158,7 +158,7 @@ final class ShellModel {
 			route = .chat
 			observeChat()
 		} catch {
-			errorLine = athleteFacing(String(describing: error))
+			errorLine = String(describing: error)
 		}
 	}
 
@@ -308,7 +308,7 @@ final class ShellModel {
 				errorLine = String(describing: outcome)
 			}
 		} catch {
-			errorLine = athleteFacing(String(describing: error))
+			errorLine = String(describing: error)
 		}
 	}
 
@@ -381,12 +381,6 @@ final class ShellModel {
 			return intervals.details
 		}
 		return String(describing: error)
-	}
-
-	private func athleteFacing(_ message: String) -> String {
-		let raw = ["UnknownFinishReasonError", "OpenRouterHTTPError", "ProviderAuthError"]
-		guard raw.contains(where: message.hasPrefix) else { return message }
-		return builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
 	}
 
 	private func grantFailureName(_ error: Error) -> String {

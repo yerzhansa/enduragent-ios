@@ -248,7 +248,7 @@ import Testing
 
 	@Test func retryOfAFailedTurnMintsASecondAttempt() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		transport.failures = [.http(status: 500)]
 		transport.script = [.text("Recovered."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -269,15 +269,12 @@ import Testing
 
 	@Test func aSecondTryAgainWhileTheFirstStartsIsRefused() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		transport.failures = [.http(status: 500)]
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		transport.failures = [
-			OpenRouterHTTPError(statusCode: 500, body: ""),
-			OpenRouterHTTPError(statusCode: 500, body: ""),
-		]
+		transport.failures = [.http(status: 500), .http(status: 500)]
 		async let first = refusal { () async throws(RetryRefusal) in
 			try await coach.retry(turn, in: .main)
 		}

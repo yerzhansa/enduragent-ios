@@ -14,7 +14,11 @@ enum TutorialHarness {
 	static let done = "Done — Create workout \"Endurance with tempo\" on 1998-06-16."
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
-	static let responseFailure = "The coach couldn't respond. Please try again."
+	static let providerDown = "The model provider is having trouble — try again in a few minutes."
+	static let providerCredentials =
+		"The model provider rejected the API key — check your provider credentials."
+	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
+	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"

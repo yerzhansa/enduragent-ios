@@ -82,9 +82,8 @@ extension SwiftDataSuites {
 					ChangeSetID(ulid: ULID.generate(at: expires)), ChangeSetRevision(rawValue: 3)),
 				account: .intervals(connection: connection, athlete: athlete)
 			)
-			let ledger = Ledger(
-				log: log,
-				clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"))
+			let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let written = try await ledger.commit(
 				synced: [sampleUser(chatId: .main, text: "stamped")], stamp: stamp)
 			let read = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
@@ -148,6 +147,27 @@ extension SwiftDataSuites {
 				RecordQuery(scope: .synced([.turnSettled]), turn: turn))
 			#expect(fetched.skipped.isEmpty)
 			#expect(fetched.records.map(\.body) == bodies.map(RecordBody.synced))
+		}
+
+		@Test(arguments: [
+			ModelFailure.credentialRejected(.credits), .credentialRejected(.openRouterAccount),
+			.accessExhausted(.credits), .rateLimited(retryAfter: .milliseconds(1_500)),
+			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
+			.generationFailed(.malformedStream), .accessUnavailable(.notConfigured(.credits)),
+			.accessUnavailable(.secureStorageLocked), .accessUnavailable(.secureStorageUnavailable),
+		])
+		func everyModelFailureSurvivesTheStore(failure: ModelFailure) async throws {
+			let log = try makeSwiftDataLog(deviceId: phoneA)
+			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
+			let body = SyncedRecordBody.turnSettled(
+				TurnSettledBody(
+					chatId: .main, turn: TurnID(ulid: ulid), attempt: AttemptID(ulid: ulid),
+					settlement: .failed(.model(failure), saved: .none)))
+			try await log.append(
+				[storedRecord(device: phoneA, wall: 1, body: .synced(body))], locality: .synced)
+			let fetched = try await log.fetch(RecordQuery(scope: .synced([.turnSettled])))
+			#expect(fetched.skipped.isEmpty)
+			#expect(fetched.records.map(\.body) == [.synced(body)])
 		}
 
 		@Test func appendThousandRowsThenFetchOneChat() async throws {

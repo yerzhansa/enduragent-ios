@@ -55,27 +55,32 @@ struct FixtureDirector: Sendable {
 		"Unknown fixture directive: \(text)"
 	}
 
-	private static func failure(_ arguments: [String]) -> (any Error)? {
+	private static func failure(_ arguments: [String]) -> ScriptedFailure? {
 		guard let code = arguments.first else { return nil }
 		let rest = Array(arguments.dropFirst())
 		switch code {
+		case "401" where rest.isEmpty:
+			return .http(status: 401)
+		case "402" where rest.isEmpty:
+			return .http(status: 402)
 		case "429" where rest.isEmpty:
-			return OpenRouterHTTPError(statusCode: 429, body: "retry-after: 7")
+			return .http(status: 429, headers: ["retry-after": "7"])
 		case "429" where rest.count == 1 && Int(rest[0]) != nil:
-			return OpenRouterHTTPError(statusCode: 429, body: "retry-after: \(rest[0])")
+			return .http(status: 429, headers: ["retry-after": rest[0]])
 		case "500" where rest.isEmpty:
-			return OpenRouterHTTPError(statusCode: 500, body: "")
+			return .http(status: 500)
 		case "network" where rest.isEmpty:
-			return URLError(.notConnectedToInternet)
+			return .connection(.notConnectedToInternet)
 		case "timeout" where rest.isEmpty:
-			return URLError(.timedOut)
+			return .connection(.timedOut)
 		case "overflow" where rest.isEmpty:
-			return OpenRouterHTTPError(
-				statusCode: 400,
-				body: "This endpoint's maximum context length is 131072 tokens."
+			return .http(
+				status: 400,
+				body:
+					#"{"error":{"message":"This endpoint's maximum context length is 131072 tokens."}}"#
 			)
 		case "finish" where rest.isEmpty:
-			return UnknownFinishReasonError(reason: "error")
+			return .unknownFinish
 		default:
 			return nil
 		}

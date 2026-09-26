@@ -8,7 +8,9 @@ import Testing
 
 	@Test func newestDateFirst() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		_ = try await memory.appendEvent(
 			date: "1998-06-13", kind: .decision, text: "Hold volume this week", source: .flush,
 			stamp: testStamp())
@@ -30,7 +32,10 @@ import Testing
 	}
 
 	@Test func renderRejectsInvertedRangeThroughQuery() async throws {
-		let memory = Memory(ledger: Ledger(log: InMemoryRecordLog(), clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(
+				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		do {
 			_ = try await memory.query(from: "1998-06-30", to: "1998-06-01", contains: nil)
 			Issue.record("expected failure")
@@ -51,7 +56,9 @@ import Testing
 
 	@Test func queryRendersDailyThenEventThenHistory() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
 		_ = try await memory.appendEvent(
 			date: "1998-06-13",
@@ -68,7 +75,10 @@ import Testing
 	}
 
 	@Test func overMaxRangeThrowsCopiedError() async throws {
-		let memory = Memory(ledger: Ledger(log: InMemoryRecordLog(), clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(
+				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		do {
 			_ = try await memory.query(from: "1998-01-01", to: "1999-01-03", contains: nil)
 			Issue.record("expected failure")

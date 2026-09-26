@@ -11,16 +11,11 @@ import Testing
 			.toolCall(name: "intervals_fetch_athlete", arguments: "{}"),
 			.finish(reason: .toolCalls),
 		]
-		let firstRequest = CompletionRequest.openRouter(
-			messages: [
-				WireMessage(
-					role: .user, content: "How was 1998-06-13?", toolCalls: [], toolCallId: nil)
-			],
-			tools: [],
-			deadline: .seconds(600)
-		)
-		let secondRequest = CompletionRequest.openRouter(
-			messages: [
+		let firstRequest = testRequest([
+			WireMessage(role: .user, content: "How was 1998-06-13?", toolCalls: [], toolCallId: nil)
+		])
+		let secondRequest = testRequest(
+			[
 				WireMessage(
 					role: .user, content: "Fetch the athlete.", toolCalls: [], toolCallId: nil)
 			],
@@ -30,8 +25,7 @@ import Testing
 					description: "Fetch the athlete profile.",
 					parameters: .object(["type": .string("object")])
 				)
-			],
-			deadline: .seconds(600)
+			]
 		)
 
 		let first = try await collect(transport.stream(firstRequest))
@@ -62,13 +56,9 @@ import Testing
 	@Test func hangingStreamFinishesWhenCancelled() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
-		let request = CompletionRequest.openRouter(
-			messages: [
-				WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil)
-			],
-			tools: [],
-			deadline: .seconds(30)
-		)
+		let request = testRequest(
+			[WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil)],
+			deadline: .seconds(30))
 		let task = Task {
 			var count = 0
 			for try await _ in transport.stream(request) {
@@ -90,13 +80,9 @@ import Testing
 			.text("two"),
 			.finish(reason: .length),
 		]
-		let request = CompletionRequest.openRouter(
-			messages: [
-				WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
-			],
-			tools: [],
-			deadline: .seconds(30)
-		)
+		let request = testRequest(
+			[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
+			deadline: .seconds(30))
 		let first = try await collect(transport.stream(request))
 		#expect(textDeltas(in: first) == ["one"])
 		let second = try await collect(transport.stream(request))
@@ -130,41 +116,30 @@ import Testing
 
 	@Test func failureQueueIsConsumedBeforeTheScript() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		transport.failures = [.http(status: 500)]
 		transport.script = [.text("after"), .finish(reason: .stop)]
-		await #expect(throws: OpenRouterHTTPError(statusCode: 500, body: "")) {
+		await #expect(throws: ProviderFailure.serverError(status: 500, retryAfter: nil)) {
 			_ = try await collect(transport.stream(request("First")))
 		}
 		#expect(transport.failures.isEmpty)
 		let second = try await collect(transport.stream(request("Second")))
 		#expect(textDeltas(in: second) == ["after"])
-		#expect(transport.requests.count == 2)
+		#expect(transport.requestCount == 2)
+	}
+
+	@Test func scriptedFailuresParseTheWireLikeTheTransport() {
+		#expect(
+			ScriptedFailure.http(status: 429, headers: ["Retry-After": "7"]).failure
+				== .rateLimited(retryAfter: .seconds(7)))
+		#expect(ScriptedFailure.http(status: 401).failure == .credentialRejected(status: 401))
+		#expect(ScriptedFailure.http(status: 402).failure == .accessExhausted)
+		#expect(ScriptedFailure.connection(.notConnectedToInternet).failure == .network)
+		#expect(ScriptedFailure.connection(.timedOut).failure == .timeout(.request))
 	}
 }
 
 private func request(_ content: String) -> CompletionRequest {
-	CompletionRequest.openRouter(
-		messages: [WireMessage(role: .user, content: content, toolCalls: [], toolCallId: nil)],
-		tools: [],
-		deadline: .seconds(30)
-	)
-}
-
-private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
-	-> [TransportEvent]
-{
-	var events: [TransportEvent] = []
-	for try await event in stream {
-		events.append(event)
-	}
-	return events
-}
-
-private func textDeltas(in events: [TransportEvent]) -> [String] {
-	events.compactMap { event in
-		if case .textDelta(let text) = event {
-			return text
-		}
-		return nil
-	}
+	testRequest(
+		[WireMessage(role: .user, content: content, toolCalls: [], toolCallId: nil)],
+		deadline: .seconds(30))
 }

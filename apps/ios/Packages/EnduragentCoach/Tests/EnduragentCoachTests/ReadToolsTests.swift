@@ -213,7 +213,7 @@ struct ReadToolsTests {
 		let store = InMemoryRecordLog()
 		return ToolRuntime(
 			intervals: intervals,
-			ledger: Ledger(log: store, clock: clock),
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			planning: Planning(store: store, intervals: intervals, clock: clock),
 			clock: clock
 		)

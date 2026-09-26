@@ -4,8 +4,7 @@ package actor ChatMailbox {
 	package let chatId: ChatID
 	private let ledger: Ledger
 	private let runner: TurnRunner
-	private let memory: Memory
-	private let transport: any ModelTransport
+	private let flushes: FlushDrain
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
@@ -28,8 +27,7 @@ package actor ChatMailbox {
 		chatId: ChatID,
 		ledger: Ledger,
 		runner: TurnRunner,
-		memory: Memory,
-		transport: any ModelTransport,
+		flushes: FlushDrain,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
 		environment: EnvironmentResolver
@@ -37,8 +35,7 @@ package actor ChatMailbox {
 		self.chatId = chatId
 		self.ledger = ledger
 		self.runner = runner
-		self.memory = memory
-		self.transport = transport
+		self.flushes = flushes
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
@@ -301,11 +298,20 @@ package actor ChatMailbox {
 			publish()
 			return
 		}
+		let access: ResolvedAccess
+		do {
+			access = try environment.access()
+		} catch {
+			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
+			await settle(turn, attempt: attempt, unavailable, stamp: stamp)
+			publish()
+			return
+		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language())
+			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
 		var softFlushDue = false
 		do {
@@ -354,11 +360,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainFlush() async {
-		try? await self.memory.flush(
-			trigger: .softThreshold,
-			chatId: self.chatId,
-			transport: self.transport
-		)
+		await flushes.drain(chatId)
 	}
 
 	private func apply(_ progress: AttemptProgress, attempt: AttemptID) {

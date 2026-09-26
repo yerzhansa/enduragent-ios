@@ -85,64 +85,6 @@ struct SettlementPayload: Codable {
 	}
 }
 
-struct FailurePayload: Codable {
-	var domain: String
-	var code: String
-	var detail: String?
-
-	init(_ failure: CoachFailure) {
-		switch failure {
-		case .model(.providerDown(let trouble)):
-			domain = "model"
-			code = "providerDown"
-			detail = trouble.rawValue
-		case .model(.contextOverflow):
-			domain = "model"
-			code = "contextOverflow"
-		case .model(.generationFailed(let fault)):
-			domain = "model"
-			code = "generationFailed"
-			detail = fault.rawValue
-		case .model(.budgetExhausted(let kind)):
-			domain = "model"
-			code = "budgetExhausted"
-			detail = kind.rawValue
-		case .local(let local):
-			domain = "local"
-			code = local.rawValue
-		}
-	}
-
-	func failure() throws -> CoachFailure {
-		switch (domain, code) {
-		case ("model", "providerDown"):
-			guard let trouble = detail.flatMap(ProviderTrouble.init(rawValue:)) else {
-				throw RecordDecodeFailure(reason: "failure")
-			}
-			return .model(.providerDown(trouble))
-		case ("model", "contextOverflow"):
-			return .model(.contextOverflow)
-		case ("model", "generationFailed"):
-			guard let fault = detail.flatMap(GenerationFault.init(rawValue:)) else {
-				throw RecordDecodeFailure(reason: "failure")
-			}
-			return .model(.generationFailed(fault))
-		case ("model", "budgetExhausted"):
-			guard let kind = detail.flatMap(TurnBudgetExceeded.Kind.init(rawValue:)) else {
-				throw RecordDecodeFailure(reason: "failure")
-			}
-			return .model(.budgetExhausted(kind))
-		case ("local", _):
-			guard let local = LocalFailure(rawValue: code) else {
-				throw RecordDecodeFailure(reason: "failure")
-			}
-			return .local(local)
-		default:
-			throw RecordDecodeFailure(reason: "failure")
-		}
-	}
-}
-
 struct WriteSummaryPayload: Codable {
 	var memorySections: Int
 	var ledgerEvents: Int

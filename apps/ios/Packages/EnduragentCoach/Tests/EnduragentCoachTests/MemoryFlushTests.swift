@@ -37,8 +37,11 @@ import Testing
 				),
 			]
 		)
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
-		try await memory.flush(trigger: .softThreshold, chatId: .main, transport: transport)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.flush(
+			trigger: .softThreshold, chatId: .main, transport: transport, access: testAccess)
 		#expect(transport.requests.count >= 1)
 		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
 		let hits = try await memory.query(
@@ -94,9 +97,13 @@ import Testing
 					FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: [])))
 		)
 		try await seed(store, [first, second])
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
-		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
-		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.flush(
+			trigger: .staleReset, chatId: .main, transport: transport, access: testAccess)
+		try await memory.flush(
+			trigger: .staleReset, chatId: .main, transport: transport, access: testAccess)
 		let consumed = try await store.fetch(RecordQuery(scope: .synced([.provenance]))).records
 			.compactMap {
 				record -> String? in
@@ -136,8 +143,11 @@ import Testing
 					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Noted."))),
 			]
 		)
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
-		try await memory.flush(trigger: .trim, chatId: .main, transport: transport)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.flush(
+			trigger: .trim, chatId: .main, transport: transport, access: testAccess)
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
 		#expect(
 			transport.requests.allSatisfy { $0.tools.map(\.name) == [.memoryWrite, .ledgerAppend] })

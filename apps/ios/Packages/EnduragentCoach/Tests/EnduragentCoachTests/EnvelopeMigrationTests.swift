@@ -88,14 +88,8 @@ extension SwiftDataSuites {
 						device: phoneA, wall: 5, ulid: fixedUlid(6),
 						body: legacyReply(chatId: .main, text: "Tuesday was hard.")),
 				])
-			let coach = Coach(
-				sport: .cycling,
-				transport: FakeModelTransport(),
-				intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-				store: log,
-				clock: clock,
-				language: .init(ui: .en, coachReply: nil)
-			)
+			let coach = makeCoach(
+				transport: FakeModelTransport(), store: log, clock: clock, coalescing: .npm)
 			#expect(
 				await coach.transcript(.main) == [
 					"How was Tuesday?", "Tuesday was hard.",
@@ -127,14 +121,8 @@ extension SwiftDataSuites {
 						body: .legacy(
 							.windowStartV1(chatId: .main, firstIncludedUlid: fixedUlid(4)))),
 				])
-			let coach = Coach(
-				sport: .cycling,
-				transport: FakeModelTransport(),
-				intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-				store: log,
-				clock: clock,
-				language: .init(ui: .en, coachReply: nil)
-			)
+			let coach = makeCoach(
+				transport: FakeModelTransport(), store: log, clock: clock, coalescing: .npm)
 			#expect(
 				await coach.transcript(.main) == [
 					"Tuesday was hard.", "Is Thursday on?",
@@ -152,7 +140,7 @@ extension SwiftDataSuites {
 		@Test func upgradedStoreAcceptsEnvelopeV2Writes() async throws {
 			let store = try V1Store.materialize()
 			let log = try store.open(deviceId: phoneA)
-			let ledger = Ledger(log: log, clock: clock)
+			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let turn = TurnID(ulid: await ledger.nextULID())
 			_ = try await ledger.commit(
 				synced: [

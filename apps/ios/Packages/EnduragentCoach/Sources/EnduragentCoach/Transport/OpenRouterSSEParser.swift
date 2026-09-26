@@ -63,7 +63,7 @@ private struct ParseState {
 	private var finished = false
 	var isComplete: Bool { finished }
 
-	mutating func consume(line: String) throws -> [TransportEvent] {
+	mutating func consume(line: String) throws(ProviderFailure) -> [TransportEvent] {
 		if line.isEmpty {
 			return []
 		}
@@ -86,7 +86,7 @@ private struct ParseState {
 		return try consume(json: payload)
 	}
 
-	mutating func finish() throws -> [TransportEvent] {
+	mutating func finish() throws(ProviderFailure) -> [TransportEvent] {
 		if finished {
 			return []
 		}
@@ -103,26 +103,25 @@ private struct ParseState {
 			events.append(.finished(reason: .contentFilter, usage: summedUsage()))
 		case "error":
 			events.append(.finished(reason: .error, usage: summedUsage()))
-		case let value?:
-			throw UnknownFinishReasonError(reason: value)
-		case nil:
-			throw UnknownFinishReasonError(reason: "")
+		default:
+			throw ProviderFailure.unknownFinish
 		}
 		return events
 	}
 
-	private mutating func consume(json payload: String) throws -> [TransportEvent] {
+	private mutating func consume(json payload: String) throws(ProviderFailure) -> [TransportEvent]
+	{
 		guard let data = payload.data(using: .utf8) else {
-			throw OpenRouterParseError.malformedSSE
+			throw ProviderFailure.malformedStream
 		}
 		let raw: Any
 		do {
 			raw = try JSONSerialization.jsonObject(with: data)
 		} catch {
-			throw OpenRouterParseError.malformedSSE
+			throw ProviderFailure.malformedStream
 		}
 		guard let object = raw as? [String: Any] else {
-			throw OpenRouterParseError.malformedSSE
+			throw ProviderFailure.malformedStream
 		}
 		if let usage = object["usage"] as? [String: Any] {
 			usageSteps.append(UsageStep(usage))
@@ -153,10 +152,10 @@ private struct ParseState {
 		return events
 	}
 
-	private mutating func merge(toolCalls: [Any]) throws {
+	private mutating func merge(toolCalls: [Any]) throws(ProviderFailure) {
 		for item in toolCalls {
 			guard let fragment = item as? [String: Any] else {
-				throw OpenRouterParseError.malformedSSE
+				throw ProviderFailure.malformedStream
 			}
 			let index = intValue(fragment["index"]) ?? 0
 			var partial = partials[index] ?? PartialToolCall()
@@ -175,12 +174,12 @@ private struct ParseState {
 		}
 	}
 
-	private mutating func emitToolCalls() throws -> [TransportEvent] {
+	private mutating func emitToolCalls() throws(ProviderFailure) -> [TransportEvent] {
 		let ordered = partials.keys.sorted().compactMap { partials[$0] }
 		partials.removeAll()
-		return try ordered.map { partial in
+		return try ordered.map { partial throws(ProviderFailure) in
 			guard let name = ToolName(rawValue: partial.name) else {
-				throw OpenRouterParseError.unknownTool(partial.name)
+				throw ProviderFailure.malformedStream
 			}
 			return .toolCall(
 				WireToolCall(
@@ -239,9 +238,4 @@ private func intValue(_ raw: Any?) -> Int? {
 		return value.intValue
 	}
 	return nil
-}
-
-package enum OpenRouterParseError: Error, Equatable, Sendable {
-	case malformedSSE
-	case unknownTool(String)
 }

@@ -6,13 +6,33 @@ public enum ScriptedEvent: Sendable, Equatable {
 	case finish(reason: FinishReason)
 }
 
+public struct ScriptedFailure: Sendable, Equatable {
+	package let failure: ProviderFailure
+
+	package init(_ failure: ProviderFailure) {
+		self.failure = failure
+	}
+
+	public static func http(status: Int, headers: [String: String] = [:], body: String = "")
+		-> ScriptedFailure
+	{
+		ScriptedFailure(ProviderFailure(status: status, headers: headers, body: body))
+	}
+
+	public static func connection(_ code: URLError.Code) -> ScriptedFailure {
+		ScriptedFailure(ProviderFailure(URLError(code)))
+	}
+
+	public static let unknownFinish = ScriptedFailure(.unknownFinish)
+}
+
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
-	public var failures: [any Error]
-	public private(set) var requests: [CompletionRequest]
+	public var failures: [ScriptedFailure]
+	package private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
 	public var hangAfterScript = false
-	public var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
+	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	public var deltaDelay: Duration?
 	private let lock = NSLock()
@@ -23,7 +43,12 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		self.requests = []
 	}
 
-	public func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
+	public var requestCount: Int {
+		requests.count
+	}
+
+	package func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
+	{
 		if hangUntilCancelled {
 			return AsyncThrowingStream { continuation in
 				let task = Task {
@@ -87,7 +112,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		defer { lock.unlock() }
 		requests.append(request)
 		if !failures.isEmpty {
-			throw failures.removeFirst()
+			throw failures.removeFirst().failure
 		}
 		var events: [TransportEvent] = []
 		while !script.isEmpty {
@@ -97,7 +122,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				events.append(.textDelta(text))
 			case .toolCall(let name, let arguments):
 				guard let toolName = ToolName(rawValue: name) else {
-					throw OpenRouterParseError.unknownTool(name)
+					throw ProviderFailure.malformedStream
 				}
 				events.append(
 					.toolCall(

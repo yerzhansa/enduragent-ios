@@ -12,21 +12,13 @@ import Testing
 		#expect(outcome == nil)
 	}
 
-	@Test func pauseForToolsSuppressesFireUntilCleared() async {
+	@Test func pauseForToolsSuppressesFireUntilCleared() async throws {
 		let watchdog = ChatWatchdog()
 		await watchdog.arm()
 		await watchdog.pauseForTools(["call-1"])
-		try? await Task.sleep(for: .milliseconds(80))
+		try await Task.sleep(for: .milliseconds(80))
 		await watchdog.disarm()
 		let afterDisarm = await watchdog.fired()
 		#expect(afterDisarm == nil)
-	}
-
-	@Test func neverEmittingTransportFailsTheTurn() async throws {
-		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
-		let settled = try await coach.sendAndSettle("Hello", within: .seconds(60))
-		#expect(failure(settled) == .model(.providerDown(.timeout)))
 	}
 }

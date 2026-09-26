@@ -5,17 +5,43 @@ import Testing
 @testable import EnduragentCoach
 
 let quickWindow = CoalescingPolicy(window: .milliseconds(20))
+let testModel = ModelID(rawValue: "test/coach-model")
+let testKey = "sk-or-test-credits-key"
+let testAccess = ResolvedAccess(
+	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
+
+func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
+	let secrets = FakeSecretStore()
+	do {
+		try secrets.storeOpenRouterKey(key)
+	} catch {
+		Issue.record(error)
+	}
+	return secrets
+}
+
+func testRequest(
+	_ messages: [WireMessage], tools: [ToolSchema] = [], deadline: Duration = .seconds(600),
+	attempt: AttemptID = AttemptID(ulid: fixedUlid(900))
+) -> CompletionRequest {
+	CompletionRequest(
+		access: testAccess, attempt: attempt, charge: .chatAttempt, messages: messages,
+		tools: tools, deadline: deadline)
+}
 
 func makeCoach(
 	transport: FakeModelTransport,
 	intervals: FakeIntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
-	coalescing: CoalescingPolicy = quickWindow
+	coalescing: CoalescingPolicy = quickWindow,
+	secrets: any SecretStore = keyedSecrets()
 ) -> Coach {
 	Coach(
 		sport: .cycling,
-		transport: transport,
+		models: .scripted(transport),
+		builtInModel: testModel,
+		secrets: secrets,
 		intervals: intervals,
 		store: store,
 		clock: clock,

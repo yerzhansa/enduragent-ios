@@ -251,7 +251,7 @@ public struct PhoneCreditsClient: CreditsClient {
 	public init(
 		secrets: any SecretStore,
 		workerBase: URL,
-		openRouterBase: URL = OpenRouterTransport.apiBase,
+		openRouterBase: URL = ModelService.openRouterAPI,
 		session: URLSession = .shared
 	) {
 		self.secrets = secrets

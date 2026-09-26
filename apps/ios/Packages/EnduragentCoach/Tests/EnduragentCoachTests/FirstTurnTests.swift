@@ -43,7 +43,9 @@ import Testing
 		#expect(turn == (await coach.currentSnapshot(.main))?.turns.first?.id)
 
 		let request = transport.requests[0]
-		#expect(request.stream == true)
+		#expect(request.credential == ProviderCredential(secret: testKey, method: .credits))
+		#expect(request.model == testModel)
+		#expect(request.charge == .chatAttempt)
 		#expect(request.messages.first?.role == .system)
 		#expect(request.messages.first?.content.contains("=== BEGIN ATHLETE DATA") == true)
 		#expect(request.messages.last?.content.contains("Current time:") == true)

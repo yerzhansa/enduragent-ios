@@ -10,7 +10,7 @@ struct ProposalPolicyTests {
 	let ledger: Ledger
 
 	init() {
-		ledger = Ledger(log: store, clock: clock)
+		ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 	}
 
 	@Test func expiredProposalAfterElevenMinutes() async throws {

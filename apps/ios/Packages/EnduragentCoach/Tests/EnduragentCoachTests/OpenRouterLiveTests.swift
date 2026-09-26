@@ -7,7 +7,12 @@ import Testing
 	@Test(.enabled(if: ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"] != nil))
 	func streamsOneTurn() async throws {
 		let apiKey = try #require(ProcessInfo.processInfo.environment["OPENROUTER_API_KEY"])
-		let request = CompletionRequest.openRouter(
+		let request = CompletionRequest(
+			access: ResolvedAccess(
+				credential: ProviderCredential(secret: apiKey, method: .credits),
+				model: ModelID(rawValue: "deepseek/deepseek-v4.1-flash-20260910")),
+			attempt: AttemptID(ulid: fixedUlid(1)),
+			charge: .chatAttempt,
 			messages: [
 				WireMessage(
 					role: .user,
@@ -29,24 +34,16 @@ import Testing
 			deadline: .seconds(60)
 		)
 		let urlRequest = try OpenRouterHTTP.urlRequest(
-			apiKey: apiKey,
-			baseURL: try #require(URL(string: "https://openrouter.ai/api/v1")),
-			request: request
-		)
-		let configuration = URLSessionConfiguration.ephemeral
-		configuration.timeoutIntervalForRequest = OpenRouterHTTP.timeInterval(
-			from: request.deadline)
-		let session = URLSession(configuration: configuration)
+			baseURL: ModelService.openRouterAPI, request: request)
+		let session = OpenRouterTransport.ephemeralSession(request.deadline.timeInterval)
 		defer { session.finishTasksAndInvalidate() }
 		let (bytes, response) = try await session.bytes(for: urlRequest)
 		let http = try #require(response as? HTTPURLResponse)
-		if http.statusCode == 401 {
-			throw ProviderAuthError(
-				statusCode: 401,
-				body: try await OpenRouterHTTP.utf8String(from: bytes)
-			)
+		guard http.statusCode == 200 else {
+			let body = try await OpenRouterHTTP.utf8String(from: bytes)
+			Issue.record("OpenRouter answered \(http.statusCode): \(body)")
+			return
 		}
-		#expect(http.statusCode == 200)
 		var lines: [String] = []
 		var sawCacheDiscount = false
 		var sawCachedTokens = false

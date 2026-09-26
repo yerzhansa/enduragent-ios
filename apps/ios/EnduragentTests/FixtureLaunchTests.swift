@@ -172,18 +172,6 @@ final class FixtureLaunchTests {
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func startChattingFailureShowsAthleteFacingCopy() throws {
-		let builder = builder(try services())
-		builder.completedServicesFailure = UnknownFinishReasonError(reason: "error")
-		let model = ShellModel(builder: builder)
-		model.startChatting()
-		let failure = model.builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
-		#expect(model.route == .onboarding(.notice))
-		#expect(model.errorLine == failure)
-		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)
-		#expect(model.errorLine?.contains("String(describing:") != true)
-	}
-
 	@Test func intervalsLoadFailureShowsTheReason() async throws {
 		let services = try services()
 		let intervals = try #require(services.intervals as? FakeIntervalsClient)

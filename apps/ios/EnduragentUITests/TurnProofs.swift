@@ -29,13 +29,10 @@ final class FailedReplyProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 500")
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
 		TutorialHarness.wait(notice)
-		XCTAssertEqual(notice.label, TutorialHarness.responseFailure)
+		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
-		XCTAssertFalse(
-			app.staticTexts.containing(
-				NSPredicate(format: "label CONTAINS %@", "OpenRouterHTTPError")
-			).firstMatch.exists)
+		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failed-reply", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
@@ -132,12 +129,15 @@ final class HangWatchdogProof: XCTestCase {
 		TutorialHarness.attach(self, name: "hang-working", app: app)
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
 		TutorialHarness.wait(notice, timeout: 40)
-		XCTAssertEqual(notice.label, TutorialHarness.responseFailure)
+		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
+		TutorialHarness.attach(self, name: "hang-watchdog-records", app: app)
+		TutorialHarness.closeMenu(app)
 	}
 }
 

@@ -31,6 +31,13 @@ struct AppServices: Sendable {
 		}
 		return url
 	}
+	static var builtInModel: ModelID {
+		let raw = Bundle.main.object(forInfoDictionaryKey: "OpenRouterModel") as? String
+		guard let raw, !raw.isEmpty else {
+			preconditionFailure("OpenRouterModel is missing from Info.plist")
+		}
+		return ModelID(rawValue: raw)
+	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 
 	var coach: Coach
@@ -74,12 +81,15 @@ struct AppServices: Sendable {
 			)
 		)
 		let secrets = try FakeSecretStore(directory: launch.directory)
+		try FirstWeekFixture.install(on: secrets)
 		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
 		let coach = Coach(
 			sport: .cycling,
-			transport: transport,
+			models: .scripted(transport),
+			builtInModel: builtInModel,
+			secrets: secrets,
 			intervals: intervals,
 			store: records,
 			clock: clock,
@@ -108,8 +118,6 @@ struct AppServices: Sendable {
 			} else {
 				UnconnectedIntervalsClient()
 			}
-		let key = try secrets.openRouterKey() ?? ""
-		let transport = OpenRouterTransport(apiKey: key)
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
 		let store = SwiftDataRecordLog(
 			deviceId: persistedDeviceID(in: .standard),
@@ -120,7 +128,9 @@ struct AppServices: Sendable {
 		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let coach = Coach(
 			sport: .cycling,
-			transport: transport,
+			models: .openRouter(baseURL: ModelService.openRouterAPI),
+			builtInModel: builtInModel,
+			secrets: secrets,
 			intervals: intervals,
 			store: store,
 			clock: clock,
@@ -161,7 +171,6 @@ final class ServicesBuilder {
 	let defaults: UserDefaults
 	private(set) var intervals: any IntervalsClient
 	private(set) var services: AppServices?
-	var completedServicesFailure: (any Error)?
 
 	static func bootstrap() -> ServicesBuilder {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
@@ -242,9 +251,6 @@ final class ServicesBuilder {
 	}
 
 	func completedServices() throws -> AppServices {
-		if let completedServicesFailure {
-			throw completedServicesFailure
-		}
 		if let services {
 			return services
 		}
