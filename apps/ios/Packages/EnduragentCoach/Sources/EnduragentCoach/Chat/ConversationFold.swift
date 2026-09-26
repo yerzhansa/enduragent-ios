@@ -51,7 +51,7 @@ package enum ConversationFold {
 
 		var turns: [TurnID: TurnFacts] = [:]
 		var order: [TurnID] = []
-		var legacyTurns: [(hlc: HybridLogicalClock, turn: TurnID)] = []
+		var legacyTurns: [(hlc: HybridLogicalClock, device: DeviceID, turn: TurnID)] = []
 		for record in ordered {
 			switch record.body {
 			case .synced(.userMessage(let body)):
@@ -86,7 +86,7 @@ package enum ConversationFold {
 				)
 				turns[turn] = facts
 				order.append(turn)
-				legacyTurns.append((record.hlc, turn))
+				legacyTurns.append((record.hlc, record.deviceId, turn))
 			default:
 				break
 			}
@@ -104,7 +104,11 @@ package enum ConversationFold {
 					)
 				)
 			case .legacy(.assistantMessage(let body)):
-				guard let turn = legacyTurns.last(where: { $0.hlc < record.hlc })?.turn else {
+				guard
+					let turn = legacyTurns.last(where: {
+						$0.device == record.deviceId && $0.hlc < record.hlc
+					})?.turn
+				else {
 					continue
 				}
 				turns[turn]?.settlements.append(

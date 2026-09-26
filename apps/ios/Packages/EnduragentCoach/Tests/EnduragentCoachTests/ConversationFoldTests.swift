@@ -172,6 +172,31 @@ import Testing
 		#expect(conversation.current.messages.map(\.text) == ["day two", "day two reply"])
 	}
 
+	@Test func legacyReplyAttachesToItsOwnDevicesQuestion() throws {
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: legacyUser(chatId: .main, text: "a asks")),
+			storedRecord(
+				device: phoneB, wall: 2, ulid: ulid(2),
+				body: legacyUser(chatId: .main, text: "b asks")),
+			storedRecord(
+				device: phoneA, wall: 3, ulid: ulid(3),
+				body: legacyReply(chatId: .main, text: "a answered")),
+			storedRecord(
+				device: phoneB, wall: 4, ulid: ulid(4),
+				body: legacyReply(chatId: .main, text: "b answered")),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		#expect(
+			conversation.current.messages.map(\.text) == [
+				"a asks", "a answered", "b asks", "b answered",
+			])
+		let turns = conversation.current.turns
+		#expect(turns.map(\.origin) == [phoneA, phoneB])
+		#expect(turns.map { $0.settlements.count } == [1, 1])
+	}
+
 	@Test func messagesForUlidsResolveFragmentsAndSettlements() throws {
 		let turn = TurnID(ulid: ulid(1))
 		let records = [
