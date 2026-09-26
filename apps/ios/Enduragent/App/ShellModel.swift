@@ -246,7 +246,10 @@ final class ShellModel {
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		services.fixtureDirector?.prepare(for: text)
+		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+			errorLine = message
+			return
+		}
 		do {
 			switch try await services.coach.send(Draft(id: draft.id, text: text), to: chatId) {
 			case .accepted, .showLanguagePicker:

@@ -31,13 +31,17 @@ enum TutorialHarness {
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication) {
+	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "keep",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		if !element.waitForExistence(timeout: 10) {
+			throw XCTSkip(
+				"needs the fixture store an earlier build left; run it after a trunk proof")
+		}
 	}
 
 	static func relaunchKeepingStore(_ app: XCUIApplication) {

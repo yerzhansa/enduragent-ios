@@ -6,31 +6,45 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-struct FixtureLaunchTests {
-	let launch: FixtureLaunch
+@Suite(.serialized)
+final class FixtureLaunchTests {
+	let launch = FixtureLaunch(
+		name: FixtureLaunch.firstWeekName,
+		store: .fresh,
+		keychain: .unlocked,
+		directory: FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-fixture-test", directoryHint: .isDirectory),
+		defaultsSuiteName: "enduragent.fixture.test"
+	)
 	let defaults: UserDefaults
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 
 	init() throws {
-		let stamp = UUID().uuidString
-		launch = FixtureLaunch(
-			name: FixtureLaunch.firstWeekName,
-			store: .fresh,
-			keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-fixture-\(stamp)", directoryHint: .isDirectory),
-			defaultsSuiteName: "enduragent.test.\(stamp)"
-		)
 		defaults = try launch.prepare()
 	}
 
-	private func services(
-		store: FixtureStorePolicy = .fresh, keychain: FixtureKeychainPolicy = .unlocked
-	) throws -> AppServices {
+	deinit {
+		let launch = launch
+		UserDefaults(suiteName: launch.defaultsSuiteName)?
+			.removePersistentDomain(forName: launch.defaultsSuiteName)
+		do {
+			try FileManager.default.removeItem(at: launch.directory)
+		} catch {
+			Issue.record(error, "fixture directory cleanup")
+		}
+	}
+
+	private func services(keychain: FixtureKeychainPolicy = .unlocked) throws -> AppServices {
 		var launch = launch
-		launch.store = store
 		launch.keychain = keychain
 		return try AppServices.fixture(launch, defaults: defaults)
+	}
+
+	private func relaunch(_ store: FixtureStorePolicy) throws -> (AppServices, UserDefaults) {
+		var launch = launch
+		launch.store = store
+		let defaults = try launch.prepare()
+		return (try AppServices.fixture(launch, defaults: defaults), defaults)
 	}
 
 	private func model(_ services: AppServices) -> ShellModel {
@@ -161,14 +175,10 @@ struct FixtureLaunchTests {
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = model(try services())
 		model.startChatting()
-		model.draft.text = "Give me a ride for tomorrow"
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
+		model.draft.text = "fixture:fail finish"
 		await model.send()
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
 		let turn = try await settledTurn(model)
 		guard case .failed(let failed) = turn.state else {
 			Issue.record("expected a failed turn, got \(turn.state)")
@@ -251,40 +261,43 @@ struct FixtureLaunchTests {
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		let settled = try await settledTurn(first)
 		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
-		let second = try services(store: .keep)
+		let (second, kept) = try relaunch(.keep)
 		let restored = try #require(await firstSnapshot(second, chat: first.chatId))
 		#expect(restored.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
+		let reopened = ShellModel(
+			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+		#expect(reopened.route == .chat)
+		#expect(reopened.chatId == first.chatId)
 	}
 
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		first.draft.text = "fixture:hang"
 		await first.send()
 		let accepted = try await firstTurn(first)
-		let second = try services(store: .keep)
+		let (second, _) = try relaunch(.keep)
 		let reopened = try #require(await firstSnapshot(second, chat: first.chatId))
 		#expect(reopened.turns.map(\.id) == [accepted.id])
 		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		_ = try await settledTurn(first)
-		let wiped = try launch.prepare()
-		let second = try AppServices.fixture(launch, defaults: wiped)
+		let (second, wiped) = try relaunch(.fresh)
 		#expect(await firstSnapshot(second, chat: first.chatId)?.turns.isEmpty == true)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
@@ -335,16 +348,44 @@ struct FixtureLaunchTests {
 		#expect(model.retryRefusal == nil)
 	}
 
+	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = "fixture:fail bogus"
+		await model.send()
+		#expect(transport.requests.isEmpty)
+		#expect(model.chat?.turns.isEmpty ?? true)
+		#expect(model.draft.text == "fixture:fail bogus")
+		#expect(model.errorLine == "Unknown fixture directive: fixture:fail bogus")
+		model.draft.text = "fixture:storage fail-everything"
+		await model.send()
+		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
+		#expect(transport.requests.isEmpty)
+		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
+	}
+
+	@Test func nextMessageClearsAQueuedFailure() throws {
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let director = try #require(services.fixtureDirector)
+		#expect(director.prepare(for: "fixture:fail 500") == .sendToCoach)
+		#expect(transport.failures.count == 1)
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(transport.failures.isEmpty)
+	}
+
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let director = try #require(services.fixtureDirector)
-		director.prepare(for: "fixture:hang")
+		#expect(director.prepare(for: "fixture:hang") == .sendToCoach)
 		#expect(transport.hangUntilCancelled)
-		director.prepare(for: TutorialCopy.weekQuestion)
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
 		#expect(!transport.hangUntilCancelled)
 		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
-		director.prepare(for: "fixture:hang")
+		#expect(director.prepare(for: "fixture:hang") == .sendToCoach)
 		director.prepareRetry(of: "fixture:hang")
 		#expect(!transport.hangUntilCancelled)
 		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])

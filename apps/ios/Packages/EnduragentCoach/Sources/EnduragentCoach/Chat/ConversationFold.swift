@@ -12,12 +12,29 @@ package enum ConversationFold {
 		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID
 	) -> Conversation {
 		let ordered = synced.filter { $0.chatId == chat }.sorted { $0.hlc < $1.hlc }
+		let legacyMessages = Set(
+			ordered.compactMap { record -> ULID? in
+				switch record.body {
+				case .legacy(.userMessageV1), .legacy(.assistantMessage): record.ulid
+				default: nil
+				}
+			})
 		var boundaries: [(ulid: ULID, opening: SegmentOpening)] = []
+		var legacyTrims: [ULID] = []
 		for record in ordered {
-			if case .synced(.windowStart(let body)) = record.body,
-				case .reset(let kind) = body.reason
-			{
-				boundaries.append((body.firstIncludedUlid, .reset(kind)))
+			switch record.body {
+			case .synced(.windowStart(let body)):
+				if case .reset(let kind) = body.reason {
+					boundaries.append((body.firstIncludedUlid, .reset(kind)))
+				}
+			case .legacy(.windowStartV1(_, let firstIncluded)):
+				if legacyMessages.contains(firstIncluded) {
+					legacyTrims.append(firstIncluded)
+				} else {
+					boundaries.append((firstIncluded, .reset(.daily)))
+				}
+			default:
+				break
 			}
 		}
 		boundaries.sort { $0.ulid < $1.ulid }
@@ -36,7 +53,7 @@ package enum ConversationFold {
 
 		var turns: [TurnID: TurnFacts] = [:]
 		var order: [TurnID] = []
-		var legacyTurns: [(hlc: HybridLogicalClock, turn: TurnID)] = []
+		var legacyTurns: [(hlc: HybridLogicalClock, device: DeviceID, turn: TurnID)] = []
 		for record in ordered {
 			switch record.body {
 			case .synced(.userMessage(let body)):
@@ -57,7 +74,7 @@ package enum ConversationFold {
 				turns[body.turn]?.fragments.append(fragment)
 			case .legacy(.userMessageV1(_, let text, let slash)):
 				let turn = TurnID(ulid: record.ulid)
-				var facts = TurnFacts(turn: turn, chat: chat, origin: record.deviceId)
+				var facts = TurnFacts(turn: turn, chat: chat, origin: record.deviceId, legacy: true)
 				facts.fragments.append(
 					Fragment(
 						ulid: record.ulid,
@@ -71,7 +88,7 @@ package enum ConversationFold {
 				)
 				turns[turn] = facts
 				order.append(turn)
-				legacyTurns.append((record.hlc, turn))
+				legacyTurns.append((record.hlc, record.deviceId, turn))
 			default:
 				break
 			}
@@ -89,7 +106,11 @@ package enum ConversationFold {
 					)
 				)
 			case .legacy(.assistantMessage(let body)):
-				guard let turn = legacyTurns.last(where: { $0.hlc < record.hlc })?.turn else {
+				guard
+					let turn = legacyTurns.last(where: {
+						$0.device == record.deviceId && $0.hlc < record.hlc
+					})?.turn
+				else {
 					continue
 				}
 				turns[turn]?.settlements.append(
@@ -119,24 +140,17 @@ package enum ConversationFold {
 			guard let facts = turns[turn], let first = facts.fragments.first else { continue }
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
 		}
+		for firstIncluded in legacyTrims {
+			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
+		}
 		for record in ordered where record.deviceId == device {
-			let window: (ulid: ULID, firstIncluded: ULID)?
-			switch record.body {
-			case .synced(.windowStart(let body)):
-				switch body.reason {
-				case .trim, .compaction:
-					window = (record.ulid, body.firstIncludedUlid)
-				case .reset:
-					window = nil
-				}
-			case .legacy(.windowStartV1(_, let firstIncluded)):
-				window = (record.ulid, firstIncluded)
-			default:
-				window = nil
-			}
-			if let window {
-				segments[segmentIndex(for: window.ulid)].promptWindow = PromptWindow(
-					firstIncluded: window.firstIncluded)
+			guard case .synced(.windowStart(let body)) = record.body else { continue }
+			switch body.reason {
+			case .trim, .compaction:
+				segments[segmentIndex(for: record.ulid)].promptWindow = PromptWindow(
+					firstIncluded: body.firstIncludedUlid)
+			case .reset:
+				break
 			}
 		}
 		return Conversation(chat: chat, segments: segments)
@@ -287,9 +301,10 @@ package struct Segment: Sendable, Equatable {
 	package let openedBy: SegmentOpening
 	package var turns: [TurnFacts] = []
 	package var promptWindow = PromptWindow(firstIncluded: nil)
+	package var legacyTrim: ULID?
 
 	package var messages: [ChatMessage] {
-		turns.flatMap { $0.messageRows.map(\.message) }
+		turns.flatMap { visibleRows(of: $0).map(\.message) }
 	}
 
 	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
@@ -298,12 +313,17 @@ package struct Segment: Sendable, Equatable {
 			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
 				continue
 			}
-			for (ulid, message) in facts.messageRows {
+			for (ulid, message) in visibleRows(of: facts) {
 				history.messages.append(message)
 				history.ulids.append(ulid)
 			}
 		}
 		return history
+	}
+
+	private func visibleRows(of facts: TurnFacts) -> [(ulid: ULID, message: ChatMessage)] {
+		guard let legacyTrim else { return facts.messageRows }
+		return facts.messageRows.filter { $0.ulid >= legacyTrim }
 	}
 }
 
@@ -311,6 +331,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package let turn: TurnID
 	package let chat: ChatID
 	package let origin: DeviceID
+	package var legacy = false
 	package var fragments: [Fragment] = []
 	package var claims: [TurnClaimBody] = []
 	package var settlements: [SettledAttempt] = []
@@ -336,10 +357,12 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
-		guard let first = fragments.min(by: { $0.index < $1.index }),
-			let settled = latestSettlement
-		else {
-			return []
+		guard let first = fragments.min(by: { $0.index < $1.index }) else { return [] }
+		let question = (
+			first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)
+		)
+		guard let settled = latestSettlement else {
+			return legacy ? [question] : []
 		}
 		let replyText: String
 		switch settled.settlement {
@@ -351,7 +374,7 @@ package struct TurnFacts: Sendable, Equatable {
 			return []
 		}
 		return [
-			(first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)),
+			question,
 			(
 				settled.ulid,
 				ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)

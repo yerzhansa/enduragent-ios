@@ -286,8 +286,28 @@ final class RecordsAfterReplyProof: XCTestCase {
 	}
 }
 
-final class StorageFaultStoresNothingProof: XCTestCase {
-	func testStorageFaultStoresNothing() {
+final class HangWatchdogProof: XCTestCase {
+	func testHangWatchdog() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:hang")
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		TutorialHarness.attach(self, name: "hang-working", app: app)
+		let notice = TutorialHarness.named(app, "chat.turn.notice")
+		TutorialHarness.wait(notice, timeout: 40)
+		XCTAssertEqual(notice.label, TutorialHarness.responseFailure)
+		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
+		XCTAssertFalse(working.exists)
+		TutorialHarness.attach(self, name: "hang-watchdog", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class StorageFaultProof: XCTestCase {
+	func testStorageFault() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -298,14 +318,18 @@ final class StorageFaultStoresNothingProof: XCTestCase {
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").value as? String,
 			"fixture:storage fail-next-append")
+		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
 		TutorialHarness.attach(self, name: "storage-fault-not-sent", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").value as? String,
 			"fixture:storage fail-next-append")
 		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
+		TutorialHarness.attach(self, name: "storage-fault-nothing-saved", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
@@ -327,33 +351,31 @@ final class RecordsClockOrderProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.attach(self, name: "records-clock-order", app: app)
 		let labels = TutorialHarness.recordRowLabels(app)
-		let clocks = labels.compactMap { label -> (Int64, Int64)? in
-			guard let stamp = label.split(separator: " ").last?.split(separator: "@").first else {
-				return nil
-			}
-			let parts = stamp.split(separator: ".")
-			guard parts.count == 2, let wall = Int64(parts[0]), let logical = Int64(parts[1])
-			else {
-				return nil
-			}
-			return (wall, logical)
+		let rows = labels.map { $0.split(separator: " ").map(String.init) }
+		XCTAssertTrue(
+			rows.allSatisfy { $0.count == 3 }, "every row shows kind, device, and HLC: \(labels)")
+		let clocks = rows.compactMap(\.last)
+		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
+		let causal = rows.compactMap(\.first).filter {
+			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]
+				.contains($0)
 		}
-		XCTAssertEqual(clocks.count, labels.count, "every row shows an HLC: \(labels)")
-		XCTAssertGreaterThanOrEqual(clocks.count, 6, "rows: \(labels)")
-		for index in 1..<clocks.count {
-			XCTAssertTrue(
-				clocks[index - 1] < clocks[index],
-				"HLC at row \(index) does not increase: \(labels)")
-		}
+		XCTAssertEqual(
+			causal,
+			[
+				"userMessage", "turnClaim", "turnSettled", "userMessage", "turnClaim",
+				"pendingProposal", "turnSettled", "proposalCleared",
+			],
+			"rows in HLC order follow the order the app wrote them: \(labels)")
 	}
 }
 
 final class UpgradeKeepsTranscriptProof: XCTestCase {
-	func testUpgradeKeepsTranscript() {
+	func testUpgradeKeepsTranscript() throws {
 		let app = XCUIApplication()
-		TutorialHarness.launchKeepingStore(app)
+		try TutorialHarness.launchKeepingStore(
+			app, expecting: app.staticTexts[TutorialHarness.weekQuestion])
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(
@@ -373,10 +395,10 @@ final class UpgradeKeepsTranscriptProof: XCTestCase {
 }
 
 final class UpgradeKeepsProposalProof: XCTestCase {
-	func testUpgradeKeepsProposal() {
+	func testUpgradeKeepsProposal() throws {
 		let app = XCUIApplication()
-		TutorialHarness.launchKeepingStore(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		try TutorialHarness.launchKeepingStore(
+			app, expecting: TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.waitForLabel(app, "Confirmed preview")
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
 		let add = TutorialHarness.named(app, "chat.preview.add")

@@ -41,8 +41,21 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private let lock = NSLock()
 	private let file: URL?
 	private var contents: Contents
-	public var locked = false
+	private var isLocked = false
 	public private(set) var storedOpenRouterKeys = 0
+
+	public var locked: Bool {
+		get {
+			lock.lock()
+			defer { lock.unlock() }
+			return isLocked
+		}
+		set {
+			lock.lock()
+			defer { lock.unlock() }
+			isLocked = newValue
+		}
+	}
 
 	public init(appAccountToken: UUID? = nil) {
 		self.file = nil
@@ -104,7 +117,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	}
 
 	private func checkUnlocked() throws {
-		if locked {
+		if isLocked {
 			throw KeychainStoreError(status: errSecInteractionNotAllowed)
 		}
 	}
