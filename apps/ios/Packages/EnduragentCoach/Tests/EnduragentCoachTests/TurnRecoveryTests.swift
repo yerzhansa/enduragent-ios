@@ -171,8 +171,8 @@ import Testing
 			chat: .main, synced: synced.records, local: local.records, device: store.deviceId
 		).segments.flatMap(\.turns)
 		#expect(
-			TurnRecovery.plan(turns: turns, writes: [:], device: store.deviceId)
-				== RecoveryPlan(interrupt: []))
+			TurnRecovery.plan(turns: turns, flushQueue: [], writes: [:], device: store.deviceId)
+				== RecoveryPlan(interrupt: [], drain: []))
 	}
 
 	@Test func deadClaimWithAnObservedReplyIsInterruptedAndNeverReplayed() {
@@ -187,9 +187,11 @@ import Testing
 				civilDate: "1998-06-13", index: 0, draft: DraftID(), text: "Thursday?", slash: nil))
 		facts.claims.append(TurnClaimBody(chatId: .main, turn: turn, attempt: attempt))
 		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
-		let plan = TurnRecovery.plan(turns: [facts], writes: [:], device: device)
+		let plan = TurnRecovery.plan(turns: [facts], flushQueue: [], writes: [:], device: device)
 		#expect(
-			plan == RecoveryPlan(interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)])
+			plan
+				== RecoveryPlan(
+					interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)], drain: [])
 		)
 		let settle = TurnLifecycle.writes(
 			for: .recoverDeadClaim(attempt, saved: .none), on: facts, chat: .main, device: device,
@@ -216,8 +218,21 @@ import Testing
 				for: .recoverDeadClaim(attempt, saved: .none), on: settledFacts, chat: .main,
 				device: device, mint: { turn }) == .success(.nothing))
 		#expect(
-			TurnRecovery.plan(turns: [settledFacts], writes: [:], device: device)
-				== RecoveryPlan(interrupt: []))
+			TurnRecovery.plan(turns: [settledFacts], flushQueue: [], writes: [:], device: device)
+				== RecoveryPlan(interrupt: [], drain: []))
+	}
+
+	@Test func pendingFlushJobsAreDrainedAndSettledOnesAreNot() {
+		let pending = FlushJob(
+			id: FlushJobID(ulid: fixedUlid(10)), trigger: .trim, messages: [fixedUlid(1)],
+			settled: false)
+		let settled = FlushJob(
+			id: FlushJobID(ulid: fixedUlid(11)), trigger: .softThreshold,
+			messages: [fixedUlid(2)], settled: true)
+		#expect(
+			TurnRecovery.plan(
+				turns: [], flushQueue: [pending, settled], writes: [:], device: store.deviceId)
+				== RecoveryPlan(interrupt: [], drain: [pending.id]))
 	}
 
 	@Test func stampedWritesAreCountedPerAttempt() async throws {

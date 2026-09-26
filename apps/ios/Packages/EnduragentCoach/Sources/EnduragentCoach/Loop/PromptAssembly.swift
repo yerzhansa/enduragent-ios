@@ -163,14 +163,6 @@ public struct HistoryWindow {
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 
-	public static func shouldSoftFlush(historyTokens: Int, budget: Int, messagesSinceFlush: Int)
-		-> Bool
-	{
-		if messagesSinceFlush < 5 {
-			return false
-		}
-		return Double(historyTokens) > Double(budget) * 0.8
-	}
 }
 
 func sanitizeUntrustedText(_ value: String) -> String {

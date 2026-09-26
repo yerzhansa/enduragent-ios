@@ -141,3 +141,75 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 
 	var imports: AsyncStream<Void> { inner.imports }
 }
+
+func historyBudget(clock: any Clock) -> Int {
+	let volatile = PromptAssembly.volatile(
+		context: "",
+		snapshot: nil,
+		timeZoneName: clock.timeZone.identifier,
+		replyLanguage: PromptAssembly.replyLanguageSection(
+			resolution: LanguageResolution(language: .en, source: .surface, locale: "en"))
+	)
+	let system = PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile
+	return HistoryWindow.historyTokenBudget(
+		systemTokens: estimateTokens(system), window: TurnPolicy.contextWindowCap,
+		ratio: TurnPolicy.historyTokenBudgetRatio)
+}
+
+struct SeededTurn {
+	let turn: TurnID
+	let user: ULID
+	let reply: ULID
+}
+
+@discardableResult
+func seedHistory(
+	_ store: any RecordLog, clock: any Clock, turns count: Int, tokens: Int,
+	chat: ChatID = .main
+) async throws -> [SeededTurn] {
+	let replyChars = Int(Double(tokens / count) / 1.2 * 4)
+	var seeded: [SeededTurn] = []
+	for index in 0..<count {
+		let asked = clock.now.addingTimeInterval(TimeInterval(-60 * (count - index)))
+		let answered = asked.addingTimeInterval(1)
+		let user = ULID.generate(at: asked)
+		let reply = ULID.generate(at: answered)
+		let turn = TurnID(ulid: user)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: asked, ulid: user,
+					body: .synced(sampleUser(chatId: chat, text: "Question \(index)", turn: turn))),
+				seededRecord(
+					store, at: answered, ulid: reply,
+					body: .synced(
+						sampleReply(
+							chatId: chat, turn: turn,
+							text: "Answer \(index) " + String(repeating: "w", count: replyChars)))),
+			])
+		seeded.append(SeededTurn(turn: turn, user: user, reply: reply))
+	}
+	return seeded
+}
+
+func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: RecordBody)
+	-> AthleteRecord
+{
+	AthleteRecord(
+		ulid: ulid,
+		deviceId: store.deviceId,
+		hlc: HybridLogicalClock(
+			wallMs: Int64((date.timeIntervalSince1970 * 1_000).rounded(.down)), logical: 0,
+			deviceId: store.deviceId),
+		timeZone: amsterdamZone,
+		civilDate: "1998-06-13",
+		cause: .legacy,
+		account: .unconnected,
+		body: body
+	)
+}
+
+func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
+	transport.requests.filter { $0.charge == charge }
+}

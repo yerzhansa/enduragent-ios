@@ -393,57 +393,37 @@ public struct Memory: Sendable {
 		return true
 	}
 
-	package func flush(
-		trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport,
-		access: ResolvedAccess
-	) async throws {
-		let pending = try await oldestUnconsumedFlush(chatId: chatId)
-		let effectiveTrigger: FlushTrigger = {
-			if let pending, case .deviceLocal(.flushPending(let body)) = pending.body {
-				return body.trigger
+	package func runFlush(
+		_ job: FlushJob,
+		messages: [ChatMessage],
+		access: ResolvedAccess,
+		transport: any ModelTransport,
+		stamp: OperationStamp,
+		scope: TurnScope?
+	) async throws(CancellationError) -> FlushOutcome {
+		guard !messages.isEmpty else { return .nothingToSave }
+		let run = FlushRun(messages: messages, access: access, transport: transport, stamp: stamp)
+		var tally = FlushTally()
+		do {
+			try await flushRetryingFailures(run, scope: scope, tally: &tally)
+			if job.trigger == .staleReset, tally.isEmpty,
+				messages.count >= MemoryFlushPolicy.flushZeroWriteMinMessages
+			{
+				try await flushRetryingFailures(run, scope: scope, tally: &tally)
 			}
-			return trigger
-		}()
-		let conversation = try await loadFlushMessages(
-			trigger: effectiveTrigger, chatId: chatId, pending: pending)
-		if conversation.isEmpty, pending == nil {
-			return
-		}
-		let job: FlushJobID
-		if let pending {
-			job = FlushJobID(ulid: pending.ulid)
-		} else {
-			job = FlushJobID(ulid: await ledger.nextULID())
-		}
-		let stamp = OperationStamp(
-			operation: .memoryFlush(job),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: ActionBinding(
-				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-		)
-		var attempt = 0
-		var lastWrites = 0
-		var lastLedger = 0
-		while attempt < MemoryFlushPolicy.maxAttempts {
-			attempt += 1
-			let outcome = try await runFlushGenerate(
-				conversation: conversation, transport: transport, access: access, stamp: stamp)
-			lastWrites = outcome.writes
-			lastLedger = outcome.ledgerAppends
-			let zeroWrite =
-				outcome.writes == 0
-				&& outcome.ledgerAppends == 0
-				&& conversation.count >= MemoryFlushPolicy.flushZeroWriteMinMessages
-			if effectiveTrigger == .staleReset, zeroWrite, attempt < MemoryFlushPolicy.maxAttempts {
-				continue
+		} catch is CancellationError {
+			throw CancellationError()
+		} catch {
+			let failure = try AttemptFailure(caught: error).coachFailure(for: access.method)
+			if tally.isEmpty {
+				return .failed(failure)
 			}
-			break
+			return .partial(sections: tally.sections, events: tally.events, failure: failure)
 		}
-		_ = lastWrites
-		_ = lastLedger
-		if let pending {
-			try await markConsumed(pending, stamp: stamp)
+		if tally.isEmpty {
+			return .nothingToSave
 		}
+		return .saved(sections: tally.sections, events: tally.events)
 	}
 
 	public func view() async throws -> MemoryView {
@@ -531,13 +511,28 @@ public struct Memory: Sendable {
 		return parts.joined(separator: "\n\n")
 	}
 
-	private func runFlushGenerate(
-		conversation: [ChatMessage],
-		transport: any ModelTransport,
-		access: ResolvedAccess,
-		stamp: OperationStamp
-	) async throws -> (writes: Int, ledgerAppends: Int) {
-		let current = (try? await fullContext()) ?? ""
+	private func flushRetryingFailures(
+		_ run: FlushRun, scope: TurnScope?, tally: inout FlushTally
+	) async throws {
+		var attempt = 1
+		while true {
+			do {
+				try await runFlushGenerate(run, scope: scope, tally: &tally)
+				return
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				guard attempt < MemoryFlushPolicy.maxAttempts else { throw error }
+				attempt += 1
+			}
+		}
+	}
+
+	private func runFlushGenerate(_ run: FlushRun, scope: TurnScope?, tally: inout FlushTally)
+		async throws
+	{
+		try await scope?.chargeCall()
+		let current = try await fullContext()
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let fenced = PromptAssembly.wrapAthleteContext(
 			current.isEmpty ? "No athlete data stored yet." : current)
@@ -545,7 +540,7 @@ public struct Memory: Sendable {
 			WireMessage(
 				role: .system, content: MemoryFlushPrompt.system, toolCalls: [], toolCallId: nil)
 		]
-		messages.append(contentsOf: conversation.map(wireMessage(from:)))
+		messages.append(contentsOf: run.messages.map(wireMessage(from:)))
 		messages.append(
 			WireMessage(
 				role: .user,
@@ -559,20 +554,19 @@ public struct Memory: Sendable {
 			)
 		)
 		let schemas = MemoryFlushPrompt.toolSchemas()
-		var writes = 0
-		var ledgerAppends = 0
 		var steps = 0
 		while steps < MemoryFlushPolicy.maxSteps {
 			steps += 1
 			let request = CompletionRequest(
-				access: access,
-				attempt: stamp.attempt,
+				access: run.access,
+				attempt: run.stamp.attempt,
 				charge: .memoryFlush,
 				messages: messages,
 				tools: schemas,
 				deadline: TurnBudgetPolicy.npm.perCallDeadline
 			)
-			let step = try await collectFlush(transport: transport, request: request)
+			let step = try await collectFlush(transport: run.transport, request: request)
+			try Task.checkCancellation()
 			if step.calls.isEmpty {
 				break
 			}
@@ -582,15 +576,14 @@ public struct Memory: Sendable {
 			)
 			for call in step.calls {
 				let (payload, wroteSection, wroteLedger) = try await executeFlushTool(
-					call, stamp: stamp)
-				if wroteSection { writes += 1 }
-				if wroteLedger { ledgerAppends += 1 }
+					call, stamp: run.stamp)
+				if wroteSection { tally.sections += 1 }
+				if wroteLedger { tally.events += 1 }
 				messages.append(
 					WireMessage(role: .tool, content: payload, toolCalls: [], toolCallId: call.id)
 				)
 			}
 		}
-		return (writes, ledgerAppends)
 	}
 
 	private func collectFlush(
@@ -619,7 +612,15 @@ public struct Memory: Sendable {
 	private func executeFlushTool(_ call: WireToolCall, stamp: OperationStamp) async throws -> (
 		String, Bool, Bool
 	) {
-		let arguments = (try? JSONValue.parse(call.arguments)) ?? .object([:])
+		let arguments: JSONValue
+		do {
+			arguments = try JSONValue.parse(call.arguments)
+		} catch {
+			return (
+				JSONValue.object(["error": .string("invalid_arguments")]).canonicalDigestInput(),
+				false, false
+			)
+		}
 		switch call.name {
 		case .memoryWrite:
 			let fields = arguments.objectFields
@@ -669,84 +670,6 @@ public struct Memory: Sendable {
 				false
 			)
 		}
-	}
-
-	private func oldestUnconsumedFlush(chatId: ChatID) async throws -> AthleteRecord? {
-		let pending = try await ledger.read(
-			RecordQuery(scope: .deviceLocal([.flushPending]), chatId: chatId)
-		).records
-		let consumed = try await consumedFlushIDs()
-		return pending.first { record in
-			!consumed.contains(record.ulid.rawValue)
-		}
-	}
-
-	private func consumedFlushIDs() async throws -> Set<String> {
-		let records = try await ledger.read(RecordQuery(scope: .synced([.provenance]))).records
-		var ids: Set<String> = []
-		for record in records {
-			guard case .synced(.provenance(let body)) = record.body else { continue }
-			if body.key.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) {
-				ids.insert(
-					String(body.key.dropFirst(MemoryFlushPolicy.consumedFlushKeyPrefix.count)))
-			}
-		}
-		return ids
-	}
-
-	private func markConsumed(_ pending: AthleteRecord, stamp: OperationStamp) async throws {
-		_ = try await ledger.commit(
-			synced: [
-				.provenance(
-					ProvenanceBody(
-						key: MemoryFlushPolicy.consumedFlushKeyPrefix + pending.ulid.rawValue,
-						garmin: false,
-						nonGarmin: false,
-						unknown: false,
-						contentSha256: sha256Hex(pending.ulid.rawValue)
-					)
-				)
-			],
-			stamp: stamp
-		)
-	}
-
-	private func loadFlushMessages(
-		trigger: FlushTrigger,
-		chatId: ChatID,
-		pending: AthleteRecord?
-	) async throws -> [ChatMessage] {
-		let page = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let conversation = ConversationFold.fold(
-			chat: chatId, synced: page.records, device: ledger.deviceId)
-		let ignoreWindow =
-			trigger == .trim || trigger == .preCompaction || trigger == .overflow
-			|| trigger == .explicitReset
-		if let pending, case .deviceLocal(.flushPending(let body)) = pending.body,
-			!body.messageUlids.isEmpty
-		{
-			return mergeUnique(
-				conversation.messages(for: body.messageUlids),
-				conversation.current.promptHistory(excluding: nil).messages
-			)
-		}
-		if ignoreWindow {
-			return conversation.current.messages
-		}
-		return conversation.current.promptHistory(excluding: nil).messages
-	}
-
-	private func mergeUnique(_ first: [ChatMessage], _ second: [ChatMessage]) -> [ChatMessage] {
-		var seen: Set<String> = []
-		var out: [ChatMessage] = []
-		for message in first + second {
-			let key = message.role.rawValue + "\u{1e}" + message.text
-			if seen.insert(key).inserted {
-				out.append(message)
-			}
-		}
-		return out
 	}
 
 	private func loadSnapshot() async throws -> MemorySnapshot {
@@ -829,6 +752,22 @@ public enum MemoryQuery {
 			return truncateUtf16Safe(result, maxChars: maxResultChars) + "\n" + truncationNotice
 		}
 		return result
+	}
+}
+
+private struct FlushRun: Sendable {
+	let messages: [ChatMessage]
+	let access: ResolvedAccess
+	let transport: any ModelTransport
+	let stamp: OperationStamp
+}
+
+private struct FlushTally {
+	var sections = 0
+	var events = 0
+
+	var isEmpty: Bool {
+		sections == 0 && events == 0
 	}
 }
 

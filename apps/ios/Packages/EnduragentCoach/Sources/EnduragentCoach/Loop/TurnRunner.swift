@@ -39,11 +39,6 @@ package enum AttemptResult: Sendable, Equatable {
 	case failed(CoachFailure, saved: WriteSummary)
 }
 
-package struct AttemptReport: Sendable, Equatable {
-	package let result: AttemptResult
-	package let softFlushDue: Bool
-}
-
 extension Settlement {
 	package init(_ result: AttemptResult) {
 		switch result {
@@ -93,18 +88,15 @@ package struct TurnRunner: Sendable {
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws(CancellationError) -> AttemptReport {
+	) async throws(CancellationError) -> AttemptResult {
 		let prompt: TurnPrompt
 		do {
 			prompt = try await assemble(attempt, scope: scope, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
-			return AttemptReport(
-				result: .failed(
-					failure.coachFailure(for: attempt.access.method),
-					saved: WriteSummary(await scope.written)),
-				softFlushDue: false
-			)
+			return .failed(
+				failure.coachFailure(for: attempt.access.method),
+				saved: WriteSummary(await scope.written))
 		}
 		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 	}
@@ -114,7 +106,7 @@ package struct TurnRunner: Sendable {
 		prompt initial: TurnPrompt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws(CancellationError) -> AttemptReport {
+	) async throws(CancellationError) -> AttemptResult {
 		var prompt = initial
 		var counters = RetryCounters.zero
 		var pending: RetryPlan?
@@ -143,11 +135,9 @@ package struct TurnRunner: Sendable {
 				let saved = WriteSummary(await scope.written)
 				switch ladder.decide(failure, situation: situation, counters: counters) {
 				case .terminal(let coachFailure):
-					return AttemptReport(
-						result: .failed(coachFailure, saved: saved), softFlushDue: false)
+					return .failed(coachFailure, saved: saved)
 				case .settleSavedWork(let outcome):
-					return AttemptReport(
-						result: .savedWork(outcome, saved: saved), softFlushDue: false)
+					return .savedWork(outcome, saved: saved)
 				case .retry(let next, let preparations):
 					counters = next
 					pending = RetryPlan(failure: failure, preparations: preparations)
@@ -167,7 +157,9 @@ package struct TurnRunner: Sendable {
 		for preparation in retry.preparations {
 			switch preparation {
 			case .flushMemory(let trigger):
-				try await flushOnce(trigger, attempt: attempt, scope: scope, progress: progress)
+				try await flushOnce(
+					trigger, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+					progress: progress)
 			case .compactInTurn:
 				do {
 					try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
@@ -190,23 +182,29 @@ package struct TurnRunner: Sendable {
 
 	private func flushOnce(
 		_ trigger: FlushTrigger,
+		covering rows: [(ulid: ULID, message: ChatMessage)],
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws {
-		guard await scope.takeFlushLatch() else { return }
+	) async throws(CancellationError) {
+		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
+		let flushes = flushWork(attempt.chat)
+		let job: FlushJob
 		do {
-			try await Memory(ledger: ledger, clock: clock).flush(
-				trigger: trigger, chatId: attempt.chat, transport: transport, access: attempt.access
-			)
-		} catch is CancellationError {
-			throw CancellationError()
+			job = try await flushes.open(trigger, covering: rows.map(\.ulid), stamp: scope.stamp)
 		} catch {
-			diagnostics.record(
-				.memoryFlushFailed(attempt.chat, detail: String(describing: error)),
-				redacting: [attempt.access.credential.secret])
+			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
+			return
 		}
+		_ = try await flushes.run(
+			job, messages: rows.map(\.message), access: attempt.access, scope: scope)
+	}
+
+	private func flushWork(_ chat: ChatID) -> FlushWork {
+		FlushWork(
+			chat: chat, ledger: ledger, memory: Memory(ledger: ledger, clock: clock),
+			transport: transport, clock: clock, diagnostics: diagnostics)
 	}
 
 	private func assemble(
@@ -219,14 +217,10 @@ package struct TurnRunner: Sendable {
 		let stamp = scope.stamp
 		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
 		if shouldDailyReset(last: transcript.lastDate) {
-			_ = try await ledger.commit(
-				local: [
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
-				],
-				stamp: stamp
-			)
+			if !transcript.unflushed.isEmpty {
+				_ = try await flushWork(chatId).open(
+					.staleReset, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+			}
 			let marker = await ledger.nextULID()
 			_ = try await ledger.commit(
 				synced: [
@@ -236,7 +230,7 @@ package struct TurnRunner: Sendable {
 				],
 				stamp: stamp
 			)
-			transcript = Transcript(messages: [], ulids: [], lastDate: nil)
+			transcript = transcript.afterReset()
 		}
 
 		let memory = Memory(ledger: ledger, clock: clock)
@@ -266,39 +260,44 @@ package struct TurnRunner: Sendable {
 			replyLanguage: replyLanguage
 		)
 		let system = prefix + "\n\n" + volatile
-		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: transcript.messages, systemTokens: systemTokens)
+		let history = transcript.history
+		let trim = HistoryWindow.trim(
+			messages: history.messages, systemTokens: estimateTokens(system))
 		if !trim.dropped.isEmpty {
-			var bodies: [SyncedRecordBody] = []
-			if let first = trim.kept.first, let ulid = transcript.ulid(for: first) {
-				bodies.append(
+			try await flushOnce(
+				.trim, covering: transcript.unflushed, attempt: attempt, scope: scope,
+				progress: progress)
+			_ = try await ledger.commit(
+				synced: [
 					.windowStart(
-						WindowStartBody(chatId: chatId, firstIncludedUlid: ulid, reason: .trim)))
-			}
-			bodies.append(
-				.compactionSummary(
-					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
-			_ = try await ledger.commit(synced: bodies, stamp: stamp)
-			try await flushOnce(.trim, attempt: attempt, scope: scope, progress: progress)
+						WindowStartBody(
+							chatId: chatId, firstIncludedUlid: history.ulids[trim.dropped.count],
+							reason: .trim)),
+					.compactionSummary(
+						CompactionSummaryBody(
+							chatId: chatId, markdown: compactionStub(trim.dropped))),
+				],
+				stamp: stamp)
+		} else if !transcript.flushPending,
+			FlushGate.shouldQueueSoftFlush(
+				estimatedHistoryTokens: trim.kept.reduce(0) { $0 + estimateTokens($1.text) },
+				historyBudget: trim.budget, messagesSinceLastFlush: transcript.unflushed.count),
+			await scope.takeFlushLatch()
+		{
+			_ = try await flushWork(chatId).open(
+				.softThreshold, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
 		}
-		let kept = trim.kept
-		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
-		let softFlushDue = HistoryWindow.shouldSoftFlush(
-			historyTokens: historyTokens,
-			budget: trim.budget,
-			messagesSinceFlush: kept.count
-		)
 
 		let timed = PromptAssembly.appendCurrentTime(
 			athleteText: attempt.request,
 			now: clock.now,
 			timeZone: clock.timeZone
 		)
-		var wire = kept.map(wireMessage(from:))
+		var wire = trim.kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		return TurnPrompt(
-			prefix: prefix, system: system, schemas: schemas, timed: timed,
-			softFlushDue: softFlushDue, wire: wire)
+			prefix: prefix, system: system, schemas: schemas, timed: timed, wire: wire,
+			inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 })
 	}
 
 	private func generate(
@@ -306,12 +305,14 @@ package struct TurnRunner: Sendable {
 		prompt: inout TurnPrompt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws -> AttemptReport {
+	) async throws -> AttemptResult {
 		try Task.checkCancellation()
 		try await scope.chargeAttempt()
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
-			try await flushOnce(.preCompaction, attempt: attempt, scope: scope, progress: progress)
+			try await flushOnce(
+				.preCompaction, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+				progress: progress)
 			try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
 		}
 		try await scope.chargeCall()
@@ -402,12 +403,9 @@ package struct TurnRunner: Sendable {
 			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
 		let assembledHash = sha256Hex(prompt.system + prompt.timed + assistantText)
-		return AttemptReport(
-			result: .replied(
-				.model(assistantText),
-				lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
-			),
-			softFlushDue: prompt.softFlushDue
+		return .replied(
+			.model(assistantText),
+			lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
 		)
 	}
 
@@ -604,13 +602,19 @@ package struct TurnRunner: Sendable {
 			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
 		let conversation = ConversationFold.fold(
 			chat: chatId, synced: page.records, device: ledger.deviceId)
-		let history = conversation.current.promptHistory(excluding: turn)
+		let jobs = try await ledger.flushJobs(in: chatId)
 		let lastDate: Date?
 		switch conversation.lastExchange {
 		case .none: lastDate = nil
 		case .at(let date): lastDate = date
 		}
-		return Transcript(messages: history.messages, ulids: history.ulids, lastDate: lastDate)
+		return Transcript(
+			history: conversation.current.promptHistory(excluding: turn),
+			unflushed: conversation.current.messagesSinceLastFlush(jobs, excluding: turn),
+			flushPending: jobs.contains { !$0.settled },
+			current: conversation.turn(turn)?.userRow,
+			lastDate: lastDate
+		)
 	}
 
 	private func shouldDailyReset(last: Date?) -> Bool {
@@ -631,8 +635,8 @@ private struct TurnPrompt: Sendable {
 	let system: String
 	let schemas: [ToolSchema]
 	let timed: String
-	let softFlushDue: Bool
 	var wire: [WireMessage]
+	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
 
 	var systemMessage: WireMessage {
 		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
@@ -677,13 +681,16 @@ private struct GenerateStep: Sendable {
 }
 
 private struct Transcript: Sendable {
-	var messages: [ChatMessage]
-	var ulids: [ULID]
-	var lastDate: Date?
+	let history: PromptHistory
+	let unflushed: [(ulid: ULID, message: ChatMessage)]
+	let flushPending: Bool
+	let current: (ulid: ULID, message: ChatMessage)?
+	let lastDate: Date?
 
-	func ulid(for message: ChatMessage) -> ULID? {
-		guard let index = messages.firstIndex(of: message) else { return nil }
-		return ulids[index]
+	func afterReset() -> Transcript {
+		Transcript(
+			history: PromptHistory(messages: [], ulids: []), unflushed: [],
+			flushPending: flushPending || !unflushed.isEmpty, current: current, lastDate: nil)
 	}
 }
 

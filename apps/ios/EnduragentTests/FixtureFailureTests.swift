@@ -39,7 +39,10 @@ extension FixtureLaunchTests {
 		),
 		("fixture:fail network x3", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 3),
 		("fixture:fail timeout x2", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 2),
-		("fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 4 + 3),
+		(
+			"fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry,
+			4 + 1 + 3
+		),
 	])
 	func failDirectiveSettlesWithItsNotice(
 		directive: String, key: CatalogKey, button: CatalogKey, requests: Int

@@ -4,8 +4,7 @@ package actor ChatMailbox {
 	package let chatId: ChatID
 	private let ledger: Ledger
 	private let runner: TurnRunner
-	private let memory: Memory
-	private let transport: any ModelTransport
+	private let flushes: FlushWork
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
@@ -38,8 +37,9 @@ package actor ChatMailbox {
 		self.chatId = chatId
 		self.ledger = ledger
 		self.runner = runner
-		self.memory = memory
-		self.transport = transport
+		self.flushes = FlushWork(
+			chat: chatId, ledger: ledger, memory: memory, transport: transport, clock: clock,
+			diagnostics: diagnostics)
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
@@ -143,6 +143,9 @@ package actor ChatMailbox {
 			await settle(
 				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
 		}
+		for job in plan.drain {
+			enqueueFlush(job)
+		}
 		publish()
 	}
 
@@ -167,13 +170,6 @@ package actor ChatMailbox {
 			pendingProposal = nil
 		}
 		publish()
-	}
-
-	package func flushAndDrain() async {
-		enqueue(.flush)
-		while let task = running {
-			await task.value
-		}
 	}
 
 	private func loadIfNeeded() async {
@@ -245,6 +241,11 @@ package actor ChatMailbox {
 		drainIfIdle()
 	}
 
+	private func enqueueFlush(_ job: FlushJobID) {
+		guard active != .flush(job), !work.contains(.flush(job)) else { return }
+		enqueue(.flush(job))
+	}
+
 	private func drainIfIdle() {
 		guard running == nil, !terminating, !work.isEmpty else { return }
 		let next = work.removeFirst()
@@ -253,8 +254,8 @@ package actor ChatMailbox {
 			switch next {
 			case .turn(let turn):
 				await self.runTurn(turn)
-			case .flush:
-				await self.drainFlush()
+			case .flush(let job):
+				await self.drainFlush(job)
 			}
 			self.workFinished()
 		}
@@ -263,11 +264,8 @@ package actor ChatMailbox {
 	private func workFinished() {
 		running = nil
 		active = nil
-		if work.isEmpty {
-			publish()
-		} else {
-			drainIfIdle()
-		}
+		drainIfIdle()
+		publish()
 	}
 
 	private func runTurn(_ turn: TurnID) async {
@@ -303,13 +301,11 @@ package actor ChatMailbox {
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
 			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
-		var softFlushDue = false
 		do {
-			let report = try await runner.run(request, scope: scope) { progress in
+			let result = try await runner.run(request, scope: scope) { progress in
 				await self.apply(progress, stamp: stamp)
 			}
-			settlement = Settlement(report.result)
-			softFlushDue = report.softFlushDue
+			settlement = Settlement(result)
 		} catch {
 			settlement = .interrupted(
 				partial: live?.text ?? "", cause: stopping ?? .athleteStopped,
@@ -317,8 +313,10 @@ package actor ChatMailbox {
 		}
 		await settle(turn, .settle(attempt, settlement), stamp: stamp)
 		live = nil
-		if softFlushDue {
-			work.append(.flush)
+		if !terminating {
+			for job in await flushes.pending() {
+				enqueueFlush(job)
+			}
 		}
 		publish()
 	}
@@ -348,12 +346,9 @@ package actor ChatMailbox {
 			turn, attempt: attempt, settlement, ulid: ulid, device: ledger.deviceId, clock: clock)
 	}
 
-	private func drainFlush() async {
+	private func drainFlush(_ job: FlushJobID) async {
 		do {
-			let access = try environment.access()
-			try await memory.flush(
-				trigger: .softThreshold, chatId: chatId, transport: transport, access: access)
-		} catch is CancellationError {
+			try await flushes.drain(job, in: conversation, access: environment.access)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chatId, detail: String(describing: error)))
 		}

@@ -29,15 +29,4 @@ import Testing
 		#expect(result.dropped.count >= 1)
 		#expect(result.kept.last == messages.last)
 	}
-
-	@Test func softFlushUsesStrictThresholdAndCooldown() {
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 81, budget: 100, messagesSinceFlush: 5))
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 80, budget: 100, messagesSinceFlush: 5)
-				== false)
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 90, budget: 100, messagesSinceFlush: 4)
-				== false)
-	}
 }

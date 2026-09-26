@@ -2,6 +2,11 @@ import Foundation
 
 package struct RecoveryPlan: Sendable, Equatable {
 	package var interrupt: [DeadClaim]
+	package var drain: [FlushJobID]
+
+	package var isEmpty: Bool {
+		interrupt.isEmpty && drain.isEmpty
+	}
 }
 
 package struct DeadClaim: Sendable, Equatable {
@@ -18,7 +23,8 @@ package enum TurnRecovery {
 	])
 
 	package static func plan(
-		turns: [TurnFacts], writes: [AttemptID: WriteSummary], device: DeviceID
+		turns: [TurnFacts], flushQueue: [FlushJob], writes: [AttemptID: WriteSummary],
+		device: DeviceID
 	) -> RecoveryPlan {
 		RecoveryPlan(
 			interrupt: turns.filter { $0.origin == device }.flatMap { facts in
@@ -27,7 +33,8 @@ package enum TurnRecovery {
 						turn: facts.turn, attempt: claim.attempt,
 						saved: writes[claim.attempt, default: .none])
 				}
-			})
+			},
+			drain: flushQueue.filter { !$0.settled }.map(\.id))
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])

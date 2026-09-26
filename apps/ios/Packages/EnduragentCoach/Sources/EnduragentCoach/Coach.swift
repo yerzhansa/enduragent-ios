@@ -157,12 +157,6 @@ public actor Coach {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 	}
 
-	public func waitForMemoryFlush() async {
-		for box in mailboxes.values {
-			await box.flushAndDrain()
-		}
-	}
-
 	private static func creditsAccess(secrets: any SecretStore, model: ModelID)
 		throws(AccessUnavailable) -> ResolvedAccess
 	{
@@ -212,6 +206,7 @@ public actor Coach {
 		let claims = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
+		let flushQueue = try await ledger.flushJobsByChat()
 		var turns: [ChatID: [TurnFacts]] = [:]
 		for chat in Set(claims.compactMap(\.chatId)) {
 			turns[chat] = ConversationFold.fold(
@@ -219,13 +214,23 @@ public actor Coach {
 			).segments.flatMap(\.turns)
 		}
 		let dead = Set(turns.values.joined().flatMap(\.openClaims).map(\.attempt))
-		guard !dead.isEmpty else { return [:] }
-		let stamped = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
-		).records
-		let writes = TurnRecovery.writes(of: dead, in: stamped)
-		return turns.mapValues { TurnRecovery.plan(turns: $0, writes: writes, device: device) }
-			.filter { !$0.value.interrupt.isEmpty }
+		var writes: [AttemptID: WriteSummary] = [:]
+		if !dead.isEmpty {
+			let stamped = try await ledger.read(
+				RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+			).records
+			writes = TurnRecovery.writes(of: dead, in: stamped)
+		}
+		var plans: [ChatID: RecoveryPlan] = [:]
+		for chat in Set(turns.keys).union(flushQueue.keys) {
+			let plan = TurnRecovery.plan(
+				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
+				device: device)
+			if !plan.isEmpty {
+				plans[chat] = plan
+			}
+		}
+		return plans
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {

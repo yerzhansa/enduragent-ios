@@ -149,3 +149,87 @@ extension Ledger {
 		return jobs
 	}
 }
+
+package struct FlushWork: Sendable {
+	package let chat: ChatID
+	package let ledger: Ledger
+	package let memory: Memory
+	package let transport: any ModelTransport
+	package let clock: any Clock
+	package let diagnostics: DiagnosticsLog
+
+	package func open(_ trigger: FlushTrigger, covering ulids: [ULID], stamp: OperationStamp)
+		async throws(LedgerFailure) -> FlushJob
+	{
+		let records = try await ledger.commit(
+			local: [
+				.flushPending(FlushPendingBody(chatId: chat, trigger: trigger, messageUlids: ulids))
+			],
+			stamp: stamp)
+		guard let record = records.first else { throw LedgerFailure.rejectedBatch }
+		return FlushJob(
+			id: FlushJobID(ulid: record.ulid), trigger: trigger, messages: ulids, settled: false)
+	}
+
+	package func run(
+		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?
+	) async throws(CancellationError) -> FlushOutcome {
+		let stamp = OperationStamp(
+			operation: .memoryFlush(job.id),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: ActionBinding(
+				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+		)
+		let outcome = try await memory.runFlush(
+			job, messages: messages, access: access, transport: transport, stamp: stamp,
+			scope: scope)
+		guard let settlement = outcome.settlement else {
+			diagnostics.record(
+				.memoryFlushFailed(chat, detail: "\(outcome)"),
+				redacting: [access.credential.secret])
+			return outcome
+		}
+		do {
+			_ = try await ledger.commit(
+				local: [
+					.flushSettled(
+						FlushSettledBody(chatId: chat, job: job.id, settlement: settlement))
+				],
+				stamp: stamp)
+		} catch {
+			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+		}
+		return outcome
+	}
+
+	package func pending() async -> [FlushJobID] {
+		do {
+			return try await ledger.flushJobs(in: chat).filter { !$0.settled }.map(\.id)
+		} catch {
+			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			return []
+		}
+	}
+
+	package func drain(
+		_ id: FlushJobID, in conversation: Conversation,
+		access: () throws(AccessUnavailable) -> ResolvedAccess
+	) async throws(CancellationError) {
+		let job: FlushJob
+		let resolved: ResolvedAccess
+		do {
+			guard let pending = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
+				!pending.settled
+			else {
+				return
+			}
+			job = pending
+			resolved = try access()
+		} catch {
+			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
+			return
+		}
+		_ = try await run(
+			job, messages: conversation.flushMessages(for: job), access: resolved, scope: nil)
+	}
+}

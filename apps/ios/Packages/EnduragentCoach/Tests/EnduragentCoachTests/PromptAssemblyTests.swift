@@ -112,10 +112,10 @@ import Testing
 			"dropped": trim.dropped.count,
 			"budget": trim.budget,
 			"systemTokens": systemTokens,
-			"shouldSoftFlush": HistoryWindow.shouldSoftFlush(
-				historyTokens: historyTokens,
-				budget: trim.budget,
-				messagesSinceFlush: messages.count
+			"shouldSoftFlush": FlushGate.shouldQueueSoftFlush(
+				estimatedHistoryTokens: historyTokens,
+				historyBudget: trim.budget,
+				messagesSinceLastFlush: messages.count
 			) ? 1 : 0,
 		]
 		let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])

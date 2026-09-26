@@ -28,7 +28,8 @@ public struct ScriptedFailure: Sendable, Equatable {
 
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
-	public var maintenanceScript: [ScriptedEvent]
+	public var summaryScript: [ScriptedEvent]
+	public var flushScript: [ScriptedEvent]
 	package private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
@@ -38,7 +39,8 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 
 	public init() {
 		self.script = []
-		self.maintenanceScript = []
+		self.summaryScript = []
+		self.flushScript = []
 		self.requests = []
 	}
 
@@ -152,8 +154,10 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		switch charge {
 		case .chatAttempt, .stepRecovery:
 			return script.isEmpty ? nil : script.removeFirst()
-		case .compaction, .memoryFlush:
-			return maintenanceScript.isEmpty ? nil : maintenanceScript.removeFirst()
+		case .compaction:
+			return summaryScript.isEmpty ? nil : summaryScript.removeFirst()
+		case .memoryFlush:
+			return flushScript.isEmpty ? nil : flushScript.removeFirst()
 		}
 	}
 }

@@ -338,7 +338,7 @@ public struct CoalescingPolicy: Sendable, Equatable {
 
 package enum MailboxWork: Sendable, Equatable {
 	case turn(TurnID)
-	case flush
+	case flush(FlushJobID)
 
 	package var turn: TurnID? {
 		guard case .turn(let turn) = self else { return nil }

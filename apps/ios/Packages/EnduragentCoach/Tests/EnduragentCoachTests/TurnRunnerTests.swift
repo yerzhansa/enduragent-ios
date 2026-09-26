@@ -35,7 +35,7 @@ import Testing
 			.text("after compact"),
 			.finish(reason: .stop),
 		]
-		transport.maintenanceScript = [
+		transport.summaryScript = [
 			.text(
 				"## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"
 			),
@@ -44,7 +44,11 @@ import Testing
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Long history")
 		#expect(replyText(settled) == "after compact")
-		#expect(transport.requests.map(\.charge) == [.chatAttempt, .compaction, .chatAttempt])
+		#expect(
+			transport.requests.map(\.charge) == [
+				.chatAttempt, .memoryFlush, .compaction, .chatAttempt,
+			])
+
 		let records = try await store.fetch(
 			RecordQuery(scope: .synced([.compactionSummary, .windowStart]), chatId: "main")
 		).records
