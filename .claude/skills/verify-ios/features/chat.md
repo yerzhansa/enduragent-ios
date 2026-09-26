@@ -69,5 +69,5 @@ Preconditions:
 - `/status` and `/workout` get the week summary in the fixture, and the command itself appears as the athlete's message. The workout preview needs a message containing `endurance ride`.
 - `TutorialHarness.waitForLabel` waits 10 seconds for an exact label before it falls back to a `CONTAINS` match. Replies longer than the expected fragment still pass, but each such wait adds 10 seconds.
 - `New chat` has no accessibility identifier. Find it by its label.
-- The menu sheet has no close button. Swipe down to dismiss it, twice from the Debug screen.
+- The menu sheet has no close button. Swipe down to dismiss it, twice from the Debug screen. The sheet animates away after the swipe, so `chat.sidebar` is not hittable at once; `TutorialHarness.closeMenu` and `openSidebar` wait until it is.
 - Typing `/` into a composer that already has text does not open the list. The list shows only while the composer starts with `/` and has no space.

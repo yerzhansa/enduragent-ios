@@ -80,6 +80,14 @@ enum TutorialHarness {
 		XCTAssertTrue(element.waitForExistence(timeout: timeout), "missing \(element)")
 	}
 
+	static func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
+		)
+	}
+
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
 		let exact = app.staticTexts[text]
 		if exact.waitForExistence(timeout: timeout) {
@@ -122,7 +130,9 @@ enum TutorialHarness {
 	}
 
 	static func openSidebar(_ app: XCUIApplication) {
-		named(app, "chat.sidebar").tap()
+		let sidebar = named(app, "chat.sidebar")
+		waitUntilHittable(sidebar)
+		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
 	}
 
@@ -139,6 +149,7 @@ enum TutorialHarness {
 	static func closeMenu(_ app: XCUIApplication) {
 		app.swipeDown(velocity: .fast)
 		app.swipeDown(velocity: .fast)
+		waitUntilHittable(named(app, "chat.sidebar"))
 		wait(named(app, "chat.composer"))
 	}
 
@@ -184,7 +195,6 @@ enum TutorialHarness {
 		let count = named(app, "fixture.requestCount")
 		wait(count)
 		XCTAssertEqual(count.label, "0 requests")
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 	}
 }
