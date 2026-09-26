@@ -93,4 +93,24 @@ extension ChatMailboxTests {
 		#expect(await reopened.state(of: second) == .accepted(.awaitingRestart))
 		#expect(await reopened.state(of: first) == running)
 	}
+
+	@Test func willTerminateStartsNothingThatWasStillJoining() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(
+			transport: transport, store: store, clock: clock,
+			coalescing: CoalescingPolicy(window: .milliseconds(200)))
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.lifecycle(.willTerminate)
+		try await Task.sleep(for: .milliseconds(500))
+		#expect(transport.requests.isEmpty)
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		).records
+		#expect(claims.isEmpty)
+		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		await reopened.lifecycle(.becameActive)
+		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
+	}
 }
