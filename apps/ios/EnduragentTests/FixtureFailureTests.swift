@@ -28,15 +28,21 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [
-		("fixture:fail 401", Catalog.coachErrorProviderCredentials, false, 1),
-		("fixture:fail 402", Catalog.coachErrorUnknown, false, 1),
-		("fixture:fail 429 1 x4", Catalog.coachErrorRateLimitSeconds, true, 4),
-		("fixture:fail network x3", Catalog.coachErrorProviderDown, true, 3),
-		("fixture:fail timeout x2", Catalog.coachErrorProviderDown, true, 2),
-		("fixture:fail overflow x4", Catalog.coachErrorUnknown, true, 4 + 3),
+		(
+			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
+			Catalog.chatTurnRestorePurchases, 1
+		),
+		("fixture:fail 402", Catalog.creditsErrorExhausted, Catalog.chatTurnBuyCredits, 1),
+		(
+			"fixture:fail 429 1 x4", Catalog.coachErrorRateLimitSeconds,
+			Catalog.chatTranscriptRetry, 4
+		),
+		("fixture:fail network x3", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 3),
+		("fixture:fail timeout x2", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 2),
+		("fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 4 + 3),
 	])
 	func failDirectiveSettlesWithItsNotice(
-		directive: String, key: CatalogKey, tryAgain: Bool, requests: Int
+		directive: String, key: CatalogKey, button: CatalogKey, requests: Int
 	) async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
@@ -50,7 +56,7 @@ extension FixtureLaunchTests {
 			return
 		}
 		#expect(failure.notice.key == key)
-		#expect(failure.notice.action == (tryAgain ? .tryAgain(failed.id) : nil))
+		#expect(failure.notice.action?.title == button)
 		#expect(transport.requestCount == requests)
 		#expect(model.errorLine == nil)
 	}
@@ -95,7 +101,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(savedWork.outcome == .savedUnverified)
 		#expect(savedWork.saved.memorySections == 1)
-		#expect(savedWork.notice.key == Catalog.coachErrorUnknown)
+		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.action == nil)
 		#expect(!settled.state.retryable)
 	}

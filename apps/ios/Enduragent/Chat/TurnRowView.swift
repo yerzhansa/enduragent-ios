@@ -12,7 +12,7 @@ struct TurnRowView: View {
 			case .accepted(.awaitingRestart):
 				Text(say(Catalog.chatTurnReceivedBeforeClose))
 					.accessibilityIdentifier("chat.turn.receivedBeforeClose")
-				tryAgain
+				actionButton(.tryAgain(turn.id))
 			case .accepted(.onOtherDevice):
 				EmptyView()
 			case .accepted(.collecting), .accepted(.queued):
@@ -48,26 +48,42 @@ struct TurnRowView: View {
 			.accessibilityIdentifier("chat.working")
 	}
 
-	private var tryAgain: some View {
-		Button(say(Catalog.chatTranscriptRetry)) {
-			Task { await model.perform(.tryAgain(turn.id)) }
-		}
-		.accessibilityIdentifier("chat.turn.tryAgain")
-	}
-
 	private func notice(_ notice: AthleteNotice) -> some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(
-				model.builder.phrasebook.say(notice.key, notice.vars)
-					.trimmingCharacters(in: .whitespacesAndNewlines)
-			)
-			.accessibilityIdentifier("chat.turn.notice")
+			Text(notice.sentence(in: model.builder.phrasebook))
+				.accessibilityIdentifier("chat.turn.notice")
 			if let action = notice.action {
-				switch action {
-				case .tryAgain:
-					tryAgain
-				}
+				actionButton(action)
 			}
+		}
+	}
+
+	@ViewBuilder
+	private func actionButton(_ action: RecoveryAction) -> some View {
+		if let opensAt = action.opensAt {
+			TimelineView(.explicit([opensAt])) { _ in
+				button(for: action)
+					.disabled(Date.now < opensAt)
+			}
+		} else {
+			button(for: action)
+		}
+	}
+
+	private func button(for action: RecoveryAction) -> some View {
+		Button(say(action.title)) {
+			Task { await model.perform(action) }
+		}
+		.accessibilityIdentifier(identifier(for: action))
+	}
+
+	private func identifier(for action: RecoveryAction) -> String {
+		switch action {
+		case .tryAgain, .wait: "chat.turn.tryAgain"
+		case .restoreCredits: "chat.turn.restorePurchases"
+		case .buyCredits: "chat.turn.buyCredits"
+		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
+		case .signInToOpenRouter: "chat.turn.signInAgain"
 		}
 	}
 

@@ -8,6 +8,7 @@ enum FixtureStorePolicy: String {
 enum FixtureKeychainPolicy: String {
 	case unlocked
 	case locked
+	case empty
 }
 
 enum FixtureLaunchError: Error {

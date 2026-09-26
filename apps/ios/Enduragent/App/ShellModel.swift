@@ -28,6 +28,7 @@ final class ShellModel {
 	var confirmLine: String?
 	var chatId: ChatID = .main
 	var showSidebar = false
+	var showCredits = false
 	var packPrices: [String: String] = [:]
 
 	let builder: ServicesBuilder
@@ -264,18 +265,26 @@ final class ShellModel {
 	}
 
 	func perform(_ action: RecoveryAction) async {
-		guard let services else { return }
 		switch action {
-		case .tryAgain(let turn):
-			if let text = chat?.turns.first(where: { $0.id == turn })?.athleteText {
-				services.fixtureDirector?.prepareRetry(of: text)
-			}
-			do {
-				try await services.coach.retry(turn, in: chatId)
-				retryRefusal = nil
-			} catch {
-				retryRefusal = error
-			}
+		case .tryAgain(let turn), .wait(_, let turn):
+			await tryAgain(turn)
+		case .restoreCredits, .buyCredits:
+			showCredits = true
+		case .chooseAccessMethod, .signInToOpenRouter:
+			route = .onboarding(.connect)
+		}
+	}
+
+	private func tryAgain(_ turn: TurnID) async {
+		guard let services else { return }
+		if let text = chat?.turns.first(where: { $0.id == turn })?.athleteText {
+			services.fixtureDirector?.prepareRetry(of: text)
+		}
+		do {
+			try await services.coach.retry(turn, in: chatId)
+			retryRefusal = nil
+		} catch {
+			retryRefusal = error
 		}
 	}
 

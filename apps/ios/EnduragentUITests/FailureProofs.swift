@@ -23,16 +23,20 @@ final class FailureCopyProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail 401")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerCredentials))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.accessRejected))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.turn.restorePurchases").label,
+			TutorialHarness.restorePurchases)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "failure-copy-credentials", app: app)
 		TutorialHarness.send(app, "fixture:fail network x3")
-		TutorialHarness.wait(notice(app, reading: TutorialHarness.providerDown))
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.turn.tryAgain"))
 		TutorialHarness.attach(self, name: "failure-copy-network", app: app)
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(
-			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
+			timeout: rateLimitWait)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-copy-rate-limited", app: app)
@@ -61,7 +65,8 @@ final class RetryLadderProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
 		TutorialHarness.wait(
-			notice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: rateLimitWait)
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
+			timeout: rateLimitWait)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
@@ -69,12 +74,6 @@ final class RetryLadderProof: XCTestCase {
 }
 
 private let rateLimitWait: TimeInterval = 40
-
-private func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
-	app.staticTexts.matching(
-		NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
-	).firstMatch
-}
 
 private func assertNoWireDetail(_ app: XCUIApplication) {
 	for raw in ["ProviderFailure", "statusCode", "URLError", "retry-after", "error\":"] {

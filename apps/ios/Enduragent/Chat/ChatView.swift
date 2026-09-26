@@ -37,6 +37,9 @@ struct ChatView: View {
 					}
 				}
 			}
+			.navigationDestination(isPresented: $model.showCredits) {
+				CreditsView(model: model)
+			}
 			.sheet(isPresented: $model.showSidebar) {
 				NavigationStack {
 					SidebarView(model: model)
