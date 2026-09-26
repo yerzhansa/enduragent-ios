@@ -33,6 +33,7 @@ enum TutorialHarness {
 		"This reply stopped before it finished. Some information was saved first."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
+	static let summaryHead = "[Previous conversation summary]"
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 
@@ -139,6 +140,13 @@ enum TutorialHarness {
 		send.tap()
 	}
 
+	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+		send(app, text)
+		let working = named(app, "chat.working")
+		wait(working, timeout: 5)
+		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
+	}
+
 	static func openSidebar(_ app: XCUIApplication) {
 		named(app, "chat.sidebar").tap()
 		wait(named(app, "sidebar.credits"))
@@ -196,6 +204,17 @@ enum TutorialHarness {
 			app.swipeUp()
 		}
 		return labels
+	}
+
+	static func historyHead(_ app: XCUIApplication) -> String {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let head = named(app, "fixture.historyHead")
+		wait(head)
+		let label = head.label
+		app.swipeDown(velocity: .fast)
+		app.swipeDown(velocity: .fast)
+		return label
 	}
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
