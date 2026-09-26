@@ -76,6 +76,7 @@ final class ReviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.reviewReply)
 		TutorialHarness.waitForLabel(app, "Training Load")
 		TutorialHarness.attach(self, name: "05-review", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -110,6 +111,7 @@ final class ConfirmedPreviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.warmup)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.cancel").exists)
 		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -124,6 +126,7 @@ final class AddedToCalendarProof: XCTestCase {
 		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -151,6 +154,7 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.history").tap()
 		let row = app.descendants(matching: .any).matching(
@@ -172,6 +176,7 @@ final class ConfirmedPreviewDarkProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.waitForLabel(app, "Confirmed preview")
 		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

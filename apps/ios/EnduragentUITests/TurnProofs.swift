@@ -256,5 +256,6 @@ final class SendLatencyProbe: XCTestCase {
 		sample.lifetime = .keepAlways
 		add(sample)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

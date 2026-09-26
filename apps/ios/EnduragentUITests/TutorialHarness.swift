@@ -129,7 +129,9 @@ enum TutorialHarness {
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		wait(named(app, "fixture.requestCount"))
+		let count = named(app, "fixture.requestCount")
+		wait(count)
+		XCTAssertEqual(count.label, "0 requests")
 		named(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
