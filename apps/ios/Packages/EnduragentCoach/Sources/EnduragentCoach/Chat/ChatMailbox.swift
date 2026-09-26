@@ -8,6 +8,7 @@ package actor ChatMailbox {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
+	private let process: ProcessID
 
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
@@ -34,7 +35,8 @@ package actor ChatMailbox {
 		flushes: FlushDrain,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
-		environment: EnvironmentResolver
+		environment: EnvironmentResolver,
+		process: ProcessID
 	) {
 		self.chatId = chatId
 		self.ledger = ledger
@@ -43,6 +45,7 @@ package actor ChatMailbox {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
+		self.process = process
 		self.records = TurnRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
 
@@ -290,7 +293,9 @@ package actor ChatMailbox {
 		guard let facts = records.conversation.turn(turn) else { return }
 		let stamp = await stamp(for: turn)
 		let attempt = stamp.attempt
-		guard case .success(let claim) = records.writes(.claim(attempt), for: turn) else {
+		guard
+			case .success(let claim) = records.writes(.claim(attempt, process: process), for: turn)
+		else {
 			publish()
 			return
 		}
@@ -362,6 +367,7 @@ package actor ChatMailbox {
 			stopping: interruption != nil,
 			pendingProposal: pendingProposal,
 			device: ledger.deviceId,
+			process: process,
 			now: clock.now,
 			zone: clock.timeZone
 		)

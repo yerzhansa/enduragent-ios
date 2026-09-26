@@ -18,6 +18,7 @@ public actor Coach {
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
 	private var recovery: Task<Bool, Never>?
+	private let process: ProcessID
 
 	public init(
 		sport: SportID,
@@ -61,6 +62,7 @@ public actor Coach {
 			ladder: .npm
 		)
 		self.mailboxes = [:]
+		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
 
 	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
@@ -206,26 +208,33 @@ public actor Coach {
 
 	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
 		let device = ledger.deviceId
-		let synced = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
-		).records
 		let claims = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
+		let chats = TurnRecovery.chats(claimedOutside: process, in: claims)
+		guard !chats.isEmpty else { return [:] }
+		let synced = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
+		).records
 		var turns: [ChatID: [TurnFacts]] = [:]
-		for chat in Set(claims.compactMap(\.chatId)) {
+		for chat in chats {
 			turns[chat] = ConversationFold.fold(
 				chat: chat, synced: synced, local: claims, device: device
 			).segments.flatMap(\.turns)
 		}
-		let dead = Set(turns.values.joined().flatMap(\.openClaims).map(\.attempt))
+		let dead = Set(
+			turns.values.flatMap {
+				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
+					.interrupt.map(\.attempt)
+			})
 		guard !dead.isEmpty else { return [:] }
 		let stamped = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
 		).records
 		let writes = TurnRecovery.writes(of: dead, in: stamped)
-		return turns.mapValues { TurnRecovery.plan(turns: $0, writes: writes, device: device) }
-			.filter { !$0.value.interrupt.isEmpty }
+		return turns.mapValues {
+			TurnRecovery.plan(turns: $0, writes: writes, device: device, process: process)
+		}.filter { !$0.value.interrupt.isEmpty }
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
@@ -245,7 +254,8 @@ public actor Coach {
 				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language }, access: access)
+			environment: EnvironmentResolver(language: { await self.language }, access: access),
+			process: process
 		)
 		mailboxes[chatId] = created
 		return created
