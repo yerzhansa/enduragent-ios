@@ -213,6 +213,21 @@ import Testing
 		#expect(!storage.retryable)
 	}
 
+	@Test func failedSettlementAfterSavedWorkOffersNoTryAgain() {
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		let state = TurnLifecycle.state(
+			of: settled(.failed(.model(.budgetExhausted(.generateCalls)), saved: saved)),
+			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+		guard case .failed(let failed) = state else {
+			Issue.record("expected failed, got \(state)")
+			return
+		}
+		#expect(failed.notice.key == Catalog.coachErrorUnknown)
+		#expect(failed.notice.action == nil)
+		#expect(!state.retryable)
+	}
+
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {
 		let clean = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "Thursday is", cause: .athleteStopped, saved: .none)),

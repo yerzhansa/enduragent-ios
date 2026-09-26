@@ -241,7 +241,8 @@ package enum TurnLifecycle {
 					TurnState.Failed(
 						failure: failure,
 						saved: saved,
-						notice: AthleteNotices.notice(for: failure, turn: facts.turn, now: now)
+						notice: AthleteNotices.notice(
+							for: failure, turn: saved.isEmpty ? facts.turn : nil, now: now)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
