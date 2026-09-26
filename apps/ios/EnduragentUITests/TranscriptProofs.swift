@@ -5,13 +5,15 @@ final class LongRepliesProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		for count in 1...3 {
-			TutorialHarness.sendLong(app, expectingReplies: count)
+		for _ in 1...3 {
+			TutorialHarness.sendLong(app)
 		}
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.working").waitForNonExistence(timeout: 30))
 		TutorialHarness.attach(self, name: "long-replies", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 4")
+		TutorialHarness.closeMenu(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

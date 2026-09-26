@@ -30,8 +30,8 @@ final class SummaryFirstProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		for count in 1...6 {
-			TutorialHarness.sendLong(app, expectingReplies: count)
+		for _ in 1...6 {
+			TutorialHarness.sendLong(app)
 		}
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 30)

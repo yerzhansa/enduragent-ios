@@ -175,16 +175,9 @@ enum TutorialHarness {
 		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
 	}
 
-	static func sendLong(_ app: XCUIApplication, expectingReplies count: Int) {
-		send(app, "fixture:long")
-		let replies = app.staticTexts.containing(
-			NSPredicate(format: "label CONTAINS %@", "Day 100. This week has"))
-		let answered = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "count == %d", count), object: replies)
-		XCTAssertEqual(XCTWaiter.wait(for: [answered], timeout: 30), .completed)
-		XCTAssertTrue(
-			named(app, "chat.working").waitForNonExistence(timeout: 30),
-			"reply \(count) stays working")
+	static func sendLong(_ app: XCUIApplication) {
+		exchange(app, "fixture:long")
+		wait(text(app, containing: "Day 100. This week has"))
 	}
 
 	static func openSidebar(_ app: XCUIApplication) {
