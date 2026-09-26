@@ -95,9 +95,13 @@ final class DrainAtLaunchProof: XCTestCase {
 		TutorialHarness.waitForRecordCount(app, "flushSettled", "flushSettled 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "ledgerEvent"), "ledgerEvent 1")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 3")
 		TutorialHarness.attach(self, name: "drain-at-launch-records", app: app)
 		TutorialHarness.closeMenu(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
+		TutorialHarness.openRecords(app)
+		let settled = TutorialHarness.settlementRows(app)
+		XCTAssertEqual(settled.count, 3, "rows: \(settled)")
+		XCTAssertTrue(
+			settled.contains { $0.contains("interrupted processEnded") }, "rows: \(settled)")
 	}
 }
