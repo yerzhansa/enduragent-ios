@@ -102,6 +102,111 @@ import Testing
 		#expect(await coach.transcript(.main) == ["one", "two"])
 	}
 
+	@Test func stopInsideTheWindowSettlesTheTurnBeforeItStarts() async throws {
+		let transport = FakeModelTransport()
+		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
+		let coach = makeCoach(
+			transport: transport, store: recording, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.stop(.main)
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		guard
+			case .interrupted(let stopped)? = snapshot.turns.first(where: { $0.id == turn })?.state
+		else {
+			Issue.record("expected an interrupted turn, got \(snapshot.turns)")
+			return
+		}
+		#expect(stopped.cause == .stoppedBeforeStart)
+		#expect(stopped.notice.action == .tryAgain(turn))
+		#expect(snapshot.activity == .idle)
+		#expect(recording.batches == [["userMessage"], ["turnSettled"]])
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func aSlowFirstReadKeepsAMessageSavedWhileItRead() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let inner = InMemoryRecordLog()
+		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500))
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		async let observed = coach.currentSnapshot(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		let turn = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		_ = await observed
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), chatId: .main))
+		#expect(saved.records.count == 1)
+		#expect(transport.requests.count == 1)
+	}
+
+	@Test func aFailedFirstReadWipesNothingSavedAfterIt() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let inner = InMemoryRecordLog()
+		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500), fails: true)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		async let observed = coach.currentSnapshot(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		let sent = draft("Is Thursday on?")
+		let first: SendOutcome?
+		do {
+			first = try await coach.send(sent, to: .main)
+		} catch {
+			#expect(error == .storageUnavailable)
+			first = nil
+		}
+		_ = await observed
+		let outcome = try await coach.send(sent, to: .main)
+		let turn = try #require(outcome.acceptedTurn)
+		if let first {
+			#expect(first == outcome)
+		}
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		#expect(replyText(settled) == "Still on.")
+		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
+		let saved = try await inner.fetch(
+			RecordQuery(scope: .synced([.userMessage]), chatId: .main))
+		#expect(saved.records.count == 1)
+	}
+
+	@Test func stopCancelsTheRunningReplyWhileASendWaitsOnTheStore() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let second = coach.send(draft("two"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		let interrupted = await coach.settledState(of: running, in: .main, within: .seconds(3))
+		store.release()
+		await stopped
+		let queued = try #require(try await second.acceptedTurn)
+		guard case .interrupted(let first)? = interrupted else {
+			Issue.record(
+				"the running reply did not stop while the send waited: \(String(describing: interrupted))"
+			)
+			return
+		}
+		#expect(first.cause == .athleteStopped)
+		guard case .interrupted(let later)? = await coach.settledState(of: queued, in: .main) else {
+			Issue.record("the waiting send was not stopped")
+			return
+		}
+		#expect(later.cause == .stoppedBeforeStart)
+	}
+
 	@Test func retryOfAwaitingRestartTurnClaimsUnderNewAttempt() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
@@ -166,6 +271,30 @@ import Testing
 		.records
 		#expect(claims.count == 2)
 		#expect(await coach.transcript(.main) == ["Thursday?", "Recovered."])
+	}
+
+	@Test func aSecondTryAgainWhileTheFirstStartsIsRefused() async throws {
+		let transport = FakeModelTransport()
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 6)
+		async let first = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		async let second = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		let refusals = await [first, second]
+		#expect(refusals.compactMap { $0 } == [.alreadyRunning])
+		await coach.waitForMemoryFlush()
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		)
+		.records
+		#expect(claims.count == 2)
 	}
 
 	@Test func retryOfAnUnknownTurnIsRefused() async throws {

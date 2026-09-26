@@ -10,7 +10,7 @@ final class ShellModel {
 	private(set) var chat: ChatSnapshot?
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
-	var retryRefusal: RetryRefusal?
+	private(set) var isSending = false
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
 	var athlete: AthleteProfile?
@@ -196,7 +196,8 @@ final class ShellModel {
 				continue
 			}
 			var snapshots = await services.coach.observe(id).makeAsyncIterator()
-			let title = await snapshots.next()?.turns.first?.athleteText ?? "New chat"
+			let turns = await snapshots.next()?.turns ?? []
+			let title = turns.lazy.compactMap(\.athleteText).first ?? "New chat"
 			rows.append(ChatSummary(id: id, title: title, civilDate: created))
 		}
 		history = rows
@@ -241,12 +242,17 @@ final class ShellModel {
 
 	func send() async {
 		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty, let services else { return }
+		guard !text.isEmpty, !isSending, let services else { return }
+		isSending = true
+		defer { isSending = false }
 		notSent = false
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		services.fixtureDirector?.prepare(for: text)
+		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+			errorLine = message
+			return
+		}
 		do {
 			switch try await services.coach.send(Draft(id: draft.id, text: text), to: chatId) {
 			case .accepted, .showLanguagePicker:
@@ -272,9 +278,11 @@ final class ShellModel {
 			}
 			do {
 				try await services.coach.retry(turn, in: chatId)
-				retryRefusal = nil
 			} catch {
-				retryRefusal = error
+				switch error {
+				case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn:
+					return
+				}
 			}
 		}
 	}
@@ -381,10 +389,4 @@ final class ShellModel {
 		}
 		return String(describing: error)
 	}
-}
-
-struct ChatSummary: Identifiable, Equatable {
-	var id: ChatID
-	var title: String
-	var civilDate: CivilDate
 }

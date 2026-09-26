@@ -27,6 +27,7 @@ struct ComposerView: View {
 					Task { await model.send() }
 				}
 				.accessibilityIdentifier("chat.send")
+				.disabled(model.isSending)
 			}
 			if model.notSent {
 				Text(say(Catalog.chatComposerNotSent))

@@ -21,6 +21,10 @@ package actor Ledger {
 		log.deviceId
 	}
 
+	package nonisolated func report(_ unsaved: DiagnosticsEvent) {
+		diagnostics.record(unsaved)
+	}
+
 	private func openIfNeeded() async throws(LedgerFailure) {
 		if opened {
 			return

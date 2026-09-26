@@ -51,28 +51,60 @@ import Testing
 		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
 	}
 
-	@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
-		let store = try V1Store.materialize()
-		let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
-		try store.insertRaw(kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
+	@Test(arguments: [true, false])
+	func softFlushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: log, clock: clock)
-		let before = await coach.transcript(.main)
-		_ = try await coach.sendAndSettle("Still on for Saturday?")
-		let after = await coach.transcript(.main)
-		#expect(after == before + ["Still on for Saturday?", "Noted."])
-		#expect(
-			coach.diagnostics.entries.map(\.event) == [
-				.skippedRecord(.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
-			])
+		let secrets = keyedSecrets()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), clock: clock, secrets: secrets)
+		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
+		transport.maintenanceScript = [.fail(.http(status: 500))]
+		if !keyStored {
+			secrets.locked = true
+		}
+		await coach.waitForMemoryFlush()
+		let flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
+			guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
+			return detail
+		}
+		let expected = keyStored ? "serverError" : "secureStorageLocked"
+		#expect(flushFailures.count == 1)
+		#expect(flushFailures.first?.contains(expected) == true)
+		#expect(transport.requestCount == (keyStored ? 2 : 1))
+	}
+}
+
+extension SwiftDataSuites {
+	@Suite struct SkippedRowDiagnosticsTests {
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+		@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
+			let store = try V1Store.materialize()
+			let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
+			try store.insertRaw(
+				kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
+			let transport = FakeModelTransport()
+			transport.script = [.text("Noted."), .finish(reason: .stop)]
+			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let before = await coach.transcript(.main)
+			_ = try await coach.sendAndSettle("Still on for Saturday?")
+			let after = await coach.transcript(.main)
+			#expect(after == before + ["Still on for Saturday?", "Noted."])
+			#expect(
+				coach.diagnostics.entries.map(\.event) == [
+					.skippedRecord(
+						.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
+				])
+		}
 	}
 }
 
 private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
-	case .providerFailure(_, _, let detail), .memoryFlushFailed(_, let detail),
-		.compactionFailed(_, let detail), .replyObservedUnsaved(_, let detail):
+	case .providerFailure(_, _, let detail), .toolFailed(_, _, let detail),
+		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
+		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .skippedRecord:
 		return nil

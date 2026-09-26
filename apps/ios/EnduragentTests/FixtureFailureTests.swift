@@ -71,15 +71,21 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let director = try #require(services.fixtureDirector)
-		director.prepare(for: "fixture:fail 429 7 x4")
+		#expect(director.prepare(for: "fixture:fail 429 7 x4") == .sendToCoach)
 		let limited = ScriptedEvent.fail(.http(status: 429, headers: ["retry-after": "7"]))
 		#expect(
 			Array(transport.script.prefix(5)) == Array(repeating: limited, count: 4) + [
 				.text(FirstWeekFixture.weekSummary)
 			])
-		director.prepare(for: "fixture:fail network")
+		#expect(director.prepare(for: "fixture:fail network") == .sendToCoach)
 		#expect(transport.script.first == .fail(.connection(.notConnectedToInternet)))
 		#expect(transport.script.dropFirst().first == .text(FirstWeekFixture.weekSummary))
+		#expect(
+			director.prepare(for: "fixture:fail 500 xlots")
+				== .rejected(
+					"Unknown fixture directive: fixture:fail 500 xlots"))
+		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
 	}
 
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {

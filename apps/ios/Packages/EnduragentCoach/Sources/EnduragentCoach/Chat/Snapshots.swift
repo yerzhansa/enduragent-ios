@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 public struct ChatSnapshot: Sendable, Equatable {
 	public let chat: ChatID
@@ -10,7 +9,7 @@ public struct ChatSnapshot: Sendable, Equatable {
 
 public struct TurnView: Sendable, Equatable, Identifiable {
 	public let id: TurnID
-	public let athleteText: String
+	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
 }
@@ -52,7 +51,11 @@ extension ChatSnapshot {
 		zone: TimeZone
 	) {
 		self.chat = chat
-		self.turns = conversation.current.turns.map { facts -> TurnView in
+		let current = conversation.current
+		self.turns = current.turns.compactMap { facts -> TurnView? in
+			if current.hidesWholly(facts) {
+				return nil
+			}
 			let overlay: AcceptedOverlay
 			if let window, window.turn == facts.turn {
 				overlay = .collecting(until: window.closesAt)
@@ -63,7 +66,7 @@ extension ChatSnapshot {
 			}
 			return TurnView(
 				id: facts.turn,
-				athleteText: facts.requestText,
+				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
 				state: TurnLifecycle.state(
 					of: facts, live: live, overlay: overlay, device: device, now: now)
@@ -100,29 +103,5 @@ extension PendingProposal {
 			description: body.description,
 			expiresAt: body.expiresAt
 		)
-	}
-}
-
-package final class SnapshotFeed: Sendable {
-	private let observers = Mutex<[UUID: AsyncStream<ChatSnapshot>.Continuation]>([:])
-
-	package init() {}
-
-	package func subscribe(from current: ChatSnapshot) -> AsyncStream<ChatSnapshot> {
-		let id = UUID()
-		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
-		continuation.onTermination = { [weak self] _ in
-			self?.observers.withLock { $0[id] = nil }
-		}
-		observers.withLock { $0[id] = continuation }
-		continuation.yield(current)
-		return stream
-	}
-
-	package func publish(_ snapshot: ChatSnapshot) {
-		for continuation in observers.withLock({ Array($0.values) }) {
-			continuation.yield(snapshot)
-		}
 	}
 }

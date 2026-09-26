@@ -6,18 +6,16 @@ import Testing
 
 @Suite struct FakeSecretStoreTests {
 	@Test func directoryStorePersistsAcrossInstances() throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
-		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-		defer { try? FileManager.default.removeItem(at: directory) }
-		let first = try FakeSecretStore(directory: directory)
-		try first.storeOpenRouterKey("sk-or-test-0000")
-		try first.storeIntervalsCredential(.apiKey("fixture"))
-		let token = try first.appAccountToken()
-		let second = try FakeSecretStore(directory: directory)
-		#expect(try second.openRouterKey() == "sk-or-test-0000")
-		#expect(try second.intervalsCredential() == .apiKey("fixture"))
-		#expect(try second.appAccountToken() == token)
+		try withTemporaryDirectory { directory in
+			let first = try FakeSecretStore(directory: directory)
+			try first.storeOpenRouterKey("sk-or-test-0000")
+			try first.storeIntervalsCredential(.apiKey("fixture"))
+			let token = try first.appAccountToken()
+			let second = try FakeSecretStore(directory: directory)
+			#expect(try second.openRouterKey() == "sk-or-test-0000")
+			#expect(try second.intervalsCredential() == .apiKey("fixture"))
+			#expect(try second.appAccountToken() == token)
+		}
 	}
 
 	@Test func lockedStoreThrowsInteractionNotAllowedFromEveryRead() throws {
@@ -31,4 +29,18 @@ import Testing
 		store.locked = false
 		#expect(try store.openRouterKey() == "sk-or-test-0000")
 	}
+}
+
+private func withTemporaryDirectory(_ body: (URL) throws -> Void) throws {
+	let directory = FileManager.default.temporaryDirectory.appending(
+		path: "enduragent-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+	try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+	defer {
+		do {
+			try FileManager.default.removeItem(at: directory)
+		} catch {
+			Issue.record(error, "temporary directory cleanup")
+		}
+	}
+	try body(directory)
 }
