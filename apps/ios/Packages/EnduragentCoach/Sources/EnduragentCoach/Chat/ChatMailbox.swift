@@ -21,7 +21,7 @@ package actor ChatMailbox {
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
 	private var stopping = false
-	private var observers: [UUID: AsyncStream<ChatSnapshot>.Continuation] = [:]
+	private let feed = SnapshotFeed()
 
 	package init(
 		chatId: ChatID,
@@ -48,13 +48,7 @@ package actor ChatMailbox {
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
 		await loadIfNeeded()
-		let id = UUID()
-		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
-		observers[id] = continuation
-		continuation.onTermination = { _ in Task { await self.removeObserver(id) } }
-		continuation.yield(snapshot())
-		return stream
+		return feed.subscribe(from: snapshot())
 	}
 
 	package func accept(_ draft: Draft) async throws(AcceptFailure) -> SendOutcome {
@@ -388,13 +382,6 @@ package actor ChatMailbox {
 	}
 
 	private func publish() {
-		let current = snapshot()
-		for continuation in observers.values {
-			continuation.yield(current)
-		}
-	}
-
-	private func removeObserver(_ id: UUID) {
-		observers[id] = nil
+		feed.publish(snapshot())
 	}
 }

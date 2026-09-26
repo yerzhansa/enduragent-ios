@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public struct ChatSnapshot: Sendable, Equatable {
 	public let chat: ChatID
@@ -99,5 +100,29 @@ extension PendingProposal {
 			description: body.description,
 			expiresAt: body.expiresAt
 		)
+	}
+}
+
+package final class SnapshotFeed: Sendable {
+	private let observers = Mutex<[UUID: AsyncStream<ChatSnapshot>.Continuation]>([:])
+
+	package init() {}
+
+	package func subscribe(from current: ChatSnapshot) -> AsyncStream<ChatSnapshot> {
+		let id = UUID()
+		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
+			bufferingPolicy: .unbounded)
+		continuation.onTermination = { [weak self] _ in
+			self?.observers.withLock { $0[id] = nil }
+		}
+		observers.withLock { $0[id] = continuation }
+		continuation.yield(current)
+		return stream
+	}
+
+	package func publish(_ snapshot: ChatSnapshot) {
+		for continuation in observers.withLock({ Array($0.values) }) {
+			continuation.yield(snapshot)
+		}
 	}
 }
