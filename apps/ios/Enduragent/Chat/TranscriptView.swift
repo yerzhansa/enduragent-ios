@@ -13,16 +13,8 @@ struct TranscriptView: View {
 							model.athleteFirstName.isEmpty
 								? "Hello." : "Hello, \(model.athleteFirstName).")
 					}
-					ForEach(Array(model.seam.transcript.enumerated()), id: \.offset) { _, message in
-						Text(message.text)
-					}
-					if model.isWaitingForCoach {
-						Text(model.builder.phrasebook.say(Catalog.chatNoticeWorking, [:]))
-							.foregroundStyle(.secondary)
-							.accessibilityIdentifier("chat.working")
-					}
-					if !model.seam.streamingText.isEmpty {
-						Text(model.seam.streamingText)
+					ForEach(model.chat?.turns ?? []) { turn in
+						TurnRowView(model: model, turn: turn)
 					}
 					if let confirmLine = model.confirmLine {
 						Text(confirmLine)
@@ -34,17 +26,13 @@ struct TranscriptView: View {
 				.padding()
 				.frame(maxWidth: .infinity, alignment: .leading)
 			}
-			.onChange(of: model.seam.streamingText) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
-			}
-			.onChange(of: model.seam.transcript.count) {
+			.onChange(of: model.chat) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 		}
 	}
 
 	private var showsGreeting: Bool {
-		model.seam.transcript.isEmpty && model.seam.streamingText.isEmpty
-			&& model.seam.phase != .streaming
+		model.chat?.turns.isEmpty ?? true
 	}
 }

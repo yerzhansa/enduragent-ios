@@ -10,7 +10,7 @@ struct ChatView: View {
 				if model.slashListVisible {
 					SlashListView(model: model)
 				}
-				if let pending = model.seam.pendingWrite {
+				if let pending = model.visibleProposal {
 					ConfirmedPreviewCard(model: model, pending: pending)
 						.padding(.horizontal)
 						.padding(.bottom, 8)
