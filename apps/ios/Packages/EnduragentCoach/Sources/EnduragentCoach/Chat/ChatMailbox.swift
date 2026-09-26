@@ -4,12 +4,10 @@ package actor ChatMailbox {
 	package let chatId: ChatID
 	private let ledger: Ledger
 	private let runner: TurnRunner
-	private let memory: Memory
-	private let transport: any ModelTransport
+	private let flushes: FlushDrain
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
-	private let diagnostics: DiagnosticsLog
 
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
@@ -29,22 +27,18 @@ package actor ChatMailbox {
 		chatId: ChatID,
 		ledger: Ledger,
 		runner: TurnRunner,
-		memory: Memory,
-		transport: any ModelTransport,
+		flushes: FlushDrain,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
-		environment: EnvironmentResolver,
-		diagnostics: DiagnosticsLog
+		environment: EnvironmentResolver
 	) {
 		self.chatId = chatId
 		self.ledger = ledger
 		self.runner = runner
-		self.memory = memory
-		self.transport = transport
+		self.flushes = flushes
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
-		self.diagnostics = diagnostics
 		self.conversation = Conversation(chat: chatId, segments: [])
 	}
 
@@ -308,9 +302,8 @@ package actor ChatMailbox {
 		do {
 			access = try environment.access()
 		} catch {
-			await settle(
-				turn, attempt: attempt, .failed(.model(.accessUnavailable(error)), saved: .none),
-				stamp: stamp)
+			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
+			await settle(turn, attempt: attempt, unavailable, stamp: stamp)
 			publish()
 			return
 		}
@@ -367,14 +360,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainFlush() async {
-		do {
-			let access = try environment.access()
-			try await memory.flush(
-				trigger: .softThreshold, chatId: chatId, transport: transport, access: access)
-		} catch is CancellationError {
-		} catch {
-			diagnostics.record(.memoryFlushFailed(chatId, detail: String(describing: error)))
-		}
+		await flushes.drain(chatId)
 	}
 
 	private func apply(_ progress: AttemptProgress, attempt: AttemptID) {

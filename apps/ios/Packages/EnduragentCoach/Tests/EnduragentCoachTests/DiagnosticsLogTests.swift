@@ -50,6 +50,29 @@ import Testing
 		#expect(kept.first?.event == .memoryFlushFailed(.main, detail: "flush 50"))
 		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
 	}
+
+	@Test(arguments: [true, false])
+	func softFlushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		let secrets = keyedSecrets()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), clock: clock, secrets: secrets)
+		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
+		transport.failures = [.http(status: 500)]
+		if !keyStored {
+			secrets.locked = true
+		}
+		await coach.waitForMemoryFlush()
+		let flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
+			guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
+			return detail
+		}
+		let expected = keyStored ? "serverError" : "secureStorageLocked"
+		#expect(flushFailures.count == 1)
+		#expect(flushFailures.first?.contains(expected) == true)
+		#expect(transport.requestCount == (keyStored ? 2 : 1))
+	}
 }
 
 extension SwiftDataSuites {
