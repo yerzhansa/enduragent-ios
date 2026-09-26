@@ -52,6 +52,7 @@ extension FixtureLaunchTests {
 		#expect(!model.notSent)
 		#expect(model.draft.text.isEmpty)
 		#expect(try await firstTurn(model).athleteText == TutorialCopy.weekQuestion)
+		#expect(replyText(try await settledTurn(model).state) != nil)
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
@@ -70,7 +71,9 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
-		let first = model(try services())
+		var held = launch
+		held.coalescing = CoalescingPolicy(window: .seconds(60))
+		let first = model(try AppServices.fixture(held, defaults: defaults))
 		first.startChatting()
 		first.draft.text = "fixture:hang"
 		await first.send()
@@ -79,6 +82,12 @@ extension FixtureLaunchTests {
 		let reopened = try #require(await firstSnapshot(second, chat: first.chatId))
 		#expect(reopened.turns.map(\.id) == [accepted.id])
 		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
+		await first.stop()
+		guard case .interrupted(let stopped) = try await settledTurn(first).state else {
+			Issue.record("expected the held turn to stop before it started")
+			return
+		}
+		#expect(stopped.cause == .stoppedBeforeStart)
 	}
 
 	@Test func slowDirectiveStreamsTheWeekSummaryWordByWord() async throws {
@@ -97,6 +106,7 @@ extension FixtureLaunchTests {
 		await model.send()
 		#expect(transport.requestDelay == nil)
 		#expect(transport.deltaDelay == nil)
+		#expect(replyText(try await settledTurn(model, at: 1).state) != nil)
 	}
 
 	@Test func failDirectiveShowsTheResponseFailureNoticeWithTryAgain() async throws {

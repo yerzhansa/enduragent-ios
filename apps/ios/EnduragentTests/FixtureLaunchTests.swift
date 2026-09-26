@@ -68,6 +68,29 @@ final class FixtureLaunchTests {
 		return try #require(model.chat?.turns.last(where: { isSettled($0.state) }))
 	}
 
+	func settledTurn(_ model: ShellModel, at index: Int) async throws -> TurnView {
+		let deadline = ContinuousClock.now + .seconds(20)
+		while ContinuousClock.now < deadline {
+			if let turns = model.chat?.turns, turns.indices.contains(index),
+				isSettled(turns[index].state)
+			{
+				return turns[index]
+			}
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		let turns = try #require(model.chat?.turns)
+		try #require(turns.indices.contains(index))
+		return turns[index]
+	}
+
+	func observed(_ model: ShellModel) async throws {
+		let deadline = ContinuousClock.now + .seconds(5)
+		while model.chat == nil, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		try #require(model.chat != nil)
+	}
+
 	func firstTurn(_ model: ShellModel) async throws -> TurnView {
 		let deadline = ContinuousClock.now + .seconds(5)
 		while model.chat?.turns.isEmpty ?? true, ContinuousClock.now < deadline {
@@ -172,6 +195,7 @@ final class FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.errorLine == failure.details)
 		#expect(model.athlete == nil)
@@ -183,38 +207,44 @@ final class FixtureLaunchTests {
 		#expect(model.route == .onboarding(.notice))
 	}
 
-	@Test func coldStartRestoresChatAfterOnboarding() throws {
+	@Test func coldStartRestoresChatAfterOnboarding() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
 		let model = model(try services())
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.chatId.rawValue == "restored-chat")
 	}
 
-	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() throws {
+	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(try services())
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.chatId == .main)
 	}
 
-	@Test func coldStartRestoresTheTypedDraft() throws {
+	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
 		let first = model(try services())
 		first.draft.text = "Is Thursday still on?"
 		first.draftChanged(from: "")
 		let second = model(try services())
+		try await observed(first)
+		try await observed(second)
 		#expect(second.draft == first.draft)
 		#expect(second.draft.text == "Is Thursday still on?")
 	}
 
-	@Test func startChattingPersistsSessionForNextLaunch() throws {
+	@Test func startChattingPersistsSessionForNextLaunch() async throws {
 		let services = try services()
 		let first = model(services)
 		first.startChatting()
 		#expect(first.route == .chat)
 		let second = model(services)
+		try await observed(first)
+		try await observed(second)
 		#expect(second.route == .chat)
 		#expect(second.chatId == first.chatId)
 		#expect(second.chatIndex.all().map(\.id) == [first.chatId.rawValue])
@@ -235,6 +265,7 @@ final class FixtureLaunchTests {
 				== true)
 		let reopened = ShellModel(
 			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chatId == first.chatId)
 	}
