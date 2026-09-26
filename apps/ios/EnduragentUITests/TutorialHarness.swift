@@ -34,10 +34,14 @@ enum TutorialHarness {
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
+	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
+	static let hostArgument = "-EnduragentFixtureHost"
 
-	static func launch(_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil) {
+	static func launch(
+		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil, host: String? = nil
+	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
@@ -47,6 +51,9 @@ enum TutorialHarness {
 		}
 		if let keychain {
 			app.launchArguments += [keychainArgument, keychain]
+		}
+		if let host {
+			app.launchArguments += [hostArgument, host]
 		}
 		app.launch()
 	}

@@ -21,6 +21,7 @@
 		499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */; };
 		49C715405D5DCE54E509FEA7 /* FixtureLeaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FD5C48C7417C116CF10E5E1 /* FixtureLeaseTests.swift */; };
 		5030EC98960DE14FB9688525 /* TranscriptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BFB776A369E9C4E27001B2 /* TranscriptView.swift */; };
+		5D97187360FCB33DBDD11CB0 /* LeaseProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 308A352D65A10B7907B73232 /* LeaseProofs.swift */; };
 		6635CCEF056BD1CAD87E075D /* FixtureClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B51C0FB7523F97C0604B17D /* FixtureClock.swift */; };
 		6A7D5F727985CD17A6E911B8 /* FixtureLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 693C14D44F213C3559B276D0 /* FixtureLaunch.swift */; };
 		6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5502A456F209EE30186C41C0 /* TutorialHarness.swift */; };
@@ -80,6 +81,7 @@
 		20BFB776A369E9C4E27001B2 /* TranscriptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptView.swift; sourceTree = "<group>"; };
 		28CB01ECD4F0385933736762 /* StarterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StarterView.swift; sourceTree = "<group>"; };
 		2BB34221AE8B0EB8B664B7BE /* ChatIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatIndex.swift; sourceTree = "<group>"; };
+		308A352D65A10B7907B73232 /* LeaseProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaseProofs.swift; sourceTree = "<group>"; };
 		30D10C84C333E7498713547A /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
 		30DA796E304FA8860C541078 /* ShellModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellModel.swift; sourceTree = "<group>"; };
 		335D14394F58238C2E63C9FD /* NoticeActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeActionTests.swift; sourceTree = "<group>"; };
@@ -172,6 +174,7 @@
 			children = (
 				8D67C5124B3375A468FB7488 /* FailureProofs.swift */,
 				54C69207093FE40792AD4922 /* FlushProofs.swift */,
+				308A352D65A10B7907B73232 /* LeaseProofs.swift */,
 				9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */,
 				E9C0C6082DC2129FC43FB3DA /* RecoveryProofs.swift */,
 				5502A456F209EE30186C41C0 /* TutorialHarness.swift */,
@@ -411,6 +414,7 @@
 			files = (
 				9338CBBEA702D310B6381607 /* FailureProofs.swift in Sources */,
 				9D824167E6DDBE222B9B0B8E /* FlushProofs.swift in Sources */,
+				5D97187360FCB33DBDD11CB0 /* LeaseProofs.swift in Sources */,
 				1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */,
 				8FF9731D68877106F9903417 /* RecoveryProofs.swift in Sources */,
 				6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */,
