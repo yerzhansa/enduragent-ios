@@ -11,7 +11,6 @@ final class ShellModel {
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
-	var retryRefusal: RetryRefusal?
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
 	var athlete: AthleteProfile?
@@ -279,9 +278,11 @@ final class ShellModel {
 			}
 			do {
 				try await services.coach.retry(turn, in: chatId)
-				retryRefusal = nil
 			} catch {
-				retryRefusal = error
+				switch error {
+				case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn:
+					return
+				}
 			}
 		}
 	}

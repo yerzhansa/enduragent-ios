@@ -184,6 +184,33 @@ import Testing
 		#expect(await coach.transcript(.main) == ["Thursday?", "Recovered."])
 	}
 
+	@Test func aSecondTryAgainWhileTheFirstStartsIsRefused() async throws {
+		let transport = FakeModelTransport()
+		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		transport.failures = [
+			OpenRouterHTTPError(statusCode: 500, body: ""),
+			OpenRouterHTTPError(statusCode: 500, body: ""),
+		]
+		async let first = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		async let second = refusal { () async throws(RetryRefusal) in
+			try await coach.retry(turn, in: .main)
+		}
+		let refusals = await [first, second]
+		#expect(refusals.compactMap { $0 } == [.alreadyRunning])
+		await coach.waitForMemoryFlush()
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		)
+		.records
+		#expect(claims.count == 2)
+	}
+
 	@Test func retryOfAnUnknownTurnIsRefused() async throws {
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), clock: clock)

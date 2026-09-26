@@ -145,7 +145,6 @@ extension FixtureLaunchTests {
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-		#expect(model.retryRefusal == nil)
 	}
 
 	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {

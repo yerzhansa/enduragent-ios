@@ -44,6 +44,15 @@ extension Coach {
 	}
 }
 
+func refusal(_ retry: @Sendable () async throws(RetryRefusal) -> Void) async -> RetryRefusal? {
+	do {
+		try await retry()
+		return nil
+	} catch {
+		return error
+	}
+}
+
 func replyText(_ state: TurnState) -> String? {
 	guard case .completed(let completed) = state, case .model(let text) = completed.reply else {
 		return nil

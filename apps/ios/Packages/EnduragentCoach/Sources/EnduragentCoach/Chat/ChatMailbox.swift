@@ -112,7 +112,7 @@ package actor ChatMailbox {
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
 		await loadIfNeeded()
 		guard let facts = conversation.turn(turn) else { throw RetryRefusal.unknownTurn }
-		if live?.turn == turn || window?.turn == turn || work.contains(.turn(turn)) {
+		if window?.turn == turn || queuedTurns(includingActive: true).contains(turn) {
 			throw RetryRefusal.alreadyRunning
 		}
 		if let refusal = TurnLifecycle.claimRefusal(of: facts, device: ledger.deviceId) {
