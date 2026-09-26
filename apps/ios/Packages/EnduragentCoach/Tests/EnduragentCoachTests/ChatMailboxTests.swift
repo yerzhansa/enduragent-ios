@@ -143,7 +143,7 @@ import Testing
 
 	@Test func retryOfAFailedTurnMintsASecondAttempt() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [OpenRouterHTTPError(statusCode: 500, body: "")]
+		transport.failures = [.http(status: 500)]
 		transport.script = [.text("Recovered."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store, clock: clock)

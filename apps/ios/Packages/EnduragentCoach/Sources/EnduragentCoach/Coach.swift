@@ -1,8 +1,10 @@
 import Foundation
+import Security
 
 public actor Coach {
 	public let memory: Memory
 	public let planning: Planning
+	package nonisolated let diagnostics: DiagnosticsLog
 
 	private let sport: SportID
 	private let transport: any ModelTransport
@@ -11,23 +13,32 @@ public actor Coach {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private var language: LanguagePreference
+	private let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
 	private let tools: ToolRuntime
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
 
 	public init(
 		sport: SportID,
-		transport: any ModelTransport,
+		models: ModelService,
+		builtInModel: ModelID,
+		secrets: any SecretStore,
 		intervals: any IntervalsClient,
 		store: any RecordLog,
 		clock: any Clock,
 		language: LanguagePreference,
 		coalescing: CoalescingPolicy = .npm
 	) {
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let transport = models.makeTransport(diagnostics)
+		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
 		self.intervals = intervals
-		let ledger = Ledger(log: store, clock: clock)
+		self.access = { () throws(AccessUnavailable) in
+			try Coach.creditsAccess(secrets: secrets, model: builtInModel)
+		}
+		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
@@ -44,7 +55,8 @@ public actor Coach {
 			ledger: ledger,
 			clock: clock,
 			tools: tools,
-			planning: planning
+			planning: planning,
+			diagnostics: diagnostics
 		)
 		self.mailboxes = [:]
 	}
@@ -136,6 +148,27 @@ public actor Coach {
 		}
 	}
 
+	private static func creditsAccess(secrets: any SecretStore, model: ModelID)
+		throws(AccessUnavailable) -> ResolvedAccess
+	{
+		let stored: String?
+		do {
+			stored = try secrets.openRouterKey()
+		} catch let keychain as KeychainStoreError
+			where keychain.status == errSecInteractionNotAllowed
+		{
+			throw .secureStorageLocked
+		} catch {
+			throw .secureStorageUnavailable
+		}
+		let secret = stored?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+		guard !secret.isEmpty else {
+			throw .notConfigured(.credits)
+		}
+		return ResolvedAccess(
+			credential: ProviderCredential(secret: secret, method: .credits), model: model)
+	}
+
 	private func mailbox(for chatId: ChatID) -> ChatMailbox {
 		if let existing = mailboxes[chatId] {
 			return existing
@@ -148,7 +181,8 @@ public actor Coach {
 			transport: transport,
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language })
+			environment: EnvironmentResolver(language: { await self.language }, access: access),
+			diagnostics: diagnostics
 		)
 		mailboxes[chatId] = created
 		return created

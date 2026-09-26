@@ -19,7 +19,9 @@ import Testing
 
 	@Test func dumpsContextAndQueryAgainstDesktop() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await seedAda(memory)
 		let context = try await memory.context()
 		let hits = try await memory.query(from: "1998-06-01", to: "1998-06-30", contains: nil)

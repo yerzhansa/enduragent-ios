@@ -9,7 +9,9 @@ import Testing
 
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
 		let view = try await memory.view()
 		let schemas = runtime(store: store).toolsForTurn(chatId: .main, memory: view)
@@ -73,7 +75,9 @@ import Testing
 
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
 			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
 			stamp: testStamp())
@@ -121,7 +125,7 @@ import Testing
 	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
 		ToolRuntime(
 			intervals: intervals,
-			ledger: Ledger(log: store, clock: clock),
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			planning: Planning(store: store, intervals: intervals, clock: clock),
 			clock: clock
 		)

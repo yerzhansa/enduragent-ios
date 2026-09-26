@@ -10,7 +10,7 @@ import Testing
 
 	@Test func twoWritersInOneMillisecondGetStrictlyIncreasingClocks() async throws {
 		let log = InMemoryRecordLog(deviceId: phoneA)
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		async let synced = ledger.commit(
 			synced: [
 				sampleUser(chatId: .main, text: "one"), sampleUser(chatId: .main, text: "two"),
@@ -44,7 +44,7 @@ import Testing
 					body: .synced(sampleUser(chatId: .main, text: "from b")))
 			]
 		)
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		_ = try await ledger.read(RecordQuery(scope: .synced([.userMessage])))
 		let written = try await ledger.commit(
 			synced: [sampleUser(chatId: .main, text: "after b")], stamp: testStamp())
@@ -67,7 +67,7 @@ import Testing
 							FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: []))))
 			]
 		)
-		let reopened = Ledger(log: log, clock: clock)
+		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let written = try await reopened.commit(
 			synced: [sampleUser(chatId: .main, text: "later")], stamp: testStamp())
 		#expect(written.first?.hlc.wallMs == earlierProcessWall)
@@ -76,7 +76,7 @@ import Testing
 
 	@Test func injectedAppendFailureStoresNothingFromTheBatch() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phoneA))
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		log.failNextAppend = true
 		await #expect(throws: LedgerFailure.rejectedBatch) {
 			try await ledger.commit(
@@ -94,7 +94,7 @@ import Testing
 
 	@Test func nextULIDReservesABoundaryBeforeLaterWrites() async throws {
 		let log = InMemoryRecordLog(deviceId: phoneA)
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let boundary = await ledger.nextULID()
 		let written = try await ledger.commit(
 			synced: [
@@ -111,7 +111,7 @@ import Testing
 
 	@Test func commitStampsZoneCivilDateCauseAndAccount() async throws {
 		let log = InMemoryRecordLog(deviceId: phoneA)
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let tokyo = try #require(IANATimeZone(identifier: "Asia/Tokyo"))
 		let stamp = testStamp(zone: tokyo)
 		let written = try await ledger.commit(

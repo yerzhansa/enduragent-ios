@@ -65,7 +65,7 @@ import Testing
 	@Test func upgradedStoreAcceptsEnvelopeV2Writes() async throws {
 		let store = try V1Store.materialize()
 		let log = try store.open(deviceId: phoneA)
-		let ledger = Ledger(log: log, clock: clock)
+		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let turn = TurnID(ulid: await ledger.nextULID())
 		_ = try await ledger.commit(
 			synced: [

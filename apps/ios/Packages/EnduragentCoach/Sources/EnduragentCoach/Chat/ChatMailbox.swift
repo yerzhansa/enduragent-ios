@@ -9,6 +9,7 @@ package actor ChatMailbox {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
+	private let diagnostics: DiagnosticsLog
 
 	private var loaded = false
 	private var conversation: Conversation
@@ -30,7 +31,8 @@ package actor ChatMailbox {
 		transport: any ModelTransport,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
-		environment: EnvironmentResolver
+		environment: EnvironmentResolver,
+		diagnostics: DiagnosticsLog
 	) {
 		self.chatId = chatId
 		self.ledger = ledger
@@ -40,6 +42,7 @@ package actor ChatMailbox {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
+		self.diagnostics = diagnostics
 		self.conversation = Conversation(chat: chatId, segments: [])
 	}
 
@@ -274,11 +277,21 @@ package actor ChatMailbox {
 			publish()
 			return
 		}
+		let access: ResolvedAccess
+		do {
+			access = try environment.access()
+		} catch {
+			await settle(
+				turn, attempt: attempt, .failed(.model(.accessUnavailable(error)), saved: .none),
+				stamp: stamp)
+			publish()
+			return
+		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language())
+			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
 		var softFlushDue = false
 		do {
@@ -333,11 +346,14 @@ package actor ChatMailbox {
 	}
 
 	private func drainFlush() async {
-		try? await self.memory.flush(
-			trigger: .softThreshold,
-			chatId: self.chatId,
-			transport: self.transport
-		)
+		do {
+			let access = try environment.access()
+			try await memory.flush(
+				trigger: .softThreshold, chatId: chatId, transport: transport, access: access)
+		} catch is CancellationError {
+		} catch {
+			diagnostics.record(.memoryFlushFailed(chatId, detail: String(describing: error)))
+		}
 	}
 
 	private func apply(_ progress: AttemptProgress, attempt: AttemptID) {

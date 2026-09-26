@@ -1,20 +1,15 @@
 import Foundation
 
-package enum WatchdogTimeout: Error, Sendable {
-	case ttft
-	case interChunk
-}
-
 package actor ChatWatchdog {
-	package static let ttft: Duration = .seconds(30)
+	package static let firstToken: Duration = .seconds(30)
 	package static let interChunk: Duration = .seconds(30)
 
 	private var timer: Task<Void, Never>?
 	private var toolIds: Set<String> = []
 	private var seenText = false
 	private var stopped = true
-	private var outcome: WatchdogTimeout?
-	private var waiters: [CheckedContinuation<WatchdogTimeout?, Never>] = []
+	private var outcome: TimeoutKind?
+	private var waiters: [CheckedContinuation<TimeoutKind?, Never>] = []
 
 	package init() {}
 
@@ -47,7 +42,7 @@ package actor ChatWatchdog {
 		resumeWaiters(nil)
 	}
 
-	package func fired() async -> WatchdogTimeout? {
+	package func fired() async -> TimeoutKind? {
 		await withTaskCancellationHandler {
 			await self.waitForFire()
 		} onCancel: {
@@ -55,7 +50,7 @@ package actor ChatWatchdog {
 		}
 	}
 
-	private func waitForFire() async -> WatchdogTimeout? {
+	private func waitForFire() async -> TimeoutKind? {
 		if let outcome {
 			return outcome
 		}
@@ -73,7 +68,7 @@ package actor ChatWatchdog {
 		}
 	}
 
-	private func resumeWaiters(_ value: WatchdogTimeout?) {
+	private func resumeWaiters(_ value: TimeoutKind?) {
 		let pending = waiters
 		waiters.removeAll()
 		for waiter in pending {
@@ -84,8 +79,8 @@ package actor ChatWatchdog {
 	private func schedule() {
 		cancelTimer()
 		guard !stopped, toolIds.isEmpty else { return }
-		let delay: Duration = seenText ? Self.interChunk : Self.ttft
-		let kind: WatchdogTimeout = seenText ? .interChunk : .ttft
+		let delay: Duration = seenText ? Self.interChunk : Self.firstToken
+		let kind: TimeoutKind = seenText ? .interChunk : .firstToken
 		timer = Task {
 			do {
 				try await Task.sleep(for: delay)
@@ -99,7 +94,7 @@ package actor ChatWatchdog {
 		}
 	}
 
-	private func fire(_ kind: WatchdogTimeout) {
+	private func fire(_ kind: TimeoutKind) {
 		guard !stopped, outcome == nil else { return }
 		outcome = kind
 		stopped = true

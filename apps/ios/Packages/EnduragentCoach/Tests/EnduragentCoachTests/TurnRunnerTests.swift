@@ -107,11 +107,11 @@ import Testing
 	}
 
 	@Test func providerErrorsSettleAsTypedFailures() async throws {
-		transport.failures = [URLError(.notConnectedToInternet)]
+		transport.failures = [.connection(.notConnectedToInternet)]
 		let coach = makeCoach()
 		let network = try await coach.sendAndSettle("one")
 		#expect(failure(network) == .model(.providerDown(.network)))
-		transport.failures = [UnknownFinishReasonError(reason: "weird")]
+		transport.failures = [ScriptedFailure(.unknownFinish)]
 		let finish = try await coach.sendAndSettle("two")
 		#expect(failure(finish) == .model(.generationFailed(.unknownFinish)))
 		#expect(await coach.transcript(.main) == ["one", "two"])
@@ -119,8 +119,156 @@ import Testing
 		#expect(prompt.messages.filter { $0.role == .user }.count == 1)
 	}
 
-	private func makeCoach() -> Coach {
+	@Test(arguments: FailureRow.all)
+	func everyProviderFailureSettlesWithItsNotice(row: FailureRow) async throws {
+		transport.failures = [row.scripted]
+		let coach = makeCoach()
+		let turn = try #require(try await coach.send(draft("Plan my week"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		guard case .failed(let failed) = settled else {
+			Issue.record("expected a failed turn, got \(settled)")
+			return
+		}
+		#expect(failed.failure == .model(row.failure))
+		#expect(failed.notice.key == row.key)
+		#expect(failed.notice.action == (row.offersTryAgain ? .tryAgain(turn) : nil))
+		#expect(english.say(failed.notice.key, failed.notice.vars) == row.english)
+	}
+
+	@Test func watchdogFireSettlesAsTimeoutFailure() async throws {
+		transport.hangUntilCancelled = true
+		let coach = makeCoach()
+		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
+		#expect(failure(settled) == .model(.providerDown(.timeout)))
+		guard case .failed(let failed) = settled else { return }
+		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
+		#expect(failed.notice.action == .tryAgain(turn))
+		let claim = try #require(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
+				.records.first)
+		guard case .operation(_, let attempt) = claim.cause else {
+			Issue.record("expected a turn stamp on the claim")
+			return
+		}
+		#expect(
+			coach.diagnostics.entries.map(\.event) == [
+				.providerFailure(attempt, .timeout(.firstToken), detail: "")
+			])
+	}
+
+	@Test func missingKeySettlesNotConfiguredWithoutARequest() async throws {
+		let coach = makeCoach(secrets: FakeSecretStore())
+		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
+		#expect(settled.retryable)
+		#expect(transport.requestCount == 0)
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
+		#expect(claims.records.count == 1)
+	}
+
+	@Test func lockedKeychainSettlesSecureStorageLocked() async throws {
+		let secrets = keyedSecrets()
+		secrets.locked = true
+		let coach = makeCoach(secrets: secrets)
+		let settled = try await coach.sendAndSettle("Hello")
+		#expect(failure(settled) == .model(.accessUnavailable(.secureStorageLocked)))
+		#expect(transport.requestCount == 0)
+	}
+
+	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
+		let secrets = FakeSecretStore()
+		let coach = makeCoach(secrets: secrets)
+		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		try secrets.storeOpenRouterKey("sk-or-stored-after-launch")
+		transport.script = [.text("Hello, Ada."), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		let answered = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(answered) == "Hello, Ada.")
+		let request = try #require(transport.requests.only)
+		#expect(
+			request.credential
+				== ProviderCredential(secret: "sk-or-stored-after-launch", method: .credits))
+		#expect(request.model == testModel)
+		#expect(request.charge == .chatAttempt)
+	}
+
+	private func makeCoach(secrets: any SecretStore = keyedSecrets()) -> Coach {
 		EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock)
+			transport: transport, intervals: intervals, store: store, clock: clock, secrets: secrets
+		)
+	}
+}
+
+private let english = CatalogPhrasebook(tag: .en, locale: "en")
+
+struct FailureRow: Sendable, CustomTestStringConvertible {
+	let scripted: ScriptedFailure
+	let failure: ModelFailure
+	let key: CatalogKey
+	let offersTryAgain: Bool
+	let english: String
+
+	var testDescription: String { "\(failure)" }
+
+	static let all: [FailureRow] = [
+		FailureRow(
+			scripted: .http(status: 401), failure: .credentialRejected(.credits),
+			key: Catalog.coachErrorProviderCredentials, offersTryAgain: false,
+			english: "The model provider rejected the API key — check your provider credentials."),
+		FailureRow(
+			scripted: .http(status: 402), failure: .accessExhausted(.credits),
+			key: Catalog.coachErrorUnknown, offersTryAgain: false,
+			english: "Sorry, something went wrong. Please try again."),
+		FailureRow(
+			scripted: .http(status: 429, headers: ["retry-after": "7"]),
+			failure: .rateLimited(retryAfter: .seconds(7)),
+			key: Catalog.coachErrorRateLimitSeconds, offersTryAgain: true,
+			english: "Rate limited — please try again in ~7 seconds."),
+		FailureRow(
+			scripted: .http(status: 429, headers: ["retry-after": "90"]),
+			failure: .rateLimited(retryAfter: .seconds(90)),
+			key: Catalog.coachErrorRateLimitMinutes, offersTryAgain: true,
+			english: "Rate limited — please try again in ~2 minutes."),
+		FailureRow(
+			scripted: .http(status: 429), failure: .rateLimited(retryAfter: nil),
+			key: Catalog.coachErrorRateLimitDefault, offersTryAgain: true,
+			english: "Rate limited — please try again in about a minute."),
+		FailureRow(
+			scripted: .http(status: 500), failure: .providerDown(.outage),
+			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			english: "The model provider is having trouble — try again in a few minutes."),
+		FailureRow(
+			scripted: .connection(.notConnectedToInternet), failure: .providerDown(.network),
+			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			english: "The model provider is having trouble — try again in a few minutes."),
+		FailureRow(
+			scripted: .connection(.timedOut), failure: .providerDown(.timeout),
+			key: Catalog.coachErrorProviderDown, offersTryAgain: true,
+			english: "The model provider is having trouble — try again in a few minutes."),
+		FailureRow(
+			scripted: .http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#),
+			failure: .contextOverflow,
+			key: Catalog.coachErrorUnknown, offersTryAgain: true,
+			english: "Sorry, something went wrong. Please try again."),
+		FailureRow(
+			scripted: .http(status: 400), failure: .invalidRequest,
+			key: Catalog.coachErrorUnknown, offersTryAgain: true,
+			english: "Sorry, something went wrong. Please try again."),
+		FailureRow(
+			scripted: ScriptedFailure(.malformedStream),
+			failure: .generationFailed(.malformedStream),
+			key: Catalog.chatNoticeResponseFailure, offersTryAgain: true,
+			english: "The coach couldn't respond. Please try again."),
+	]
+}
+
+extension Array {
+	fileprivate var only: Element? {
+		count == 1 ? first : nil
 	}
 }

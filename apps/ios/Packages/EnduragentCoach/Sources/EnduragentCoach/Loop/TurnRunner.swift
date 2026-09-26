@@ -87,6 +87,7 @@ package struct TurnAttempt: Sendable, Equatable {
 	package let request: String
 	package let slash: SlashCommand?
 	package let language: LanguagePreference
+	package let access: ResolvedAccess
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -126,6 +127,7 @@ package struct TurnRunner: Sendable {
 	private let clock: any Clock
 	private let tools: ToolRuntime
 	private let planning: Planning
+	private let diagnostics: DiagnosticsLog
 
 	package init(
 		transport: any ModelTransport,
@@ -133,7 +135,8 @@ package struct TurnRunner: Sendable {
 		ledger: Ledger,
 		clock: any Clock,
 		tools: ToolRuntime,
-		planning: Planning
+		planning: Planning,
+		diagnostics: DiagnosticsLog
 	) {
 		self.transport = transport
 		self.intervals = intervals
@@ -141,6 +144,7 @@ package struct TurnRunner: Sendable {
 		self.clock = clock
 		self.tools = tools
 		self.planning = planning
+		self.diagnostics = diagnostics
 	}
 
 	package func run(
@@ -156,14 +160,8 @@ package struct TurnRunner: Sendable {
 				result: .failed(.local(.recordStorage), saved: .none), softFlushDue: false)
 		} catch let budget as TurnBudgetExceeded {
 			return failed(.budgetExhausted(budget.kind))
-		} catch is WatchdogTimeout {
-			return failed(.providerDown(.timeout))
-		} catch is UnknownFinishReasonError {
-			return failed(.generationFailed(.unknownFinish))
-		} catch is OpenRouterParseError {
-			return failed(.generationFailed(.malformedStream))
-		} catch is URLError {
-			return failed(.providerDown(.network))
+		} catch let provider as ProviderFailure {
+			return failed(ModelFailure(provider, method: attempt.access.method))
 		} catch {
 			return failed(.providerDown(.outage))
 		}
@@ -250,7 +248,16 @@ package struct TurnRunner: Sendable {
 					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
 			_ = try await ledger.commit(synced: bodies, stamp: stamp)
 			await progress(.activity(.savingMemory))
-			try? await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
+			do {
+				try await memory.flush(
+					trigger: .trim, chatId: chatId, transport: transport, access: attempt.access)
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.memoryFlushFailed(chatId, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+			}
 		}
 		let kept = trim.kept
 		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
@@ -300,7 +307,9 @@ package struct TurnRunner: Sendable {
 					)
 				}
 				await progress(.activity(.compacting))
-				try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
+				try await compact(
+					wire: &wire, budget: &budget, chatId: chatId, stamp: stamp,
+					access: attempt.access)
 				overflowTries += 1
 			}
 
@@ -320,7 +329,10 @@ package struct TurnRunner: Sendable {
 					WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
 				]
 				messages.append(contentsOf: wire)
-				let request = CompletionRequest.openRouter(
+				let request = CompletionRequest(
+					access: attempt.access,
+					attempt: attempt.attempt,
+					charge: .chatAttempt,
 					messages: messages,
 					tools: schemas,
 					deadline: deadline
@@ -339,7 +351,9 @@ package struct TurnRunner: Sendable {
 					}
 					overflowTries += 1
 					await progress(.activity(.compacting))
-					try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
+					try await compact(
+						wire: &wire, budget: &budget, chatId: chatId, stamp: stamp,
+						access: attempt.access)
 					continue attemptLoop
 				}
 
@@ -394,7 +408,10 @@ package struct TurnRunner: Sendable {
 			{
 				try budget.chargeGenerate()
 				let recovery = try await generateStep(
-					request: CompletionRequest.openRouter(
+					request: CompletionRequest(
+						access: attempt.access,
+						attempt: attempt.attempt,
+						charge: .stepRecovery,
 						messages: [
 							WireMessage(
 								role: .system, content: system, toolCalls: [], toolCallId: nil)
@@ -422,7 +439,7 @@ package struct TurnRunner: Sendable {
 			}
 
 			let templateHash = sha256Hex(
-				prefix + schemas.map(\.name.rawValue).joined() + CompletionRequest.openRouterModel)
+				prefix + schemas.map(\.name.rawValue).joined() + attempt.access.model.rawValue)
 			let assembledHash = sha256Hex(system + timed + assistantText)
 			return AttemptReport(
 				result: .replied(
@@ -447,7 +464,10 @@ package struct TurnRunner: Sendable {
 				}
 				group.addTask {
 					if let kind = await watchdog.fired() {
-						throw kind
+						let failure = ProviderFailure.timeout(kind)
+						self.diagnostics.record(
+							.providerFailure(request.attempt, failure, detail: ""))
+						throw failure
 					}
 					throw CancellationError()
 				}
@@ -543,12 +563,16 @@ package struct TurnRunner: Sendable {
 		wire: inout [WireMessage],
 		budget: inout TurnBudget,
 		chatId: ChatID,
-		stamp: OperationStamp
+		stamp: OperationStamp,
+		access: ResolvedAccess
 	) async throws {
 		try budget.chargeGenerate()
 		let keep = Array(wire.suffix(4))
 		let dropped = Array(wire.dropLast(min(4, wire.count)))
-		let request = CompletionRequest.openRouter(
+		let request = CompletionRequest(
+			access: access,
+			attempt: stamp.attempt,
+			charge: .compaction,
 			messages: [
 				WireMessage(
 					role: .system,

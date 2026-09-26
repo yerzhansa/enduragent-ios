@@ -221,12 +221,12 @@ final class FailedReplyProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 500")
 		let notice = TutorialHarness.named(app, "chat.turn.notice")
 		TutorialHarness.wait(notice)
-		XCTAssertEqual(notice.label, TutorialHarness.responseFailure)
+		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
 		XCTAssertFalse(
 			app.staticTexts.containing(
-				NSPredicate(format: "label CONTAINS %@", "OpenRouterHTTPError")
+				NSPredicate(format: "label CONTAINS %@", "ProviderFailure")
 			).firstMatch.exists)
 		TutorialHarness.attach(self, name: "failed-reply", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)

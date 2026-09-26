@@ -69,8 +69,8 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | Message | Effect |
 | --- | --- |
 | `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
-| `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `chat.notice.responseFailure`. |
-| `fixture:fail 500`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails with the named error before any reply text. `429 7` carries a retry-after of 7 seconds. |
+| `fixture:hang` | The model never answers. The 30 second watchdog fails the turn with `coach.error.providerDown`. |
+| `fixture:fail 500`, `fixture:fail 401`, `fixture:fail 402`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails before any reply text with the HTTP status or connection error the directive names, parsed by the same rules as the real transport. `429 7` carries a `retry-after` of 7 seconds. |
 | `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow and hang settings.
@@ -114,7 +114,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary under the working row |
-| `chat-failed` | After `fixture:fail 500`: `chat.error` reads `The coach couldn't respond. Please try again.` |
+| `chat-failed` | After `fixture:fail network`: `chat.turn.notice` reads `The model provider is having trouble — try again in a few minutes.` above `Try again` |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, `interruption-*` | No app screen yet |
 
 ## Evidence

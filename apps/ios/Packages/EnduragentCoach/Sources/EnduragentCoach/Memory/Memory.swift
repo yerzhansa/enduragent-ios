@@ -391,9 +391,10 @@ public struct Memory: Sendable {
 		return true
 	}
 
-	public func flush(trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport)
-		async throws
-	{
+	package func flush(
+		trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport,
+		access: ResolvedAccess
+	) async throws {
 		let pending = try await oldestUnconsumedFlush(chatId: chatId)
 		let effectiveTrigger: FlushTrigger = {
 			if let pending, case .deviceLocal(.flushPending(let body)) = pending.body {
@@ -424,7 +425,7 @@ public struct Memory: Sendable {
 		while attempt < MemoryFlushPolicy.maxAttempts {
 			attempt += 1
 			let outcome = try await runFlushGenerate(
-				conversation: conversation, transport: transport, stamp: stamp)
+				conversation: conversation, transport: transport, access: access, stamp: stamp)
 			lastWrites = outcome.writes
 			lastLedger = outcome.ledgerAppends
 			let zeroWrite =
@@ -531,6 +532,7 @@ public struct Memory: Sendable {
 	private func runFlushGenerate(
 		conversation: [ChatMessage],
 		transport: any ModelTransport,
+		access: ResolvedAccess,
 		stamp: OperationStamp
 	) async throws -> (writes: Int, ledgerAppends: Int) {
 		let current = (try? await fullContext()) ?? ""
@@ -560,7 +562,10 @@ public struct Memory: Sendable {
 		var steps = 0
 		while steps < MemoryFlushPolicy.maxSteps {
 			steps += 1
-			let request = CompletionRequest.openRouter(
+			let request = CompletionRequest(
+				access: access,
+				attempt: stamp.attempt,
+				charge: .memoryFlush,
 				messages: messages,
 				tools: schemas,
 				deadline: TurnPolicy.chatCallDeadline

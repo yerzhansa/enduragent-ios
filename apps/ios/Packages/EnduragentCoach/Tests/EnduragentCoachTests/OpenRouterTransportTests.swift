@@ -9,7 +9,7 @@ import Testing
 		let body = OpenRouterHTTP.body(for: sampleRequest(tools: true))
 		let object = try objectValue(body)
 		#expect(object["temperature"] == nil)
-		#expect(object["model"] == .string(CompletionRequest.openRouterModel))
+		#expect(object["model"] == .string(testModel.rawValue))
 		#expect(object["stream"] == .bool(true))
 		#expect(object["usage"] == .object(["include": .bool(true)]))
 		#expect(object["tool_choice"] == .string("auto"))
@@ -132,12 +132,6 @@ import Testing
 		#expect(reason == .contentFilter)
 	}
 
-	@Test func parserThrowsOnUnknownFinishReason() async {
-		await #expect(throws: UnknownFinishReasonError.self) {
-			_ = try await parseFixture("openrouter-finish-unknown")
-		}
-	}
-
 	@Test func parserSumsUsageAndCostAcrossSteps() async throws {
 		let events = try await parseFixture("openrouter-usage-sum")
 		guard case .finished(_, let usage) = events.last else {
@@ -160,86 +154,84 @@ import Testing
 		#expect(usage.cost == nil)
 	}
 
-	@Suite(.serialized)
-	struct HTTP {
-		@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
-			let sse = try fixture("openrouter-text-usage", ext: "sse")
-			let state = HTTPCapture()
-			let transport = try stubbedTransport()
-			let events = try await OpenRouterURLStub.withHandler({ request in
-				state.record(request)
-				return .ok(sse)
-			}) {
-				try await collect(transport.stream(sampleRequest(tools: false)))
-			}
-			#expect(state.posts == 1)
-			let request = try #require(state.request)
-			#expect(request.httpMethod == "POST")
-			#expect(
-				request.url?.absoluteString == "https://openrouter.test/api/v1/chat/completions")
-			#expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer test-key")
-			#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
-			#expect(request.value(forHTTPHeaderField: "Referer") == nil)
-			#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
-			let bodyData = try #require(httpBody(from: request))
-			let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
-			#expect(body?["temperature"] == nil)
-			#expect(body?["stream"] as? Bool == true)
-			#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
+	@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
+		let sse = try fixture("openrouter-text-usage", ext: "sse")
+		let state = HTTPCapture()
+		let transport = try OpenRouterStub.transport { request in
+			state.record(request)
+			return .reply(.sse(sse))
 		}
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
+		#expect(state.posts == 1)
+		let request = try #require(state.request)
+		#expect(request.httpMethod == "POST")
+		#expect(request.url?.path() == "/api/v1/chat/completions")
+		#expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer \(testKey)")
+		#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
+		#expect(request.value(forHTTPHeaderField: "Referer") == nil)
+		#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
+		let bodyData = try #require(httpBody(from: request))
+		let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
+		#expect(body?["temperature"] == nil)
+		#expect(body?["stream"] as? Bool == true)
+		#expect(body?["model"] as? String == testModel.rawValue)
+		#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
+	}
 
-		@Test func streamUsesDeadlineAsRequestTimeout() async throws {
-			let sse = try fixture("openrouter-text-usage", ext: "sse")
-			let state = TimeoutCapture()
-			let transport = OpenRouterTransport(
-				apiKey: "test-key",
-				baseURL: try #require(URL(string: "https://openrouter.test/api/v1"))
-			) { value in
-				state.value = value
-				let configuration = URLSessionConfiguration.ephemeral
-				configuration.timeoutIntervalForRequest = value
-				configuration.protocolClasses = [OpenRouterURLStub.self]
-				return URLSession(configuration: configuration)
-			}
-			try await OpenRouterURLStub.withHandler({ _ in .ok(sse) }) {
-				_ = try await collect(
-					transport.stream(
-						CompletionRequest.openRouter(
-							messages: [
-								WireMessage(
-									role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
-							],
-							tools: [],
-							deadline: .seconds(45)
-						)
-					)
-				)
-			}
-			#expect(state.value == 45)
+	@Test func streamUsesDeadlineAsRequestTimeout() async throws {
+		let sse = try fixture("openrouter-text-usage", ext: "sse")
+		let state = TimeoutCapture()
+		let transport = try OpenRouterStub.transport(onSession: { state.value = $0 }) { _ in
+			.reply(.sse(sse))
 		}
+		_ = try await collect(
+			transport.stream(
+				testRequest(
+					[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
+					deadline: .seconds(45))))
+		#expect(state.value == 45)
+	}
 
-		@Test func streamSurfaces401AsProviderAuthError() async throws {
-			let body = try fixture("openrouter-unauthorized", ext: "json")
-			let state = HTTPCapture()
-			let transport = try stubbedTransport()
+	@Test func streamThrowsOnlyProviderFailure() async throws {
+		let malformed = try fixture("openrouter-malformed-chunk", ext: "sse")
+		let outcomes: [OpenRouterStub.Outcome] =
+			[400, 401, 402, 403, 404, 408, 418, 429, 500, 502, 503, 302].map {
+				.reply(.json($0, #"{"error":{"message":"refused","code":\#($0)}}"#))
+			} + [
+				.fail(.timedOut), .fail(.notConnectedToInternet), .fail(.networkConnectionLost),
+				.fail(.cannotFindHost), .fail(.cannotConnectToHost), .fail(.dnsLookupFailed),
+				.fail(.secureConnectionFailed), .fail(.badServerResponse),
+				.reply(.sse(malformed)), .reply(.sse("data: [DONE]\n")),
+			]
+		for outcome in outcomes {
+			let transport = try OpenRouterStub.transport { _ in outcome }
 			do {
-				_ = try await OpenRouterURLStub.withHandler({ request in
-					state.record(request)
-					return OpenRouterURLStub.Response(
-						statusCode: 401,
-						headers: ["Content-Type": "application/json"],
-						body: Data(body.utf8)
-					)
-				}) {
-					try await collect(transport.stream(sampleRequest(tools: false)))
-				}
-				Issue.record("expected provider auth error")
-			} catch let error as ProviderAuthError {
-				#expect(error.statusCode == 401)
-				#expect(error.body.contains("User not found."))
+				_ = try await collect(transport.stream(sampleRequest(tools: false)))
+				Issue.record("expected a failure for \(outcome)")
+			} catch {
+				#expect(error is ProviderFailure, "\(outcome) threw \(type(of: error))")
 			}
-			#expect(state.posts == 1)
 		}
+	}
+
+	@Test func credentialNeverAppearsInDescription() {
+		let request = sampleRequest(tools: true)
+		var dumped = ""
+		dump(request, to: &dumped)
+		let renderings = [
+			request.credential.description,
+			request.credential.debugDescription,
+			String(describing: request.credential),
+			String(reflecting: request.credential),
+			String(describing: request),
+			String(reflecting: request),
+			"\(testAccess)",
+			dumped,
+		]
+		for rendering in renderings {
+			#expect(!rendering.contains(testKey), "\(rendering)")
+		}
+		#expect(request.credential.description == "ProviderCredential(redacted)")
 	}
 }
 
@@ -272,8 +264,8 @@ private final class TimeoutCapture: Sendable {
 }
 
 private func sampleRequest(tools: Bool) -> CompletionRequest {
-	CompletionRequest.openRouter(
-		messages: [
+	testRequest(
+		[
 			WireMessage(
 				role: .system, content: "You are Ada Kovač's coach.", toolCalls: [], toolCallId: nil
 			),
@@ -302,8 +294,7 @@ private func sampleRequest(tools: Bool) -> CompletionRequest {
 					parameters: .object(["type": .string("object")])
 				)
 			]
-			: [],
-		deadline: .seconds(600)
+			: []
 	)
 }
 
@@ -311,45 +302,22 @@ private func parseFixture(_ name: String) async throws -> [TransportEvent] {
 	try await collect(OpenRouterSSEParser.events(from: fixture(name, ext: "sse")))
 }
 
-private func collect(_ stream: AsyncThrowingStream<TransportEvent, Error>) async throws
-	-> [TransportEvent]
-{
-	var events: [TransportEvent] = []
-	for try await event in stream {
-		events.append(event)
-	}
-	return events
-}
-
-private func fixture(_ name: String, ext: String) throws -> String {
-	let url = try #require(
-		Bundle.module.url(forResource: name, withExtension: ext, subdirectory: "Fixtures")
-			?? Bundle.module.url(forResource: name, withExtension: ext)
-	)
-	return try String(contentsOf: url, encoding: .utf8)
+private struct UnexpectedJSONShape: Error {
+	let value: JSONValue?
 }
 
 private func objectValue(_ value: JSONValue?) throws -> [String: JSONValue] {
 	guard case .object(let object) = value else {
-		throw OpenRouterParseError.malformedSSE
+		throw UnexpectedJSONShape(value: value)
 	}
 	return object
 }
 
 private func arrayValue(_ value: JSONValue?) throws -> [JSONValue] {
 	guard case .array(let items) = value else {
-		throw OpenRouterParseError.malformedSSE
+		throw UnexpectedJSONShape(value: value)
 	}
 	return items
-}
-
-private func textDeltas(in events: [TransportEvent]) -> [String] {
-	events.compactMap { event in
-		if case .textDelta(let text) = event {
-			return text
-		}
-		return nil
-	}
 }
 
 private func toolCalls(in events: [TransportEvent]) -> [WireToolCall] {
@@ -382,77 +350,4 @@ private func httpBody(from request: URLRequest) -> Data? {
 		data.append(buffer, count: read)
 	}
 	return data
-}
-
-private func stubbedTransport() throws -> OpenRouterTransport {
-	OpenRouterTransport(
-		apiKey: "test-key",
-		baseURL: try #require(URL(string: "https://openrouter.test/api/v1"))
-	) { timeout in
-		let configuration = URLSessionConfiguration.ephemeral
-		configuration.timeoutIntervalForRequest = timeout
-		configuration.protocolClasses = [OpenRouterURLStub.self]
-		return URLSession(configuration: configuration)
-	}
-}
-
-private final class OpenRouterURLStub: URLProtocol, @unchecked Sendable {
-	struct Response: Sendable {
-		var statusCode: Int
-		var headers: [String: String]
-		var body: Data
-
-		static func ok(_ sse: String) -> Response {
-			Response(
-				statusCode: 200,
-				headers: ["Content-Type": "text/event-stream"],
-				body: Data(sse.utf8)
-			)
-		}
-	}
-
-	private static let handler = Mutex<(@Sendable (URLRequest) -> Response)?>(nil)
-
-	static func withHandler<T: Sendable>(
-		_ handler: @escaping @Sendable (URLRequest) -> Response,
-		perform: () async throws -> T
-	) async throws -> T {
-		let previous = Self.handler.withLock { current in
-			let previous = current
-			current = handler
-			return previous
-		}
-		defer {
-			Self.handler.withLock { $0 = previous }
-		}
-		return try await perform()
-	}
-
-	override class func canInit(with request: URLRequest) -> Bool { true }
-	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-	override func startLoading() {
-		let handler = Self.handler.withLock { $0 }
-		guard let handler else {
-			client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
-			return
-		}
-		let response = handler(request)
-		guard let url = request.url,
-			let http = HTTPURLResponse(
-				url: url,
-				statusCode: response.statusCode,
-				httpVersion: "HTTP/1.1",
-				headerFields: response.headers
-			)
-		else {
-			client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
-			return
-		}
-		client?.urlProtocol(self, didReceive: http, cacheStoragePolicy: .notAllowed)
-		client?.urlProtocol(self, didLoad: response.body)
-		client?.urlProtocolDidFinishLoading(self)
-	}
-
-	override func stopLoading() {}
 }

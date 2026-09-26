@@ -128,7 +128,7 @@ struct FixtureLaunchTests {
 		#expect(turn.athleteText == "fixture:slow")
 		#expect(!isSettled(turn.state))
 		#expect(model.isWorking)
-		#expect(services.fixtureTransport?.requests.isEmpty == true)
+		#expect(services.fixtureTransport?.requestCount == 0)
 		let settled = try await settledTurn(model)
 		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
 		#expect(!model.isWorking)
@@ -148,7 +148,7 @@ struct FixtureLaunchTests {
 		#expect(model.draft == draft)
 		#expect(model.drafts.load(model.chatId) == draft)
 		#expect(model.chat?.turns.isEmpty ?? true)
-		#expect(transport.requests.isEmpty)
+		#expect(transport.requestCount == 0)
 		#expect(!records.failNextAppend)
 		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
 		model.draft.text = TutorialCopy.weekQuestion
@@ -160,35 +160,25 @@ struct FixtureLaunchTests {
 		#expect(try await firstTurn(model).athleteText == TutorialCopy.weekQuestion)
 	}
 
-	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
+	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "Give me a ride for tomorrow"
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
+		transport.failures = [
+			.http(status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#)
+		]
 		await model.send()
-		transport.failures = [UnknownFinishReasonError(reason: "error")]
 		let turn = try await settledTurn(model)
 		guard case .failed(let failed) = turn.state else {
 			Issue.record("expected a failed turn, got \(turn.state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
+		#expect(failed.notice.vars.isEmpty)
 		#expect(failed.notice.action == .tryAgain(turn.id))
 		#expect(model.errorLine == nil)
-	}
-
-	@Test func startChattingFailureShowsAthleteFacingCopy() throws {
-		let builder = builder(try services())
-		builder.completedServicesFailure = UnknownFinishReasonError(reason: "error")
-		let model = ShellModel(builder: builder)
-		model.startChatting()
-		let failure = model.builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
-		#expect(model.route == .onboarding(.notice))
-		#expect(model.errorLine == failure)
-		#expect(model.errorLine?.contains("UnknownFinishReasonError") != true)
-		#expect(model.errorLine?.contains("String(describing:") != true)
 	}
 
 	@Test func intervalsLoadFailureShowsTheReason() async throws {
@@ -304,7 +294,7 @@ struct FixtureLaunchTests {
 		model.draft.text = "fixture:slow"
 		await model.send()
 		let settled = try await settledTurn(model)
-		#expect(transport.requests.count == 1)
+		#expect(transport.requestCount == 1)
 		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
 		#expect(transport.requestDelay == FixtureDirector.slowFirstWordDelay)
 		#expect(transport.deltaDelay == FixtureDirector.slowWordDelay)
@@ -314,7 +304,35 @@ struct FixtureLaunchTests {
 		#expect(transport.deltaDelay == nil)
 	}
 
-	@Test func failDirectiveShowsTheResponseFailureNoticeWithTryAgain() async throws {
+	@Test(arguments: [
+		("fixture:fail 401", Catalog.coachErrorProviderCredentials, false),
+		("fixture:fail 402", Catalog.coachErrorUnknown, false),
+		("fixture:fail 429 7", Catalog.coachErrorRateLimitSeconds, true),
+		("fixture:fail network", Catalog.coachErrorProviderDown, true),
+		("fixture:fail timeout", Catalog.coachErrorProviderDown, true),
+		("fixture:fail overflow", Catalog.coachErrorUnknown, true),
+	])
+	func failDirectiveSettlesWithItsNotice(directive: String, key: CatalogKey, tryAgain: Bool)
+		async throws
+	{
+		let services = try services()
+		let transport = try #require(services.fixtureTransport)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = directive
+		await model.send()
+		let failed = try await settledTurn(model)
+		guard case .failed(let failure) = failed.state else {
+			Issue.record("expected a failed turn, got \(failed.state)")
+			return
+		}
+		#expect(failure.notice.key == key)
+		#expect(failure.notice.action == (tryAgain ? .tryAgain(failed.id) : nil))
+		#expect(transport.requestCount == 1)
+		#expect(model.errorLine == nil)
+	}
+
+	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
 		let services = try services()
 		let model = model(services)
 		model.startChatting()
@@ -325,7 +343,7 @@ struct FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(failed.state)")
 			return
 		}
-		#expect(failure.notice.key == Catalog.chatNoticeResponseFailure)
+		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
 		#expect(failure.notice.action == .tryAgain(failed.id))
 		#expect(model.errorLine == nil)
 		await model.perform(.tryAgain(failed.id))

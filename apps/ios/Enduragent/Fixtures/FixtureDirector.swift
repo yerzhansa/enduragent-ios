@@ -44,21 +44,26 @@ struct FixtureDirector: Sendable {
 		transport.script = FirstWeekFixture.script(for: text)
 	}
 
-	private static func failure(_ arguments: [String]) -> (any Error)? {
+	private static func failure(_ arguments: [String]) -> ScriptedFailure? {
 		switch arguments.first {
+		case "401":
+			return .http(status: 401)
+		case "402":
+			return .http(status: 402)
 		case "429":
 			let retryAfter = arguments.dropFirst().first ?? "7"
-			return OpenRouterHTTPError(statusCode: 429, body: "retry-after: \(retryAfter)")
+			return .http(status: 429, headers: ["retry-after": retryAfter])
 		case "500":
-			return OpenRouterHTTPError(statusCode: 500, body: "")
+			return .http(status: 500)
 		case "network":
-			return URLError(.notConnectedToInternet)
+			return .connection(.notConnectedToInternet)
 		case "timeout":
-			return URLError(.timedOut)
+			return .connection(.timedOut)
 		case "overflow":
-			return OpenRouterHTTPError(
-				statusCode: 400,
-				body: "This endpoint's maximum context length is 131072 tokens."
+			return .http(
+				status: 400,
+				body:
+					#"{"error":{"message":"This endpoint's maximum context length is 131072 tokens."}}"#
 			)
 		default:
 			return nil

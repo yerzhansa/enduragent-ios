@@ -6,10 +6,46 @@ public enum CoachFailure: Sendable, Equatable {
 }
 
 public enum ModelFailure: Sendable, Equatable {
+	case credentialRejected(AccessMethod)
+	case accessExhausted(AccessMethod)
+	case rateLimited(retryAfter: Duration?)
 	case providerDown(ProviderTrouble)
 	case contextOverflow
+	case invalidRequest
 	case generationFailed(GenerationFault)
 	case budgetExhausted(TurnBudgetExceeded.Kind)
+	case accessUnavailable(AccessUnavailable)
+
+	package init(_ failure: ProviderFailure, method: AccessMethod) {
+		switch failure {
+		case .credentialRejected:
+			self = .credentialRejected(method)
+		case .accessExhausted:
+			self = .accessExhausted(method)
+		case .rateLimited(let retryAfter):
+			self = .rateLimited(retryAfter: retryAfter)
+		case .serverError:
+			self = .providerDown(.outage)
+		case .network:
+			self = .providerDown(.network)
+		case .timeout:
+			self = .providerDown(.timeout)
+		case .contextOverflow:
+			self = .contextOverflow
+		case .invalidRequest:
+			self = .invalidRequest
+		case .unknownFinish:
+			self = .generationFailed(.unknownFinish)
+		case .malformedStream:
+			self = .generationFailed(.malformedStream)
+		}
+	}
+}
+
+public enum AccessUnavailable: Error, Sendable, Equatable {
+	case notConfigured(AccessMethod)
+	case secureStorageLocked
+	case secureStorageUnavailable
 }
 
 public enum ProviderTrouble: String, Sendable {
@@ -66,13 +102,45 @@ package enum AthleteNotices {
 		_ = now
 		let tryAgain = turn.map(RecoveryAction.tryAgain)
 		switch failure {
-		case .model(.providerDown), .model(.generationFailed):
-			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, vars: [:], action: tryAgain)
-		case .model(.contextOverflow), .model(.budgetExhausted):
+		case .model(.credentialRejected):
+			return AthleteNotice(key: Catalog.coachErrorProviderCredentials, vars: [:], action: nil)
+		case .model(.accessExhausted):
+			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: nil)
+		case .model(.rateLimited(let retryAfter)):
+			return rateLimitNotice(after: retryAfter, action: tryAgain)
+		case .model(.providerDown):
+			return AthleteNotice(key: Catalog.coachErrorProviderDown, vars: [:], action: tryAgain)
+		case .model(.generationFailed):
+			return AthleteNotice(
+				key: Catalog.chatNoticeResponseFailure, vars: [:], action: tryAgain)
+		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted),
+			.model(.accessUnavailable):
 			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: tryAgain)
 		case .local(.recordStorage):
 			return AthleteNotice(key: Catalog.coachHistoryDiskFull, vars: [:], action: nil)
 		}
+	}
+
+	private static func rateLimitNotice(after wait: Duration?, action: RecoveryAction?)
+		-> AthleteNotice
+	{
+		guard let wait, wait > .zero else {
+			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, vars: [:], action: action)
+		}
+		let seconds = Int((wait / .seconds(1)).rounded(.up))
+		if seconds < 60 {
+			return AthleteNotice(
+				key: Catalog.coachErrorRateLimitSeconds,
+				vars: ["count": "\(seconds)", "seconds": "\(seconds)"],
+				action: action
+			)
+		}
+		let minutes = (seconds + 59) / 60
+		return AthleteNotice(
+			key: Catalog.coachErrorRateLimitMinutes,
+			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],
+			action: action
+		)
 	}
 
 	package static func notice(

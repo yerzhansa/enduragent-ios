@@ -8,7 +8,9 @@ import Testing
 
 	@Test func journalRecordPrecedesSectionRecord() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
 			.person, content: "## Ada Kovač\nRides on Saturdays.", source: .chat, stamp: testStamp()
 		)
@@ -38,7 +40,9 @@ import Testing
 
 	@Test func appendDailyNoteSkipsWholeLineDuplicateWithoutJournal() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
 		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
 		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
@@ -53,7 +57,9 @@ import Testing
 
 	@Test func appendEventReturnsFalseOnTwoDeviceDuplicate() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		let other = DeviceID(rawValue: "phone-b")
 		let now = clock.now
 		try await seed(
@@ -82,7 +88,9 @@ import Testing
 
 	@Test func contextInjectsOrphansAndStripsCompaction() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
 			.person, content: "- Name: Ada Kovač", source: .chat, stamp: testStamp())
 		try await memory.writeSection(
@@ -148,7 +156,9 @@ import Testing
 
 	@Test func writeSectionPropagatesJournalAppendFailure() async throws {
 		let store = JournalRejectingLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		await #expect(throws: LedgerFailure.rejectedBatch) {
 			try await memory.writeSection(
 				.person, content: "- Name: Ada", source: .chat, stamp: testStamp())
@@ -159,7 +169,9 @@ import Testing
 
 	@Test func writeSectionReplacesLeadingStampRatherThanStacking() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
 		try await memory.writeSection(
 			.person, content: "_updated: 1998-06-01\n- Name: Ada", source: .chat, stamp: testStamp()
 		)
