@@ -23,7 +23,8 @@ import Testing
 		).records
 		#expect(rows.count == 1)
 		#expect(rows.first?.body.turn == turn)
-		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Two rides.")
+		#expect(
+			replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Two rides.")
 		#expect(recording.batches == [["userMessage"], ["turnClaim"], ["turnSettled"]])
 	}
 
@@ -51,7 +52,8 @@ import Testing
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
 		#expect(transport.requests.isEmpty)
-		let turn = try #require(try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		let turn = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
 	}
 

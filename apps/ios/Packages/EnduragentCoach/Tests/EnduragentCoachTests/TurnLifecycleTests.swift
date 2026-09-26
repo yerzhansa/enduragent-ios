@@ -14,7 +14,8 @@ import Testing
 		var facts = TurnFacts(turn: minted, chat: .main, origin: device ?? phoneA)
 		facts.fragments.append(
 			Fragment(
-				ulid: fixedUlid(1), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phoneA),
+				ulid: fixedUlid(1),
+				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phoneA),
 				civilDate: "1998-06-13", index: 0, draft: draft, text: "hi", slash: nil))
 		return facts
 	}
@@ -29,7 +30,8 @@ import Testing
 		var facts = claimed()
 		facts.settlements.append(
 			SettledAttempt(
-				ulid: fixedUlid(3), hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: phoneA),
+				ulid: fixedUlid(3),
+				hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: phoneA),
 				civilDate: "1998-06-13", attempt: attempt, settlement: settlement))
 		return facts
 	}
@@ -74,7 +76,10 @@ import Testing
 
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
 		let result = try writes(.claim(attempt), on: accepted()).get()
-		#expect(result == .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))]))
+		#expect(
+			result
+				== .local([.turnClaim(TurnClaimBody(chatId: .main, turn: minted, attempt: attempt))]
+				))
 	}
 
 	@Test func claimOfATurnAcceptedElsewhereIsRefused() {
@@ -142,7 +147,8 @@ import Testing
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {
 		let state = TurnLifecycle.state(
-			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
+			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA,
+			now: now)
 		#expect(state == .accepted(.onOtherDevice))
 		#expect(!state.retryable)
 	}
@@ -209,7 +215,8 @@ import Testing
 		#expect(interrupted.notice.key == Catalog.chatNoticeResponseStopped)
 		#expect(interrupted.notice.action == .tryAgain(minted))
 		#expect(clean.retryable)
-		let saved = WriteSummary(memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+		let saved = WriteSummary(
+			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let afterWrite = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "", cause: .athleteStopped, saved: saved)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, now: now)
