@@ -34,7 +34,12 @@ final class RateLimitWaitProof: XCTestCase {
 		stamp(self, name: "rate-limit-wait-seconds", seconds: elapsed)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "rate-limit-wait-reply", app: app)
-		assertModelRequests(app, 2, test: self, name: "rate-limit-wait-requests")
+		TutorialHarness.send(app, "fixture:fail 429 7 x4")
+		TutorialHarness.wait(working)
+		TutorialHarness.wait(
+			turnNotice(app, reading: TutorialHarness.rateLimitSevenSeconds), timeout: 40)
+		TutorialHarness.attach(self, name: "rate-limit-wait-exhausted", app: app)
+		assertModelRequests(app, 2 + 4, test: self, name: "rate-limit-wait-requests")
 	}
 }
 
