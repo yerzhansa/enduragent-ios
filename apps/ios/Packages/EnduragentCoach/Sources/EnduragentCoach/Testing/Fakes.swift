@@ -4,6 +4,8 @@ public enum ScriptedEvent: Sendable, Equatable {
 	case text(String)
 	case toolCall(name: String, arguments: String)
 	case finish(reason: FinishReason)
+	case fail(ScriptedFailure)
+	case hang
 }
 
 public struct ScriptedFailure: Sendable, Equatable {
@@ -28,10 +30,9 @@ public struct ScriptedFailure: Sendable, Equatable {
 
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
-	public var failures: [ScriptedFailure]
+	public var maintenanceScript: [ScriptedEvent]
 	package private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
-	public var hangAfterScript = false
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	public var deltaDelay: Duration?
@@ -39,7 +40,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 
 	public init() {
 		self.script = []
-		self.failures = []
+		self.maintenanceScript = []
 		self.requests = []
 	}
 
@@ -53,9 +54,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 			return AsyncThrowingStream { continuation in
 				let task = Task {
 					do {
-						while !Task.isCancelled {
-							try await Task.sleep(for: .seconds(60))
-						}
+						try await Self.hang()
 						continuation.finish()
 					} catch is CancellationError {
 						continuation.finish()
@@ -68,9 +67,9 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				}
 			}
 		}
-		let events: [TransportEvent]
+		let batch: ScriptedBatch
 		do {
-			events = try nextBatch(for: request)
+			batch = try nextBatch(for: request)
 		} catch {
 			return AsyncThrowingStream { continuation in
 				continuation.finish(throwing: error)
@@ -78,23 +77,27 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		}
 		let delay = requestDelay
 		let pause = deltaDelay
-		let hangAfter = hangAfterScript
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
 					if let delay {
 						try await Task.sleep(for: delay)
 					}
-					for event in events {
+					for event in batch.events {
 						if let pause {
 							try await Task.sleep(for: pause)
 						}
 						continuation.yield(event)
 					}
-					while hangAfter, !Task.isCancelled {
-						try await Task.sleep(for: .seconds(60))
+					switch batch.end {
+					case .finished:
+						continuation.finish()
+					case .failed(let failure):
+						continuation.finish(throwing: failure)
+					case .hanging:
+						try await Self.hang()
+						continuation.finish()
 					}
-					continuation.finish()
 				} catch is CancellationError {
 					continuation.finish()
 				} catch {
@@ -107,16 +110,18 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		}
 	}
 
-	private func nextBatch(for request: CompletionRequest) throws -> [TransportEvent] {
+	private static func hang() async throws {
+		while !Task.isCancelled {
+			try await Task.sleep(for: .seconds(60))
+		}
+	}
+
+	private func nextBatch(for request: CompletionRequest) throws -> ScriptedBatch {
 		lock.lock()
 		defer { lock.unlock() }
 		requests.append(request)
-		if !failures.isEmpty {
-			throw failures.removeFirst().failure
-		}
 		var events: [TransportEvent] = []
-		while !script.isEmpty {
-			let event = script.removeFirst()
+		while let event = takeEvent(for: request.charge) {
 			switch event {
 			case .text(let text):
 				events.append(.textDelta(text))
@@ -134,16 +139,35 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 					)
 				)
 			case .finish(let reason):
-				events.append(
-					.finished(
-						reason: reason,
-						usage: finishUsage
-					)
-				)
-				return events
+				events.append(.finished(reason: reason, usage: finishUsage))
+				return ScriptedBatch(events: events, end: .finished)
+			case .fail(let scripted):
+				return ScriptedBatch(events: events, end: .failed(scripted.failure))
+			case .hang:
+				return ScriptedBatch(events: events, end: .hanging)
 			}
 		}
-		return events
+		return ScriptedBatch(events: events, end: .finished)
+	}
+
+	private func takeEvent(for charge: GenerateCharge) -> ScriptedEvent? {
+		switch charge {
+		case .chatAttempt, .stepRecovery:
+			return script.isEmpty ? nil : script.removeFirst()
+		case .compaction, .memoryFlush:
+			return maintenanceScript.isEmpty ? nil : maintenanceScript.removeFirst()
+		}
+	}
+}
+
+private struct ScriptedBatch: Sendable {
+	let events: [TransportEvent]
+	let end: End
+
+	enum End: Sendable {
+		case finished
+		case failed(ProviderFailure)
+		case hanging
 	}
 }
 

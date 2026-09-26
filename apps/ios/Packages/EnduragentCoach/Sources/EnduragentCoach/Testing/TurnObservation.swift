@@ -12,7 +12,7 @@ extension SendOutcome {
 extension TurnState {
 	package var isSettled: Bool {
 		switch self {
-		case .completed, .failed, .interrupted: true
+		case .completed, .savedWork, .failed, .interrupted: true
 		case .accepted, .processing: false
 		}
 	}
@@ -66,7 +66,7 @@ extension Coach {
 				case .model(let text):
 					return question + [text]
 				}
-			case .accepted, .processing, .failed, .interrupted:
+			case .accepted, .processing, .savedWork, .failed, .interrupted:
 				return question
 			}
 		}

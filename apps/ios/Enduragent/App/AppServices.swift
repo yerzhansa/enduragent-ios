@@ -65,7 +65,8 @@ struct AppServices: Sendable {
 		FixtureBlockingURLProtocol.register()
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
-		let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+		let clock = FixtureClock(
+			calendar: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana"))
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()

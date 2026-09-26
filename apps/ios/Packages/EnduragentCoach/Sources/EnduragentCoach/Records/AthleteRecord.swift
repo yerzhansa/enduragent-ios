@@ -21,6 +21,7 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 
 public enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case turnClaim
+	case replyObserved
 	case pendingProposal
 	case proposalCleared
 	case flushPending
@@ -91,6 +92,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 
 public enum DeviceLocalRecordBody: Sendable, Equatable {
 	case turnClaim(TurnClaimBody)
+	case replyObserved(ReplyObservedBody)
 	case pendingProposal(ProposalBody)
 	case proposalCleared(ProposalClearedBody)
 	case flushPending(FlushPendingBody)
@@ -103,6 +105,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	public var kind: DeviceLocalKind {
 		switch self {
 		case .turnClaim: .turnClaim
+		case .replyObserved: .replyObserved
 		case .pendingProposal: .pendingProposal
 		case .proposalCleared: .proposalCleared
 		case .flushPending: .flushPending
@@ -117,6 +120,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	public var chatId: ChatID? {
 		switch self {
 		case .turnClaim(let body): body.chatId
+		case .replyObserved(let body): body.chatId
 		case .pendingProposal(let body): body.chatId
 		case .proposalCleared(let body): body.chatId
 		case .flushPending(let body): body.chatId
@@ -127,6 +131,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	public var turn: TurnID? {
 		switch self {
 		case .turnClaim(let body): body.turn
+		case .replyObserved(let body): body.turn
 		case .pendingProposal, .proposalCleared, .flushPending, .planningCommand, .planRevision,
 			.mirrorJob, .workoutMatch, .workoutDrift:
 			nil

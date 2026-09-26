@@ -6,7 +6,7 @@ package enum ConversationFold {
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
-	package static let localScope: RecordQuery.Scope = .deviceLocal([.turnClaim])
+	package static let localScope: RecordQuery.Scope = .deviceLocal([.turnClaim, .replyObserved])
 
 	package static func fold(
 		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID
@@ -132,8 +132,13 @@ package enum ConversationFold {
 		}
 		for record in local.sorted(by: { $0.hlc < $1.hlc })
 		where record.chatId == chat && record.deviceId == device {
-			if case .deviceLocal(.turnClaim(let body)) = record.body {
+			switch record.body {
+			case .deviceLocal(.turnClaim(let body)):
 				turns[body.turn]?.claims.append(body)
+			case .deviceLocal(.replyObserved(let body)):
+				turns[body.turn]?.replyObserved.append(body)
+			default:
+				break
 			}
 		}
 		for turn in order {
@@ -192,6 +197,9 @@ package enum ConversationFold {
 			case .deviceLocal(.turnClaim(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].claims.append(body)
+			case .deviceLocal(.replyObserved(let body)):
+				guard let position = next.position(of: body.turn) else { continue }
+				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
 			default:
 				continue
 			}

@@ -347,14 +347,16 @@ public struct Memory: Sendable {
 		)
 	}
 
-	public func appendDailyNote(_ note: String, stamp: OperationStamp) async throws {
+	@discardableResult
+	public func appendDailyNote(_ note: String, stamp: OperationStamp) async throws -> Bool {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let snapshot = try await loadSnapshot()
 		let existing = snapshot.dailyNotesOnly(on: today)
 		if !existing.isEmpty, "\n\(existing)\n".contains("\n\(note)\n") {
-			return
+			return false
 		}
 		_ = try await ledger.commit(synced: [.dailyNote(DailyNoteBody(note: note))], stamp: stamp)
+		return true
 	}
 
 	public func appendEvent(
@@ -568,7 +570,7 @@ public struct Memory: Sendable {
 				charge: .memoryFlush,
 				messages: messages,
 				tools: schemas,
-				deadline: TurnPolicy.chatCallDeadline
+				deadline: TurnBudgetPolicy.npm.perCallDeadline
 			)
 			let step = try await collectFlush(transport: transport, request: request)
 			if step.calls.isEmpty {

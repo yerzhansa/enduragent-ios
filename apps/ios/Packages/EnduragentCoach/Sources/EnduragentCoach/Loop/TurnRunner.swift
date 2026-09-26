@@ -1,83 +1,19 @@
 import Foundation
-
-package struct AttemptContext: Sendable, Equatable {
-	package var chatId: ChatID
-	package var messages: [ChatMessage]
-	package var windowStart: ULID?
-	package var pending: ProposalBody?
-	package var writesCommitted: Int
-	package var flushedThisTurn: Bool
-	package var lastFlushMessageCount: Int
-	package var steps: Int
-	package var stamp: OperationStamp
-}
+import Synchronization
 
 public enum TurnPolicy {
-	public static let maxSteps = 10
-	public static let maxGenerateCalls = 40
-	public static let maxAttempts = 4
-	public static let wallClock: Duration = .seconds(10 * 60)
-	public static let chatCallDeadline: Duration = .seconds(600)
 	public static let compactionTimeout: Duration = .seconds(120)
 	public static let toolResultTokenCap = 24_000
 	public static let athleteContextChars = 20_000
 	public static let historyBudgetFloor = 8_000
 	public static let historyTokenBudgetRatio = 0.3
 	public static let contextWindowCap = 200_000
-	public static let overflowRetries = 3
+	public static let reserveTokens = 20_000
 	public static let dailyResetHour = 4
 	public static let dailyResetGrace: Duration = .seconds(30 * 60)
 	public static let proposalTTL: Duration = .seconds(10 * 60)
 	public static let ungatedPrefixTokenCeiling = 13_200
 	public static let gatedPrefixTokenCeiling = 13_600
-}
-
-public struct TurnBudgetExceeded: Error, Equatable, Sendable {
-	public var kind: Kind
-
-	public enum Kind: String, Sendable, Equatable {
-		case generateCalls
-		case generateAttempts
-		case wallClock
-	}
-}
-
-public struct TurnBudget: Sendable {
-	public var generatesRemaining: Int
-	public var attemptsRemaining: Int
-	public var deadline: ContinuousClock.Instant
-
-	public static func start(clock: ContinuousClock = ContinuousClock()) -> TurnBudget {
-		TurnBudget(
-			generatesRemaining: TurnPolicy.maxGenerateCalls,
-			attemptsRemaining: TurnPolicy.maxAttempts,
-			deadline: clock.now.advanced(by: TurnPolicy.wallClock)
-		)
-	}
-
-	public mutating func chargeGenerate() throws {
-		guard generatesRemaining > 0 else {
-			throw TurnBudgetExceeded(kind: .generateCalls)
-		}
-		generatesRemaining -= 1
-	}
-
-	public mutating func chargeAttempt() throws {
-		guard attemptsRemaining > 0 else {
-			throw TurnBudgetExceeded(kind: .generateAttempts)
-		}
-		attemptsRemaining -= 1
-	}
-
-	public func remaining(until now: ContinuousClock.Instant) -> Duration {
-		now < deadline ? deadline - now : .zero
-	}
-
-	public func checkDeadline(now: ContinuousClock.Instant = ContinuousClock().now) throws {
-		if now >= deadline {
-			throw TurnBudgetExceeded(kind: .wallClock)
-		}
-	}
 }
 
 package struct TurnAttempt: Sendable, Equatable {
@@ -99,6 +35,7 @@ package enum AttemptProgress: Sendable, Equatable {
 
 package enum AttemptResult: Sendable, Equatable {
 	case replied(ReplyText, lineage: ReplyLineage)
+	case savedWork(SavedWorkOutcome, saved: WriteSummary)
 	case failed(CoachFailure, saved: WriteSummary)
 }
 
@@ -112,6 +49,8 @@ extension Settlement {
 		switch result {
 		case .replied(let text, let lineage):
 			self = .replied(text, lineage: lineage)
+		case .savedWork(let outcome, let saved):
+			self = .savedWork(outcome, saved: saved)
 		case .failed(let failure, let saved):
 			self = .failed(failure, saved: saved)
 		}
@@ -128,6 +67,7 @@ package struct TurnRunner: Sendable {
 	private let tools: ToolRuntime
 	private let planning: Planning
 	private let diagnostics: DiagnosticsLog
+	private let ladder: RetryLadder
 
 	package init(
 		transport: any ModelTransport,
@@ -136,7 +76,8 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		tools: ToolRuntime,
 		planning: Planning,
-		diagnostics: DiagnosticsLog
+		diagnostics: DiagnosticsLog,
+		ladder: RetryLadder
 	) {
 		self.transport = transport
 		self.intervals = intervals
@@ -145,46 +86,137 @@ package struct TurnRunner: Sendable {
 		self.tools = tools
 		self.planning = planning
 		self.diagnostics = diagnostics
+		self.ladder = ladder
 	}
 
 	package func run(
 		_ attempt: TurnAttempt,
+		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws(CancellationError) -> AttemptReport {
+		let prompt: TurnPrompt
 		do {
-			return try await perform(attempt, progress: progress)
-		} catch is CancellationError {
-			throw CancellationError()
-		} catch is LedgerFailure {
-			return AttemptReport(
-				result: .failed(.local(.recordStorage), saved: .none), softFlushDue: false)
-		} catch let budget as TurnBudgetExceeded {
-			return failed(.budgetExhausted(budget.kind))
-		} catch let provider as ProviderFailure {
-			return failed(ModelFailure(provider, method: attempt.access.method))
+			prompt = try await assemble(attempt, scope: scope, progress: progress)
 		} catch {
-			return failed(.providerDown(.outage))
+			let failure = try AttemptFailure(caught: error)
+			return AttemptReport(
+				result: .failed(
+					failure.coachFailure(for: attempt.access.method),
+					saved: await scope.summary),
+				softFlushDue: false
+			)
+		}
+		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
+	}
+
+	private func attempts(
+		_ attempt: TurnAttempt,
+		prompt initial: TurnPrompt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws(CancellationError) -> AttemptReport {
+		var prompt = initial
+		var counters = RetryCounters.zero
+		var pending: RetryPlan?
+		while true {
+			let observed = TextObservation()
+			do {
+				if let pending {
+					try await prepare(
+						pending, prompt: &prompt, attempt: attempt, scope: scope, progress: progress
+					)
+				}
+				pending = nil
+				return try await generate(
+					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
+			} catch {
+				let failure = try AttemptFailure(caught: error)
+				let situation = AttemptSituation(
+					committed: await scope.written,
+					observedText: observed.seen,
+					promptTokens: prompt.estimatedTokens,
+					effectiveWindow: TurnPolicy.contextWindowCap,
+					flushLatchFree: await scope.flushLatchFree,
+					accessMethod: attempt.access.method,
+					jitter: Double.random(in: 0..<1)
+				)
+				let saved = await scope.summary
+				switch ladder.decide(failure, situation: situation, counters: counters) {
+				case .terminal(let coachFailure):
+					return AttemptReport(
+						result: .failed(coachFailure, saved: saved), softFlushDue: false)
+				case .settleSavedWork(let outcome):
+					return AttemptReport(
+						result: .savedWork(outcome, saved: saved), softFlushDue: false)
+				case .retry(let next, let preparations):
+					counters = next
+					pending = RetryPlan(failure: failure, preparations: preparations)
+					await progress(.attemptRestarted)
+				}
+			}
 		}
 	}
 
-	private func failed(_ failure: ModelFailure) -> AttemptReport {
-		AttemptReport(result: .failed(.model(failure), saved: .none), softFlushDue: false)
+	private func prepare(
+		_ retry: RetryPlan,
+		prompt: inout TurnPrompt,
+		attempt: TurnAttempt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws {
+		for preparation in retry.preparations {
+			switch preparation {
+			case .flushMemory(let trigger):
+				try await flushOnce(trigger, attempt: attempt, scope: scope, progress: progress)
+			case .compactInTurn:
+				do {
+					try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
+				} catch is CancellationError {
+					throw CancellationError()
+				} catch {
+					diagnostics.record(
+						.compactionFailed(attempt.chat, detail: String(describing: error)),
+						redacting: [attempt.access.credential.secret])
+					throw AttemptFailure.rescueFailed(retry.failure)
+				}
+			case .wait(let duration, let reason):
+				let until = clock.now.addingTimeInterval(duration.timeInterval)
+				await progress(.activity(.waiting(RetryWait(until: until, reason: reason))))
+				try await clock.sleep(for: duration)
+				try await scope.checkDeadline(uptime: clock.uptime)
+			}
+		}
 	}
 
-	private func perform(
-		_ attempt: TurnAttempt,
+	private func flushOnce(
+		_ trigger: FlushTrigger,
+		attempt: TurnAttempt,
+		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws -> AttemptReport {
+	) async throws {
+		guard await scope.takeFlushLatch() else { return }
+		await progress(.activity(.savingMemory))
+		do {
+			try await Memory(ledger: ledger, clock: clock).flush(
+				trigger: trigger, chatId: attempt.chat, transport: transport, access: attempt.access
+			)
+		} catch is CancellationError {
+			throw CancellationError()
+		} catch {
+			diagnostics.record(
+				.memoryFlushFailed(attempt.chat, detail: String(describing: error)),
+				redacting: [attempt.access.credential.secret])
+		}
+	}
+
+	private func assemble(
+		_ attempt: TurnAttempt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws -> TurnPrompt {
 		_ = planning
 		let chatId = attempt.chat
-		let stamp = OperationStamp(
-			operation: .turn(attempt.turn),
-			attempt: attempt.attempt,
-			binding: ActionBinding(
-				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-		)
-		await tools.beginTurn()
-
+		let stamp = scope.stamp
 		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
 		if shouldDailyReset(last: transcript.lastDate) {
 			_ = try await ledger.commit(
@@ -204,7 +236,7 @@ package struct TurnRunner: Sendable {
 				],
 				stamp: stamp
 			)
-			transcript = Transcript(messages: [], ulids: [], lastDate: nil, windowStart: marker)
+			transcript = Transcript(messages: [], ulids: [], lastDate: nil)
 		}
 
 		let memory = Memory(ledger: ledger, clock: clock)
@@ -247,17 +279,7 @@ package struct TurnRunner: Sendable {
 				.compactionSummary(
 					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
 			_ = try await ledger.commit(synced: bodies, stamp: stamp)
-			await progress(.activity(.savingMemory))
-			do {
-				try await memory.flush(
-					trigger: .trim, chatId: chatId, transport: transport, access: attempt.access)
-			} catch is CancellationError {
-				throw CancellationError()
-			} catch {
-				diagnostics.record(
-					.memoryFlushFailed(chatId, detail: String(describing: error)),
-					redacting: [attempt.access.credential.secret])
-			}
+			try await flushOnce(.trim, attempt: attempt, scope: scope, progress: progress)
 		}
 		let kept = trim.kept
 		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
@@ -274,181 +296,119 @@ package struct TurnRunner: Sendable {
 		)
 		var wire = kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
+		return TurnPrompt(
+			prefix: prefix, system: system, schemas: schemas, timed: timed,
+			softFlushDue: softFlushDue, wire: wire)
+	}
 
-		var state = AttemptContext(
-			chatId: chatId,
-			messages: kept,
-			windowStart: transcript.windowStart,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0,
-			stamp: stamp
-		)
-
-		var budget = TurnBudget.start()
-		var overflowTries = 0
-		var first = true
-
-		attemptLoop: while true {
+	private func generate(
+		_ attempt: TurnAttempt,
+		prompt: inout TurnPrompt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws -> AttemptReport {
+		try Task.checkCancellation()
+		try await scope.chargeAttempt()
+		try await scope.checkDeadline(uptime: clock.uptime)
+		if prompt.overBudget {
+			try await flushOnce(.preCompaction, attempt: attempt, scope: scope, progress: progress)
+			try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
+		}
+		try await scope.chargeCall()
+		var wire = prompt.wire
+		var steps = 0
+		var lastText = ""
+		var lastReason: FinishReason = .stop
+		stepLoop: while steps < scope.policy.maxStepsPerInvocation {
 			try Task.checkCancellation()
-			try budget.chargeAttempt()
-			try budget.checkDeadline()
-			if !first {
-				await progress(.attemptRestarted)
+			await progress(.activity(.generating(step: steps + 1)))
+			let request = CompletionRequest(
+				access: attempt.access,
+				attempt: attempt.attempt,
+				charge: .chatAttempt,
+				messages: [prompt.systemMessage] + wire,
+				tools: prompt.schemas,
+				deadline: await scope.callDeadline(uptime: clock.uptime)
+			)
+			let step = try await generateStep(request: request, progress: progress)
+			steps += 1
+			lastText = step.text
+			lastReason = step.reason
+			if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
+				throw AttemptFailure.windowExceededFinish
 			}
-			first = false
-
-			if shouldCompact(wire: wire, system: system) {
-				if overflowTries >= TurnPolicy.overflowRetries {
-					return AttemptReport(
-						result: .failed(.model(.contextOverflow), saved: .none), softFlushDue: false
-					)
+			if step.toolCalls.isEmpty {
+				if step.reason == .error || step.reason == .contentFilter,
+					step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+				{
+					throw AttemptFailure.generation(
+						step.reason == .error ? .emptyAfterError : .contentFiltered)
 				}
-				await progress(.activity(.compacting))
-				try await compact(
-					wire: &wire, budget: &budget, chatId: chatId, stamp: stamp,
-					access: attempt.access)
-				overflowTries += 1
+				break stepLoop
 			}
-
-			state.steps = 0
-			var lastText = ""
-			var lastReason: FinishReason = .stop
-
-			stepLoop: while state.steps < TurnPolicy.maxSteps {
-				try Task.checkCancellation()
-				try budget.chargeGenerate()
-				await progress(.activity(.generating(step: state.steps + 1)))
-				let deadline = minDuration(
-					TurnPolicy.chatCallDeadline,
-					budget.remaining(until: ContinuousClock().now)
-				)
-				var messages = [
-					WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
-				]
-				messages.append(contentsOf: wire)
-				let request = CompletionRequest(
-					access: attempt.access,
-					attempt: attempt.attempt,
-					charge: .chatAttempt,
-					messages: messages,
-					tools: schemas,
-					deadline: deadline
-				)
-				let step = try await generateStep(request: request, progress: progress)
-
-				state.steps += 1
-				lastText = step.text
-				lastReason = step.reason
-
-				if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
-					if overflowTries >= TurnPolicy.overflowRetries {
-						return AttemptReport(
-							result: .failed(.model(.contextOverflow), saved: .none),
-							softFlushDue: false)
-					}
-					overflowTries += 1
-					await progress(.activity(.compacting))
-					try await compact(
-						wire: &wire, budget: &budget, chatId: chatId, stamp: stamp,
-						access: attempt.access)
-					continue attemptLoop
+			wire.append(
+				WireMessage(
+					role: .assistant, content: step.text, toolCalls: step.toolCalls,
+					toolCallId: nil)
+			)
+			await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
+			let outcomes = try await runTools(step.toolCalls, chatId: attempt.chat, scope: scope)
+			for (call, outcome) in outcomes {
+				if case .pending(let proposal) = outcome {
+					await progress(.proposalPending(proposal))
 				}
-
-				if step.toolCalls.isEmpty {
-					if step.reason == .error || step.reason == .contentFilter,
-						step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-					{
-						let fault: GenerationFault =
-							step.reason == .error ? .emptyAfterError : .contentFiltered
-						return AttemptReport(
-							result: .failed(.model(.generationFailed(fault)), saved: .none),
-							softFlushDue: false)
-					}
-					break stepLoop
-				}
-
-				let ids = Set(step.toolCalls.map(\.id))
-				let watchdogPause = ChatWatchdog()
-				await watchdogPause.pauseForTools(ids)
 				wire.append(
 					WireMessage(
-						role: .assistant, content: step.text, toolCalls: step.toolCalls,
-						toolCallId: nil)
-				)
-
-				await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
-				let outcomes = try await runTools(step.toolCalls, chatId: chatId, state: state)
-				for (call, outcome) in outcomes {
-					if case .pending(let proposal) = outcome {
-						await progress(.proposalPending(proposal))
-					}
-					wire.append(
-						WireMessage(
-							role: .tool,
-							content: encodeToolOutcome(outcome),
-							toolCalls: [],
-							toolCallId: call.id
-						)
+						role: .tool,
+						content: encodeToolOutcome(outcome),
+						toolCalls: [],
+						toolCallId: call.id
 					)
-				}
-				await watchdogPause.pauseForTools([])
-				await watchdogPause.disarm()
-
-				if state.steps == TurnPolicy.maxSteps {
-					break stepLoop
-				}
-			}
-
-			var assistantText = lastText
-			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-				lastReason == .toolCalls || lastReason == .length
-			{
-				try budget.chargeGenerate()
-				let recovery = try await generateStep(
-					request: CompletionRequest(
-						access: attempt.access,
-						attempt: attempt.attempt,
-						charge: .stepRecovery,
-						messages: [
-							WireMessage(
-								role: .system, content: system, toolCalls: [], toolCallId: nil)
-						] + wire + [
-							WireMessage(
-								role: .user,
-								content: PromptStaticBlocks.recoveryPrompt,
-								toolCalls: [],
-								toolCallId: nil
-							)
-						],
-						tools: [],
-						deadline: minDuration(
-							TurnPolicy.chatCallDeadline,
-							budget.remaining(until: ContinuousClock().now)
-						)
-					),
-					progress: progress
 				)
-				assistantText = recovery.text
 			}
-			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				assistantText = PromptStaticBlocks.stepLimitCopy
-				await progress(.textDelta(assistantText))
-			}
-
-			let templateHash = sha256Hex(
-				prefix + schemas.map(\.name.rawValue).joined() + attempt.access.model.rawValue)
-			let assembledHash = sha256Hex(system + timed + assistantText)
-			return AttemptReport(
-				result: .replied(
-					.model(assistantText),
-					lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
-				),
-				softFlushDue: softFlushDue
-			)
 		}
+
+		var assistantText = lastText
+		if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+			lastReason == .toolCalls || lastReason == .length
+		{
+			try await scope.chargeCall()
+			let recovery = try await generateStep(
+				request: CompletionRequest(
+					access: attempt.access,
+					attempt: attempt.attempt,
+					charge: .stepRecovery,
+					messages: [prompt.systemMessage] + wire + [
+						WireMessage(
+							role: .user,
+							content: PromptStaticBlocks.recoveryPrompt,
+							toolCalls: [],
+							toolCallId: nil
+						)
+					],
+					tools: [],
+					deadline: await scope.callDeadline(uptime: clock.uptime)
+				),
+				progress: progress
+			)
+			assistantText = recovery.text
+		}
+		if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+			assistantText = PromptStaticBlocks.stepLimitCopy
+			await progress(.textDelta(assistantText))
+		}
+
+		let templateHash = sha256Hex(
+			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
+				+ attempt.access.model.rawValue)
+		let assembledHash = sha256Hex(prompt.system + prompt.timed + assistantText)
+		return AttemptReport(
+			result: .replied(
+				.model(assistantText),
+				lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
+			),
+			softFlushDue: prompt.softFlushDue
+		)
 	}
 
 	private func generateStep(
@@ -528,7 +488,7 @@ package struct TurnRunner: Sendable {
 	private func runTools(
 		_ calls: [WireToolCall],
 		chatId: ChatID,
-		state: AttemptContext
+		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
 		try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
@@ -541,14 +501,14 @@ package struct TurnRunner: Sendable {
 							name: call.name,
 							arguments: arguments,
 							chatId: chatId,
-							state: state
-						)
+							scope: scope
+						).outcome
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								state.stamp.attempt, call.name, detail: String(describing: error)))
+								scope.stamp.attempt, call.name, detail: String(describing: error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
@@ -563,18 +523,19 @@ package struct TurnRunner: Sendable {
 	}
 
 	private func compact(
-		wire: inout [WireMessage],
-		budget: inout TurnBudget,
-		chatId: ChatID,
-		stamp: OperationStamp,
-		access: ResolvedAccess
+		_ prompt: inout TurnPrompt,
+		attempt: TurnAttempt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
 	) async throws {
-		try budget.chargeGenerate()
-		let keep = Array(wire.suffix(4))
-		let dropped = Array(wire.dropLast(min(4, wire.count)))
+		await progress(.activity(.compacting))
+		try await scope.chargeCall()
+		let chatId = attempt.chat
+		let keep = Array(prompt.wire.suffix(4))
+		let dropped = Array(prompt.wire.dropLast(min(4, prompt.wire.count)))
 		let request = CompletionRequest(
-			access: access,
-			attempt: stamp.attempt,
+			access: attempt.access,
+			attempt: attempt.attempt,
 			charge: .compaction,
 			messages: [
 				WireMessage(
@@ -616,7 +577,7 @@ package struct TurnRunner: Sendable {
 			)
 		}
 		bodies.append(.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: summary)))
-		_ = try await ledger.commit(synced: bodies, stamp: stamp)
+		_ = try await ledger.commit(synced: bodies, stamp: scope.stamp)
 		var next: [WireMessage] = [
 			WireMessage(
 				role: .system,
@@ -626,7 +587,7 @@ package struct TurnRunner: Sendable {
 			)
 		]
 		next.append(contentsOf: keep)
-		wire = next
+		prompt.wire = next
 	}
 
 	private func loadSnapshot() async -> AthleteSnapshot? {
@@ -652,12 +613,7 @@ package struct TurnRunner: Sendable {
 		case .none: lastDate = nil
 		case .at(let date): lastDate = date
 		}
-		return Transcript(
-			messages: history.messages,
-			ulids: history.ulids,
-			lastDate: lastDate,
-			windowStart: conversation.current.promptWindow.firstIncluded
-		)
+		return Transcript(messages: history.messages, ulids: history.ulids, lastDate: lastDate)
 	}
 
 	private func shouldDailyReset(last: Date?) -> Bool {
@@ -673,6 +629,49 @@ package struct TurnRunner: Sendable {
 	}
 }
 
+private struct TurnPrompt: Sendable {
+	let prefix: String
+	let system: String
+	let schemas: [ToolSchema]
+	let timed: String
+	let softFlushDue: Bool
+	var wire: [WireMessage]
+
+	var systemMessage: WireMessage {
+		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
+	}
+
+	var estimatedTokens: Int {
+		wire.reduce(0) { $0 + estimateTokens($1.content) } + estimateTokens(system)
+	}
+
+	var overBudget: Bool {
+		estimatedTokens > TurnPolicy.contextWindowCap - TurnPolicy.reserveTokens
+	}
+}
+
+private struct RetryPlan: Sendable {
+	let failure: AttemptFailure
+	let preparations: [RetryPreparation]
+}
+
+private final class TextObservation: Sendable {
+	private let state = Mutex(false)
+
+	var seen: Bool {
+		state.withLock { $0 }
+	}
+
+	func watching(_ progress: @escaping AttemptProgressSink) -> AttemptProgressSink {
+		{ event in
+			if case .textDelta(let delta) = event, !delta.isEmpty {
+				self.state.withLock { $0 = true }
+			}
+			await progress(event)
+		}
+	}
+}
+
 private struct GenerateStep: Sendable {
 	var text: String
 	var toolCalls: [WireToolCall]
@@ -684,7 +683,6 @@ private struct Transcript: Sendable {
 	var messages: [ChatMessage]
 	var ulids: [ULID]
 	var lastDate: Date?
-	var windowStart: ULID?
 
 	func ulid(for message: ChatMessage) -> ULID? {
 		guard let index = messages.firstIndex(of: message) else { return nil }
@@ -729,16 +727,6 @@ private func compactionStub(_ dropped: [ChatMessage]) -> String {
 	\(dropped.map(\.text).joined(separator: "\n"))
 	## Pending Questions
 	"""
-}
-
-private func shouldCompact(wire: [WireMessage], system: String) -> Bool {
-	let estimated = wire.reduce(0) { $0 + estimateTokens($1.content) } + estimateTokens(system)
-	let budget = TurnPolicy.contextWindowCap - 20_000
-	return estimated > budget
-}
-
-private func minDuration(_ lhs: Duration, _ rhs: Duration) -> Duration {
-	lhs < rhs ? lhs : rhs
 }
 
 private func dailyResetDate(now: Date, timeZone: TimeZone, hour: Int) -> Date {

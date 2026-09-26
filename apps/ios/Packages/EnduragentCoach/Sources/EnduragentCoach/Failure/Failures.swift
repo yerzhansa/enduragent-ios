@@ -65,6 +65,11 @@ public enum LocalFailure: String, Sendable {
 	case recordStorage
 }
 
+public enum SavedWorkOutcome: String, Sendable {
+	case writesSaved
+	case savedUnverified
+}
+
 public struct WriteSummary: Sendable, Equatable {
 	public let memorySections: Int
 	public let ledgerEvents: Int
@@ -141,6 +146,15 @@ package enum AthleteNotices {
 			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],
 			action: action
 		)
+	}
+
+	package static func notice(for outcome: SavedWorkOutcome) -> AthleteNotice {
+		switch outcome {
+		case .writesSaved:
+			return AthleteNotice(key: Catalog.coachFallbackWritesSaved, vars: [:], action: nil)
+		case .savedUnverified:
+			return AthleteNotice(key: Catalog.coachErrorUnknown, vars: [:], action: nil)
+		}
 	}
 
 	package static func notice(

@@ -291,7 +291,7 @@ func replyText(_ state: TurnState) -> String? {
 
 func isSettled(_ state: TurnState) -> Bool {
 	switch state {
-	case .completed, .failed, .interrupted: true
+	case .completed, .savedWork, .failed, .interrupted: true
 	case .accepted, .processing: false
 	}
 }

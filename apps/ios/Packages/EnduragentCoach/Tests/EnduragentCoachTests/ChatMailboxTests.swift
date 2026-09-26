@@ -49,8 +49,7 @@ import Testing
 
 	@Test func cancellationSettlesInterruptedWithLiveText() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is ")]
-		transport.hangAfterScript = true
+		transport.script = [.text("Thursday is "), .hang]
 		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
 		let coach = makeCoach(transport: transport, store: recording, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -73,7 +72,10 @@ import Testing
 		#expect(interrupted.partial == "Thursday is ")
 		#expect(interrupted.cause == .athleteStopped)
 		#expect(interrupted.notice.action == .tryAgain(turn))
-		#expect(recording.batches == [["userMessage"], ["turnClaim"], ["turnSettled"]])
+		#expect(
+			recording.batches == [
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+			])
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.activity == .idle)
 	}
@@ -222,7 +224,10 @@ import Testing
 		try await reopened.retry(turn, in: .main)
 		let settled = try #require(await reopened.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Still on.")
-		#expect(recording.batches == [["userMessage"], ["turnClaim"], ["turnSettled"]])
+		#expect(
+			recording.batches == [
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+			])
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		)
@@ -248,8 +253,9 @@ import Testing
 
 	@Test func retryOfAFailedTurnMintsASecondAttempt() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [.http(status: 500)]
-		transport.script = [.text("Recovered."), .finish(reason: .stop)]
+		transport.script =
+			Array(repeating: .fail(.http(status: 500)), count: 3)
+			+ [.text("Recovered."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -269,12 +275,12 @@ import Testing
 
 	@Test func aSecondTryAgainWhileTheFirstStartsIsRefused() async throws {
 		let transport = FakeModelTransport()
-		transport.failures = [.http(status: 500)]
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		transport.failures = [.http(status: 500), .http(status: 500)]
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 6)
 		async let first = refusal { () async throws(RetryRefusal) in
 			try await coach.retry(turn, in: .main)
 		}

@@ -28,6 +28,7 @@ struct SettlementPayload: Codable {
 	var templateHash: String?
 	var assembledHash: String?
 	var failure: FailurePayload?
+	var outcome: String?
 	var partial: String?
 	var cause: String?
 	var saved: WriteSummaryPayload?
@@ -42,6 +43,10 @@ struct SettlementPayload: Codable {
 			}
 			templateHash = lineage?.templateHash
 			assembledHash = lineage?.assembledHash
+		case .savedWork(let outcome, let saved):
+			kind = "savedWork"
+			self.outcome = outcome.rawValue
+			self.saved = WriteSummaryPayload(saved)
 		case .failed(let failure, let saved):
 			kind = "failed"
 			self.failure = FailurePayload(failure)
@@ -67,6 +72,11 @@ struct SettlementPayload: Codable {
 				lineage = nil
 			}
 			return .replied(.model(modelText), lineage: lineage)
+		case "savedWork":
+			guard let outcome = outcome.flatMap(SavedWorkOutcome.init(rawValue:)), let saved else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .savedWork(outcome, saved: saved.summary)
 		case "failed":
 			guard let failure, let saved else {
 				throw RecordDecodeFailure(reason: "settlement")
@@ -108,7 +118,7 @@ struct WriteSummaryPayload: Codable {
 	}
 }
 
-struct TurnClaimPayload: Codable {
+struct TurnAttemptPayload: Codable {
 	var chatId: String
 	var turn: String
 	var attempt: String

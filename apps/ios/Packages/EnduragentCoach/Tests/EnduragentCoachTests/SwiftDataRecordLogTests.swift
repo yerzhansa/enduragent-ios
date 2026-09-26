@@ -113,7 +113,7 @@ extension SwiftDataSuites {
 			}
 		}
 
-		@Test func failedAndInterruptedSettlementsRoundTrip() async throws {
+		@Test func failedSavedWorkAndInterruptedSettlementsRoundTrip() async throws {
 			let log = try makeSwiftDataLog(deviceId: phoneA)
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)
@@ -132,6 +132,14 @@ extension SwiftDataSuites {
 					TurnSettledBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
 						settlement: .failed(.local(.recordStorage), saved: .none))),
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .savedWork(.savedUnverified, saved: saved))),
+				.turnSettled(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .savedWork(.writesSaved, saved: saved))),
 				.turnSettled(
 					TurnSettledBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
@@ -265,6 +273,8 @@ extension SwiftDataSuites {
 			let local: [DeviceLocalRecordBody] = [
 				.turnClaim(
 					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+				.replyObserved(
+					ReplyObservedBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(
 					ProposalBody(
 						chatId: .main,

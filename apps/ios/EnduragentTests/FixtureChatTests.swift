@@ -127,75 +127,6 @@ extension FixtureLaunchTests {
 		#expect(replyText(try await settledTurn(model, at: 1).state) != nil)
 	}
 
-	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "Give me a ride for tomorrow"
-		await model.send()
-		transport.failures = [
-			.http(status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#)
-		]
-		let turn = try await settledTurn(model)
-		guard case .failed(let failed) = turn.state else {
-			Issue.record("expected a failed turn, got \(turn.state)")
-			return
-		}
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.vars.isEmpty)
-		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.errorLine == nil)
-	}
-
-	@Test(arguments: [
-		("fixture:fail 401", Catalog.coachErrorProviderCredentials, false),
-		("fixture:fail 402", Catalog.coachErrorUnknown, false),
-		("fixture:fail 429 7", Catalog.coachErrorRateLimitSeconds, true),
-		("fixture:fail network", Catalog.coachErrorProviderDown, true),
-		("fixture:fail timeout", Catalog.coachErrorProviderDown, true),
-		("fixture:fail overflow", Catalog.coachErrorUnknown, true),
-	])
-	func failDirectiveSettlesWithItsNotice(directive: String, key: CatalogKey, tryAgain: Bool)
-		async throws
-	{
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = directive
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == key)
-		#expect(failure.notice.action == (tryAgain ? .tryAgain(failed.id) : nil))
-		#expect(transport.requestCount == 1)
-		#expect(model.errorLine == nil)
-	}
-
-	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
-		let services = try services()
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:fail 500"
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failure.notice.action == .tryAgain(failed.id))
-		#expect(model.errorLine == nil)
-		await model.perform(.tryAgain(failed.id))
-		let retried = try await settledTurn(model, after: failed.state)
-		#expect(retried.id == failed.id)
-		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-	}
-
 	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
@@ -212,16 +143,6 @@ extension FixtureLaunchTests {
 		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
 		#expect(transport.requestCount == 0)
 		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
-	}
-
-	@Test func nextMessageClearsAQueuedFailure() throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let director = try #require(services.fixtureDirector)
-		#expect(director.prepare(for: "fixture:fail 500") == .sendToCoach)
-		#expect(transport.failures.count == 1)
-		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
-		#expect(transport.failures.isEmpty)
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {

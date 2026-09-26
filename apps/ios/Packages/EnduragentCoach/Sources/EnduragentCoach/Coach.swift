@@ -56,7 +56,8 @@ public actor Coach {
 			clock: clock,
 			tools: tools,
 			planning: planning,
-			diagnostics: diagnostics
+			diagnostics: diagnostics,
+			ladder: .npm
 		)
 		self.mailboxes = [:]
 	}

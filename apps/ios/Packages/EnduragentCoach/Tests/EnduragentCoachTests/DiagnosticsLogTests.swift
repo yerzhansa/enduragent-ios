@@ -102,7 +102,7 @@ import Testing
 		let coach = makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock, secrets: secrets)
 		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
-		transport.failures = [.http(status: 500)]
+		transport.maintenanceScript = [.fail(.http(status: 500))]
 		if !keyStored {
 			secrets.locked = true
 		}
@@ -161,7 +161,8 @@ private struct UnreadableLog: RecordLog {
 private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
 	case .providerFailure(_, _, let detail), .toolFailed(_, _, let detail),
-		.memoryFlushFailed(_, let detail):
+		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
+		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .skippedRecord:
 		return nil

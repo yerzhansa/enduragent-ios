@@ -36,6 +36,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case providerFailure(AttemptID, ProviderFailure, detail: String)
 	case toolFailed(AttemptID, ToolName, detail: String)
 	case memoryFlushFailed(ChatID, detail: String)
+	case compactionFailed(ChatID, detail: String)
+	case replyObservedUnsaved(AttemptID, detail: String)
 	case skippedRecord(SkippedRow)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
@@ -46,7 +48,9 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .toolFailed(attempt, tool, detail: Redaction.clean(detail, secrets))
 		case .memoryFlushFailed(let chat, let detail):
 			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .skippedRecord:
+		case .compactionFailed(let chat, let detail):
+			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
+		case .replyObservedUnsaved, .skippedRecord:
 			return self
 		}
 	}

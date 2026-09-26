@@ -230,9 +230,19 @@ enum RecordCodec {
 		switch kind {
 		case .turnClaim:
 			let payload = try payload(
-				TurnClaimPayload.self, version: version, kind: name, data: data)
+				TurnAttemptPayload.self, version: version, kind: name, data: data)
 			return .turnClaim(
 				TurnClaimBody(
+					chatId: try decodeChatID(payload.chatId),
+					turn: TurnID(ulid: try decodeULID(payload.turn)),
+					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
+				)
+			)
+		case .replyObserved:
+			let payload = try payload(
+				TurnAttemptPayload.self, version: version, kind: name, data: data)
+			return .replyObserved(
+				ReplyObservedBody(
 					chatId: try decodeChatID(payload.chatId),
 					turn: TurnID(ulid: try decodeULID(payload.turn)),
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt))

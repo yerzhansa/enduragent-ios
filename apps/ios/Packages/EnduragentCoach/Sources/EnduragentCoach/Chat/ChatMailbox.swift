@@ -134,7 +134,7 @@ package actor ChatMailbox {
 		await admission.enter()
 		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
 		window = nil
-		work.removeAll { if case .turn = $0 { true } else { false } }
+		work.removeAll { $0.turn != nil }
 		for turn in unstarted {
 			let stamp = await stamp(for: turn)
 			await settle(
@@ -151,10 +151,7 @@ package actor ChatMailbox {
 
 	private func queuedTurns(includingActive: Bool) -> [TurnID] {
 		let items = includingActive ? [active].compactMap { $0 } + work : work
-		return items.compactMap { item -> TurnID? in
-			if case .turn(let turn) = item { return turn }
-			return nil
-		}
+		return items.compactMap(\.turn)
 	}
 
 	package func refreshProposal() async {
@@ -204,12 +201,7 @@ package actor ChatMailbox {
 	}
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
-		OperationStamp(
-			operation: .turn(turn),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: ActionBinding(
-				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-		)
+		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
 	}
 
 	private func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure) {
@@ -266,7 +258,7 @@ package actor ChatMailbox {
 			case .turn(let turn):
 				await self.runTurn(turn)
 			case .flush:
-				await self.drainFlush()
+				await self.flushes.drain(self.chatId)
 			}
 			self.workFinished()
 		}
@@ -309,20 +301,21 @@ package actor ChatMailbox {
 		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
+		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
 			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
 		var softFlushDue = false
 		do {
-			let report = try await runner.run(request) { progress in
-				await self.apply(progress, attempt: attempt)
+			let report = try await runner.run(request, scope: scope) { progress in
+				await self.apply(progress, turn: turn, stamp: stamp)
 			}
 			settlement = Settlement(report.result)
 			softFlushDue = report.softFlushDue
 		} catch {
 			settlement = .interrupted(
-				partial: live?.text ?? "", cause: .athleteStopped, saved: .none)
+				partial: live?.text ?? "", cause: .athleteStopped, saved: await scope.summary)
 		}
 		await settle(turn, attempt: attempt, settlement, stamp: stamp)
 		live = nil
@@ -359,12 +352,17 @@ package actor ChatMailbox {
 			device: ledger.deviceId)
 	}
 
-	private func drainFlush() async {
-		await flushes.drain(chatId)
-	}
-
-	private func apply(_ progress: AttemptProgress, attempt: AttemptID) {
-		guard var current = live, current.attempt == attempt else { return }
+	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
+		if case .textDelta(let delta) = progress, !delta.isEmpty,
+			case .success(let mark) = writes(.observeReply(stamp.attempt), for: turn)
+		{
+			do {
+				try await commit(mark, stamp: stamp)
+			} catch {
+				ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
+			}
+		}
+		guard var current = live, current.attempt == stamp.attempt else { return }
 		switch progress {
 		case .textDelta(let delta):
 			current.text += delta

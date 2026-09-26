@@ -27,7 +27,10 @@ extension SwiftDataSuites {
 			#expect(
 				replyText(try #require(await coach.settledState(of: turn, in: .main)))
 					== "Two rides.")
-			#expect(recording.batches == [["userMessage"], ["turnClaim"], ["turnSettled"]])
+			#expect(
+				recording.batches == [
+					["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				])
 		}
 
 		@Test func acceptWithKnownDraftIdWritesNothingAndReturnsTheTurn() async throws {

@@ -23,28 +23,53 @@ import Testing
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
 
-	@Test func ledgerAppendReturnsDuplicateFlag() async throws {
+	@Test func ledgerAppendReportsACommitOnlyWhenRecorded() async throws {
 		let store = InMemoryRecordLog()
 		let tools = runtime(store: store)
+		let arguments = try JSONValue.parse(
+			#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
+		)
 		let first = try await tools.execute(
-			name: .ledgerAppend,
-			arguments: try JSONValue.parse(
-				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
-			),
-			chatId: .main,
-			state: attemptContext()
-		)
+			name: .ledgerAppend, arguments: arguments, chatId: .main, scope: turnScope())
 		let second = try await tools.execute(
-			name: .ledgerAppend,
+			name: .ledgerAppend, arguments: arguments, chatId: .main, scope: turnScope())
+		#expect(unwrap(first.outcome).objectFields["recorded"]?.boolValue == true)
+		#expect(first.commit == CommittedWrite(tool: .ledgerAppend))
+		#expect(unwrap(second.outcome).objectFields["recorded"]?.boolValue == false)
+		#expect(unwrap(second.outcome).objectFields["duplicate"]?.boolValue == true)
+		#expect(second.commit == nil)
+	}
+
+	@Test func memoryWriteReportsACommitOnlyAfterARecordIsSaved() async throws {
+		let store = InMemoryRecordLog()
+		let tools = runtime(store: store)
+		let section = try await tools.execute(
+			name: .memoryWrite,
 			arguments: try JSONValue.parse(
-				#"{"date":"1998-06-13","kind":"decision","text":"Rides with a group on Saturdays"}"#
-			),
+				#"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#),
 			chatId: .main,
-			state: attemptContext()
+			scope: turnScope()
 		)
-		#expect(unwrap(first).objectFields["recorded"]?.boolValue == true)
-		#expect(unwrap(second).objectFields["recorded"]?.boolValue == false)
-		#expect(unwrap(second).objectFields["duplicate"]?.boolValue == true)
+		let refused = try await tools.execute(
+			name: .memoryWrite,
+			arguments: try JSONValue.parse(
+				#"{"type":"memory","section":"nonsense","content":"Rides on Saturdays"}"#),
+			chatId: .main,
+			scope: turnScope()
+		)
+		let daily = try JSONValue.parse(#"{"type":"daily","content":"Group ride on Saturdays"}"#)
+		let note = try await tools.execute(
+			name: .memoryWrite, arguments: daily, chatId: .main, scope: turnScope())
+		let repeated = try await tools.execute(
+			name: .memoryWrite, arguments: daily, chatId: .main, scope: turnScope())
+		#expect(section.commit == CommittedWrite(tool: .memoryWrite))
+		#expect(refused.commit == nil)
+		#expect(note.commit == CommittedWrite(tool: .memoryWrite))
+		#expect(repeated.commit == nil)
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
+		#expect(sections.count == 1)
+		#expect(notes.count == 1)
 	}
 
 	@Test func memoryQueryInvalidRangeReturnsCopiedError() async throws {
@@ -52,8 +77,8 @@ import Testing
 			name: .memoryQuery,
 			arguments: try JSONValue.parse(#"{"from":"1998-06-30","to":"1998-06-01"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(
 			unwrapString(outcome)
 				== "Error: 'from' (1998-06-30) is after 'to' (1998-06-01). Swap the bounds."
@@ -65,8 +90,8 @@ import Testing
 			name: .memoryQuery,
 			arguments: try JSONValue.parse(#"{"from":"1998-02-31","to":"1998-03-01"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(
 			unwrapString(outcome)
 				== "Error: 1998-02-31..1998-03-01 contains an invalid calendar date. Use real YYYY-MM-DD dates."
@@ -94,8 +119,8 @@ import Testing
 				#"{"type":"memory","section":"random-legacy","content":"updated orphan"}"#
 			),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
 	}
 
@@ -106,8 +131,8 @@ import Testing
 			arguments: try JSONValue.parse(
 				#"{"type":"daily","content":"Group ride on Saturdays"}"#),
 			chatId: .main,
-			state: attemptContext()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(unwrap(result).objectFields["saved"]?.boolValue == true)
 		let notes = try await store.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
 		#expect(notes.count == 1)
@@ -131,17 +156,7 @@ import Testing
 		)
 	}
 
-	private func attemptContext() -> AttemptContext {
-		AttemptContext(
-			chatId: .main,
-			messages: [],
-			windowStart: nil,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0,
-			stamp: testStamp()
-		)
+	private func turnScope() -> TurnScope {
+		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
 	}
 }

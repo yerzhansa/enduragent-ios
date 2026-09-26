@@ -123,8 +123,8 @@ import Testing
 	}
 
 	@Test func memoryIsWrittenAfterTheReplyAndQueryable() async throws {
-		transport.script = [
-			.text("Noted: group ride on Saturdays."), .finish(reason: .stop),
+		transport.script = [.text("Noted: group ride on Saturdays."), .finish(reason: .stop)]
+		transport.maintenanceScript = [
 			.toolCall(
 				name: "ledger_append",
 				arguments:

@@ -8,7 +8,7 @@ import Testing
 
 	@Test func flushUsesOnlyMemoryWriteAndLedgerAppend() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
+		transport.maintenanceScript = [
 			.toolCall(
 				name: "ledger_append",
 				arguments:
@@ -51,9 +51,8 @@ import Testing
 
 	@Test func softThresholdFlushIsQueuedAfterFinished() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("Noted."),
-			.finish(reason: .stop),
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.maintenanceScript = [
 			.toolCall(
 				name: "ledger_append",
 				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#
@@ -76,7 +75,7 @@ import Testing
 
 	@Test func staleResetFlushPendingConsumedOnce() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
+		transport.maintenanceScript = [
 			.finish(reason: .stop),
 			.finish(reason: .stop),
 			.finish(reason: .stop),
@@ -129,7 +128,7 @@ import Testing
 			script.append(.finish(reason: .toolCalls))
 		}
 		script.append(.finish(reason: .stop))
-		transport.script = script
+		transport.maintenanceScript = script
 		let store = InMemoryRecordLog()
 		let turn = TurnID(ulid: fixedUlid(1))
 		try await seed(

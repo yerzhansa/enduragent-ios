@@ -27,10 +27,18 @@ struct FixtureDirector: Sendable {
 		case "hang" where arguments.isEmpty:
 			transport.hangUntilCancelled = true
 		case "fail":
-			guard let failure = Self.failure(arguments) else {
+			let repeated = Self.repetition(arguments)
+			guard let failure = Self.failure(repeated.arguments) else {
 				return .rejected(Self.unknown(text))
 			}
-			transport.failures.append(failure)
+			transport.script =
+				Array(repeating: .fail(failure), count: repeated.count) + transport.script
+		case "memory-then-fail" where arguments.isEmpty:
+			transport.script = Self.savedMemory + [.fail(.http(status: 500))]
+		case "memory-then-hang" where arguments.isEmpty:
+			transport.script = Self.savedMemory + [.hang]
+		case "text-then-hang" where arguments.isEmpty:
+			transport.script = [.text(Self.partialReply), .hang]
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
 		default:
@@ -47,8 +55,27 @@ struct FixtureDirector: Sendable {
 		transport.hangUntilCancelled = false
 		transport.requestDelay = nil
 		transport.deltaDelay = nil
-		transport.failures = []
 		transport.script = FirstWeekFixture.script(for: text)
+	}
+
+	static let partialReply = "This week has Tuesday sweet spot"
+
+	static let savedMemory: [ScriptedEvent] = [
+		.toolCall(
+			name: ToolName.memoryWrite.rawValue,
+			arguments:
+				#"{"type":"memory","section":"schedule","content":"Rides with a group on Saturdays."}"#
+		),
+		.finish(reason: .toolCalls),
+	]
+
+	private static func repetition(_ arguments: [String]) -> (arguments: [String], count: Int) {
+		guard let last = arguments.last, last.hasPrefix("x"), let count = Int(last.dropFirst()),
+			count > 0
+		else {
+			return (arguments, 1)
+		}
+		return (Array(arguments.dropLast()), count)
 	}
 
 	private static func unknown(_ text: String) -> String {
