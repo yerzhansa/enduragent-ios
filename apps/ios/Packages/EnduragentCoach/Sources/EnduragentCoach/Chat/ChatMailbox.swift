@@ -21,6 +21,7 @@ package actor ChatMailbox {
 	private var running: Task<Void, Never>?
 	private var stopping = false
 	private let admission = Admission()
+	private let waits = RetryWaits()
 	private let feed = SnapshotFeed()
 
 	package init(
@@ -156,7 +157,7 @@ package actor ChatMailbox {
 
 	package func refreshProposal() async {
 		do {
-			try await loadProposal()
+			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
 		} catch {
 			pendingProposal = nil
 		}
@@ -184,7 +185,7 @@ package actor ChatMailbox {
 				RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
 			let local = try await ledger.read(
 				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
-			try await loadProposal()
+			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
 			conversation = ConversationFold.fold(
 				chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
 			loaded = true
@@ -192,12 +193,6 @@ package actor ChatMailbox {
 		} catch {
 			return .failure(error)
 		}
-	}
-
-	private func loadProposal() async throws(LedgerFailure) {
-		let records = try await ledger.read(ProposalPolicy.proposalQuery(chatId)).records
-		pendingProposal = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
-			.map(PendingProposal.init)
 	}
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
@@ -379,12 +374,14 @@ package actor ChatMailbox {
 	}
 
 	private func snapshot() -> ChatSnapshot {
-		ChatSnapshot(
+		waits.track(conversation.current.turns, clock: clock) { await self.waitEnded($0, $1) }
+		return ChatSnapshot(
 			chat: chatId,
 			conversation: conversation,
 			live: live,
 			window: window,
 			queued: queuedTurns(includingActive: true),
+			waiting: waits.running,
 			stopping: stopping,
 			pendingProposal: pendingProposal,
 			device: ledger.deviceId,
@@ -395,5 +392,9 @@ package actor ChatMailbox {
 
 	private func publish() {
 		feed.publish(snapshot())
+	}
+
+	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
+		if waits.end(turn, attempt: attempt) { publish() }
 	}
 }

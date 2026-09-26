@@ -3,7 +3,7 @@ import EnduragentCoach
 extension ShellModel {
 	func perform(_ action: RecoveryAction) async {
 		switch action {
-		case .tryAgain(let turn), .wait(_, let turn):
+		case .tryAgain(let turn), .wait(let turn):
 			await tryAgain(turn)
 		case .restoreCredits, .buyCredits:
 			showCredits = true

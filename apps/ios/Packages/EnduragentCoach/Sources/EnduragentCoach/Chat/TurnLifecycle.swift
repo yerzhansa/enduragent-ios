@@ -219,7 +219,7 @@ package enum TurnLifecycle {
 	package static func state(
 		of facts: TurnFacts,
 		live: LiveAttempt?,
-		overlay: AcceptedOverlay,
+		overlay: TurnOverlay,
 		device: DeviceID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
@@ -234,7 +234,7 @@ package enum TurnLifecycle {
 			return .accepted(.collecting(until: until))
 		case .queued(let position):
 			return .accepted(.queued(position: position))
-		case .notInThisProcess:
+		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
 		if let latest = facts.latestSettlement {
@@ -253,7 +253,7 @@ package enum TurnLifecycle {
 						failure: failure,
 						saved: saved,
 						notice: AthleteNotices.notice(
-							for: failure, turn: retry, failedAt: latest.hlc.wallTime)
+							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -282,9 +282,10 @@ package struct LiveAttempt: Sendable, Equatable {
 	package var activity: TurnActivity
 }
 
-package enum AcceptedOverlay: Sendable, Equatable {
+package enum TurnOverlay: Sendable, Equatable {
 	case collecting(until: Date)
 	case queued(position: Int)
+	case waitingToTryAgain
 	case notInThisProcess
 }
 

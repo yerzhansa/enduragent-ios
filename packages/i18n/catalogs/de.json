@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Deine gespeicherten Nachrichten konnten nicht geprüft werden. Verbinde dich erneut und versuche es noch einmal.",
       "queueRemoveFailure": "Diese gespeicherte Nachricht konnte nicht entfernt werden. Versuche es erneut.",
       "responseFailure": "Der Coach konnte nicht antworten. Bitte versuche es erneut.",
-      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "retryMessage": "Nachricht erneut senden",
       "savedChoice": "Gespeicherte Auswahl",
       "working": "Der Coach arbeitet…"

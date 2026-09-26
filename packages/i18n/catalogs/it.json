@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Impossibile controllare i messaggi salvati. Riconnetti e riprova.",
       "queueRemoveFailure": "Impossibile rimuovere il messaggio salvato. Riprova.",
       "responseFailure": "Il coach non ha potuto rispondere. Riprova.",
-      "responseStopped": "Risposta interrotta. La risposta parziale è conservata.",
       "retryMessage": "Riprova messaggio",
       "savedChoice": "Scelta salvata",
       "working": "Il coach sta elaborando…"

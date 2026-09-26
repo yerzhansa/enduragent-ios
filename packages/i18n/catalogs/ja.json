@@ -1005,7 +1005,6 @@
       "queueLoadFailure": "保存済みのメッセージを確認できませんでした。再接続して、もう一度お試しください。",
       "queueRemoveFailure": "保存済みのメッセージを削除できませんでした。もう一度お試しください。",
       "responseFailure": "コーチが回答できませんでした。もう一度お試しください。",
-      "responseStopped": "回答を停止しました。途中までの回答は残っています。",
       "retryMessage": "メッセージを再試行",
       "savedChoice": "保存済みの選択",
       "working": "コーチが処理中…"

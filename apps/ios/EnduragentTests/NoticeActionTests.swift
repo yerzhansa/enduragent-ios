@@ -57,13 +57,14 @@ extension FixtureLaunchTests {
 		#expect(turn.athleteText == "Hello")
 	}
 
-	@Test func waitingOutARateLimitTriesTheTurnAgain() async throws {
+	@Test func aRateLimitOffersTryAgainWhenItsWaitEnds() async throws {
 		let model = model(try services())
-		let (turn, notice) = try await failedNotice(model, after: "fixture:fail 429 1 x4")
-		let action = try #require(notice.action)
-		#expect(action.opensAt != nil)
-		await model.perform(action)
-		let retried = try await settledTurn(model, after: turn.state)
+		let (turn, waiting) = try await failedNotice(model, after: "fixture:fail 429 2 x4")
+		#expect(waiting.action == .wait(thenTryAgain: turn.id))
+		let opened = try await settledTurn(model, after: turn.state, within: .seconds(10))
+		#expect(notice(ofFailed: opened.state)?.action == .tryAgain(turn.id))
+		await model.perform(.tryAgain(turn.id))
+		let retried = try await settledTurn(model, after: opened.state)
 		#expect(retried.id == turn.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
 	}

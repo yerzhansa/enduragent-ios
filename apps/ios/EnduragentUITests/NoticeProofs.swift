@@ -105,8 +105,34 @@ final class RateLimitMinutesProof: XCTestCase {
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitTwoMinutes),
 			timeout: 330)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		XCTAssertTrue(tryAgain.exists)
+		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the 90 second wait")
 		TutorialHarness.attach(self, name: "rate-limit-minutes", app: app)
+	}
+}
+
+final class RateLimitTryAgainOpensProof: XCTestCase {
+	func testTryAgainOpensWhenTheWaitEnds() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:fail 429 6 x4")
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSixSeconds),
+			timeout: 40)
+		let shown = Date()
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the wait ended")
+		TutorialHarness.attach(self, name: "rate-limit-waiting", app: app)
+		let enabled = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "enabled == true"), object: tryAgain)
+		XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 15), .completed)
+		XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(shown), 3)
+		TutorialHarness.attach(self, name: "rate-limit-try-again-open", app: app)
+		tryAgain.tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 20)
+		TutorialHarness.attach(self, name: "rate-limit-tried-again", app: app)
 	}
 }
 
