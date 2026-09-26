@@ -112,6 +112,46 @@ package enum PromptAssembly {
 	package static func cyclingPrefix(gated: Bool) -> String {
 		prefix(soul: PromptResources.soul(), skills: PromptResources.cyclingSkills(), gated: gated)
 	}
+
+	package static let summaryPrefix = "[Previous conversation summary]"
+
+	package static let compactionSystem =
+		"Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions."
+
+	package static func summaryMessage(_ summary: String) -> String {
+		summaryPrefix + "\n" + summary
+	}
+
+	package static func droppedSummaryRequest(previous: String?, transcript: String) -> String {
+		summaryRequest(
+			"Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.",
+			label: "Messages to incorporate:", previous: previous, transcript: transcript)
+	}
+
+	package static func compactionRequest(previous: String?, transcript: String) -> String {
+		summaryRequest(
+			"Summarize the conversation below into the five required sections.",
+			label: "Messages to summarize:", previous: previous, transcript: transcript)
+	}
+
+	package static func transcript(_ messages: [ChatMessage]) -> String {
+		messages.map { "\($0.role.rawValue): \($0.text)" }.joined(separator: "\n")
+	}
+
+	package static func transcript(_ messages: [WireMessage]) -> String {
+		messages.map { "\($0.role.rawValue): \($0.content)" }.joined(separator: "\n")
+	}
+
+	private static func summaryRequest(
+		_ instruction: String, label: String, previous: String?, transcript: String
+	) -> String {
+		var parts = [instruction]
+		if let previous, !previous.isEmpty {
+			parts.append("Existing summary of earlier context:\n" + previous)
+		}
+		parts.append(label + "\n" + transcript)
+		return parts.joined(separator: "\n\n")
+	}
 }
 
 public struct AthleteSnapshot: Sendable, Equatable {
@@ -128,21 +168,14 @@ public struct AthleteSnapshot: Sendable, Equatable {
 
 public struct HistoryWindow {
 	public static func trim(
-		messages: [ChatMessage],
+		messages conversation: [ChatMessage],
 		systemTokens: Int,
 		window: Int = TurnPolicy.contextWindowCap,
-		ratio: Double = TurnPolicy.historyTokenBudgetRatio
+		ratio: Double
 	) -> (kept: [ChatMessage], dropped: [ChatMessage], budget: Int) {
 		let budget = historyTokenBudget(systemTokens: systemTokens, window: window, ratio: ratio)
-		if messages.isEmpty {
+		if conversation.isEmpty {
 			return ([], [], budget)
-		}
-		var conversation = messages
-		if conversation[0].text.hasPrefix("[Previous conversation summary]") {
-			conversation = Array(conversation.dropFirst())
-			if conversation.isEmpty {
-				return ([], [], budget)
-			}
 		}
 		var startIdx = 0
 		var totalTokens = conversation.reduce(0) { $0 + estimateTokens($1.text) }
@@ -163,6 +196,14 @@ public struct HistoryWindow {
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 
+}
+
+extension PromptHistory {
+	package var estimatedTokens: Int {
+		messages.reduce(summary.map { estimateTokens(PromptAssembly.summaryMessage($0)) } ?? 0) {
+			$0 + estimateTokens($1.text)
+		}
+	}
 }
 
 func sanitizeUntrustedText(_ value: String) -> String {

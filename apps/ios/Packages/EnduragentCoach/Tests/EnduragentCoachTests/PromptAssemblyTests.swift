@@ -64,6 +64,35 @@ import Testing
 		#expect(once == twice)
 	}
 
+	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() {
+		let dropped = [
+			ChatMessage(role: .user, text: "FTP 262W now"),
+			ChatMessage(role: .assistant, text: "Noted, 262W."),
+		]
+		#expect(
+			PromptAssembly.droppedSummaryRequest(
+				previous: "## Athlete Profile\n- FTP 255W",
+				transcript: PromptAssembly.transcript(dropped))
+					== """
+					Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.
+
+					Existing summary of earlier context:
+					## Athlete Profile
+					- FTP 255W
+
+					Messages to incorporate:
+					user: FTP 262W now
+					assistant: Noted, 262W.
+					""")
+		#expect(
+			PromptAssembly.compactionRequest(previous: nil, transcript: "user: hi")
+				== "Summarize the conversation below into the five required sections.\n\nMessages to summarize:\nuser: hi"
+		)
+		#expect(
+			PromptAssembly.summaryMessage("- FTP 262W")
+				== "[Previous conversation summary]\n- FTP 262W")
+	}
+
 	@Test func dumpPrefixAndTrimForOracle() throws {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let dir = URL(fileURLWithPath: "/tmp/ios-c3", isDirectory: true)
@@ -105,7 +134,9 @@ import Testing
 			)
 		}
 		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: messages, systemTokens: systemTokens)
+		let trim = HistoryWindow.trim(
+			messages: messages, systemTokens: systemTokens,
+			ratio: TurnPolicy.historyTokenBudgetRatio)
 		let historyTokens = messages.reduce(0) { $0 + estimateTokens($1.text) }
 		let payload: [String: Int] = [
 			"kept": trim.kept.count,

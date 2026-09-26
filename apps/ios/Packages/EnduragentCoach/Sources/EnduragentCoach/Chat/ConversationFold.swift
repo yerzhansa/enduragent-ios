@@ -2,7 +2,7 @@ import Foundation
 
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
-		[.userMessage, .turnSettled, .windowStart],
+		[.userMessage, .turnSettled, .windowStart, .compactionSummary],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
@@ -125,23 +125,23 @@ package enum ConversationFold {
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
 		}
 		for record in ordered where record.deviceId == device {
-			let window: (ulid: ULID, firstIncluded: ULID)?
+			let index = segmentIndex(for: record.ulid)
 			switch record.body {
 			case .synced(.windowStart(let body)):
 				switch body.reason {
 				case .trim, .compaction:
-					window = (record.ulid, body.firstIncludedUlid)
+					segments[index].promptWindow = PromptWindow(
+						firstIncluded: body.firstIncludedUlid, opened: record.ulid)
 				case .reset:
-					window = nil
+					continue
 				}
 			case .legacy(.windowStartV1(_, let firstIncluded)):
-				window = (record.ulid, firstIncluded)
+				segments[index].promptWindow = PromptWindow(
+					firstIncluded: firstIncluded, opened: record.ulid)
+			case .synced(.compactionSummary(let body)):
+				segments[index].promptWindow.summarize(body, at: record.ulid)
 			default:
-				window = nil
-			}
-			if let window {
-				segments[segmentIndex(for: window.ulid)].promptWindow = PromptWindow(
-					firstIncluded: window.firstIncluded)
+				continue
 			}
 		}
 		return Conversation(chat: chat, segments: segments)
@@ -266,9 +266,19 @@ package enum SegmentOpening: Sendable, Equatable {
 
 package struct PromptWindow: Sendable, Equatable {
 	package var firstIncluded: ULID?
+	package var opened: ULID?
+	package var summary: CompactionSummaryBody?
+
+	mutating func summarize(_ body: CompactionSummaryBody, at ulid: ULID) {
+		if let opened, ulid < opened {
+			return
+		}
+		summary = body
+	}
 }
 
 package struct PromptHistory: Sendable, Equatable {
+	package var summary: String?
 	package var messages: [ChatMessage]
 	package var ulids: [ULID]
 
@@ -282,14 +292,15 @@ package struct Segment: Sendable, Equatable {
 	package let id: SegmentID
 	package let openedBy: SegmentOpening
 	package var turns: [TurnFacts] = []
-	package var promptWindow = PromptWindow(firstIncluded: nil)
+	package var promptWindow = PromptWindow()
 
 	package var messages: [ChatMessage] {
 		turns.flatMap { $0.messageRows.map(\.message) }
 	}
 
 	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
-		var history = PromptHistory(messages: [], ulids: [])
+		var history = PromptHistory(
+			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
 			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
 				continue

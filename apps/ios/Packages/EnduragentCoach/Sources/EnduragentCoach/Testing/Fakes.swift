@@ -154,7 +154,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		switch charge {
 		case .chatAttempt, .stepRecovery:
 			return script.isEmpty ? nil : script.removeFirst()
-		case .compaction:
+		case .compaction, .droppedSummary:
 			return summaryScript.isEmpty ? nil : summaryScript.removeFirst()
 		case .memoryFlush:
 			return flushScript.isEmpty ? nil : flushScript.removeFirst()

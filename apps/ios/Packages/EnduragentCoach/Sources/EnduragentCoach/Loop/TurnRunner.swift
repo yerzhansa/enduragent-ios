@@ -262,26 +262,30 @@ package struct TurnRunner: Sendable {
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
 		let trim = HistoryWindow.trim(
-			messages: history.messages, systemTokens: estimateTokens(system))
+			messages: history.messages, systemTokens: estimateTokens(system),
+			ratio: TurnPolicy.historyTokenBudgetRatio)
+		var summary = history.summary
+		var kept = trim.kept
 		if !trim.dropped.isEmpty {
 			try await flushOnce(
 				.trim, covering: transcript.unflushed, attempt: attempt, scope: scope,
 				progress: progress)
-			_ = try await ledger.commit(
-				synced: [
-					.windowStart(
-						WindowStartBody(
-							chatId: chatId, firstIncludedUlid: history.ulids[trim.dropped.count],
-							reason: .trim)),
-					.compactionSummary(
-						CompactionSummaryBody(
-							chatId: chatId, markdown: compactionStub(trim.dropped))),
-				],
-				stamp: stamp)
+			do {
+				summary = try await summarizeDropped(
+					trim.dropped, previous: summary, firstKept: history.ulids[trim.dropped.count],
+					attempt: attempt, scope: scope, progress: progress)
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(chatId, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+				kept = history.messages
+			}
 		} else if !transcript.flushPending,
 			FlushGate.shouldQueueSoftFlush(
-				estimatedHistoryTokens: trim.kept.reduce(0) { $0 + estimateTokens($1.text) },
-				historyBudget: trim.budget, messagesSinceLastFlush: transcript.unflushed.count),
+				estimatedHistoryTokens: history.estimatedTokens, historyBudget: trim.budget,
+				messagesSinceLastFlush: transcript.unflushed.count),
 			await scope.takeFlushLatch()
 		{
 			_ = try await flushWork(chatId).open(
@@ -293,11 +297,53 @@ package struct TurnRunner: Sendable {
 			now: clock.now,
 			timeZone: clock.timeZone
 		)
-		var wire = trim.kept.map(wireMessage(from:))
+		var wire = kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		return TurnPrompt(
-			prefix: prefix, system: system, schemas: schemas, timed: timed, wire: wire,
-			inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 })
+			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
+			wire: wire, inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 })
+	}
+
+	private func summarizeDropped(
+		_ dropped: [ChatMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
+		scope: TurnScope, progress: @escaping AttemptProgressSink
+	) async throws -> String {
+		await progress(.activity(.compacting))
+		try await scope.chargeCall()
+		let summary = try await summarize(
+			PromptAssembly.droppedSummaryRequest(
+				previous: previous, transcript: PromptAssembly.transcript(dropped)),
+			charge: .droppedSummary, attempt: attempt)
+		_ = try await ledger.commit(
+			synced: [
+				.windowStart(
+					WindowStartBody(
+						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim)),
+				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
+			],
+			stamp: scope.stamp)
+		return summary
+	}
+
+	private func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
+		async throws -> String
+	{
+		try await generateStep(
+			request: CompletionRequest(
+				access: attempt.access,
+				attempt: attempt.attempt,
+				charge: charge,
+				messages: [
+					WireMessage(
+						role: .system, content: PromptAssembly.compactionSystem, toolCalls: [],
+						toolCallId: nil),
+					WireMessage(role: .user, content: request, toolCalls: [], toolCallId: nil),
+				],
+				tools: [],
+				deadline: TurnPolicy.compactionTimeout
+			),
+			progress: { _ in }
+		).text
 	}
 
 	private func generate(
@@ -327,7 +373,7 @@ package struct TurnRunner: Sendable {
 				access: attempt.access,
 				attempt: attempt.attempt,
 				charge: .chatAttempt,
-				messages: [prompt.systemMessage] + wire,
+				messages: [prompt.systemMessage] + prompt.summaryMessages + wire,
 				tools: prompt.schemas,
 				deadline: await scope.callDeadline(uptime: clock.uptime)
 			)
@@ -379,7 +425,7 @@ package struct TurnRunner: Sendable {
 					access: attempt.access,
 					attempt: attempt.attempt,
 					charge: .stepRecovery,
-					messages: [prompt.systemMessage] + wire + [
+					messages: [prompt.systemMessage] + prompt.summaryMessages + wire + [
 						WireMessage(
 							role: .user,
 							content: PromptStaticBlocks.recoveryPrompt,
@@ -525,64 +571,29 @@ package struct TurnRunner: Sendable {
 	) async throws {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
-		let chatId = attempt.chat
 		let keep = Array(prompt.wire.suffix(4))
 		let dropped = Array(prompt.wire.dropLast(min(4, prompt.wire.count)))
-		let request = CompletionRequest(
-			access: attempt.access,
-			attempt: attempt.attempt,
-			charge: .compaction,
-			messages: [
-				WireMessage(
-					role: .system,
-					content:
-						"Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions.",
-					toolCalls: [],
-					toolCallId: nil
-				),
-				WireMessage(
-					role: .user,
-					content: dropped.map(\.content).joined(separator: "\n"),
-					toolCalls: [],
-					toolCallId: nil
-				),
-			],
-			tools: [],
-			deadline: TurnPolicy.compactionTimeout
-		)
-		let summary: String
-		do {
-			summary = try await generateStep(request: request, progress: { _ in }).text
-		} catch is CancellationError {
-			throw CancellationError()
-		} catch {
-			summary = compactionStub(
-				dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
-		}
+		let summary = try await summarize(
+			PromptAssembly.compactionRequest(
+				previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
+			charge: .compaction, attempt: attempt)
 		var bodies: [SyncedRecordBody] = []
 		if !keep.isEmpty {
 			bodies.append(
 				.windowStart(
 					WindowStartBody(
-						chatId: chatId,
+						chatId: attempt.chat,
 						firstIncludedUlid: await ledger.nextULID(),
 						reason: .compaction
 					)
 				)
 			)
 		}
-		bodies.append(.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: summary)))
+		bodies.append(
+			.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)))
 		_ = try await ledger.commit(synced: bodies, stamp: scope.stamp)
-		var next: [WireMessage] = [
-			WireMessage(
-				role: .system,
-				content: "[Previous conversation summary]\n\(summary)",
-				toolCalls: [],
-				toolCallId: nil
-			)
-		]
-		next.append(contentsOf: keep)
-		prompt.wire = next
+		prompt.summary = summary
+		prompt.wire = keep
 	}
 
 	private func loadSnapshot() async -> AthleteSnapshot? {
@@ -635,6 +646,7 @@ private struct TurnPrompt: Sendable {
 	let system: String
 	let schemas: [ToolSchema]
 	let timed: String
+	var summary: String?
 	var wire: [WireMessage]
 	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
 
@@ -642,8 +654,18 @@ private struct TurnPrompt: Sendable {
 		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
 	}
 
+	var summaryMessages: [WireMessage] {
+		guard let summary else { return [] }
+		return [
+			WireMessage(
+				role: .system, content: PromptAssembly.summaryMessage(summary), toolCalls: [],
+				toolCallId: nil)
+		]
+	}
+
 	var estimatedTokens: Int {
-		wire.reduce(0) { $0 + estimateTokens($1.content) } + estimateTokens(system)
+		(summaryMessages + wire).reduce(0) { $0 + estimateTokens($1.content) }
+			+ estimateTokens(system)
 	}
 
 	var overBudget: Bool {
@@ -689,7 +711,7 @@ private struct Transcript: Sendable {
 
 	func afterReset() -> Transcript {
 		Transcript(
-			history: PromptHistory(messages: [], ulids: []), unflushed: [],
+			history: PromptHistory(summary: nil, messages: [], ulids: []), unflushed: [],
 			flushPending: flushPending || !unflushed.isEmpty, current: current, lastDate: nil)
 	}
 }
@@ -730,17 +752,6 @@ private func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 			"estimatedTokens": .number(Double(tokens)),
 		]).canonicalDigestInput()
 	}
-}
-
-private func compactionStub(_ dropped: [ChatMessage]) -> String {
-	"""
-	## Athlete Profile
-	## Training Status
-	## Coach Stance
-	## Discussion Context
-	\(dropped.map(\.text).joined(separator: "\n"))
-	## Pending Questions
-	"""
 }
 
 private func dailyResetDate(now: Date, timeZone: TimeZone, hour: Int) -> Date {

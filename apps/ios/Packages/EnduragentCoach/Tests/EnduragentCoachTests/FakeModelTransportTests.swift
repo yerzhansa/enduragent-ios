@@ -137,7 +137,9 @@ import Testing
 	@Test func summariesAndFlushesReadTheirOwnScripts() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.fail(.http(status: 429)), .text("reply"), .finish(reason: .stop)]
-		transport.summaryScript = [.text("summary"), .finish(reason: .stop)]
+		transport.summaryScript = [
+			.text("summary"), .finish(reason: .stop), .text("dropped"), .finish(reason: .stop),
+		]
 		transport.flushScript = [.text("flush"), .finish(reason: .stop)]
 		let summary = try await collect(transport.stream(maintenance(.compaction)))
 		#expect(textDeltas(in: summary) == ["summary"])
@@ -146,6 +148,8 @@ import Testing
 		}
 		let flush = try await collect(transport.stream(maintenance(.memoryFlush)))
 		#expect(textDeltas(in: flush) == ["flush"])
+		let dropped = try await collect(transport.stream(maintenance(.droppedSummary)))
+		#expect(textDeltas(in: dropped) == ["dropped"])
 		#expect(try await collect(transport.stream(maintenance(.memoryFlush))).isEmpty)
 		#expect(textDeltas(in: try await collect(transport.stream(request("Chat")))) == ["reply"])
 	}
