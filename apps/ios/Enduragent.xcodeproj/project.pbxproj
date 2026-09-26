@@ -29,6 +29,7 @@
 		772DC86E3FBCD399F163D99F /* FixtureRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0637E18468A727A40517708C /* FixtureRecoveryTests.swift */; };
 		7813FE3DEFFD01EB6F4F6D39 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FFE0F37052EAEFF6684E41 /* ChatView.swift */; };
 		8DB4BEAAE94936E8D48FB79D /* SlashListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05DE1643D8AAF084B95462CB /* SlashListView.swift */; };
+		8E605ECE493E9473D63B1B2D /* LeasesDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39745554BB5507E7E152A5CF /* LeasesDebugView.swift */; };
 		8FF9731D68877106F9903417 /* RecoveryProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9C0C6082DC2129FC43FB3DA /* RecoveryProofs.swift */; };
 		9338CBBEA702D310B6381607 /* FailureProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D67C5124B3375A468FB7488 /* FailureProofs.swift */; };
 		9C2038BE1099186A0284A13B /* AppLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C817FBBA11C32739DD15F72 /* AppLifecycle.swift */; };
@@ -84,6 +85,7 @@
 		335D14394F58238C2E63C9FD /* NoticeActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeActionTests.swift; sourceTree = "<group>"; };
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
 		36EB228C186B626D9D1D2CB5 /* FixtureFlushTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureFlushTests.swift; sourceTree = "<group>"; };
+		39745554BB5507E7E152A5CF /* LeasesDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeasesDebugView.swift; sourceTree = "<group>"; };
 		490EB5C3EA005CDE6D16CB16 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
 		50B2C847A0D50A46F6E7AA6A /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		54C69207093FE40792AD4922 /* FlushProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlushProofs.swift; sourceTree = "<group>"; };
@@ -249,6 +251,7 @@
 		C8004B33A856E2C62F13F105 /* Sidebar */ = {
 			isa = PBXGroup;
 			children = (
+				39745554BB5507E7E152A5CF /* LeasesDebugView.swift */,
 				EFE5043C9095F3E5521623E3 /* SidebarView.swift */,
 			);
 			path = Sidebar;
@@ -452,6 +455,7 @@
 				C1581048028E54850D1ECDE7 /* FixtureDirector.swift in Sources */,
 				6A7D5F727985CD17A6E911B8 /* FixtureLaunch.swift in Sources */,
 				27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */,
+				8E605ECE493E9473D63B1B2D /* LeasesDebugView.swift in Sources */,
 				CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */,
 				7422F3FF8076CCBF6185162B /* RecordSyncDebugView.swift in Sources */,
 				AEF0742DDDDD3FD9DDCE07E2 /* RootView.swift in Sources */,

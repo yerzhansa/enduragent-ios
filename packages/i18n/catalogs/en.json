@@ -617,6 +617,7 @@
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
       "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
       "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
       "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",

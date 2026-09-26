@@ -27,6 +27,12 @@ struct TurnRowView: View {
 				case .model(let text):
 					Text(text)
 				}
+				if turn.completedInBackground {
+					Text(say(Catalog.chatTurnFinishedWhileLocked))
+						.font(.footnote)
+						.foregroundStyle(.secondary)
+						.accessibilityIdentifier("chat.turn.finishedWhileLocked")
+				}
 			case .savedWork(let savedWork):
 				notice(savedWork.notice)
 			case .failed(let failed):
