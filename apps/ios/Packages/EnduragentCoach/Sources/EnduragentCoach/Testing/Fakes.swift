@@ -48,6 +48,14 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		requests.count
 	}
 
+	public var lastChatHistoryHead: String? {
+		lock.withLock {
+			let chat = requests.last { $0.charge == .chatAttempt }
+			return chat?.messages.dropFirst().first?.content
+				.split(separator: "\n", omittingEmptySubsequences: false).first.map(String.init)
+		}
+	}
+
 	package func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
 	{
 		if hangUntilCancelled {

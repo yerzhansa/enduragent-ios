@@ -40,6 +40,8 @@ struct SidebarView: View {
 				if model.builder.isFixture {
 					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
 						.accessibilityIdentifier("fixture.requestCount")
+					Text(model.services?.fixtureTransport?.lastChatHistoryHead ?? "—")
+						.accessibilityIdentifier("fixture.historyHead")
 				}
 			}
 			.navigationTitle("Debug")

@@ -30,6 +30,15 @@ struct FixtureDirector: Sendable {
 			transport.script = Self.memoryThenFail
 		case "memory-then-hang":
 			transport.script = Self.memoryThenHang
+		case "teach":
+			transport.script =
+				Self.savedSchedule + [
+					.text(FirstWeekFixture.rememberReply), .finish(reason: .stop),
+				]
+		case "long":
+			transport.script = [.text(FirstWeekFixture.longReply), .finish(reason: .stop)]
+		case "flush-partial":
+			transport.flushScript = Self.flushPartial
 		case "storage":
 			if words.dropFirst().first == "fail-next-append" {
 				records.failNextAppend = true
@@ -48,10 +57,23 @@ struct FixtureDirector: Sendable {
 		transport.requestDelay = nil
 		transport.deltaDelay = nil
 		transport.script = FirstWeekFixture.script(for: text)
+		transport.summaryScript = FirstWeekFixture.summaryReply
 	}
 
 	static let memoryThenFail = savedSchedule + [.fail(.http(status: 500))]
 	static let memoryThenHang = savedSchedule + [.hang]
+	static let flushPartial: [ScriptedEvent] =
+		[
+			.toolCall(
+				name: ToolName.memoryWrite.rawValue,
+				arguments: #"{"section":"schedule","content":"Rides with a group on Saturdays."}"#),
+			.toolCall(
+				name: ToolName.ledgerAppend.rawValue,
+				arguments:
+					#"{"kind":"decision","date":"1998-06-15","text":"Keeps Saturdays for the group ride."}"#
+			),
+			.finish(reason: .toolCalls),
+		] + Array(repeating: .fail(.http(status: 500)), count: 4)
 
 	private static let savedSchedule: [ScriptedEvent] = [
 		.toolCall(
