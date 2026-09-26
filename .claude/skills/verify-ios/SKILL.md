@@ -60,7 +60,7 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
 | History | `history.row.<chat id>` |
-| Debug | `fixture.requestCount`, then Records: `records.count.<kind>` and `records.row.<ulid>`, whose label names a `turnSettled` row's outcome, such as `interrupted processEnded` |
+| Debug | `fixture.requestCount`, `fixture.historyHead` (the first line of the history the last reply was sent with), then Records: `records.count.<kind>` and `records.row.<ulid>`, whose label names a `turnSettled` row's outcome, such as `interrupted processEnded` |
 
 The fixture athlete is Ada Kovač. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
@@ -73,6 +73,9 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | `fixture:fail 500`, `fixture:fail 401`, `fixture:fail 402`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow` | The next model request fails before any reply text with the HTTP status or connection error the directive names, parsed by the same rules as the real transport. `429 7` carries a `retry-after` of 7 seconds. A trailing `xN`, as in `fixture:fail 429 7 x4`, fails the next N requests. The coach retries retryable failures with real waits, so the notice needs `x3` for `500` and `network`, `x2` for `timeout`, and `x4` for `429` and `overflow`. |
 | `fixture:memory-then-fail` | The model saves a `schedule` memory section, then the next request fails with a 500. The turn ends with a notice and no `Try again`, because information was saved. |
 | `fixture:memory-then-hang` | The model saves a `schedule` memory section, then the next request never answers. Kill the app within 30 seconds to leave saved work behind an unfinished reply. |
+| `fixture:teach` | The model saves a `schedule` memory section, then replies `Noted. I'll remember you ride with a group on Saturdays.` |
+| `fixture:long` | The reply is the week summary written out for 100 days, about 5,200 tokens, so a few messages reach the soft flush gate and the trim. |
+| `fixture:flush-partial` | Replies with the week summary and arms the next memory flush to save a `schedule` section and a `ledgerEvent`, then fail, so its job stays pending until the next launch. `fixture:fail overflow` right after it triggers that flush inside the overflow turn. |
 | `fixture:storage fail-next-append` | Arms the record store so its next write fails. Nothing is sent and the transcript does not change; the next message's turn fails when it saves. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow and hang settings.
