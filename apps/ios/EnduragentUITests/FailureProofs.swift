@@ -127,6 +127,35 @@ final class RetryLadderProof: XCTestCase {
 	}
 }
 
+final class SavedUnverifiedProof: XCTestCase {
+	func testSavedWorkOffersNoTryAgain() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:memory-then-fail")
+		TutorialHarness.wait(notice(app, reading: TutorialHarness.unknownFailure))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		assertNoWireDetail(app)
+		TutorialHarness.attach(self, name: "saved-unverified", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
+		TutorialHarness.attach(self, name: "saved-unverified-records", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, "fixture:memory-then-hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 2")
+		TutorialHarness.closeMenu(app)
+		let stop = TutorialHarness.named(app, "chat.stop")
+		TutorialHarness.waitUntilHittable(stop)
+		stop.tap()
+		TutorialHarness.wait(notice(app, reading: TutorialHarness.responseStopped))
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
+		TutorialHarness.attach(self, name: "stopped-after-save", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
 private let rateLimitWait: TimeInterval = 40
 
 private func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {

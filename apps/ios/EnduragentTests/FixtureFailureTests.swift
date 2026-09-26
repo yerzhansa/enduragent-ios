@@ -106,6 +106,31 @@ extension FixtureLaunchTests {
 		#expect(!settled.state.retryable)
 	}
 
+	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = "fixture:memory-then-hang"
+		await model.send()
+		let deadline = ContinuousClock.now + .seconds(10)
+		while ContinuousClock.now < deadline {
+			if case .processing(let running)? = model.chat?.turns.last?.state,
+				running.activity == .generating(step: 2)
+			{
+				break
+			}
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		await model.stop()
+		let settled = try await settledTurn(model)
+		guard case .interrupted(let stopped) = settled.state else {
+			Issue.record("expected a stopped turn, got \(settled.state)")
+			return
+		}
+		#expect(stopped.saved.memorySections == 1)
+		#expect(stopped.notice.action == nil)
+		#expect(!settled.state.retryable)
+	}
+
 	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
 		let services = try services()
 		let model = model(services)

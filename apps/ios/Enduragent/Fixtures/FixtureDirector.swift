@@ -34,7 +34,9 @@ struct FixtureDirector: Sendable {
 			transport.script =
 				Array(repeating: .fail(failure), count: repeated.count) + transport.script
 		case "memory-then-fail" where arguments.isEmpty:
-			transport.script = Self.memoryThenFail
+			transport.script = Self.savedMemory + [.fail(.http(status: 500))]
+		case "memory-then-hang" where arguments.isEmpty:
+			transport.script = Self.savedMemory + [.hang]
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
 		default:
@@ -54,14 +56,13 @@ struct FixtureDirector: Sendable {
 		transport.script = FirstWeekFixture.script(for: text)
 	}
 
-	static let memoryThenFail: [ScriptedEvent] = [
+	static let savedMemory: [ScriptedEvent] = [
 		.toolCall(
 			name: ToolName.memoryWrite.rawValue,
 			arguments:
 				#"{"type":"memory","section":"schedule","content":"Rides with a group on Saturdays."}"#
 		),
 		.finish(reason: .toolCalls),
-		.fail(.http(status: 500)),
 	]
 
 	private static func repetition(_ arguments: [String]) -> (arguments: [String], count: Int) {
