@@ -33,7 +33,7 @@ enum FirstWeekFixture {
 
 	static func training(_ ada: FakeIntervalsClient) -> TrainingService {
 		let other = FakeIntervalsClient(athleteName: otherAthleteName, ftp: 240, athleteId: "i2002")
-		return .fake { credential in
+		return .fake { credential, _ in
 			credential == .apiKey(otherAthleteKey) ? other : ada
 		}
 	}

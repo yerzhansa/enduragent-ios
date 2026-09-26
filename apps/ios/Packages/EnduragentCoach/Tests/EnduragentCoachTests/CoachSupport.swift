@@ -27,7 +27,7 @@ func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
 
 func testVault(
 	_ store: any SecretStore,
-	training: TrainingService = .fake { _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
+	training: TrainingService = .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 ) -> CredentialVault {
 	CredentialVault(
@@ -55,7 +55,8 @@ func makeCoach(
 		sport: .cycling,
 		ports: CoachPorts(
 			records: store, secrets: secrets, models: .scripted(transport),
-			training: .fake { _ in intervals }, credits: .fake(FakeCreditsClient()), clock: clock),
+			training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()), clock: clock
+		),
 		builtInModel: testModel,
 		language: .init(ui: .en, coachReply: nil),
 		coalescing: coalescing

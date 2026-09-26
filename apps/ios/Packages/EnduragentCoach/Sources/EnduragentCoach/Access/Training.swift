@@ -1,22 +1,28 @@
 import Foundation
 
 public struct TrainingService: Sendable {
-	package let makeClient: @Sendable (IntervalsCredential, any Clock) -> any IntervalsClient
+	package typealias ClientFactory =
+		@Sendable (IntervalsCredential, AthleteSelection, any Clock) -> any IntervalsClient
 
-	package init(
-		makeClient: @escaping @Sendable (IntervalsCredential, any Clock) -> any IntervalsClient
-	) {
+	package let makeClient: ClientFactory
+
+	package init(makeClient: @escaping ClientFactory) {
 		self.makeClient = makeClient
 	}
 
-	public static let intervalsREST = TrainingService { credential, clock in
-		IntervalsRESTClient(credential: credential, clock: clock)
+	public static let intervalsREST = rest(session: nil)
+
+	package static func rest(session: URLSession?) -> TrainingService {
+		TrainingService { credential, athlete, clock in
+			IntervalsRESTClient(
+				credential: credential, athlete: athlete, session: session, clock: clock)
+		}
 	}
 
 	public static func fake(
-		_ client: @escaping @Sendable (IntervalsCredential) -> FakeIntervalsClient
+		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> FakeIntervalsClient
 	) -> TrainingService {
-		TrainingService { credential, _ in client(credential) }
+		TrainingService { credential, athlete, _ in client(credential, athlete) }
 	}
 }
 

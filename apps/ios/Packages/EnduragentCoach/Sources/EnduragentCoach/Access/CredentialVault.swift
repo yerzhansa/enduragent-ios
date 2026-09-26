@@ -36,7 +36,7 @@ package actor CredentialVault {
 		guard let active = try activeConnection() else { return .unconnected }
 		return TrainingConnection(
 			account: active.account,
-			client: training.makeClient(active.connection.credential, clock))
+			client: client(for: active.connection))
 	}
 
 	package func setup(builtInModel: ModelID) -> SetupState {
@@ -59,7 +59,8 @@ package actor CredentialVault {
 			return .unavailable(error)
 		}
 		guard let active else { return .unconnected }
-		return .connected(await summary(of: active), account: active.account)
+		let read = await self.read(active)
+		return .connected(read.summary, account: read.active.account)
 	}
 
 	package func change(
@@ -167,7 +168,7 @@ package actor CredentialVault {
 			return .failedPreviousKept(
 				.secureStorage(error), previous: await summary(ofCurrent: current))
 		}
-		let profile = await readProfile(credential)
+		let profile = await readProfile(staged)
 		if !switching, let now = current?.connection.resolvedAthlete, let new = profile.athlete,
 			now != new, await boundWork()
 		{
@@ -210,15 +211,45 @@ package actor CredentialVault {
 
 	private func summary(ofCurrent current: ActiveConnection?) async -> IntervalsSummary? {
 		guard let current else { return nil }
-		return await summary(of: current)
+		return await read(current).summary
 	}
 
-	private func summary(of active: ActiveConnection) async -> IntervalsSummary {
-		await readProfile(active.connection.credential).summary(of: active.connection.credential)
+	private func read(_ active: ActiveConnection) async -> (
+		active: ActiveConnection, summary: IntervalsSummary
+	) {
+		let profile = await readProfile(active.connection)
+		let summary = profile.summary(of: active.connection.credential)
+		guard active.connection.resolvedAthlete == nil, let athlete = profile.athlete else {
+			return (active, summary)
+		}
+		return (resolve(athlete, for: active), summary)
 	}
 
-	private func readProfile(_ credential: IntervalsCredential) async -> Profile {
-		let client = training.makeClient(credential, clock)
+	private func resolve(_ athlete: IntervalsAthleteID, for active: ActiveConnection)
+		-> ActiveConnection
+	{
+		let resolved = IntervalsConnection(
+			id: active.id, credential: active.connection.credential,
+			selection: active.connection.selection, resolvedAthlete: athlete)
+		do {
+			guard let stored = try store.intervalsConnection(), stored == active.connection else {
+				return active
+			}
+			try store.storeIntervalsConnection(resolved)
+		} catch {
+			diagnostics.record(
+				.secureStorageFailed(.intervalsConnection, detail: String(describing: error)))
+			return active
+		}
+		return ActiveConnection(id: active.id, connection: resolved)
+	}
+
+	private func client(for connection: IntervalsConnection) -> any IntervalsClient {
+		training.makeClient(connection.credential, connection.selection, clock)
+	}
+
+	private func readProfile(_ connection: IntervalsConnection) async -> Profile {
+		let client = client(for: connection)
 		let athlete: AthleteProfile
 		do {
 			athlete = try await client.fetchAthlete()

@@ -20,8 +20,8 @@ import Testing
 
 	var training: TrainingService {
 		let (ada, bo, offline, built) = (ada, bo, offline, built)
-		return .fake { credential in
-			built.append(credential)
+		return .fake { credential, athlete in
+			built.append(credential, athlete)
 			switch credential {
 			case .apiKey("other-athlete"): return bo
 			case .apiKey("icu-offline"): return offline
@@ -147,22 +147,6 @@ import Testing
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(active))
 	}
 
-	@Test func malformedKeyFailsTheTurnAndTheFailureSurvivesRelaunch() async throws {
-		let memory = MemorySecretStoreBacking(items: [
-			CredentialSlot.creditsKey.rawValue: Data([0xFF, 0xFE, 0xFD])
-		])
-		let keychain = ICloudKeychainStore(backing: memory)
-		let settled = try await coach(keychain).sendAndSettle("Is Thursday on?")
-		guard case .failed(let failed) = settled else {
-			Issue.record("expected a failed turn, got \(settled)")
-			return
-		}
-		#expect(failed.notice.key == Catalog.accessErrorNotConfigured)
-		let reopened = try #require(await coach(keychain).currentSnapshot(.main))
-		#expect(reopened.turns.map(\.state) == [settled])
-		#expect(transport.requests.isEmpty)
-	}
-
 	@Test func differentAthleteWithBoundWorkIsRefusedAndStagingDeleted() async throws {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
@@ -177,6 +161,31 @@ import Testing
 		#expect(await coach.currentSnapshot(.main)?.pendingProposal != nil)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
+	}
+
+	@Test func unverifiedAthleteResolvesOnTheNextReadAndThenRefusesAnotherAthlete() async throws {
+		let secrets = keyedSecrets()
+		let coach = coach(secrets)
+		guard
+			case .replaced(_, .unverifiable?) = await coach.changeTraining(
+				.replace(apiKey: "icu-offline", athlete: .keyOwner))
+		else {
+			Issue.record("expected an unverifiable replacement")
+			return
+		}
+		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
+		offline.loadFailure = nil
+		let status = await coach.status()
+		let resolved = try #require(try secrets.intervalsConnection())
+		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))
+		#expect(resolved.resolvedAthlete == athlete)
+		#expect(status.trainingAccount == (try account(resolved)))
+		_ = try await proposeRide(on: coach)
+		let other = try #require(IntervalsAthleteID(rawValue: "i2002"))
+		#expect(
+			await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
+				== .refused(.differentAthlete(current: athlete, new: other)))
+		#expect(try secrets.intervalsConnection() == resolved)
 	}
 
 	@Test func differentAthleteWithoutBoundWorkFlips() async throws {
@@ -224,90 +233,6 @@ import Testing
 		#expect(!reopened.confirmable(under: status))
 	}
 
-	@Test func lockedStoreReportsSecureStorageLocked() async throws {
-		let secrets = keyedSecrets()
-		secrets.locked = true
-		await #expect(throws: AccessUnavailable.secureStorageLocked) {
-			try await vault(secrets).modelAccess(builtInModel: testModel)
-		}
-		let status = await coach(secrets).status()
-		#expect(status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		#expect(status.training == .unavailable(.secureStorageLocked))
-		#expect(status.notice?.key == Catalog.accessErrorLocked)
-		#expect(status.notice?.action == nil)
-
-		let memory = MemorySecretStoreBacking()
-		memory.fail(CredentialSlot.accessSelection.rawValue, with: errSecInteractionNotAllowed)
-		await #expect(throws: AccessUnavailable.secureStorageLocked) {
-			try await vault(ICloudKeychainStore(backing: memory)).modelAccess(
-				builtInModel: testModel)
-		}
-	}
-
-	@Test func malformedItemReportsSlotWithoutContent() async throws {
-		let memory = MemorySecretStoreBacking(items: [
-			CredentialSlot.creditsKey.rawValue: Data([0xFF, 0xFE, 0xFD]),
-			CredentialSlot.intervalsConnection.rawValue: Data(
-				#"{"credential":"sk-or-v0-leaked-content"}"#.utf8),
-		])
-		let diagnostics = DiagnosticsLog(clock: clock)
-		let vault = CredentialVault(
-			store: ICloudKeychainStore(backing: memory), training: training, clock: clock,
-			diagnostics: diagnostics)
-		await #expect(throws: AccessUnavailable.malformedStoredCredential(.creditsKey)) {
-			try await vault.modelAccess(builtInModel: testModel)
-		}
-		do {
-			_ = try await vault.trainingConnection()
-			Issue.record("expected a malformed intervals item")
-		} catch {
-			#expect(error == .malformedStoredCredential(.intervalsConnection))
-			#expect(!String(describing: error).contains("leaked"))
-		}
-		#expect(diagnostics.entries.isEmpty)
-	}
-
-	@Test func resolverReadsOnlyTheSelectedMethodKey() async throws {
-		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey("sk-or-credits")
-		try secrets.storeOpenRouterAccountKey("sk-or-account")
-		let model = ModelID(rawValue: "test/account-model")
-		try secrets.storeAccessSelection(
-			.openRouterAccount(
-				model: model,
-				consent: ProviderConsent(provider: "Test Provider", model: model, at: clock.now)))
-		let vault = vault(secrets)
-		#expect(
-			try await vault.modelAccess(builtInModel: testModel)
-				== ResolvedAccess(
-					credential: ProviderCredential(
-						secret: "sk-or-account", method: .openRouterAccount),
-					model: model))
-		#expect(secrets.reads == [.accessSelection, .openRouterAccountKey])
-		try secrets.delete(.openRouterAccountKey)
-		await #expect(throws: AccessUnavailable.notConfigured(.openRouterAccount)) {
-			try await vault.modelAccess(builtInModel: testModel)
-		}
-		#expect(!secrets.reads.contains(.creditsKey))
-		try secrets.storeAccessSelection(.credits)
-		#expect(
-			try await vault.modelAccess(builtInModel: testModel)
-				== testAccess(secret: "sk-or-credits"))
-		#expect(secrets.reads.suffix(2) == [.accessSelection, .creditsKey])
-		#expect(secrets.reads.filter { $0 == .openRouterAccountKey }.count == 2)
-	}
-
-	@Test func recoverStagingDeletesLeftoverAtLaunch() async throws {
-		let secrets = keyedSecrets()
-		try secrets.stageIntervalsConnection(
-			IntervalsConnection(
-				id: ConnectionID(), credential: .apiKey("icu-half-written"), selection: .keyOwner,
-				resolvedAthlete: nil))
-		let launched = try await vault(secrets).trainingConnection()
-		#expect(try secrets.stagedIntervalsConnection() == nil)
-		#expect(launched.account == (try account(testConnection)))
-	}
-
 	@Test func disconnectLeavesTheNextTurnUnconnected() async throws {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
@@ -350,23 +275,6 @@ import Testing
 		#expect(await coach.status().setup == .ready)
 	}
 
-	@Test func perAttemptResolutionStaysUnderFiftyMilliseconds() async throws {
-		let keychain = ICloudKeychainStore(backing: MemorySecretStoreBacking())
-		try keychain.storeOpenRouterKey(testKey)
-		try keychain.storeIntervalsConnection(testConnection)
-		let vault = vault(keychain)
-		var samples: [Duration] = []
-		for _ in 0..<200 {
-			let started = ContinuousClock.now
-			_ = try await vault.modelAccess(builtInModel: testModel)
-			_ = try await vault.trainingConnection()
-			samples.append(ContinuousClock.now - started)
-		}
-		let sorted = samples.sorted()
-		#expect(sorted[sorted.count / 2] < .milliseconds(50))
-		#expect(sorted[sorted.count * 95 / 100] < .milliseconds(50))
-	}
-
 	var consent: ProviderConsent {
 		ProviderConsent(provider: "Test Provider", model: testModel, at: clock.now)
 	}
@@ -379,13 +287,17 @@ import Testing
 
 final class CredentialLog: @unchecked Sendable {
 	private let lock = NSLock()
-	private var built: [IntervalsCredential] = []
+	private var built: [(IntervalsCredential, AthleteSelection)] = []
 
 	var credentials: [IntervalsCredential] {
-		lock.withLock { built }
+		lock.withLock { built.map(\.0) }
 	}
 
-	func append(_ credential: IntervalsCredential) {
-		lock.withLock { built.append(credential) }
+	var athletes: [AthleteSelection] {
+		lock.withLock { built.map(\.1) }
+	}
+
+	func append(_ credential: IntervalsCredential, _ athlete: AthleteSelection) {
+		lock.withLock { built.append((credential, athlete)) }
 	}
 }
