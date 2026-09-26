@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2417
-	public static let keyCount = 2453
+	public static let englishLeafCount = 2419
+	public static let keyCount = 2455
 	public static let archiveAthlete = CatalogKey(rawValue: "archive.athlete")
 	public static let archiveBack = CatalogKey(rawValue: "archive.back")
 	public static let archiveCoach = CatalogKey(rawValue: "archive.coach")
@@ -100,6 +100,7 @@ public enum Catalog {
 	public static let chatComposerFinishPlanQuestion = CatalogKey(rawValue: "chat.composer.finishPlanQuestion")
 	public static let chatComposerLabel = CatalogKey(rawValue: "chat.composer.label")
 	public static let chatComposerMessagePlaceholder = CatalogKey(rawValue: "chat.composer.messagePlaceholder")
+	public static let chatComposerNotSent = CatalogKey(rawValue: "chat.composer.notSent")
 	public static let chatComposerResponding = CatalogKey(rawValue: "chat.composer.responding")
 	public static let chatComposerSend = CatalogKey(rawValue: "chat.composer.send")
 	public static let chatComposerStop = CatalogKey(rawValue: "chat.composer.stop")
@@ -540,6 +541,7 @@ public enum Catalog {
 	public static let chatTranscriptSummaryOpening = CatalogKey(rawValue: "chat.transcript.summary.opening")
 	public static let chatTranscriptSummaryRetry = CatalogKey(rawValue: "chat.transcript.summary.retry")
 	public static let chatTranscriptSummaryReview = CatalogKey(rawValue: "chat.transcript.summary.review")
+	public static let chatTurnReceivedBeforeClose = CatalogKey(rawValue: "chat.turn.receivedBeforeClose")
 	public static let chatViewCloseContext = CatalogKey(rawValue: "chat.view.closeContext")
 	public static let chatViewConfirmation = CatalogKey(rawValue: "chat.view.confirmation")
 	public static let chatViewContextDetail = CatalogKey(rawValue: "chat.view.contextDetail")

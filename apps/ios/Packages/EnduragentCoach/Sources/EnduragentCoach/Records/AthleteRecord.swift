@@ -20,6 +20,7 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 }
 
 public enum DeviceLocalKind: String, Sendable, CaseIterable {
+	case turnClaim
 	case pendingProposal
 	case proposalCleared
 	case flushPending
@@ -89,6 +90,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 }
 
 public enum DeviceLocalRecordBody: Sendable, Equatable {
+	case turnClaim(TurnClaimBody)
 	case pendingProposal(ProposalBody)
 	case proposalCleared(ProposalClearedBody)
 	case flushPending(FlushPendingBody)
@@ -100,6 +102,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 
 	public var kind: DeviceLocalKind {
 		switch self {
+		case .turnClaim: .turnClaim
 		case .pendingProposal: .pendingProposal
 		case .proposalCleared: .proposalCleared
 		case .flushPending: .flushPending
@@ -113,10 +116,20 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 
 	public var chatId: ChatID? {
 		switch self {
+		case .turnClaim(let body): body.chatId
 		case .pendingProposal(let body): body.chatId
 		case .proposalCleared(let body): body.chatId
 		case .flushPending(let body): body.chatId
 		case .planningCommand, .planRevision, .mirrorJob, .workoutMatch, .workoutDrift: nil
+		}
+	}
+
+	public var turn: TurnID? {
+		switch self {
+		case .turnClaim(let body): body.turn
+		case .pendingProposal, .proposalCleared, .flushPending, .planningCommand, .planRevision,
+			.mirrorJob, .workoutMatch, .workoutDrift:
+			nil
 		}
 	}
 }
@@ -152,7 +165,8 @@ public enum RecordBody: Sendable, Equatable {
 	public var turn: TurnID? {
 		switch self {
 		case .synced(let body): body.turn
-		case .deviceLocal, .legacy: nil
+		case .deviceLocal(let body): body.turn
+		case .legacy: nil
 		}
 	}
 }

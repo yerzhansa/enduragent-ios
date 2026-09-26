@@ -1,17 +1,5 @@
 import Foundation
 
-public enum CoachEvent: Sendable, Equatable {
-	case textDelta(String)
-	case toolStarted(name: String, callId: String)
-	case toolFinished(name: String, callId: String)
-	case proposalPending(PendingProposal)
-	case planCard(PlanCard)
-	case languagePicker
-	case finished
-	case failed(message: String)
-	case interrupted(text: String)
-}
-
 public struct ChatMessage: Sendable, Equatable {
 	public var role: Role
 	public var text: String

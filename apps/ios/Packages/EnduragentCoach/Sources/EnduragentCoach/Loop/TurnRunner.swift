@@ -1,6 +1,6 @@
 import Foundation
 
-package struct TurnState: Sendable, Equatable {
+package struct AttemptContext: Sendable, Equatable {
 	package var chatId: ChatID
 	package var messages: [ChatMessage]
 	package var windowStart: ULID?
@@ -35,7 +35,7 @@ public enum TurnPolicy {
 public struct TurnBudgetExceeded: Error, Equatable, Sendable {
 	public var kind: Kind
 
-	public enum Kind: Sendable, Equatable {
+	public enum Kind: String, Sendable, Equatable {
 		case generateCalls
 		case generateAttempts
 		case wallClock
@@ -80,6 +80,45 @@ public struct TurnBudget: Sendable {
 	}
 }
 
+package struct TurnAttempt: Sendable, Equatable {
+	package let turn: TurnID
+	package let attempt: AttemptID
+	package let chat: ChatID
+	package let request: String
+	package let slash: SlashCommand?
+	package let language: LanguagePreference
+}
+
+package enum AttemptProgress: Sendable, Equatable {
+	case textDelta(String)
+	case attemptRestarted
+	case activity(TurnActivity)
+	case proposalPending(PendingProposal)
+}
+
+package enum AttemptResult: Sendable, Equatable {
+	case replied(ReplyText, lineage: ReplyLineage)
+	case failed(CoachFailure, saved: WriteSummary)
+}
+
+package struct AttemptReport: Sendable, Equatable {
+	package let result: AttemptResult
+	package let softFlushDue: Bool
+}
+
+extension Settlement {
+	package init(_ result: AttemptResult) {
+		switch result {
+		case .replied(let text, let lineage):
+			self = .replied(text, lineage: lineage)
+		case .failed(let failure, let saved):
+			self = .failed(failure, saved: saved)
+		}
+	}
+}
+
+package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Void
+
 package struct TurnRunner: Sendable {
 	private let transport: any ModelTransport
 	private let intervals: any IntervalsClient
@@ -105,33 +144,50 @@ package struct TurnRunner: Sendable {
 	}
 
 	package func run(
-		text: String,
-		chatId: ChatID,
-		language: LanguagePreference,
-		emit: @escaping @Sendable (CoachEvent) -> Void
-	) async throws {
-		_ = planning
-		let slash = SlashRouting.parse(text)
-		if slash == .plan {
-			emit(.finished)
-			return
+		_ attempt: TurnAttempt,
+		progress: @escaping AttemptProgressSink
+	) async throws(CancellationError) -> AttemptReport {
+		do {
+			return try await perform(attempt, progress: progress)
+		} catch is CancellationError {
+			throw CancellationError()
+		} catch is LedgerFailure {
+			return AttemptReport(
+				result: .failed(.local(.recordStorage), saved: .none), softFlushDue: false)
+		} catch let budget as TurnBudgetExceeded {
+			return failed(.budgetExhausted(budget.kind))
+		} catch is WatchdogTimeout {
+			return failed(.providerDown(.timeout))
+		} catch is UnknownFinishReasonError {
+			return failed(.generationFailed(.unknownFinish))
+		} catch is OpenRouterParseError {
+			return failed(.generationFailed(.malformedStream))
+		} catch is URLError {
+			return failed(.providerDown(.network))
+		} catch {
+			return failed(.providerDown(.outage))
 		}
-		if slash == .language {
-			emit(.languagePicker)
-			emit(.finished)
-			return
-		}
+	}
 
-		await tools.beginTurn()
-		let turn = TurnID(ulid: await ledger.nextULID())
+	private func failed(_ failure: ModelFailure) -> AttemptReport {
+		AttemptReport(result: .failed(.model(failure), saved: .none), softFlushDue: false)
+	}
+
+	private func perform(
+		_ attempt: TurnAttempt,
+		progress: @escaping AttemptProgressSink
+	) async throws -> AttemptReport {
+		_ = planning
+		let chatId = attempt.chat
 		let stamp = OperationStamp(
-			operation: .turn(turn),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
+			operation: .turn(attempt.turn),
+			attempt: attempt.attempt,
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
+		await tools.beginTurn()
 
-		var transcript = try await loadTranscript(chatId: chatId, excluding: turn)
+		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
 		if shouldDailyReset(last: transcript.lastDate) {
 			_ = try await ledger.commit(
 				local: [
@@ -166,6 +222,7 @@ package struct TurnRunner: Sendable {
 		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = await loadSnapshot()
+		let language = attempt.language
 		let resolution = LanguageResolution(
 			language: language.coachReply ?? language.ui,
 			source: language.coachReply == nil ? .surface : .preference,
@@ -192,25 +249,26 @@ package struct TurnRunner: Sendable {
 				.compactionSummary(
 					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
 			_ = try await ledger.commit(synced: bodies, stamp: stamp)
+			await progress(.activity(.savingMemory))
 			try? await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
 		}
 		let kept = trim.kept
 		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
-		let shouldFlush = HistoryWindow.shouldSoftFlush(
+		let softFlushDue = HistoryWindow.shouldSoftFlush(
 			historyTokens: historyTokens,
 			budget: trim.budget,
 			messagesSinceFlush: kept.count
 		)
 
 		let timed = PromptAssembly.appendCurrentTime(
-			athleteText: text,
+			athleteText: attempt.request,
 			now: clock.now,
 			timeZone: clock.timeZone
 		)
 		var wire = kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 
-		var state = TurnState(
+		var state = AttemptContext(
 			chatId: chatId,
 			messages: kept,
 			windowStart: transcript.windowStart,
@@ -223,45 +281,37 @@ package struct TurnRunner: Sendable {
 		)
 
 		var budget = TurnBudget.start()
-		var streamed = ""
 		var overflowTries = 0
-		var pendingProposal: PendingProposal?
+		var first = true
 
 		attemptLoop: while true {
 			try Task.checkCancellation()
 			try budget.chargeAttempt()
 			try budget.checkDeadline()
-
-			if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-				try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
-				emit(.interrupted(text: streamed))
-				return
+			if !first {
+				await progress(.attemptRestarted)
 			}
+			first = false
 
 			if shouldCompact(wire: wire, system: system) {
 				if overflowTries >= TurnPolicy.overflowRetries {
-					throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
+					return AttemptReport(
+						result: .failed(.model(.contextOverflow), saved: .none), softFlushDue: false
+					)
 				}
+				await progress(.activity(.compacting))
 				try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
 				overflowTries += 1
 			}
 
-			streamed = ""
-			pendingProposal = nil
 			state.steps = 0
 			var lastText = ""
 			var lastReason: FinishReason = .stop
-			var lastUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 
 			stepLoop: while state.steps < TurnPolicy.maxSteps {
 				try Task.checkCancellation()
-				if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-					try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
-					emit(.interrupted(text: streamed))
-					return
-				}
-
 				try budget.chargeGenerate()
+				await progress(.activity(.generating(step: state.steps + 1)))
 				let deadline = minDuration(
 					TurnPolicy.chatCallDeadline,
 					budget.remaining(until: ContinuousClock().now)
@@ -275,27 +325,20 @@ package struct TurnRunner: Sendable {
 					tools: schemas,
 					deadline: deadline
 				)
-				let step: GenerateStep
-				do {
-					step = try await generateStep(request: request, emit: emit, streamed: &streamed)
-				} catch let timeout as WatchdogTimeout {
-					emit(
-						.failed(
-							message: timeout == .ttft
-								? "CHAT_TTFT_TIMEOUT" : "CHAT_INTER_CHUNK_TIMEOUT"))
-					return
-				}
+				let step = try await generateStep(request: request, progress: progress)
 
 				state.steps += 1
 				lastText = step.text
 				lastReason = step.reason
-				lastUsage = step.usage
 
 				if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
 					if overflowTries >= TurnPolicy.overflowRetries {
-						throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
+						return AttemptReport(
+							result: .failed(.model(.contextOverflow), saved: .none),
+							softFlushDue: false)
 					}
 					overflowTries += 1
+					await progress(.activity(.compacting))
 					try await compact(wire: &wire, budget: &budget, chatId: chatId, stamp: stamp)
 					continue attemptLoop
 				}
@@ -304,8 +347,11 @@ package struct TurnRunner: Sendable {
 					if step.reason == .error || step.reason == .contentFilter,
 						step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 					{
-						emit(.failed(message: "CHAT_PROVIDER_ERROR"))
-						return
+						let fault: GenerationFault =
+							step.reason == .error ? .emptyAfterError : .contentFiltered
+						return AttemptReport(
+							result: .failed(.model(.generationFailed(fault)), saved: .none),
+							softFlushDue: false)
 					}
 					break stepLoop
 				}
@@ -319,12 +365,11 @@ package struct TurnRunner: Sendable {
 						toolCallId: nil)
 				)
 
-				let outcomes = try await runTools(
-					step.toolCalls, chatId: chatId, state: state, emit: emit)
+				await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
+				let outcomes = try await runTools(step.toolCalls, chatId: chatId, state: state)
 				for (call, outcome) in outcomes {
 					if case .pending(let proposal) = outcome {
-						pendingProposal = proposal
-						emit(.proposalPending(proposal))
+						await progress(.proposalPending(proposal))
 					}
 					wire.append(
 						WireMessage(
@@ -367,72 +412,38 @@ package struct TurnRunner: Sendable {
 							budget.remaining(until: ContinuousClock().now)
 						)
 					),
-					emit: emit,
-					streamed: &streamed
+					progress: progress
 				)
 				assistantText = recovery.text
 			}
 			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 				assistantText = PromptStaticBlocks.stepLimitCopy
-				emit(.textDelta(assistantText))
+				await progress(.textDelta(assistantText))
 			}
 
-			if !assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				let templateHash = sha256Hex(
-					prefix + schemas.map(\.name.rawValue).joined()
-						+ CompletionRequest.openRouterModel)
-				let assembledHash = sha256Hex(system + timed + assistantText)
-				_ = try await ledger.commit(
-					synced: [
-						.userMessage(
-							UserMessageBody(
-								chatId: chatId,
-								turn: turn,
-								fragment: 0,
-								draft: DraftID(),
-								athleteText: text,
-								slash: slash
-							)
-						),
-						.turnSettled(
-							TurnSettledBody(
-								chatId: chatId,
-								turn: turn,
-								attempt: stamp.attempt,
-								settlement: .replied(
-									.model(assistantText),
-									lineage: ReplyLineage(
-										templateHash: templateHash, assembledHash: assembledHash)
-								)
-							)
-						),
-					],
-					stamp: stamp
-				)
-			}
-
-			if shouldFlush {
-				try await queueSoftFlush(chatId: chatId, ulids: transcript.ulids, stamp: stamp)
-			}
-
-			_ = lastUsage
-			_ = pendingProposal
-			emit(.finished)
-			return
+			let templateHash = sha256Hex(
+				prefix + schemas.map(\.name.rawValue).joined() + CompletionRequest.openRouterModel)
+			let assembledHash = sha256Hex(system + timed + assistantText)
+			return AttemptReport(
+				result: .replied(
+					.model(assistantText),
+					lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
+				),
+				softFlushDue: softFlushDue
+			)
 		}
 	}
 
 	private func generateStep(
 		request: CompletionRequest,
-		emit: @escaping @Sendable (CoachEvent) -> Void,
-		streamed: inout String
+		progress: @escaping AttemptProgressSink
 	) async throws -> GenerateStep {
 		let watchdog = ChatWatchdog()
 		await watchdog.arm()
 		do {
 			let step = try await withThrowingTaskGroup(of: GenerateStep.self) { group in
 				group.addTask {
-					try await self.collect(request: request, watchdog: watchdog, emit: emit)
+					try await self.collect(request: request, watchdog: watchdog, progress: progress)
 				}
 				group.addTask {
 					if let kind = await watchdog.fired() {
@@ -453,7 +464,7 @@ package struct TurnRunner: Sendable {
 					throw error
 				}
 			}
-			streamed += step.text
+			try Task.checkCancellation()
 			return step
 		} catch {
 			await watchdog.disarm()
@@ -464,13 +475,12 @@ package struct TurnRunner: Sendable {
 	private func collect(
 		request: CompletionRequest,
 		watchdog: ChatWatchdog,
-		emit: @escaping @Sendable (CoachEvent) -> Void
+		progress: @escaping AttemptProgressSink
 	) async throws -> GenerateStep {
 		var text = ""
 		var calls: [WireToolCall] = []
 		var reason: FinishReason = .stop
 		var usage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
-		var finished = false
 		let stream = transport.stream(request)
 		for try await event in stream {
 			try Task.checkCancellation()
@@ -481,7 +491,7 @@ package struct TurnRunner: Sendable {
 				}
 				await watchdog.beat()
 				text += delta
-				emit(.textDelta(delta))
+				await progress(.textDelta(delta))
 			case .toolCall(let call):
 				await watchdog.beat()
 				calls.append(call)
@@ -490,32 +500,34 @@ package struct TurnRunner: Sendable {
 			case .finished(let finishReason, let finishUsage):
 				reason = finishReason
 				usage = finishUsage
-				finished = true
 			}
 		}
-		_ = finished
 		return GenerateStep(text: text, toolCalls: calls, reason: reason, usage: usage)
 	}
 
 	private func runTools(
 		_ calls: [WireToolCall],
 		chatId: ChatID,
-		state: TurnState,
-		emit: @escaping @Sendable (CoachEvent) -> Void
+		state: AttemptContext
 	) async throws -> [(WireToolCall, ToolOutcome)] {
 		try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
 				group.addTask {
-					emit(.toolStarted(name: call.name.rawValue, callId: call.id))
 					let arguments =
 						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
-					let outcome = try await self.tools.execute(
-						name: call.name,
-						arguments: arguments,
-						chatId: chatId,
-						state: state
-					)
-					emit(.toolFinished(name: call.name.rawValue, callId: call.id))
+					let outcome: ToolOutcome
+					do {
+						outcome = try await self.tools.execute(
+							name: call.name,
+							arguments: arguments,
+							chatId: chatId,
+							state: state
+						)
+					} catch is CancellationError {
+						throw CancellationError()
+					} catch {
+						outcome = .result(.object(["error": .string(toolErrorText(error))]))
+					}
 					return (index, call, outcome)
 				}
 			}
@@ -525,16 +537,6 @@ package struct TurnRunner: Sendable {
 			}
 			return rows.sorted { $0.0 < $1.0 }.map { ($0.1, $0.2) }
 		}
-	}
-
-	private func queueSoftFlush(chatId: ChatID, ulids: [ULID], stamp: OperationStamp) async throws {
-		_ = try await ledger.commit(
-			local: [
-				.flushPending(
-					FlushPendingBody(chatId: chatId, trigger: .softThreshold, messageUlids: ulids))
-			],
-			stamp: stamp
-		)
 	}
 
 	private func compact(
@@ -565,11 +567,11 @@ package struct TurnRunner: Sendable {
 			tools: [],
 			deadline: TurnPolicy.compactionTimeout
 		)
-		var unused = ""
 		let summary: String
 		do {
-			summary = try await generateStep(request: request, emit: { _ in }, streamed: &unused)
-				.text
+			summary = try await generateStep(request: request, progress: { _ in }).text
+		} catch is CancellationError {
+			throw CancellationError()
 		} catch {
 			summary = compactionStub(
 				dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
@@ -636,7 +638,7 @@ package struct TurnRunner: Sendable {
 		let resetAt = dailyResetDate(
 			now: clock.now, timeZone: clock.timeZone, hour: TurnPolicy.dailyResetHour)
 		guard last < resetAt else { return false }
-		let grace = durationSeconds(TurnPolicy.dailyResetGrace)
+		let grace = TurnPolicy.dailyResetGrace.timeInterval
 		if clock.now.timeIntervalSince(last) < grace {
 			return false
 		}
@@ -663,8 +665,14 @@ private struct Transcript: Sendable {
 	}
 }
 
-private struct TurnFailure: Error {
-	var message: String
+private func toolErrorText(_ error: any Error) -> String {
+	if let intervals = error as? IntervalsError {
+		return intervals.details
+	}
+	if let workout = error as? InvalidWorkout {
+		return workout.message
+	}
+	return String(describing: error)
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {
@@ -714,12 +722,6 @@ private func shouldCompact(wire: [WireMessage], system: String) -> Bool {
 
 private func minDuration(_ lhs: Duration, _ rhs: Duration) -> Duration {
 	lhs < rhs ? lhs : rhs
-}
-
-private func durationSeconds(_ duration: Duration) -> TimeInterval {
-	let components = duration.components
-	return TimeInterval(components.seconds)
-		+ TimeInterval(components.attoseconds) / 1_000_000_000_000_000_000
 }
 
 private func dailyResetDate(now: Date, timeZone: TimeZone, hour: Int) -> Date {

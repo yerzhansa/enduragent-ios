@@ -6,9 +6,11 @@ package enum ConversationFold {
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
-	package static func fold(chat: ChatID, synced: [AthleteRecord], device: DeviceID)
-		-> Conversation
-	{
+	package static let localScope: RecordQuery.Scope = .deviceLocal([.turnClaim])
+
+	package static func fold(
+		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID
+	) -> Conversation {
 		let ordered = synced.filter { $0.chatId == chat }.sorted { $0.hlc < $1.hlc }
 		var boundaries: [(ulid: ULID, opening: SegmentOpening)] = []
 		for record in ordered {
@@ -107,6 +109,12 @@ package enum ConversationFold {
 				break
 			}
 		}
+		for record in local.sorted(by: { $0.hlc < $1.hlc })
+		where record.chatId == chat && record.deviceId == device {
+			if case .deviceLocal(.turnClaim(let body)) = record.body {
+				turns[body.turn]?.claims.append(body)
+			}
+		}
 		for turn in order {
 			guard let facts = turns[turn], let first = facts.fragments.first else { continue }
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
@@ -133,6 +141,49 @@ package enum ConversationFold {
 		}
 		return Conversation(chat: chat, segments: segments)
 	}
+
+	package static func applying(
+		_ records: [AthleteRecord], to conversation: Conversation, device: DeviceID
+	) -> Conversation {
+		var next = conversation
+		for record in records {
+			switch record.body {
+			case .synced(.userMessage(let body)):
+				let fragment = Fragment(
+					ulid: record.ulid,
+					hlc: record.hlc,
+					civilDate: record.civilDate,
+					index: body.fragment,
+					draft: body.draft,
+					text: body.athleteText,
+					slash: body.slash
+				)
+				if let position = next.position(of: body.turn) {
+					next.segments[position.segment].turns[position.turn].fragments.append(fragment)
+				} else {
+					var facts = TurnFacts(turn: body.turn, chat: conversation.chat, origin: device)
+					facts.fragments.append(fragment)
+					next.appendToCurrent(facts)
+				}
+			case .synced(.turnSettled(let body)):
+				guard let position = next.position(of: body.turn) else { continue }
+				next.segments[position.segment].turns[position.turn].settlements.append(
+					SettledAttempt(
+						ulid: record.ulid,
+						hlc: record.hlc,
+						civilDate: record.civilDate,
+						attempt: body.attempt,
+						settlement: body.settlement
+					))
+			case .deviceLocal(.turnClaim(let body)):
+				guard let position = next.position(of: body.turn) else { continue }
+				next.segments[position.segment].turns[position.turn].claims.append(body)
+			default:
+				continue
+			}
+		}
+		return next
+	}
 }
 
 package struct Conversation: Sendable, Equatable {
@@ -144,6 +195,42 @@ package struct Conversation: Sendable, Equatable {
 			return Segment(id: SegmentID(boundary: nil), openedBy: .chatStart)
 		}
 		return last
+	}
+
+	package func turn(_ id: TurnID) -> TurnFacts? {
+		guard let position = position(of: id) else { return nil }
+		return segments[position.segment].turns[position.turn]
+	}
+
+	package func turn(withDraft draft: DraftID) -> TurnFacts? {
+		for segment in segments {
+			for facts in segment.turns where facts.fragments.contains(where: { $0.draft == draft })
+			{
+				return facts
+			}
+		}
+		return nil
+	}
+
+	fileprivate func position(of id: TurnID) -> (segment: Int, turn: Int)? {
+		for (segmentIndex, segment) in segments.enumerated() {
+			if let turnIndex = segment.turns.firstIndex(where: { $0.turn == id }) {
+				return (segmentIndex, turnIndex)
+			}
+		}
+		return nil
+	}
+
+	package mutating func settle(_ turn: TurnID, with settled: SettledAttempt) {
+		guard let position = position(of: turn) else { return }
+		segments[position.segment].turns[position.turn].settlements.append(settled)
+	}
+
+	fileprivate mutating func appendToCurrent(_ facts: TurnFacts) {
+		if segments.isEmpty {
+			segments.append(Segment(id: SegmentID(boundary: nil), openedBy: .chatStart))
+		}
+		segments[segments.count - 1].turns.append(facts)
 	}
 
 	package var lastExchange: LastExchange {
@@ -225,14 +312,23 @@ package struct TurnFacts: Sendable, Equatable {
 	package let chat: ChatID
 	package let origin: DeviceID
 	package var fragments: [Fragment] = []
+	package var claims: [TurnClaimBody] = []
 	package var settlements: [SettledAttempt] = []
 
 	package var requestText: String {
 		fragments.sorted { $0.index < $1.index }.map(\.text).joined(separator: "\n")
 	}
 
+	package var slash: SlashCommand? {
+		fragments.min { $0.index < $1.index }?.slash
+	}
+
 	package var latestSettlement: SettledAttempt? {
 		settlements.max { $0.hlc < $1.hlc }
+	}
+
+	package var openClaims: [TurnClaimBody] {
+		claims.filter { claim in !settlements.contains { $0.attempt == claim.attempt } }
 	}
 
 	var lastUlid: ULID {
@@ -240,19 +336,27 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
-		guard let first = fragments.min(by: { $0.index < $1.index }) else { return [] }
-		var rows = [
-			(first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate))
-		]
-		if let settled = latestSettlement, case .replied(.model(let text), _) = settled.settlement {
-			rows.append(
-				(
-					settled.ulid,
-					ChatMessage(role: .assistant, text: text, civilDate: settled.civilDate)
-				)
-			)
+		guard let first = fragments.min(by: { $0.index < $1.index }),
+			let settled = latestSettlement
+		else {
+			return []
 		}
-		return rows
+		let replyText: String
+		switch settled.settlement {
+		case .replied(.model(let text), _):
+			replyText = text
+		case .interrupted(let partial, _, _) where !partial.isEmpty:
+			replyText = partial
+		case .interrupted, .failed:
+			return []
+		}
+		return [
+			(first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)),
+			(
+				settled.ulid,
+				ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
+			),
+		]
 	}
 }
 
