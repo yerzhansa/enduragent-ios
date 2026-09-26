@@ -243,6 +243,12 @@ package struct Conversation: Sendable, Equatable {
 		return nil
 	}
 
+	package mutating func observeInMemory(_ turn: TurnID, attempt: AttemptID) {
+		guard let position = position(of: turn) else { return }
+		segments[position.segment].turns[position.turn].replyObserved.append(
+			ReplyObservedBody(chatId: chat, turn: turn, attempt: attempt))
+	}
+
 	package mutating func settleInMemory(
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID, now: Date,
 		zone: TimeZone, device: DeviceID

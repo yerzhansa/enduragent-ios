@@ -101,6 +101,21 @@ import Testing
 		#expect(marks.count == 1)
 	}
 
+	@Test func anUnsavedReplyMarkIsReportedOncePerAttempt() async throws {
+		transport.script = [.text("One "), .text("two "), .text("three."), .finish(reason: .stop)]
+		let faulty = FaultInjectingRecordLog(wrapping: store)
+		faulty.failAppends(ofKind: .replyObserved)
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: faulty, clock: clock)
+		let settled = try await coach.sendAndSettle("Count to three")
+		#expect(replyText(settled) == "One two three.")
+		let unsaved = coach.diagnostics.entries.filter { entry in
+			if case .replyObservedUnsaved = entry.event { return true }
+			return false
+		}
+		#expect(unsaved.count == 1)
+	}
+
 	private func makeCoach() -> Coach {
 		EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
