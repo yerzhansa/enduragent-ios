@@ -40,9 +40,12 @@ final class FixtureLaunchTests {
 		return try AppServices.fixture(launch, defaults: defaults)
 	}
 
-	func relaunch(_ store: FixtureStorePolicy) throws -> (AppServices, UserDefaults) {
+	func relaunch(_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked) throws
+		-> (AppServices, UserDefaults)
+	{
 		var launch = launch
 		launch.store = store
+		launch.keychain = keychain
 		let defaults = try launch.prepare()
 		return (try AppServices.fixture(launch, defaults: defaults), defaults)
 	}
@@ -52,7 +55,7 @@ final class FixtureLaunchTests {
 	}
 
 	func builder(_ services: AppServices) -> ServicesBuilder {
-		ServicesBuilder(fixture: services, language: language, defaults: defaults)
+		ServicesBuilder(services: services, language: language, defaults: defaults)
 	}
 
 	func settledTurn(
@@ -107,7 +110,10 @@ final class FixtureLaunchTests {
 	@Test func fixtureArgumentBuildsCoachFromFakes() async throws {
 		let services = try services()
 		#expect(services.isFixture)
-		#expect(try await services.intervals.fetchAthlete().name == "Ada Kovač")
+		#expect(
+			try await #require(services.fixtureDirector).intervals.fetchAthlete().name
+				== "Ada Kovač")
+		#expect(await services.coach.status().training == .unconnected)
 		let model = model(services)
 		#expect(model.route == .onboarding(.notice))
 		#expect(model.chat == nil)
@@ -158,36 +164,125 @@ final class FixtureLaunchTests {
 		model.continueNotice()
 		model.skipConnect()
 		#expect(model.route == .onboarding(.starter))
-		#expect(model.athlete == nil)
+		#expect(model.connected == nil)
 		#expect(model.athleteFirstName.isEmpty)
 	}
 
 	@Test func alreadyGrantedWithStoredKeyShowsBalance() async throws {
 		let services = try services()
-		let credits = try #require(services.credits as? FakeCreditsClient)
-		credits.grantResult = .success(.alreadyGranted)
-		try services.secrets.storeOpenRouterKey("sk-or-test-0000")
+		let fixture = try #require(services.fixtureDirector)
+		fixture.credits.grantResult = .success(.alreadyGranted)
+		try fixture.secrets.storeOpenRouterKey("sk-or-test-0000")
 		let model = model(services)
 		await model.loadStarter()
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func intervalsLoadFailureShowsTheReason() async throws {
+	@Test func intervalsLoadFailureShowsACatalogNotice() async throws {
 		let services = try services()
-		let intervals = try #require(services.intervals as? FakeIntervalsClient)
-		let failure = IntervalsError(
+		let onboarding = model(services)
+		onboarding.connectKey = "fixture"
+		await onboarding.connect()
+		#expect(onboarding.didConnect)
+		try #require(services.fixtureDirector).intervals.loadFailure = IntervalsError(
 			code: "load_failed",
 			details: "intervals.icu could not load today's training data."
 		)
-		intervals.loadFailure = failure
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.errorLine == failure.details)
-		#expect(model.athlete == nil)
-		#expect(model.todayWellness == nil)
+		#expect(model.errorLine == nil)
+		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
+		#expect(
+			model.status?.notice?.sentence(in: model.builder.phrasebook)
+				== "Couldn't reach intervals.icu right now — try again shortly.")
+		#expect(model.connected?.athleteName == nil)
+	}
+
+	@Test func creditsFailuresShowCatalogNotices() async throws {
+		let services = try services()
+		let fixture = try #require(services.fixtureDirector)
+		fixture.credits.grantResult = .failure(.banned)
+		fixture.credits.catalogResult = .failure(.unavailable)
+		let model = model(services)
+		await model.loadStarter()
+		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")
+		await model.loadCredits()
+		#expect(model.creditsNotice?.key == Catalog.creditsErrorUnavailable)
+		#expect(model.errorLine == nil)
+	}
+
+	@Test func connectStoresTheKeyAndShowsTheAthleteAndToday() async throws {
+		let services = try services()
+		let model = model(services)
+		model.continueNotice()
+		model.connectKey = "fixture"
+		await model.connect()
+		#expect(model.didConnect)
+		#expect(model.connectError == nil)
+		#expect(model.connected?.athleteName == "Ada Kovač")
+		#expect(model.connected?.today?.fitness == 42)
+		#expect(model.athleteFirstName == "Ada")
+		guard case .connected(_, .intervals(_, let athlete))? = model.status?.training else {
+			Issue.record("expected a connected training account")
+			return
+		}
+		#expect(athlete?.rawValue == "i1001")
+	}
+
+	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
+		let model = model(try services())
+		model.continueNotice()
+		model.connectKey = "   "
+		await model.connect()
+		#expect(!model.didConnect)
+		#expect(model.connectError == "intervals.icu did not accept that key.")
+		#expect(model.connected == nil)
+	}
+
+	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
+		let first = model(try services())
+		first.startChatting()
+		first.draft.text = TutorialCopy.weekQuestion
+		await first.send()
+		_ = try await settledTurn(first)
+		let (locked, kept) = try relaunch(.keep, keychain: .locked)
+		let reopened = ShellModel(
+			builder: ServicesBuilder(services: locked, language: language, defaults: kept))
+		await reopened.appear()
+		try await observed(reopened)
+		#expect(reopened.route == .chat)
+		#expect(reopened.chat?.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
+		#expect(reopened.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(
+			reopened.status?.notice?.sentence(in: reopened.builder.phrasebook)
+				== "Unlock your iPhone to continue. Your message is saved.")
+	}
+
+	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
+		let services = try services()
+		let fixture = try #require(services.fixtureDirector)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let unconnected = try await settledTurn(model)
+		#expect(fixture.intervals.calls.isEmpty)
+		guard
+			case .replaced = await services.coach.changeTraining(
+				.replace(apiKey: "fixture", athlete: .keyOwner))
+		else {
+			Issue.record("expected the key to be stored")
+			return
+		}
+		model.draft.text = "How was my week?"
+		await model.send()
+		let connected = try await settledTurn(model, after: unconnected.state)
+		#expect(replyText(connected.state) == FirstWeekFixture.weekSummary)
+		#expect(
+			fixture.intervals.calls.contains(.wellness(oldest: "1998-06-09", newest: "1998-06-15")))
 	}
 
 	@Test func fixtureLaunchStaysOnNotice() throws {
@@ -252,7 +347,7 @@ final class FixtureLaunchTests {
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
 		let reopened = ShellModel(
-			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+			builder: ServicesBuilder(services: second, language: language, defaults: kept))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chatId == first.chatId)
@@ -272,7 +367,7 @@ final class FixtureLaunchTests {
 	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
 		let services = try services(keychain: .locked)
 		#expect(throws: KeychainStoreError(status: errSecInteractionNotAllowed)) {
-			try services.secrets.openRouterKey()
+			try #require(services.fixtureDirector).secrets.openRouterKey()
 		}
 	}
 

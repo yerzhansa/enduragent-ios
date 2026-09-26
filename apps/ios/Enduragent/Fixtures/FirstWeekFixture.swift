@@ -3,6 +3,8 @@ import Foundation
 
 enum FirstWeekFixture {
 	static let athleteName = "Ada Kovač"
+	static let otherAthleteKey = "other-athlete"
+	static let otherAthleteName = "Bo Lind"
 	static let today: CivilDate = "1998-06-15"
 	static let creditsKey = "fixture-credits-key"
 	static let tomorrow: CivilDate = "1998-06-16"
@@ -27,6 +29,13 @@ enum FirstWeekFixture {
 				name: "Saturday group ride", date: "1998-06-13", durationS: 7_800, trainingLoad: 118
 			),
 		]
+	}
+
+	static func training(_ ada: FakeIntervalsClient) -> TrainingService {
+		let other = FakeIntervalsClient(athleteName: otherAthleteName, ftp: 240, athleteId: "i2002")
+		return .fake { credential in
+			credential == .apiKey(otherAthleteKey) ? other : ada
+		}
 	}
 
 	static func install(on secrets: FakeSecretStore) throws {

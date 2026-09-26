@@ -43,9 +43,14 @@
 								Text(row.hlc)
 									.font(.caption2)
 									.monospaced()
+								Text(row.account)
+									.font(.caption2)
+									.monospaced()
 							}
 							.accessibilityElement(children: .ignore)
-							.accessibilityLabel("\(row.kind) \(row.deviceId) \(row.hlc)")
+							.accessibilityLabel(
+								"\(row.kind) \(row.deviceId) \(row.hlc) \(row.account)"
+							)
 							.accessibilityIdentifier("records.row.\(row.id)")
 						}
 					}

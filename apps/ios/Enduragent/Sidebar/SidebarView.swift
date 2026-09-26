@@ -31,10 +31,14 @@ struct SidebarView: View {
 		var body: some View {
 			List {
 				NavigationLink("Credits") {
-					CreditsDebugView()
+					CreditsDebugView(coach: model.services.coach)
 				}
+				NavigationLink("Credentials") {
+					CredentialsDebugView(model: model)
+				}
+				.accessibilityIdentifier("debug.credentials")
 				NavigationLink("Records") {
-					RecordSyncDebugView(probe: model.services?.coach.recordSyncProbe())
+					RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 				}
 				.accessibilityIdentifier("debug.records")
 				if model.builder.isFixture {

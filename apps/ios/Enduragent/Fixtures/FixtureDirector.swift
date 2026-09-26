@@ -13,6 +13,9 @@ struct FixtureDirector: Sendable {
 
 	let transport: FakeModelTransport
 	let records: FaultInjectingRecordLog
+	let secrets: FakeSecretStore
+	let intervals: FakeIntervalsClient
+	let credits: FakeCreditsClient
 
 	func prepare(for text: String) -> FixtureDirective {
 		reset(replyingTo: text)

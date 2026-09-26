@@ -44,6 +44,7 @@
 		C97AC1EF5C858E7B5CBD5738 /* TurnRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6932D7AAEE51A2B4AD64EA7 /* TurnRowView.swift */; };
 		CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4D837BF9883269DAD6C615 /* NoticeView.swift */; };
 		CED72381387A7FA14EFCA529 /* FixtureFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4ABCE2F18CBD408A1E72974 /* FixtureFailureTests.swift */; };
+		D337AD70EF46A479BB103A33 /* CredentialsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5E5A1054BE21707B87BCDCE /* CredentialsDebugView.swift */; };
 		D74E3051E2D7865B708A229E /* TutorialProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */; };
 		DD224F1891F710F94D738395 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D10C84C333E7498713547A /* ConnectView.swift */; };
 		E58F3BAF0D130742B75F56CE /* StarterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28CB01ECD4F0385933736762 /* StarterView.swift */; };
@@ -117,6 +118,7 @@
 		E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBlockingURLProtocol.swift; sourceTree = "<group>"; };
 		EFE5043C9095F3E5521623E3 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		F4ABCE2F18CBD408A1E72974 /* FixtureFailureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureFailureTests.swift; sourceTree = "<group>"; };
+		F5E5A1054BE21707B87BCDCE /* CredentialsDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CredentialsDebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,6 +204,7 @@
 		74A786EE528AFAF332958B55 /* Credits */ = {
 			isa = PBXGroup;
 			children = (
+				F5E5A1054BE21707B87BCDCE /* CredentialsDebugView.swift */,
 				94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */,
 				E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */,
 				E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */,
@@ -435,6 +438,7 @@
 				75B6936C93B9BF6207DBE14B /* ComposerView.swift in Sources */,
 				23BA97B185E8F0CA4A991324 /* ConfirmedPreviewCard.swift in Sources */,
 				DD224F1891F710F94D738395 /* ConnectView.swift in Sources */,
+				D337AD70EF46A479BB103A33 /* CredentialsDebugView.swift in Sources */,
 				01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */,
 				3770B936C14C45953BB0BCF6 /* CreditsView.swift in Sources */,
 				E7A6ED777F9856DCAAEFBB3C /* DeviceCheckTokenProvider.swift in Sources */,

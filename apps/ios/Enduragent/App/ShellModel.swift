@@ -13,13 +13,13 @@ final class ShellModel {
 	private(set) var isSending = false
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
-	var athlete: AthleteProfile?
-	var todayWellness: WellnessDay?
+	private(set) var status: CoachStatus?
 	var starterCredits: Credits?
 	var starterLine: String?
 	var starterResolved = false
 	var balance: Credits?
 	var catalog: PackCatalog?
+	var creditsNotice: AthleteNotice?
 	var history: [ChatSummary] = []
 	var errorLine: String?
 	var connectKey = ""
@@ -54,12 +54,17 @@ final class ShellModel {
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
 	static let lastChatIdKey = "enduragent.lastChatId"
 
-	var services: AppServices? {
+	var services: AppServices {
 		builder.services
 	}
 
+	var connected: IntervalsSummary? {
+		guard case .connected(let summary, _)? = status?.training else { return nil }
+		return summary
+	}
+
 	var athleteFirstName: String {
-		guard let name = athlete?.name.trimmingCharacters(in: .whitespacesAndNewlines),
+		guard let name = connected?.athleteName?.trimmingCharacters(in: .whitespacesAndNewlines),
 			!name.isEmpty
 		else {
 			return ""
@@ -83,14 +88,15 @@ final class ShellModel {
 	}
 
 	func connect() async {
-		do {
-			let result = try await builder.connectIntervals(apiKey: connectKey)
-			athlete = result.athlete
-			todayWellness = result.wellness
+		let outcome = await services.coach.changeTraining(
+			.replace(apiKey: connectKey, athlete: .keyOwner))
+		switch outcome {
+		case .replaced:
 			connectError = nil
 			didConnect = true
-		} catch {
-			connectError = "intervals.icu did not accept that key"
+			await refreshStatus()
+		case .kept, .disconnected, .refused, .failedPreviousKept:
+			connectError = builder.phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
 		}
 	}
@@ -101,8 +107,6 @@ final class ShellModel {
 	}
 
 	func skipConnect() {
-		athlete = nil
-		todayWellness = nil
 		didConnect = false
 		connectError = nil
 		route = .onboarding(.starter)
@@ -113,7 +117,7 @@ final class ShellModel {
 		starterLoaded = true
 		do {
 			let token = try await builder.deviceCheck.token()
-			let outcome = try await builder.credits.grant(deviceCheck: token)
+			let outcome = try await services.coach.credits.grant(deviceCheck: token)
 			switch outcome {
 			case .minted(let credits):
 				starterCredits = credits
@@ -126,41 +130,35 @@ final class ShellModel {
 					?? "This device already used its starter credits."
 			}
 		} catch {
-			starterLine = grantFailureName(error)
+			starterLine = AthleteNotice.credits(failure: error).sentence(in: builder.phrasebook)
 		}
 		starterResolved = true
 	}
 
 	private func existingBalanceLine() async throws -> String? {
-		guard try builder.secrets.openRouterKey() != nil else { return nil }
-		let scale = try await builder.credits.catalog().scale
-		let balance = try await builder.credits.balance(scale: scale)
+		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
+		let scale = try await services.coach.credits.catalog().scale
+		let balance = try await services.coach.credits.balance(scale: scale)
 		starterCredits = balance.credits
 		return "\(balance.credits.units) credits"
 	}
 
 	func appear() async {
 		guard route == .chat else { return }
-		do {
-			_ = try builder.completedServices()
-			observeChat()
-			await reloadHistory()
-			try await refreshAthlete()
-		} catch {
-			errorLine = failureMessage(error)
-		}
+		observeChat()
+		await reloadHistory()
+		await refreshStatus()
+	}
+
+	func refreshStatus() async {
+		status = await services.coach.status()
 	}
 
 	func startChatting() {
-		do {
-			_ = try builder.completedServices()
-			beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-			saveSession()
-			route = .chat
-			observeChat()
-		} catch {
-			errorLine = String(describing: error)
-		}
+		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
+		saveSession()
+		route = .chat
+		observeChat()
 	}
 
 	func newChat() {
@@ -185,10 +183,6 @@ final class ShellModel {
 	}
 
 	func reloadHistory() async {
-		guard let services else {
-			history = []
-			return
-		}
 		var rows: [ChatSummary] = []
 		for entry in chatIndex.all() {
 			guard let id = ChatID(rawValue: entry.id),
@@ -205,12 +199,12 @@ final class ShellModel {
 	}
 
 	func loadCredits() async {
-		guard let services else { return }
 		do {
-			let loaded = try await services.credits.catalog()
+			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
-			let held = try await services.credits.balance(scale: loaded.scale)
+			let held = try await services.coach.credits.balance(scale: loaded.scale)
 			balance = held.credits
+			creditsNotice = nil
 			if services.isFixture {
 				packPrices = [:]
 			} else {
@@ -219,7 +213,7 @@ final class ShellModel {
 					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
 			}
 		} catch {
-			errorLine = String(describing: error)
+			creditsNotice = AthleteNotice.credits(failure: error)
 		}
 	}
 
@@ -243,7 +237,7 @@ final class ShellModel {
 
 	func send() async {
 		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty, !isSending, let services else { return }
+		guard !text.isEmpty, !isSending else { return }
 		isSending = true
 		defer { isSending = false }
 		notSent = false
@@ -271,11 +265,11 @@ final class ShellModel {
 	}
 
 	func stop() async {
-		await services?.coach.stop(chatId)
+		await services.coach.stop(chatId)
 	}
 
 	func confirmPending() async {
-		guard let services, let pending = visibleProposal else { return }
+		guard let pending = visibleProposal, pending.confirmable(under: status) else { return }
 		do {
 			let outcome = try await services.coach.confirm(chatId: chatId, nonce: pending.nonce)
 			switch outcome {
@@ -300,7 +294,6 @@ final class ShellModel {
 	}
 
 	private func observeChat() {
-		guard let services else { return }
 		if observedChat == chatId, let observation, !observation.isCancelled {
 			return
 		}
@@ -349,27 +342,5 @@ final class ShellModel {
 	private func storedChatId() -> ChatID? {
 		guard let raw = defaults.string(forKey: Self.lastChatIdKey) else { return nil }
 		return ChatID(rawValue: raw)
-	}
-
-	private func refreshAthlete() async throws {
-		guard let services else { return }
-		athlete = try await services.intervals.fetchAthlete()
-		let today = CivilDates.today(clock: builder.clock)
-		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today)
-			.first
-	}
-
-	private func failureMessage(_ error: Error) -> String {
-		if let intervals = error as? IntervalsError {
-			return intervals.details
-		}
-		return String(describing: error)
-	}
-
-	private func grantFailureName(_ error: Error) -> String {
-		if let failure = error as? CreditsFailure {
-			return String(describing: failure)
-		}
-		return String(describing: error)
 	}
 }
