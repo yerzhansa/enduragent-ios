@@ -14,7 +14,7 @@ import Testing
 		let log = try store.open(deviceId: phoneA)
 		let synced = try await log.fetch(RecordQuery(scope: .everySynced))
 		#expect(synced.skipped.isEmpty)
-		#expect(synced.records.count == 13)
+		try #require(synced.records.count == 13)
 		#expect(
 			kinds(synced.records) == [
 				"userMessage", "assistantMessage", "userMessage", "assistantMessage", "windowStart",
