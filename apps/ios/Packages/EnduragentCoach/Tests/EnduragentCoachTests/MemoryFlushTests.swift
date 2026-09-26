@@ -18,21 +18,19 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let store = InMemoryRecordLog()
-		try await store.append(
-			RecordLogSamples.record(
-				deviceId: store.deviceId,
-				now: clock.now,
-				body: .userMessage(
-					UserMessageBody(
-						chatId: .main,
-						athleteText: "Remember that I ride with a group on Saturdays",
-						timedText: "Remember that I ride with a group on Saturdays",
-						slash: nil
-					)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId,
+					wall: 1,
+					body: .synced(
+						sampleUser(
+							chatId: .main, text: "Remember that I ride with a group on Saturdays"))
 				)
-			)
+			]
 		)
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
 		try await memory.flush(trigger: .softThreshold, chatId: .main, transport: transport)
 		#expect(transport.requests.count >= 1)
 		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
@@ -67,7 +65,8 @@ import Testing
 		for try await event in coach.send("Remember Saturdays", chatId: "main") {
 			if case .finished = event {
 				finished = true
-				let events = try await store.fetch(RecordQuery(kinds: [.ledgerEvent]))
+				let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
+					.records
 				sawLedgerBeforeFinish = !events.isEmpty
 			}
 		}
@@ -87,35 +86,30 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let store = InMemoryRecordLog()
-		let tz = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
-		let first = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
-			timeZone: tz,
-			civilDate: "1998-06-13",
-			body: .flushPending(
-				FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
+		let first = storedRecord(
+			device: store.deviceId,
+			wall: 1,
+			body: .deviceLocal(
+				.flushPending(
+					FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: [])))
 		)
-		let second = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: first.hlc),
-			timeZone: tz,
-			civilDate: "1998-06-13",
-			body: .flushPending(
-				FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: []))
+		let second = storedRecord(
+			device: store.deviceId,
+			wall: 2,
+			body: .deviceLocal(
+				.flushPending(
+					FlushPendingBody(chatId: .main, trigger: .staleReset, messageUlids: [])))
 		)
-		try await store.append(first)
-		try await store.append(second)
-		let memory = Memory(store: store, clock: clock)
+		try await seed(store, [first, second])
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
 		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
 		try await memory.flush(trigger: .staleReset, chatId: .main, transport: transport)
-		let consumed = try await store.fetch(RecordQuery(kinds: [.provenance])).compactMap {
-			record -> String? in
-			guard case .provenance(let body) = record.body else { return nil }
-			return body.key
-		}
+		let consumed = try await store.fetch(RecordQuery(scope: .synced([.provenance]))).records
+			.compactMap {
+				record -> String? in
+				guard case .synced(.provenance(let body)) = record.body else { return nil }
+				return body.key
+			}
 		#expect(
 			consumed.filter { $0.hasPrefix(MemoryFlushPolicy.consumedFlushKeyPrefix) }.count == 2)
 		#expect(consumed.contains(MemoryFlushPolicy.consumedFlushKeyPrefix + first.ulid.rawValue))
@@ -137,17 +131,15 @@ import Testing
 		script.append(.finish(reason: .stop))
 		transport.script = script
 		let store = InMemoryRecordLog()
-		try await store.append(
-			RecordLogSamples.record(
-				deviceId: store.deviceId,
-				now: clock.now,
-				body: .userMessage(
-					UserMessageBody(
-						chatId: .main, athleteText: "note", timedText: "note", slash: nil)
-				)
-			)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId, wall: 1,
+					body: .synced(sampleUser(chatId: .main, text: "note")))
+			]
 		)
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
 		try await memory.flush(trigger: .trim, chatId: .main, transport: transport)
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
 		#expect(

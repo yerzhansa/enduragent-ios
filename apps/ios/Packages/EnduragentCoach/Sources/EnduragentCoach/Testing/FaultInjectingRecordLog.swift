@@ -3,7 +3,7 @@ import Synchronization
 
 public struct RecordStorageFault: Error, Sendable, Equatable {
 	public enum Operation: Sendable, Equatable {
-		case append(RecordKind)
+		case append(kinds: [String])
 		case fetch
 	}
 
@@ -17,7 +17,7 @@ public struct RecordStorageFault: Error, Sendable, Equatable {
 public final class FaultInjectingRecordLog: RecordLog, Sendable {
 	private struct Faults: Sendable {
 		var nextAppend = false
-		var appendKinds: Set<RecordKind> = []
+		var appendKinds: Set<String> = []
 		var fetches = false
 	}
 
@@ -40,29 +40,37 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 		set { faults.withLock { $0.fetches = newValue } }
 	}
 
-	public func failAppends(ofKind kind: RecordKind) {
-		faults.withLock { _ = $0.appendKinds.insert(kind) }
+	public func failAppends(ofKind kind: SyncedKind) {
+		faults.withLock { _ = $0.appendKinds.insert(kind.rawValue) }
 	}
 
-	public func append(_ record: AthleteRecord) async throws {
-		let kind = record.body.kind
+	public func failAppends(ofKind kind: DeviceLocalKind) {
+		faults.withLock { _ = $0.appendKinds.insert(kind.rawValue) }
+	}
+
+	public func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		let kinds = batch.map(\.body.kind)
 		let fails = faults.withLock { current -> Bool in
 			if current.nextAppend {
 				current.nextAppend = false
 				return true
 			}
-			return current.appendKinds.contains(kind)
+			return kinds.contains { current.appendKinds.contains($0) }
 		}
 		if fails {
-			throw RecordStorageFault(operation: .append(kind))
+			throw RecordStorageFault(operation: .append(kinds: kinds))
 		}
-		try await wrapped.append(record)
+		try await wrapped.append(batch, locality: locality)
 	}
 
-	public func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
+	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		if faults.withLock({ $0.fetches }) {
 			throw RecordStorageFault(operation: .fetch)
 		}
 		return try await wrapped.fetch(query)
+	}
+
+	public var imports: AsyncStream<Void> {
+		wrapped.imports
 	}
 }

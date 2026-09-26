@@ -5,9 +5,9 @@ public enum RecordLocality: Sendable, Equatable {
 	case deviceLocal
 }
 
-public enum RecordKind: String, Sendable {
+public enum SyncedKind: String, Sendable, CaseIterable {
 	case userMessage
-	case assistantMessage
+	case turnSettled
 	case windowStart
 	case compactionSummary
 	case memorySection
@@ -15,33 +15,30 @@ public enum RecordKind: String, Sendable {
 	case ledgerEvent
 	case journal
 	case provenance
+	case coachReplyLanguage
+	case planningDevice
+}
+
+public enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case pendingProposal
 	case proposalCleared
 	case flushPending
-	case coachReplyLanguage
-	case planningDevice
 	case planningCommand
 	case planRevision
 	case mirrorJob
 	case workoutMatch
 	case workoutDrift
-
-	public var locality: RecordLocality {
-		switch self {
-		case .userMessage, .assistantMessage, .windowStart, .compactionSummary,
-			.memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-			.coachReplyLanguage, .planningDevice:
-			return .synced
-		case .pendingProposal, .proposalCleared, .flushPending, .planningCommand,
-			.planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
-			return .deviceLocal
-		}
-	}
 }
 
-public enum RecordBody: Sendable, Equatable {
+public enum LegacyKind: String, Sendable, CaseIterable {
+	case userMessage
+	case assistantMessage
+	case windowStart
+}
+
+public enum SyncedRecordBody: Sendable, Equatable {
 	case userMessage(UserMessageBody)
-	case assistantMessage(AssistantMessageBody)
+	case turnSettled(TurnSettledBody)
 	case windowStart(WindowStartBody)
 	case compactionSummary(CompactionSummaryBody)
 	case memorySection(MemorySectionBody)
@@ -49,184 +46,144 @@ public enum RecordBody: Sendable, Equatable {
 	case ledgerEvent(LedgerEventBody)
 	case journal(JournalBody)
 	case provenance(ProvenanceBody)
+	case coachReplyLanguage(CoachReplyLanguageBody)
+	case planningDevice(PlanningDeviceBody)
+
+	public var kind: SyncedKind {
+		switch self {
+		case .userMessage: .userMessage
+		case .turnSettled: .turnSettled
+		case .windowStart: .windowStart
+		case .compactionSummary: .compactionSummary
+		case .memorySection: .memorySection
+		case .dailyNote: .dailyNote
+		case .ledgerEvent: .ledgerEvent
+		case .journal: .journal
+		case .provenance: .provenance
+		case .coachReplyLanguage: .coachReplyLanguage
+		case .planningDevice: .planningDevice
+		}
+	}
+
+	public var chatId: ChatID? {
+		switch self {
+		case .userMessage(let body): body.chatId
+		case .turnSettled(let body): body.chatId
+		case .windowStart(let body): body.chatId
+		case .compactionSummary(let body): body.chatId
+		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
+			.coachReplyLanguage, .planningDevice:
+			nil
+		}
+	}
+
+	public var turn: TurnID? {
+		switch self {
+		case .userMessage(let body): body.turn
+		case .turnSettled(let body): body.turn
+		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
+			.journal, .provenance, .coachReplyLanguage, .planningDevice:
+			nil
+		}
+	}
+}
+
+public enum DeviceLocalRecordBody: Sendable, Equatable {
 	case pendingProposal(ProposalBody)
 	case proposalCleared(ProposalClearedBody)
 	case flushPending(FlushPendingBody)
-	case coachReplyLanguage(CoachReplyLanguageBody)
-	case planningDevice(PlanningDeviceBody)
 	case planningCommand(PlanningCommandBody)
 	case planRevision(PlanRevisionBody)
 	case mirrorJob(MirrorJobBody)
 	case workoutMatch(WorkoutMatchBody)
 	case workoutDrift(WorkoutDriftBody)
 
-	public var kind: RecordKind {
+	public var kind: DeviceLocalKind {
 		switch self {
-		case .userMessage: return .userMessage
-		case .assistantMessage: return .assistantMessage
-		case .windowStart: return .windowStart
-		case .compactionSummary: return .compactionSummary
-		case .memorySection: return .memorySection
-		case .dailyNote: return .dailyNote
-		case .ledgerEvent: return .ledgerEvent
-		case .journal: return .journal
-		case .provenance: return .provenance
-		case .pendingProposal: return .pendingProposal
-		case .proposalCleared: return .proposalCleared
-		case .flushPending: return .flushPending
-		case .coachReplyLanguage: return .coachReplyLanguage
-		case .planningDevice: return .planningDevice
-		case .planningCommand: return .planningCommand
-		case .planRevision: return .planRevision
-		case .mirrorJob: return .mirrorJob
-		case .workoutMatch: return .workoutMatch
-		case .workoutDrift: return .workoutDrift
+		case .pendingProposal: .pendingProposal
+		case .proposalCleared: .proposalCleared
+		case .flushPending: .flushPending
+		case .planningCommand: .planningCommand
+		case .planRevision: .planRevision
+		case .mirrorJob: .mirrorJob
+		case .workoutMatch: .workoutMatch
+		case .workoutDrift: .workoutDrift
+		}
+	}
+
+	public var chatId: ChatID? {
+		switch self {
+		case .pendingProposal(let body): body.chatId
+		case .proposalCleared(let body): body.chatId
+		case .flushPending(let body): body.chatId
+		case .planningCommand, .planRevision, .mirrorJob, .workoutMatch, .workoutDrift: nil
 		}
 	}
 }
 
-public struct UserMessageBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var athleteText: String
-	public var timedText: String
-	public var slash: SlashCommand?
+public enum RecordBody: Sendable, Equatable {
+	case synced(SyncedRecordBody)
+	case deviceLocal(DeviceLocalRecordBody)
+	case legacy(LegacyRecordBody)
+
+	public var kind: String {
+		switch self {
+		case .synced(let body): body.kind.rawValue
+		case .deviceLocal(let body): body.kind.rawValue
+		case .legacy(let body): body.kind.rawValue
+		}
+	}
+
+	public var locality: RecordLocality {
+		switch self {
+		case .synced, .legacy: .synced
+		case .deviceLocal: .deviceLocal
+		}
+	}
+
+	public var chatId: ChatID? {
+		switch self {
+		case .synced(let body): body.chatId
+		case .deviceLocal(let body): body.chatId
+		case .legacy(let body): body.chatId
+		}
+	}
+
+	public var turn: TurnID? {
+		switch self {
+		case .synced(let body): body.turn
+		case .deviceLocal, .legacy: nil
+		}
+	}
 }
 
-public struct AssistantMessageBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var text: String
-	public var templateHash: String
-	public var assembledHash: String
-}
-
-public struct WindowStartBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var firstIncludedUlid: ULID
-}
-
-public struct CompactionSummaryBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var markdown: String
-}
-
-public struct MemorySectionBody: Sendable, Equatable {
-	public var name: SectionName
-	public var content: String
-}
-
-public struct DailyNoteBody: Sendable, Equatable {
-	public var note: String
-}
-
-public struct LedgerEventBody: Sendable, Equatable {
-	public var kind: LedgerKind
-	public var text: String
-	public var source: LedgerSource
-}
-
-public struct JournalBody: Sendable, Equatable {
-	public var op: JournalOp
-	public var preview: String
-}
-
-public struct ProvenanceBody: Sendable, Equatable {
-	public var key: String
-	public var garmin: Bool
-	public var nonGarmin: Bool
-	public var unknown: Bool
-	public var contentSha256: String
-}
-
-public struct ProposalBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var nonce: Nonce
-	public var tool: GatedToolName
-	public var toolInput: GatedToolInput
-	public var summary: String
-	public var description: String
-	public var expiresAt: Date
-}
-
-public struct ProposalClearedBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var nonce: Nonce
-	public var reason: ProposalClearReason
-}
-
-public enum ProposalClearReason: String, Sendable {
-	case executed
-	case replaced
-	case expired
-	case cancelled
-}
-
-public struct FlushPendingBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var trigger: FlushTrigger
-	public var messageUlids: [ULID]
-}
-
-public struct CoachReplyLanguageBody: Sendable, Equatable {
-	public var tag: LanguageTag?
-}
-
-public struct PlanningDeviceBody: Sendable, Equatable {
-	public var planningDeviceId: DeviceID
-	public var planUlid: ULID
-	public var activatedAt: Date
-}
-
-public struct PlanningCommandBody: Sendable, Equatable {
-	public var commandName: PlanningCommandName
-	public var commandId: String
-	public var requestDigest: String
-	public var status: PlanningCommandStatus
-	public var result: JSONValue?
-}
-
-public struct PlanRevisionBody: Sendable, Equatable {
-	public var planUlid: ULID
-	public var version: Int
-	public var status: PlanStatus
-	public var snapshot: JSONValue
-}
-
-public struct MirrorJobBody: Sendable, Equatable {
-	public var planUlid: ULID
-	public var kind: MirrorJobKind
-	public var windowStart: DateKey
-	public var windowEnd: DateKey
-	public var failureCount: Int
-}
-
-public struct WorkoutMatchBody: Sendable, Equatable {
-	public var planWorkoutId: ULID
-	public var activityId: String
-	public var decision: MatchDecision
-}
-
-public struct WorkoutDriftBody: Sendable, Equatable {
-	public var planWorkoutId: ULID
-	public var askedAt: Date
+public enum RecordCause: Hashable, Sendable {
+	case operation(OperationID, AttemptID)
+	case legacy
 }
 
 public struct AthleteRecord: Sendable, Equatable, Identifiable {
 	public var id: ULID { ulid }
-	public var ulid: ULID
-	public var deviceId: DeviceID
-	public var hlc: HybridLogicalClock
-	public var timeZone: IANATimeZone
-	public var civilDate: CivilDate
-	public var body: RecordBody
+	public let ulid: ULID
+	public let deviceId: DeviceID
+	public let hlc: HybridLogicalClock
+	public let timeZone: IANATimeZone
+	public let civilDate: CivilDate
+	public let cause: RecordCause
+	public let account: TrainingAccount
+	public let body: RecordBody
 
-	public var locality: RecordLocality { body.kind.locality }
+	public var locality: RecordLocality { body.locality }
+	public var chatId: ChatID? { body.chatId }
 
-	public init(
+	package init(
 		ulid: ULID,
 		deviceId: DeviceID,
 		hlc: HybridLogicalClock,
 		timeZone: IANATimeZone,
 		civilDate: CivilDate,
+		cause: RecordCause,
+		account: TrainingAccount,
 		body: RecordBody
 	) {
 		self.ulid = ulid
@@ -234,6 +191,8 @@ public struct AthleteRecord: Sendable, Equatable, Identifiable {
 		self.hlc = hlc
 		self.timeZone = timeZone
 		self.civilDate = civilDate
+		self.cause = cause
+		self.account = account
 		self.body = body
 	}
 }

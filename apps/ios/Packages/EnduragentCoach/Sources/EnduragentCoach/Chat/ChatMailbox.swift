@@ -4,7 +4,7 @@ package actor ChatMailbox {
 	package let chatId: ChatID
 	private let runner: TurnRunner
 	private let memory: Memory
-	private let store: any RecordLog
+	private let ledger: Ledger
 	private let clock: any Clock
 	private let transport: any ModelTransport
 	private var tail: Task<Void, Never>
@@ -16,14 +16,14 @@ package actor ChatMailbox {
 		chatId: ChatID,
 		runner: TurnRunner,
 		memory: Memory,
-		store: any RecordLog,
+		ledger: Ledger,
 		clock: any Clock,
 		transport: any ModelTransport
 	) {
 		self.chatId = chatId
 		self.runner = runner
 		self.memory = memory
-		self.store = store
+		self.ledger = ledger
 		self.clock = clock
 		self.transport = transport
 		self.tail = Task {}
@@ -78,11 +78,42 @@ package actor ChatMailbox {
 		current?.cancel()
 	}
 
-	package func reset() async {
-		await enqueue {
-			let writerWait = RecordLogReset(store: self.store, clock: self.clock)
-			try? await writerWait.run(chatId: self.chatId)
+	package func reset() async throws {
+		let previous = tail
+		let next = Task {
+			await previous.value
+			try await self.resetBoundary()
 		}
+		tail = Task { _ = await next.result }
+		current = tail
+		try await next.value
+	}
+
+	private func resetBoundary() async throws(LedgerFailure) {
+		let resetId = ResetID(ulid: await ledger.nextULID())
+		let stamp = OperationStamp(
+			operation: .conversationReset(resetId),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: ActionBinding(
+				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+		)
+		_ = try await ledger.commit(
+			local: [
+				.flushPending(
+					FlushPendingBody(chatId: chatId, trigger: .explicitReset, messageUlids: []))
+			],
+			stamp: stamp
+		)
+		let marker = await ledger.nextULID()
+		_ = try await ledger.commit(
+			synced: [
+				.windowStart(
+					WindowStartBody(
+						chatId: chatId, firstIncludedUlid: marker,
+						reason: .reset(.explicit(resetId))))
+			],
+			stamp: stamp
+		)
 	}
 
 	package func runQueuedFlush() async {
@@ -119,36 +150,5 @@ package actor ChatMailbox {
 		tail = next
 		current = next
 		await next.value
-	}
-}
-
-private struct RecordLogReset {
-	let store: any RecordLog
-	let clock: any Clock
-
-	func run(chatId: ChatID) async throws {
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let marker = ULID.generate(at: clock.now)
-		let record = AthleteRecord(
-			ulid: marker,
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: .flushPending(
-				FlushPendingBody(chatId: chatId, trigger: .explicitReset, messageUlids: []))
-		)
-		try await store.append(record)
-		try await store.append(
-			AthleteRecord(
-				ulid: ULID.generate(at: clock.now),
-				deviceId: store.deviceId,
-				hlc: .tick(now: clock.now, deviceId: store.deviceId, last: record.hlc),
-				timeZone: tz,
-				civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-				body: .windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: marker))
-			)
-		)
 	}
 }

@@ -251,7 +251,7 @@ final class FixtureLaunchTests {
 		#expect(model.seam.transcript.isEmpty)
 		#expect(records.failNextAppend)
 		await model.send(TutorialCopy.weekQuestion)
-		#expect(model.errorLine?.contains("RecordStorageFault") == true)
+		#expect(model.errorLine?.contains("rejectedBatch") == true)
 		#expect(await services.coach.history(chatId: model.chatId).isEmpty)
 	}
 

@@ -3,38 +3,39 @@
 	import SwiftUI
 
 	struct RecordSyncDebugView: View {
-		@State private var session: RecordSyncSession?
+		let probe: RecordSyncProbe?
 		@State private var loadError: String?
 		@State private var status = ""
-		@State private var deviceIdText = ""
-		@State private var newestHLC = ""
-		@State private var counts: [(kind: String, count: Int)] = []
-		@State private var rows: [RecordSyncRow] = []
+		@State private var snapshot: RecordSyncSnapshot?
 
 		var body: some View {
 			NavigationStack {
 				List {
 					Section("Device") {
-						Text(deviceIdText.isEmpty ? "—" : deviceIdText)
+						Text(snapshot?.deviceId.rawValue ?? "—")
+							.accessibilityIdentifier("records.device")
 					}
 					Section("Newest HLC") {
-						Text(newestHLC.isEmpty ? "—" : newestHLC)
+						Text(snapshot.map { $0.newestHLC.isEmpty ? "—" : $0.newestHLC } ?? "—")
 					}
 					Section("Count per kind") {
-						if counts.isEmpty {
-							Text("No records")
-						} else {
-							ForEach(counts, id: \.kind) { item in
+						if let counts = snapshot?.counts, !counts.isEmpty {
+							ForEach(counts) { item in
 								HStack {
 									Text(item.kind)
 									Spacer()
 									Text("\(item.count)")
 								}
+								.accessibilityElement(children: .ignore)
+								.accessibilityLabel("\(item.kind) \(item.count)")
+								.accessibilityIdentifier("records.count.\(item.kind)")
 							}
+						} else {
+							Text("No records")
 						}
 					}
 					Section("Records") {
-						ForEach(rows) { row in
+						ForEach(snapshot?.rows ?? []) { row in
 							VStack(alignment: .leading, spacing: 4) {
 								Text(row.kind)
 								Text(row.deviceId)
@@ -43,6 +44,14 @@
 									.font(.caption2)
 									.monospaced()
 							}
+							.accessibilityElement(children: .ignore)
+							.accessibilityLabel("\(row.kind) \(row.deviceId) \(row.hlc)")
+							.accessibilityIdentifier("records.row.\(row.id)")
+						}
+					}
+					if let skipped = snapshot?.skipped, skipped > 0 {
+						Section("Skipped rows") {
+							Text("\(skipped)")
 						}
 					}
 					Section("Append") {
@@ -67,45 +76,18 @@
 					}
 				}
 				.navigationTitle("Record Sync")
-				.task { await bootstrap() }
-			}
-		}
-
-		@MainActor
-		private func bootstrap() async {
-			do {
-				if session == nil {
-					session = try RecordSyncSession()
-				}
-				await refresh()
-			} catch {
-				loadError = String(describing: error)
+				.task { await refresh() }
 			}
 		}
 
 		@MainActor
 		private func refresh() async {
-			guard let session else { return }
+			guard let probe else {
+				loadError = "No coach services yet"
+				return
+			}
 			do {
-				let records = try await session.fetchAll()
-				deviceIdText = session.deviceId.rawValue
-				counts = RecordKind.allCases.compactMap { kind in
-					let count = records.filter { $0.body.kind == kind }.count
-					return count == 0 ? nil : (kind.rawValue, count)
-				}
-				if let newest = records.max(by: { $0.hlc < $1.hlc }) {
-					newestHLC = hlcText(newest.hlc)
-				} else {
-					newestHLC = ""
-				}
-				rows = records.map { record in
-					RecordSyncRow(
-						id: "\(record.ulid.rawValue)-\(record.deviceId.rawValue)",
-						kind: record.body.kind.rawValue,
-						deviceId: record.deviceId.rawValue,
-						hlc: hlcText(record.hlc)
-					)
-				}
+				snapshot = try await probe.snapshot()
 				loadError = nil
 			} catch {
 				loadError = String(describing: error)
@@ -114,9 +96,9 @@
 
 		@MainActor
 		private func appendSynced() async {
-			guard let session else { return }
+			guard let probe else { return }
 			do {
-				try await session.appendSyncedSamples()
+				try await probe.appendSyncedSamples()
 				status = "Appended three synced records"
 				await refresh()
 			} catch {
@@ -126,83 +108,14 @@
 
 		@MainActor
 		private func appendLocal() async {
-			guard let session else { return }
+			guard let probe else { return }
 			do {
-				try await session.appendLocalSample()
+				try await probe.appendLocalSample()
 				status = "Appended one device-local record"
 				await refresh()
 			} catch {
 				loadError = String(describing: error)
 			}
 		}
-	}
-
-	private struct RecordSyncRow: Identifiable {
-		var id: String
-		var kind: String
-		var deviceId: String
-		var hlc: String
-	}
-
-	@MainActor
-	private final class RecordSyncSession {
-		static let deviceDefaultsKey = "enduragent.deviceId"
-
-		let deviceId: DeviceID
-		let log: SwiftDataRecordLog
-
-		init() throws {
-			let defaults = UserDefaults.standard
-			if let stored = defaults.string(forKey: Self.deviceDefaultsKey) {
-				deviceId = DeviceID(rawValue: stored)
-			} else {
-				let created = DeviceID()
-				defaults.set(created.rawValue, forKey: Self.deviceDefaultsKey)
-				deviceId = created
-			}
-			let directory = try ModelContainerHandle.applicationSupportDirectory()
-			log = SwiftDataRecordLog(
-				deviceId: deviceId,
-				synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
-				local: try ModelContainerHandle.deviceLocal(directory: directory)
-			)
-		}
-
-		func fetchAll() async throws -> [AthleteRecord] {
-			let synced = try await log.fetch(
-				RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .synced })))
-			let local = try await log.fetch(
-				RecordQuery(kinds: Set(RecordKind.allCases.filter { $0.locality == .deviceLocal })))
-			return (synced + local).sorted { $0.hlc < $1.hlc }
-		}
-
-		func appendSyncedSamples() async throws {
-			let now = Date()
-			for index in 0..<3 {
-				let stamped = now.addingTimeInterval(TimeInterval(index))
-				try await log.append(
-					RecordLogSamples.record(
-						deviceId: deviceId,
-						now: stamped,
-						body: RecordLogSamples.userMessage(text: "synced-\(index + 1)")
-					)
-				)
-			}
-		}
-
-		func appendLocalSample() async throws {
-			let now = Date()
-			try await log.append(
-				RecordLogSamples.record(
-					deviceId: deviceId,
-					now: now,
-					body: RecordLogSamples.pendingProposal(expiresAt: now.addingTimeInterval(600))
-				)
-			)
-		}
-	}
-
-	private func hlcText(_ hlc: HybridLogicalClock) -> String {
-		"\(hlc.wallMs).\(hlc.logical)@\(hlc.deviceId.rawValue)"
 	}
 #endif

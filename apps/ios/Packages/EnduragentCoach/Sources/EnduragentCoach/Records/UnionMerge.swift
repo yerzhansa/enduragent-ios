@@ -1,41 +1,11 @@
 import Foundation
 
 package enum UnionMerge {
-	package static func conversation(
-		_ records: [AthleteRecord],
-		chatId: ChatID,
-		deviceId: DeviceID
-	) -> [ChatMessage] {
-		let ordered = inHLCOrder(records)
-		let cutoff = ordered.last { record in
-			guard record.deviceId == deviceId else { return false }
-			guard case .windowStart(let body) = record.body else { return false }
-			return body.chatId == chatId
-		}
-		let firstIncluded: ULID?
-		if case .windowStart(let body)? = cutoff?.body {
-			firstIncluded = body.firstIncludedUlid
-		} else {
-			firstIncluded = nil
-		}
-		return ordered.compactMap { record in
-			if let firstIncluded, record.ulid.rawValue < firstIncluded.rawValue {
-				return nil
-			}
-			switch record.body {
-			case .userMessage(let body) where body.chatId == chatId:
-				return ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate)
-			case .assistantMessage(let body) where body.chatId == chatId:
-				return ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate)
-			default:
-				return nil
-			}
-		}
-	}
-
 	package static func sectionText(_ records: [AthleteRecord], name: SectionName) -> String? {
 		inHLCOrder(records).reversed().compactMap { record -> String? in
-			guard case .memorySection(let body) = record.body, body.name == name else { return nil }
+			guard case .synced(.memorySection(let body)) = record.body, body.name == name else {
+				return nil
+			}
 			return body.content
 		}.first
 	}
@@ -44,8 +14,8 @@ package enum UnionMerge {
 		var seen: Set<String> = []
 		var events: [LedgerEventBody] = []
 		for record in inHLCOrder(records) {
-			guard case .ledgerEvent(let body) = record.body else { continue }
-			let digest = ledgerDigest(date: record.civilDate, kind: body.kind, text: body.text)
+			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
+			let digest = ledgerDigest(date: body.date, kind: body.kind, text: body.text)
 			if seen.insert(digest).inserted {
 				events.append(body)
 			}
@@ -64,14 +34,14 @@ package enum UnionMerge {
 
 	package static func planningDevice(_ records: [AthleteRecord]) -> PlanningDeviceBody? {
 		inHLCOrder(records).reversed().compactMap { record -> PlanningDeviceBody? in
-			guard case .planningDevice(let body) = record.body else { return nil }
+			guard case .synced(.planningDevice(let body)) = record.body else { return nil }
 			return body
 		}.first
 	}
 
 	package static func coachReplyLanguage(_ records: [AthleteRecord]) -> LanguageTag? {
 		for record in inHLCOrder(records).reversed() {
-			if case .coachReplyLanguage(let body) = record.body {
+			if case .synced(.coachReplyLanguage(let body)) = record.body {
 				return body.tag
 			}
 		}
@@ -86,12 +56,13 @@ package enum UnionMerge {
 		let ordered = inHLCOrder(records)
 		var clearedAt: [Nonce: HybridLogicalClock] = [:]
 		for record in ordered {
-			if case .proposalCleared(let body) = record.body, body.chatId == chatId {
+			if case .deviceLocal(.proposalCleared(let body)) = record.body, body.chatId == chatId {
 				clearedAt[body.nonce] = record.hlc
 			}
 		}
 		for record in ordered.reversed() {
-			guard case .pendingProposal(let body) = record.body, body.chatId == chatId else {
+			guard case .deviceLocal(.pendingProposal(let body)) = record.body, body.chatId == chatId
+			else {
 				continue
 			}
 			if body.expiresAt <= now { continue }

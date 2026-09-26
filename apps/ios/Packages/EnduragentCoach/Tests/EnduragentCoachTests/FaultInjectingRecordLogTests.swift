@@ -5,69 +5,54 @@ import Testing
 
 @Suite struct FaultInjectingRecordLogTests {
 	let phone = DeviceID(rawValue: "phone-a")
-	let amsterdam: IANATimeZone
-
-	init() throws {
-		amsterdam = try #require(IANATimeZone(identifier: "Europe/Amsterdam"))
-	}
 
 	@Test func failNextAppendThrowsOnceThenPassesThrough() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
 		log.failNextAppend = true
-		await #expect(throws: RecordStorageFault(operation: .append(.userMessage))) {
-			try await log.append(
-				record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "lost"))))
+		await #expect(throws: RecordStorageFault(operation: .append(kinds: ["userMessage"]))) {
+			try await log.append([record(wall: 1, text: "lost")], locality: .synced)
 		}
 		#expect(log.failNextAppend == false)
-		try await log.append(
-			record(wall: 2, body: .userMessage(sampleUser(chatId: .main, text: "kept"))))
-		let fetched = try await log.fetch(RecordQuery(kinds: [.userMessage]))
-		#expect(fetched.map(\.ulid).count == 1)
+		try await log.append([record(wall: 2, text: "kept")], locality: .synced)
+		let fetched = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
+		#expect(fetched.map(messageText) == ["kept"])
 	}
 
-	@Test func failAppendsOfKindLeavesOtherKindsWritable() async throws {
+	@Test func failAppendsOfKindRejectsTheWholeBatchAndLeavesOtherKindsWritable() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
-		log.failAppends(ofKind: .assistantMessage)
-		try await log.append(
-			record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
-		await #expect(throws: RecordStorageFault(operation: .append(.assistantMessage))) {
-			try await log.append(
-				record(
-					wall: 2, body: .assistantMessage(sampleAssistant(chatId: .main, text: "hello")))
-			)
+		log.failAppends(ofKind: .turnSettled)
+		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
+		let turn = TurnID(ulid: fixedUlid(1))
+		let batch = [
+			record(wall: 2, text: "question"),
+			storedRecord(
+				device: phone, wall: 3,
+				body: .synced(sampleReply(chatId: .main, turn: turn, text: "hello"))),
+		]
+		await #expect(
+			throws: RecordStorageFault(operation: .append(kinds: ["userMessage", "turnSettled"]))
+		) {
+			try await log.append(batch, locality: .synced)
 		}
-		await #expect(throws: RecordStorageFault(operation: .append(.assistantMessage))) {
-			try await log.append(
-				record(
-					wall: 3, body: .assistantMessage(sampleAssistant(chatId: .main, text: "again")))
-			)
-		}
-		let users = try await log.fetch(RecordQuery(kinds: [.userMessage]))
-		let assistants = try await log.fetch(RecordQuery(kinds: [.assistantMessage]))
-		#expect(users.count == 1)
-		#expect(assistants.isEmpty)
+		let users = try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records
+		let replies = try await log.fetch(RecordQuery(scope: .synced([.turnSettled]))).records
+		#expect(users.map(messageText) == ["hi"])
+		#expect(replies.isEmpty)
 	}
 
 	@Test func failFetchesThrowsUntilCleared() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
-		try await log.append(
-			record(wall: 1, body: .userMessage(sampleUser(chatId: .main, text: "hi"))))
+		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
 		log.failFetches = true
 		await #expect(throws: RecordStorageFault(operation: .fetch)) {
-			_ = try await log.fetch(RecordQuery(kinds: [.userMessage]))
+			_ = try await log.fetch(RecordQuery(scope: .synced([.userMessage])))
 		}
 		log.failFetches = false
-		#expect(try await log.fetch(RecordQuery(kinds: [.userMessage])).count == 1)
+		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
 	}
 
-	private func record(wall: Int64, body: RecordBody) -> AthleteRecord {
-		AthleteRecord(
-			ulid: ULID.generate(at: Date(timeIntervalSince1970: TimeInterval(wall))),
-			deviceId: phone,
-			hlc: HybridLogicalClock(wallMs: wall, logical: 0, deviceId: phone),
-			timeZone: amsterdam,
-			civilDate: "1998-06-13",
-			body: body
-		)
+	private func record(wall: Int64, text: String) -> AthleteRecord {
+		storedRecord(
+			device: phone, wall: wall, body: .synced(sampleUser(chatId: .main, text: text)))
 	}
 }

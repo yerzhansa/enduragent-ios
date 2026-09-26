@@ -48,16 +48,16 @@ private actor ToolMemoActor {
 
 package struct ToolRuntime: Sendable {
 	private let intervals: any IntervalsClient
-	private let store: any RecordLog
+	private let ledger: Ledger
 	private let planning: Planning
 	private let clock: any Clock
 	private let memo: ToolMemoActor
 
 	package init(
-		intervals: any IntervalsClient, store: any RecordLog, planning: Planning, clock: any Clock
+		intervals: any IntervalsClient, ledger: Ledger, planning: Planning, clock: any Clock
 	) {
 		self.intervals = intervals
-		self.store = store
+		self.ledger = ledger
 		self.planning = planning
 		self.clock = clock
 		self.memo = ToolMemoActor()
@@ -74,7 +74,8 @@ package struct ToolRuntime: Sendable {
 		state: TurnState
 	) async throws -> ToolOutcome {
 		if let gated = GatedToolName(rawValue: name.rawValue) {
-			return try await executeGated(gated, arguments: arguments, chatId: chatId)
+			return try await executeGated(
+				gated, arguments: arguments, chatId: chatId, stamp: state.stamp)
 		}
 		let key = name.rawValue + " " + canonicalJSON(arguments)
 		let replayUnsafe = ReplayUnsafeToolName(rawValue: name.rawValue) != nil
@@ -144,8 +145,6 @@ package struct ToolRuntime: Sendable {
 		state: TurnState
 	) async throws -> ToolOutcome {
 		_ = chatId
-		_ = state
-		_ = store
 		_ = planning
 		do {
 			switch name {
@@ -182,9 +181,9 @@ package struct ToolRuntime: Sendable {
 			case .memoryQuery:
 				return try await executeMemoryQuery(arguments)
 			case .memoryWrite:
-				return try await executeMemoryWrite(arguments)
+				return try await executeMemoryWrite(arguments, stamp: state.stamp)
 			case .ledgerAppend:
-				return try await executeLedgerAppend(arguments)
+				return try await executeLedgerAppend(arguments, stamp: state.stamp)
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")
@@ -485,7 +484,8 @@ package struct ToolRuntime: Sendable {
 	private func executeGated(
 		_ gated: GatedToolName,
 		arguments: JSONValue,
-		chatId: ChatID
+		chatId: ChatID,
+		stamp: OperationStamp
 	) async throws -> ToolOutcome {
 		if gated == .planSave {
 			return .result(
@@ -506,8 +506,8 @@ package struct ToolRuntime: Sendable {
 				summary: parsed.summary,
 				description: parsed.description,
 				now: clock.now,
-				store: store,
-				clock: clock
+				ledger: ledger,
+				stamp: stamp
 			)
 			return .pending(proposal)
 		} catch let error as IntervalsError {
@@ -560,7 +560,7 @@ package struct ToolRuntime: Sendable {
 		"Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed."
 
 	private func memory() -> Memory {
-		Memory(store: store, clock: clock)
+		Memory(ledger: ledger, clock: clock)
 	}
 
 	private func executeMemoryRead() async throws -> ToolOutcome {
@@ -591,7 +591,9 @@ package struct ToolRuntime: Sendable {
 		}
 	}
 
-	private func executeMemoryWrite(_ arguments: JSONValue) async throws -> ToolOutcome {
+	private func executeMemoryWrite(_ arguments: JSONValue, stamp: OperationStamp) async throws
+		-> ToolOutcome
+	{
 		let fields = arguments.objectFields
 		let type = fields["type"]?.stringValue
 		let content = fields["content"]?.stringValue ?? ""
@@ -618,14 +620,16 @@ package struct ToolRuntime: Sendable {
 				)
 			}
 			try await memory().writeSection(
-				SectionName(rawValue: section), content: content, source: .chat)
+				SectionName(rawValue: section), content: content, source: .chat, stamp: stamp)
 			return .result(.object(["saved": .bool(true)]))
 		}
-		try await memory().appendDailyNote(content)
+		try await memory().appendDailyNote(content, stamp: stamp)
 		return .result(.object(["saved": .bool(true)]))
 	}
 
-	private func executeLedgerAppend(_ arguments: JSONValue) async throws -> ToolOutcome {
+	private func executeLedgerAppend(_ arguments: JSONValue, stamp: OperationStamp) async throws
+		-> ToolOutcome
+	{
 		let fields = arguments.objectFields
 		guard
 			let dateRaw = fields["date"]?.stringValue,
@@ -640,7 +644,7 @@ package struct ToolRuntime: Sendable {
 				.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
 		}
 		let recorded = try await memory().appendEvent(
-			date: date, kind: kind, text: text, source: .chat)
+			date: date, kind: kind, text: text, source: .chat, stamp: stamp)
 		if recorded {
 			return .result(.object(["recorded": .bool(true)]))
 		}

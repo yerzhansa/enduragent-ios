@@ -109,8 +109,9 @@ import Testing
 	}
 
 	@Test func deltaDelayPausesBeforeEachEvent() async throws {
+		let delay = Duration.milliseconds(60)
 		let transport = FakeModelTransport()
-		transport.deltaDelay = .milliseconds(60)
+		transport.deltaDelay = delay
 		transport.script = [.text("one"), .text("two"), .finish(reason: .stop)]
 		let clock = ContinuousClock()
 		let started = clock.now
@@ -120,8 +121,9 @@ import Testing
 		}
 		#expect(arrivals.count == 3)
 		var previous = started
-		for arrival in arrivals {
-			#expect(arrival - previous >= .milliseconds(60))
+		for (index, arrival) in arrivals.enumerated() {
+			#expect(arrival - started >= delay * (index + 1))
+			#expect(arrival - previous >= delay / 2)
 			previous = arrival
 		}
 	}

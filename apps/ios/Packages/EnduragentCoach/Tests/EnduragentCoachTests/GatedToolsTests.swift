@@ -142,7 +142,7 @@ struct GatedToolsTests {
 		let store = InMemoryRecordLog()
 		return ToolRuntime(
 			intervals: intervals,
-			store: store,
+			ledger: Ledger(log: store, clock: clock),
 			planning: Planning(store: store, intervals: intervals, clock: clock),
 			clock: clock
 		)
@@ -157,7 +157,8 @@ struct GatedToolsTests {
 			writesCommitted: 0,
 			flushedThisTurn: false,
 			lastFlushMessageCount: 0,
-			steps: 0
+			steps: 0,
+			stamp: testStamp()
 		)
 	}
 }

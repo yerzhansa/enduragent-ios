@@ -19,7 +19,7 @@ import Testing
 
 	@Test func dumpsContextAndQueryAgainstDesktop() async throws {
 		let store = InMemoryRecordLog()
-		let memory = Memory(store: store, clock: clock)
+		let memory = Memory(ledger: Ledger(log: store, clock: clock), clock: clock)
 		try await seedAda(memory)
 		let context = try await memory.context()
 		let hits = try await memory.query(from: "1998-06-01", to: "1998-06-30", contains: nil)
@@ -41,41 +41,42 @@ import Testing
 	}
 
 	private func seedAda(_ memory: Memory) async throws {
-		try await memory.writeSection(.person, content: "- Name: Ada Kovač", source: .chat)
-		try await memory.writeSection(.schedule, content: "- Saturdays group ride", source: .chat)
-		try await memory.writeSection(.cyclingProfile, content: "- FTP 250W", source: .chat)
+		try await memory.writeSection(
+			.person, content: "- Name: Ada Kovač", source: .chat, stamp: testStamp())
+		try await memory.writeSection(
+			.schedule, content: "- Saturdays group ride", source: .chat, stamp: testStamp())
+		try await memory.writeSection(
+			.cyclingProfile, content: "- FTP 250W", source: .chat, stamp: testStamp())
 		try await memory.writeSection(
 			SectionName(rawValue: "random-legacy"),
 			content: "stale orphan body",
-			source: .chat
+			source: .chat,
+			stamp: testStamp()
 		)
-		try await memory.appendDailyNote("Felt fresh on the morning spin.")
-		try await memory.appendDailyNote(MemoryDifferentialFixture.compactionNote)
-		try await memory.appendDailyNote("Knee felt fine on the evening spin.")
+		try await memory.appendDailyNote("Felt fresh on the morning spin.", stamp: testStamp())
+		try await memory.appendDailyNote(
+			MemoryDifferentialFixture.compactionNote, stamp: testStamp())
+		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
 		_ = try await memory.appendEvent(
 			date: "1998-06-01",
 			kind: .illness,
 			text: "Easy week after a cold",
-			source: .flush
-		)
+			source: .flush, stamp: testStamp())
 		_ = try await memory.appendEvent(
 			date: "1998-06-13",
 			kind: .decision,
 			text: "Hold volume this week",
-			source: .flush
-		)
+			source: .flush, stamp: testStamp())
 		_ = try await memory.appendEvent(
 			date: "1998-06-13",
 			kind: .decision,
 			text: "Hold volume this week",
-			source: .flush
-		)
+			source: .flush, stamp: testStamp())
 		_ = try await memory.appendEvent(
 			date: "1998-06-30",
 			kind: .outcome,
 			text: "Group ride felt strong",
-			source: .flush
-		)
+			source: .flush, stamp: testStamp())
 	}
 
 	private func writeDump(_ name: String, _ text: String) throws {
