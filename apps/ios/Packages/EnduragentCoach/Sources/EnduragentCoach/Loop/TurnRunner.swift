@@ -546,6 +546,9 @@ package struct TurnRunner: Sendable {
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
+						self.diagnostics.record(
+							.toolFailed(
+								state.stamp.attempt, call.name, detail: String(describing: error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)

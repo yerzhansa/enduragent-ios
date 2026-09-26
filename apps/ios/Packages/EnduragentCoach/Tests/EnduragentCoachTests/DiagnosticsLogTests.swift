@@ -102,7 +102,8 @@ extension SwiftDataSuites {
 
 private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
-	case .providerFailure(_, _, let detail), .memoryFlushFailed(_, let detail):
+	case .providerFailure(_, _, let detail), .toolFailed(_, _, let detail),
+		.memoryFlushFailed(_, let detail):
 		return detail.count
 	case .skippedRecord:
 		return nil

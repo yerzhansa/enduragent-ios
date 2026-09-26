@@ -131,6 +131,34 @@ import Testing
 				]).canonicalDigestInput())
 	}
 
+	@Test func toolFailureDetailGoesOnlyToDiagnostics() async throws {
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failAppends(ofKind: SyncedKind.ledgerEvent)
+		transport.script = [
+			.toolCall(
+				name: "ledger_append",
+				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Rides on Saturdays"}"#),
+			.finish(reason: .toolCalls),
+			.text("I could not save that."),
+			.finish(reason: .stop),
+		]
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: failing, clock: clock)
+		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
+		let toolMessage = try #require(
+			transport.requests[1].messages.last(where: { $0.role == .tool }))
+		#expect(!toolMessage.content.contains("LedgerFailure"))
+		#expect(transport.requests[1].attempt == transport.requests[0].attempt)
+		let failures = coach.diagnostics.entries.compactMap { entry -> String? in
+			guard
+				case .toolFailed(transport.requests[0].attempt, .ledgerAppend, let detail) = entry
+					.event
+			else { return nil }
+			return detail
+		}
+		#expect(failures == ["rejectedBatch"])
+	}
+
 	@Test func providerErrorsSettleAsTypedFailures() async throws {
 		transport.failures = [.connection(.notConnectedToInternet)]
 		let coach = makeCoach()
