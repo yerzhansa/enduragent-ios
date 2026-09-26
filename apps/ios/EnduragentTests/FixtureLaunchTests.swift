@@ -98,6 +98,30 @@ final class FixtureLaunchTests {
 		}
 	}
 
+	@Test func coalescingArgumentSetsTheWindowTheCoachHolds() async throws {
+		let suite = "enduragent.fixture.arguments.test"
+		let arguments = try #require(UserDefaults(suiteName: suite))
+		defer { arguments.removePersistentDomain(forName: suite) }
+		arguments.set(FixtureLaunch.firstWeekName, forKey: FixtureLaunch.nameArgumentKey)
+		arguments.set("soon", forKey: FixtureLaunch.coalescingArgumentKey)
+		#expect(throws: FixtureLaunchError.self) { try FixtureLaunch.fromArguments(arguments) }
+		arguments.set("2000", forKey: FixtureLaunch.coalescingArgumentKey)
+		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
+		#expect(parsed.coalescing == CoalescingPolicy(window: .seconds(2)))
+		var widened = launch
+		widened.coalescing = parsed.coalescing
+		let services = try AppServices.fixture(widened, defaults: defaults)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let turn = try await firstTurn(model)
+		#expect(
+			turn.state == .accepted(.collecting(until: services.clock.now.addingTimeInterval(2))))
+		let settled = try await settledTurn(model)
+		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
+	}
+
 	@Test func starterScreenResolvesOnlyAfterGrant() async throws {
 		let model = model(try services())
 		#expect(model.starterResolved == false)
