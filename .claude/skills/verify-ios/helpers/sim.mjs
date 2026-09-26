@@ -171,6 +171,7 @@ function shot(id, label) {
 function test(id, ...proofs) {
   if (proofs.length === 0) throw new Error('test needs at least one proof, for example: test <run> FirstConversationProof');
   const { dir, udid } = activeRun(id);
+  spawnSync('xcrun', ['simctl', 'terminate', udid, bundleId], { stdio: 'ignore' });
   const name = `uitest-${stamp()}`;
   const bundle = join(dir, `${name}.xcresult`);
   const log = join(dir, `${name}.log`);

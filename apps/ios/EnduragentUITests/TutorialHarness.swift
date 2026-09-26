@@ -21,9 +21,13 @@ enum TutorialHarness {
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
+	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
+	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 
-	static func launch(_ app: XCUIApplication, dark: Bool = false) {
+	static func launch(
+		_ app: XCUIApplication, dark: Bool = false, coalescingMilliseconds: Int? = nil
+	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
@@ -31,16 +35,23 @@ enum TutorialHarness {
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
 		}
+		if let coalescingMilliseconds {
+			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication) {
+	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "keep",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		if !element.waitForExistence(timeout: 10) {
+			throw XCTSkip(
+				"needs the fixture store an earlier build left; run it after a trunk proof")
+		}
 	}
 
 	static func relaunchKeepingStore(_ app: XCUIApplication) {
@@ -70,6 +81,14 @@ enum TutorialHarness {
 
 	static func wait(_ element: XCUIElement, timeout: TimeInterval = 8) {
 		XCTAssertTrue(element.waitForExistence(timeout: timeout), "missing \(element)")
+	}
+
+	static func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
+		)
 	}
 
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
@@ -114,14 +133,18 @@ enum TutorialHarness {
 	}
 
 	static func openSidebar(_ app: XCUIApplication) {
-		named(app, "chat.sidebar").tap()
+		let sidebar = named(app, "chat.sidebar")
+		waitUntilHittable(sidebar)
+		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
 	}
 
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		wait(named(app, "fixture.requestCount"))
+		let count = named(app, "fixture.requestCount")
+		wait(count)
+		XCTAssertEqual(count.label, "0 requests")
 		named(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
@@ -129,12 +152,23 @@ enum TutorialHarness {
 	static func closeMenu(_ app: XCUIApplication) {
 		app.swipeDown(velocity: .fast)
 		app.swipeDown(velocity: .fast)
+		waitUntilHittable(named(app, "chat.sidebar"))
 		wait(named(app, "chat.composer"))
 	}
 
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
 		let element = named(app, "records.count.\(kind)")
 		return element.exists ? element.label : nil
+	}
+
+	static func waitForRecordCount(
+		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
+	) {
+		let deadline = Date().addingTimeInterval(timeout)
+		while recordCount(app, kind) != expected, Date() < deadline {
+			app.buttons["Refresh"].tap()
+		}
+		XCTAssertEqual(recordCount(app, kind), expected)
 	}
 
 	static func recordRowLabels(_ app: XCUIApplication) -> [String] {
@@ -164,7 +198,6 @@ enum TutorialHarness {
 		let count = named(app, "fixture.requestCount")
 		wait(count)
 		XCTAssertEqual(count.label, "0 requests")
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 	}
 }

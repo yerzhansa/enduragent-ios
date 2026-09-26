@@ -50,22 +50,30 @@ import Testing
 		#expect(kept.first?.event == .memoryFlushFailed(.main, detail: "flush 50"))
 		#expect(kept.last?.event == .memoryFlushFailed(.main, detail: "flush 249"))
 	}
+}
 
-	@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
-		let store = try V1Store.materialize()
-		let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
-		try store.insertRaw(kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
-		let transport = FakeModelTransport()
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: log, clock: clock)
-		let before = await coach.transcript(.main)
-		_ = try await coach.sendAndSettle("Still on for Saturday?")
-		let after = await coach.transcript(.main)
-		#expect(after == before + ["Still on for Saturday?", "Noted."])
-		#expect(
-			coach.diagnostics.entries.map(\.event) == [
-				.skippedRecord(.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
-			])
+extension SwiftDataSuites {
+	@Suite struct SkippedRowDiagnosticsTests {
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+		@Test func skippedV1RowIsRecordedOnceAndLeavesTheTranscript() async throws {
+			let store = try V1Store.materialize()
+			let log = try store.open(deviceId: DeviceID(rawValue: "phone-a"))
+			try store.insertRaw(
+				kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
+			let transport = FakeModelTransport()
+			transport.script = [.text("Noted."), .finish(reason: .stop)]
+			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let before = await coach.transcript(.main)
+			_ = try await coach.sendAndSettle("Still on for Saturday?")
+			let after = await coach.transcript(.main)
+			#expect(after == before + ["Still on for Saturday?", "Noted."])
+			#expect(
+				coach.diagnostics.entries.map(\.event) == [
+					.skippedRecord(
+						.malformed(kind: "userMessage", ulid: "01MALFRMD00000000000000000"))
+				])
+		}
 	}
 }
 

@@ -93,7 +93,8 @@ struct AppServices: Sendable {
 			intervals: intervals,
 			store: records,
 			clock: clock,
-			language: LanguagePreference(ui: language, coachReply: nil)
+			language: LanguagePreference(ui: language, coachReply: nil),
+			coalescing: launch.coalescing
 		)
 		return AppServices(
 			coach: coach,

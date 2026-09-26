@@ -106,6 +106,31 @@ import Testing
 		#expect(toolMessage.content.contains("intervals.icu is unavailable."))
 	}
 
+	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failAppends(ofKind: SyncedKind.ledgerEvent)
+		transport.script = [
+			.toolCall(
+				name: "ledger_append",
+				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Rides on Saturdays"}"#),
+			.finish(reason: .toolCalls),
+			.text("I could not save that."),
+			.finish(reason: .stop),
+		]
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: failing, clock: clock)
+		let settled = try await coach.sendAndSettle("Remember that I ride on Saturdays")
+		#expect(replyText(settled) == "I could not save that.")
+		let toolMessage = try #require(
+			transport.requests[1].messages.last(where: { $0.role == .tool }))
+		#expect(
+			toolMessage.content
+				== JSONValue.object([
+					"error": .string("save_failed"),
+					"details": .string("The change could not be saved on this device."),
+				]).canonicalDigestInput())
+	}
+
 	@Test func providerErrorsSettleAsTypedFailures() async throws {
 		transport.failures = [.connection(.notConnectedToInternet)]
 		let coach = makeCoach()

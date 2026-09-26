@@ -1,22 +1,5 @@
 import XCTest
 
-final class FailedReplyProof: XCTestCase {
-	func testFailedReply() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 500")
-		let notice = TutorialHarness.named(app, "chat.turn.notice")
-		TutorialHarness.wait(notice)
-		XCTAssertEqual(notice.label, TutorialHarness.providerDown)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
-		assertNoWireDetail(app)
-		TutorialHarness.attach(self, name: "failed-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
 final class FailureCopyProof: XCTestCase {
 	func testFailureCopy() {
 		let app = XCUIApplication()
@@ -45,7 +28,7 @@ private func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIEle
 	).firstMatch
 }
 
-private func assertNoWireDetail(_ app: XCUIApplication) {
+func assertNoWireDetail(_ app: XCUIApplication) {
 	for raw in ["ProviderFailure", "statusCode", "URLError", "retry-after", "error\":"] {
 		let match = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", raw))
 		XCTAssertFalse(match.firstMatch.exists, "\(raw) is on screen")

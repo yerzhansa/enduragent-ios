@@ -22,6 +22,8 @@ public struct ScriptedFailure: Sendable, Equatable {
 	public static func connection(_ code: URLError.Code) -> ScriptedFailure {
 		ScriptedFailure(ProviderFailure(URLError(code)))
 	}
+
+	public static let unknownFinish = ScriptedFailure(.unknownFinish)
 }
 
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {

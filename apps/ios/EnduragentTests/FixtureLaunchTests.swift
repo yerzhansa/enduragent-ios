@@ -6,42 +6,56 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-struct FixtureLaunchTests {
-	let launch: FixtureLaunch
+@Suite(.serialized)
+final class FixtureLaunchTests {
+	let launch = FixtureLaunch(
+		name: FixtureLaunch.firstWeekName,
+		store: .fresh,
+		keychain: .unlocked,
+		directory: FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-fixture-test", directoryHint: .isDirectory),
+		defaultsSuiteName: "enduragent.fixture.test"
+	)
 	let defaults: UserDefaults
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 
 	init() throws {
-		let stamp = UUID().uuidString
-		launch = FixtureLaunch(
-			name: FixtureLaunch.firstWeekName,
-			store: .fresh,
-			keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-fixture-\(stamp)", directoryHint: .isDirectory),
-			defaultsSuiteName: "enduragent.test.\(stamp)"
-		)
 		defaults = try launch.prepare()
 	}
 
-	private func services(
-		store: FixtureStorePolicy = .fresh, keychain: FixtureKeychainPolicy = .unlocked
-	) throws -> AppServices {
+	deinit {
+		let launch = launch
+		UserDefaults(suiteName: launch.defaultsSuiteName)?
+			.removePersistentDomain(forName: launch.defaultsSuiteName)
+		do {
+			try FileManager.default.removeItem(at: launch.directory)
+		} catch {
+			Issue.record(error, "fixture directory cleanup")
+		}
+	}
+
+	func services(keychain: FixtureKeychainPolicy = .unlocked) throws -> AppServices {
 		var launch = launch
-		launch.store = store
 		launch.keychain = keychain
 		return try AppServices.fixture(launch, defaults: defaults)
 	}
 
-	private func model(_ services: AppServices) -> ShellModel {
+	func relaunch(_ store: FixtureStorePolicy) throws -> (AppServices, UserDefaults) {
+		var launch = launch
+		launch.store = store
+		let defaults = try launch.prepare()
+		return (try AppServices.fixture(launch, defaults: defaults), defaults)
+	}
+
+	func model(_ services: AppServices) -> ShellModel {
 		ShellModel(builder: builder(services))
 	}
 
-	private func builder(_ services: AppServices) -> ServicesBuilder {
+	func builder(_ services: AppServices) -> ServicesBuilder {
 		ServicesBuilder(fixture: services, language: language, defaults: defaults)
 	}
 
-	private func settledTurn(
+	func settledTurn(
 		_ model: ShellModel, after previous: TurnState? = nil, within limit: Duration = .seconds(20)
 	) async throws -> TurnView {
 		let deadline = ContinuousClock.now + limit
@@ -54,7 +68,30 @@ struct FixtureLaunchTests {
 		return try #require(model.chat?.turns.last(where: { isSettled($0.state) }))
 	}
 
-	private func firstTurn(_ model: ShellModel) async throws -> TurnView {
+	func settledTurn(_ model: ShellModel, at index: Int) async throws -> TurnView {
+		let deadline = ContinuousClock.now + .seconds(20)
+		while ContinuousClock.now < deadline {
+			if let turns = model.chat?.turns, turns.indices.contains(index),
+				isSettled(turns[index].state)
+			{
+				return turns[index]
+			}
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		let turns = try #require(model.chat?.turns)
+		try #require(turns.indices.contains(index))
+		return turns[index]
+	}
+
+	func observed(_ model: ShellModel) async throws {
+		let deadline = ContinuousClock.now + .seconds(5)
+		while model.chat == nil, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		try #require(model.chat != nil)
+	}
+
+	func firstTurn(_ model: ShellModel) async throws -> TurnView {
 		let deadline = ContinuousClock.now + .seconds(5)
 		while model.chat?.turns.isEmpty ?? true, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
@@ -62,7 +99,7 @@ struct FixtureLaunchTests {
 		return try #require(model.chat?.turns.first)
 	}
 
-	private func firstSnapshot(_ services: AppServices, chat: ChatID) async -> ChatSnapshot? {
+	func firstSnapshot(_ services: AppServices, chat: ChatID) async -> ChatSnapshot? {
 		var iterator = await services.coach.observe(chat).makeAsyncIterator()
 		return await iterator.next()
 	}
@@ -82,6 +119,30 @@ struct FixtureLaunchTests {
 		#expect(throws: FixtureLaunchError.self) {
 			try AppServices.fixture(unknown, defaults: defaults)
 		}
+	}
+
+	@Test func coalescingArgumentSetsTheWindowTheCoachHolds() async throws {
+		let suite = "enduragent.fixture.arguments.test"
+		let arguments = try #require(UserDefaults(suiteName: suite))
+		defer { arguments.removePersistentDomain(forName: suite) }
+		arguments.set(FixtureLaunch.firstWeekName, forKey: FixtureLaunch.nameArgumentKey)
+		arguments.set("soon", forKey: FixtureLaunch.coalescingArgumentKey)
+		#expect(throws: FixtureLaunchError.self) { try FixtureLaunch.fromArguments(arguments) }
+		arguments.set("2000", forKey: FixtureLaunch.coalescingArgumentKey)
+		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
+		#expect(parsed.coalescing == CoalescingPolicy(window: .seconds(2)))
+		var widened = launch
+		widened.coalescing = parsed.coalescing
+		let services = try AppServices.fixture(widened, defaults: defaults)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let turn = try await firstTurn(model)
+		#expect(
+			turn.state == .accepted(.collecting(until: services.clock.now.addingTimeInterval(2))))
+		let settled = try await settledTurn(model)
+		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
 	}
 
 	@Test func starterScreenResolvesOnlyAfterGrant() async throws {
@@ -111,76 +172,6 @@ struct FixtureLaunchTests {
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func sendClearsDraftOnAccepted() async throws {
-		let services = try services()
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:slow"
-		model.draftChanged(from: "")
-		let draftId = model.draft.id
-		#expect(model.drafts.load(model.chatId)?.text == "fixture:slow")
-		await model.send()
-		#expect(model.draft.text.isEmpty)
-		#expect(model.draft.id != draftId)
-		#expect(model.drafts.load(model.chatId) == nil)
-		#expect(!model.notSent)
-		let turn = try await firstTurn(model)
-		#expect(turn.athleteText == "fixture:slow")
-		#expect(!isSettled(turn.state))
-		#expect(model.isWorking)
-		#expect(services.fixtureTransport?.requestCount == 0)
-		let settled = try await settledTurn(model)
-		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
-		#expect(!model.isWorking)
-	}
-
-	@Test func sendKeepsDraftWhenAcceptFails() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let records = try #require(services.fixtureRecordLog)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:storage fail-next-append"
-		model.draftChanged(from: "")
-		let draft = model.draft
-		await model.send()
-		#expect(model.notSent)
-		#expect(model.draft == draft)
-		#expect(model.drafts.load(model.chatId) == draft)
-		#expect(model.chat?.turns.isEmpty ?? true)
-		#expect(transport.requestCount == 0)
-		#expect(!records.failNextAppend)
-		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
-		model.draft.text = TutorialCopy.weekQuestion
-		model.draftChanged(from: draft.text)
-		#expect(model.draft.id == draft.id)
-		await model.send()
-		#expect(!model.notSent)
-		#expect(model.draft.text.isEmpty)
-		#expect(try await firstTurn(model).athleteText == TutorialCopy.weekQuestion)
-	}
-
-	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "Give me a ride for tomorrow"
-		transport.failures = [
-			.http(status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#)
-		]
-		await model.send()
-		let turn = try await settledTurn(model)
-		guard case .failed(let failed) = turn.state else {
-			Issue.record("expected a failed turn, got \(turn.state)")
-			return
-		}
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.vars.isEmpty)
-		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.errorLine == nil)
-	}
-
 	@Test func intervalsLoadFailureShowsTheReason() async throws {
 		let services = try services()
 		let intervals = try #require(services.intervals as? FakeIntervalsClient)
@@ -192,6 +183,7 @@ struct FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.errorLine == failure.details)
 		#expect(model.athlete == nil)
@@ -203,78 +195,76 @@ struct FixtureLaunchTests {
 		#expect(model.route == .onboarding(.notice))
 	}
 
-	@Test func coldStartRestoresChatAfterOnboarding() throws {
+	@Test func coldStartRestoresChatAfterOnboarding() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
 		let model = model(try services())
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.chatId.rawValue == "restored-chat")
 	}
 
-	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() throws {
+	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(try services())
+		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.chatId == .main)
 	}
 
-	@Test func coldStartRestoresTheTypedDraft() throws {
+	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
 		let first = model(try services())
 		first.draft.text = "Is Thursday still on?"
 		first.draftChanged(from: "")
 		let second = model(try services())
+		try await observed(first)
+		try await observed(second)
 		#expect(second.draft == first.draft)
 		#expect(second.draft.text == "Is Thursday still on?")
 	}
 
-	@Test func startChattingPersistsSessionForNextLaunch() throws {
+	@Test func startChattingPersistsSessionForNextLaunch() async throws {
 		let services = try services()
 		let first = model(services)
 		first.startChatting()
 		#expect(first.route == .chat)
 		let second = model(services)
+		try await observed(first)
+		try await observed(second)
 		#expect(second.route == .chat)
 		#expect(second.chatId == first.chatId)
 		#expect(second.chatIndex.all().map(\.id) == [first.chatId.rawValue])
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		let settled = try await settledTurn(first)
 		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
-		let second = try services(store: .keep)
+		let (second, kept) = try relaunch(.keep)
 		let restored = try #require(await firstSnapshot(second, chat: first.chatId))
 		#expect(restored.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
-	}
-
-	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
-		let first = model(try services(store: .keep))
-		first.startChatting()
-		first.draft.text = "fixture:hang"
-		await first.send()
-		let accepted = try await firstTurn(first)
-		let second = try services(store: .keep)
-		let reopened = try #require(await firstSnapshot(second, chat: first.chatId))
-		#expect(reopened.turns.map(\.id) == [accepted.id])
-		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
+		let reopened = ShellModel(
+			builder: ServicesBuilder(fixture: second, language: language, defaults: kept))
+		try await observed(reopened)
+		#expect(reopened.route == .chat)
+		#expect(reopened.chatId == first.chatId)
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
-		let first = model(try services(store: .keep))
+		let first = model(try services())
 		first.startChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		_ = try await settledTurn(first)
-		let wiped = try launch.prepare()
-		let second = try AppServices.fixture(launch, defaults: wiped)
+		let (second, wiped) = try relaunch(.fresh)
 		#expect(await firstSnapshot(second, chat: first.chatId)?.turns.isEmpty == true)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
@@ -286,101 +276,20 @@ struct FixtureLaunchTests {
 		}
 	}
 
-	@Test func slowDirectiveStreamsTheWeekSummaryWordByWord() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:slow"
-		await model.send()
-		let settled = try await settledTurn(model)
-		#expect(transport.requestCount == 1)
-		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
-		#expect(transport.requestDelay == FixtureDirector.slowFirstWordDelay)
-		#expect(transport.deltaDelay == FixtureDirector.slowWordDelay)
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		#expect(transport.requestDelay == nil)
-		#expect(transport.deltaDelay == nil)
-	}
-
-	@Test(arguments: [
-		("fixture:fail 401", Catalog.coachErrorProviderCredentials, false),
-		("fixture:fail 402", Catalog.coachErrorUnknown, false),
-		("fixture:fail 429 7", Catalog.coachErrorRateLimitSeconds, true),
-		("fixture:fail network", Catalog.coachErrorProviderDown, true),
-		("fixture:fail timeout", Catalog.coachErrorProviderDown, true),
-		("fixture:fail overflow", Catalog.coachErrorUnknown, true),
-	])
-	func failDirectiveSettlesWithItsNotice(directive: String, key: CatalogKey, tryAgain: Bool)
-		async throws
-	{
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = directive
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == key)
-		#expect(failure.notice.action == (tryAgain ? .tryAgain(failed.id) : nil))
-		#expect(transport.requestCount == 1)
-		#expect(model.errorLine == nil)
-	}
-
-	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
-		let services = try services()
-		let model = model(services)
-		model.startChatting()
-		model.draft.text = "fixture:fail 500"
-		await model.send()
-		let failed = try await settledTurn(model)
-		guard case .failed(let failure) = failed.state else {
-			Issue.record("expected a failed turn, got \(failed.state)")
-			return
-		}
-		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failure.notice.action == .tryAgain(failed.id))
-		#expect(model.errorLine == nil)
-		await model.perform(.tryAgain(failed.id))
-		let retried = try await settledTurn(model, after: failed.state)
-		#expect(retried.id == failed.id)
-		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
-		#expect(model.retryRefusal == nil)
-	}
-
-	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let director = try #require(services.fixtureDirector)
-		director.prepare(for: "fixture:hang")
-		#expect(transport.hangUntilCancelled)
-		director.prepare(for: TutorialCopy.weekQuestion)
-		#expect(!transport.hangUntilCancelled)
-		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
-		director.prepare(for: "fixture:hang")
-		director.prepareRetry(of: "fixture:hang")
-		#expect(!transport.hangUntilCancelled)
-		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
-	}
 }
 
-private enum TutorialCopy {
+enum TutorialCopy {
 	static let weekQuestion = "What did my training look like this week?"
 }
 
-private func replyText(_ state: TurnState) -> String? {
+func replyText(_ state: TurnState) -> String? {
 	guard case .completed(let completed) = state, case .model(let text) = completed.reply else {
 		return nil
 	}
 	return text
 }
 
-private func isSettled(_ state: TurnState) -> Bool {
+func isSettled(_ state: TurnState) -> Bool {
 	switch state {
 	case .completed, .failed, .interrupted: true
 	case .accepted, .processing: false

@@ -12,6 +12,7 @@ package actor ChatMailbox {
 	private let diagnostics: DiagnosticsLog
 
 	private var loaded = false
+	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private var conversation: Conversation
 	private var pendingProposal: PendingProposal?
 	private var work: [MailboxWork] = []
@@ -21,7 +22,8 @@ package actor ChatMailbox {
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
 	private var stopping = false
-	private var observers: [UUID: AsyncStream<ChatSnapshot>.Continuation] = [:]
+	private let admission = Admission()
+	private let feed = SnapshotFeed()
 
 	package init(
 		chatId: ChatID,
@@ -47,14 +49,15 @@ package actor ChatMailbox {
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		await loadIfNeeded()
-		let id = UUID()
-		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
-		observers[id] = continuation
-		continuation.onTermination = { _ in Task { await self.removeObserver(id) } }
-		continuation.yield(snapshot())
-		return stream
+		do {
+			try await load()
+		} catch {
+			switch error {
+			case .unavailable, .rejectedBatch:
+				break
+			}
+		}
+		return feed.subscribe(from: snapshot())
 	}
 
 	package func accept(_ draft: Draft) async throws(AcceptFailure) -> SendOutcome {
@@ -64,6 +67,14 @@ package actor ChatMailbox {
 		if slash == .language {
 			return .showLanguagePicker
 		}
+		await admission.enter()
+		defer { admission.leave() }
+		return try await admit(Draft(id: draft.id, text: text), slash: slash)
+	}
+
+	private func admit(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
+		-> SendOutcome
+	{
 		do {
 			try await load()
 		} catch {
@@ -81,7 +92,7 @@ package actor ChatMailbox {
 		}
 		let minted = TurnID(ulid: await ledger.nextULID())
 		let writes = TurnLifecycle.writes(
-			for: .accept(Draft(id: draft.id, text: text), joining: joining, slash: slash),
+			for: .accept(draft, joining: joining, slash: slash),
 			on: joining.flatMap(conversation.turn),
 			chat: chatId,
 			device: ledger.deviceId,
@@ -104,9 +115,13 @@ package actor ChatMailbox {
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
-		await loadIfNeeded()
+		do {
+			try await load()
+		} catch {
+			throw RetryRefusal.unknownTurn
+		}
 		guard let facts = conversation.turn(turn) else { throw RetryRefusal.unknownTurn }
-		if live?.turn == turn || window?.turn == turn || work.contains(.turn(turn)) {
+		if window?.turn == turn || queuedTurns(includingActive: true).contains(turn) {
 			throw RetryRefusal.alreadyRunning
 		}
 		if let refusal = TurnLifecycle.claimRefusal(of: facts, device: ledger.deviceId) {
@@ -116,22 +131,28 @@ package actor ChatMailbox {
 	}
 
 	package func stop() async {
-		guard let running else { return }
+		let active = running
+		guard active != nil || window != nil || !queuedTurns(includingActive: false).isEmpty
+		else { return }
 		stopping = true
 		publish()
-		let queued = queuedTurns(includingActive: false)
+		active?.cancel()
+		await admission.enter()
+		let unstarted = queuedTurns(includingActive: false) + [window?.turn].compactMap { $0 }
+		window = nil
 		work.removeAll { if case .turn = $0 { true } else { false } }
-		for turn in queued {
+		for turn in unstarted {
 			let stamp = await stamp(for: turn)
 			await settle(
 				turn, attempt: stamp.attempt,
 				.interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none),
 				stamp: stamp, beforeStart: true)
 		}
-		running.cancel()
-		await running.value
+		admission.leave()
+		await active?.value
 		stopping = false
 		publish()
+		drainIfIdle()
 	}
 
 	private func queuedTurns(includingActive: Bool) -> [TurnID] {
@@ -158,24 +179,28 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func loadIfNeeded() async {
-		do {
-			try await load()
-		} catch {
-			conversation = Conversation(chat: chatId, segments: [])
-		}
-	}
-
 	private func load() async throws(LedgerFailure) {
 		guard !loaded else { return }
-		let synced = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let local = try await ledger.read(
-			RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
-		conversation = ConversationFold.fold(
-			chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
-		try await loadProposal()
-		loaded = true
+		let reading = loading ?? Task { await self.read() }
+		loading = reading
+		try await reading.value.get()
+	}
+
+	private func read() async -> Result<Void, LedgerFailure> {
+		defer { loading = nil }
+		do {
+			let synced = try await ledger.read(
+				RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
+			let local = try await ledger.read(
+				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
+			try await loadProposal()
+			conversation = ConversationFold.fold(
+				chat: chatId, synced: synced.records, local: local.records, device: ledger.deviceId)
+			loaded = true
+			return .success(())
+		} catch {
+			return .failure(error)
+		}
 	}
 
 	private func loadProposal() async throws(LedgerFailure) {
@@ -220,7 +245,9 @@ package actor ChatMailbox {
 			} catch {
 				fatalError("Task.sleep failed: \(error)")
 			}
+			await self.admission.enter()
 			self.closeWindow(ifGeneration: generation)
+			self.admission.leave()
 		}
 	}
 
@@ -237,7 +264,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, !work.isEmpty else { return }
+		guard running == nil, !stopping, !work.isEmpty else { return }
 		let next = work.removeFirst()
 		active = next
 		running = Task {
@@ -333,16 +360,10 @@ package actor ChatMailbox {
 	}
 
 	private func settleUnsaved(_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement) async {
-		guard let facts = conversation.turn(turn) else { return }
-		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
-		let settled = SettledAttempt(
-			ulid: await ledger.nextULID(),
-			hlc: HybridLogicalClock.tick(now: clock.now, deviceId: ledger.deviceId, last: last),
-			civilDate: CivilDate(date: clock.now, timeZone: clock.timeZone),
-			attempt: attempt,
-			settlement: settlement
-		)
-		conversation.settle(turn, with: settled)
+		let ulid = await ledger.nextULID()
+		conversation.settleInMemory(
+			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, zone: clock.timeZone,
+			device: ledger.deviceId)
 	}
 
 	private func drainFlush() async {
@@ -388,13 +409,6 @@ package actor ChatMailbox {
 	}
 
 	private func publish() {
-		let current = snapshot()
-		for continuation in observers.values {
-			continuation.yield(current)
-		}
-	}
-
-	private func removeObserver(_ id: UUID) {
-		observers[id] = nil
+		feed.publish(snapshot())
 	}
 }
