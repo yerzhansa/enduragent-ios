@@ -229,8 +229,9 @@ final class RecordsClockOrderProof: XCTestCase {
 		let labels = TutorialHarness.recordRowLabels(app)
 		let rows = labels.map { $0.split(separator: " ").map(String.init) }
 		XCTAssertTrue(
-			rows.allSatisfy { $0.count == 3 }, "every row shows kind, device, and HLC: \(labels)")
-		let clocks = rows.compactMap(\.last)
+			rows.allSatisfy { $0.count == 4 },
+			"every row shows kind, device, HLC, and account: \(labels)")
+		let clocks = rows.map { $0[2] }
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
 		let causal = rows.compactMap(\.first).filter {
 			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]
@@ -281,5 +282,59 @@ final class UpgradeKeepsProposalProof: XCTestCase {
 		XCTAssertTrue(cancel.exists)
 		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
 		TutorialHarness.attach(self, name: "upgrade-proposal", app: app)
+	}
+}
+
+final class CredentialTransactionProof: XCTestCase {
+	func testBlankCancelAndFailedWriteKeepTheKey() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.openCredentials(app)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		let connection = TutorialHarness.named(app, "credentials.connection").label
+		TutorialHarness.named(app, "credentials.replaceBlank").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
+		TutorialHarness.attach(self, name: "credential-blank", app: app)
+		TutorialHarness.named(app, "credentials.failNextWrite").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: "The next keychain write fails.")
+		TutorialHarness.named(app, "credentials.cancel").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
+		let key = TutorialHarness.named(app, "credentials.apiKey")
+		key.tap()
+		key.typeText("fixture-2")
+		TutorialHarness.named(app, "credentials.replace").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.previousKeyKept)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		XCTAssertEqual(TutorialHarness.named(app, "credentials.connection").label, connection)
+		TutorialHarness.attach(self, name: "credential-transaction", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.attach(self, name: "credential-transaction-reply", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class LockedKeychainProof: XCTestCase {
+	func testLockedKeychainKeepsTheConversation() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		app.launchArguments += [TutorialHarness.keychainArgument, "locked"]
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.waitForIdentifier(
+			app, "chat.composer.notice", reading: TutorialHarness.locked)
+		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
+		TutorialHarness.attach(self, name: "locked-keychain", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

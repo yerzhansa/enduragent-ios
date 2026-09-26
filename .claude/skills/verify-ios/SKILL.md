@@ -53,17 +53,18 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Screen | Handles |
 | --- | --- |
 | Notice | `notice.continue` |
-| Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
+| Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.error`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
-| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>`, and the `Refresh` button with no identifier |
+| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for confirm failures and unknown fixture directives, `chat.slash.<command>` |
+| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` labeled `<kind> <device> <HLC> <account>`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Confirmed preview` group |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
-| Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
+| Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note`, `credits.notice` |
+| Credentials | `debug.credentials` in Debug, `credentials.outcome`, `credentials.athlete`, `credentials.connection`, `credentials.keySuffix`, `credentials.lock`, `credentials.failNextWrite`, `credentials.apiKey`, `credentials.replace`, `credentials.replaceBlank`, `credentials.cancel`, `credentials.switchAthlete`, `credentials.disconnect` |
 | History | `history.row.<chat id>` |
 | Debug | `fixture.requestCount` |
 
-The fixture athlete is Ada Kovač. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
+The fixture athlete is Ada Kovač, athlete `i1001`. The key `other-athlete` resolves to Bo Lind, athlete `i2002`; every other non-empty key resolves to Ada. The fixture keychain starts with a Credits key and no intervals.icu connection, so the chat is unconnected until the connect step or Debug, Credentials stores a key. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
 A message that starts with `fixture:` is a directive to the fakes, typed into `chat.composer` like any message. `FixtureDirector` applies it before the turn starts:
 
