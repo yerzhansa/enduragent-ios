@@ -1005,7 +1005,6 @@
       "queueLoadFailure": "无法检查已保存的消息。请重新连接后重试。",
       "queueRemoveFailure": "无法移除此已保存的消息。请重试。",
       "responseFailure": "教练无法回复。请重试。",
-      "responseStopped": "已停止回复。已生成的部分回复已保留。",
       "retryMessage": "重试发送消息",
       "savedChoice": "已保存的选择",
       "working": "教练正在处理…"

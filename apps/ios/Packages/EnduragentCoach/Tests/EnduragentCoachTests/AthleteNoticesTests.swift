@@ -37,12 +37,8 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			button: button)
 	}
 
-	static func waiting(_ retryAfter: Duration?, _ sentence: String, opensAfter seconds: Double)
-		-> NoticeRow
-	{
-		failed(
-			.model(.rateLimited(retryAfter: retryAfter)), sentence,
-			.wait(until: failedAt.addingTimeInterval(seconds), thenTryAgain: turn), tryAgain)
+	static func rateLimited(_ retryAfter: Duration?, _ sentence: String) -> NoticeRow {
+		failed(.model(.rateLimited(retryAfter: retryAfter)), sentence, .tryAgain(turn), tryAgain)
 	}
 
 	static let failures: [NoticeRow] = [
@@ -62,12 +58,12 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			.model(.accessExhausted(.openRouterAccount)),
 			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
 			.chooseAccessMethod, "Choose access method"),
-		waiting(.seconds(1), "Rate limited — please try again in ~1 seconds.", opensAfter: 1),
-		waiting(.seconds(7), "Rate limited — please try again in ~7 seconds.", opensAfter: 7),
-		waiting(.seconds(60), "Rate limited — please try again in ~1 minute.", opensAfter: 60),
-		waiting(.seconds(90), "Rate limited — please try again in ~2 minutes.", opensAfter: 90),
-		waiting(nil, "Rate limited — please try again in about a minute.", opensAfter: 60),
-		waiting(.zero, "Rate limited — please try again in about a minute.", opensAfter: 60),
+		rateLimited(.seconds(1), "Rate limited — please try again in ~1 seconds."),
+		rateLimited(.seconds(7), "Rate limited — please try again in ~7 seconds."),
+		rateLimited(.seconds(60), "Rate limited — please try again in ~1 minute."),
+		rateLimited(.seconds(90), "Rate limited — please try again in ~2 minutes."),
+		rateLimited(nil, "Rate limited — please try again in about a minute."),
+		rateLimited(.zero, "Rate limited — please try again in about a minute."),
 		failed(.model(.providerDown(.outage)), providerDown, .tryAgain(turn), tryAgain),
 		failed(.model(.providerDown(.network)), providerDown, .tryAgain(turn), tryAgain),
 		failed(.model(.providerDown(.timeout)), providerDown, .tryAgain(turn), tryAgain),
@@ -132,7 +128,9 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 	static let all = failures + interruptions + savedWork
 }
 
-private func settledState(_ settlement: Settlement, at date: Date = failedAt) -> TurnState {
+private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notInThisProcess)
+	-> TurnState
+{
 	var facts = TurnFacts(turn: turn, chat: .main, origin: phone)
 	facts.fragments.append(
 		Fragment(
@@ -144,10 +142,10 @@ private func settledState(_ settlement: Settlement, at date: Date = failedAt) ->
 		SettledAttempt(
 			ulid: fixedUlid(3),
 			hlc: HybridLogicalClock(
-				wallMs: Int64(date.timeIntervalSince1970 * 1000), logical: 0, deviceId: phone),
+				wallMs: Int64(failedAt.timeIntervalSince1970 * 1000), logical: 0, deviceId: phone),
 			civilDate: "1998-06-16", attempt: attempt, settlement: settlement))
 	return TurnLifecycle.state(
-		of: facts, live: nil, overlay: .notInThisProcess, device: phone)
+		of: facts, live: nil, overlay: overlay, device: phone)
 }
 
 private func notice(of state: TurnState) -> AthleteNotice? {
@@ -195,7 +193,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 				continue
 			}
 			families.insert(family(failure))
-			let shown = AthleteNotices.notice(for: failure, turn: turn, failedAt: failedAt)
+			let shown = AthleteNotices.notice(for: failure, turn: turn, waiting: false)
 			#expect(
 				(shown.key == Catalog.coachErrorUnknown)
 					== npmsUnknownThree.contains(family(failure)))
@@ -233,11 +231,13 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	func failureAfterSavedWorkKeepsItsSentenceAndOffersNoReplay(
 		failure: CoachFailure, sentence: String, action: RecoveryAction?
 	) throws {
-		let state = settledState(.failed(failure, saved: memorySaved))
-		let shown = try #require(notice(of: state))
-		#expect(shown.sentence(in: english) == sentence)
-		#expect(shown.action == action)
-		#expect(!state.retryable)
+		for overlay in [TurnOverlay.notInThisProcess, .waitingToTryAgain] {
+			let state = settledState(.failed(failure, saved: memorySaved), overlay: overlay)
+			let shown = try #require(notice(of: state))
+			#expect(shown.sentence(in: english) == sentence)
+			#expect(shown.action == action)
+			#expect(!state.retryable)
+		}
 	}
 
 	@Test func savedWorkPicksTheInterruptedSentenceAndTheTurnAloneDecidesTryAgain() {
@@ -261,38 +261,42 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	@Test func rateLimitPicksSecondsMinutesOrDefault() {
 		let seconds = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: .milliseconds(6_200))), turn: turn,
-			failedAt: failedAt)
+			waiting: false)
 		#expect(seconds.key == Catalog.coachErrorRateLimitSeconds)
 		#expect(seconds.vars == ["count": "7", "seconds": "7"])
 		let minutes = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, failedAt: failedAt)
+			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, waiting: false)
 		#expect(minutes.key == Catalog.coachErrorRateLimitMinutes)
 		#expect(minutes.vars == ["count": "2", "minutes": "2"])
 		let fallback = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: nil)), turn: turn, failedAt: failedAt)
+			for: .model(.rateLimited(retryAfter: nil)), turn: turn, waiting: false)
 		#expect(fallback.key == Catalog.coachErrorRateLimitDefault)
 		#expect(fallback.vars.isEmpty)
 	}
 
-	@Test func rateLimitWaitStartsWhenTheTurnFailedNotWhenItIsShown() {
-		let earlier = failedAt.addingTimeInterval(-3_600)
-		let state = settledState(
-			.failed(.model(.rateLimited(retryAfter: .seconds(7))), saved: .none), at: earlier)
-		let action = notice(of: state)?.action
-		#expect(action == .wait(until: earlier.addingTimeInterval(7), thenTryAgain: turn))
-		#expect(action?.opensAt == earlier.addingTimeInterval(7))
-		#expect(RecoveryAction.tryAgain(turn).opensAt == nil)
+	@Test func aRateLimitOffersTryAgainOnlyOnceItsWaitHasEnded() throws {
+		let failure = Settlement.failed(
+			.model(.rateLimited(retryAfter: .seconds(7))), saved: .none)
+		let waiting = settledState(failure, overlay: .waitingToTryAgain)
+		let shown = try #require(notice(of: waiting))
+		#expect(shown.sentence(in: english) == "Rate limited — please try again in ~7 seconds.")
+		#expect(shown.action == .wait(thenTryAgain: turn))
+		#expect(shown.action.map { english.say($0.title) } == tryAgain)
+		#expect(notice(of: settledState(failure))?.action == .tryAgain(turn))
+		let down = settledState(
+			.failed(.model(.providerDown(.network)), saved: .none), overlay: .waitingToTryAgain)
+		#expect(notice(of: down)?.action == .tryAgain(turn))
 	}
 
 	@Test func aFailureOutsideATurnOffersNoTurnAction() {
 		let rateLimited = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(7))), turn: nil, failedAt: failedAt)
+			for: .model(.rateLimited(retryAfter: .seconds(7))), turn: nil, waiting: true)
 		#expect(rateLimited.action == nil)
 		let down = AthleteNotices.notice(
-			for: .model(.providerDown(.network)), turn: nil, failedAt: failedAt)
+			for: .model(.providerDown(.network)), turn: nil, waiting: true)
 		#expect(down.action == nil)
 		let exhausted = AthleteNotices.notice(
-			for: .model(.accessExhausted(.credits)), turn: nil, failedAt: failedAt)
+			for: .model(.accessExhausted(.credits)), turn: nil, waiting: true)
 		#expect(exhausted.action == .buyCredits)
 	}
 }

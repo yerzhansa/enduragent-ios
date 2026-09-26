@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Je opgeslagen berichten konden niet worden gecontroleerd. Maak opnieuw verbinding en probeer het opnieuw.",
       "queueRemoveFailure": "Dat opgeslagen bericht kon niet worden verwijderd. Probeer het opnieuw.",
       "responseFailure": "De coach kon niet antwoorden. Probeer het opnieuw.",
-      "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
       "retryMessage": "Bericht opnieuw proberen",
       "savedChoice": "Opgeslagen keuze",
       "working": "De coach is bezig…"

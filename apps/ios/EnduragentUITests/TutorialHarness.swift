@@ -27,6 +27,7 @@ enum TutorialHarness {
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
 	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
+	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
 		"This reply stopped before it finished. Some information was saved first."

@@ -109,7 +109,7 @@ public struct AthleteNotice: Sendable, Equatable {
 
 public enum RecoveryAction: Sendable, Equatable {
 	case tryAgain(TurnID)
-	case wait(until: Date, thenTryAgain: TurnID)
+	case wait(thenTryAgain: TurnID)
 	case restoreCredits
 	case buyCredits
 	case chooseAccessMethod
@@ -124,18 +124,19 @@ public enum RecoveryAction: Sendable, Equatable {
 		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
 		}
 	}
+}
 
-	public var opensAt: Date? {
-		guard case .wait(let until, _) = self else { return nil }
-		return until
+extension CoachFailure {
+	package var tryAgainWait: Duration? {
+		guard case .model(.rateLimited(let retryAfter)) = self else { return nil }
+		return retryAfter.flatMap { $0 > .zero ? $0 : nil } ?? .seconds(60)
 	}
 }
 
 package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
-	private static let defaultRateLimitWait: Duration = .seconds(60)
 
-	package static func notice(for failure: CoachFailure, turn: TurnID?, failedAt: Date)
+	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice
 	{
 		let tryAgain = turn.map(RecoveryAction.tryAgain)
@@ -152,7 +153,8 @@ package enum AthleteNotices {
 			return AthleteNotice(
 				key: Catalog.accessErrorOpenRouterFunds, action: .chooseAccessMethod)
 		case .model(.rateLimited(let retryAfter)):
-			return rateLimitNotice(after: retryAfter, turn: turn, failedAt: failedAt)
+			let offer = waiting ? RecoveryAction.wait(thenTryAgain:) : RecoveryAction.tryAgain
+			return rateLimitNotice(after: retryAfter, action: turn.map(offer))
 		case .model(.providerDown):
 			return AthleteNotice(key: Catalog.coachErrorProviderDown, action: tryAgain)
 		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted):
@@ -169,13 +171,10 @@ package enum AthleteNotices {
 		}
 	}
 
-	private static func rateLimitNotice(after retryAfter: Duration?, turn: TurnID?, failedAt: Date)
+	private static func rateLimitNotice(after retryAfter: Duration?, action: RecoveryAction?)
 		-> AthleteNotice
 	{
-		let hinted = retryAfter.flatMap { $0 > .zero ? $0 : nil }
-		let opensAt = failedAt.addingTimeInterval((hinted ?? defaultRateLimitWait).timeInterval)
-		let action = turn.map { RecoveryAction.wait(until: opensAt, thenTryAgain: $0) }
-		guard let hinted else {
+		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }) else {
 			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, action: action)
 		}
 		let seconds = Int((hinted / .seconds(1)).rounded(.up))

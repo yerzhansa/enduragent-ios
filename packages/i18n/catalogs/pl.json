@@ -1029,7 +1029,6 @@
       "queueLoadFailure": "Nie udało się sprawdzić zapisanych wiadomości. Połącz ponownie i spróbuj jeszcze raz.",
       "queueRemoveFailure": "Nie udało się usunąć tej zapisanej wiadomości. Spróbuj ponownie.",
       "responseFailure": "Trener nie mógł odpowiedzieć. Spróbuj ponownie.",
-      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
       "retryMessage": "Ponów wiadomość",
       "savedChoice": "Zapisany wybór",
       "working": "Trener pracuje…"
