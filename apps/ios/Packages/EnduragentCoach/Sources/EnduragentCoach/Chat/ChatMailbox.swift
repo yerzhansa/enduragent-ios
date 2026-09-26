@@ -359,6 +359,7 @@ package actor ChatMailbox {
 			do {
 				try await commit(mark, stamp: stamp)
 			} catch {
+				conversation.observeInMemory(turn, attempt: stamp.attempt)
 				ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
 			}
 		}

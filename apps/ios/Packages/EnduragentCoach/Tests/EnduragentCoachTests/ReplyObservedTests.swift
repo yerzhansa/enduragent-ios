@@ -58,6 +58,64 @@ import Testing
 				mint: { turn }) == .success(.nothing))
 	}
 
+	@Test func textThenMemoryWriteThenServerErrorSettlesSavedUnverified() async throws {
+		transport.script = [
+			.text("Noted. "),
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.fail(.http(status: 500)),
+			.text("Never sent."),
+			.finish(reason: .stop),
+		]
+		let settled = try await makeCoach().sendAndSettle("Remember my Saturday ride")
+		guard case .savedWork(let savedWork) = settled else {
+			Issue.record("expected saved work, got \(settled)")
+			return
+		}
+		#expect(savedWork.outcome == .savedUnverified)
+		#expect(savedWork.notice.action == nil)
+		#expect(!settled.retryable)
+		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
+	}
+
+	@Test func observedTextBelongsToOneGenerateAttempt() async throws {
+		transport.finishUsage = Usage(
+			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
+		transport.script = [
+			.text("truncated"), .finish(reason: .length),
+			.fail(.http(status: 500)),
+			.text("after compact"), .finish(reason: .stop),
+		]
+		let coach = makeCoach()
+		let turn = try #require(try await coach.send(draft("Long history"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "after compact")
+		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 3)
+		let marks = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.replyObserved]), turn: turn)
+		).records
+		#expect(marks.count == 1)
+	}
+
+	@Test func anUnsavedReplyMarkIsReportedOncePerAttempt() async throws {
+		transport.script = [.text("One "), .text("two "), .text("three."), .finish(reason: .stop)]
+		let faulty = FaultInjectingRecordLog(wrapping: store)
+		faulty.failAppends(ofKind: .replyObserved)
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: faulty, clock: clock)
+		let settled = try await coach.sendAndSettle("Count to three")
+		#expect(replyText(settled) == "One two three.")
+		let unsaved = coach.diagnostics.entries.filter { entry in
+			if case .replyObservedUnsaved = entry.event { return true }
+			return false
+		}
+		#expect(unsaved.count == 1)
+	}
+
 	private func makeCoach() -> Coach {
 		EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
