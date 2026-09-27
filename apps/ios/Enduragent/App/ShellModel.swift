@@ -215,7 +215,7 @@ final class ShellModel {
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
 			return
 		}

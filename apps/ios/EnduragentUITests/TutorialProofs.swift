@@ -299,8 +299,11 @@ final class RecordsClockOrderProof: XCTestCase {
 		let labels = TutorialHarness.recordRowLabels(app)
 		let rows = labels.map { $0.split(separator: " ").map(String.init) }
 		XCTAssertTrue(
-			rows.allSatisfy { $0.count == 3 || ($0.first == "turnSettled" && $0.count > 3) },
-			"every row shows kind, device, and HLC, and a turnSettled row its outcome: \(labels)")
+			rows.allSatisfy {
+				$0.count == 3 || (["turnSettled", "turnClaim"].contains($0.first) && $0.count > 3)
+			},
+			"every row shows kind, device, and HLC, a turnSettled row its outcome, and a turnClaim row its lease: \(labels)"
+		)
 		let clocks = rows.compactMap(\.last)
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
 		let causal = rows.compactMap(\.first).filter {

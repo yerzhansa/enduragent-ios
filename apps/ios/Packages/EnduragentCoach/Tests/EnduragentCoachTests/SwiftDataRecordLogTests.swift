@@ -272,7 +272,9 @@ extension SwiftDataSuites {
 			]
 			let local: [DeviceLocalRecordBody] = [
 				.turnClaim(
-					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+					TurnClaimBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						lease: .continuedProcessing)),
 				.replyObserved(
 					ReplyObservedBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(

@@ -69093,6 +69093,16 @@
         }
       }
     },
+    "chat.turn.finishedWhileLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        }
+      }
+    },
     "chat.turn.interruptedNothingChanged": {
       "localizations": {
         "en": {

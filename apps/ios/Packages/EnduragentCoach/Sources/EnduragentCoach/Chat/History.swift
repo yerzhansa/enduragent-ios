@@ -62,8 +62,8 @@ extension Ledger {
 			}
 			for (segment, reason) in closed {
 				let views = segment.turnViews(
-					live: nil, window: nil, queued: [], waiting: [], device: deviceId,
-					process: process, today: today)
+					live: nil, window: nil, queued: [], waiting: [], finishedAway: [],
+					device: deviceId, process: process, today: today)
 				guard let first = segment.turns.first?.fragments.first, let opened = views.first
 				else { continue }
 				archived.append(

@@ -12,6 +12,7 @@ public actor Coach {
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let host: any ExecutionHost
 	private var language: LanguagePreference
 	private let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
 	private let tools: ToolRuntime
@@ -29,6 +30,7 @@ public actor Coach {
 		store: any RecordLog,
 		clock: any Clock,
 		language: LanguagePreference,
+		host: any ExecutionHost,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let diagnostics = DiagnosticsLog(clock: clock)
@@ -44,6 +46,7 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
+		self.host = host
 		self.language = language
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: store, intervals: intervals, clock: clock)
@@ -78,7 +81,7 @@ public actor Coach {
 	}
 
 	public func stop(_ chat: ChatID) async {
-		await mailbox(for: chat).stop()
+		await mailbox(for: chat).interrupt(.athleteStopped)
 	}
 
 	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
@@ -101,9 +104,10 @@ public actor Coach {
 		case .willResignActive:
 			return
 		case .enteredBackground, .willTerminate:
-			for mailbox in mailboxes.values {
-				await mailbox.lifecycle(event)
-			}
+			break
+		}
+		for mailbox in mailboxes.values {
+			await mailbox.lifecycle(event)
 		}
 	}
 
@@ -219,7 +223,7 @@ public actor Coach {
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
 		let flushQueue = try await ledger.flushJobsByChat()
-		let turns = try await deadClaimTurns(claims, device: device)
+		let turns = try await claimedTurns(claims, device: device)
 		let dead = Set(
 			turns.values.flatMap {
 				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
@@ -244,7 +248,7 @@ public actor Coach {
 		return plans
 	}
 
-	private func deadClaimTurns(_ claims: [AthleteRecord], device: DeviceID)
+	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
 		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
 	{
 		let chats = Set(claims.compactMap(\.chatId))
@@ -280,7 +284,8 @@ public actor Coach {
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(language: { await self.language }, access: access),
-			process: process
+			process: process,
+			host: host
 		)
 		mailboxes[chatId] = created
 		return created

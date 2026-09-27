@@ -93,6 +93,8 @@ public enum RetryWaitReason: Sendable, Equatable {
 
 public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
+	case systemExpired
+	case graceEnded
 	case appTerminating
 	case processEnded
 	case stoppedBeforeStart

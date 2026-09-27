@@ -35,7 +35,8 @@ func makeCoach(
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
-	secrets: any SecretStore = keyedSecrets()
+	secrets: any SecretStore = keyedSecrets(),
+	host: any ExecutionHost = ImmediateExecutionHost()
 ) -> Coach {
 	Coach(
 		sport: .cycling,
@@ -46,6 +47,7 @@ func makeCoach(
 		store: store,
 		clock: clock,
 		language: .init(ui: .en, coachReply: nil),
+		host: host,
 		coalescing: coalescing
 	)
 }
@@ -343,4 +345,44 @@ final class HeldAppendLog: RecordLog, Sendable {
 	}
 
 	var imports: AsyncStream<Void> { inner.imports }
+}
+
+final class KeepingHost: ExecutionHost {
+	private let inner = ImmediateExecutionHost()
+	private let expiries = Mutex<[@Sendable (ExpiryCause) async -> Void]>([])
+
+	func beginLease(
+		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
+	) async -> any ExecutionLease {
+		expiries.withLock { $0.append(onExpiry) }
+		return await inner.beginLease(request, onExpiry: onExpiry)
+	}
+
+	func expire(lease index: Int, _ cause: ExpiryCause) async {
+		let handler = expiries.withLock { $0[index] }
+		await handler(cause)
+	}
+}
+
+final class GraceOnlyHost: ExecutionHost {
+	private let inner = ImmediateExecutionHost()
+
+	func beginLease(
+		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
+	) async -> any ExecutionLease {
+		GraceLease(inner: await inner.beginLease(request, onExpiry: onExpiry))
+	}
+}
+
+private struct GraceLease: ExecutionLease {
+	let inner: any ExecutionLease
+	let kind: LeaseKind = .gracePeriodOnly
+
+	func report(_ progress: LeaseProgress) async {
+		await inner.report(progress)
+	}
+
+	func end(_ ending: LeaseEnding) async {
+		await inner.end(ending)
+	}
 }

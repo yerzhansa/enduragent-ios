@@ -140,7 +140,9 @@ private func claimedFacts(by process: ProcessID) -> TurnFacts {
 	facts.claims.append(
 		ClaimedAttempt(
 			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
-			body: TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, process: process)))
+			body: TurnClaimBody(
+				chatId: .main, turn: turn, attempt: attempt, process: process,
+				lease: .continuedProcessing)))
 	return facts
 }
 

@@ -28,6 +28,7 @@ public struct TurnClaimBody: Sendable, Equatable {
 	public var turn: TurnID
 	public var attempt: AttemptID
 	public var process: ProcessID?
+	public var lease: LeaseKind
 }
 
 public struct ReplyObservedBody: Sendable, Equatable {

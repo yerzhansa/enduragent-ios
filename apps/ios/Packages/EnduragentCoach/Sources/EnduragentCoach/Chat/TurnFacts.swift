@@ -34,6 +34,11 @@ package struct TurnFacts: Sendable, Equatable {
 		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
 	}
 
+	package var reply: ReplyText? {
+		guard case .replied(let text, _)? = latestSettlement?.settlement else { return nil }
+		return text
+	}
+
 	package var openClaim: ClaimedAttempt? {
 		guard let latest = latestAttempt, latestSettlement == nil else { return nil }
 		return claims.first { $0.attempt == latest }

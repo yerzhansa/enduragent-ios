@@ -12,6 +12,25 @@ enum FixtureKeychainPolicy: String {
 	case empty
 }
 
+enum FixtureHostPolicy: Equatable {
+	case immediate
+	case expireAfter(Duration)
+
+	var expiry: Duration? {
+		guard case .expireAfter(let duration) = self else { return nil }
+		return duration
+	}
+
+	init(argument raw: String) throws {
+		let words = raw.split(separator: " ")
+		guard words.count == 2, words[0] == "expire-after", let seconds = Int(words[1]), seconds > 0
+		else {
+			throw FixtureLaunchError.unknownArgument(key: FixtureLaunch.hostArgumentKey, value: raw)
+		}
+		self = .expireAfter(.seconds(seconds))
+	}
+}
+
 enum FixtureRecoveryPolicy: String {
 	case readable
 	case unreadable
@@ -29,6 +48,7 @@ struct FixtureLaunch {
 	static let keychainArgumentKey = "EnduragentFixtureKeychain"
 	static let coalescingArgumentKey = "EnduragentFixtureCoalescing"
 	static let recoveryArgumentKey = "EnduragentFixtureRecovery"
+	static let hostArgumentKey = "EnduragentFixtureHost"
 	static let firstWeekName = "first-week"
 	static let defaultsSuiteName = "icu.enduragent.fixture"
 	static let directoryName = "fixture"
@@ -40,6 +60,7 @@ struct FixtureLaunch {
 	var defaultsSuiteName: String
 	var coalescing = CoalescingPolicy.npm
 	var recovery = FixtureRecoveryPolicy.readable
+	var host = FixtureHostPolicy.immediate
 
 	static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 		guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -50,7 +71,9 @@ struct FixtureLaunch {
 			directory: try applicationSupportDirectory(),
 			defaultsSuiteName: defaultsSuiteName,
 			coalescing: try coalescing(arguments) ?? .npm,
-			recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable
+			recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
+			host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
+				?? .immediate
 		)
 	}
 

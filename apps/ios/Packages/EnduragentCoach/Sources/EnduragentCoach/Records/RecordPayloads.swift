@@ -129,6 +129,7 @@ struct TurnClaimPayload: Codable {
 	var turn: String
 	var attempt: String
 	var process: String?
+	var lease: String?
 }
 
 struct AssistantMessagePayload: Codable {

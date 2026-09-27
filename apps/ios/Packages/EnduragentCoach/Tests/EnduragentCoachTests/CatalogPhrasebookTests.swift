@@ -41,6 +41,7 @@ import Testing
 		(Catalog.chatTurnRestorePurchases, "Restore purchases"),
 		(Catalog.chatTurnChooseAccessMethod, "Choose access method"),
 		(Catalog.chatTurnSignInAgain, "Sign in again"),
+		(Catalog.chatTurnFinishedWhileLocked, "Finished while the phone was locked."),
 	])
 	func newKeysRenderInEnglishAndFallBackForOtherTags(key: CatalogKey, english: String) {
 		#expect(CatalogPhrasebook(tag: .en, locale: "en-US").say(key) == english)

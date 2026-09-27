@@ -13,6 +13,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
+	public let completedInBackground: Bool
 }
 
 public enum ChatActivity: Sendable, Equatable {
@@ -99,6 +100,7 @@ extension ChatSnapshot {
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
+		finishedAway: Set<TurnID>,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
 		process: ProcessID,
@@ -109,8 +111,9 @@ extension ChatSnapshot {
 		let current = conversation.current
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			live: live, window: window, queued: queued, waiting: waiting, device: device,
-			process: process, today: CivilDate(date: now, timeZone: zone))
+			live: live, window: window, queued: queued, waiting: waiting,
+			finishedAway: finishedAway, device: device, process: process,
+			today: CivilDate(date: now, timeZone: zone))
 		if stopping {
 			self.activity = .stopping
 		} else if live != nil || window != nil || !queued.isEmpty {
@@ -125,7 +128,7 @@ extension ChatSnapshot {
 extension Segment {
 	package func turnViews(
 		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
-		device: DeviceID, process: ProcessID, today: CivilDate
+		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
 		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
@@ -138,7 +141,8 @@ extension Segment {
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process)
+					of: facts, live: live, overlay: overlay, device: device, process: process),
+				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
 	}

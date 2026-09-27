@@ -547,6 +547,7 @@ public enum Catalog {
 	public static let chatTranscriptSummaryReview = CatalogKey(rawValue: "chat.transcript.summary.review")
 	public static let chatTurnBuyCredits = CatalogKey(rawValue: "chat.turn.buyCredits")
 	public static let chatTurnChooseAccessMethod = CatalogKey(rawValue: "chat.turn.chooseAccessMethod")
+	public static let chatTurnFinishedWhileLocked = CatalogKey(rawValue: "chat.turn.finishedWhileLocked")
 	public static let chatTurnInterruptedNothingChanged = CatalogKey(rawValue: "chat.turn.interruptedNothingChanged")
 	public static let chatTurnInterruptedSomeSaved = CatalogKey(rawValue: "chat.turn.interruptedSomeSaved")
 	public static let chatTurnReceivedBeforeClose = CatalogKey(rawValue: "chat.turn.receivedBeforeClose")
