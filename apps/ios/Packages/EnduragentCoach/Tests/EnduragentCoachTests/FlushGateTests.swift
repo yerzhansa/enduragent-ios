@@ -61,4 +61,45 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records.count
 				== 1)
 	}
+
+	@Test func aRetriedQuestionBeforeASavedWindowIsStillUnsaved() async throws {
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		transport.script = [.fail(.http(status: 400))]
+		let turn = try #require(
+			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
+		let failed = try #require(await coach.settledState(of: turn, in: .main))
+		try #require(failed.retryable)
+		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
+		transport.script = [
+			.text("First."), .finish(reason: .stop),
+			.text("Second."), .finish(reason: .stop),
+			.text(longReply), .finish(reason: .stop),
+			.text("Ready."), .finish(reason: .stop),
+		]
+		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
+			_ = try await coach.sendAndSettle(question)
+		}
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let jobs = try await ledger.flushJobs(in: .main)
+		let saved = try #require(jobs.first)
+		let user = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: turn))
+				.records.first?.ulid)
+		try #require(jobs.count == 1)
+		try #require(saved.saved)
+		let newest = try #require(saved.messages.max())
+		try #require(user < newest)
+		#expect(!saved.messages.contains(user))
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Noted.")
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let window = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)
+		#expect(window.filter { $0 == "Noted." }.count == 1)
+		#expect(!window.contains("First question"))
+		let reset = try #require(try await ledger.flushJobs(in: .main).last)
+		#expect(reset.messages.contains(user))
+	}
 }
