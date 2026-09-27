@@ -132,6 +132,39 @@ import Testing
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
 	}
 
+	@Test func theResetWindowStartsWithTheOutstandingJobsRows() async throws {
+		let history = try await seedHistory(store, clock: clock, turns: 2, tokens: 400)
+		let at = clock.now.addingTimeInterval(-5)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: at, ulid: ULID.generate(at: at),
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [history[0].user, history[0].reply],
+								process: ProcessID(ulid: fixedUlid(70))))))
+			])
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let flushes = FlushWork(
+			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
+			diagnostics: DiagnosticsLog(clock: clock))
+		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
+		let reset = ResetID(ulid: await ledger.nextULID())
+		let result = await ConversationReset(
+			chat: .main, ledger: ledger, flushes: flushes, clock: clock
+		).run(reset, archiving: try await ledger.conversation(.main), access: { testAccess })
+		#expect(result.outcome == .started(memory: .saved))
+		let flushed = try #require(sent(.memoryFlush, by: transport).first)
+		let window = flushed.messages.map(\.content)
+		#expect(window.contains("Question 0"))
+		#expect(window.contains("Question 1"))
+		#expect(FlushJob.outstanding(await flushes.jobs()).isEmpty)
+	}
+
 	@Test func resetQueuesBehindRunningTurn() async throws {
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
 		let coach = coach(over: held)
