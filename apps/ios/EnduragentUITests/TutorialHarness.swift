@@ -176,7 +176,7 @@ enum TutorialHarness {
 		XCTAssertEqual(named(app, "starter.credits").label, "200 credits")
 		named(app, "starter.start").tap()
 		wait(named(app, "chat.composer"))
-		waitForWelcome(app)
+		wait(named(app, "chat.welcome"))
 	}
 
 	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
