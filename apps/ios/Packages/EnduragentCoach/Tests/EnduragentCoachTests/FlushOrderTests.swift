@@ -267,12 +267,4 @@ import Testing
 				return body.settlement
 			}
 	}
-
-	private func waitUntil(_ condition: () -> Bool) async throws {
-		let deadline = ContinuousClock.now + .seconds(5)
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		#expect(condition())
-	}
 }
