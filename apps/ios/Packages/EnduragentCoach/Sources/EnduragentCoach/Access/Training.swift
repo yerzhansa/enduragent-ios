@@ -32,4 +32,26 @@ package struct TrainingConnection: Sendable {
 
 	package static let unconnected = TrainingConnection(
 		account: .unconnected, client: UnconnectedIntervalsClient())
+
+	package func loadSnapshot(clock: any Clock, attempt: AttemptID, diagnostics: DiagnosticsLog)
+		async throws(CancellationError) -> AthleteSnapshot?
+	{
+		guard account != .unconnected else { return nil }
+		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
+		let oldest = today.adding(days: -(7 - 1))
+		let days: [WellnessDay]
+		do {
+			days = try await client.fetchWellness(oldest: oldest, newest: today)
+		} catch is CancellationError {
+			throw CancellationError()
+		} catch {
+			diagnostics.record(.trainingUnavailable(attempt, TrainingFailure(error)))
+			return nil
+		}
+		guard let latest = days.last else {
+			return nil
+		}
+		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
+	}
+
 }

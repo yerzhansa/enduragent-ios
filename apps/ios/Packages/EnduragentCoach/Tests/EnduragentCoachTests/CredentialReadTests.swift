@@ -96,12 +96,14 @@ extension CredentialVaultTests {
 
 	@Test func recoverStagingDeletesLeftoverAtLaunch() async throws {
 		let secrets = keyedSecrets()
-		try secrets.stageIntervalsConnection(
-			IntervalsConnection(
-				id: ConnectionID(), credential: .apiKey("icu-half-written"), selection: .keyOwner,
-				resolvedAthlete: nil))
+		try secrets.stageReplacement(
+			.intervals(
+				IntervalsConnection(
+					id: ConnectionID(), credential: .apiKey("icu-half-written"),
+					selection: .keyOwner,
+					resolvedAthlete: nil)))
 		let launched = try await vault(secrets).trainingConnection()
-		#expect(try secrets.stagedIntervalsConnection() == nil)
+		#expect(try secrets.stagedReplacement() == nil)
 		#expect(launched.account == (try account(testConnection)))
 	}
 

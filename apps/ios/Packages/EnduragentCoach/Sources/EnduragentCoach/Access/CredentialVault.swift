@@ -126,18 +126,35 @@ package actor CredentialVault {
 	}
 
 	package func storeCreditsKey(_ key: NonEmptySecret) throws(AccessUnavailable) {
+		try prepareStaging()
 		try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
 	}
 
 	package func storeRecovery(key: NonEmptySecret, appAccountToken: UUID)
-		throws(AccessUnavailable)
+		async throws(AccessUnavailable)
 	{
-		try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
-		try keychain(.appAccountToken) { try store.storeAppAccountToken(appAccountToken) }
+		try await changes.pass { _ throws(AccessUnavailable) in
+			try prepareStaging()
+			let previous = CredentialReplacement.credits(
+				previousKey: try keychain(.creditsKey) { try store.openRouterKey() },
+				previousAppAccountToken: try self.appAccountToken())
+			try keychain(.intervalsConnectionStaging) { try store.stageReplacement(previous) }
+			do throws(AccessUnavailable) {
+				try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
+				try keychain(.appAccountToken) { try store.storeAppAccountToken(appAccountToken) }
+				try keychain(.intervalsConnectionStaging) {
+					try store.delete(.intervalsConnectionStaging)
+				}
+			} catch {
+				discardStaging()
+				throw error
+			}
+		}
 	}
 
 	package func creditsKey() throws(AccessUnavailable) -> NonEmptySecret? {
-		try keychain(.creditsKey) { try store.openRouterKey() }.flatMap(NonEmptySecret.init)
+		recoverStaging()
+		return try keychain(.creditsKey) { try store.openRouterKey() }.flatMap(NonEmptySecret.init)
 	}
 
 	package func creditsIdentity() throws(AccessUnavailable) -> CreditsIdentity {
@@ -146,11 +163,13 @@ package actor CredentialVault {
 	}
 
 	package func appAccountToken() throws(AccessUnavailable) -> UUID {
-		try keychain(.appAccountToken) { try store.appAccountToken() }
+		recoverStaging()
+		return try keychain(.appAccountToken) { try store.appAccountToken() }
 	}
 
 	#if DEBUG
 		package func replaceAppAccountToken() throws(AccessUnavailable) {
+			try prepareStaging()
 			try keychain(.appAccountToken) { try store.storeAppAccountToken(UUID()) }
 		}
 	#endif
@@ -167,7 +186,10 @@ package actor CredentialVault {
 		let staged = IntervalsConnection(
 			id: id, credential: credential, selection: athlete, resolvedAthlete: nil)
 		do {
-			try keychain(.intervalsConnectionStaging) { try store.stageIntervalsConnection(staged) }
+			try prepareStaging()
+			try keychain(.intervalsConnectionStaging) {
+				try store.stageReplacement(.intervals(staged))
+			}
 		} catch {
 			return .failedPreviousKept(
 				.secureStorage(error), previous: await summary(ofCurrent: current))
@@ -282,21 +304,25 @@ package actor CredentialVault {
 			credential: ProviderCredential(secret: secret.value, method: method), model: model)
 	}
 
-	private func recoverStaging() {
+	private func prepareStaging() throws(AccessUnavailable) {
 		guard !stagingRecovered else { return }
-		discardStaging()
+		try keychain(.intervalsConnectionStaging) { try store.rollbackStagedReplacement() }
+		stagingRecovered = true
 	}
 
-	private func discardStaging() {
+	private func recoverStaging() {
 		do {
-			try store.delete(.intervalsConnectionStaging)
-			stagingRecovered = true
+			try prepareStaging()
 		} catch {
-			stagingRecovered = false
 			diagnostics.record(
 				.secureStorageFailed(.intervalsConnectionStaging, detail: String(describing: error))
 			)
 		}
+	}
+
+	private func discardStaging() {
+		stagingRecovered = false
+		recoverStaging()
 	}
 
 	private func keychain<Value>(_ slot: CredentialSlot, _ body: () throws -> Value)

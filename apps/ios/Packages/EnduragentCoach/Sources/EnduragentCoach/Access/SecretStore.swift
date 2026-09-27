@@ -10,8 +10,9 @@ public protocol SecretStore: Sendable {
 	func storeOpenRouterAccountKey(_ key: String) throws
 	func intervalsConnection() throws -> IntervalsConnection?
 	func storeIntervalsConnection(_ connection: IntervalsConnection) throws
-	func stagedIntervalsConnection() throws -> IntervalsConnection?
-	func stageIntervalsConnection(_ connection: IntervalsConnection) throws
+	func stagedReplacement() throws -> CredentialReplacement?
+	func stageReplacement(_ replacement: CredentialReplacement) throws
+	func rollbackStagedReplacement() throws
 	func accessSelection() throws -> AccessSelection?
 	func storeAccessSelection(_ selection: AccessSelection) throws
 	func delete(_ slot: CredentialSlot) throws
@@ -46,6 +47,7 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func appAccountToken() throws -> UUID {
+		if case .credits(_, let token)? = try stagedReplacement() { return token }
 		if let token = try readToken() {
 			return token
 		}
@@ -67,7 +69,8 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func openRouterKey() throws -> String? {
-		try readString(.creditsKey)
+		if case .credits(let key, _)? = try stagedReplacement() { return key }
+		return try readString(.creditsKey)
 	}
 
 	public func storeOpenRouterKey(_ key: String) throws {
@@ -90,12 +93,26 @@ public struct ICloudKeychainStore: SecretStore {
 		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
 	}
 
-	public func stagedIntervalsConnection() throws -> IntervalsConnection? {
-		try readItem(StoredIntervalsConnection.self, .intervalsConnectionStaging)?.connection()
+	public func stagedReplacement() throws -> CredentialReplacement? {
+		try readItem(StoredCredentialReplacement.self, .intervalsConnectionStaging)?.replacement()
 	}
 
-	public func stageIntervalsConnection(_ connection: IntervalsConnection) throws {
-		try writeItem(StoredIntervalsConnection(connection), .intervalsConnectionStaging)
+	public func stageReplacement(_ replacement: CredentialReplacement) throws {
+		try writeItem(StoredCredentialReplacement(replacement), .intervalsConnectionStaging)
+	}
+
+	public func rollbackStagedReplacement() throws {
+		if case .credits(let key, let token)? = try stagedReplacement() {
+			if try readString(.creditsKey) != key {
+				if let key {
+					try storeOpenRouterKey(key)
+				} else {
+					try delete(.creditsKey)
+				}
+			}
+			if try readToken() != token { try storeAppAccountToken(token) }
+		}
+		try delete(.intervalsConnectionStaging)
 	}
 
 	public func accessSelection() throws -> AccessSelection? {

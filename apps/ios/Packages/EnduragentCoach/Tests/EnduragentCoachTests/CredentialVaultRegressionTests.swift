@@ -53,16 +53,33 @@ extension CredentialVaultTests {
 			})
 	}
 
+	@Test func sameAthleteReplacementExpiresThePreviousConnectionProposal() async throws {
+		let secrets = keyedSecrets()
+		let coach = coach(secrets)
+		let pending = try await proposeRide(on: coach)
+		_ = await coach.changeTraining(.replace(apiKey: "same-athlete-new-key", athlete: .keyOwner))
+		let current = try #require(try secrets.intervalsConnection())
+		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
+		#expect(current.id != testConnection.id)
+		#expect(!pending.confirmable(under: await coach.status()))
+		#expect(try await coach.confirm(chatId: .main, nonce: pending.nonce) == .expired)
+		#expect(
+			!ada.calls.contains {
+				if case .createEvent = $0 { return true }
+				return false
+			})
+	}
+
 	@Test func stagingRecoveryRetriesAfterUnlock() async throws {
 		let secrets = keyedSecrets()
-		try secrets.stageIntervalsConnection(testConnection)
+		try secrets.stageReplacement(.intervals(testConnection))
 		secrets.locked = true
 		let coach = coach(secrets)
 		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		secrets.locked = false
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.status().setup == .ready)
-		#expect(try secrets.stagedIntervalsConnection() == nil)
+		#expect(try secrets.stagedReplacement() == nil)
 	}
 
 	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
@@ -111,7 +128,36 @@ extension CredentialVaultTests {
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
 	}
 
-	private func recoveryCoach(_ secrets: any SecretStore) throws -> Coach {
+	@Test func recoveryWaitsForTheTrainingReplacementToFinish() async throws {
+		let secrets = keyedSecrets()
+		let gate = CredentialProfileGate()
+		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let service = TrainingService { _, _, _ in client }
+		let coach = try recoveryCoach(secrets, training: service)
+		let replacement = Task {
+			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
+		}
+		await gate.waitUntilEntered()
+		let staged = try secrets.stagedReplacement()
+		let recovery = Task {
+			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
+		}
+		try await Task.sleep(for: .milliseconds(150))
+		#expect(try secrets.stagedReplacement() == staged)
+		await gate.release()
+		_ = await replacement.value
+		_ = try await recovery.value
+		#expect(try secrets.intervalsConnection()?.credential == .apiKey("test-delayed-key"))
+		#expect(try secrets.openRouterKey() == "test-new-credits-key")
+		#expect(
+			try secrets.appAccountToken().uuidString.lowercased()
+				== "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")
+		#expect(try secrets.stagedReplacement() == nil)
+	}
+
+	private func recoveryCoach(_ secrets: any SecretStore, training service: TrainingService? = nil)
+		throws -> Coach
+	{
 		let config = URLSessionConfiguration.ephemeral
 		config.protocolClasses = [RecoveryResponseStub.self]
 		let session = URLSession(configuration: config)
@@ -120,7 +166,7 @@ extension CredentialVaultTests {
 			sport: .cycling,
 			ports: CoachPorts(
 				records: records, secrets: secrets, models: .scripted(transport),
-				training: training,
+				training: service ?? training,
 				credits: CreditsService { vault in
 					PhoneCreditsClient(vault: vault, workerBase: base, session: session)
 				},
