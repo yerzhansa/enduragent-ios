@@ -88,6 +88,7 @@ package actor ChatMailbox {
 		}
 		closeWindow()
 		let reset = ResetID(ulid: await ledger.nextULID())
+		holdLease(.athlete)
 		return await resets.outcome(of: reset) {
 			enqueue(.reset(reset))
 			admission.leave()
@@ -166,7 +167,7 @@ package actor ChatMailbox {
 		if !terminating {
 			await admission.enter()
 			let unstarted = queuedTurns(includingActive: false) + [window.close()].compactMap { $0 }
-			work.removeAll()
+			work.removeAll { $0.reset == nil }
 			for turn in unstarted {
 				let stamp = await stamp(for: turn)
 				await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
@@ -244,7 +245,7 @@ package actor ChatMailbox {
 	private func drainIfIdle() {
 		guard running == nil, interruption == nil, !terminating, !work.isEmpty else { return }
 		let next = work.removeFirst()
-		let lease = holdLease(next.turn == nil ? .recovery : .athlete)
+		let lease = holdLease(next.initiator)
 		active = next
 		running = Task {
 			switch next {
@@ -276,6 +277,7 @@ package actor ChatMailbox {
 		}
 	}
 
+	@discardableResult
 	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease {
 		leases.hold(initiator) { [weak self] generation, cause in
 			await self?.expire(cause, lease: generation)

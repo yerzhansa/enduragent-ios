@@ -277,6 +277,18 @@ package enum MailboxWork: Sendable, Equatable {
 		guard case .turn(let turn) = self else { return nil }
 		return turn
 	}
+
+	package var reset: ResetID? {
+		guard case .reset(let reset) = self else { return nil }
+		return reset
+	}
+
+	package var initiator: LeaseInitiator {
+		switch self {
+		case .turn, .reset: .athlete
+		case .flush: .recovery
+		}
+	}
 }
 
 package struct OpenWindow: Sendable, Equatable {
