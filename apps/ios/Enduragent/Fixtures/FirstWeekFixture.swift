@@ -10,6 +10,17 @@ enum FirstWeekFixture {
 	static let weekSummary =
 		"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
 
+	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
+
+	static let earlierSummary = "Summary of the earlier conversation."
+
+	static let summaryReply: [ScriptedEvent] = [.text(earlierSummary), .finish(reason: .stop)]
+
+	static let longReplyLines = 100
+
+	static let longReply = (1...longReplyLines).map { "Day \($0). " + weekSummary }
+		.joined(separator: "\n")
+
 	static let workoutArguments = """
 		{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":90}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
 		"""
@@ -59,10 +70,7 @@ enum FirstWeekFixture {
 			]
 		}
 		if trimmed.lowercased().hasPrefix("remember that") {
-			return [
-				.text("Noted. I'll remember you ride with a group on Saturdays."),
-				.finish(reason: .stop),
-			]
+			return [.text(rememberReply), .finish(reason: .stop)]
 		}
 		if isWorkoutRequest(trimmed) {
 			return [

@@ -293,7 +293,7 @@ import Testing
 		}
 		let refusals = await [first, second]
 		#expect(refusals.compactMap { $0 } == [.alreadyRunning])
-		await coach.waitForMemoryFlush()
+		try await waitForRecords(.synced([.turnSettled]), count: 2, in: store)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		)
@@ -330,7 +330,6 @@ import Testing
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(failedTurn, in: .main)
 		}
-		await coach.waitForMemoryFlush()
 		#expect(transport.requestCount == 0)
 		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
 		#expect(!failed.retryable)
@@ -365,7 +364,6 @@ import Testing
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(stoppedTurn, in: .main)
 		}
-		await coach.waitForMemoryFlush()
 		#expect(transport.requestCount == requests)
 	}
 

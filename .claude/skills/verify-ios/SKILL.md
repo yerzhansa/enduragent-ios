@@ -61,7 +61,7 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
 | History | `history.row.<chat id>` |
-| Debug | `fixture.requestCount`, `fixture.modelRequestCount` |
+| Debug | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead` (the first line of the history the last reply was sent with) |
 
 The fixture athlete is Ada Kovač. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
@@ -75,6 +75,9 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | `fixture:memory-then-fail` | The model saves a `schedule` memory section, then the next request fails with a 500. The turn ends with a notice and no `Try again`, because information was saved. |
 | `fixture:memory-then-hang` | The model saves a `schedule` memory section, then the next request never answers. Tapping Stop settles the turn with `This reply stopped before it finished. Some information was saved first.` and no `Try again`; left alone, the watchdog ends it after 30 seconds with the saved-work notice. Killing the app instead reopens it with the same sentence and Records lists `turnSettled` as `interrupted processEnded`. |
 | `fixture:text-then-hang` | The model streams `This week has Tuesday sweet spot` and then stops answering. Records lists `replyObserved 1` while the text is on screen. After 30 seconds the watchdog ends the turn with `coach.error.providerDown` and no retry, because reply text was already shown. Killing the app while the text shows reopens the turn with `This reply stopped before it finished. Nothing was changed.` and `Try again`, no reply text, and no model request. |
+| `fixture:teach` | The model saves a `schedule` memory section, then replies `Noted. I'll remember you ride with a group on Saturdays.` |
+| `fixture:long` | The reply is the week summary written out for 100 days, about 5,200 tokens, so a few messages reach the soft flush gate and the trim. |
+| `fixture:flush-partial` | Replies with the week summary and arms the next memory flush to save a `schedule` section and a `ledgerEvent`, then fail, so its job stays pending until the next launch. `fixture:fail overflow` right after it triggers that flush inside the overflow turn. |
 | `fixture:storage fail-next-append` | Arms the record store before this message is saved, so the directive itself is the message that fails. The composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
@@ -94,6 +97,31 @@ xcodebuild test-without-building -project apps/ios/Enduragent.xcodeproj -scheme 
 The helper first terminates a running copy of the app, because XCUITest cannot terminate an app that `sim.mjs launch` started and the proof would fail with `Failed to terminate icu.enduragent.app`. `-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On failure it prints the tail of the log and exits 1. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
+
+**Every proof in one run.** Pass every proof class at once:
+
+```sh
+.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*Proof\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
+```
+
+The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
+
+The run passes with zero failures and exactly two skips, `UpgradeKeepsTranscriptProof` and `UpgradeKeepsProposalProof`. Each opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the four upgrade steps below. On 2026-09-26 the run took 41 minutes.
+
+**Upgrade proofs.** These two prove that the app opens a store the last v1 build wrote. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. Then alternate the two builds on one run. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so each trunk proof leaves its state for the head proof that follows:
+
+```sh
+git worktree add --detach .worktrees/v1-trunk 82254bb
+TRUNK=.worktrees/v1-trunk/.claude/skills/verify-ios/helpers/sim.mjs
+SIM=.claude/skills/verify-ios/helpers/sim.mjs
+$TRUNK build
+$TRUNK test <run id> RelaunchKeepsChatProof
+$SIM test <run id> UpgradeKeepsTranscriptProof
+$TRUNK test <run id> ConfirmedPreviewProof
+$SIM test <run id> UpgradeKeepsProposalProof
+```
+
+Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove .worktrees/v1-trunk` when the run is done.
 
 ## Compare with the prototype
 
@@ -119,7 +147,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |
 | `chat-failed` | After `fixture:fail network x3`: `chat.turn.notice` under the message reads `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain` |
-| `interruption-accepted` | After `fixture:hang`, a kill, and `sim.mjs launch <run id> --keep`: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
+| `interruption-accepted` | After `sim.mjs launch <run id> -EnduragentFixtureCoalescing 60000`, onboarding, `fixture:hang`, and `sim.mjs launch <run id> --keep` before the minute ends: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
 | `interruption-draft` | After `fixture:storage fail-next-append`: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
 

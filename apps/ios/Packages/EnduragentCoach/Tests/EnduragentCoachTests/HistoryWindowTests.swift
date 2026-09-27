@@ -23,21 +23,23 @@ import Testing
 				role: index.isMultiple(of: 2) ? .user : .assistant,
 				text: String(repeating: "x", count: 8_000))
 		}
-		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000)
+		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
 		#expect(!result.kept.isEmpty)
 		#expect(result.kept.count + result.dropped.count == messages.count)
 		#expect(result.dropped.count >= 1)
 		#expect(result.kept.last == messages.last)
 	}
 
-	@Test func softFlushUsesStrictThresholdAndCooldown() {
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 81, budget: 100, messagesSinceFlush: 5))
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 80, budget: 100, messagesSinceFlush: 5)
-				== false)
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 90, budget: 100, messagesSinceFlush: 4)
-				== false)
+	@Test func trimUsesTheRatioItIsGiven() {
+		let messages = (0..<20).map { index in
+			ChatMessage(
+				role: index.isMultiple(of: 2) ? .user : .assistant,
+				text: String(repeating: "x", count: 8_000))
+		}
+		let narrow = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
+		let wide = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.6)
+		#expect(wide.budget > narrow.budget)
+		#expect(wide.dropped.isEmpty)
+		#expect(!narrow.dropped.isEmpty)
 	}
 }

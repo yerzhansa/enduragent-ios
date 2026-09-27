@@ -4,7 +4,7 @@ package actor ChatMailbox {
 	package let chatId: ChatID
 	private let ledger: Ledger
 	private let runner: TurnRunner
-	private let flushes: FlushDrain
+	private let flushes: FlushWork
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
@@ -32,7 +32,7 @@ package actor ChatMailbox {
 		chatId: ChatID,
 		ledger: Ledger,
 		runner: TurnRunner,
-		flushes: FlushDrain,
+		flushes: FlushWork,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
 		environment: EnvironmentResolver,
@@ -179,6 +179,9 @@ package actor ChatMailbox {
 			await records.settle(
 				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
 		}
+		for job in plan.drain {
+			enqueue(.flush(job))
+		}
 		publish()
 	}
 
@@ -196,13 +199,6 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package func flushAndDrain() async {
-		enqueue(.flush)
-		while let task = running {
-			await task.value
-		}
-	}
-
 	private func load() async throws(LedgerFailure) {
 		guard !loaded else { return }
 		let reading = loading ?? Task { await self.read() }
@@ -213,15 +209,9 @@ package actor ChatMailbox {
 	private func read() async -> Result<Void, LedgerFailure> {
 		defer { loading = nil }
 		do {
-			let synced = try await ledger.read(
-				RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-			let local = try await ledger.read(
-				RecordQuery(scope: ConversationFold.localScope, chatId: chatId))
+			let folded = try await ledger.conversation(chatId)
 			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
-			records.replace(
-				with: ConversationFold.fold(
-					chat: chatId, synced: synced.records, local: local.records,
-					device: ledger.deviceId))
+			records.replace(with: folded)
 			loaded = true
 			return .success(())
 		} catch {
@@ -260,6 +250,7 @@ package actor ChatMailbox {
 	}
 
 	private func enqueue(_ item: MailboxWork) {
+		guard active != item, !work.contains(item) else { return }
 		work.append(item)
 		publish()
 		drainIfIdle()
@@ -273,8 +264,9 @@ package actor ChatMailbox {
 			switch next {
 			case .turn(let turn):
 				await self.runTurn(turn)
-			case .flush:
-				await self.flushes.drain(self.chatId)
+			case .flush(let job):
+				await self.flushes.drain(
+					job, in: self.records.conversation, access: self.environment.access)
 			}
 			self.workFinished()
 		}
@@ -324,13 +316,11 @@ package actor ChatMailbox {
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
 			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
-		var softFlushDue = false
 		do {
-			let report = try await runner.run(request, scope: scope) { progress in
+			let result = try await runner.run(request, scope: scope) { progress in
 				await self.apply(progress, turn: turn, stamp: stamp)
 			}
-			settlement = Settlement(report.result)
-			softFlushDue = report.softFlushDue
+			settlement = Settlement(result)
 		} catch {
 			settlement = .interrupted(
 				partial: live?.text ?? "", cause: interruption ?? .athleteStopped,
@@ -338,8 +328,11 @@ package actor ChatMailbox {
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		live = nil
-		if softFlushDue {
-			work.append(.flush)
+		active = nil
+		if !terminating {
+			for job in await flushes.pending() {
+				enqueue(.flush(job))
+			}
 		}
 		publish()
 	}

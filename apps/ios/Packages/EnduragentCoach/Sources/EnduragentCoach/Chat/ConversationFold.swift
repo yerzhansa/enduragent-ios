@@ -2,7 +2,7 @@ import Foundation
 
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
-		[.userMessage, .turnSettled, .windowStart],
+		[.userMessage, .turnSettled, .windowStart, .compactionSummary],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
@@ -149,13 +149,20 @@ package enum ConversationFold {
 			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
 		}
 		for record in ordered where record.deviceId == device {
-			guard case .synced(.windowStart(let body)) = record.body else { continue }
-			switch body.reason {
-			case .trim, .compaction:
-				segments[segmentIndex(for: record.ulid)].promptWindow = PromptWindow(
-					firstIncluded: body.firstIncludedUlid)
-			case .reset:
-				break
+			let index = segmentIndex(for: record.ulid)
+			switch record.body {
+			case .synced(.windowStart(let body)):
+				switch body.reason {
+				case .trim, .compaction:
+					segments[index].promptWindow = PromptWindow(
+						firstIncluded: body.firstIncludedUlid, opened: record.ulid)
+				case .reset:
+					continue
+				}
+			case .synced(.compactionSummary(let body)):
+				segments[index].promptWindow.summarize(body, at: record.ulid)
+			default:
+				continue
 			}
 		}
 		return Conversation(chat: chat, segments: segments)
@@ -206,6 +213,16 @@ package enum ConversationFold {
 			}
 		}
 		return next
+	}
+}
+
+extension Ledger {
+	package func conversation(_ chat: ChatID) async throws(LedgerFailure) -> Conversation {
+		let synced = try await read(
+			RecordQuery(scope: ConversationFold.syncedScope, chatId: chat))
+		let local = try await read(RecordQuery(scope: ConversationFold.localScope, chatId: chat))
+		return ConversationFold.fold(
+			chat: chat, synced: synced.records, local: local.records, device: deviceId)
 	}
 }
 
@@ -283,18 +300,6 @@ package struct Conversation: Sendable, Equatable {
 		guard let latest = stamps.max() else { return .none }
 		return .at(latest.wallTime)
 	}
-
-	package func messages(for ulids: [ULID]) -> [ChatMessage] {
-		var byUlid: [ULID: ChatMessage] = [:]
-		for segment in segments {
-			for turn in segment.turns {
-				for (ulid, message) in turn.messageRows {
-					byUlid[ulid] = message
-				}
-			}
-		}
-		return ulids.compactMap { byUlid[$0] }
-	}
 }
 
 package enum LastExchange: Sendable, Equatable {
@@ -313,9 +318,19 @@ package enum SegmentOpening: Sendable, Equatable {
 
 package struct PromptWindow: Sendable, Equatable {
 	package var firstIncluded: ULID?
+	package var opened: ULID?
+	package var summary: CompactionSummaryBody?
+
+	mutating func summarize(_ body: CompactionSummaryBody, at ulid: ULID) {
+		if let opened, ulid < opened {
+			return
+		}
+		summary = body
+	}
 }
 
 package struct PromptHistory: Sendable, Equatable {
+	package var summary: String?
 	package var messages: [ChatMessage]
 	package var ulids: [ULID]
 
@@ -329,7 +344,7 @@ package struct Segment: Sendable, Equatable {
 	package let id: SegmentID
 	package let openedBy: SegmentOpening
 	package var turns: [TurnFacts] = []
-	package var promptWindow = PromptWindow(firstIncluded: nil)
+	package var promptWindow = PromptWindow()
 	package var legacyTrim: ULID?
 
 	package var messages: [ChatMessage] {
@@ -337,7 +352,8 @@ package struct Segment: Sendable, Equatable {
 	}
 
 	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
-		var history = PromptHistory(messages: [], ulids: [])
+		var history = PromptHistory(
+			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
 			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
 				continue

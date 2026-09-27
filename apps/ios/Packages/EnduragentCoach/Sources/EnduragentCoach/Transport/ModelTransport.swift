@@ -45,6 +45,7 @@ package enum GenerateCharge: Sendable, Equatable {
 	case chatAttempt
 	case stepRecovery
 	case compaction
+	case droppedSummary
 	case memoryFlush
 }
 

@@ -159,12 +159,6 @@ public actor Coach {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 	}
 
-	public func waitForMemoryFlush() async {
-		for box in mailboxes.values {
-			await box.flushAndDrain()
-		}
-	}
-
 	private static func creditsAccess(secrets: any SecretStore, model: ModelID)
 		throws(AccessUnavailable) -> ResolvedAccess
 	{
@@ -211,6 +205,35 @@ public actor Coach {
 		let claims = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
+		let flushQueue = try await ledger.flushJobsByChat()
+		let turns = try await claimedTurns(claims, device: device)
+		let dead = Set(
+			turns.values.flatMap {
+				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
+					.interrupt.map(\.attempt)
+			})
+		var writes: [AttemptID: WriteSummary] = [:]
+		if !dead.isEmpty {
+			let stamped = try await ledger.read(
+				RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+			).records
+			writes = TurnRecovery.writes(of: dead, in: stamped)
+		}
+		var plans: [ChatID: RecoveryPlan] = [:]
+		for chat in Set(turns.keys).union(flushQueue.keys) {
+			let plan = TurnRecovery.plan(
+				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
+				device: device, process: process)
+			if !plan.isEmpty {
+				plans[chat] = plan
+			}
+		}
+		return plans
+	}
+
+	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
+		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
+	{
 		let chats = Set(claims.compactMap(\.chatId))
 		guard !chats.isEmpty else { return [:] }
 		let synced = try await ledger.read(
@@ -222,19 +245,7 @@ public actor Coach {
 				chat: chat, synced: synced, local: claims, device: device
 			).segments.flatMap(\.turns)
 		}
-		let dead = Set(
-			turns.values.flatMap {
-				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
-					.interrupt.map(\.attempt)
-			})
-		guard !dead.isEmpty else { return [:] }
-		let stamped = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
-		).records
-		let writes = TurnRecovery.writes(of: dead, in: stamped)
-		return turns.mapValues {
-			TurnRecovery.plan(turns: $0, writes: writes, device: device, process: process)
-		}.filter { !$0.value.interrupt.isEmpty }
+		return turns
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
@@ -250,8 +261,9 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			flushes: FlushDrain(
-				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
+			flushes: FlushWork(
+				chat: chatId, ledger: ledger, memory: memory, transport: transport, clock: clock,
+				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(language: { await self.language }, access: access),

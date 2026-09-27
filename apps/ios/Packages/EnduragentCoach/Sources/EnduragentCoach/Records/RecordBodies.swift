@@ -126,6 +126,17 @@ public struct FlushPendingBody: Sendable, Equatable {
 	public var messageUlids: [ULID]
 }
 
+public struct FlushSettledBody: Sendable, Equatable {
+	public var chatId: ChatID
+	public var job: FlushJobID
+	public var settlement: FlushSettlement
+}
+
+public enum FlushSettlement: Sendable, Equatable {
+	case saved(sections: Int, events: Int)
+	case nothingToSave
+}
+
 public struct CoachReplyLanguageBody: Sendable, Equatable {
 	public var tag: LanguageTag?
 }

@@ -37,6 +37,7 @@ enum TutorialHarness {
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
+	static let summaryHead = "[Previous conversation summary]"
 	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
@@ -70,11 +71,18 @@ enum TutorialHarness {
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		if !element.waitForExistence(timeout: 10) {
-			throw XCTSkip(
-				"needs the fixture store an earlier build left; run it after a trunk proof")
+		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(v1StoreMissing)
 		}
+		openRecords(app)
+		let written = recordCount(app, "assistantMessage") != nil
+		closeMenu(app)
+		guard written else { throw XCTSkip(v1StoreMissing) }
+		wait(element)
 	}
+
+	private static let v1StoreMissing =
+		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
 	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
 		app.terminate()
@@ -168,6 +176,18 @@ enum TutorialHarness {
 		send.tap()
 	}
 
+	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+		send(app, text)
+		let working = named(app, "chat.working")
+		wait(working, timeout: 5)
+		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
+	}
+
+	static func sendLong(_ app: XCUIApplication) {
+		exchange(app, "fixture:long")
+		wait(text(app, containing: "Day 100. This week has"))
+	}
+
 	static func openSidebar(_ app: XCUIApplication) {
 		let sidebar = named(app, "chat.sidebar")
 		waitUntilHittable(sidebar)
@@ -224,12 +244,23 @@ enum TutorialHarness {
 				labels.append(row.label)
 				added = true
 			}
-			if !added {
+			if !added, !labels.isEmpty {
 				break
 			}
 			app.swipeUp()
 		}
 		return labels
+	}
+
+	static func historyHead(_ app: XCUIApplication) -> String {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let head = named(app, "fixture.historyHead")
+		wait(head)
+		let label = head.label
+		app.swipeDown(velocity: .fast)
+		app.swipeDown(velocity: .fast)
+		return label
 	}
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {

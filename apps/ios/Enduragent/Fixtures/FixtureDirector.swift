@@ -39,6 +39,13 @@ struct FixtureDirector: Sendable {
 			transport.script = Self.savedMemory + [.hang]
 		case "text-then-hang" where arguments.isEmpty:
 			transport.script = [.text(Self.partialReply), .hang]
+		case "teach" where arguments.isEmpty:
+			transport.script =
+				Self.savedMemory + [.text(FirstWeekFixture.rememberReply), .finish(reason: .stop)]
+		case "long" where arguments.isEmpty:
+			transport.script = [.text(FirstWeekFixture.longReply), .finish(reason: .stop)]
+		case "flush-partial" where arguments.isEmpty:
+			transport.flushScript = Self.flushPartial
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
 		default:
@@ -56,6 +63,7 @@ struct FixtureDirector: Sendable {
 		transport.requestDelay = nil
 		transport.deltaDelay = nil
 		transport.script = FirstWeekFixture.script(for: text)
+		transport.summaryScript = FirstWeekFixture.summaryReply
 	}
 
 	static let partialReply = "This week has Tuesday sweet spot"
@@ -68,6 +76,19 @@ struct FixtureDirector: Sendable {
 		),
 		.finish(reason: .toolCalls),
 	]
+
+	static let flushPartial: [ScriptedEvent] =
+		[
+			.toolCall(
+				name: ToolName.memoryWrite.rawValue,
+				arguments: #"{"section":"schedule","content":"Rides with a group on Saturdays."}"#),
+			.toolCall(
+				name: ToolName.ledgerAppend.rawValue,
+				arguments:
+					#"{"kind":"decision","date":"1998-06-15","text":"Keeps Saturdays for the group ride."}"#
+			),
+			.finish(reason: .toolCalls),
+		] + Array(repeating: .fail(.http(status: 500)), count: 4)
 
 	private static func repetition(_ arguments: [String]) -> (arguments: [String], count: Int) {
 		guard let last = arguments.last, last.hasPrefix("x"), let count = Int(last.dropFirst()),
