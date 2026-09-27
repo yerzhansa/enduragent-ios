@@ -1,10 +1,5 @@
 import Foundation
 
-package struct OpenWindow: Sendable, Equatable {
-	package let turn: TurnID
-	package let closesAt: Date
-}
-
 package struct JoinWindow: Sendable {
 	private(set) var open: OpenWindow?
 	private var armed = 0

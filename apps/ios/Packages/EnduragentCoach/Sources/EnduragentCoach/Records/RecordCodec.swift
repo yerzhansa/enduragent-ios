@@ -244,6 +244,7 @@ enum RecordCodec {
 					chatId: try decodeChatID(payload.chatId),
 					turn: TurnID(ulid: try decodeULID(payload.turn)),
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt)),
+					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) },
 					lease: try decodeLease(payload.lease)
 				)
 			)

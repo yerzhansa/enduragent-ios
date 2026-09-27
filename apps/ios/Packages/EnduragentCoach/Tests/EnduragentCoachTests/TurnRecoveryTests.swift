@@ -110,11 +110,20 @@ import Testing
 		#expect(await after.transcript(.main) == ["Thursday?", "Thursday is on."])
 	}
 
-	@Test func theFirstSnapshotAfterRelaunchAlreadyShowsTheRecoveredTurn() async throws {
-		transport.hangUntilCancelled = true
+	@Test func theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim() async throws {
+		transport.script = [
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.hang,
+		]
 		let (before, dying) = processBeforeTheKill()
-		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
-		await before.waitUntilProcessing(turn)
+		let turn = try #require(
+			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
+		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
 		await before.dieWithoutWriting(to: dying)
 		let after = makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(await after.currentSnapshot(.main)?.turns.first?.state)
@@ -122,7 +131,12 @@ import Testing
 			Issue.record("expected interrupted, got \(first)")
 			return
 		}
-		#expect(interrupted.cause == .processEnded)
+		#expect(interrupted.saved == memorySaved)
+		#expect(interrupted.notice.action == nil)
+		let retried = makeCoach(transport: transport, store: store, clock: clock)
+		await #expect(throws: RetryRefusal.alreadyAnswered) {
+			try await retried.retry(turn, in: .main)
+		}
 	}
 
 	@Test func unclaimedTurnStaysAcceptedAwaitingRestart() async throws {
@@ -171,8 +185,10 @@ import Testing
 			chat: .main, synced: synced.records, local: local.records, device: store.deviceId
 		).segments.flatMap(\.turns)
 		#expect(
-			TurnRecovery.plan(turns: turns, flushQueue: [], writes: [:], device: store.deviceId)
-				== RecoveryPlan(interrupt: [], drain: []))
+			TurnRecovery.plan(
+				turns: turns, writes: [:], device: store.deviceId,
+				process: ProcessID(ulid: fixedUlid(60)))
+				== RecoveryPlan(interrupt: []))
 	}
 
 	@Test func deadClaimWithAnObservedReplyIsInterruptedAndNeverReplayed() {
@@ -186,13 +202,16 @@ import Testing
 				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: device),
 				civilDate: "1998-06-13", index: 0, draft: DraftID(), text: "Thursday?", slash: nil))
 		facts.claims.append(
-			TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing))
+			ClaimedAttempt(
+				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: device),
+				body: TurnClaimBody(
+					chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing)))
 		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
-		let plan = TurnRecovery.plan(turns: [facts], flushQueue: [], writes: [:], device: device)
+		let current = ProcessID(ulid: fixedUlid(60))
+		let plan = TurnRecovery.plan(
+			turns: [facts], writes: [:], device: device, process: current)
 		#expect(
-			plan
-				== RecoveryPlan(
-					interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)], drain: [])
+			plan == RecoveryPlan(interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)])
 		)
 		let settle = TurnLifecycle.writes(
 			for: .recoverDeadClaim(attempt, saved: .none), on: facts, chat: .main, device: device,
@@ -219,8 +238,9 @@ import Testing
 				for: .recoverDeadClaim(attempt, saved: .none), on: settledFacts, chat: .main,
 				device: device, mint: { turn }) == .success(.nothing))
 		#expect(
-			TurnRecovery.plan(turns: [settledFacts], flushQueue: [], writes: [:], device: device)
-				== RecoveryPlan(interrupt: [], drain: []))
+			TurnRecovery.plan(
+				turns: [settledFacts], writes: [:], device: device, process: current)
+				== RecoveryPlan(interrupt: []))
 	}
 
 	@Test func pendingFlushJobsAreDrainedAndSettledOnesAreNot() {
@@ -232,7 +252,8 @@ import Testing
 			messages: [fixedUlid(2)], settled: true)
 		#expect(
 			TurnRecovery.plan(
-				turns: [], flushQueue: [pending, settled], writes: [:], device: store.deviceId)
+				turns: [], flushQueue: [pending, settled], writes: [:], device: store.deviceId,
+				process: ProcessID(ulid: fixedUlid(60)))
 				== RecoveryPlan(interrupt: [], drain: [pending.id]))
 	}
 

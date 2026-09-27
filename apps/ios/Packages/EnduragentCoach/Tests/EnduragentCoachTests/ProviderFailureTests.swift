@@ -57,6 +57,34 @@ import Testing
 		#expect(try await failure(of: .reply(.json(400, body))) == .invalidRequest)
 	}
 
+	@Test func status408IsRequestTimeout() async throws {
+		#expect(try await failure(of: .reply(.json(408, "{}"))) == .timeout(.request))
+	}
+
+	@Test(arguments: [404, 409, 413, 422])
+	func otherClientErrorsBecomeInvalidRequest(status: Int) async throws {
+		#expect(try await failure(of: .reply(.json(status, "{}"))) == .invalidRequest)
+	}
+
+	@Test func statusOutsideClientAndServerErrorsIsMalformedStream() async throws {
+		#expect(try await failure(of: .reply(.json(302, "{}"))) == .malformedStream)
+	}
+
+	@Test func cancelledRequestEndsAsCancellationAndRecordsNothing() async throws {
+		let diagnostics = DiagnosticsLog(clock: SystemClock())
+		let transport = try OpenRouterStub.transport(diagnostics: diagnostics) { _ in
+			.fail(.cancelled)
+		}
+		await #expect(throws: CancellationError.self) {
+			_ = try await collect(
+				transport.stream(
+					testRequest([
+						WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
+					])))
+		}
+		#expect(diagnostics.entries.isEmpty)
+	}
+
 	@Test func timedOutBecomesRequestTimeout() async throws {
 		#expect(try await failure(of: .fail(.timedOut)) == .timeout(.request))
 	}

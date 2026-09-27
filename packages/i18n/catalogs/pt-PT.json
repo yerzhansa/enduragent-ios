@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Não foi possível verificar as tuas mensagens guardadas. Volta a ligar e tenta novamente.",
       "queueRemoveFailure": "Não foi possível remover essa mensagem guardada. Tenta novamente.",
       "responseFailure": "O treinador não conseguiu responder. Tenta novamente.",
-      "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
       "retryMessage": "Tentar enviar a mensagem novamente",
       "savedChoice": "Escolha guardada",
       "working": "O treinador está a trabalhar…"

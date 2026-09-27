@@ -215,25 +215,17 @@ package struct FlushWork: Sendable {
 		_ id: FlushJobID, in conversation: Conversation,
 		access: () throws(AccessUnavailable) -> ResolvedAccess
 	) async {
-		let job: FlushJob
-		let resolved: ResolvedAccess
 		do {
-			guard let pending = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
-				!pending.settled
+			guard let job = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
+				!job.settled
 			else {
 				return
 			}
-			job = pending
-			resolved = try access()
+			_ = try await run(
+				job, messages: conversation.flushMessages(for: job), access: try access(),
+				scope: nil)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-			return
-		}
-		do {
-			_ = try await run(
-				job, messages: conversation.flushMessages(for: job), access: resolved, scope: nil)
-		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: String(describing: error)))
 		}
 	}
 }

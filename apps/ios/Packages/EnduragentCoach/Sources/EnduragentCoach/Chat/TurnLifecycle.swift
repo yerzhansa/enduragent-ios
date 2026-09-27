@@ -1,98 +1,8 @@
 import Foundation
 
-public enum TurnState: Sendable, Equatable {
-	case accepted(Accepted)
-	case processing(Processing)
-	case completed(Completed)
-	case savedWork(SavedWork)
-	case failed(Failed)
-	case interrupted(Interrupted)
-
-	public var retryable: Bool {
-		switch self {
-		case .accepted(.awaitingRestart):
-			return true
-		case .failed(let failed):
-			switch failed.notice.action {
-			case .tryAgain?, .wait?:
-				return true
-			case .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?, nil:
-				return false
-			}
-		case .interrupted(let interrupted):
-			return interrupted.saved.isEmpty
-		case .accepted, .processing, .completed, .savedWork:
-			return false
-		}
-	}
-
-	public enum Accepted: Sendable, Equatable {
-		case collecting(until: Date)
-		case queued(position: Int)
-		case awaitingRestart
-		case onOtherDevice
-	}
-
-	public struct Processing: Sendable, Equatable {
-		public let attempt: AttemptID
-		public let liveText: String
-		public let activity: TurnActivity
-	}
-
-	public struct Completed: Sendable, Equatable {
-		public let reply: ReplyText
-	}
-
-	public struct SavedWork: Sendable, Equatable {
-		public let outcome: SavedWorkOutcome
-		public let saved: WriteSummary
-		public let notice: AthleteNotice
-	}
-
-	public struct Failed: Sendable, Equatable {
-		public let failure: CoachFailure
-		public let saved: WriteSummary
-		public let notice: AthleteNotice
-	}
-
-	public struct Interrupted: Sendable, Equatable {
-		public let partial: String
-		public let cause: InterruptionCause
-		public let saved: WriteSummary
-		public let notice: AthleteNotice
-	}
-}
-
-public enum TurnActivity: Sendable, Equatable {
-	case generating(step: Int)
-	case runningTools([ToolName])
-	case waiting(RetryWait)
-	case compacting
-	case savingMemory
-}
-
-public struct RetryWait: Sendable, Equatable {
-	public let until: Date
-	public let reason: RetryWaitReason
-}
-
-public enum RetryWaitReason: Sendable, Equatable {
-	case rateLimited
-	case providerTrouble
-}
-
-public enum InterruptionCause: String, Sendable, CaseIterable {
-	case athleteStopped
-	case systemExpired
-	case graceEnded
-	case appTerminating
-	case processEnded
-	case stoppedBeforeStart
-}
-
 package enum TurnEvent: Sendable, Equatable {
 	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
-	case claim(AttemptID, lease: LeaseKind)
+	case claim(AttemptID, process: ProcessID, lease: LeaseKind)
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
@@ -110,6 +20,8 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 	case acceptedElsewhere
 	case alreadyAnswered
 	case attemptInFlight
+	case rateLimitWaitRunning
+	case unrecovered
 }
 
 package enum TurnLifecycle {
@@ -147,17 +59,14 @@ package enum TurnLifecycle {
 						)
 					)
 				]))
-		case .claim(let attempt, let lease):
+		case .claim(let attempt, let process, let lease):
 			guard let facts else { return .failure(.unknownTurn) }
-			if let refusal = claimRefusal(of: facts, device: device) {
+			if let refusal = claimRefusal(of: facts, device: device, process: process) {
 				return .failure(refusal)
 			}
-			return .success(
-				.local([
-					.turnClaim(
-						TurnClaimBody(
-							chatId: chat, turn: facts.turn, attempt: attempt, lease: lease))
-				]))
+			let claim = TurnClaimBody(
+				chatId: chat, turn: facts.turn, attempt: attempt, process: process, lease: lease)
+			return .success(.local([.turnClaim(claim)]))
 		case .observeReply(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
 			if facts.replyObserved.contains(where: { $0.attempt == attempt }) {
@@ -182,7 +91,7 @@ package enum TurnLifecycle {
 				]))
 		case .stopBeforeStart(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }
-			guard facts.openClaims.isEmpty else { return .failure(.attemptInFlight) }
+			guard facts.openClaim == nil else { return .failure(.attemptInFlight) }
 			return .success(
 				.synced([
 					.turnSettled(
@@ -202,14 +111,39 @@ package enum TurnLifecycle {
 		}
 	}
 
-	package static func claimRefusal(of facts: TurnFacts, device: DeviceID) -> TurnRefusal? {
+	package static func claimRefusal(of facts: TurnFacts, device: DeviceID, process: ProcessID)
+		-> TurnRefusal?
+	{
 		if facts.origin != device {
 			return .acceptedElsewhere
 		}
-		switch facts.latestSettlement?.settlement {
+		if facts.legacy {
+			return .alreadyAnswered
+		}
+		if let open = facts.openClaim {
+			return open.process == process ? .attemptInFlight : .unrecovered
+		}
+		return replayRefusal(after: facts.latestSettlement?.settlement)
+	}
+
+	package static func retryRefusal(
+		of facts: TurnFacts?, overlay: TurnOverlay, device: DeviceID, process: ProcessID
+	) -> TurnRefusal? {
+		guard let facts else { return .unknownTurn }
+		switch overlay {
+		case .collecting, .queued: return .attemptInFlight
+		case .waitingToTryAgain: return .rateLimitWaitRunning
+		case .notInThisProcess: return claimRefusal(of: facts, device: device, process: process)
+		}
+	}
+
+	package static func replayRefusal(after settlement: Settlement?) -> TurnRefusal? {
+		switch settlement {
 		case .replied?, .savedWork?:
 			return .alreadyAnswered
-		case .failed?, .interrupted?, nil:
+		case .failed(_, let saved)?, .interrupted(_, _, let saved)?:
+			return saved.isEmpty ? nil : .alreadyAnswered
+		case nil:
 			return nil
 		}
 	}
@@ -217,8 +151,9 @@ package enum TurnLifecycle {
 	package static func state(
 		of facts: TurnFacts,
 		live: LiveAttempt?,
-		overlay: AcceptedOverlay,
-		device: DeviceID
+		overlay: TurnOverlay,
+		device: DeviceID,
+		process: ProcessID
 	) -> TurnState {
 		if let live, live.turn == facts.turn,
 			!facts.settlements.contains(where: { $0.attempt == live.attempt })
@@ -232,11 +167,12 @@ package enum TurnLifecycle {
 			return .accepted(.collecting(until: until))
 		case .queued(let position):
 			return .accepted(.queued(position: position))
-		case .notInThisProcess:
+		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
-		if let latest = facts.latestSettlement {
-			switch latest.settlement {
+		if let settlement = facts.latestSettlement?.settlement {
+			let retry = replayRefusal(after: settlement) == nil ? facts.turn : nil
+			switch settlement {
 			case .replied(let reply, _):
 				return .completed(TurnState.Completed(reply: reply))
 			case .savedWork(let outcome, let saved):
@@ -250,7 +186,7 @@ package enum TurnLifecycle {
 						failure: failure,
 						saved: saved,
 						notice: AthleteNotices.notice(
-							for: failure, turn: facts.turn, failedAt: latest.hlc.wallTime)
+							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(
@@ -258,48 +194,25 @@ package enum TurnLifecycle {
 						partial: partial,
 						cause: cause,
 						saved: saved,
-						notice: AthleteNotices.notice(for: cause, saved: saved, turn: facts.turn)
+						notice: AthleteNotices.notice(for: cause, saved: saved, turn: retry)
 					))
 			}
+		}
+		if facts.legacy {
+			return .accepted(.beforeUpgrade)
 		}
 		if facts.origin != device {
 			return .accepted(.onOtherDevice)
 		}
+		if let open = facts.openClaim {
+			guard open.process == process else {
+				return .unrecovered(TurnState.Unrecovered(notice: AthleteNotices.unrecoveredClaim))
+			}
+			return .processing(
+				TurnState.Processing(
+					attempt: open.attempt, liveText: "", activity: .generating(step: 1)))
+		}
 		return .accepted(.awaitingRestart)
-	}
-}
-
-extension Conversation {
-	package mutating func settleUnsaved(
-		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID,
-		device: DeviceID, clock: any Clock
-	) {
-		guard let facts = self.turn(turn) else { return }
-		let last = (facts.fragments.map(\.hlc) + facts.settlements.map(\.hlc)).max()
-		let settled = SettledAttempt(
-			ulid: ulid,
-			hlc: HybridLogicalClock.tick(now: clock.now, deviceId: device, last: last),
-			civilDate: CivilDate(date: clock.now, timeZone: clock.timeZone),
-			attempt: attempt,
-			settlement: settlement
-		)
-		settle(turn, with: settled)
-	}
-}
-
-extension TurnFacts {
-	package var reply: ReplyText? {
-		guard case .replied(let text, _)? = latestSettlement?.settlement else { return nil }
-		return text
-	}
-}
-
-extension Conversation {
-	package func writes(_ event: TurnEvent, for turn: TurnID, device: DeviceID)
-		-> Result<TurnWrites, TurnRefusal>
-	{
-		TurnLifecycle.writes(
-			for: event, on: self.turn(turn), chat: chat, device: device, mint: { turn })
 	}
 }
 
@@ -325,25 +238,23 @@ extension LiveAttempt {
 	}
 }
 
-extension Ledger {
-	package func commit(_ writes: TurnWrites, stamp: OperationStamp) async throws(LedgerFailure)
-		-> [AthleteRecord]
-	{
-		switch writes {
-		case .nothing:
-			return []
-		case .synced(let bodies):
-			return try await commit(synced: bodies, stamp: stamp)
-		case .local(let bodies):
-			return try await commit(local: bodies, stamp: stamp)
-		}
-	}
-}
-
-package enum AcceptedOverlay: Sendable, Equatable {
+package enum TurnOverlay: Sendable, Equatable {
 	case collecting(until: Date)
 	case queued(position: Int)
+	case waitingToTryAgain
 	case notInThisProcess
+
+	package init(of turn: TurnID, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>) {
+		if let window, window.turn == turn {
+			self = .collecting(until: window.closesAt)
+		} else if let index = queued.firstIndex(of: turn) {
+			self = .queued(position: index + 1)
+		} else if waiting.contains(turn) {
+			self = .waitingToTryAgain
+		} else {
+			self = .notInThisProcess
+		}
+	}
 }
 
 public struct CoalescingPolicy: Sendable, Equatable {
@@ -364,6 +275,11 @@ package enum MailboxWork: Sendable, Equatable {
 		guard case .turn(let turn) = self else { return nil }
 		return turn
 	}
+}
+
+package struct OpenWindow: Sendable, Equatable {
+	package let turn: TurnID
+	package let closesAt: Date
 }
 
 package struct EnvironmentResolver: Sendable {

@@ -88,6 +88,7 @@ struct AppServices: Sendable {
 						path: ModelContainerHandle.localStoreFileName))
 			)
 		)
+		records.failRecoveryReads = launch.recovery == .unreadable
 		let secrets = try FakeSecretStore(directory: launch.directory)
 		if launch.keychain != .empty {
 			try FirstWeekFixture.install(on: secrets)
@@ -105,7 +106,8 @@ struct AppServices: Sendable {
 			store: records,
 			clock: clock,
 			language: LanguagePreference(ui: language, coachReply: nil),
-			host: host
+			host: host,
+			coalescing: launch.coalescing
 		)
 		return AppServices(
 			coach: coach,

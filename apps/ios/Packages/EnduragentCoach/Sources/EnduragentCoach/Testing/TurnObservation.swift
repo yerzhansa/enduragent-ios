@@ -13,7 +13,7 @@ extension TurnState {
 	package var isSettled: Bool {
 		switch self {
 		case .completed, .savedWork, .failed, .interrupted: true
-		case .accepted, .processing: false
+		case .accepted, .processing, .unrecovered: false
 		}
 	}
 }
@@ -59,14 +59,15 @@ extension Coach {
 	package func transcript(_ chat: ChatID) async -> [String] {
 		guard let snapshot = await currentSnapshot(chat) else { return [] }
 		return snapshot.turns.flatMap { turn -> [String] in
+			let question = [turn.athleteText].compactMap { $0 }
 			switch turn.state {
 			case .completed(let completed):
 				switch completed.reply {
 				case .model(let text):
-					return [turn.athleteText, text]
+					return question + [text]
 				}
-			case .accepted, .processing, .savedWork, .failed, .interrupted:
-				return [turn.athleteText]
+			case .accepted, .processing, .savedWork, .failed, .interrupted, .unrecovered:
+				return question
 			}
 		}
 	}

@@ -95,8 +95,7 @@ package struct TurnRunner: Sendable {
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
-				failure.coachFailure(for: attempt.access.method),
-				saved: WriteSummary(await scope.written))
+				failure.coachFailure(for: attempt.access.method), saved: await scope.summary)
 		}
 		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 	}
@@ -132,7 +131,7 @@ package struct TurnRunner: Sendable {
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
 				)
-				let saved = WriteSummary(await scope.written)
+				let saved = await scope.summary
 				switch ladder.decide(failure, situation: situation, counters: counters) {
 				case .terminal(let coachFailure):
 					return .failed(coachFailure, saved: saved)
@@ -166,9 +165,6 @@ package struct TurnRunner: Sendable {
 				} catch is CancellationError {
 					throw CancellationError()
 				} catch {
-					diagnostics.record(
-						.compactionFailed(attempt.chat, detail: String(describing: error)),
-						redacting: [attempt.access.credential.secret])
 					throw AttemptFailure.rescueFailed(retry.failure)
 				}
 			case .wait(let duration, let reason):
@@ -550,7 +546,10 @@ package struct TurnRunner: Sendable {
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch {
-						outcome = .result(.object(["error": .string(toolErrorText(error))]))
+						self.diagnostics.record(
+							.toolFailed(
+								scope.stamp.attempt, call.name, detail: String(describing: error)))
+						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
 				}
@@ -569,31 +568,27 @@ package struct TurnRunner: Sendable {
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws {
-		await progress(.activity(.compacting))
-		try await scope.chargeCall()
-		let keep = Array(prompt.wire.suffix(4))
 		let dropped = Array(prompt.wire.dropLast(min(4, prompt.wire.count)))
-		let summary = try await summarize(
-			PromptAssembly.compactionRequest(
-				previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
-			charge: .compaction, attempt: attempt)
-		var bodies: [SyncedRecordBody] = []
-		if !keep.isEmpty {
-			bodies.append(
-				.windowStart(
-					WindowStartBody(
-						chatId: attempt.chat,
-						firstIncludedUlid: await ledger.nextULID(),
-						reason: .compaction
-					)
-				)
-			)
+		if !dropped.isEmpty {
+			await progress(.activity(.compacting))
+			try await scope.chargeCall()
+			do {
+				prompt.summary = try await summarize(
+					PromptAssembly.compactionRequest(
+						previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
+					charge: .compaction, attempt: attempt)
+				prompt.wire = Array(prompt.wire.suffix(4))
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(attempt.chat, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+			}
 		}
-		bodies.append(
-			.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)))
-		_ = try await ledger.commit(synced: bodies, stamp: scope.stamp)
-		prompt.summary = summary
-		prompt.wire = keep
+		if prompt.overBudget {
+			throw AttemptFailure.rescueFailed(.windowExceededFinish)
+		}
 	}
 
 	private func loadSnapshot() async -> AthleteSnapshot? {
@@ -714,16 +709,6 @@ private struct Transcript: Sendable {
 			history: PromptHistory(summary: nil, messages: [], ulids: []), unflushed: [],
 			flushPending: flushPending || !unflushed.isEmpty, current: current, lastDate: nil)
 	}
-}
-
-private func toolErrorText(_ error: any Error) -> String {
-	if let intervals = error as? IntervalsError {
-		return intervals.details
-	}
-	if let workout = error as? InvalidWorkout {
-		return workout.message
-	}
-	return String(describing: error)
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {

@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Impossible de vérifier tes messages enregistrés. Reconnecte et réessaie.",
       "queueRemoveFailure": "Impossible de supprimer ce message enregistré. Réessaie.",
       "responseFailure": "Le coach n’a pas pu répondre. Réessaie.",
-      "responseStopped": "Réponse arrêtée. La réponse partielle est conservée.",
       "retryMessage": "Réessayer le message",
       "savedChoice": "Choix enregistré",
       "working": "Le coach travaille…"

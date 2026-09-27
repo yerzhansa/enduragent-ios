@@ -86,6 +86,18 @@ extension Coach {
 		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
 	}
 
+	func waitForState(
+		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
+	) async throws -> TurnState? {
+		let deadline = ContinuousClock.now + limit
+		while ContinuousClock.now < deadline {
+			let current = await state(of: turn)
+			if matches(current) { return current }
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		return await state(of: turn)
+	}
+
 	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
 		for kind in SyncedKind.allCases {
 			log.failAppends(ofKind: kind)
@@ -108,6 +120,15 @@ func waitForRecords(
 			return
 		}
 		try await Task.sleep(for: .milliseconds(10))
+	}
+}
+
+func refusal(_ retry: @Sendable () async throws(RetryRefusal) -> Void) async -> RetryRefusal? {
+	do {
+		try await retry()
+		return nil
+	} catch {
+		return error
 	}
 }
 
@@ -215,6 +236,69 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 
 func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
 	transport.requests.filter { $0.charge == charge }
+}
+
+final class SlowAppendLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let delay: Duration
+
+	init(inner: any RecordLog, delay: Duration) {
+		self.inner = inner
+		self.delay = delay
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		try await Task.sleep(for: delay)
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		try await inner.fetch(query)
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}
+
+final class SlowConversationReadLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let delay: Duration
+	let fails: Bool
+	let reached: AsyncStream<Void>
+	private let reachedContinuation: AsyncStream<Void>.Continuation
+	private let slowed = Mutex(false)
+
+	init(inner: any RecordLog, delay: Duration, fails: Bool = false) {
+		self.inner = inner
+		self.delay = delay
+		self.fails = fails
+		(reached, reachedContinuation) = AsyncStream.makeStream()
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		let page = try await inner.fetch(query)
+		let slow = slowed.withLock { done -> Bool in
+			guard !done, query.scope == ConversationFold.syncedScope else { return false }
+			done = true
+			return true
+		}
+		guard slow else { return page }
+		reachedContinuation.yield()
+		try await Task.sleep(for: delay)
+		if fails {
+			throw RecordStorageFault(operation: .fetch)
+		}
+		return page
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
 }
 
 final class HeldAppendLog: RecordLog, Sendable {

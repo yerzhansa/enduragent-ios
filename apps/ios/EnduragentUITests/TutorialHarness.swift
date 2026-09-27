@@ -26,25 +26,34 @@ enum TutorialHarness {
 	static let restorePurchases = "Restore purchases"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
-	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
-	static let interruptedNothingChanged =
-		"This reply stopped before it finished. Nothing was changed."
+	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
+	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
+	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
 		"This reply stopped before it finished. Some information was saved first."
+	static let interruptedNothingChanged =
+		"This reply stopped before it finished. Nothing was changed."
+	static let historyUnavailable = "Conversation history is temporarily unavailable."
+	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
+	static let draft = "Is Thursday still on?"
 	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
+	static let coalescingArgument = "-EnduragentFixtureCoalescing"
+	static let recoveryArgument = "-EnduragentFixtureRecovery"
 	static let hostArgument = "-EnduragentFixtureHost"
 
 	static func launch(
-		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil, host: String? = nil
+		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
+		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
+		locale: String = "en_US"
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
 		if dark {
 			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
@@ -52,22 +61,36 @@ enum TutorialHarness {
 		if let keychain {
 			app.launchArguments += [keychainArgument, keychain]
 		}
+		if let coalescingMilliseconds {
+			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
 		if let host {
 			app.launchArguments += [hostArgument, host]
 		}
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication) {
+	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "keep",
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(v1StoreMissing)
+		}
+		openRecords(app)
+		let written = recordCount(app, "assistantMessage") != nil
+		closeMenu(app)
+		guard written else { throw XCTSkip(v1StoreMissing) }
+		wait(element)
 	}
 
-	static func relaunchKeepingStore(_ app: XCUIApplication) {
+	private static let v1StoreMissing =
+		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
+
+	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		guard let index = app.launchArguments.firstIndex(of: storeArgument),
@@ -77,6 +100,10 @@ enum TutorialHarness {
 			return
 		}
 		app.launchArguments[index + 1] = "keep"
+		if let flag = app.launchArguments.firstIndex(of: recoveryArgument) {
+			app.launchArguments.removeSubrange(flag...(flag + 1))
+		}
+		app.launchArguments += [recoveryArgument, recovery]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}
@@ -104,6 +131,14 @@ enum TutorialHarness {
 
 	static func wait(_ element: XCUIElement, timeout: TimeInterval = 8) {
 		XCTAssertTrue(element.waitForExistence(timeout: timeout), "missing \(element)")
+	}
+
+	static func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
+		)
 	}
 
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
@@ -154,15 +189,24 @@ enum TutorialHarness {
 		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
 	}
 
+	static func sendLong(_ app: XCUIApplication) {
+		exchange(app, "fixture:long")
+		wait(text(app, containing: "Day 100. This week has"))
+	}
+
 	static func openSidebar(_ app: XCUIApplication) {
-		named(app, "chat.sidebar").tap()
+		let sidebar = named(app, "chat.sidebar")
+		waitUntilHittable(sidebar)
+		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
 	}
 
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		wait(named(app, "fixture.requestCount"))
+		let count = named(app, "fixture.requestCount")
+		wait(count)
+		XCTAssertEqual(count.label, "0 requests")
 		named(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
@@ -170,6 +214,7 @@ enum TutorialHarness {
 	static func closeMenu(_ app: XCUIApplication) {
 		app.swipeDown(velocity: .fast)
 		app.swipeDown(velocity: .fast)
+		waitUntilHittable(named(app, "chat.sidebar"))
 		wait(named(app, "chat.composer"))
 	}
 
@@ -205,7 +250,7 @@ enum TutorialHarness {
 				labels.append(row.label)
 				added = true
 			}
-			if !added {
+			if !added, !labels.isEmpty {
 				break
 			}
 			app.swipeUp()
@@ -230,7 +275,6 @@ enum TutorialHarness {
 		let count = named(app, "fixture.requestCount")
 		wait(count)
 		XCTAssertEqual(count.label, "0 requests")
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 	}
 }

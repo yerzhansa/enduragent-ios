@@ -1013,7 +1013,6 @@
       "queueLoadFailure": "Vi kunne ikke sjekke de lagrede meldingene dine. Koble til på nytt og prøv igjen.",
       "queueRemoveFailure": "Vi kunne ikke fjerne den lagrede meldingen. Prøv igjen.",
       "responseFailure": "Treneren kunne ikke svare. Prøv igjen.",
-      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
       "retryMessage": "Prøv meldingen igjen",
       "savedChoice": "Lagret valg",
       "working": "Treneren jobber…"

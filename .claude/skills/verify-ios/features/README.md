@@ -14,7 +14,7 @@ This directory is the maintained source for verifying what an athlete can do in 
 ## Driving conventions
 
 - `sim.mjs launch <run id>` wipes the fixture state and starts at the notice. `sim.mjs launch <run id> --keep` reopens the app on the state the last launch left. Each recipe starts at the notice screen unless its preconditions say otherwise.
-- A message that starts with `fixture:` steers the fakes. `fixture:slow`, `fixture:hang`, `fixture:fail <500|429 7|network|timeout|overflow>`, and `fixture:storage fail-next-append` are listed in [chat.md](./chat.md).
+- A message that starts with `fixture:` steers the fakes. `fixture:slow`, `fixture:hang`, `fixture:fail <500|429 7|network|timeout|overflow|finish>`, and `fixture:storage fail-next-append` are listed in [chat.md](./chat.md).
 - Find controls by accessibility identifier. Use a visible label only where the feature file says the control has no identifier.
 - Scripted steps run an existing proof with `sim.mjs test <run id> <Proof>`. Steps marked interactive use the iOS Simulator `control` tool with `device: <udid>` on every call.
 - Treat every command and every quoted string as literal.

@@ -1005,7 +1005,6 @@
       "queueLoadFailure": "無法檢查已儲存的訊息。請重新連線後重試。",
       "queueRemoveFailure": "無法移除此已儲存的訊息。請重試。",
       "responseFailure": "教練無法回覆。請重試。",
-      "responseStopped": "已停止回覆。已產生的部分回覆已保留。",
       "retryMessage": "重試傳送訊息",
       "savedChoice": "已儲存的選擇",
       "working": "教練正在處理…"

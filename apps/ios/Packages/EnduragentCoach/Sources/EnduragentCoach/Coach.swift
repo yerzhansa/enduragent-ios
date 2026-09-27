@@ -19,6 +19,7 @@ public actor Coach {
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
 	private var recovery: Task<Bool, Never>?
+	private let process: ProcessID
 
 	public init(
 		sport: SportID,
@@ -64,6 +65,7 @@ public actor Coach {
 			ladder: .npm
 		)
 		self.mailboxes = [:]
+		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
 
 	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
@@ -193,7 +195,7 @@ public actor Coach {
 	private func recoverDeadClaims() async -> Bool {
 		do {
 			for (chat, plan) in try await recoveryPlans() {
-				await makeMailbox(for: chat).recover(plan)
+				try await makeMailbox(for: chat).recover(plan)
 			}
 			return true
 		} catch {
@@ -204,20 +206,16 @@ public actor Coach {
 
 	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
 		let device = ledger.deviceId
-		let synced = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
-		).records
 		let claims = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
 		let flushQueue = try await ledger.flushJobsByChat()
-		var turns: [ChatID: [TurnFacts]] = [:]
-		for chat in Set(claims.compactMap(\.chatId)) {
-			turns[chat] = ConversationFold.fold(
-				chat: chat, synced: synced, local: claims, device: device
-			).segments.flatMap(\.turns)
-		}
-		let dead = Set(turns.values.joined().flatMap(\.openClaims).map(\.attempt))
+		let turns = try await claimedTurns(claims, device: device)
+		let dead = Set(
+			turns.values.flatMap {
+				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
+					.interrupt.map(\.attempt)
+			})
 		var writes: [AttemptID: WriteSummary] = [:]
 		if !dead.isEmpty {
 			let stamped = try await ledger.read(
@@ -229,12 +227,29 @@ public actor Coach {
 		for chat in Set(turns.keys).union(flushQueue.keys) {
 			let plan = TurnRecovery.plan(
 				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
-				device: device)
+				device: device, process: process)
 			if !plan.isEmpty {
 				plans[chat] = plan
 			}
 		}
 		return plans
+	}
+
+	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
+		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
+	{
+		let chats = Set(claims.compactMap(\.chatId))
+		guard !chats.isEmpty else { return [:] }
+		let synced = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
+		).records
+		var turns: [ChatID: [TurnFacts]] = [:]
+		for chat in chats {
+			turns[chat] = ConversationFold.fold(
+				chat: chat, synced: synced, local: claims, device: device
+			).segments.flatMap(\.turns)
+		}
+		return turns
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
@@ -250,12 +265,13 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			memory: memory,
-			transport: transport,
+			flushes: FlushWork(
+				chat: chatId, ledger: ledger, memory: memory, transport: transport, clock: clock,
+				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(language: { await self.language }, access: access),
-			diagnostics: diagnostics,
+			process: process,
 			host: host
 		)
 		mailboxes[chatId] = created

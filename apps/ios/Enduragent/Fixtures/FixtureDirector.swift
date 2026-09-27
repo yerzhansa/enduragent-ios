@@ -1,6 +1,11 @@
 import EnduragentCoach
 import Foundation
 
+enum FixtureDirective: Equatable {
+	case sendToCoach
+	case rejected(String)
+}
+
 struct FixtureDirector: Sendable {
 	static let prefix = "fixture:"
 	static let slowFirstWordDelay: Duration = .seconds(2)
@@ -10,45 +15,46 @@ struct FixtureDirector: Sendable {
 	let records: FaultInjectingRecordLog
 	let host: ImmediateExecutionHost
 
-	func prepare(for text: String) async {
+	func prepare(for text: String) async -> FixtureDirective {
 		reset(replyingTo: text)
-		guard text.hasPrefix(Self.prefix) else { return }
+		guard text.hasPrefix(Self.prefix) else { return .sendToCoach }
 		let words = text.dropFirst(Self.prefix.count).split(separator: " ").map(String.init)
+		let arguments = Array(words.dropFirst())
 		switch words.first {
-		case "slow":
+		case "slow" where arguments.isEmpty:
 			transport.requestDelay = Self.slowFirstWordDelay
 			transport.deltaDelay = Self.slowWordDelay
 			transport.script = FirstWeekFixture.weekSummaryByWord()
-		case "hang":
+		case "hang" where arguments.isEmpty:
 			transport.hangUntilCancelled = true
 		case "fail":
-			let directive = Self.repetition(Array(words.dropFirst()))
-			if let failure = Self.failure(directive.arguments) {
-				transport.script =
-					Array(repeating: .fail(failure), count: directive.count) + transport.script
+			let repeated = Self.repetition(arguments)
+			guard let failure = Self.failure(repeated.arguments) else {
+				return .rejected(Self.unknown(text))
 			}
-		case "memory-then-fail":
-			transport.script = Self.memoryThenFail
-		case "memory-then-hang":
-			transport.script = Self.memoryThenHang
-		case "teach":
 			transport.script =
-				Self.savedSchedule + [
-					.text(FirstWeekFixture.rememberReply), .finish(reason: .stop),
-				]
-		case "long":
+				Array(repeating: .fail(failure), count: repeated.count) + transport.script
+		case "memory-then-fail" where arguments.isEmpty:
+			transport.script = Self.savedMemory + [.fail(.http(status: 500))]
+		case "memory-then-hang" where arguments.isEmpty:
+			transport.script = Self.savedMemory + [.hang]
+		case "text-then-hang" where arguments.isEmpty:
+			transport.script = [.text(Self.partialReply), .hang]
+		case "teach" where arguments.isEmpty:
+			transport.script =
+				Self.savedMemory + [.text(FirstWeekFixture.rememberReply), .finish(reason: .stop)]
+		case "long" where arguments.isEmpty:
 			transport.script = [.text(FirstWeekFixture.longReply), .finish(reason: .stop)]
-		case "flush-partial":
+		case "flush-partial" where arguments.isEmpty:
 			transport.flushScript = Self.flushPartial
-		case "expire":
+		case "storage" where arguments == ["fail-next-append"]:
+			records.failNextAppend = true
+		case "expire" where arguments.isEmpty:
 			await host.expire(.systemExpired)
-		case "storage":
-			if words.dropFirst().first == "fail-next-append" {
-				records.failNextAppend = true
-			}
 		default:
-			break
+			return .rejected(Self.unknown(text))
 		}
+		return .sendToCoach
 	}
 
 	func prepareRetry(of text: String) {
@@ -63,8 +69,17 @@ struct FixtureDirector: Sendable {
 		transport.summaryScript = FirstWeekFixture.summaryReply
 	}
 
-	static let memoryThenFail = savedSchedule + [.fail(.http(status: 500))]
-	static let memoryThenHang = savedSchedule + [.hang]
+	static let partialReply = "This week has Tuesday sweet spot"
+
+	static let savedMemory: [ScriptedEvent] = [
+		.toolCall(
+			name: ToolName.memoryWrite.rawValue,
+			arguments:
+				#"{"type":"memory","section":"schedule","content":"Rides with a group on Saturdays."}"#
+		),
+		.finish(reason: .toolCalls),
+	]
+
 	static let flushPartial: [ScriptedEvent] =
 		[
 			.toolCall(
@@ -78,15 +93,6 @@ struct FixtureDirector: Sendable {
 			.finish(reason: .toolCalls),
 		] + Array(repeating: .fail(.http(status: 500)), count: 4)
 
-	private static let savedSchedule: [ScriptedEvent] = [
-		.toolCall(
-			name: ToolName.memoryWrite.rawValue,
-			arguments:
-				#"{"type":"memory","section":"schedule","content":"Rides with a group on Saturdays."}"#
-		),
-		.finish(reason: .toolCalls),
-	]
-
 	private static func repetition(_ arguments: [String]) -> (arguments: [String], count: Int) {
 		guard let last = arguments.last, last.hasPrefix("x"), let count = Int(last.dropFirst()),
 			count > 0
@@ -96,27 +102,36 @@ struct FixtureDirector: Sendable {
 		return (Array(arguments.dropLast()), count)
 	}
 
+	private static func unknown(_ text: String) -> String {
+		"Unknown fixture directive: \(text)"
+	}
+
 	private static func failure(_ arguments: [String]) -> ScriptedFailure? {
-		switch arguments.first {
-		case "401":
+		guard let code = arguments.first else { return nil }
+		let rest = Array(arguments.dropFirst())
+		switch code {
+		case "401" where rest.isEmpty:
 			return .http(status: 401)
-		case "402":
+		case "402" where rest.isEmpty:
 			return .http(status: 402)
-		case "429":
-			let retryAfter = arguments.dropFirst().first ?? "7"
-			return .http(status: 429, headers: ["retry-after": retryAfter])
-		case "500":
+		case "429" where rest.isEmpty:
+			return .http(status: 429, headers: ["retry-after": "7"])
+		case "429" where rest.count == 1 && Int(rest[0]) != nil:
+			return .http(status: 429, headers: ["retry-after": rest[0]])
+		case "500" where rest.isEmpty:
 			return .http(status: 500)
-		case "network":
+		case "network" where rest.isEmpty:
 			return .connection(.notConnectedToInternet)
-		case "timeout":
+		case "timeout" where rest.isEmpty:
 			return .connection(.timedOut)
-		case "overflow":
+		case "overflow" where rest.isEmpty:
 			return .http(
 				status: 400,
 				body:
 					#"{"error":{"message":"This endpoint's maximum context length is 131072 tokens."}}"#
 			)
+		case "finish" where rest.isEmpty:
+			return .unknownFinish
 		default:
 			return nil
 		}

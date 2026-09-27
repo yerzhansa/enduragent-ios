@@ -128,6 +128,7 @@ struct TurnClaimPayload: Codable {
 	var chatId: String
 	var turn: String
 	var attempt: String
+	var process: String?
 	var lease: String?
 }
 

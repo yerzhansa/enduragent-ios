@@ -51,6 +51,22 @@ import Testing
 		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
 	}
 
+	@Test func failRecoveryReadsFailsOnlyTheRecoveryClaimReadUntilCleared() async throws {
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
+		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
+		log.failRecoveryReads = true
+		await #expect(throws: RecordStorageFault(operation: .fetch)) {
+			_ = try await log.fetch(RecordQuery(scope: TurnRecovery.claimScope, writtenBy: phone))
+		}
+		#expect(
+			try await log.fetch(RecordQuery(scope: ConversationFold.localScope)).records.isEmpty)
+		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
+		log.failRecoveryReads = false
+		#expect(
+			try await log.fetch(RecordQuery(scope: TurnRecovery.claimScope, writtenBy: phone))
+				.records.isEmpty)
+	}
+
 	private func record(wall: Int64, text: String) -> AthleteRecord {
 		storedRecord(
 			device: phone, wall: wall, body: .synced(sampleUser(chatId: .main, text: text)))

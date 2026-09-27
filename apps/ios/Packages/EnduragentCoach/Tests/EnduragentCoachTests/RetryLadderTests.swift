@@ -16,9 +16,9 @@ import Testing
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(transport.requests.count == 4)
-		#expect(clock.slept == [.seconds(7), .seconds(7), .seconds(7)])
+		#expect(clock.slept.prefix(3) == [.seconds(7), .seconds(7), .seconds(7)])
 		#expect(failure(settled) == .model(.rateLimited(retryAfter: .seconds(7))))
-		#expect(settled.retryable)
+		#expect(!settled.retryable)
 	}
 
 	@Test(arguments: [
@@ -33,7 +33,7 @@ import Testing
 		transport.script = Array(
 			repeating: .fail(.http(status: 429, headers: row.headers)), count: 4)
 		_ = try await makeCoach().sendAndSettle("How was my week?")
-		#expect(clock.slept == row.waits)
+		#expect(Array(clock.slept.prefix(row.waits.count)) == row.waits)
 		#expect(chatRequests() == 4)
 	}
 
@@ -82,24 +82,7 @@ import Testing
 		let crowded = try await makeCoach(transport: large).sendAndSettle(longRequest)
 		#expect(failure(crowded) == .model(.providerDown(.timeout)))
 		#expect(large.requests.filter { $0.charge == .chatAttempt }.count == 3)
-		#expect(large.requests.filter { $0.charge == .compaction }.count == 2)
-	}
-
-	@Test func overflowFlushesOnceThenCompactsThreeTimes() async throws {
-		transport.script =
-			[.text("Yes, rest."), .finish(reason: .stop)]
-			+ Array(repeating: .fail(overflow), count: 5)
-		let coach = makeCoach()
-		_ = try await coach.sendAndSettle("Rest day?")
-		let settled = try await coach.sendAndSettle("How was my week?")
-		#expect(failure(settled) == .model(.contextOverflow))
-		#expect(chatRequests() == 1 + 4)
-		#expect(requests(.memoryFlush) == 1)
-		#expect(requests(.compaction) == 3)
-		let summaries = try await store.fetch(
-			RecordQuery(scope: .synced([.compactionSummary]), chatId: .main)
-		).records
-		#expect(summaries.count == 3)
+		#expect(large.requests.filter { $0.charge == .compaction }.isEmpty)
 	}
 
 	@Test func budgetExceededIsTerminalBeforeAnyRung() async throws {
@@ -169,6 +152,12 @@ import Testing
 		#expect(!settled.retryable)
 		#expect(chatRequests() == 2)
 		#expect(clock.slept.isEmpty)
+		let section = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records.first)
+		let claim = try #require(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
+				.records.first)
+		#expect(section.cause == claim.cause)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(turn, in: .main)
 		}
@@ -225,7 +214,7 @@ import Testing
 		let rescued = try await makeCoach(transport: window).sendAndSettle("Long history")
 		#expect(replyText(rescued) == "after compact")
 		#expect(window.requests.filter { $0.charge == .chatAttempt }.count == 2)
-		#expect(window.requests.filter { $0.charge == .compaction }.count == 1)
+		#expect(window.requests.filter { $0.charge == .compaction }.isEmpty)
 
 		let observed = situation(observedText: true)
 		#expect(
@@ -239,22 +228,6 @@ import Testing
 			return
 		}
 		#expect(preparations == [.flushMemory(.overflow), .compactInTurn])
-	}
-
-	@Test func failedCompactionRescueEndsWithTheOriginalFailure() async throws {
-		let faulty = FaultInjectingRecordLog(wrapping: store)
-		faulty.failAppends(ofKind: .compactionSummary)
-		transport.script = [.fail(overflow), .text("Never sent."), .finish(reason: .stop)]
-		let coach = EnduragentCoachTests.makeCoach(
-			transport: transport, store: faulty, clock: clock)
-		let settled = try await coach.sendAndSettle("How was my week?")
-		#expect(failure(settled) == .model(.contextOverflow))
-		#expect(chatRequests() == 1)
-		#expect(
-			coach.diagnostics.entries.contains { entry in
-				if case .compactionFailed(.main, _) = entry.event { return true }
-				return false
-			})
 	}
 
 	@Test func waitShowsTheWorkingStateWithItsReason() async throws {

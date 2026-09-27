@@ -94,10 +94,13 @@ final class QueuedExpiryProof: XCTestCase {
 		TutorialHarness.closeMenu(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.send(app, "fixture:expire")
-		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
-		let received = TutorialHarness.notice(app, reading: TutorialHarness.receivedBeforeClose)
-		TutorialHarness.wait(received)
+		let stopped = app.staticTexts.matching(
+			NSPredicate(
+				format: "identifier == %@ AND label == %@", "chat.turn.notice",
+				TutorialHarness.interruptedNothingChanged))
+		TutorialHarness.wait(stopped.element(boundBy: 1))
+		XCTAssertEqual(stopped.count, 2)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.receivedBeforeClose").exists)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		XCTAssertEqual(app.staticTexts.matching(identifier: TutorialHarness.weekQuestion).count, 1)
 		TutorialHarness.attach(self, name: "queued-expiry", app: app)

@@ -141,6 +141,14 @@ package enum ProposalPolicy {
 		RecordQuery(scope: .deviceLocal([.pendingProposal, .proposalCleared]), chatId: chatId)
 	}
 
+	package static func pending(_ chatId: ChatID, from ledger: Ledger, at now: Date)
+		async throws(LedgerFailure) -> PendingProposal?
+	{
+		let records = try await ledger.read(proposalQuery(chatId)).records
+		return UnionMerge.pendingProposal(records, chatId: chatId, now: now)
+			.map(PendingProposal.init)
+	}
+
 	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?
 	{
 		let ordered = records.sorted { $0.hlc < $1.hlc }

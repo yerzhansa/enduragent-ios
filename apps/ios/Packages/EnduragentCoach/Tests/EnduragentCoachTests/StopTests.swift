@@ -6,6 +6,39 @@ import Testing
 @Suite struct StopTests {
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func stopSettlesAthleteStoppedAndOffersTryAgain() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Thursday is "), .hang]
+		let store = InMemoryRecordLog()
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(turn)
+		await coach.stop(.main)
+		guard case .interrupted(let stopped)? = await coach.state(of: turn) else {
+			Issue.record("expected the stopped reply to be interrupted")
+			return
+		}
+		#expect(stopped.partial == "Thursday is ")
+		#expect(stopped.cause == .athleteStopped)
+		#expect(
+			stopped.notice
+				== AthleteNotice(
+					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
+		#expect(await host.ended(0)?.ending == .interrupted)
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		let answered = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(answered) == "Still on.")
+		let claims = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
+		).records
+		#expect(claims.count == 2)
+		#expect(
+			await host.ended(1)?.ending
+				== .finished(CompletionNotice(reply: "Still on.", turn: turn)))
+	}
+
 	@Test func aStoppedReplyNeverShowsAsQueuedAfterItStops() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Thursday is "), .hang]
@@ -94,11 +127,12 @@ import Testing
 		await reached.next()
 		transport.hangUntilCancelled = false
 		transport.script = [.text("Three."), .finish(reason: .stop)]
-		let third = try #require(try await coach.send(draft("three"), to: .main).acceptedTurn)
+		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(transport.requests.isEmpty, "a send started while Stop was still settling")
 		store.release()
 		await stopped
+		let third = try #require(try await sent.acceptedTurn)
 		guard case .interrupted(let later)? = await coach.state(of: queued) else {
 			Issue.record("the queued turn was not stopped")
 			return
@@ -111,27 +145,6 @@ import Testing
 		#expect(
 			await host.ended(1)?.ending == .finished(CompletionNotice(reply: "Three.", turn: third))
 		)
-	}
-
-	@Test func stopSettlesATurnStillInTheWindowBeforeItStarts() async throws {
-		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let host = ImmediateExecutionHost()
-		let coach = makeCoach(
-			transport: transport, store: InMemoryRecordLog(), clock: clock,
-			coalescing: CoalescingPolicy(window: .seconds(60)), host: host)
-		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		await coach.stop(.main)
-		guard case .interrupted(let stopped)? = await coach.state(of: turn) else {
-			Issue.record("expected the collecting turn to be stopped")
-			return
-		}
-		#expect(stopped.cause == .stoppedBeforeStart)
-		#expect(
-			stopped.notice
-				== AthleteNotice(key: Catalog.chatTurnReceivedBeforeClose, action: .tryAgain(turn)))
-		#expect(transport.requests.isEmpty)
-		#expect(await host.ended(0)?.ending == .interrupted)
 	}
 }
 

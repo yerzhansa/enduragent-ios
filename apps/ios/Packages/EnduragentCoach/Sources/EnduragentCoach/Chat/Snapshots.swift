@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 public struct ChatSnapshot: Sendable, Equatable {
 	public let chat: ChatID
@@ -10,7 +9,7 @@ public struct ChatSnapshot: Sendable, Equatable {
 
 public struct TurnView: Sendable, Equatable, Identifiable {
 	public let id: TurnID
-	public let athleteText: String
+	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
 	public let completedInBackground: Bool
@@ -37,6 +36,8 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 	case acceptedOnOtherDevice
 	case alreadyAnswered
 	case alreadyRunning
+	case rateLimitWaitRunning
+	case unrecovered
 }
 
 extension ChatSnapshot {
@@ -46,28 +47,29 @@ extension ChatSnapshot {
 		live: LiveAttempt?,
 		window: OpenWindow?,
 		queued: [TurnID],
+		waiting: Set<TurnID>,
 		stopping: Bool,
 		finishedAway: Set<TurnID>,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
-		clock: any Clock
+		process: ProcessID,
+		now: Date,
+		zone: TimeZone
 	) {
 		self.chat = chat
-		self.turns = conversation.current.turns.map { facts -> TurnView in
-			let overlay: AcceptedOverlay
-			if let window, window.turn == facts.turn {
-				overlay = .collecting(until: window.closesAt)
-			} else if let index = queued.firstIndex(of: facts.turn) {
-				overlay = .queued(position: index + 1)
-			} else {
-				overlay = .notInThisProcess
+		let current = conversation.current
+		self.turns = current.turns.compactMap { facts -> TurnView? in
+			if current.hidesWholly(facts) {
+				return nil
 			}
+			let overlay = TurnOverlay(
+				of: facts.turn, window: window, queued: queued, waiting: waiting)
 			return TurnView(
 				id: facts.turn,
-				athleteText: facts.requestText,
-				sentOn: facts.fragments.first?.civilDate
-					?? CivilDate(date: clock.now, timeZone: clock.timeZone),
-				state: TurnLifecycle.state(of: facts, live: live, overlay: overlay, device: device),
+				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
+				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
+				state: TurnLifecycle.state(
+					of: facts, live: live, overlay: overlay, device: device, process: process),
 				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
@@ -89,6 +91,8 @@ extension RetryRefusal {
 		case .acceptedElsewhere: self = .acceptedOnOtherDevice
 		case .alreadyAnswered: self = .alreadyAnswered
 		case .attemptInFlight: self = .alreadyRunning
+		case .rateLimitWaitRunning: self = .rateLimitWaitRunning
+		case .unrecovered: self = .unrecovered
 		}
 	}
 }
@@ -102,29 +106,5 @@ extension PendingProposal {
 			description: body.description,
 			expiresAt: body.expiresAt
 		)
-	}
-}
-
-package final class SnapshotFeed: Sendable {
-	private let observers = Mutex<[UUID: AsyncStream<ChatSnapshot>.Continuation]>([:])
-
-	package init() {}
-
-	package func subscribe(from current: ChatSnapshot) -> AsyncStream<ChatSnapshot> {
-		let id = UUID()
-		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
-		continuation.onTermination = { [weak self] _ in
-			self?.observers.withLock { $0[id] = nil }
-		}
-		observers.withLock { $0[id] = continuation }
-		continuation.yield(current)
-		return stream
-	}
-
-	package func publish(_ snapshot: ChatSnapshot) {
-		for continuation in observers.withLock({ Array($0.values) }) {
-			continuation.yield(snapshot)
-		}
 	}
 }

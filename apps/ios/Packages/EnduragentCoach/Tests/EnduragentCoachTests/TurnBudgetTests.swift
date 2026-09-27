@@ -32,10 +32,10 @@ import Testing
 	}
 
 	@Test func preemptiveCompactionIsNotAnOverflowRetry() async throws {
-		transport.script = [.text("Yes, rest."), .finish(reason: .stop)]
-		_ = try await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock
-		).sendAndSettle("Rest day?")
+		try await seedReplies(tokens: [100_000, 100_000, 50, 50])
+		transport.summaryScript = [
+			.fail(.http(status: 500)), .text("Short."), .finish(reason: .stop),
+		]
 		transport.script =
 			Array(
 				repeating: .fail(
@@ -43,12 +43,14 @@ import Testing
 				count: 3)
 			+ [.text("Fits now."), .finish(reason: .stop)]
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
-		let crowded = String(repeating: "Saturday group ride notes. ", count: 25_000)
-		let result = try await runner().run(attempt(crowded, scope: scope), scope: scope) { _ in }
+		let result = try await runner().run(attempt("Is Thursday on?", scope: scope), scope: scope)
+		{
+			_ in
+		}
 		#expect(result.replyText == "Fits now.")
-		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 1 + 4)
-		#expect(transport.requests.filter { $0.charge == .compaction }.count == 1 + 3 * 2)
-		#expect(transport.requests.filter { $0.charge == .memoryFlush }.count == 1)
+		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 1 + 3)
+		#expect(transport.requests.filter { $0.charge == .droppedSummary }.count == 1)
+		#expect(transport.requests.filter { $0.charge == .compaction }.count == 1)
 	}
 
 	@Test func waitThatPassesTheWallClockEndsTheTurnBeforeTheNextAttempt() async throws {
@@ -63,9 +65,39 @@ import Testing
 		{
 			_ in
 		}
-		#expect(result == .failed(.model(.budgetExhausted(.wallClock)), saved: .none))
+		#expect(
+			result == .failed(.model(.budgetExhausted(.wallClock)), saved: .none))
 		#expect(transport.requests.count == 2)
 		#expect(clock.slept == [.seconds(7), .seconds(7)])
+	}
+
+	@Test func budgetFailureAfterAMemoryWriteKeepsTheWriteInTheSettlement() async throws {
+		transport.script = [
+			.toolCall(
+				name: "memory_write",
+				arguments:
+					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+			),
+			.finish(reason: .toolCalls),
+			.finish(reason: .toolCalls),
+		]
+		let oneCall = TurnBudgetPolicy(
+			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
+			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let result = try await runner().run(
+			attempt("Remember Saturdays", scope: scope), scope: scope
+		) {
+			_ in
+		}
+		#expect(
+			result
+				== .failed(
+					.model(.budgetExhausted(.generateCalls)),
+					saved: WriteSummary(
+						memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
+				))
+		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt])
 	}
 
 	@Test func inTurnFlushIsChargedAgainstTheTurnsCalls() async throws {
@@ -84,8 +116,30 @@ import Testing
 		{
 			_ in
 		}
-		#expect(result == .failed(.model(.contextOverflow), saved: .none))
+		#expect(result == .failed(.model(.budgetExhausted(.generateCalls)), saved: .none))
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt, .memoryFlush])
+	}
+
+	private func seedReplies(tokens: [Int]) async throws {
+		for (index, size) in tokens.enumerated() {
+			let asked = clock.now.addingTimeInterval(TimeInterval(-60 * (tokens.count - index)))
+			let turn = TurnID(ulid: ULID.generate(at: asked))
+			try await seed(
+				store,
+				[
+					seededRecord(
+						store, at: asked, ulid: turn.ulid,
+						body: .synced(
+							sampleUser(chatId: .main, text: "Question \(index)", turn: turn))),
+					seededRecord(
+						store, at: asked.addingTimeInterval(1),
+						ulid: ULID.generate(at: asked.addingTimeInterval(1)),
+						body: .synced(
+							sampleReply(
+								chatId: .main, turn: turn,
+								text: String(repeating: "w", count: Int(Double(size) / 1.2 * 4))))),
+				])
+		}
 	}
 
 	private func runner() -> TurnRunner {

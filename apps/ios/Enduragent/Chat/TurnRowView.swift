@@ -7,13 +7,15 @@ struct TurnRowView: View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(turn.athleteText)
+			if let athleteText = turn.athleteText {
+				Text(athleteText)
+			}
 			switch turn.state {
 			case .accepted(.awaitingRestart):
 				Text(say(Catalog.chatTurnReceivedBeforeClose))
 					.accessibilityIdentifier("chat.turn.receivedBeforeClose")
 				actionButton(.tryAgain(turn.id))
-			case .accepted(.onOtherDevice):
+			case .accepted(.onOtherDevice), .accepted(.beforeUpgrade):
 				EmptyView()
 			case .accepted(.collecting), .accepted(.queued):
 				working
@@ -43,6 +45,8 @@ struct TurnRowView: View {
 						.foregroundStyle(.secondary)
 				}
 				notice(interrupted.notice)
+			case .unrecovered(let unrecovered):
+				notice(unrecovered.notice)
 			}
 		}
 		.frame(maxWidth: .infinity, alignment: .leading)
@@ -64,23 +68,17 @@ struct TurnRowView: View {
 		}
 	}
 
-	@ViewBuilder
 	private func actionButton(_ action: RecoveryAction) -> some View {
-		if let opensAt = action.opensAt {
-			TimelineView(.explicit([opensAt])) { _ in
-				button(for: action)
-					.disabled(Date.now < opensAt)
-			}
-		} else {
-			button(for: action)
-		}
-	}
-
-	private func button(for action: RecoveryAction) -> some View {
 		Button(say(action.title)) {
 			Task { await model.perform(action) }
 		}
+		.disabled(isWaiting(action))
 		.accessibilityIdentifier(identifier(for: action))
+	}
+
+	private func isWaiting(_ action: RecoveryAction) -> Bool {
+		guard case .wait = action else { return false }
+		return true
 	}
 
 	private func identifier(for action: RecoveryAction) -> String {

@@ -139,7 +139,7 @@ import Testing
 		#expect(
 			queued.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnReceivedBeforeClose, action: .tryAgain(second)))
+					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(second)))
 		#expect(try await claims(of: second).isEmpty)
 		#expect(await host.ended(0)?.ending == .interrupted)
 		#expect(try #require(await coach.currentSnapshot(.main)).activity == .idle)

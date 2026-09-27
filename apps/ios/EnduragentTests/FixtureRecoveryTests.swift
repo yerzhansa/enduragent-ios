@@ -7,12 +7,12 @@ import UIKit
 
 extension FixtureLaunchTests {
 	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
-		let killed = model(try services(store: .keep))
+		let killed = model(try services())
 		killed.startChatting()
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
-		let relaunched = model(try services(store: .keep))
+		let relaunched = model(try relaunch(.keep).0)
 		await relaunched.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
 		#expect(cause(recovered.state) == .processEnded)
@@ -28,8 +28,47 @@ extension FixtureLaunchTests {
 		await killed.stop()
 	}
 
-	@Test func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
-		let services = try services(store: .keep)
+	@Test func unreadableRecoveryHoldsADeadClaimWithoutTryAgainUntilItCanRead() async throws {
+		let suite = "enduragent.fixture.recovery.arguments.test"
+		let arguments = try #require(UserDefaults(suiteName: suite))
+		defer { arguments.removePersistentDomain(forName: suite) }
+		arguments.set(FixtureLaunch.firstWeekName, forKey: FixtureLaunch.nameArgumentKey)
+		arguments.set("never", forKey: FixtureLaunch.recoveryArgumentKey)
+		#expect(throws: FixtureLaunchError.self) { try FixtureLaunch.fromArguments(arguments) }
+		arguments.set("unreadable", forKey: FixtureLaunch.recoveryArgumentKey)
+		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
+		let killed = model(try services())
+		killed.startChatting()
+		killed.draft.text = "fixture:hang"
+		await killed.send()
+		let dead = try await turn(in: killed, where: isProcessing)
+		let (unreadableServices, _) = try relaunch(.keep, recovery: parsed.recovery)
+		let unreadable = model(unreadableServices)
+		await unreadable.lifecycle.forward(.becameActive)
+		let held = try await turn(dead.id, in: unreadable, where: isUnrecovered)
+		guard case .unrecovered(let unrecovered) = held.state else {
+			Issue.record("expected unrecovered, got \(held.state)")
+			return
+		}
+		#expect(unrecovered.notice.key == Catalog.chatHistoryFailure)
+		#expect(unrecovered.notice.action == nil)
+		#expect(!held.state.retryable)
+		let transport = try #require(unreadableServices.fixtureTransport)
+		await unreadable.perform(.tryAgain(dead.id))
+		try await Task.sleep(for: .milliseconds(200))
+		#expect(transport.requestCount == 0)
+		#expect(unreadable.chat?.turns.first { $0.id == dead.id }?.state == held.state)
+		let readable = model(try relaunch(.keep).0)
+		await readable.lifecycle.forward(.becameActive)
+		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
+		#expect(cause(recovered.state) == .processEnded)
+		#expect(recovered.state.retryable)
+		await killed.stop()
+	}
+
+	@Test(.timeLimit(.minutes(1)))
+	func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
+		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let model = model(services)
 		model.startChatting()
@@ -44,7 +83,7 @@ extension FixtureLaunchTests {
 			records.failAppends(ofKind: kind)
 		}
 		let reopened = try #require(
-			await firstSnapshot(try self.services(store: .keep), chat: model.chatId))
+			await firstSnapshot(try relaunch(.keep).0, chat: model.chatId))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -57,7 +96,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
-		let services = try services(store: .keep)
+		let services = try services()
 		let records = try #require(services.fixtureRecordLog)
 		let killed = model(services)
 		killed.startChatting()
@@ -72,7 +111,7 @@ extension FixtureLaunchTests {
 			try await Task.sleep(for: .milliseconds(20))
 		}
 		let reopened = try #require(
-			await firstSnapshot(try self.services(store: .keep), chat: killed.chatId))
+			await firstSnapshot(try relaunch(.keep).0, chat: killed.chatId))
 		let state = try #require(reopened.turns.first { $0.id == dead.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -84,6 +123,54 @@ extension FixtureLaunchTests {
 		#expect(interrupted.notice.action == nil)
 		#expect(!state.retryable)
 		await killed.stop()
+	}
+
+	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {
+		var quick = launch
+		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
+		let seeded = model(try AppServices.fixture(quick, defaults: defaults))
+		seeded.startChatting()
+		for index in 1...200 {
+			seeded.draft.text = "Seed \(index)"
+			await seeded.send()
+			try await answered("Seed \(index)", in: seeded)
+		}
+		seeded.draft.text = "fixture:hang"
+		await seeded.send()
+		let dead = try await turn(in: seeded, where: isProcessing)
+		let clock = ContinuousClock()
+		let (recovering, _) = try relaunch(.keep)
+		let recovery = await clock.measure { await recovering.coach.lifecycle(.becameActive) }
+		var reopened: ChatSnapshot?
+		let firstShow = await clock.measure {
+			reopened = await firstSnapshot(recovering, chat: seeded.chatId)
+		}
+		let (clean, _) = try relaunch(.keep)
+		let cleanOpen = await clock.measure { await clean.coach.lifecycle(.becameActive) }
+		let cleanShow = await clock.measure { _ = await firstSnapshot(clean, chat: seeded.chatId) }
+		let overhead = recovery + firstShow - cleanOpen - cleanShow
+		Attachment.record(
+			"recovery \(recovery), first snapshot \(firstShow), clean open \(cleanOpen), "
+				+ "clean first snapshot \(cleanShow), overhead \(overhead)",
+			named: "recovery-of-one-dead-claim")
+		let snapshot = try #require(reopened)
+		#expect(snapshot.turns.count == 201)
+		let state = try #require(snapshot.turns.first { $0.id == dead.id }?.state)
+		#expect(cause(state) == .processEnded)
+		#expect(overhead < .milliseconds(300), "recovery overhead \(overhead)")
+		await seeded.stop()
+	}
+
+	private func answered(_ text: String, in model: ShellModel) async throws {
+		let deadline = ContinuousClock.now + .seconds(10)
+		while ContinuousClock.now < deadline {
+			if let last = model.chat?.turns.last, last.athleteText == text, isCompleted(last.state)
+			{
+				return
+			}
+			try await Task.sleep(for: .milliseconds(5))
+		}
+		Issue.record("\(text) was not answered")
 	}
 
 	private func turn(
@@ -107,6 +194,14 @@ extension FixtureLaunchTests {
 
 private func isProcessing(_ state: TurnState) -> Bool {
 	if case .processing = state { true } else { false }
+}
+
+private func isUnrecovered(_ state: TurnState) -> Bool {
+	if case .unrecovered = state { true } else { false }
+}
+
+private func isCompleted(_ state: TurnState) -> Bool {
+	if case .completed = state { true } else { false }
 }
 
 private func isInterrupted(_ state: TurnState) -> Bool {

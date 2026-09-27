@@ -133,7 +133,7 @@ import Testing
 		#expect(onB.segments.count == 1)
 	}
 
-	@Test func v1WindowStartFoldsAsTrimAndHidesNothingFromTheTranscript() throws {
+	@Test func v1TrimWindowHidesEarlierRowsFromEveryDeviceAsTrunkDid() throws {
 		let records = [
 			storedRecord(
 				device: phoneA, wall: 1, ulid: ulid(1), body: legacyUser(chatId: .main, text: "old")
@@ -145,19 +145,66 @@ import Testing
 				device: phoneA, wall: 3, ulid: ulid(3),
 				body: legacyUser(chatId: .main, text: "kept")),
 			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(3)))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: legacyReply(chatId: .main, text: "kept reply")),
+				device: phoneB, wall: 4, ulid: ulid(4),
+				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(2)))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.segments.count == 1)
-		#expect(
-			conversation.current.messages.map(\.text) == ["old", "old reply", "kept", "kept reply"])
+		#expect(conversation.current.messages.map(\.text) == ["old reply", "kept"])
 		let history = conversation.current.promptHistory(excluding: nil)
-		#expect(history.messages.map(\.text) == ["kept", "kept reply"])
-		#expect(history.ulids == [ulid(3), ulid(5)])
+		#expect(history.messages.map(\.text) == ["old reply", "kept"])
+		#expect(history.ulids == [ulid(2), ulid(3)])
+	}
+
+	@Test func v1DailyResetSplitsTheDaysAfterAnUpgrade() throws {
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: legacyUser(chatId: .main, text: "day one")),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: legacyReply(chatId: .main, text: "day one reply")),
+			storedRecord(
+				device: phoneA, wall: 3, ulid: ulid(4),
+				body: .legacy(.windowStartV1(chatId: .main, firstIncludedUlid: ulid(3)))),
+			storedRecord(
+				device: phoneA, wall: 4, ulid: ulid(5),
+				body: legacyUser(chatId: .main, text: "day two")),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(6),
+				body: legacyReply(chatId: .main, text: "day two reply")),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
+		#expect(conversation.segments.count == 2)
+		#expect(conversation.segments[0].messages.map(\.text) == ["day one", "day one reply"])
+		#expect(conversation.current.openedBy == .reset(.daily))
+		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
+		#expect(conversation.current.messages.map(\.text) == ["day two", "day two reply"])
+	}
+
+	@Test func legacyReplyAttachesToItsOwnDevicesQuestion() throws {
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: legacyUser(chatId: .main, text: "a asks")),
+			storedRecord(
+				device: phoneB, wall: 2, ulid: ulid(2),
+				body: legacyUser(chatId: .main, text: "b asks")),
+			storedRecord(
+				device: phoneA, wall: 3, ulid: ulid(3),
+				body: legacyReply(chatId: .main, text: "a answered")),
+			storedRecord(
+				device: phoneB, wall: 4, ulid: ulid(4),
+				body: legacyReply(chatId: .main, text: "b answered")),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		#expect(
+			conversation.current.messages.map(\.text) == [
+				"a asks", "a answered", "b asks", "b answered",
+			])
+		let turns = conversation.current.turns
+		#expect(turns.map(\.origin) == [phoneA, phoneB])
+		#expect(turns.map { $0.settlements.count } == [1, 1])
 	}
 
 	@Test func unsettledFailedAndStoppedTurnsAreNotPromptHistory() throws {

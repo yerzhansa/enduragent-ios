@@ -78,6 +78,45 @@ package final class DrainLease: Sendable {
 	}
 }
 
+package struct LeaseSlot: Sendable {
+	private let host: any ExecutionHost
+	private let chat: ChatID
+	private(set) var current: DrainLease?
+	private var generation = 0
+
+	package init(host: any ExecutionHost, chat: ChatID) {
+		self.host = host
+		self.chat = chat
+	}
+
+	mutating func hold(
+		_ initiator: LeaseInitiator,
+		onExpiry: @escaping @Sendable (_ generation: Int, ExpiryCause) async -> Void
+	) -> DrainLease {
+		if let current, current.covers(initiator) {
+			return current
+		}
+		current?.finish()
+		generation += 1
+		let begun = DrainLease(generation, host: host, chat: chat, initiator: initiator) {
+			[generation] cause in
+			await onExpiry(generation, cause)
+		}
+		current = begun
+		return begun
+	}
+
+	mutating func end(_ ending: (DrainLease) -> Void) {
+		guard let current else { return }
+		self.current = nil
+		ending(current)
+	}
+
+	func holds(_ generation: Int) -> Bool {
+		current?.generation == generation
+	}
+}
+
 private struct LeaseTally: Sendable {
 	private var turns: Set<TurnID> = []
 	private var settled: Set<TurnID> = []

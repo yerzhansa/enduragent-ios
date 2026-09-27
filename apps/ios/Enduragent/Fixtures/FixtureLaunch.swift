@@ -1,3 +1,4 @@
+import EnduragentCoach
 import Foundation
 
 enum FixtureStorePolicy: String {
@@ -30,6 +31,11 @@ enum FixtureHostPolicy: Equatable {
 	}
 }
 
+enum FixtureRecoveryPolicy: String {
+	case readable
+	case unreadable
+}
+
 enum FixtureLaunchError: Error {
 	case unknownFixture(String)
 	case unknownArgument(key: String, value: String)
@@ -40,6 +46,8 @@ struct FixtureLaunch {
 	static let nameArgumentKey = "EnduragentFixture"
 	static let storeArgumentKey = "EnduragentFixtureStore"
 	static let keychainArgumentKey = "EnduragentFixtureKeychain"
+	static let coalescingArgumentKey = "EnduragentFixtureCoalescing"
+	static let recoveryArgumentKey = "EnduragentFixtureRecovery"
 	static let hostArgumentKey = "EnduragentFixtureHost"
 	static let firstWeekName = "first-week"
 	static let defaultsSuiteName = "icu.enduragent.fixture"
@@ -50,7 +58,9 @@ struct FixtureLaunch {
 	var keychain: FixtureKeychainPolicy
 	var directory: URL
 	var defaultsSuiteName: String
-	var host: FixtureHostPolicy = .immediate
+	var coalescing = CoalescingPolicy.npm
+	var recovery = FixtureRecoveryPolicy.readable
+	var host = FixtureHostPolicy.immediate
 
 	static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 		guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -60,6 +70,8 @@ struct FixtureLaunch {
 			keychain: try policy(arguments, key: keychainArgumentKey) ?? .unlocked,
 			directory: try applicationSupportDirectory(),
 			defaultsSuiteName: defaultsSuiteName,
+			coalescing: try coalescing(arguments) ?? .npm,
+			recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
 			host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
 				?? .immediate
 		)
@@ -98,6 +110,14 @@ struct FixtureLaunch {
 			throw FixtureLaunchError.unknownArgument(key: key, value: raw)
 		}
 		return policy
+	}
+
+	private static func coalescing(_ arguments: UserDefaults) throws -> CoalescingPolicy? {
+		guard let raw = arguments.string(forKey: coalescingArgumentKey) else { return nil }
+		guard let milliseconds = Int(raw), milliseconds > 0 else {
+			throw FixtureLaunchError.unknownArgument(key: coalescingArgumentKey, value: raw)
+		}
+		return CoalescingPolicy(window: .milliseconds(milliseconds))
 	}
 
 	private static func applicationSupportDirectory() throws -> URL {
