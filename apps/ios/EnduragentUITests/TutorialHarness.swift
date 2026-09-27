@@ -47,10 +47,9 @@ enum TutorialHarness {
 	static let recoveryArgument = "-EnduragentFixtureRecovery"
 
 	static func launch(
-		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
+		_ app: XCUIApplication, keychain: String? = nil,
 		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
 	) {
-		XCUIDevice.shared.appearance = dark ? .dark : .light
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
@@ -290,7 +289,7 @@ enum TutorialHarness {
 				labels.append(row.label)
 				added = true
 			}
-			if !added {
+			if !added, !labels.isEmpty {
 				break
 			}
 			app.swipeUp()

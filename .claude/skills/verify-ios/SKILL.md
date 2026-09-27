@@ -103,7 +103,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 1. Drive the app to the state with the interactive harness.
 2. Run `sim.mjs parity <run id> <prototype>-<state> <light|dark>`, for example `parity <run id> chat-menu dark`. The helper sets the simulator appearance, waits 1.5 seconds, and writes `parity/<prototype>-<state>-<theme>/` with `prototype.png`, `simulator.png` at 1170 × 2532, and `simulator-390.png` at the prototype's 390 × 844. An unknown state prints every available state. The appearance stays set afterwards.
-3. To use a proof screenshot instead, add `--from <attachment png>`. Launch that proof with `TutorialHarness.launch(app, dark: true)` for the dark theme. It sets the simulator to dark appearance through `XCUIDevice.shared.appearance`, the same setting as `xcrun simctl ui <udid> appearance dark`, and every other `launch` sets it back to light. The `-AppleInterfaceStyle Dark` launch argument does not change an iOS app.
+3. To use a proof screenshot instead, add `--from <attachment png>`. For the dark theme, name the proof class with the `DarkProof` suffix. `sim.mjs test` runs those classes in a second `xcodebuild` call after `xcrun simctl ui <udid> appearance dark`, then sets the appearance back to `light`, so one `test` call can mix light and dark proofs. Neither the `-AppleInterfaceStyle Dark` launch argument nor `XCUIDevice.shared.appearance` changes the app on the iOS 26 simulator; a poll of `simctl ui appearance` read `light` through a whole proof that set it on 2026-09-27.
 4. Read `prototype.png` and `simulator-390.png` together and check each item:
    - The same states exist, and the athlete can reach each one.
    - The same catalog copy appears word for word. Copy comes from `packages/i18n/catalogs/en.json` through `phrasebook.say`.
@@ -162,7 +162,7 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 | `install <run id>` | Installs the built app on the run's simulator |
 | `launch <run id> [--keep] [app arguments]` | Kills and opens the app in fixture mode; `--keep` reuses the fixture state instead of wiping it |
 | `shot <run id> <kebab-label>` | Screenshot to `<evidence>/<label>.png` |
-| `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported |
+| `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported; `DarkProof` classes run in dark appearance |
 | `parity <run id> <prototype>-<state> <light\|dark> [--from <png>]` | Prototype capture beside a simulator screenshot |
 | `cleanup <run id>` | Deletes the run's simulator and keeps the evidence |
 

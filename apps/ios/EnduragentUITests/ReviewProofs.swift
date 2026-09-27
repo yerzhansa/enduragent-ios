@@ -46,8 +46,7 @@ final class AddedToCalendarProof: XCTestCase {
 final class ConfirmedPreviewDarkProof: XCTestCase {
 	func testConfirmedPreviewDark() {
 		let app = XCUIApplication()
-		addTeardownBlock { XCUIDevice.shared.appearance = .light }
-		TutorialHarness.launch(app, dark: true)
+		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.workout)
 		TutorialHarness.waitUntilEnabled(TutorialHarness.named(app, "chat.preview.add"))
