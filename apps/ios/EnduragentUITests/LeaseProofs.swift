@@ -146,3 +146,67 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.attach(self, name: "lease-report", app: app)
 	}
 }
+
+final class StopTryAgainProof: XCTestCase {
+	func testStopTryAgain() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:slow")
+		TutorialHarness.wait(TutorialHarness.text(app, containing: "This week has"), timeout: 10)
+		TutorialHarness.named(app, "chat.stop").tap()
+		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
+		TutorialHarness.wait(tryAgain)
+		tryAgain.tap()
+		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 20)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
+		XCTAssertEqual(
+			app.staticTexts.containing(
+				NSPredicate(format: "label CONTAINS %@", "quieter stretch between them.")
+			).count, 1)
+		TutorialHarness.attach(self, name: "retry-after-stop", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 2")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
+		let settled = TutorialHarness.settlementRows(app)
+		XCTAssertTrue(settled.first?.contains("interrupted athleteStopped") == true, "\(settled)")
+		XCTAssertTrue(settled.last?.contains("replied") == true, "\(settled)")
+		TutorialHarness.attach(self, name: "retry-after-stop-records", app: app)
+	}
+}
+
+final class LeaseTourProof: XCTestCase {
+	func testLeaseTour() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "fixture:slow")
+		TutorialHarness.wait(TutorialHarness.text(app, containing: "This week has"), timeout: 10)
+		Thread.sleep(forTimeInterval: 1)
+		TutorialHarness.named(app, "chat.stop").tap()
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
+		Thread.sleep(forTimeInterval: 3)
+		TutorialHarness.send(app, "fixture:hang")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
+		Thread.sleep(forTimeInterval: 2)
+		TutorialHarness.send(app, "fixture:expire")
+		let stopped = app.staticTexts.matching(
+			NSPredicate(
+				format: "identifier == %@ AND label == %@", "chat.turn.notice",
+				TutorialHarness.interruptedNothingChanged))
+		TutorialHarness.wait(stopped.element(boundBy: 1))
+		Thread.sleep(forTimeInterval: 3)
+		TutorialHarness.send(app, "fixture:slow")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
+		XCUIDevice.shared.press(.home)
+		Thread.sleep(forTimeInterval: 12)
+		app.activate()
+		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.turn.finishedWhileLocked"), timeout: 20)
+		Thread.sleep(forTimeInterval: 3)
+		TutorialHarness.attach(self, name: "lease-tour", app: app)
+	}
+}
