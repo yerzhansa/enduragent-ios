@@ -8,6 +8,7 @@ package struct FlushJob: Sendable, Equatable {
 	package var settled: Bool
 	package var reset: ResetID?
 	package var abandoned = false
+	package var consumedByV1 = false
 
 	package var saved: Bool {
 		settled && !abandoned
@@ -64,7 +65,8 @@ extension ConversationFold {
 	) -> [FlushJob] {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
-		var settled = consumedJobs(markers)
+		let consumed = consumedJobs(markers)
+		var settled = consumed
 		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
@@ -78,7 +80,7 @@ extension ConversationFold {
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
 				settled: settled.contains(id), reset: resetOpened(by: record.cause),
-				abandoned: abandoned.contains(id))
+				abandoned: abandoned.contains(id), consumedByV1: consumed.contains(id))
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
@@ -107,18 +109,36 @@ extension ConversationFold {
 	}
 }
 
+private struct FlushCoverage {
+	private var listed: Set<ULID> = []
+	private var legacyThrough: ULID?
+
+	init(_ jobs: [FlushJob], in segment: SegmentID) {
+		for job in jobs {
+			if job.consumedByV1 || job.messages.isEmpty {
+				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
+				let through = job.messages.max() ?? job.id.ulid
+				legacyThrough = max(legacyThrough ?? through, through)
+			} else {
+				listed.formUnion(job.messages)
+			}
+		}
+	}
+
+	func covers(_ ulid: ULID) -> Bool {
+		listed.contains(ulid) || legacyThrough.map { ulid <= $0 } ?? false
+	}
+}
+
 extension Conversation {
 	package func messagesSinceLastFlush(
 		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: ULID? = nil
 	) -> [(ulid: ULID, message: ChatMessage)] {
 		let segment = boundary.map { current.closing(at: $0) } ?? current
 		let history = segment.promptHistory(excluding: turn)
-		let covered = Set(
-			jobs.flatMap { job in
-				job.messages.isEmpty ? flushRows(for: job).map(\.ulid) : job.messages
-			})
+		let coverage = FlushCoverage(jobs, in: segment.id)
 		return zip(history.ulids, history.messages).compactMap { ulid, message in
-			if covered.contains(ulid) {
+			if coverage.covers(ulid) {
 				return nil
 			}
 			return (ulid, message)
@@ -177,15 +197,8 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let unsettledByRecord = chats.contains { chat in
-			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
-				.contains { !$0.settled }
-		}
-		var markers: [AthleteRecord] = []
-		if unsettledByRecord {
-			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
-				.records
-		}
+		let markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
+			.records
 		var jobs: [ChatID: [FlushJob]] = [:]
 		for chat in chats {
 			jobs[chat] = ConversationFold.flushJobs(
