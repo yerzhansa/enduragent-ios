@@ -81,6 +81,50 @@ import Testing
 		#expect(cleared.flushModel == .model(ModelID(rawValue: "test/flush")))
 	}
 
+	@Test func setSessionStoresOneRecordThatTheNextCoachReads() async throws {
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		#expect(await coach.status().session == .npmDefaults)
+		let chosen = try SessionSettings.npmDefaults.replacing(.dailyResetHour, with: "6")
+			.replacing(.timeZone, with: "Asia/Tokyo")
+		try await coach.setSession(chosen)
+		#expect(await coach.status().session == chosen)
+		#expect(
+			await makeCoach(transport: FakeModelTransport(), store: store).status().session
+				== chosen)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records.count
+				== 1)
+	}
+
+	@Test func failedSessionWriteKeepsTheStoredSettings() async throws {
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let coach = makeCoach(transport: FakeModelTransport(), store: log)
+		log.failAppends(ofKind: SyncedKind.sessionSettings)
+		let chosen = try SessionSettings.npmDefaults.replacing(.idleReset, with: "30")
+		await #expect(throws: PreferenceWriteFailure.notSaved) {
+			try await coach.setSession(chosen)
+		}
+		#expect(await coach.status().session == .npmDefaults)
+	}
+
+	@Test func storedValuesOutsideTheirRangeDecodeAsMalformedRows() {
+		let hour = Data(
+			#"{"archiveRetentionDays":0,"compactionModel":"","dailyResetHour":25,"flushModel":"","historyBudgetRatio":0.3,"idleMinutes":0,"timeZone":""}"#
+				.utf8)
+		#expect(
+			RecordCodec.decode(
+				kind: "sessionSettings", version: 2, data: hour, civilDate: "1998-06-13",
+				ulid: "row-hour")
+				== .failure(.malformed(kind: "sessionSettings", ulid: "row-hour")))
+		let tag = Data(#"{"tag":"xx"}"#.utf8)
+		#expect(
+			RecordCodec.decode(
+				kind: "languagePreference", version: 2, data: tag, civilDate: "1998-06-13",
+				ulid: "row-tag")
+				== .failure(.malformed(kind: "languagePreference", ulid: "row-tag")))
+	}
+
 	@Test func modelRolesResolveSameAsResponseAndCapTheWindow() throws {
 		let response = ModelID(rawValue: "test/chat")
 		let defaults = ModelRoles(response: response, session: .npmDefaults)

@@ -45,7 +45,7 @@ func makeCoach(
 		intervals: intervals,
 		store: store,
 		clock: clock,
-		language: .init(ui: .en, coachReply: nil),
+		deviceLanguage: .en,
 		coalescing: coalescing
 	)
 }
@@ -164,7 +164,7 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	var imports: AsyncStream<Void> { inner.imports }
 }
 
-func historyBudget(clock: any Clock) -> Int {
+func systemTokens(clock: any Clock) -> Int {
 	let volatile = PromptAssembly.volatile(
 		context: "",
 		snapshot: nil,
@@ -172,10 +172,13 @@ func historyBudget(clock: any Clock) -> Int {
 		replyLanguage: PromptAssembly.replyLanguageSection(
 			resolution: LanguageResolution(language: .en, source: .surface, locale: "en"))
 	)
-	let system = PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile
-	return HistoryWindow.historyTokenBudget(
-		systemTokens: estimateTokens(system), window: TurnPolicy.contextWindowCap,
-		ratio: TurnPolicy.historyTokenBudgetRatio)
+	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
+}
+
+func historyBudget(clock: any Clock) -> Int {
+	HistoryWindow.historyTokenBudget(
+		systemTokens: systemTokens(clock: clock), window: TurnPolicy.contextWindowCap,
+		ratio: SessionSettings.npmDefaults.historyBudgetRatio.value)
 }
 
 struct SeededTurn {

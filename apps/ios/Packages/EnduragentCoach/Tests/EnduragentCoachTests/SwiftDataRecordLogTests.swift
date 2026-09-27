@@ -269,6 +269,18 @@ extension SwiftDataSuites {
 				.planningDevice(
 					PlanningDeviceBody(
 						planningDeviceId: phoneA, planUlid: ulid, activatedAt: expires)),
+				.sessionSettings(
+					SessionSettingsBody(
+						settings: try SessionSettings.npmDefaults
+							.replacing(.historyBudgetRatio, with: "0.05")
+							.replacing(.idleReset, with: "30")
+							.replacing(.dailyResetHour, with: "6")
+							.replacing(.archiveRetention, with: "14")
+							.replacing(.timeZone, with: "Asia/Tokyo")
+							.replacing(.contextWindowOverride, with: "64000")
+							.replacing(.compactionModel, with: "test/compact")
+							.replacing(.flushModel, with: "test/flush"))),
+				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [
 				.turnClaim(

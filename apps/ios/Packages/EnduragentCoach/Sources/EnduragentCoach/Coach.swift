@@ -12,7 +12,11 @@ public actor Coach {
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
-	private var language: LanguagePreference
+	private let deviceLanguage: LanguageTag
+	private var preferenceRecords: [AthleteRecord] = []
+	private var preferencesLoaded = false
+	private var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
+	private let statusFeed = SnapshotFeed<CoachStatus>()
 	private let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
 	private let tools: ToolRuntime
 	private let runner: TurnRunner
@@ -28,7 +32,7 @@ public actor Coach {
 		intervals: any IntervalsClient,
 		store: any RecordLog,
 		clock: any Clock,
-		language: LanguagePreference,
+		deviceLanguage: LanguageTag,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let diagnostics = DiagnosticsLog(clock: clock)
@@ -44,7 +48,7 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
-		self.language = language
+		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: store, intervals: intervals, clock: clock)
 		self.planning = planning
@@ -151,15 +155,21 @@ public actor Coach {
 		}
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: binding
-		)
-		_ = try await ledger.commit(
-			synced: [.coachReplyLanguage(CoachReplyLanguageBody(tag: tag))], stamp: stamp)
-		language.coachReply = tag
+	public func status() async -> CoachStatus {
+		CoachStatus(await loadedPreferences())
+	}
+
+	public func observeStatus() async -> AsyncStream<CoachStatus> {
+		statusFeed.subscribe(from: await status())
+	}
+
+	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
+		try await commitPreference(
+			.languagePreference(LanguagePreferenceBody(preference: preference)))
+	}
+
+	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await commitPreference(.sessionSettings(SessionSettingsBody(settings: settings)))
 	}
 
 	#if DEBUG
@@ -170,6 +180,55 @@ public actor Coach {
 
 	private var binding: ActionBinding {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+	}
+
+	private func commitPreference(_ body: SyncedRecordBody) async throws(PreferenceWriteFailure) {
+		_ = await loadedPreferences()
+		let stamp = OperationStamp(
+			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: binding
+		)
+		let committed: [AthleteRecord]
+		do {
+			committed = try await ledger.commit(synced: [body], stamp: stamp)
+		} catch {
+			throw .notSaved
+		}
+		preferenceRecords += committed
+		statusFeed.publish(CoachStatus(Preferences.fold(preferenceRecords)))
+	}
+
+	private func loadedPreferences() async -> Preferences {
+		guard !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
+		let reading = preferencesRead ?? Task { await self.readPreferences() }
+		preferencesRead = reading
+		let result = await reading.value
+		if preferencesRead == reading {
+			preferencesRead = nil
+		}
+		switch result {
+		case .success(let stored) where !preferencesLoaded:
+			preferenceRecords =
+				stored
+				+ preferenceRecords.filter { written in
+					!stored.contains { $0.ulid == written.ulid }
+				}
+			preferencesLoaded = true
+		case .success:
+			break
+		case .failure(let error):
+			diagnostics.record(.preferencesUnavailable(error))
+		}
+		return Preferences.fold(preferenceRecords)
+	}
+
+	private func readPreferences() async -> Result<[AthleteRecord], LedgerFailure> {
+		do {
+			return .success(try await ledger.read(RecordQuery(scope: Preferences.scope)).records)
+		} catch {
+			return .failure(error)
+		}
 	}
 
 	private static func creditsAccess(secrets: any SecretStore, model: ModelID)
@@ -279,7 +338,9 @@ public actor Coach {
 				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
-			environment: EnvironmentResolver(language: { await self.language }, access: access),
+			environment: EnvironmentResolver(
+				preferences: { await self.loadedPreferences() }, access: access,
+				deviceLanguage: deviceLanguage),
 			process: process
 		)
 		mailboxes[chatId] = created

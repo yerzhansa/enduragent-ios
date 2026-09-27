@@ -40,6 +40,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case replyObservedUnsaved(AttemptID, detail: String)
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
+	case preferencesUnavailable(LedgerFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
 		switch self {
@@ -51,7 +52,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .compactionFailed(let chat, let detail):
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable:
+		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable, .preferencesUnavailable:
 			return self
 		}
 	}

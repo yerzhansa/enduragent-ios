@@ -294,19 +294,6 @@ package struct OpenWindow: Sendable, Equatable {
 	package let closesAt: Date
 }
 
-package struct EnvironmentResolver: Sendable {
-	package let language: @Sendable () async -> LanguagePreference
-	package let access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
-
-	package init(
-		language: @escaping @Sendable () async -> LanguagePreference,
-		access: @escaping @Sendable () throws(AccessUnavailable) -> ResolvedAccess
-	) {
-		self.language = language
-		self.access = access
-	}
-}
-
 extension Duration {
 	package var timeInterval: TimeInterval {
 		TimeInterval(components.seconds)

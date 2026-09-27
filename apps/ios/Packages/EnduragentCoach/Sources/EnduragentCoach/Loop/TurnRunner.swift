@@ -6,7 +6,6 @@ public enum TurnPolicy {
 	public static let toolResultTokenCap = 24_000
 	public static let athleteContextChars = 20_000
 	public static let historyBudgetFloor = 8_000
-	public static let historyTokenBudgetRatio = 0.3
 	public static let contextWindowCap = 200_000
 	public static let reserveTokens = 20_000
 	public static let dailyResetHour = 4
@@ -22,8 +21,13 @@ package struct TurnAttempt: Sendable, Equatable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguagePreference
+	package let language: LanguageResolution
+	package let session: SessionSettings
 	package let access: ResolvedAccess
+
+	package var models: ModelRoles {
+		ModelRoles(response: access.model, session: session)
+	}
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -126,7 +130,7 @@ package struct TurnRunner: Sendable {
 					committed: await scope.written,
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
-					effectiveWindow: TurnPolicy.contextWindowCap,
+					effectiveWindow: prompt.window,
 					flushLatchFree: await scope.flushLatchFree,
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
@@ -194,7 +198,8 @@ package struct TurnRunner: Sendable {
 			return
 		}
 		_ = try await flushes.run(
-			job, messages: rows.map(\.message), access: attempt.access, scope: scope)
+			job, messages: rows.map(\.message),
+			access: attempt.access.using(model: attempt.models.flush), scope: scope)
 	}
 
 	private func flushWork(_ chat: ChatID) -> FlushWork {
@@ -242,13 +247,7 @@ package struct TurnRunner: Sendable {
 		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = await loadSnapshot()
-		let language = attempt.language
-		let resolution = LanguageResolution(
-			language: language.coachReply ?? language.ui,
-			source: language.coachReply == nil ? .surface : .preference,
-			locale: language.ui.rawValue
-		)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: resolution)
+		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			snapshot: snapshot,
@@ -259,7 +258,7 @@ package struct TurnRunner: Sendable {
 		let history = transcript.history
 		let trim = HistoryWindow.trim(
 			messages: history.messages, systemTokens: estimateTokens(system),
-			ratio: TurnPolicy.historyTokenBudgetRatio)
+			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
 		var summary = history.summary
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
@@ -297,7 +296,8 @@ package struct TurnRunner: Sendable {
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		return TurnPrompt(
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
-			wire: wire, inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 })
+			wire: wire, inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 },
+			window: attempt.models.chatWindow)
 	}
 
 	private func summarizeDropped(
@@ -326,7 +326,7 @@ package struct TurnRunner: Sendable {
 	{
 		try await generateStep(
 			request: CompletionRequest(
-				access: attempt.access,
+				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,
 				charge: charge,
 				messages: [
@@ -377,7 +377,7 @@ package struct TurnRunner: Sendable {
 			steps += 1
 			lastText = step.text
 			lastReason = step.reason
-			if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
+			if step.reason == .length, step.usage.inputTokens >= prompt.window {
 				throw AttemptFailure.windowExceededFinish
 			}
 			if step.toolCalls.isEmpty {
@@ -644,6 +644,7 @@ private struct TurnPrompt: Sendable {
 	var summary: String?
 	var wire: [WireMessage]
 	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let window: Int
 
 	var systemMessage: WireMessage {
 		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
@@ -664,7 +665,7 @@ private struct TurnPrompt: Sendable {
 	}
 
 	var overBudget: Bool {
-		estimatedTokens > TurnPolicy.contextWindowCap - TurnPolicy.reserveTokens
+		estimatedTokens > window - TurnPolicy.reserveTokens
 	}
 }
 

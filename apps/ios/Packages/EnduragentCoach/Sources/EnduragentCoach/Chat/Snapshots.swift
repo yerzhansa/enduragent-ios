@@ -80,6 +80,16 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 	case storageUnavailable
 }
 
+public struct CoachStatus: Sendable, Equatable {
+	public let language: LanguagePreference
+	public let session: SessionSettings
+
+	package init(_ preferences: Preferences) {
+		self.language = preferences.language
+		self.session = preferences.session
+	}
+}
+
 public enum RetryRefusal: Error, Sendable, Equatable {
 	case unknownTurn
 	case acceptedOnOtherDevice

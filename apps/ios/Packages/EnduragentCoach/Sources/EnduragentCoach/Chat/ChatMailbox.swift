@@ -17,6 +17,8 @@ package actor ChatMailbox {
 	private var jobs: [FlushJob] = []
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
+	private lazy var start = AttemptStart(
+		chat: chatId, records: records, environment: environment, process: process)
 	private var work: [MailboxWork] = []
 	private var active: MailboxWork?
 	private var window: OpenWindow?
@@ -29,7 +31,7 @@ package actor ChatMailbox {
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
-	private let feed = SnapshotFeed()
+	private let feed = SnapshotFeed<ChatSnapshot>()
 
 	package init(
 		chatId: ChatID,
@@ -281,10 +283,12 @@ package actor ChatMailbox {
 				await self.runTurn(turn)
 			case .flush(let job):
 				await self.flushes.drain(
-					job, in: self.records.conversation, access: self.environment.access)
+					job, in: self.records.conversation, access: await self.environment.flushAccess()
+				)
 				self.jobs = await self.flushes.jobs()
 			case .reset(let reset):
-				await self.resets.run(reset, on: self.records, access: self.environment.access)
+				await self.resets.run(
+					reset, on: self.records, access: await self.environment.flushAccess())
 				self.jobs = await self.flushes.jobs()
 				self.publish()
 			}
@@ -305,36 +309,14 @@ package actor ChatMailbox {
 	private func runTurn(_ turn: TurnID) async {
 		guard let facts = records.conversation.turn(turn) else { return }
 		let stamp = await stamp(for: turn)
+		guard let request = await start.begin(facts, stamp: stamp) else {
+			publish()
+			return
+		}
 		let attempt = stamp.attempt
-		guard
-			case .success(let claim) = records.writes(.claim(attempt, process: process), for: turn)
-		else {
-			publish()
-			return
-		}
-		do {
-			try await records.commit(claim, stamp: stamp)
-		} catch {
-			await records.settleUnsaved(
-				turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))
-			publish()
-			return
-		}
-		let access: ResolvedAccess
-		do {
-			access = try environment.access()
-		} catch {
-			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
-			await records.settle(turn, .settle(attempt, unavailable), stamp: stamp)
-			publish()
-			return
-		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		let request = TurnAttempt(
-			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language(), access: access)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in

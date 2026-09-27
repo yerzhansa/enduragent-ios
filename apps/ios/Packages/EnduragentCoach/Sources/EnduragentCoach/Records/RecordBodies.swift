@@ -141,6 +141,14 @@ public struct CoachReplyLanguageBody: Sendable, Equatable {
 	public var tag: LanguageTag?
 }
 
+public struct SessionSettingsBody: Sendable, Equatable {
+	public var settings: SessionSettings
+}
+
+public struct LanguagePreferenceBody: Sendable, Equatable {
+	public var preference: LanguagePreference
+}
+
 public struct PlanningDeviceBody: Sendable, Equatable {
 	public var planningDeviceId: DeviceID
 	public var planUlid: ULID

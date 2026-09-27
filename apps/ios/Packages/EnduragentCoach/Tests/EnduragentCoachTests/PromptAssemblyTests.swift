@@ -136,7 +136,7 @@ import Testing
 		let systemTokens = estimateTokens(system)
 		let trim = HistoryWindow.trim(
 			messages: messages, systemTokens: systemTokens,
-			ratio: TurnPolicy.historyTokenBudgetRatio)
+			ratio: SessionSettings.npmDefaults.historyBudgetRatio.value)
 		let historyTokens = messages.reduce(0) { $0 + estimateTokens($1.text) }
 		let payload: [String: Int] = [
 			"kept": trim.kept.count,
