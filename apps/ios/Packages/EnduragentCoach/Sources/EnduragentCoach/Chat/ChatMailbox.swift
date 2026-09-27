@@ -141,7 +141,6 @@ package actor ChatMailbox {
 
 	package func interrupt(_ cause: InterruptionCause) async {
 		let active = running
-		guard interruption == nil else { return await active?.value ?? () }
 		guard active != nil || window.open != nil || !work.isEmpty else { return }
 		interruption = cause
 		publish()
@@ -157,7 +156,6 @@ package actor ChatMailbox {
 			}
 			admission.leave()
 		}
-		work.removeAll { $0.turn == nil }
 		interruption = nil
 		leases.end { $0.interrupt() }
 		publish()
@@ -334,7 +332,7 @@ package actor ChatMailbox {
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		finish(turn, under: lease)
-		if interruption == nil, !terminating {
+		if !terminating {
 			for job in await flushes.pending() {
 				enqueue(.flush(job))
 			}
