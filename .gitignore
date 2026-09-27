@@ -12,4 +12,3 @@ dist/
 *.xcuserstate
 xcuserdata/
 .DS_Store
-/AGENTS.md
