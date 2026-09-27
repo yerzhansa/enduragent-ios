@@ -3,8 +3,15 @@ import Foundation
 public struct ChatSnapshot: Sendable, Equatable {
 	public let chat: ChatID
 	public let turns: [TurnView]
+	public let notes: [TranscriptNote]
 	public let activity: ChatActivity
-	public let pendingProposal: PendingProposal?
+	public let review: ReviewSnapshot?
+}
+
+public struct TranscriptNote: Sendable, Equatable, Identifiable {
+	public let id: ULID
+	public let after: TurnID?
+	public let notice: AthleteNotice
 }
 
 public struct TurnView: Sendable, Equatable, Identifiable {
@@ -77,7 +84,7 @@ extension ChatSnapshot {
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
-		pendingProposal: PendingProposal?,
+		review: ReviewSnapshot?,
 		device: DeviceID,
 		process: ProcessID,
 		now: Date,
@@ -85,6 +92,13 @@ extension ChatSnapshot {
 	) {
 		self.chat = chat
 		let current = conversation.current
+		let shown = current.turns.filter { !current.hidesWholly($0) }
+		self.notes = current.notes.map { note in
+			TranscriptNote(
+				id: note.ulid,
+				after: shown.last { $0.turn.ulid < note.ulid }?.turn,
+				notice: AthleteNotices.notice(forApplied: note.summary))
+		}
 		self.turns = current.turns.compactMap { facts -> TurnView? in
 			if current.hidesWholly(facts) {
 				return nil
@@ -106,7 +120,7 @@ extension ChatSnapshot {
 		} else {
 			self.activity = .idle
 		}
-		self.pendingProposal = pendingProposal
+		self.review = review
 	}
 }
 
@@ -120,23 +134,5 @@ extension RetryRefusal {
 		case .rateLimitWaitRunning: self = .rateLimitWaitRunning
 		case .unrecovered: self = .unrecovered
 		}
-	}
-}
-
-extension PendingProposal {
-	public func confirmable(under status: CoachStatus?) -> Bool {
-		guard let current = status?.trainingAccount else { return true }
-		return account.authority(under: current) != .changed
-	}
-
-	package init(_ body: ProposalBody, account: TrainingAccount) {
-		self.init(
-			chatId: body.chatId,
-			nonce: body.nonce,
-			summary: body.summary,
-			description: body.description,
-			expiresAt: body.expiresAt,
-			account: account
-		)
 	}
 }

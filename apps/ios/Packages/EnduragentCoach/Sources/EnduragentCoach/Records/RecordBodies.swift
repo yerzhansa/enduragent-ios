@@ -117,7 +117,12 @@ public enum ProposalClearReason: String, Sendable {
 	case executed
 	case replaced
 	case expired
-	case cancelled
+	case canceled
+}
+
+public struct ReviewAppliedBody: Sendable, Equatable {
+	public var chatId: ChatID
+	public var summary: String
 }
 
 public struct FlushPendingBody: Sendable, Equatable {

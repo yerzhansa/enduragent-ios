@@ -255,6 +255,9 @@ extension SwiftDataSuites {
 						chatId: .main, firstIncludedUlid: ulid,
 						reason: .reset(.explicit(ResetID(ulid: ulid))))),
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
+				.reviewApplied(
+					ReviewAppliedBody(
+						chatId: .main, summary: "Create workout \"Endurance\" on 1998-06-14")),
 				.memorySection(MemorySectionBody(name: .person, content: "Ada")),
 				.dailyNote(DailyNoteBody(note: "note")),
 				.ledgerEvent(
@@ -288,7 +291,7 @@ extension SwiftDataSuites {
 						expiresAt: expires
 					)),
 				.proposalCleared(
-					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .executed)),
+					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .canceled)),
 				.flushPending(
 					FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: [ulid])),
 				.planningCommand(

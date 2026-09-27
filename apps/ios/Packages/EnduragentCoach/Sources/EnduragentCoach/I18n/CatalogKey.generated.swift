@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2432
-	public static let keyCount = 2468
+	public static let englishLeafCount = 2437
+	public static let keyCount = 2473
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -1367,6 +1367,11 @@ public enum Catalog {
 	public static let planViewWorkoutDriftTitle = CatalogKey(rawValue: "plan.view.workoutDrift.title")
 	public static let planViewWorkoutDriftUpdated = CatalogKey(rawValue: "plan.view.workoutDrift.updated")
 	public static let planViewWorkoutDriftUpdatingThePlan = CatalogKey(rawValue: "plan.view.workoutDrift.updatingThePlan")
+	public static let reviewAccountChanged = CatalogKey(rawValue: "review.accountChanged")
+	public static let reviewAdd = CatalogKey(rawValue: "review.add")
+	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
+	public static let reviewTitle = CatalogKey(rawValue: "review.title")
+	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")
 	public static let settingsAppearanceDark = CatalogKey(rawValue: "settings.appearance.dark")
 	public static let settingsAppearanceDetail = CatalogKey(rawValue: "settings.appearance.detail")
 	public static let settingsAppearanceLight = CatalogKey(rawValue: "settings.appearance.light")

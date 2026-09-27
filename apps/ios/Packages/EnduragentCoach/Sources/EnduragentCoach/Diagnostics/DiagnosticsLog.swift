@@ -42,6 +42,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case secureStorageFailed(CredentialSlot, detail: String)
 	case recoveryUnavailable(LedgerFailure)
 	case evidenceUnavailable(detail: String)
+	case reviewOutcomeUnsaved(LedgerFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
 		switch self {
@@ -57,7 +58,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .secureStorageFailed(slot, detail: Redaction.clean(detail, secrets))
 		case .evidenceUnavailable(let detail):
 			return .evidenceUnavailable(detail: Redaction.clean(detail, secrets))
-		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable:
+		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable, .reviewOutcomeUnsaved:
 			return self
 		}
 	}

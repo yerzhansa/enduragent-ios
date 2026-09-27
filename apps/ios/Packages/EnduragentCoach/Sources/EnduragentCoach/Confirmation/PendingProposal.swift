@@ -1,12 +1,12 @@
 import Foundation
 
-public struct PendingProposal: Sendable, Equatable {
-	public var chatId: ChatID
-	public var nonce: Nonce
-	public var summary: String
-	public var description: String
-	public var expiresAt: Date
-	public var account: TrainingAccount
+package struct PendingProposal: Sendable, Equatable {
+	package var chatId: ChatID
+	package var nonce: Nonce
+	package var summary: String
+	package var description: String
+	package var expiresAt: Date
+	package var account: TrainingAccount
 }
 
 public enum GatedToolInput: Sendable, Equatable {
@@ -24,15 +24,13 @@ public struct UpdateWorkoutInput: Sendable, Equatable {
 	public var description: String?
 }
 
-package enum ProposalLookup: Sendable, Equatable {
-	case found(ProposalBody)
-	case expired
-	case mismatch
-	case none
+package struct LiveProposal: Sendable, Equatable {
+	package let body: ProposalBody
+	package let account: TrainingAccount
+	package let ulid: ULID
 }
 
 package enum ProposalPolicy {
-	package static let ttl: Duration = TurnPolicy.proposalTTL
 	package static let ttlSeconds: TimeInterval = 10 * 60
 
 	package static func propose(
@@ -75,39 +73,24 @@ package enum ProposalPolicy {
 		)
 	}
 
-	package static func take(
-		chatId: ChatID,
-		nonce: Nonce,
-		ledger: Ledger,
-		binding: ActionBinding,
-		now: Date,
-		run: @Sendable (GatedToolInput) async throws -> JSONValue
-	) async throws -> ProposalLookup {
+	package static func live(chatId: ChatID, ledger: Ledger, now: Date)
+		async throws(LedgerFailure) -> LiveProposal?
+	{
 		let records = try await ledger.read(proposalQuery(chatId)).records
-		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
-			if live.nonce != nonce {
-				return .mismatch
-			}
-			let stamp = OperationStamp(
-				operation: .workoutChangeSet(
-					ChangeSetID(ulid: await ledger.nextULID()), ChangeSetRevision(rawValue: 1)),
-				attempt: AttemptID(ulid: await ledger.nextULID()),
-				binding: binding
-			)
-			_ = try await ledger.commit(
-				local: [
-					.proposalCleared(
-						ProposalClearedBody(chatId: chatId, nonce: nonce, reason: .executed))
-				],
-				stamp: stamp
-			)
-			_ = try await run(live.toolInput)
-			return .found(live)
-		}
-		if latestUncleared(records, chatId: chatId) != nil {
-			return .expired
-		}
-		return .none
+		return UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now)
+	}
+
+	package static func clear(
+		_ live: LiveProposal, reason: ProposalClearReason, ledger: Ledger, stamp: OperationStamp
+	) async throws(LedgerFailure) {
+		_ = try await ledger.commit(
+			local: [
+				.proposalCleared(
+					ProposalClearedBody(
+						chatId: live.body.chatId, nonce: live.body.nonce, reason: reason))
+			],
+			stamp: stamp
+		)
 	}
 
 	package static func summary(for input: GatedToolInput) -> String {
@@ -141,33 +124,5 @@ package enum ProposalPolicy {
 
 	package static func proposalQuery(_ chatId: ChatID) -> RecordQuery {
 		RecordQuery(scope: .deviceLocal([.pendingProposal, .proposalCleared]), chatId: chatId)
-	}
-
-	package static func pending(in records: [AthleteRecord], chatId: ChatID, now: Date)
-		-> PendingProposal?
-	{
-		UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now).map {
-			PendingProposal($0.body, account: $0.account)
-		}
-	}
-
-	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?
-	{
-		let ordered = records.sorted { $0.hlc < $1.hlc }
-		var cleared: Set<Nonce> = []
-		for record in ordered {
-			if case .deviceLocal(.proposalCleared(let body)) = record.body, body.chatId == chatId {
-				cleared.insert(body.nonce)
-			}
-		}
-		for record in ordered.reversed() {
-			guard case .deviceLocal(.pendingProposal(let body)) = record.body, body.chatId == chatId
-			else {
-				continue
-			}
-			if cleared.contains(body.nonce) { continue }
-			return body
-		}
-		return nil
 	}
 }

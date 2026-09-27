@@ -151,6 +151,12 @@ enum RecordCodec {
 				CompactionSummaryBody(
 					chatId: try decodeChatID(payload.chatId), markdown: payload.markdown)
 			)
+		case .reviewApplied:
+			let payload = try payload(
+				ReviewAppliedPayload.self, version: version, kind: name, data: data)
+			return .reviewApplied(
+				ReviewAppliedBody(
+					chatId: try decodeChatID(payload.chatId), summary: payload.summary))
 		case .memorySection:
 			let payload = try payload(
 				MemorySectionPayload.self, version: version, kind: name, data: data)

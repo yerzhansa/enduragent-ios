@@ -100,19 +100,38 @@ struct GatedToolsTests {
 		)
 	}
 
-	@Test func rebuildConfirmedSerializesFromStoredInput() async throws {
-		let workout = try IntervalsSerializer.parseWorkout(
-			try JSONValue.parse(
-				#"{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}"#
-			)
-		)
-		let json = try await runtime().rebuildConfirmed(
-			.createWorkout(date: "1998-06-14", workout: workout))
-		#expect(json.objectFields["created"]?.boolValue == true)
+	@Test func toolErrorsReachTheModelWithoutSwiftTypeNames() async throws {
+		let invalid = try await runtime().execute(
+			name: .intervalsCreateWorkout,
+			arguments: try JSONValue.parse(
+				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"ramp","duration":{"value":10,"unit":"minutes"}}]}}"#
+			),
+			chatId: .main,
+			scope: turnScope()
+		).outcome
+		intervals.loadFailure = IntervalsError(code: "http", details: "status 503", status: 503)
+		let unavailable = try await runtime().execute(
+			name: .intervalsFetchWellness,
+			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07","newest":"1998-06-13"}"#),
+			chatId: .main,
+			scope: turnScope()
+		).outcome
+		for outcome in [invalid, unavailable] {
+			guard case .result(let json) = outcome else {
+				Issue.record("expected a tool result, got \(outcome)")
+				continue
+			}
+			let text = json.canonicalDigestInput()
+			for typeName in ["IntervalsError", "InvalidWorkout", "EnduragentCoach", "Optional("] {
+				#expect(!text.contains(typeName), "\(typeName) in \(text)")
+			}
+		}
 		#expect(
-			intervals.calls.last
-				== .createEvent(
-					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
+			unwrapData(try #require(invalid.resultJSON)).objectFields["details"]?.stringValue
+				== "steps[0]: ramp step requires a power target")
+		#expect(
+			unwrapData(try #require(unavailable.resultJSON)).objectFields["details"]?.stringValue
+				== "status 503")
 	}
 
 	@Test func pastDateIsRefusedAtTheBoundary() async throws {
@@ -151,5 +170,12 @@ struct GatedToolsTests {
 
 	private func turnScope() -> TurnScope {
 		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+	}
+}
+
+extension ToolOutcome {
+	fileprivate var resultJSON: JSONValue? {
+		guard case .result(let json) = self else { return nil }
+		return json
 	}
 }

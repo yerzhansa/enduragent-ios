@@ -377,7 +377,7 @@ import Testing
 		}
 	}
 
-	@Test func confirmDoesNotEnterTheMailbox() async throws {
+	@Test func reviewDecisionDoesNotEnterTheMailbox() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
 		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
@@ -385,8 +385,11 @@ import Testing
 		for await snapshot in await coach.observe(.main) {
 			if case .processing? = snapshot.turns.first?.state { break }
 		}
-		let outcome = try await coach.confirm(chatId: .main, nonce: Nonce())
-		#expect(outcome == .none)
+		let stale = ReviewRef(
+			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
+			revision: ChangeSetRevision(rawValue: 1),
+			delivery: UUID())
+		#expect(await coach.decide(.presented(stale), in: .main) == .staleControl)
 		await coach.stop(.main)
 	}
 }

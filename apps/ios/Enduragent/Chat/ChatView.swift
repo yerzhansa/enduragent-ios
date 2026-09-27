@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct ChatView: View {
@@ -10,10 +11,16 @@ struct ChatView: View {
 				if model.slashListVisible {
 					SlashListView(model: model)
 				}
-				if let pending = model.visibleProposal {
-					ConfirmedPreviewCard(model: model, pending: pending)
+				if let review = model.chat?.review {
+					ConfirmedPreviewCard(model: model, review: review)
 						.padding(.horizontal)
 						.padding(.bottom, 8)
+				}
+				if let notice = model.reviewNotice {
+					Text(notice.sentence(in: model.builder.phrasebook))
+						.accessibilityIdentifier("chat.review.notice")
+						.padding(.horizontal)
+						.padding(.vertical, 8)
 				}
 				if let errorLine = model.errorLine {
 					Text(errorLine)

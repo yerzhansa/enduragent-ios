@@ -12,6 +12,7 @@ enum SyncedPayload: Encodable {
 	case provenance(ProvenancePayload)
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
+	case reviewApplied(ReviewAppliedPayload)
 
 	init(_ body: SyncedRecordBody) {
 		switch body {
@@ -82,6 +83,9 @@ enum SyncedPayload: Encodable {
 					activatedAt: value.activatedAt.timeIntervalSince1970
 				)
 			)
+		case .reviewApplied(let value):
+			self = .reviewApplied(
+				ReviewAppliedPayload(chatId: value.chatId.rawValue, summary: value.summary))
 		}
 	}
 
@@ -98,6 +102,7 @@ enum SyncedPayload: Encodable {
 		case .provenance(let payload): try payload.encode(to: encoder)
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
+		case .reviewApplied(let payload): try payload.encode(to: encoder)
 		}
 	}
 }

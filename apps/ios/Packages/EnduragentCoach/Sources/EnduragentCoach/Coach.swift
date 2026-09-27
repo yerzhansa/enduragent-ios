@@ -15,6 +15,7 @@ public actor Coach {
 	private let builtInModel: ModelID
 	private let vault: CredentialVault
 	private let runner: TurnRunner
+	private let reviews: SingleProposalReviews
 	private var mailboxes: [ChatID: ChatMailbox]
 	private var recovery: Task<Bool, Never>?
 	private let process: ProcessID
@@ -54,6 +55,10 @@ public actor Coach {
 			ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
 		)
+		self.reviews = SingleProposalReviews(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
+		)
 		self.mailboxes = [:]
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
@@ -87,49 +92,10 @@ public actor Coach {
 		}
 	}
 
-	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
-		let records = (try? await ledger.read(ProposalPolicy.proposalQuery(chatId)).records) ?? []
-		return ProposalPolicy.pending(in: records, chatId: chatId, now: clock.now)
-	}
-
-	public func confirm(chatId: ChatID, nonce: Nonce) async throws -> ConfirmOutcome {
-		_ = sport
-		_ = transport
-		defer {
-			Task { await self.mailbox(for: chatId).refreshProposal() }
-		}
-		do {
-			let training = try await vault.trainingConnection()
-			let tools = ToolRuntime(
-				intervals: training.client, ledger: ledger, planning: planning, clock: clock)
-			let lookup = try await ProposalPolicy.take(
-				chatId: chatId,
-				nonce: nonce,
-				ledger: ledger,
-				binding: ActionBinding(
-					account: training.account, zone: AthleteCalendar(clock: clock).deviceZone),
-				now: clock.now,
-				run: { input in
-					try await tools.rebuildConfirmed(input)
-				}
-			)
-			switch lookup {
-			case .found(let body):
-				return .executed(summary: body.summary)
-			case .expired:
-				return .expired
-			case .mismatch:
-				return .mismatch
-			case .none:
-				return .none
-			}
-		} catch let error as IntervalsError {
-			return .refused(message: error.details)
-		} catch let error as InvalidWorkout {
-			return .refused(message: error.message)
-		} catch {
-			return .failed(message: "\(error)")
-		}
+	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
+		let outcome = await reviews.decide(decision, chat: chat)
+		await mailbox(for: chat).reviewChanged()
+		return outcome
 	}
 
 	public func status() async -> CoachStatus {
@@ -141,7 +107,11 @@ public actor Coach {
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
-		await vault.change(change) { await self.holdsBoundWork() }
+		let outcome = await vault.change(change) { await self.holdsBoundWork() }
+		for mailbox in mailboxes.values {
+			await mailbox.reviewChanged()
+		}
+		return outcome
 	}
 
 	public func changeModelAccess(_ change: ModelAccessChange) async
@@ -164,7 +134,7 @@ public actor Coach {
 		for mailbox in mailboxes.values {
 			var snapshots = await mailbox.observe().makeAsyncIterator()
 			guard let snapshot = await snapshots.next() else { continue }
-			if snapshot.pendingProposal != nil
+			if snapshot.review != nil
 				|| snapshot.turns.contains(where: { !$0.state.isSettled })
 			{
 				return true
@@ -279,6 +249,7 @@ public actor Coach {
 				training: { () async throws(AccessUnavailable) in
 					try await vault.trainingConnection()
 				}),
+			reviews: reviews,
 			process: process
 		)
 		mailboxes[chatId] = created

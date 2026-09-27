@@ -191827,6 +191827,74 @@
         }
       }
     },
+    "review.accountChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout was prepared for a different %#@service@ athlete. Ask me again to prepare it for the connected athlete."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "review.add": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to calendar"
+          }
+        }
+      }
+    },
+    "review.cannotVerify": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't check your %#@service@ connection, so nothing was changed. Try again in a moment."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "review.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout review"
+          }
+        }
+      }
+    },
+    "review.uncertain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't confirm whether this reached your %#@service@ calendar. Check your calendar before asking again."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
     "settings.appearance.dark": {
       "localizations": {
         "en": {

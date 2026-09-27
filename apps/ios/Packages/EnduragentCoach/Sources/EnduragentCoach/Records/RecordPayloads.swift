@@ -154,6 +154,11 @@ struct CompactionSummaryPayload: Codable {
 	var markdown: String
 }
 
+struct ReviewAppliedPayload: Codable {
+	var chatId: String
+	var summary: String
+}
+
 struct MemorySectionPayload: Codable {
 	var name: String
 	var content: String

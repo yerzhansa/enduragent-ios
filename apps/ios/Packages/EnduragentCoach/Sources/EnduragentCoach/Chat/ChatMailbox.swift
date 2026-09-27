@@ -8,12 +8,13 @@ package actor ChatMailbox {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
+	private let reviews: any WorkoutReviews
 	private let process: ProcessID
 
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private let records: TurnRecords
-	private var pendingProposal: PendingProposal?
+	private var review: ReviewSnapshot?
 	private var work: [MailboxWork] = []
 	private var active: MailboxWork?
 	private var window: OpenWindow?
@@ -36,6 +37,7 @@ package actor ChatMailbox {
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
 		environment: EnvironmentResolver,
+		reviews: any WorkoutReviews,
 		process: ProcessID
 	) {
 		self.chatId = chatId
@@ -45,6 +47,7 @@ package actor ChatMailbox {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.environment = environment
+		self.reviews = reviews
 		self.process = process
 		self.records = TurnRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
@@ -188,13 +191,21 @@ package actor ChatMailbox {
 		return items.compactMap(\.turn)
 	}
 
-	package func refreshProposal() async {
-		do {
-			pendingProposal = try await ledger.pendingProposal(chatId, now: clock.now)
-		} catch {
-			pendingProposal = nil
-		}
+	package func reviewChanged() async {
+		await refreshReview()
 		publish()
+	}
+
+	private func refreshReview() async {
+		do {
+			try await records.refreshNotes()
+			review = try await reviews.snapshot(chat: chatId)
+		} catch {
+			switch error {
+			case .unavailable, .rejectedBatch:
+				review = nil
+			}
+		}
 	}
 
 	package func flushAndDrain() async {
@@ -214,7 +225,7 @@ package actor ChatMailbox {
 	private func read() async -> Result<Void, LedgerFailure> {
 		defer { loading = nil }
 		do {
-			pendingProposal = try await ledger.pendingProposal(chatId, now: clock.now)
+			review = try await reviews.snapshot(chat: chatId)
 			records.replace(with: try await ledger.conversation(chatId))
 			loaded = true
 			return .success(())
@@ -345,9 +356,12 @@ package actor ChatMailbox {
 		if case .textDelta(let delta) = progress, !delta.isEmpty {
 			await records.observeReply(turn, stamp: stamp)
 		}
-		guard var current = live, current.attempt == stamp.attempt else { return }
-		if case .proposalPending(let proposal) = progress {
-			pendingProposal = proposal
+		if case .proposalPending = progress {
+			await refreshReview()
+		}
+		guard var current = live, current.attempt == stamp.attempt else {
+			publish()
+			return
 		}
 		current.apply(progress)
 		live = current
@@ -363,7 +377,7 @@ package actor ChatMailbox {
 			queued: queuedTurns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption != nil,
-			pendingProposal: pendingProposal,
+			review: review,
 			device: ledger.deviceId,
 			process: process,
 			now: clock.now,

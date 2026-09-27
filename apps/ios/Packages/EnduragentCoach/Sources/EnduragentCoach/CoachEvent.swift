@@ -17,15 +17,6 @@ public struct ChatMessage: Sendable, Equatable {
 	}
 }
 
-public enum ConfirmOutcome: Sendable, Equatable {
-	case executed(summary: String)
-	case refused(message: String)
-	case failed(message: String)
-	case expired
-	case mismatch
-	case none
-}
-
 public struct LanguagePreference: Sendable, Equatable {
 	public var ui: LanguageTag
 	public var coachReply: LanguageTag?

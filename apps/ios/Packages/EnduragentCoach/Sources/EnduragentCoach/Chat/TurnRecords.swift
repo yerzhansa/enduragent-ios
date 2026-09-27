@@ -17,6 +17,13 @@ final class TurnRecords {
 		conversation = folded
 	}
 
+	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		let notes = try await ledger.read(
+			RecordQuery(scope: .synced([.reviewApplied]), chatId: chat))
+		conversation = ConversationFold.applying(
+			notes.records, to: conversation, device: ledger.deviceId)
+	}
+
 	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {
 		TurnLifecycle.writes(
 			for: event, on: conversation.turn(turn), chat: chat, device: ledger.deviceId,

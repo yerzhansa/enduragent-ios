@@ -11,7 +11,6 @@ public enum TurnPolicy {
 	public static let reserveTokens = 20_000
 	public static let dailyResetHour = 4
 	public static let dailyResetGrace: Duration = .seconds(30 * 60)
-	public static let proposalTTL: Duration = .seconds(10 * 60)
 	public static let ungatedPrefixTokenCeiling = 13_200
 	public static let gatedPrefixTokenCeiling = 13_600
 }

@@ -164,11 +164,48 @@ extension AthleteNotice {
 	}
 }
 
+extension ReviewOutcome {
+	public var notice: AthleteNotice? {
+		AthleteNotices.notice(for: self)
+	}
+}
+
 package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
 	private static let intervals = "intervals.icu"
 	package static let unrecoveredClaim = AthleteNotice(
 		key: Catalog.chatHistoryFailure, action: nil)
+	package static let accountChanged = ReviewNotice(
+		kind: .accountChanged, key: Catalog.reviewAccountChanged, vars: ["service": intervals])
+
+	package static func notice(forApplied summary: String) -> AthleteNotice {
+		AthleteNotice(
+			key: Catalog.coachConfirmationExecuted, vars: ["summary": summary], action: nil)
+	}
+
+	package static func notice(for outcome: ReviewOutcome) -> AthleteNotice? {
+		switch outcome {
+		case .applied, .canceled, .presentationRecorded:
+			return nil
+		case .partiallyApplied(_, _, let failure):
+			return notice(for: failure)
+		case .uncertain:
+			return AthleteNotice(
+				key: Catalog.reviewUncertain, vars: ["service": intervals], action: nil)
+		case .changedSinceReview(let notice):
+			return AthleteNotice(key: notice.key, vars: notice.vars, action: nil)
+		case .blocked(.accountChanged):
+			return AthleteNotice(key: accountChanged.key, vars: accountChanged.vars, action: nil)
+		case .blocked(.cannotVerify):
+			return AthleteNotice(
+				key: Catalog.reviewCannotVerify, vars: ["service": intervals], action: nil)
+		case .staleControl:
+			return AthleteNotice(key: Catalog.coachConfirmationExpired, action: nil)
+		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly),
+			.storageUnavailable:
+			return AthleteNotice(key: Catalog.coachErrorUnknown, action: nil)
+		}
+	}
 
 	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice

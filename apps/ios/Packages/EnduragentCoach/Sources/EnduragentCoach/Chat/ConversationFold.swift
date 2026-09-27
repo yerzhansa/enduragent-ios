@@ -2,7 +2,7 @@ import Foundation
 
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
-		[.userMessage, .turnSettled, .windowStart],
+		[.userMessage, .turnSettled, .windowStart, .reviewApplied],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
@@ -145,6 +145,11 @@ package enum ConversationFold {
 			guard let facts = turns[turn], let first = facts.fragments.first else { continue }
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
 		}
+		for record in ordered {
+			guard case .synced(.reviewApplied(let body)) = record.body else { continue }
+			segments[segmentIndex(for: record.ulid)].notes.append(
+				ReviewNote(ulid: record.ulid, summary: body.summary))
+		}
 		for firstIncluded in legacyTrims {
 			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
 		}
@@ -201,6 +206,8 @@ package enum ConversationFold {
 			case .deviceLocal(.replyObserved(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
+			case .synced(.reviewApplied(let body)):
+				next.appendNote(ReviewNote(ulid: record.ulid, summary: body.summary))
 			default:
 				continue
 			}
@@ -276,6 +283,14 @@ package struct Conversation: Sendable, Equatable {
 		segments[segments.count - 1].turns.append(facts)
 	}
 
+	fileprivate mutating func appendNote(_ note: ReviewNote) {
+		guard !segments.contains(where: { $0.notes.contains(note) }) else { return }
+		if segments.isEmpty {
+			segments.append(Segment(id: SegmentID(boundary: nil), openedBy: .chatStart))
+		}
+		segments[segments.count - 1].notes.append(note)
+	}
+
 	package var lastExchange: LastExchange {
 		let stamps = current.turns.flatMap { turn in
 			turn.fragments.map(\.hlc) + turn.settlements.map(\.hlc)
@@ -311,6 +326,11 @@ package enum SegmentOpening: Sendable, Equatable {
 	case reset(ResetKind)
 }
 
+package struct ReviewNote: Sendable, Equatable {
+	package let ulid: ULID
+	package let summary: String
+}
+
 package struct PromptWindow: Sendable, Equatable {
 	package var firstIncluded: ULID?
 }
@@ -329,6 +349,7 @@ package struct Segment: Sendable, Equatable {
 	package let id: SegmentID
 	package let openedBy: SegmentOpening
 	package var turns: [TurnFacts] = []
+	package var notes: [ReviewNote] = []
 	package var promptWindow = PromptWindow(firstIncluded: nil)
 	package var legacyTrim: ULID?
 

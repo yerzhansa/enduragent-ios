@@ -144,7 +144,7 @@ import Testing
 		#expect(hit.kind == .ledger(.decision))
 	}
 
-	@Test func calendarWriteBecomesAPendingProposal() async throws {
+	@Test func calendarWriteBecomesAReview() async throws {
 		transport.script = [
 			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
 			.finish(reason: .toolCalls),
@@ -152,18 +152,30 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let coach = makeCoach()
-		let pending = try await proposeEnduranceRide(coach)
-		#expect(pending.chatId == "main")
-		#expect(pending.summary == "Create workout \"Endurance\" on 1998-06-14")
-		#expect(pending.description.hasPrefix("Warmup\n- 10m 55-65%"))
-		#expect(pending.expiresAt == clock.now.addingTimeInterval(10 * 60))
+		let review = try await proposeEnduranceRide(coach)
+		#expect(review.ref.chat == "main")
+		let card = try #require(review.cards.first)
+		#expect(card.action == .add)
+		#expect(card.name == "Endurance")
+		#expect(card.date == "1998-06-14")
+		#expect(card.steps.joined(separator: "\n").hasPrefix("Warmup\n- 10m 55-65%"))
+		#expect(
+			review.totals
+				== ReviewTotals(additions: 1, edits: 0, deletions: 0, durationMinutes: nil))
+		let live = try #require(
+			try await ProposalPolicy.live(
+				chatId: "main",
+				ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+				now: clock.now))
+		#expect(live.body.summary == "Create workout \"Endurance\" on 1998-06-14")
+		#expect(live.body.expiresAt == clock.now.addingTimeInterval(10 * 60))
 		#expect(
 			!intervals.calls.contains { call in
 				if case .createEvent = call { return true }
 				return false
 			}
 		)
-		#expect(await coach.pendingProposal(chatId: "main")?.nonce == pending.nonce)
+		#expect(await makeCoach().currentSnapshot(.main)?.review?.cards == review.cards)
 	}
 
 	@Test func calendarProposalSurvivesProviderErrorFinish() async throws {
@@ -174,38 +186,17 @@ import Testing
 			.finish(reason: .error),
 		]
 		let coach = makeCoach()
-		let pending = try await proposeEnduranceRide(coach)
-		#expect(pending.summary == "Create workout \"Endurance\" on 1998-06-14")
+		let review = try await proposeEnduranceRide(coach)
+		#expect(review.cards.map(\.name) == ["Endurance"])
 		#expect(
 			await coach.transcript(.main).contains("I've prepared the ride. Confirm to add it."))
-		#expect(await coach.pendingProposal(chatId: "main") != nil)
-	}
-
-	@Test func confirmRunsTheWriteOnceAndClearsTheSnapshotProposal() async throws {
-		let coach = makeCoach()
-		let pending = try await proposeEnduranceRide(coach)
-
-		let outcome = try await coach.confirm(chatId: "main", nonce: pending.nonce)
-
-		#expect(outcome == .executed(summary: "Create workout \"Endurance\" on 1998-06-14"))
-		#expect(
-			intervals.calls.last
-				== .createEvent(
-					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
-		#expect(await coach.pendingProposal(chatId: "main") == nil)
-		for await snapshot in await coach.observe(.main) where snapshot.pendingProposal == nil {
-			break
-		}
-
-		let again = try await coach.confirm(chatId: "main", nonce: pending.nonce)
-		#expect(again == .none)
 	}
 
 	var workoutArguments: String {
 		#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"steady","duration":{"value":70,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}}"#
 	}
 
-	func proposeEnduranceRide(_ coach: Coach) async throws -> PendingProposal {
+	func proposeEnduranceRide(_ coach: Coach) async throws -> ReviewSnapshot {
 		if transport.script.isEmpty {
 			transport.script = [
 				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
@@ -219,6 +210,6 @@ import Testing
 				.acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
-		return try #require(snapshot.pendingProposal)
+		return try #require(snapshot.review)
 	}
 }

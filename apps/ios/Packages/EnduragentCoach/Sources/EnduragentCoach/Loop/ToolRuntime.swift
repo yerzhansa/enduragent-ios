@@ -359,61 +359,6 @@ package struct ToolRuntime: Sendable {
 		return schemas
 	}
 
-	package func rebuildConfirmed(_ input: GatedToolInput) async throws -> JSONValue {
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		switch input {
-		case .createWorkout(let date, let workout):
-			try IntervalsPolicy.rejectPastCreationDate(date, today: today)
-			let serialized = try IntervalsSerializer.serialize(workout)
-			let draft = ChatCalendarCreate(
-				date: date,
-				name: workout.name,
-				description: serialized.description,
-				type: .ride,
-				externalId: IntervalsSerializer.chatExternalId(date: date, name: workout.name),
-				tags: [IntervalsPolicy.coachTag]
-			)
-			let event = try await intervals.createChatEvent(draft)
-			return .object([
-				"created": .bool(true),
-				"event": encodeEvent(event),
-			])
-		case .createStrengthWorkout(let date, let name, let description):
-			try IntervalsPolicy.rejectPastCreationDate(date, today: today)
-			let draft = ChatCalendarCreate(
-				date: date,
-				name: name,
-				description: description,
-				type: .weightTraining,
-				externalId: IntervalsSerializer.chatExternalId(
-					date: date, name: "strength \(name)"),
-				tags: [IntervalsPolicy.coachTag]
-			)
-			let event = try await intervals.createChatEvent(draft)
-			return .object([
-				"created": .bool(true),
-				"event": encodeEvent(event),
-			])
-		case .deleteWorkout(let eventId):
-			try await intervals.deleteEvent(id: eventId)
-			return .object(["deleted": .bool(true)])
-		case .updateWorkout(let update):
-			let event = try await intervals.updateEvent(
-				id: update.eventId,
-				name: update.name,
-				description: update.description,
-				date: update.date
-			)
-			return .object([
-				"updated": .bool(true),
-				"event": encodeEvent(event),
-			])
-		case .planSave:
-			throw IntervalsError(
-				code: "not_implemented", details: "Saving a plan is not available yet.")
-		}
-	}
-
 	private func executeGated(
 		_ gated: GatedToolName,
 		arguments: JSONValue,

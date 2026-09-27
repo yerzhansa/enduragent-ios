@@ -7,11 +7,4 @@ extension Ledger {
 		return ConversationFold.fold(
 			chat: chat, synced: synced.records, local: local.records, device: deviceId)
 	}
-
-	package func pendingProposal(_ chat: ChatID, now: Date) async throws(LedgerFailure)
-		-> PendingProposal?
-	{
-		let records = try await read(ProposalPolicy.proposalQuery(chat)).records
-		return ProposalPolicy.pending(in: records, chatId: chat, now: now)
-	}
 }

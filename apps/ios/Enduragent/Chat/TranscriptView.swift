@@ -13,11 +13,10 @@ struct TranscriptView: View {
 							model.athleteFirstName.isEmpty
 								? "Hello." : "Hello, \(model.athleteFirstName).")
 					}
+					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
-					}
-					if let confirmLine = model.confirmLine {
-						Text(confirmLine)
+						notes(after: turn.id)
 					}
 					Color.clear
 						.frame(height: 1)
@@ -29,6 +28,13 @@ struct TranscriptView: View {
 			.onChange(of: model.chat) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
+		}
+	}
+
+	private func notes(after turn: TurnID?) -> some View {
+		ForEach((model.chat?.notes ?? []).filter { $0.after == turn }) { note in
+			Text(note.notice.sentence(in: model.builder.phrasebook))
+				.accessibilityIdentifier("chat.note")
 		}
 	}
 
