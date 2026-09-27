@@ -203,6 +203,7 @@ struct FlushPendingPayload: Codable {
 	var chatId: String
 	var trigger: String
 	var messageUlids: [String]
+	var process: String?
 }
 
 struct FlushSettledPayload: Codable {
@@ -224,6 +225,10 @@ struct FlushSettledPayload: Codable {
 			outcome = "nothingToSave"
 			sections = 0
 			events = 0
+		case .abandoned:
+			outcome = "abandoned"
+			sections = 0
+			events = 0
 		}
 	}
 
@@ -233,6 +238,8 @@ struct FlushSettledPayload: Codable {
 			return .saved(sections: sections, events: events)
 		case "nothingToSave":
 			return .nothingToSave
+		case "abandoned":
+			return .abandoned
 		default:
 			throw RecordDecodeFailure(reason: "flushSettled")
 		}

@@ -124,6 +124,7 @@ public struct FlushPendingBody: Sendable, Equatable {
 	public var chatId: ChatID
 	public var trigger: FlushTrigger
 	public var messageUlids: [ULID]
+	public var process: ProcessID?
 }
 
 public struct FlushSettledBody: Sendable, Equatable {
@@ -135,6 +136,7 @@ public struct FlushSettledBody: Sendable, Equatable {
 public enum FlushSettlement: Sendable, Equatable {
 	case saved(sections: Int, events: Int)
 	case nothingToSave
+	case abandoned
 }
 
 public struct CoachReplyLanguageBody: Sendable, Equatable {
