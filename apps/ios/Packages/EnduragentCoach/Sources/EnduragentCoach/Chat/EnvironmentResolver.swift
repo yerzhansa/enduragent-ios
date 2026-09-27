@@ -25,14 +25,16 @@ package struct EnvironmentResolver: Sendable {
 	}
 
 	package func attempt(
-		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, in environment: AttemptEnvironment
+		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, autoReset: ResetKind?,
+		in environment: AttemptEnvironment
 	) -> TurnAttempt {
 		TurnAttempt(
 			turn: facts.turn, attempt: attempt, chat: chat, request: facts.requestText,
 			slash: facts.slash,
 			language: environment.preferences.language.replyLanguage(
 				for: facts.requestText, device: deviceLanguage),
-			session: environment.preferences.session, access: environment.access)
+			session: environment.preferences.session, access: environment.access,
+			autoReset: autoReset)
 	}
 
 	package func flushAccess() async -> @Sendable () throws(AccessUnavailable) -> ResolvedAccess {

@@ -24,28 +24,38 @@ public enum ChatActivity: Sendable, Equatable {
 public enum ConversationOpening: Sendable, Equatable {
 	case welcome
 	case afterNewConversation(memorySaved: Bool)
+	case afterAutomaticReset(ResetKind)
 	case continuing
+
+	public var showsWelcome: Bool {
+		switch self {
+		case .welcome, .afterNewConversation: true
+		case .afterAutomaticReset, .continuing: false
+		}
+	}
 
 	public var notice: CatalogKey? {
 		switch self {
 		case .afterNewConversation(memorySaved: true): Catalog.chatNoticeNewConversationSuccess
 		case .afterNewConversation(memorySaved: false):
 			Catalog.chatNoticeNewConversationMemoryWarning
+		case .afterAutomaticReset: Catalog.coachHistoryReset
 		case .welcome, .continuing: nil
 		}
 	}
 
 	package init(_ segment: Segment, jobs: [FlushJob]) {
-		guard segment.turns.isEmpty else {
-			self = .continuing
-			return
-		}
-		guard case .reset(.explicit(let reset)) = segment.openedBy else {
+		switch (segment.openedBy, segment.turns.isEmpty) {
+		case (.reset(.explicit(let reset)), true):
+			self = .afterNewConversation(
+				memorySaved: jobs.first { $0.reset == reset }.map(\.settled) ?? true)
+		case (.reset(let kind), false) where kind == .daily || kind == .idle:
+			self = .afterAutomaticReset(kind)
+		case (_, true):
 			self = .welcome
-			return
+		case (_, false):
+			self = .continuing
 		}
-		self = .afterNewConversation(
-			memorySaved: jobs.first { $0.reset == reset }.map(\.settled) ?? true)
 	}
 }
 

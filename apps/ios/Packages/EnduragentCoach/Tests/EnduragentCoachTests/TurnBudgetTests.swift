@@ -168,7 +168,8 @@ import Testing
 			slash: nil,
 			language: LanguagePreference.automatic.replyLanguage(for: request, device: .en),
 			session: .npmDefaults,
-			access: testAccess
+			access: testAccess,
+			autoReset: nil
 		)
 	}
 }

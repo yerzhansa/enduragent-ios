@@ -8,13 +8,20 @@ struct TranscriptView: View {
 		ScrollViewReader { proxy in
 			List {
 				Group {
-					if let opening = model.chat?.opening, opening != .continuing {
-						Text(
-							Welcome.text(
-								in: model.builder.phrasebook, showsSyncLine: model.athlete != nil)
-						)
-						.accessibilityIdentifier("chat.welcome")
-						if let notice = opening.notice {
+					if let opening = model.chat?.opening {
+						if opening.showsWelcome {
+							Text(
+								Welcome.text(
+									in: model.builder.phrasebook,
+									showsSyncLine: model.athlete != nil)
+							)
+							.accessibilityIdentifier("chat.welcome")
+						}
+						if case .afterAutomaticReset = opening, let notice = opening.notice {
+							Text(model.builder.phrasebook.say(notice, [:]))
+								.foregroundStyle(.secondary)
+								.accessibilityIdentifier("chat.automaticReset.notice")
+						} else if let notice = opening.notice {
 							newConversationNotice(notice)
 						}
 					}

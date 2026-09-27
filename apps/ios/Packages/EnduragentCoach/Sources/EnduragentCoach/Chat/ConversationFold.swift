@@ -296,18 +296,16 @@ package struct Conversation: Sendable, Equatable {
 		segments[segments.count - 1].turns.append(facts)
 	}
 
-	package var lastExchange: LastExchange {
-		let stamps = current.turns.flatMap { turn in
-			turn.fragments.map(\.hlc) + turn.settlements.map(\.hlc)
-		}
+	package func lastExchange(before turn: TurnID) -> LastExchange {
+		let segment = current
+		guard let running = segment.turns.first(where: { $0.turn == turn })?.firstFragment
+		else { return .none }
+		let stamps = segment.turns.filter { facts in
+			facts.firstFragment.map { $0 < running } ?? false
+		}.flatMap { $0.fragments.map(\.hlc) + $0.settlements.map(\.hlc) }
 		guard let latest = stamps.max() else { return .none }
-		return .at(latest.wallTime)
+		return latest.wallMs > 0 ? .at(latest.wallTime) : .malformed
 	}
-}
-
-package enum LastExchange: Sendable, Equatable {
-	case none
-	case at(Date)
 }
 
 package struct SegmentID: Hashable, Sendable {
