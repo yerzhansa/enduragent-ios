@@ -82,6 +82,56 @@ extension Coach {
 			}
 		}
 	}
+
+	func waitForLiveText(_ turn: TurnID, in chat: ChatID = .main) async {
+		for await snapshot in await observe(chat) {
+			if case .processing(let processing)? = snapshot.turns.first(where: { $0.id == turn })?
+				.state, !processing.liveText.isEmpty
+			{
+				return
+			}
+		}
+	}
+
+	func state(of turn: TurnID, in chat: ChatID = .main) async -> TurnState? {
+		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
+	}
+
+	func waitForState(
+		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
+	) async throws -> TurnState? {
+		let deadline = ContinuousClock.now + limit
+		while ContinuousClock.now < deadline {
+			let current = await state(of: turn)
+			if matches(current) { return current }
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		return await state(of: turn)
+	}
+
+	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
+		for kind in SyncedKind.allCases {
+			log.failAppends(ofKind: kind)
+		}
+		for kind in DeviceLocalKind.allCases {
+			log.failAppends(ofKind: kind)
+		}
+		await lifecycle(.willTerminate)
+	}
+}
+
+func waitForRecords(
+	_ scope: RecordQuery.Scope, count: Int, in store: any RecordLog,
+	within limit: Duration = .seconds(5)
+) async throws {
+	let deadline = ContinuousClock.now + limit
+	while try await store.fetch(RecordQuery(scope: scope)).records.count < count {
+		guard ContinuousClock.now < deadline else {
+			Issue.record("\(scope) never reached \(count) records")
+			return
+		}
+		try await Task.sleep(for: .milliseconds(10))
+	}
 }
 
 func refusal(_ retry: @Sendable () async throws(RetryRefusal) -> Void) async -> RetryRefusal? {

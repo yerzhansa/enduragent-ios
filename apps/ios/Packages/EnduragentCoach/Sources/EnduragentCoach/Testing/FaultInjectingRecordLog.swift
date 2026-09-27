@@ -19,6 +19,7 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 		var nextAppend = false
 		var appendKinds: Set<String> = []
 		var fetches = false
+		var recoveryReads = false
 	}
 
 	public let deviceId: DeviceID
@@ -38,6 +39,11 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 	public var failFetches: Bool {
 		get { faults.withLock { $0.fetches } }
 		set { faults.withLock { $0.fetches = newValue } }
+	}
+
+	public var failRecoveryReads: Bool {
+		get { faults.withLock { $0.recoveryReads } }
+		set { faults.withLock { $0.recoveryReads = newValue } }
 	}
 
 	public func failAppends(ofKind kind: SyncedKind) {
@@ -64,7 +70,10 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 	}
 
 	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		if faults.withLock({ $0.fetches }) {
+		let fails = faults.withLock { current in
+			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.claimScope)
+		}
+		if fails {
 			throw RecordStorageFault(operation: .fetch)
 		}
 		return try await wrapped.fetch(query)

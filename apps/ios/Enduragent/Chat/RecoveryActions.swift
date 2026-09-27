@@ -21,7 +21,7 @@ extension ShellModel {
 		} catch {
 			switch error {
 			case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn,
-				.rateLimitWaitRunning:
+				.rateLimitWaitRunning, .unrecovered:
 				return
 			}
 		}

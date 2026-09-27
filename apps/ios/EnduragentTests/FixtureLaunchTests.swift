@@ -40,12 +40,14 @@ final class FixtureLaunchTests {
 		return try AppServices.fixture(launch, defaults: defaults)
 	}
 
-	func relaunch(_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked) throws
-		-> (AppServices, UserDefaults)
-	{
+	func relaunch(
+		_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked,
+		recovery: FixtureRecoveryPolicy = .readable
+	) throws -> (AppServices, UserDefaults) {
 		var launch = launch
 		launch.store = store
 		launch.keychain = keychain
+		launch.recovery = recovery
 		let defaults = try launch.prepare()
 		return (try AppServices.fixture(launch, defaults: defaults), defaults)
 	}
@@ -280,6 +282,6 @@ func replyText(_ state: TurnState) -> String? {
 func isSettled(_ state: TurnState) -> Bool {
 	switch state {
 	case .completed, .savedWork, .failed, .interrupted: true
-	case .accepted, .processing: false
+	case .accepted, .processing, .unrecovered: false
 	}
 }

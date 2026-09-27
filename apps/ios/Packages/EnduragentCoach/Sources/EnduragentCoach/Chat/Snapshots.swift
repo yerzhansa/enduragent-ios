@@ -65,6 +65,7 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 	case alreadyAnswered
 	case alreadyRunning
 	case rateLimitWaitRunning
+	case unrecovered
 }
 
 extension ChatSnapshot {
@@ -78,6 +79,7 @@ extension ChatSnapshot {
 		stopping: Bool,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
+		process: ProcessID,
 		now: Date,
 		zone: TimeZone
 	) {
@@ -93,7 +95,8 @@ extension ChatSnapshot {
 				id: facts.turn,
 				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
-				state: TurnLifecycle.state(of: facts, live: live, overlay: overlay, device: device)
+				state: TurnLifecycle.state(
+					of: facts, live: live, overlay: overlay, device: device, process: process)
 			)
 		}
 		if stopping {
@@ -115,6 +118,7 @@ extension RetryRefusal {
 		case .alreadyAnswered: self = .alreadyAnswered
 		case .attemptInFlight: self = .alreadyRunning
 		case .rateLimitWaitRunning: self = .rateLimitWaitRunning
+		case .unrecovered: self = .unrecovered
 		}
 	}
 }

@@ -167,6 +167,8 @@ extension AthleteNotice {
 package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
 	private static let intervals = "intervals.icu"
+	package static let unrecoveredClaim = AthleteNotice(
+		key: Catalog.chatHistoryFailure, action: nil)
 
 	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice
@@ -275,7 +277,7 @@ package enum AthleteNotices {
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {
 		switch interruption {
-		case .athleteStopped, .processEnded, .stoppedBeforeStart:
+		case .athleteStopped, .appTerminating, .processEnded, .stoppedBeforeStart:
 			return AthleteNotice(
 				key: saved.isEmpty
 					? Catalog.chatTurnInterruptedNothingChanged

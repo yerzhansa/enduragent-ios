@@ -76,6 +76,7 @@ struct AppServices: Sendable {
 						path: ModelContainerHandle.localStoreFileName))
 			)
 		)
+		records.failRecoveryReads = launch.recovery == .unreadable
 		let secrets = try FakeSecretStore(directory: launch.directory)
 		if launch.keychain != .empty {
 			try FirstWeekFixture.install(on: secrets)

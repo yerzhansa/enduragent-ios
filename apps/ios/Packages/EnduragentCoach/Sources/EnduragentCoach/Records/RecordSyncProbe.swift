@@ -32,6 +32,7 @@
 					RecordSyncRow(
 						id: record.ulid.rawValue,
 						kind: record.body.kind,
+						detail: detail(record.body),
 						deviceId: record.deviceId.rawValue,
 						hlc: hlcText(record.hlc),
 						account: record.account.storedValue
@@ -78,6 +79,20 @@
 			)
 		}
 
+		private func detail(_ body: RecordBody) -> String {
+			guard case .synced(.turnSettled(let settled)) = body else { return "" }
+			switch settled.settlement {
+			case .replied:
+				return "replied"
+			case .savedWork(let outcome, _):
+				return "savedWork \(outcome.rawValue)"
+			case .failed:
+				return "failed"
+			case .interrupted(_, let cause, _):
+				return "interrupted \(cause.rawValue)"
+			}
+		}
+
 		private func hlcText(_ hlc: HybridLogicalClock) -> String {
 			"\(hlc.wallMs).\(hlc.logical)@\(hlc.deviceId.rawValue)"
 		}
@@ -100,6 +115,7 @@
 	public struct RecordSyncRow: Sendable, Equatable, Identifiable {
 		public let id: String
 		public let kind: String
+		public let detail: String
 		public let deviceId: String
 		public let hlc: String
 		public let account: String
