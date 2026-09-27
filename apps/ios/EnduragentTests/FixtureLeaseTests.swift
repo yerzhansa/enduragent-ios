@@ -95,6 +95,17 @@ extension FixtureLaunchTests {
 		#expect(system.quietRequests == 1)
 	}
 
+	@Test func backgroundTitlesFollowTheChosenLanguage() async throws {
+		let system = StubBackgroundSystem()
+		system.isActive = false
+		let coach = try leaseCoach(host: leaseHost(system))
+		try await coach.setLanguage(.fixed(.es))
+		_ = try await reply(to: "Is Thursday on?", from: coach)
+		try await waitUntil { !system.posted.isEmpty }
+		#expect(system.submitted.map(\.title) == ["El entrenador está trabajando…"])
+		#expect(system.posted.map(\.content.title) == ["Entrenador"])
+	}
+
 	@Test func aReplyFinishedInTheAppPostsNoNotification() async throws {
 		let system = StubBackgroundSystem()
 		let host = leaseHost(system)
