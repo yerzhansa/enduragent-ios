@@ -37,9 +37,9 @@ package struct ConversationReset: Sendable {
 		)
 		let jobs = await flushes.jobs()
 		let rows =
-			(conversation.outstandingRows(jobs)
-			+ conversation.current.messagesSinceLastFlush(jobs, excluding: nil))
-			.filter { $0.ulid < reset.ulid }
+			conversation.outstandingRows(jobs)
+			+ conversation.current.closing(at: reset.ulid).messagesSinceLastFlush(
+				jobs, excluding: nil)
 		var flushed: (job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)?
 		if !rows.isEmpty {
 			let job: FlushJob
@@ -137,12 +137,23 @@ extension Conversation {
 	package mutating func openSegment(at boundary: ULID, openedBy opening: SegmentOpening) {
 		var opened = Segment(id: SegmentID(boundary: boundary), openedBy: opening)
 		if let last = segments.indices.last {
-			let moved = segments[last].turns.filter { facts in
-				facts.fragments.first.map { $0.ulid >= boundary } ?? false
-			}
-			segments[last].turns.removeAll { facts in moved.contains { $0.turn == facts.turn } }
-			opened.turns = moved
+			opened.turns = segments[last].turns.filter { $0.opens(atOrAfter: boundary) }
+			segments[last] = segments[last].closing(at: boundary)
 		}
 		segments.append(opened)
+	}
+}
+
+extension Segment {
+	package func closing(at boundary: ULID) -> Segment {
+		var closing = self
+		closing.turns.removeAll { $0.opens(atOrAfter: boundary) }
+		return closing
+	}
+}
+
+extension TurnFacts {
+	fileprivate func opens(atOrAfter boundary: ULID) -> Bool {
+		fragments.first.map { $0.ulid >= boundary } ?? false
 	}
 }
