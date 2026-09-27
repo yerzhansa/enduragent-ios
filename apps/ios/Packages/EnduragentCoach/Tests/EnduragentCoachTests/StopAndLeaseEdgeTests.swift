@@ -100,6 +100,19 @@ import Testing
 		}
 	}
 
+	@Test func willTerminateEndsTheLeaseAsInterrupted() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), clock: clock, host: host)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		await coach.lifecycle(.willTerminate)
+		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(host.leases.count == 1)
+	}
+
 	@Test func anExpiryDuringTerminationJoinsItAndLeavesQueuedTurnsUnclaimed() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
