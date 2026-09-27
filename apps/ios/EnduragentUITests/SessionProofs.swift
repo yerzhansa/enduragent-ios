@@ -22,14 +22,13 @@ final class LanguagePickerProof: XCTestCase {
 		XCTAssertEqual(visible, Array(english.prefix(visible.count)))
 		TutorialHarness.attach(self, name: "language-picker-auto", app: app)
 		let french = TutorialHarness.named(app, "language.choice.fr")
-		let tapped = Date()
-		french.tap()
-		let tapReturned = Date()
-		XCTAssertTrue(app.navigationBars["Choisis ta langue"].waitForExistence(timeout: 5))
-		record(total: Date().timeIntervalSince(tapped), tap: tapReturned.timeIntervalSince(tapped))
+		let switched = timedChoice(french, until: app.navigationBars["Choisis ta langue"])
 		XCTAssertTrue(french.isSelected)
 		XCTAssertFalse(automatic.isSelected)
 		TutorialHarness.attach(self, name: "language-picker-fr", app: app)
+		let unchanged = timedChoice(french, until: app.navigationBars["Choisis ta langue"])
+		XCTAssertTrue(french.isSelected)
+		record(switched: switched, unchanged: unchanged)
 		XCTAssertEqual(scrolledChoiceLabels(app), ["Automatique"] + english.dropFirst())
 		TutorialHarness.named(app, "language.close").tap()
 		TutorialHarness.wait(app.navigationBars["Conversation"])
@@ -70,9 +69,17 @@ final class LanguagePickerProof: XCTestCase {
 		return labels
 	}
 
-	private func record(total: TimeInterval, tap: TimeInterval) {
+	private func timedChoice(_ choice: XCUIElement, until title: XCUIElement) -> TimeInterval {
+		let tapped = Date()
+		choice.tap()
+		XCTAssertTrue(title.waitForExistence(timeout: 5))
+		return Date().timeIntervalSince(tapped)
+	}
+
+	private func record(switched: TimeInterval, unchanged: TimeInterval) {
 		let metric = XCTAttachment(
-			string: String(format: "languageSwitchSeconds %.3f tapSeconds %.3f", total, tap))
+			string: String(
+				format: "languageSwitchSeconds %.3f sameLanguageSeconds %.3f", switched, unchanged))
 		metric.name = "language-switch-seconds"
 		metric.lifetime = .keepAlways
 		add(metric)
@@ -192,6 +199,47 @@ final class SessionRejectionProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
 		TutorialHarness.closeMenu(app)
+	}
+}
+
+final class RatioAppliesProof: XCTestCase {
+	func testRatioApplies() throws {
+		let app = XCUIApplication()
+		let atDefault = firstSummaryTurn(app, ratio: nil)
+		let atSmallRatio = firstSummaryTurn(app, ratio: "0.05")
+		let result = XCTAttachment(
+			string:
+				"compactionSummary first written on turn: default \(atDefault.map(String.init) ?? "none"), ratio 0.05 \(atSmallRatio.map(String.init) ?? "none")"
+		)
+		result.name = "ratio-applies-turns"
+		result.lifetime = .keepAlways
+		add(result)
+		XCTAssertLessThan(try XCTUnwrap(atSmallRatio), try XCTUnwrap(atDefault))
+	}
+
+	private func firstSummaryTurn(_ app: XCUIApplication, ratio: String?) -> Int? {
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		if let ratio {
+			SessionDebug.open(app)
+			SessionDebug.enter(app, "historyBudgetRatio", ratio)
+			XCTAssertEqual(
+				TutorialHarness.named(app, "session.historyBudgetRatio.outcome").label, "Saved")
+			TutorialHarness.closeMenu(app)
+		}
+		for turn in 1...9 {
+			TutorialHarness.exchange(app, "fixture:long")
+			TutorialHarness.openRecords(app)
+			let written = TutorialHarness.recordCount(app, "compactionSummary") != nil
+			if written, ratio != nil {
+				TutorialHarness.attach(self, name: "m1-12-ratio-applies", app: app)
+			}
+			TutorialHarness.closeMenu(app)
+			if written {
+				return turn
+			}
+		}
+		return nil
 	}
 }
 
