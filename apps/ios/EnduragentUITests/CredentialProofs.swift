@@ -101,14 +101,36 @@ final class FailedWriteRecordsProof: XCTestCase {
 }
 
 final class UpgradeConnectionProof: XCTestCase {
-	func testV1ConnectionShowsAFreshIdAndTheAthlete() throws {
+	func testConnectionFromBeforeTheVaultReachesTheNextTurn() throws {
 		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(
-			app, expecting: TutorialHarness.named(app, "chat.composer"))
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		guard TutorialHarness.named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
+		TutorialHarness.openRecords(app)
+		let claims = TutorialHarness.recordRowLabels(app).filter { $0.hasPrefix("turnClaim ") }
+		TutorialHarness.closeMenu(app)
+		guard !claims.isEmpty, claims.allSatisfy({ $0.hasSuffix(" unconnected") }) else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
 		TutorialHarness.openCredentials(app)
+		let connection = TutorialHarness.named(app, "credentials.connection")
+		TutorialHarness.wait(connection)
+		guard connection.label != "unconnected" else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
-		XCTAssertTrue(TutorialHarness.connectedAccount(app).hasSuffix(":i1001"))
+		let account = TutorialHarness.connectedAccount(app)
+		XCTAssertTrue(account.hasSuffix(":i1001"), "the upgraded connection reads \(account)")
 		TutorialHarness.attach(self, name: "upgrade-item", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 	}
 }
 
@@ -183,6 +205,8 @@ final class StorageUnavailableProof: XCTestCase {
 }
 
 extension TutorialHarness {
+	static let connectionBeforeVaultMissing =
+		"needs a store and keychain that a build before M1-11 left after connecting intervals.icu"
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."
 
