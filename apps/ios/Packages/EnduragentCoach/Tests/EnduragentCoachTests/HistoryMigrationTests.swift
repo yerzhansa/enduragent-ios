@@ -77,3 +77,46 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 }
+
+extension SwiftDataSuites {
+	@Suite struct HistoryOpenTests {
+		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+		@Test func fiftyArchivedConversationsReadInUnderOneSecond() async throws {
+			let store = try SwiftDataSuites.makeSwiftDataLog(
+				deviceId: DeviceID(rawValue: "phone-a"))
+			for index in 1...50 {
+				let asked = clock.now.addingTimeInterval(TimeInterval(-600 + index * 10))
+				let turn = TurnID(ulid: ULID.generate(at: asked))
+				let boundary = ULID.generate(at: asked.addingTimeInterval(2))
+				try await seed(
+					store,
+					[
+						seededRecord(
+							store, at: asked, ulid: turn.ulid,
+							body: .synced(
+								sampleUser(chatId: .main, text: "Archived \(index)", turn: turn))),
+						seededRecord(
+							store, at: asked.addingTimeInterval(1),
+							ulid: ULID.generate(at: asked.addingTimeInterval(1)),
+							body: .synced(
+								sampleReply(chatId: .main, turn: turn, text: "Reply \(index)"))),
+						seededRecord(
+							store, at: asked.addingTimeInterval(2), ulid: boundary,
+							body: .synced(
+								.windowStart(
+									WindowStartBody(
+										chatId: .main, firstIncludedUlid: boundary,
+										reason: .reset(.explicit(ResetID(ulid: boundary))))))),
+					])
+			}
+			let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+			let started = ContinuousClock.now
+			let archived = try await coach.history()
+			let elapsed = ContinuousClock.now - started
+			#expect(archived.count == 50)
+			#expect(archived.first?.turns.first?.athleteText == "Archived 50")
+			#expect(elapsed < .seconds(1), "History of 50 took \(elapsed)")
+		}
+	}
+}
