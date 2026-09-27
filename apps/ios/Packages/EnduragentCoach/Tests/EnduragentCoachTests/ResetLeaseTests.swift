@@ -101,6 +101,31 @@ import Testing
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 	}
 
+	@Test func aNewConversationTappedDuringStopRunsAfterTheStopSettles() async throws {
+		transport.script = [.text("Thursday is"), .hang]
+		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
+		let coach = makeCoach(transport: transport, store: held, clock: clock, host: host)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(turn)
+		async let stopped: Void = coach.stop(.main)
+		var reached = held.reached.makeAsyncIterator()
+		await reached.next()
+		let resetting = startNewConversation(on: coach)
+		try await Task.sleep(for: .milliseconds(200))
+		#expect(resetting.landed == nil)
+		#expect(sent(.memoryFlush, by: transport).isEmpty)
+		held.release()
+		await stopped
+		#expect(try await outcome(resetting) == .started(memory: .saved))
+		let flushed = try #require(sent(.memoryFlush, by: transport).first)
+		#expect(flushed.messages.contains { $0.content == "Thursday?" })
+		#expect(flushed.messages.contains { $0.content == "Thursday is" })
+		let archived = try #require(try await coach.history().first)
+		#expect(archived.turns.map(\.id) == [turn])
+		#expect(
+			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: true))
+	}
+
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
 		transport.script = [.text("Thursday is"), .hang]
 		let coach = coach()
