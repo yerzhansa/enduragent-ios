@@ -12,11 +12,11 @@ extension FixtureLaunchTests {
 		model.draft.text = "fixture:slow"
 		model.draftChanged(from: "")
 		let draftId = model.draft.id
-		#expect(model.drafts.load(model.chatId)?.text == "fixture:slow")
+		#expect(model.drafts.load(.main)?.text == "fixture:slow")
 		await model.send()
 		#expect(model.draft.text.isEmpty)
 		#expect(model.draft.id != draftId)
-		#expect(model.drafts.load(model.chatId) == nil)
+		#expect(model.drafts.load(.main) == nil)
 		#expect(!model.notSent)
 		let turn = try await firstTurn(model)
 		#expect(turn.athleteText == "fixture:slow")
@@ -58,11 +58,11 @@ extension FixtureLaunchTests {
 		await model.send()
 		#expect(model.notSent)
 		#expect(model.draft == draft)
-		#expect(model.drafts.load(model.chatId) == draft)
+		#expect(model.drafts.load(.main) == draft)
 		#expect(model.chat?.turns.isEmpty ?? true)
 		#expect(transport.requestCount == 0)
 		#expect(!records.failNextAppend)
-		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
+		#expect(await firstSnapshot(services, chat: .main)?.turns.isEmpty == true)
 		model.draft.text = TutorialCopy.weekQuestion
 		model.draftChanged(from: draft.text)
 		#expect(model.draft.id == draft.id)
@@ -97,7 +97,7 @@ extension FixtureLaunchTests {
 		await first.send()
 		let accepted = try await firstTurn(first)
 		let (second, _) = try relaunch(.keep)
-		let reopened = try #require(await firstSnapshot(second, chat: first.chatId))
+		let reopened = try #require(await firstSnapshot(second, chat: .main))
 		#expect(reopened.turns.map(\.id) == [accepted.id])
 		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
 		await first.stop()
@@ -142,7 +142,7 @@ extension FixtureLaunchTests {
 		await model.send()
 		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
 		#expect(transport.requestCount == 0)
-		#expect(await firstSnapshot(services, chat: model.chatId)?.turns.isEmpty == true)
+		#expect(await firstSnapshot(services, chat: .main)?.turns.isEmpty == true)
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {

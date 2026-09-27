@@ -17,6 +17,11 @@ final class TurnRecords {
 		conversation = folded
 	}
 
+	func apply(_ committed: [AthleteRecord]) {
+		conversation = ConversationFold.applying(
+			committed, to: conversation, device: ledger.deviceId)
+	}
+
 	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {
 		TurnLifecycle.writes(
 			for: event, on: conversation.turn(turn), chat: chat, device: ledger.deviceId,

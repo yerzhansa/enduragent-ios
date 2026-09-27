@@ -265,11 +265,23 @@ public struct CoalescingPolicy: Sendable, Equatable {
 	}
 
 	public static let npm = CoalescingPolicy(window: .milliseconds(1_500))
+
+	package func windowElapsed() async -> Bool {
+		do {
+			try await Task.sleep(for: window)
+			return true
+		} catch is CancellationError {
+			return false
+		} catch {
+			fatalError("Task.sleep failed: \(error)")
+		}
+	}
 }
 
 package enum MailboxWork: Sendable, Equatable {
 	case turn(TurnID)
 	case flush(FlushJobID)
+	case reset(ResetID)
 
 	package var turn: TurnID? {
 		guard case .turn(let turn) = self else { return nil }

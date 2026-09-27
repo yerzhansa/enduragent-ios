@@ -19,53 +19,42 @@ final class ShellModel {
 	var starterResolved = false
 	var balance: Credits?
 	var catalog: PackCatalog?
-	var history: [ChatSummary] = []
+	private(set) var history: HistoryList = .loading
+	private(set) var newConversationUncertain = false
 	var errorLine: String?
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
 	var confirmLine: String?
-	var chatId: ChatID = .main
 	var showSidebar = false
 	var showCredits = false
 	var packPrices: [String: String] = [:]
 
 	let builder: ServicesBuilder
 	let lifecycle: AppLifecycle
-	let chatIndex: ChatIndex
 	let drafts: DraftStore
 	private let defaults: UserDefaults
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
-	private var observedChat: ChatID?
 
 	init(builder: ServicesBuilder) {
 		self.builder = builder
 		self.lifecycle = AppLifecycle(builder: builder)
 		self.defaults = builder.defaults
-		self.chatIndex = ChatIndex(defaults: builder.defaults)
 		self.drafts = DraftStore(defaults: builder.defaults)
-		restoreSession()
-		draft = drafts.load(chatId) ?? Draft(id: DraftID(), text: "")
+		if defaults.bool(forKey: Self.onboardingCompletedKey) {
+			route = .chat
+		}
+		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
 		if route == .chat {
 			observeChat()
 		}
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
-	static let lastChatIdKey = "enduragent.lastChatId"
 
 	var services: AppServices? {
 		builder.services
-	}
-
-	var athleteFirstName: String {
-		guard let name = athlete?.name.trimmingCharacters(in: .whitespacesAndNewlines),
-			!name.isEmpty
-		else {
-			return ""
-		}
-		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
 	}
 
 	var visibleProposal: PendingProposal? {
@@ -143,7 +132,6 @@ final class ShellModel {
 		do {
 			_ = try builder.completedServices()
 			observeChat()
-			await reloadHistory()
 			try await refreshAthlete()
 		} catch {
 			errorLine = failureMessage(error)
@@ -153,8 +141,7 @@ final class ShellModel {
 	func startChatting() {
 		do {
 			_ = try builder.completedServices()
-			beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-			saveSession()
+			defaults.set(true, forKey: Self.onboardingCompletedKey)
 			route = .chat
 			observeChat()
 		} catch {
@@ -162,45 +149,23 @@ final class ShellModel {
 		}
 	}
 
-	func newChat() {
-		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-		saveSession()
+	func newConversation() async {
+		guard let services else { return }
 		confirmLine = nil
 		errorLine = nil
-		showSidebar = false
-		observeChat()
+		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
-	func openChat(_ id: ChatID) async {
-		chatId = id
-		saveSession()
-		showSidebar = false
-		confirmLine = nil
-		errorLine = nil
-		draft = drafts.load(chatId) ?? Draft(id: DraftID(), text: "")
-		notSent = false
-		slashListVisible = false
-		observeChat()
-	}
-
-	func reloadHistory() async {
-		guard let services else {
-			history = []
-			return
-		}
-		var rows: [ChatSummary] = []
-		for entry in chatIndex.all() {
-			guard let id = ChatID(rawValue: entry.id),
-				let created = CivilDate(rawValue: entry.created)
-			else {
-				continue
+	func loadHistory() async {
+		guard let services else { return }
+		do {
+			history = .loaded(try await services.coach.history())
+		} catch {
+			switch error {
+			case .storageUnavailable:
+				history = .unavailable
 			}
-			var snapshots = await services.coach.observe(id).makeAsyncIterator()
-			let turns = await snapshots.next()?.turns ?? []
-			let title = turns.lazy.compactMap(\.athleteText).first ?? "New chat"
-			rows.append(ChatSummary(id: id, title: title, civilDate: created))
 		}
-		history = rows
 	}
 
 	func loadCredits() async {
@@ -226,7 +191,7 @@ final class ShellModel {
 		if previous.isEmpty, !draft.text.isEmpty {
 			draft = Draft(id: DraftID(), text: draft.text)
 		}
-		drafts.save(draft, for: chatId)
+		drafts.save(draft, for: .main)
 		updateSlashList()
 	}
 
@@ -236,7 +201,7 @@ final class ShellModel {
 
 	func fillSlash(_ command: SlashCommand) {
 		draft.text = command.rawValue + " "
-		drafts.save(draft, for: chatId)
+		drafts.save(draft, for: .main)
 		updateSlashList()
 	}
 
@@ -246,6 +211,7 @@ final class ShellModel {
 		isSending = true
 		defer { isSending = false }
 		notSent = false
+		newConversationUncertain = false
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
@@ -254,10 +220,14 @@ final class ShellModel {
 			return
 		}
 		do {
-			switch try await services.coach.send(Draft(id: draft.id, text: text), to: chatId) {
+			switch try await services.coach.send(Draft(id: draft.id, text: text), to: .main) {
 			case .accepted, .showLanguagePicker:
 				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(chatId)
+				drafts.clear(.main)
+			case .newConversation(let outcome):
+				draft = Draft(id: DraftID(), text: "")
+				drafts.clear(.main)
+				showNewConversation(outcome)
 			case .ignoredBlank:
 				break
 			}
@@ -270,13 +240,13 @@ final class ShellModel {
 	}
 
 	func stop() async {
-		await services?.coach.stop(chatId)
+		await services?.coach.stop(.main)
 	}
 
 	func confirmPending() async {
 		guard let services, let pending = visibleProposal else { return }
 		do {
-			let outcome = try await services.coach.confirm(chatId: chatId, nonce: pending.nonce)
+			let outcome = try await services.coach.confirm(chatId: .main, nonce: pending.nonce)
 			switch outcome {
 			case .executed(let summary):
 				errorLine = nil
@@ -298,56 +268,24 @@ final class ShellModel {
 		dismissedProposal = visibleProposal?.nonce
 	}
 
-	private func observeChat() {
-		guard let services else { return }
-		if observedChat == chatId, let observation, !observation.isCancelled {
-			return
+	private func showNewConversation(_ outcome: ResetOutcome) {
+		switch outcome {
+		case .started:
+			newConversationUncertain = false
+		case .notStarted:
+			newConversationUncertain = true
 		}
-		observation?.cancel()
-		chat = nil
-		observedChat = chatId
+	}
+
+	private func observeChat() {
+		guard let services, observation == nil else { return }
 		let coach = services.coach
-		let chat = chatId
 		observation = Task { [weak self] in
-			for await snapshot in await coach.observe(chat) {
+			for await snapshot in await coach.observe(.main) {
 				guard let self, !Task.isCancelled else { return }
 				self.chat = snapshot
 			}
 		}
-	}
-
-	private func beginChat(_ id: ChatID?) {
-		guard let id else { return }
-		chatId = id
-		chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
-		draft = drafts.load(chatId) ?? Draft(id: DraftID(), text: "")
-		notSent = false
-		slashListVisible = false
-	}
-
-	private func restoreSession() {
-		let stored = storedChatId()
-		let indexed = chatIndex.all().first.flatMap { ChatID(rawValue: $0.id) }
-		let completed = defaults.bool(forKey: Self.onboardingCompletedKey)
-		guard completed || stored != nil || indexed != nil else { return }
-		route = .chat
-		if let stored {
-			chatId = stored
-		} else if let indexed {
-			chatId = indexed
-		} else {
-			chatId = .main
-		}
-	}
-
-	private func saveSession() {
-		defaults.set(true, forKey: Self.onboardingCompletedKey)
-		defaults.set(chatId.rawValue, forKey: Self.lastChatIdKey)
-	}
-
-	private func storedChatId() -> ChatID? {
-		guard let raw = defaults.string(forKey: Self.lastChatIdKey) else { return nil }
-		return ChatID(rawValue: raw)
 	}
 
 	private func refreshAthlete() async throws {

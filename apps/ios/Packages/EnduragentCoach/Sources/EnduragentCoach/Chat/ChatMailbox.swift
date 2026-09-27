@@ -14,6 +14,9 @@ package actor ChatMailbox {
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private let records: TurnRecords
 	private var pendingProposal: PendingProposal?
+	private var jobs: [FlushJob] = []
+	private lazy var resets = PendingResets(
+		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private var work: [MailboxWork] = []
 	private var active: MailboxWork?
 	private var window: OpenWindow?
@@ -65,12 +68,30 @@ package actor ChatMailbox {
 		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !text.isEmpty else { return .ignoredBlank }
 		let slash = SlashRouting.parse(text)
-		if slash == .language {
-			return .showLanguagePicker
+		switch slash?.route {
+		case .languagePicker: return .showLanguagePicker
+		case .resetConversation: return .newConversation(await reset())
+		case .modelTurn, nil: break
 		}
 		await admission.enter()
 		defer { admission.leave() }
 		return try await admit(Draft(id: draft.id, text: text), slash: slash)
+	}
+
+	package func reset() async -> ResetOutcome {
+		await admission.enter()
+		do {
+			try await load()
+		} catch {
+			admission.leave()
+			return .notStarted(.local(.recordStorage))
+		}
+		closeWindow()
+		let reset = ResetID(ulid: await ledger.nextULID())
+		return await resets.outcome(of: reset) {
+			enqueue(.reset(reset))
+			admission.leave()
+		}
 	}
 
 	private func admit(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
@@ -211,6 +232,7 @@ package actor ChatMailbox {
 		do {
 			let folded = try await ledger.conversation(chatId)
 			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
+			jobs = try await ledger.flushJobs(in: chatId)
 			records.replace(with: folded)
 			loaded = true
 			return .success(())
@@ -226,17 +248,10 @@ package actor ChatMailbox {
 	private func armWindow(for turn: TurnID) {
 		windowGeneration += 1
 		let generation = windowGeneration
-		let duration = coalescing.window
 		window = OpenWindow(
-			turn: turn, closesAt: clock.now.addingTimeInterval(duration.timeInterval))
+			turn: turn, closesAt: clock.now.addingTimeInterval(coalescing.window.timeInterval))
 		Task {
-			do {
-				try await Task.sleep(for: duration)
-			} catch is CancellationError {
-				return
-			} catch {
-				fatalError("Task.sleep failed: \(error)")
-			}
+			guard await coalescing.windowElapsed() else { return }
 			await self.admission.enter()
 			self.closeWindow(ifGeneration: generation)
 			self.admission.leave()
@@ -267,6 +282,11 @@ package actor ChatMailbox {
 			case .flush(let job):
 				await self.flushes.drain(
 					job, in: self.records.conversation, access: self.environment.access)
+				self.jobs = await self.flushes.jobs()
+			case .reset(let reset):
+				await self.resets.run(reset, on: self.records, access: self.environment.access)
+				self.jobs = await self.flushes.jobs()
+				self.publish()
 			}
 			self.workFinished()
 		}
@@ -330,8 +350,9 @@ package actor ChatMailbox {
 		live = nil
 		active = nil
 		if !terminating {
-			for job in await flushes.pending() {
-				enqueue(.flush(job))
+			jobs = await flushes.jobs()
+			for job in jobs where !job.settled {
+				enqueue(.flush(job.id))
 			}
 		}
 		publish()
@@ -354,6 +375,7 @@ package actor ChatMailbox {
 		ChatSnapshot(
 			chat: chatId,
 			conversation: records.conversation,
+			jobs: jobs,
 			live: live,
 			window: window,
 			queued: queuedTurns(includingActive: true),

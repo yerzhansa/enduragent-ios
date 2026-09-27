@@ -5,11 +5,12 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2430)
-		#expect(Catalog.keyCount == 2466)
+		#expect(Catalog.englishLeafCount == 2431)
+		#expect(Catalog.keyCount == 2467)
 	}
 
 	@Test(arguments: [
+		(Catalog.archiveReasonEarlierChat, "Earlier chat"),
 		(
 			Catalog.creditsErrorAccessRejected,
 			"Your Credits couldn't be used. Restore purchases to continue."

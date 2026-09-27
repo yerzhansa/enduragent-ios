@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct ChatView: View {
@@ -32,9 +33,10 @@ struct ChatView: View {
 					.accessibilityIdentifier("chat.sidebar")
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("New chat") {
-						model.newChat()
+					Button(model.builder.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
+						Task { await model.newConversation() }
 					}
+					.accessibilityIdentifier("chat.newConversation")
 				}
 			}
 			.navigationDestination(isPresented: $model.showCredits) {

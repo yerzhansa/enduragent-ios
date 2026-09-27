@@ -208,6 +208,9 @@ package enum ConversationFold {
 			case .deviceLocal(.replyObserved(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
+			case .synced(.windowStart(let body)):
+				guard case .reset(let kind) = body.reason else { continue }
+				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
 			default:
 				continue
 			}
