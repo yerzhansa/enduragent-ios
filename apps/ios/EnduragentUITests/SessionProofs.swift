@@ -228,8 +228,10 @@ final class RatioAppliesProof: XCTestCase {
 			TutorialHarness.closeMenu(app)
 		}
 		for turn in 1...9 {
-			TutorialHarness.exchange(app, "fixture:long")
+			TutorialHarness.send(app, "fixture:long")
 			TutorialHarness.openRecords(app)
+			TutorialHarness.waitForRecordCount(
+				app, "turnSettled", "turnSettled \(turn)", timeout: 60)
 			let written = TutorialHarness.recordCount(app, "compactionSummary") != nil
 			if written, ratio != nil {
 				TutorialHarness.attach(self, name: "m1-12-ratio-applies", app: app)
