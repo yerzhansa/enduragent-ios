@@ -261,3 +261,29 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
 	transport.requests.filter { $0.charge == charge }
 }
+
+func startNewConversation(on coach: Coach) -> PendingOutcome {
+	let pending = PendingOutcome()
+	Task { pending.land(await coach.startNewConversation(in: .main)) }
+	return pending
+}
+
+func outcome(_ pending: PendingOutcome) async throws -> ResetOutcome? {
+	let deadline = ContinuousClock.now + .seconds(10)
+	while pending.landed == nil, ContinuousClock.now < deadline {
+		try await Task.sleep(for: .milliseconds(10))
+	}
+	return pending.landed
+}
+
+final class PendingOutcome: Sendable {
+	private let outcome = Mutex<ResetOutcome?>(nil)
+
+	var landed: ResetOutcome? {
+		outcome.withLock { $0 }
+	}
+
+	func land(_ value: ResetOutcome) {
+		outcome.withLock { $0 = value }
+	}
+}
