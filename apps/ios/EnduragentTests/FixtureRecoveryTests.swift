@@ -28,6 +28,44 @@ extension FixtureLaunchTests {
 		await killed.stop()
 	}
 
+	@Test func unreadableRecoveryHoldsADeadClaimWithoutTryAgainUntilItCanRead() async throws {
+		let suite = "enduragent.fixture.recovery.arguments.test"
+		let arguments = try #require(UserDefaults(suiteName: suite))
+		defer { arguments.removePersistentDomain(forName: suite) }
+		arguments.set(FixtureLaunch.firstWeekName, forKey: FixtureLaunch.nameArgumentKey)
+		arguments.set("never", forKey: FixtureLaunch.recoveryArgumentKey)
+		#expect(throws: FixtureLaunchError.self) { try FixtureLaunch.fromArguments(arguments) }
+		arguments.set("unreadable", forKey: FixtureLaunch.recoveryArgumentKey)
+		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
+		let killed = model(try services())
+		killed.startChatting()
+		killed.draft.text = "fixture:hang"
+		await killed.send()
+		let dead = try await turn(in: killed, where: isProcessing)
+		let (unreadableServices, _) = try relaunch(.keep, recovery: parsed.recovery)
+		let unreadable = model(unreadableServices)
+		await unreadable.lifecycle.forward(.becameActive)
+		let held = try await turn(dead.id, in: unreadable, where: isUnrecovered)
+		guard case .unrecovered(let unrecovered) = held.state else {
+			Issue.record("expected unrecovered, got \(held.state)")
+			return
+		}
+		#expect(unrecovered.notice.key == Catalog.chatHistoryFailure)
+		#expect(unrecovered.notice.action == nil)
+		#expect(!held.state.retryable)
+		let transport = try #require(unreadableServices.fixtureTransport)
+		await unreadable.perform(.tryAgain(dead.id))
+		try await Task.sleep(for: .milliseconds(200))
+		#expect(transport.requestCount == 0)
+		#expect(unreadable.chat?.turns.first { $0.id == dead.id }?.state == held.state)
+		let readable = model(try relaunch(.keep).0)
+		await readable.lifecycle.forward(.becameActive)
+		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
+		#expect(cause(recovered.state) == .processEnded)
+		#expect(recovered.state.retryable)
+		await killed.stop()
+	}
+
 	@Test(.timeLimit(.minutes(1)))
 	func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
 		let services = try services()
@@ -156,6 +194,10 @@ extension FixtureLaunchTests {
 
 private func isProcessing(_ state: TurnState) -> Bool {
 	if case .processing = state { true } else { false }
+}
+
+private func isUnrecovered(_ state: TurnState) -> Bool {
+	if case .unrecovered = state { true } else { false }
 }
 
 private func isCompleted(_ state: TurnState) -> Bool {

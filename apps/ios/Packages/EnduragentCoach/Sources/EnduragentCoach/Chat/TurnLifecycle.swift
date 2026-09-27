@@ -21,6 +21,7 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 	case alreadyAnswered
 	case attemptInFlight
 	case rateLimitWaitRunning
+	case unrecovered
 }
 
 package enum TurnLifecycle {
@@ -60,7 +61,7 @@ package enum TurnLifecycle {
 				]))
 		case .claim(let attempt, let process):
 			guard let facts else { return .failure(.unknownTurn) }
-			if let refusal = claimRefusal(of: facts, device: device) {
+			if let refusal = claimRefusal(of: facts, device: device, process: process) {
 				return .failure(refusal)
 			}
 			let claim = TurnClaimBody(
@@ -110,24 +111,29 @@ package enum TurnLifecycle {
 		}
 	}
 
-	package static func claimRefusal(of facts: TurnFacts, device: DeviceID) -> TurnRefusal? {
+	package static func claimRefusal(of facts: TurnFacts, device: DeviceID, process: ProcessID)
+		-> TurnRefusal?
+	{
 		if facts.origin != device {
 			return .acceptedElsewhere
 		}
 		if facts.legacy {
 			return .alreadyAnswered
 		}
+		if let open = facts.openClaim {
+			return open.process == process ? .attemptInFlight : .unrecovered
+		}
 		return replayRefusal(after: facts.latestSettlement?.settlement)
 	}
 
-	package static func retryRefusal(of facts: TurnFacts?, overlay: TurnOverlay, device: DeviceID)
-		-> TurnRefusal?
-	{
+	package static func retryRefusal(
+		of facts: TurnFacts?, overlay: TurnOverlay, device: DeviceID, process: ProcessID
+	) -> TurnRefusal? {
 		guard let facts else { return .unknownTurn }
 		switch overlay {
 		case .collecting, .queued: return .attemptInFlight
 		case .waitingToTryAgain: return .rateLimitWaitRunning
-		case .notInThisProcess: return claimRefusal(of: facts, device: device)
+		case .notInThisProcess: return claimRefusal(of: facts, device: device, process: process)
 		}
 	}
 
@@ -164,9 +170,7 @@ package enum TurnLifecycle {
 		case .waitingToTryAgain, .notInThisProcess:
 			break
 		}
-		if let settlement = facts.latestSettlement?.settlement
-			?? unrecovered(facts, process: process)
-		{
+		if let settlement = facts.latestSettlement?.settlement {
 			let retry = replayRefusal(after: settlement) == nil ? facts.turn : nil
 			switch settlement {
 			case .replied(let reply, _):
@@ -200,12 +204,15 @@ package enum TurnLifecycle {
 		if facts.origin != device {
 			return .accepted(.onOtherDevice)
 		}
+		if let open = facts.openClaim {
+			guard open.process == process else {
+				return .unrecovered(TurnState.Unrecovered(notice: AthleteNotices.unrecoveredClaim))
+			}
+			return .processing(
+				TurnState.Processing(
+					attempt: open.attempt, liveText: "", activity: .generating(step: 1)))
+		}
 		return .accepted(.awaitingRestart)
-	}
-
-	private static func unrecovered(_ facts: TurnFacts, process: ProcessID) -> Settlement? {
-		guard let open = facts.openClaim, open.process != process else { return nil }
-		return .interrupted(partial: "", cause: .processEnded, saved: .none)
 	}
 }
 

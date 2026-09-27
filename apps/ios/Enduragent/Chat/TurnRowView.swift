@@ -39,6 +39,8 @@ struct TurnRowView: View {
 						.foregroundStyle(.secondary)
 				}
 				notice(interrupted.notice)
+			case .unrecovered(let unrecovered):
+				notice(unrecovered.notice)
 			}
 		}
 		.frame(maxWidth: .infinity, alignment: .leading)

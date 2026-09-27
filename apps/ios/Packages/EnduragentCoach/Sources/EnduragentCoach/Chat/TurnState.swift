@@ -7,6 +7,7 @@ public enum TurnState: Sendable, Equatable {
 	case savedWork(SavedWork)
 	case failed(Failed)
 	case interrupted(Interrupted)
+	case unrecovered(Unrecovered)
 
 	public var retryable: Bool {
 		switch self {
@@ -25,7 +26,7 @@ public enum TurnState: Sendable, Equatable {
 				return true
 			}
 			return false
-		case .accepted, .processing, .completed, .savedWork:
+		case .accepted, .processing, .completed, .savedWork, .unrecovered:
 			return false
 		}
 	}
@@ -64,6 +65,10 @@ public enum TurnState: Sendable, Equatable {
 		public let partial: String
 		public let cause: InterruptionCause
 		public let saved: WriteSummary
+		public let notice: AthleteNotice
+	}
+
+	public struct Unrecovered: Sendable, Equatable {
 		public let notice: AthleteNotice
 	}
 }

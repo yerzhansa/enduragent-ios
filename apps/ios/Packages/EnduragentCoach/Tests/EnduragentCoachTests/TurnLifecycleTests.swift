@@ -178,12 +178,9 @@ import Testing
 			process: process)
 		#expect(
 			dead
-				== .interrupted(
-					TurnState.Interrupted(
-						partial: "", cause: .processEnded, saved: .none,
-						notice: AthleteNotice(
-							key: Catalog.chatTurnInterruptedNothingChanged,
-							action: .tryAgain(minted)))))
+				== .unrecovered(
+					TurnState.Unrecovered(
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
 		let running = TurnLifecycle.state(
 			of: claimed(), live: nil, overlay: .queued(position: 1), device: phoneA,
 			process: process)

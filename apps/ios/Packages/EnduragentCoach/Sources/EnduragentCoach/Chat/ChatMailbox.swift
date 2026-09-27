@@ -125,7 +125,8 @@ package actor ChatMailbox {
 		let queued = queuedTurns(includingActive: true)
 		let overlay = TurnOverlay(of: turn, window: window, queued: queued, waiting: waiting)
 		let refusal = TurnLifecycle.retryRefusal(
-			of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId)
+			of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
+			process: process)
 		if let refusal { throw RetryRefusal(refusal) }
 		enqueue(.turn(turn))
 	}
