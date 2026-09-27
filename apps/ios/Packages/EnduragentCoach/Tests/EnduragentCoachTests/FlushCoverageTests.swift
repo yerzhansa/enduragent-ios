@@ -8,6 +8,38 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 
+	@Test func aQuestionQueuedBehindAListedReplyIsSavedOnce() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 2, tokens: historyBudget(clock: clock) * 85 / 100)
+		transport.script = [
+			.text("Two"), .text(" rides."), .finish(reason: .stop),
+			.text("Noted."), .finish(reason: .stop),
+		]
+		transport.deltaDelay = .milliseconds(200)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let first = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(first)
+		let queued = try #require(
+			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
+		try #require(queued != first)
+		_ = try #require(await coach.settledState(of: queued, in: .main))
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let soft = try #require(try await ledger.flushJobs(in: .main).first)
+		let question = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: queued))
+				.records.first?.ulid)
+		try #require(soft.trigger == .softThreshold)
+		try #require(!soft.messages.contains(question))
+		try #require(question < (soft.messages.max() ?? question))
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		#expect(reset.filter { $0 == "Remember Saturdays" }.count == 1)
+		#expect(reset.filter { $0 == "Noted." }.count == 1)
+		#expect(!reset.contains("How was my week?"))
+	}
+
 	@Test func anOlderImportedTurnIsSavedAfterANewerLocalTurnWasFlushed() async throws {
 		let local = try #require(
 			try await seedHistory(store, clock: clock, turns: 1, tokens: 200).first)

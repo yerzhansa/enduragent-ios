@@ -62,6 +62,32 @@ import Testing
 				== 1)
 	}
 
+	@Test func retryingAStoppedPartialDoesNotCountItsOwnMessagesTowardSoftFlush() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 2, tokens: historyBudget(clock: clock) * 9 / 10)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		transport.script = [.text("Superseded partial"), .hang]
+		let turn = try #require(
+			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(turn)
+		await coach.stop(.main)
+		let stopped = try #require(await coach.settledState(of: turn, in: .main))
+		try #require(stopped.retryable)
+		guard case .interrupted(let interrupted) = stopped else {
+			Issue.record("Expected a stopped reply")
+			return
+		}
+		try #require(interrupted.partial == "Superseded partial")
+		transport.script = [.text("Replacement reply"), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		#expect(
+			replyText(try #require(await coach.settledState(of: turn, in: .main)))
+				== "Replacement reply")
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending])))
+				.records.isEmpty)
+	}
+
 	@Test func aRetriedQuestionBeforeASavedWindowIsStillUnsaved() async throws {
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.fail(.http(status: 400))]
