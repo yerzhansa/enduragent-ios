@@ -84,6 +84,19 @@ public actor Coach {
 		await mailbox(for: chat).interrupt(.athleteStopped)
 	}
 
+	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
+		await mailbox(for: chat).reset()
+	}
+
+	public func history() async throws(HistoryUnavailable) -> [ArchivedConversation] {
+		do {
+			return try await ledger.archivedConversations(
+				process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
+		} catch {
+			throw .storageUnavailable
+		}
+	}
+
 	public func lifecycle(_ event: AppLifecycleEvent) async {
 		switch event {
 		case .becameActive:

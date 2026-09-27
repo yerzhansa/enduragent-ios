@@ -27,8 +27,8 @@ Preconditions:
 - **Connect with a key.** Choose `Continue` (`notice.continue`), type `fixture` into `connect.apiKey`, and choose `Connect` (`connect.connect`). Run `sim.mjs test <run id> ConnectIntervalsProof`. `connect.athleteName` reads `Ada Kovač`, `connect.fitness` reads `Fitness 42`, `connect.fatigue` reads `Fatigue 49`, and `connect.form` reads `Form -7`. Attachment `02-connect-intervals` shows them.
 - **Empty key.** This step is interactive. Leave `connect.apiKey` empty and tap `connect.connect`. A row reading `intervals.icu did not accept that key` appears between `Connect` and `Skip for now`. Capture it with `sim.mjs shot <run id> connect-empty-key`.
 - **Starter credits.** After connecting, choose `Continue` (`connect.continue`). Run `sim.mjs test <run id> StarterCreditsProof`. `starter.credits` reads `200 credits` and `starter.start` exists. Attachment `03-starter-credits` shows both.
-- **Skip.** This step is interactive. Tap `connect.skip`, wait for `200 credits` and `Start chatting`, then tap `starter.start`. The chat opens with the greeting `Hello.` and no name. Capture it with `sim.mjs shot <run id> skip-chat`.
-- **Into the chat with no network.** Run `sim.mjs test <run id> FirstConversationProof`. A pass means onboarding reached `chat.composer` with `Hello, Ada.`, two replies arrived, and `fixture.requestCount` read `0 requests`. Attachment `04-first-conversation` shows the chat.
+- **Skip.** This step is interactive. Tap `connect.skip`, wait for `200 credits` and `Start chatting`, then tap `starter.start`. The chat opens on the welcome without the `/sync` line. Capture it with `sim.mjs shot <run id> skip-chat`.
+- **Into the chat with no network.** Run `sim.mjs test <run id> FirstConversationProof`. A pass means onboarding reached `chat.composer` with the welcome, two replies arrived, and `fixture.requestCount` read `0 requests`. Attachment `04-first-conversation` shows the chat.
 
 ## Gotchas
 

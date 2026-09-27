@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct ChatView: View {
@@ -23,6 +24,13 @@ struct ChatView: View {
 				}
 				ComposerView(model: model)
 			}
+			#if DEBUG
+				.overlay(alignment: .topLeading) {
+					if let snapshot = model.chat {
+						TurnProgressDebugView(snapshot: snapshot)
+					}
+				}
+			#endif
 			.navigationTitle("Coach")
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
@@ -32,9 +40,10 @@ struct ChatView: View {
 					.accessibilityIdentifier("chat.sidebar")
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("New chat") {
-						model.newChat()
+					Button(model.builder.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
+						Task { await model.newConversation() }
 					}
+					.accessibilityIdentifier("chat.newConversation")
 				}
 			}
 			.navigationDestination(isPresented: $model.showCredits) {

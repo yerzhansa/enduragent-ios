@@ -94,6 +94,36 @@ import Testing
 		#expect(conversation.current.promptHistory(excluding: after).messages.isEmpty)
 	}
 
+	@Test func appliedResetMovesTurnsFromItsBoundaryOnIntoTheNewSegment() throws {
+		let before = TurnID(ulid: ulid(1))
+		let after = TurnID(ulid: ulid(4))
+		let resetId = ResetID(ulid: ulid(3))
+		let folded = ConversationFold.fold(
+			chat: .main,
+			synced: [
+				storedRecord(
+					device: phoneA, wall: 1, ulid: ulid(1),
+					body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+				storedRecord(
+					device: phoneA, wall: 2, ulid: ulid(4),
+					body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			], device: phoneA)
+		#expect(folded.segments.count == 1)
+		let boundary = storedRecord(
+			device: phoneA, wall: 3, ulid: ulid(5),
+			body: .synced(
+				.windowStart(
+					WindowStartBody(
+						chatId: .main, firstIncludedUlid: ulid(3),
+						reason: .reset(.explicit(resetId))))))
+		let applied = ConversationFold.applying([boundary], to: folded, device: phoneA)
+		#expect(applied.segments.map(\.turns.count) == [1, 1])
+		#expect(applied.segments[0].turns.map(\.turn) == [before])
+		#expect(applied.current.openedBy == .reset(.explicit(resetId)))
+		#expect(applied.current.id == SegmentID(boundary: ulid(3)))
+		#expect(applied.current.turns.map(\.turn) == [after])
+	}
+
 	@Test func trimWindowFromAnotherDeviceIsIgnored() throws {
 		let first = TurnID(ulid: ulid(1))
 		let second = TurnID(ulid: ulid(3))
@@ -348,7 +378,7 @@ import Testing
 		#expect(
 			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
 		#expect(
-			conversation.current.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				ulid(5), ulid(6),
 			])
 	}

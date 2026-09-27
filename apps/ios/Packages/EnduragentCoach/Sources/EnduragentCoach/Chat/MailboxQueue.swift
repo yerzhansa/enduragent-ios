@@ -11,6 +11,10 @@ struct Admitted: ~Copyable {
 		queue.append(.turn(turn))
 	}
 
+	func add(_ reset: ResetID) -> Bool {
+		queue.append(.reset(reset))
+	}
+
 	func arm(
 		_ turn: TurnID, at now: Date, for duration: Duration,
 		then close: @escaping @Sendable (Int) async -> Void
@@ -36,6 +40,10 @@ final class MailboxQueue {
 	var isEmpty: Bool { waiting.isEmpty }
 
 	var next: MailboxWork? { waiting.first }
+
+	var resetting: Bool {
+		active?.reset != nil || waiting.contains { $0.reset != nil }
+	}
 
 	func pass<Value, Failure: Error>(
 		isolation: isolated (any Actor)? = #isolation,
@@ -64,7 +72,7 @@ final class MailboxQueue {
 	}
 
 	func dropWaiting() -> [TurnID] {
-		defer { waiting.removeAll() }
+		defer { waiting.removeAll { $0.reset == nil } }
 		return turns(includingActive: false)
 	}
 

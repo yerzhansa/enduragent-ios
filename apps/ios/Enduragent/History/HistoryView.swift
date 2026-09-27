@@ -1,23 +1,56 @@
+import EnduragentCoach
 import SwiftUI
+
+enum HistoryList: Equatable {
+	case loading
+	case loaded([ArchivedConversation])
+	case unavailable
+}
 
 struct HistoryView: View {
 	var model: ShellModel
 
 	var body: some View {
-		List(model.history) { row in
-			Button {
-				Task { await model.openChat(row.id) }
-			} label: {
-				VStack(alignment: .leading) {
-					Text(row.title)
-					Text(row.civilDate.rawValue)
+		Group {
+			switch model.history {
+			case .loading:
+				ProgressView()
+			case .unavailable:
+				Text(say(Catalog.archiveListFailure))
+			case .loaded(let conversations) where conversations.isEmpty:
+				Text(say(Catalog.archiveEmpty))
+			case .loaded(let conversations):
+				List(conversations) { conversation in
+					NavigationLink {
+						ArchivedConversationView(model: model, conversation: conversation)
+					} label: {
+						row(conversation)
+					}
+					.accessibilityIdentifier("history.row.\(conversation.id.rawValue)")
 				}
 			}
-			.accessibilityIdentifier("history.row.\(row.id.rawValue)")
 		}
-		.navigationTitle("History")
+		.navigationTitle(say(Catalog.archiveTitle))
 		.task {
-			await model.reloadHistory()
+			await model.loadHistory()
 		}
+	}
+
+	private func row(_ conversation: ArchivedConversation) -> some View {
+		VStack(alignment: .leading, spacing: 4) {
+			if let question = conversation.turns.lazy.compactMap(\.athleteText).first {
+				Text(question)
+					.lineLimit(2)
+			}
+			Text(say(conversation.reason.title))
+				.font(.footnote)
+			Text(conversation.startedOn.rawValue)
+				.font(.footnote)
+				.foregroundStyle(.secondary)
+		}
+	}
+
+	private func say(_ key: CatalogKey) -> String {
+		model.builder.phrasebook.say(key, [:])
 	}
 }

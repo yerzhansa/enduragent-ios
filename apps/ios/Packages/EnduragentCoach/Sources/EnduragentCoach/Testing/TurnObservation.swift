@@ -9,15 +9,6 @@ extension SendOutcome {
 	}
 }
 
-extension TurnState {
-	package var isSettled: Bool {
-		switch self {
-		case .completed, .savedWork, .failed, .interrupted: true
-		case .accepted, .processing, .unrecovered: false
-		}
-	}
-}
-
 extension Coach {
 	package func settledState(
 		of turn: TurnID, in chat: ChatID, within limit: Duration = .seconds(30)
