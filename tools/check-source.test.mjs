@@ -43,6 +43,7 @@ for (const [name, file, value, code] of [
   ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
+  ['duplicate athlete authority', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Operation.swift', 'func matchesAthlete(_ current: TrainingAccount) -> Bool {}', 'duplicate-athlete-authority'],
 ]) {
   test(`rejects ${name} without printing matched data`, () => {
     const result = run({ [file]: value });

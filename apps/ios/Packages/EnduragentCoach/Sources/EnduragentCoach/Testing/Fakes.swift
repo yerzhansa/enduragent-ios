@@ -204,7 +204,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var athleteId: String
 	public var athleteName: String
 	public var ftp: Int
-	public var loadFailure: IntervalsError?
+	public var loadFailure: (any Error)?
 
 	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
 		self.athleteId = athleteId
