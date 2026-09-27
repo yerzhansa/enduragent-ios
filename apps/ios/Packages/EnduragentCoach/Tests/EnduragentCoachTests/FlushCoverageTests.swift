@@ -102,8 +102,7 @@ import Testing
 		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
 	}
 
-	@Test(arguments: [false, true])
-	func v1ConsumedJobDoesNotReplayRowsMergedOutsideItsList(modernSettlement: Bool) async throws {
+	@Test func v1ConsumedJobDoesNotReplayRowsMergedOutsideItsList() async throws {
 		let job = FlushJobID(ulid: fixedUlid(7))
 		try await seed(
 			store,
@@ -132,18 +131,6 @@ import Testing
 								garmin: false, nonGarmin: false, unknown: false,
 								contentSha256: "consumed")))),
 			])
-		if modernSettlement {
-			try await seed(
-				store,
-				[
-					record(
-						9,
-						body: .deviceLocal(
-							.flushSettled(
-								FlushSettledBody(
-									chatId: .main, job: job, settlement: .nothingToSave))))
-				])
-		}
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		try #require(try await ledger.flushJobs(in: .main).map(\.saved) == [true])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)

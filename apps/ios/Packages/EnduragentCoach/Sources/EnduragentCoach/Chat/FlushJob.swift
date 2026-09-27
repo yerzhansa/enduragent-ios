@@ -204,12 +204,12 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let hasV1Jobs = chats.contains { chat in
+		let hasUnsettledV1Jobs = chats.contains { chat in
 			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
-				.contains { $0.process == nil }
+				.contains { $0.process == nil && !$0.settled }
 		}
 		var markers: [AthleteRecord] = []
-		if hasV1Jobs {
+		if hasUnsettledV1Jobs {
 			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
 				.records
 		}
