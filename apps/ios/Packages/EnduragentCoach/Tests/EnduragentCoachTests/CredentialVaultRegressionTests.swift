@@ -1,0 +1,224 @@
+import Foundation
+import Security
+import Testing
+
+@testable import EnduragentCoach
+
+extension CredentialVaultTests {
+	@Test func recoveryTokenWriteFailureKeepsPreviousCredential() async throws {
+		let memory = MemorySecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: memory)
+		let oldToken = try secrets.appAccountToken()
+		try secrets.storeOpenRouterKey("test-old-credits-key")
+		memory.failWrites(CredentialSlot.appAccountToken.rawValue, with: errSecNotAvailable)
+		let coach = try recoveryCoach(secrets)
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
+		}
+		#expect(try secrets.appAccountToken() == oldToken)
+		#expect(try secrets.openRouterKey() == "test-old-credits-key")
+		_ = try await claimAccount(after: "Is Thursday on?", on: coach)
+		#expect(transport.requests.last?.credential.secret == "test-old-credits-key")
+	}
+
+	@Test func recoveryKeyWriteFailureKeepsPreviousCredential() async throws {
+		let memory = MemorySecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: memory)
+		_ = try secrets.appAccountToken()
+		try secrets.storeOpenRouterKey("test-old-credits-key")
+		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: errSecNotAvailable)
+		let coach = try recoveryCoach(secrets)
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
+		}
+		#expect(try secrets.openRouterKey() == "test-old-credits-key")
+		#expect(await coach.status().setup == .ready)
+	}
+
+	@Test func oldProposalCannotExecuteForTheNewAthlete() async throws {
+		let secrets = keyedSecrets()
+		let coach = coach(secrets)
+		let pending = try await proposeRide(on: coach)
+		let displayedStatus = await coach.status()
+		#expect(pending.confirmable(under: displayedStatus))
+		_ = await coach.changeTraining(
+			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
+		#expect(!pending.confirmable(under: await coach.status()))
+		let outcome = try await coach.confirm(chatId: .main, nonce: pending.nonce)
+		#expect(outcome == .expired)
+		#expect(
+			!bo.calls.contains { call in
+				if case .createEvent = call { return true }
+				return false
+			})
+	}
+
+	@Test func stagingRecoveryRetriesAfterUnlock() async throws {
+		let secrets = keyedSecrets()
+		try secrets.stageIntervalsConnection(testConnection)
+		secrets.locked = true
+		let coach = coach(secrets)
+		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		secrets.locked = false
+		await coach.lifecycle(.becameActive)
+		#expect(await coach.status().setup == .ready)
+		#expect(try secrets.stagedIntervalsConnection() == nil)
+	}
+
+	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
+		let secrets = keyedSecrets()
+		let gate = CredentialProfileGate()
+		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let service = TrainingService { credential, _, _ in
+			if credential == .apiKey("test-delayed-key") { return client }
+			return self.ada
+		}
+		let coach = coachWithTraining(secrets, training: service)
+		let replacement = Task {
+			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
+		}
+		await gate.waitUntilEntered()
+		let disconnect = Task { await coach.changeTraining(.disconnect) }
+		try await Task.sleep(for: .milliseconds(150))
+		await gate.release()
+		_ = await replacement.value
+		#expect(await disconnect.value == .disconnected)
+		#expect(try secrets.intervalsConnection() == nil)
+		#expect(await coach.status().training == .unconnected)
+		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
+	}
+
+	@Test func oldProfileReadDoesNotOverwriteReplacement() async throws {
+		let secrets = keyedSecrets()
+		try secrets.storeIntervalsConnection(
+			IntervalsConnection(
+				id: testConnection.id, credential: .apiKey("test-unresolved"),
+				selection: .keyOwner, resolvedAthlete: nil))
+		let gate = CredentialProfileGate()
+		let old = GatedProfileIntervals(base: ada, gate: gate)
+		let service = TrainingService { credential, _, _ in
+			if credential == .apiKey("test-unresolved") { return old }
+			return self.bo
+		}
+		let coach = coachWithTraining(secrets, training: service)
+		let status = Task { await coach.status() }
+		await gate.waitUntilEntered()
+		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
+		let replacement = try #require(try secrets.intervalsConnection())
+		await gate.release()
+		_ = await status.value
+		#expect(try secrets.intervalsConnection() == replacement)
+		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
+	}
+
+	private func recoveryCoach(_ secrets: any SecretStore) throws -> Coach {
+		let config = URLSessionConfiguration.ephemeral
+		config.protocolClasses = [RecoveryResponseStub.self]
+		let session = URLSession(configuration: config)
+		let base = try #require(URL(string: "https://credits.invalid"))
+		return Coach(
+			sport: .cycling,
+			ports: CoachPorts(
+				records: records, secrets: secrets, models: .scripted(transport),
+				training: training,
+				credits: CreditsService { vault in
+					PhoneCreditsClient(vault: vault, workerBase: base, session: session)
+				},
+				host: ImmediateExecutionHost(), clock: clock),
+			builtInModel: testModel, language: .init(ui: .en, coachReply: nil),
+			coalescing: quickWindow)
+	}
+
+	private func coachWithTraining(_ secrets: any SecretStore, training: TrainingService) -> Coach {
+		Coach(
+			sport: .cycling,
+			ports: CoachPorts(
+				records: records, secrets: secrets, models: .scripted(transport),
+				training: training, credits: .fake(FakeCreditsClient()),
+				host: ImmediateExecutionHost(), clock: clock),
+			builtInModel: testModel, language: .init(ui: .en, coachReply: nil),
+			coalescing: quickWindow)
+	}
+}
+
+private final class RecoveryResponseStub: URLProtocol, @unchecked Sendable {
+	override class func canInit(with request: URLRequest) -> Bool { true }
+	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+	override func startLoading() {
+		guard let url = request.url,
+			let response = HTTPURLResponse(
+				url: url, statusCode: 200, httpVersion: nil,
+				headerFields: ["Content-Type": "application/json"])
+		else {
+			client?.urlProtocol(self, didFailWithError: URLError(.badURL))
+			return
+		}
+		let body =
+			#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
+		client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+		client?.urlProtocol(self, didLoad: Data(body.utf8))
+		client?.urlProtocolDidFinishLoading(self)
+	}
+	override func stopLoading() {}
+}
+
+private actor CredentialProfileGate {
+	private var entered = false
+	private var released = false
+	private var waiters: [CheckedContinuation<Void, Never>] = []
+	private var blocked: [CheckedContinuation<Void, Never>] = []
+
+	func pause() async {
+		entered = true
+		for waiter in waiters { waiter.resume() }
+		waiters.removeAll()
+		if !released { await withCheckedContinuation { blocked.append($0) } }
+	}
+
+	func waitUntilEntered() async {
+		if !entered { await withCheckedContinuation { waiters.append($0) } }
+	}
+
+	func release() {
+		released = true
+		for waiter in blocked { waiter.resume() }
+		blocked.removeAll()
+	}
+}
+
+private struct GatedProfileIntervals: IntervalsClient {
+	let base: FakeIntervalsClient
+	let gate: CredentialProfileGate
+
+	func fetchAthlete() async throws -> AthleteProfile {
+		await gate.pause()
+		return try await base.fetchAthlete()
+	}
+	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
+		try await base.fetchWellness(oldest: oldest, newest: newest)
+	}
+	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
+		try await base.fetchActivities(oldest: oldest, newest: newest)
+	}
+	func fetchActivity(id: ActivityID) async throws -> JSONValue {
+		try await base.fetchActivity(id: id)
+	}
+	func fetchStreams(id: ActivityID) async throws -> JSONValue {
+		try await base.fetchStreams(id: id)
+	}
+	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
+		try await base.listEvents(oldest: oldest, newest: newest)
+	}
+	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
+		try await base.createChatEvent(draft)
+	}
+	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
+		try await base.createOrUpdatePlanEvent(draft)
+	}
+	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+		async throws -> CalendarEvent
+	{
+		try await base.updateEvent(id: id, name: name, description: description, date: date)
+	}
+	func deleteEvent(id: EventID) async throws { try await base.deleteEvent(id: id) }
+}
