@@ -270,7 +270,9 @@ package struct TurnRunner: Sendable {
 				progress: progress)
 			do {
 				let firstKept =
-					trim.kept.isEmpty ? attempt.turn.ulid : history.ulids[trim.dropped.count]
+					trim.kept.isEmpty
+					? transcript.current?.ulid ?? attempt.turn.ulid
+					: history.ulids[trim.dropped.count]
 				summary = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
 					scope: scope, progress: progress)

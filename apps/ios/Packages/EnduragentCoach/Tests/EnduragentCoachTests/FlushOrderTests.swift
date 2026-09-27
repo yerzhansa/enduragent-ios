@@ -164,6 +164,57 @@ import Testing
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 	}
 
+	@Test func aTrimThatWouldKeepOnlyAReplyStartsTheWindowAtTheRunningTurn() async throws {
+		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		let asked = clock.now.addingTimeInterval(-30)
+		let question = ULID.generate(at: asked)
+		let reply = ULID.generate(at: asked.addingTimeInterval(1))
+		let turn = TurnID(ulid: question)
+		let hugeReply = "Huge " + String(repeating: "h", count: historyBudget(clock: clock) * 4)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: asked, ulid: question,
+					body: .synced(sampleUser(chatId: .main, text: "Short question?", turn: turn))),
+				seededRecord(
+					store, at: asked.addingTimeInterval(1), ulid: reply,
+					body: .synced(sampleReply(chatId: .main, turn: turn, text: hugeReply))),
+			])
+		transport.summaryScript = [.text("Everything so far."), .finish(reason: .stop)]
+		transport.script = [
+			.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("And now?"), to: .main).acceptedTurn)
+		_ = try #require(await coach.settledState(of: running, in: .main))
+		let userMessage = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: running))
+				.records.first?.ulid)
+		let windows = try await store.fetch(
+			RecordQuery(scope: .synced([.windowStart], includeLegacy: []))
+		).records.compactMap { record -> ULID? in
+			guard case .synced(.windowStart(let body)) = record.body else { return nil }
+			return body.firstIncludedUlid
+		}
+		#expect(windows == [userMessage])
+		let summaries = sent(.droppedSummary, by: transport)
+		#expect(summaries.count == 1)
+		let summarized = try #require(summaries.first).messages.map(\.content).joined()
+		#expect(summarized.contains("Question 0"))
+		#expect(summarized.contains("Answer 0"))
+		#expect(summarized.contains("Short question?"))
+		#expect(summarized.contains(hugeReply))
+		#expect(history.count == 1)
+		_ = try await coach.sendAndSettle("And later?")
+		for request in sent(.chatAttempt, by: transport) {
+			#expect(!request.messages.contains { $0.content == hugeReply })
+			#expect(!request.messages.contains { $0.content == "Short question?" })
+		}
+		#expect(sent(.chatAttempt, by: transport).count == 2)
+		#expect(sent(.droppedSummary, by: transport).count == 1)
+	}
+
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
 		FlushJob(
 			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
