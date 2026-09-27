@@ -45,4 +45,19 @@ import Testing
 		#expect(!system.contains(PromptStaticBlocks.snapshotFallback))
 		#expect(coach.diagnostics.entries.isEmpty)
 	}
+
+	@Test func unconnectedAthleteReadsNoWellnessAndLogsNothing() async throws {
+		let secrets = FakeSecretStore()
+		try secrets.storeOpenRouterKey(testKey)
+		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		let coach = makeCoach(
+			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock,
+			secrets: secrets)
+
+		_ = try await coach.sendAndSettle("How is my form?")
+
+		let system = try #require(transport.requests.first?.messages.first?.content)
+		#expect(system.contains(PromptStaticBlocks.snapshotFallback))
+		#expect(coach.diagnostics.entries.isEmpty)
+	}
 }

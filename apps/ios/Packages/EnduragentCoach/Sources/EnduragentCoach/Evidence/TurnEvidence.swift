@@ -24,6 +24,7 @@ package struct WellnessEvidence: TurnEvidence {
 	}
 
 	package func block(for training: TrainingConnection, now: Date) async -> EvidenceBlock {
+		guard training.account != .unconnected else { return EvidenceBlock(wellnessLine: nil) }
 		let today = IntervalsPolicy.today(now: now, timeZone: clock.timeZone)
 		let days: [WellnessDay]
 		do {
