@@ -69,6 +69,188 @@ import Testing
 		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
 	}
 
+	@Test(arguments: [false, true])
+	func v1ConsumedJobDoesNotReplayRowsMergedOutsideItsList(modernSettlement: Bool) async throws {
+		let job = FlushJobID(ulid: fixedUlid(7))
+		try await seed(
+			store,
+			[
+				record(4, wall: 1, body: legacyUser(chatId: .main, text: "Earlier question")),
+				record(6, wall: 2, body: legacyReply(chatId: .main, text: "Earlier reply")),
+				record(
+					7, wall: 5,
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+				record(
+					1, wall: 1, device: DeviceID(rawValue: "other-phone"),
+					body: legacyUser(chatId: .main, text: "Already saved Saturday")),
+				record(
+					2, wall: 2, device: DeviceID(rawValue: "other-phone"),
+					body: legacyReply(chatId: .main, text: "Already saved reply")),
+				record(
+					8, wall: 6,
+					body: .synced(
+						.provenance(
+							ProvenanceBody(
+								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
+								garmin: false, nonGarmin: false, unknown: false,
+								contentSha256: "consumed")))),
+			])
+		if modernSettlement {
+			try await seed(
+				store,
+				[
+					record(
+						9,
+						body: .deviceLocal(
+							.flushSettled(
+								FlushSettledBody(
+									chatId: .main, job: job, settlement: .nothingToSave))))
+				])
+		}
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		try #require(try await ledger.flushJobs(in: .main).map(\.saved) == [true])
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		try #require(await coach.transcript(.main).count == 4)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		#expect(!repeated.contains("Already saved Saturday"))
+		#expect(!repeated.contains("Already saved reply"))
+		#expect(sent(.memoryFlush, by: transport).isEmpty)
+	}
+
+	@Test func retryAfterItsPartialWasSavedExtractsOnlyTheReplacementReply() async throws {
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		transport.script = [.text("Superseded partial"), .hang]
+		let turn = try #require(
+			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(turn)
+		await coach.stop(.main)
+		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
+		transport.script = [
+			.text("First."), .finish(reason: .stop),
+			.text("Second."), .finish(reason: .stop),
+			.text(longReply), .finish(reason: .stop),
+			.text("Ready."), .finish(reason: .stop),
+		]
+		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
+			_ = try await coach.sendAndSettle(question)
+		}
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
+		let first = try #require(sent(.memoryFlush, by: transport).first)
+		try #require(first.messages.contains { $0.content == "Superseded partial" })
+		try #require(first.messages.contains { $0.content == "Remember Saturdays" })
+		transport.script = [.text("Replacement reply"), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		try #require(
+			replyText(try #require(await coach.settledState(of: turn, in: .main)))
+				== "Replacement reply")
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		#expect(latest.filter { $0 == "Replacement reply" }.count == 1)
+		#expect(!latest.contains("Superseded partial"))
+		#expect(!latest.contains("Remember Saturdays"))
+	}
+
+	@Test func aTrimmedFailedQuestionBecomesEligibleWhenRetried() async throws {
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		transport.script = [.fail(.http(status: 400))]
+		let turn = try #require(
+			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
+		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		let huge = String(repeating: "w", count: historyBudget(clock: clock) * 5)
+		transport.script = [
+			.text(huge), .finish(reason: .stop), .text("Ready"), .finish(reason: .stop),
+		]
+		transport.summaryScript = [.text("Earlier history"), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("Force a trim")
+		_ = try await coach.sendAndSettle("After trimming")
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let conversation = try await ledger.conversation(.main)
+		let trim = try #require(conversation.current.promptWindow.firstIncluded)
+		let user = try #require(conversation.turn(turn)?.userRow?.ulid)
+		try #require(user < trim)
+		try #require(!conversation.current.promptHistory(excluding: nil).ulids.contains(user))
+		transport.script = [.text("Recovered reply"), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		try #require(
+			replyText(try #require(await coach.settledState(of: turn, in: .main)))
+				== "Recovered reply")
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		#expect(latest.filter { $0 == "Recover after trimming" }.count == 1)
+		#expect(latest.filter { $0 == "Recovered reply" }.count == 1)
+		#expect(!latest.contains("Force a trim"))
+		#expect(!latest.contains(huge))
+	}
+
+	@Test func aLegacyWatermarkDoesNotReachIntoTheNextConversation() async throws {
+		let job = FlushJobID(ulid: fixedUlid(7))
+		let foreign = DeviceID(rawValue: "other-phone")
+		let turn = TurnID(ulid: fixedUlid(11))
+		try await seed(
+			store,
+			[
+				record(
+					1, wall: 1, device: foreign,
+					body: legacyUser(chatId: .main, text: "Archived question")),
+				record(
+					20, wall: 2, device: foreign,
+					body: legacyReply(chatId: .main, text: "Archived late reply")),
+				record(
+					7,
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [fixedUlid(1), fixedUlid(20)])))),
+				record(
+					8,
+					body: .synced(
+						.provenance(
+							ProvenanceBody(
+								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
+								garmin: false, nonGarmin: false, unknown: false,
+								contentSha256: "consumed")))),
+				record(
+					10,
+					body: .synced(
+						.windowStart(
+							WindowStartBody(
+								chatId: .main, firstIncludedUlid: fixedUlid(10),
+								reason: .reset(.explicit(ResetID(ulid: fixedUlid(10)))))))),
+				record(
+					11,
+					body: .synced(sampleUser(chatId: .main, text: "Current question", turn: turn))),
+				record(
+					12, body: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
+				),
+			])
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(\.content)
+		#expect(rows.filter { $0 == "Current question" }.count == 1)
+		#expect(rows.filter { $0 == "Current reply" }.count == 1)
+		#expect(!rows.contains("Archived question"))
+		#expect(!rows.contains("Archived late reply"))
+	}
+
+	@Test func legacyCoverageStaysWithinTheAttemptBudget() {
+		let conversation = conversation(turns: 1_000, startingAt: 1_000)
+		let jobs = (1...200).map { job($0, messages: [], settled: true) }
+		let started = ContinuousClock.now
+		let rows = conversation.messagesSinceLastFlush(jobs, excluding: nil)
+		let elapsed = ContinuousClock.now - started
+		Attachment.record(
+			String(format: "%.3f", elapsed / .milliseconds(1)), named: "legacy-coverage-ms.txt")
+		#expect(rows.count == 2_000)
+		#expect(elapsed < .milliseconds(50), "200 jobs, 2,000 rows: \(elapsed)")
+	}
+
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
 		let conversation = conversation(turns: 3)
 		let legacy = job(6, messages: [], settled: true)
@@ -107,9 +289,9 @@ import Testing
 		#expect(conversation.outstandingRows([pending]).map(\.ulid) == [1, 2].map(fixedUlid))
 	}
 
-	private func conversation(turns count: Int) -> Conversation {
+	private func conversation(turns count: Int, startingAt: Int = 1) -> Conversation {
 		let records = (0..<count).flatMap { index in
-			let first = index * 3 + 1
+			let first = index * 3 + startingAt
 			let turn = TurnID(ulid: fixedUlid(first))
 			return [
 				storedRecord(
@@ -127,5 +309,13 @@ import Testing
 		FlushJob(
 			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
 			messages: messages.map(fixedUlid), settled: settled)
+	}
+
+	private func record(
+		_ offset: Int, wall: Int64? = nil, device: DeviceID? = nil, body: RecordBody
+	) -> AthleteRecord {
+		storedRecord(
+			device: device ?? store.deviceId, wall: 899_164_800_000,
+			logical: UInt32(wall ?? Int64(offset)), ulid: fixedUlid(offset), body: body)
 	}
 }
