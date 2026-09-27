@@ -217,7 +217,7 @@ final class NewConversationWorkingProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, "fixture:slow")
+		TutorialHarness.exchange(app, "fixture:slow-flush")
 		let button = TutorialHarness.named(app, "chat.newConversation")
 		TutorialHarness.waitUntilHittable(button)
 		button.tap()
