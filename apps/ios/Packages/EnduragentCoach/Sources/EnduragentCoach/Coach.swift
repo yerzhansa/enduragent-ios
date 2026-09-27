@@ -51,7 +51,8 @@ public actor Coach {
 			clock: clock,
 			planning: planning,
 			diagnostics: diagnostics,
-			ladder: .npm
+			ladder: .npm,
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
 		)
 		self.mailboxes = [:]
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))

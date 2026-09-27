@@ -67,6 +67,7 @@ package struct TurnRunner: Sendable {
 	private let planning: Planning
 	private let diagnostics: DiagnosticsLog
 	private let ladder: RetryLadder
+	private let evidence: any TurnEvidence
 
 	package init(
 		transport: any ModelTransport,
@@ -74,7 +75,8 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		planning: Planning,
 		diagnostics: DiagnosticsLog,
-		ladder: RetryLadder
+		ladder: RetryLadder,
+		evidence: any TurnEvidence
 	) {
 		self.transport = transport
 		self.ledger = ledger
@@ -82,6 +84,7 @@ package struct TurnRunner: Sendable {
 		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
+		self.evidence = evidence
 	}
 
 	package func run(
@@ -246,7 +249,7 @@ package struct TurnRunner: Sendable {
 			)
 		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = await loadSnapshot(from: attempt.training.client)
+		let block = await evidence.block(for: attempt.training, now: clock.now)
 		let language = attempt.language
 		let resolution = LanguageResolution(
 			language: language.coachReply ?? language.ui,
@@ -256,7 +259,7 @@ package struct TurnRunner: Sendable {
 		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: resolution)
 		let volatile = PromptAssembly.volatile(
 			context: context,
-			snapshot: snapshot,
+			evidence: block,
 			timeZoneName: clock.timeZone.identifier,
 			replyLanguage: replyLanguage
 		)
@@ -589,18 +592,6 @@ package struct TurnRunner: Sendable {
 		]
 		next.append(contentsOf: keep)
 		prompt.wire = next
-	}
-
-	private func loadSnapshot(from intervals: any IntervalsClient) async -> AthleteSnapshot? {
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let oldest = today.adding(days: -(7 - 1))
-		guard let days = try? await intervals.fetchWellness(oldest: oldest, newest: today) else {
-			return nil
-		}
-		guard let latest = days.last else {
-			return nil
-		}
-		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
 	}
 
 	private func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {

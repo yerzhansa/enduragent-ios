@@ -23,7 +23,7 @@ import Testing
 	@Test func volatileOmitsCivilDateAndFencesContext() {
 		let section = PromptAssembly.volatile(
 			context: "Ada rides on Saturdays.",
-			snapshot: AthleteSnapshot(fitness: 55.2, fatigue: 42.1, form: 13.1),
+			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
 				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
@@ -86,7 +86,7 @@ import Testing
 		)
 		let volatile = PromptAssembly.volatile(
 			context: "",
-			snapshot: nil,
+			evidence: EvidenceBlock(wellnessLine: nil),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
 				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
