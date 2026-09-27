@@ -18,7 +18,7 @@ package actor ChatMailbox {
 	private var window = JoinWindow()
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
-	private var interruption: InterruptionCause?
+	private let interruption = Interruption()
 	private var terminating = false
 	private var foreground = true
 	private var finishedAway: Set<TurnID> = []
@@ -158,14 +158,17 @@ package actor ChatMailbox {
 	}
 
 	package func interrupt(_ cause: InterruptionCause) async {
+		guard interruption.cause == nil else { return await interruption.join() }
 		let active = running
 		guard active != nil || window.open != nil || !work.isEmpty else { return }
-		interruption = cause
+		interruption.begin(cause)
 		publish()
 		active?.cancel()
-		await active?.value
-		if !terminating {
+		if terminating {
+			await active?.value
+		} else {
 			await admission.enter()
+			await active?.value
 			let unstarted = queuedTurns(includingActive: false) + [window.close()].compactMap { $0 }
 			work.removeAll { $0.reset == nil }
 			for turn in unstarted {
@@ -174,7 +177,7 @@ package actor ChatMailbox {
 			}
 			admission.leave()
 		}
-		interruption = nil
+		interruption.end()
 		leases.end { $0.interrupt() }
 		publish()
 		drainIfIdle()
@@ -243,7 +246,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, interruption == nil, !terminating, !work.isEmpty else { return }
+		guard running == nil, interruption.cause == nil, !terminating, !work.isEmpty else { return }
 		let next = work.removeFirst()
 		let lease = holdLease(next.initiator)
 		active = next
@@ -269,7 +272,7 @@ package actor ChatMailbox {
 		running = nil
 		active = nil
 		if work.isEmpty {
-			if window.open == nil, interruption == nil, !terminating {
+			if window.open == nil, interruption.cause == nil, !terminating {
 				leases.end { $0.finish() }
 			}
 			publish()
@@ -328,7 +331,7 @@ package actor ChatMailbox {
 			settlement = Settlement(result)
 		} catch {
 			settlement = .interrupted(
-				partial: live?.text ?? "", cause: interruption ?? .athleteStopped,
+				partial: live?.text ?? "", cause: interruption.cause ?? .athleteStopped,
 				saved: await scope.summary)
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
@@ -373,7 +376,7 @@ package actor ChatMailbox {
 			window: window.open,
 			queued: queuedTurns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
-			stopping: interruption != nil,
+			stopping: interruption.cause != nil,
 			resetting: active?.reset != nil || work.contains { $0.reset != nil },
 			finishedAway: finishedAway,
 			pendingProposal: records.pendingProposal,
