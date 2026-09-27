@@ -44,6 +44,14 @@ package enum UnionMerge {
 		chatId: ChatID,
 		now: Date
 	) -> ProposalBody? {
+		pendingProposalRecord(records, chatId: chatId, now: now)?.body
+	}
+
+	package static func pendingProposalRecord(
+		_ records: [AthleteRecord],
+		chatId: ChatID,
+		now: Date
+	) -> (body: ProposalBody, account: TrainingAccount)? {
 		let ordered = inHLCOrder(records)
 		var clearedAt: [Nonce: HybridLogicalClock] = [:]
 		for record in ordered {
@@ -58,7 +66,7 @@ package enum UnionMerge {
 			}
 			if body.expiresAt <= now { continue }
 			if let cleared = clearedAt[body.nonce], record.hlc < cleared { continue }
-			return body
+			return (body, record.account)
 		}
 		return nil
 	}

@@ -163,6 +163,8 @@ extension SwiftDataSuites {
 			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
 			.generationFailed(.malformedStream), .accessUnavailable(.notConfigured(.credits)),
 			.accessUnavailable(.secureStorageLocked), .accessUnavailable(.secureStorageUnavailable),
+			.accessUnavailable(.malformedStoredCredential(.creditsKey)),
+			.accessUnavailable(.malformedStoredCredential(.intervalsConnection)),
 		])
 		func everyModelFailureSurvivesTheStore(failure: ModelFailure) async throws {
 			let log = try makeSwiftDataLog(deviceId: phoneA)
@@ -284,7 +286,9 @@ extension SwiftDataSuites {
 			]
 			let local: [DeviceLocalRecordBody] = [
 				.turnClaim(
-					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+					TurnClaimBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						lease: .continuedProcessing)),
 				.replyObserved(
 					ReplyObservedBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(

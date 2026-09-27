@@ -12,6 +12,7 @@
 				}
 			}
 			.navigationTitle("Session")
+			.task { await model.refreshStatus() }
 		}
 	}
 
@@ -45,7 +46,7 @@
 		}
 
 		private func save() async {
-			guard let current = model.status?.session else { return }
+			let current = await model.refreshStatus().session
 			let next: SessionSettings
 			do {
 				next = try current.replacing(field, with: text)

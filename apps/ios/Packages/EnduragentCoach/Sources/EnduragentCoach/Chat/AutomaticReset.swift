@@ -16,8 +16,10 @@ package struct AutomaticReset: Sendable {
 			last: conversation.lastExchange(before: turn), now: clock.now, zone: zone,
 			settings: session)
 		guard case .reset(let kind) = freshness else { return nil }
-		let archived = conversation.current
-			.messagesSinceLastFlush(await flushes.jobs(), excluding: turn)
+		let jobs = await flushes.jobs()
+		let archived =
+			(conversation.outstandingRows(jobs)
+			+ conversation.current.messagesSinceLastFlush(jobs, excluding: turn))
 			.filter { $0.ulid < opened }
 		do {
 			if !archived.isEmpty {

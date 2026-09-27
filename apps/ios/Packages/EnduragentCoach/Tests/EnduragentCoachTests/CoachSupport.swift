@@ -10,14 +10,28 @@ let testKey = "sk-or-test-credits-key"
 let testAccess = ResolvedAccess(
 	credential: ProviderCredential(secret: testKey, method: .credits), model: testModel)
 
+let testConnection = IntervalsConnection(
+	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
+	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
+
 func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
 	let secrets = FakeSecretStore()
 	do {
 		try secrets.storeOpenRouterKey(key)
+		try secrets.storeIntervalsConnection(testConnection)
 	} catch {
 		Issue.record(error)
 	}
 	return secrets
+}
+
+func testVault(
+	_ store: any SecretStore,
+	training: TrainingService = .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
+	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+) -> CredentialVault {
+	CredentialVault(
+		store: store, training: training, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 }
 
 func testRequest(
@@ -35,16 +49,17 @@ func makeCoach(
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
-	secrets: any SecretStore = keyedSecrets()
+	secrets: any SecretStore = keyedSecrets(),
+	host: any ExecutionHost = ImmediateExecutionHost()
 ) -> Coach {
 	Coach(
 		sport: .cycling,
-		models: .scripted(transport),
+		ports: CoachPorts(
+			records: store, secrets: secrets, models: .scripted(transport),
+			training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+			host: host, clock: clock
+		),
 		builtInModel: testModel,
-		secrets: secrets,
-		intervals: intervals,
-		store: store,
-		clock: clock,
 		deviceLanguage: .en,
 		coalescing: coalescing
 	)
@@ -84,6 +99,11 @@ extension Coach {
 		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
 	}
 
+	func interruption(of turn: TurnID) async -> InterruptionCause? {
+		guard case .interrupted(let interrupted)? = await state(of: turn) else { return nil }
+		return interrupted.cause
+	}
+
 	func waitForState(
 		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
 	) async throws -> TurnState? {
@@ -105,6 +125,29 @@ extension Coach {
 		}
 		await lifecycle(.willTerminate)
 	}
+}
+
+func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) async throws {
+	let deadline = ContinuousClock.now + limit
+	while !condition() {
+		guard ContinuousClock.now < deadline else {
+			Issue.record("condition never held")
+			return
+		}
+		try await Task.sleep(for: .milliseconds(10))
+	}
+}
+
+func settlements(of turn: TurnID, in store: any RecordLog) async throws -> [Settlement] {
+	try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
+		.compactMap { record in
+			guard case .synced(.turnSettled(let body)) = record.body else { return nil }
+			return body.settlement
+		}
+}
+
+func claims(of turn: TurnID, in store: any RecordLog) async throws -> [AthleteRecord] {
+	try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)).records
 }
 
 func waitForRecords(
@@ -137,31 +180,14 @@ func replyText(_ state: TurnState) -> String? {
 	return text
 }
 
+func isInterrupted(_ state: TurnState) -> Bool {
+	guard case .interrupted = state else { return false }
+	return true
+}
+
 func failure(_ state: TurnState) -> CoachFailure? {
 	guard case .failed(let failed) = state else { return nil }
 	return failed.failure
-}
-
-final class BatchRecordingLog: RecordLog, @unchecked Sendable {
-	let inner: any RecordLog
-	private(set) var batches: [[String]] = []
-
-	init(inner: any RecordLog) {
-		self.inner = inner
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		batches.append(batch.map(\.body.kind))
-		try await inner.append(batch, locality: locality)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
 }
 
 func systemTokens(clock: any Clock) -> Int {
@@ -237,113 +263,4 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 
 func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [CompletionRequest] {
 	transport.requests.filter { $0.charge == charge }
-}
-
-final class SlowAppendLog: RecordLog, Sendable {
-	let inner: any RecordLog
-	let delay: Duration
-
-	init(inner: any RecordLog, delay: Duration) {
-		self.inner = inner
-		self.delay = delay
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		try await Task.sleep(for: delay)
-		try await inner.append(batch, locality: locality)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
-}
-
-final class SlowConversationReadLog: RecordLog, Sendable {
-	let inner: any RecordLog
-	let delay: Duration
-	let fails: Bool
-	let reached: AsyncStream<Void>
-	private let reachedContinuation: AsyncStream<Void>.Continuation
-	private let slowed = Mutex(false)
-
-	init(inner: any RecordLog, delay: Duration, fails: Bool = false) {
-		self.inner = inner
-		self.delay = delay
-		self.fails = fails
-		(reached, reachedContinuation) = AsyncStream.makeStream()
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		try await inner.append(batch, locality: locality)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		let page = try await inner.fetch(query)
-		let slow = slowed.withLock { done -> Bool in
-			guard !done, query.scope == ConversationFold.syncedScope else { return false }
-			done = true
-			return true
-		}
-		guard slow else { return page }
-		reachedContinuation.yield()
-		try await Task.sleep(for: delay)
-		if fails {
-			throw RecordStorageFault(operation: .fetch)
-		}
-		return page
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
-}
-
-final class HeldAppendLog: RecordLog, Sendable {
-	let inner: any RecordLog
-	let kind: String
-	let occurrence: Int
-	let reached: AsyncStream<Void>
-	private let reachedContinuation: AsyncStream<Void>.Continuation
-	private let state = Mutex<(seen: Int, held: CheckedContinuation<Void, Never>?)>((0, nil))
-
-	init(inner: any RecordLog, holding kind: String, occurrence: Int) {
-		self.inner = inner
-		self.kind = kind
-		self.occurrence = occurrence
-		(reached, reachedContinuation) = AsyncStream.makeStream()
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		let hold = state.withLock { current -> Bool in
-			guard batch.contains(where: { $0.body.kind == kind }) else { return false }
-			current.seen += 1
-			return current.seen == occurrence
-		}
-		if hold {
-			await withCheckedContinuation { continuation in
-				state.withLock { $0.held = continuation }
-				reachedContinuation.yield()
-			}
-		}
-		try await inner.append(batch, locality: locality)
-	}
-
-	func release() {
-		state.withLock { current in
-			current.held?.resume()
-			current.held = nil
-		}
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
 }

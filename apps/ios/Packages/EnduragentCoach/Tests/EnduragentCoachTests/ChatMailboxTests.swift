@@ -160,19 +160,12 @@ import Testing
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
 		let sent = draft("Is Thursday on?")
-		let first: SendOutcome?
-		do {
-			first = try await coach.send(sent, to: .main)
-		} catch {
-			#expect(error == .storageUnavailable)
-			first = nil
+		await #expect(throws: AcceptFailure.storageUnavailable) {
+			try await coach.send(sent, to: .main)
 		}
 		_ = await observed
 		let outcome = try await coach.send(sent, to: .main)
 		let turn = try #require(outcome.acceptedTurn)
-		if let first {
-			#expect(first == outcome)
-		}
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
 		#expect(replyText(settled) == "Still on.")

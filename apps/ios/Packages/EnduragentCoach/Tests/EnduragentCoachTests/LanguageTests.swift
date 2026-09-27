@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -188,22 +187,17 @@ import Testing
 			await makeCoach(transport: transport, store: store).status().language == .automatic)
 	}
 
-	@Test func statusObservationSeesEachChoice() async throws {
+	@Test func statusCarriesEachChoice() async throws {
 		let coach = makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
-		let seen = StatusLog()
-		let stream = await coach.observeStatus()
-		let watching = Task {
-			for await status in stream {
-				seen.append(status)
-			}
-		}
-		defer { watching.cancel() }
+		#expect(await coach.status().language == .automatic)
 		try await coach.setLanguage(.fixed(.ja))
+		#expect(await coach.status().language == .fixed(.ja))
 		let hour = try SessionSettings.npmDefaults.replacing(.dailyResetHour, with: "6")
 		try await coach.setSession(hour)
-		let statuses = try await seen.first(3)
-		#expect(statuses.map(\.language) == [.automatic, .fixed(.ja), .fixed(.ja)])
-		#expect(statuses.map(\.session) == [.npmDefaults, .npmDefaults, hour])
+		let status = await coach.status()
+		#expect(status.session == hour)
+		#expect(status.language == .fixed(.ja))
+		#expect(status.setup == .ready)
 	}
 
 	@Test func overlappingChoicesSettleOnTheLatestRecord() async throws {
@@ -275,21 +269,5 @@ import Testing
 		let data = try JSONSerialization.data(
 			withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
 		try data.write(to: directory.appendingPathComponent("resolve-swift.json"))
-	}
-}
-
-private final class StatusLog: Sendable {
-	private let statuses = Mutex<[CoachStatus]>([])
-
-	func append(_ status: CoachStatus) {
-		statuses.withLock { $0.append(status) }
-	}
-
-	func first(_ count: Int, within limit: Duration = .seconds(5)) async throws -> [CoachStatus] {
-		let deadline = ContinuousClock.now + limit
-		while statuses.withLock({ $0.count }) < count, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		return statuses.withLock { Array($0.prefix(count)) }
 	}
 }

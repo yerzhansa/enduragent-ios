@@ -34,7 +34,8 @@
 						kind: record.body.kind,
 						detail: detail(record.body),
 						deviceId: record.deviceId.rawValue,
-						hlc: hlcText(record.hlc)
+						hlc: hlcText(record.hlc),
+						account: record.account.storedValue
 					)
 				},
 				skipped: synced.skipped.count + local.skipped.count
@@ -79,6 +80,9 @@
 		}
 
 		private func detail(_ body: RecordBody) -> String {
+			if case .deviceLocal(.turnClaim(let claim)) = body {
+				return claim.lease.rawValue
+			}
 			guard case .synced(.turnSettled(let settled)) = body else { return "" }
 			switch settled.settlement {
 			case .replied:
@@ -117,5 +121,6 @@
 		public let detail: String
 		public let deviceId: String
 		public let hlc: String
+		public let account: String
 	}
 #endif

@@ -7,6 +7,7 @@ The menu's Credits screen shows the athlete's credit balance and the credit pack
 - `credits-balance` shows `200 credits` in `credits.balance`.
 - `credits-packs` shows `credits.pack.icu.enduragent.credits.small` with `500 credits` and `credits.pack.icu.enduragent.credits.large` with `2000 credits`, each with a disabled `Buy`.
 - `credits-note` shows `Testers cannot buy packs yet.` in `credits.note`.
+- `credits-unavailable` shows `Credits are unavailable right now. Try again later.` in `credits.notice` when the catalog or balance cannot load, from the catalog key `credits.error.unavailable`.
 
 ## How to get to it (user POV)
 
@@ -29,4 +30,5 @@ Preconditions:
 
 - Fixture mode skips the StoreKit price lookup, so pack rows show credits without a price. A fixture run cannot verify prices.
 - The fixture balance stays at 200 credits after any number of chats. Spending is not modeled.
-- `Debug`, then `Credits`, opens a developer screen. It is not this feature and is not proof of it.
+- `Debug`, then `Credits`, opens a developer screen. It is not this feature and is not proof of it. It uses the coach's Credits client, so in fixture mode it shows the fake grant and balance.
+- No fixture directive fails the Credits client. `FixtureLaunchTests.creditsFailuresShowCatalogNotices` covers `credits.notice` and the starter line.

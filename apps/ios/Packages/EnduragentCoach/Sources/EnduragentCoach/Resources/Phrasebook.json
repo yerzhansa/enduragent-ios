@@ -69093,6 +69093,16 @@
         }
       }
     },
+    "chat.turn.finishedWhileLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        }
+      }
+    },
     "chat.turn.interruptedNothingChanged": {
       "localizations": {
         "en": {
@@ -110241,6 +110251,16 @@
         }
       }
     },
+    "connect.error.rejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        }
+      }
+    },
     "credits.error.accessRejected": {
       "localizations": {
         "en": {
@@ -110257,6 +110277,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        }
+      }
+    },
+    "credits.error.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
           }
         }
       }

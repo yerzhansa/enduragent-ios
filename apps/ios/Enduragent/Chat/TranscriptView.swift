@@ -12,7 +12,7 @@ struct TranscriptView: View {
 						if opening.showsWelcome {
 							Text(
 								Welcome.text(
-									in: model.phrasebook, showsSyncLine: model.athlete != nil)
+									in: model.phrasebook, showsSyncLine: model.connected != nil)
 							)
 							.accessibilityIdentifier("chat.welcome")
 						}
@@ -26,6 +26,11 @@ struct TranscriptView: View {
 					}
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
+					}
+					if case .startingNewConversation(let label)? = model.chat?.activity {
+						Text(model.phrasebook.say(label, [:]))
+							.foregroundStyle(.secondary)
+							.accessibilityIdentifier("chat.working")
 					}
 					if model.newConversationUncertain {
 						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)

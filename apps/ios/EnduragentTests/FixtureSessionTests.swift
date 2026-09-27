@@ -26,15 +26,14 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let model = model(services)
 		model.startChatting()
-		try await until { model.status != nil }
 		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
 		model.draft.text = "/language"
 		await model.send()
 		#expect(model.showLanguage)
 		#expect(model.draft.text.isEmpty)
-		#expect(model.status?.language == .automatic)
+		#expect(await model.refreshStatus().language == .automatic)
 		await model.chooseLanguage(.fixed(.fr))
-		try await until { model.status?.language == .fixed(.fr) }
+		#expect(model.status?.language == .fixed(.fr))
 		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
@@ -47,8 +46,10 @@ extension FixtureLaunchTests {
 				"The athlete chose French (Français).") == true)
 		let (kept, keptDefaults) = try relaunch(.keep)
 		let reopened = ShellModel(
-			builder: ServicesBuilder(fixture: kept, language: language, defaults: keptDefaults))
-		try await until { reopened.status?.language == .fixed(.fr) }
+			builder: ServicesBuilder(services: kept, language: language, defaults: keptDefaults))
+		#expect(reopened.route == .chat)
+		await reopened.appear()
+		#expect(reopened.status?.language == .fixed(.fr))
 		#expect(reopened.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 	}
 
@@ -56,7 +57,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let model = model(services)
 		model.startChatting()
-		try await until { model.status != nil }
+		await model.refreshStatus()
 		services.fixtureRecordLog?.failAppends(ofKind: SyncedKind.languagePreference)
 		await model.chooseLanguage(.fixed(.de))
 		#expect(
@@ -73,11 +74,10 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let model = model(services)
 		model.startChatting()
-		try await until { model.status != nil }
-		let stored = try #require(model.status?.session)
+		let stored = await model.refreshStatus().session
 		#expect(stored.text(for: .dailyResetHour) == "4")
 		try await model.saveSession(try stored.replacing(.dailyResetHour, with: "6"))
-		try await until { model.status?.session.dailyResetHour.hour == 6 }
+		#expect(model.status?.session.dailyResetHour.hour == 6)
 		let (kept, _) = try relaunch(.keep)
 		#expect(await kept.coach.status().session.text(for: .dailyResetHour) == "6")
 	}
@@ -96,7 +96,7 @@ extension FixtureLaunchTests {
 		let keptDefaults = try morning.prepare()
 		let second = ShellModel(
 			builder: ServicesBuilder(
-				fixture: try AppServices.fixture(morning, defaults: keptDefaults),
+				services: try AppServices.fixture(morning, defaults: keptDefaults),
 				language: language,
 				defaults: keptDefaults))
 		try await observed(second)

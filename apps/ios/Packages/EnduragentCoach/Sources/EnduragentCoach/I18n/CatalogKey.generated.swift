@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2434
-	public static let keyCount = 2470
+	public static let englishLeafCount = 2437
+	public static let keyCount = 2473
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -547,6 +547,7 @@ public enum Catalog {
 	public static let chatTranscriptSummaryReview = CatalogKey(rawValue: "chat.transcript.summary.review")
 	public static let chatTurnBuyCredits = CatalogKey(rawValue: "chat.turn.buyCredits")
 	public static let chatTurnChooseAccessMethod = CatalogKey(rawValue: "chat.turn.chooseAccessMethod")
+	public static let chatTurnFinishedWhileLocked = CatalogKey(rawValue: "chat.turn.finishedWhileLocked")
 	public static let chatTurnInterruptedNothingChanged = CatalogKey(rawValue: "chat.turn.interruptedNothingChanged")
 	public static let chatTurnInterruptedSomeSaved = CatalogKey(rawValue: "chat.turn.interruptedSomeSaved")
 	public static let chatTurnReceivedBeforeClose = CatalogKey(rawValue: "chat.turn.receivedBeforeClose")
@@ -765,8 +766,10 @@ public enum Catalog {
 	public static let commonCancel = CatalogKey(rawValue: "common.cancel")
 	public static let commonContinue = CatalogKey(rawValue: "common.continue")
 	public static let commonSave = CatalogKey(rawValue: "common.save")
+	public static let connectErrorRejected = CatalogKey(rawValue: "connect.error.rejected")
 	public static let creditsErrorAccessRejected = CatalogKey(rawValue: "credits.error.accessRejected")
 	public static let creditsErrorExhausted = CatalogKey(rawValue: "credits.error.exhausted")
+	public static let creditsErrorUnavailable = CatalogKey(rawValue: "credits.error.unavailable")
 	public static let desktopCredentialsMacRecovery = CatalogKey(rawValue: "desktop.credentials.macRecovery")
 	public static let desktopCredentialsMacUnavailable = CatalogKey(rawValue: "desktop.credentials.macUnavailable")
 	public static let desktopCredentialsWindowsIdentityFailed = CatalogKey(rawValue: "desktop.credentials.windowsIdentityFailed")

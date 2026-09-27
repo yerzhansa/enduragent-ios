@@ -9,11 +9,11 @@ import Testing
 		try withTemporaryDirectory { directory in
 			let first = try FakeSecretStore(directory: directory)
 			try first.storeOpenRouterKey("sk-or-test-0000")
-			try first.storeIntervalsCredential(.apiKey("fixture"))
+			try first.storeIntervalsConnection(testConnection)
 			let token = try first.appAccountToken()
 			let second = try FakeSecretStore(directory: directory)
 			#expect(try second.openRouterKey() == "sk-or-test-0000")
-			#expect(try second.intervalsCredential() == .apiKey("fixture"))
+			#expect(try second.intervalsConnection() == testConnection)
 			#expect(try second.appAccountToken() == token)
 		}
 	}
@@ -24,7 +24,7 @@ import Testing
 		store.locked = true
 		let expected = KeychainStoreError(status: errSecInteractionNotAllowed)
 		#expect(throws: expected) { try store.openRouterKey() }
-		#expect(throws: expected) { try store.intervalsCredential() }
+		#expect(throws: expected) { try store.intervalsConnection() }
 		#expect(throws: expected) { try store.appAccountToken() }
 		store.locked = false
 		#expect(try store.openRouterKey() == "sk-or-test-0000")

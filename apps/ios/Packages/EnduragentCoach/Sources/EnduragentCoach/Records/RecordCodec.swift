@@ -63,6 +63,14 @@ enum RecordCodec {
 		return try decoder.decode(Payload.self, from: data)
 	}
 
+	private static func decodeLease(_ raw: String?) throws -> LeaseKind {
+		guard let raw else { return .gracePeriodOnly }
+		guard let lease = LeaseKind(rawValue: raw) else {
+			throw RecordDecodeFailure(reason: "lease")
+		}
+		return lease
+	}
+
 	private static func legacyBody(_ kind: SyncedKind, data: Data) throws -> LegacyRecordBody? {
 		switch kind {
 		case .userMessage:
@@ -246,7 +254,8 @@ enum RecordCodec {
 					chatId: try decodeChatID(payload.chatId),
 					turn: TurnID(ulid: try decodeULID(payload.turn)),
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt)),
-					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) }
+					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) },
+					lease: try decodeLease(payload.lease)
 				)
 			)
 		case .replyObserved:
@@ -299,7 +308,8 @@ enum RecordCodec {
 				FlushPendingBody(
 					chatId: try decodeChatID(payload.chatId),
 					trigger: trigger,
-					messageUlids: try payload.messageUlids.map(decodeULID)
+					messageUlids: try payload.messageUlids.map(decodeULID),
+					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) }
 				)
 			)
 		case .flushSettled:

@@ -214,7 +214,7 @@ struct ReadToolsTests {
 		return ToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			planning: Planning(store: store, intervals: intervals, clock: clock),
+			planning: Planning(store: store, clock: clock),
 			clock: clock
 		)
 	}

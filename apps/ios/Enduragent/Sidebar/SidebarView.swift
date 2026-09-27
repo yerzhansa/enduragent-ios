@@ -32,10 +32,14 @@ struct SidebarView: View {
 		var body: some View {
 			List {
 				NavigationLink("Credits") {
-					CreditsDebugView()
+					CreditsDebugView(coach: model.services.coach)
 				}
+				NavigationLink("Credentials") {
+					CredentialsDebugView(model: model)
+				}
+				.accessibilityIdentifier("debug.credentials")
 				NavigationLink("Records") {
-					RecordSyncDebugView(probe: model.services?.coach.recordSyncProbe())
+					RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 				}
 				.accessibilityIdentifier("debug.records")
 				NavigationLink(model.phrasebook.say(Catalog.settingsLanguageTitle, [:])) {
@@ -46,6 +50,10 @@ struct SidebarView: View {
 					SessionDebugView(model: model)
 				}
 				.accessibilityIdentifier("debug.session")
+				NavigationLink("Leases") {
+					LeasesDebugView(leases: model.services.leases)
+				}
+				.accessibilityIdentifier("debug.leases")
 				if model.builder.isFixture {
 					FixtureCountsDebugView(services: model.services)
 				}

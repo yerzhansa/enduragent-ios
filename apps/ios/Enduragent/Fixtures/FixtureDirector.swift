@@ -10,11 +10,16 @@ struct FixtureDirector: Sendable {
 	static let prefix = "fixture:"
 	static let slowFirstWordDelay: Duration = .seconds(2)
 	static let slowWordDelay: Duration = .milliseconds(250)
+	static let slowFlushDelay: Duration = .seconds(6)
 
 	let transport: FakeModelTransport
 	let records: FaultInjectingRecordLog
+	let host: ImmediateExecutionHost
+	let secrets: FakeSecretStore
+	let intervals: FakeIntervalsClient
+	let credits: FakeCreditsClient
 
-	func prepare(for text: String) -> FixtureDirective {
+	func prepare(for text: String) async -> FixtureDirective {
 		reset(replyingTo: text)
 		guard text.hasPrefix(Self.prefix) else { return .sendToCoach }
 		let words = text.dropFirst(Self.prefix.count).split(separator: " ").map(String.init)
@@ -24,6 +29,8 @@ struct FixtureDirector: Sendable {
 			transport.requestDelay = Self.slowFirstWordDelay
 			transport.deltaDelay = Self.slowWordDelay
 			transport.script = FirstWeekFixture.weekSummaryByWord()
+		case "slow-flush" where arguments.isEmpty:
+			transport.requestDelay = Self.slowFlushDelay
 		case "hang" where arguments.isEmpty:
 			transport.hangUntilCancelled = true
 		case "fail":
@@ -48,6 +55,8 @@ struct FixtureDirector: Sendable {
 			transport.flushScript = Self.flushPartial
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
+		case "expire" where arguments.isEmpty:
+			await host.expire(.systemExpired)
 		default:
 			return .rejected(Self.unknown(text))
 		}

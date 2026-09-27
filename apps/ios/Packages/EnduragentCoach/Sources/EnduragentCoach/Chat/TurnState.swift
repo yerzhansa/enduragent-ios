@@ -9,6 +9,13 @@ public enum TurnState: Sendable, Equatable {
 	case interrupted(Interrupted)
 	case unrecovered(Unrecovered)
 
+	package var isSettled: Bool {
+		switch self {
+		case .completed, .savedWork, .failed, .interrupted: true
+		case .accepted, .processing, .unrecovered: false
+		}
+	}
+
 	public var retryable: Bool {
 		switch self {
 		case .accepted(.awaitingRestart):
@@ -93,6 +100,8 @@ public enum RetryWaitReason: Sendable, Equatable {
 
 public enum InterruptionCause: String, Sendable, CaseIterable {
 	case athleteStopped
+	case systemExpired
+	case graceEnded
 	case appTerminating
 	case processEnded
 	case stoppedBeforeStart

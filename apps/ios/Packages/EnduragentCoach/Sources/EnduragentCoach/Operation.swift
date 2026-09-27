@@ -35,6 +35,12 @@ extension OperationStamp {
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
 	}
+
+	package func bound(to account: TrainingAccount) -> OperationStamp {
+		OperationStamp(
+			operation: operation, attempt: attempt,
+			binding: ActionBinding(account: account, zone: binding.zone))
+	}
 }
 
 public struct ActionBinding: Hashable, Sendable {

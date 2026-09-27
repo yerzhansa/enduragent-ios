@@ -25,11 +25,11 @@ final class AppLifecycle {
 	}
 
 	func forward(_ event: AppLifecycleEvent) async {
-		await builder.services?.coach.lifecycle(event)
+		await builder.services.coach.lifecycle(event)
 	}
 
 	private func terminate() {
-		guard let coach = builder.services?.coach else { return }
+		let coach = builder.services.coach
 		let interrupted = DispatchSemaphore(value: 0)
 		Task.detached(priority: Task.currentPriority) {
 			await coach.lifecycle(.willTerminate)

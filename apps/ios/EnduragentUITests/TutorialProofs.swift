@@ -212,6 +212,26 @@ final class NewConversationProof: XCTestCase {
 	}
 }
 
+final class NewConversationWorkingProof: XCTestCase {
+	func testWorkingWhileMemorySaves() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:slow-flush")
+		let button = TutorialHarness.named(app, "chat.newConversation")
+		TutorialHarness.waitUntilHittable(button)
+		button.tap()
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		XCTAssertEqual(working.label, TutorialHarness.working)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
+		TutorialHarness.attach(self, name: "new-conversation-working", app: app)
+		TutorialHarness.waitForWelcome(app)
+		XCTAssertTrue(working.waitForNonExistence(timeout: 2))
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+	}
+}
+
 final class HistoryArchivedProof: XCTestCase {
 	func testHistoryArchived() {
 		let app = XCUIApplication()
@@ -299,9 +319,12 @@ final class RecordsClockOrderProof: XCTestCase {
 		let labels = TutorialHarness.recordRowLabels(app)
 		let rows = labels.map { $0.split(separator: " ").map(String.init) }
 		XCTAssertTrue(
-			rows.allSatisfy { $0.count == 3 || ($0.first == "turnSettled" && $0.count > 3) },
-			"every row shows kind, device, and HLC, and a turnSettled row its outcome: \(labels)")
-		let clocks = rows.compactMap(\.last)
+			rows.allSatisfy {
+				$0.count == 4 || (["turnSettled", "turnClaim"].contains($0.first) && $0.count > 4)
+			},
+			"every row shows kind, device, HLC, and account, a turnSettled row its outcome, and a turnClaim row its lease: \(labels)"
+		)
+		let clocks = rows.map { $0[$0.count - 2] }
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
 		let causal = rows.compactMap(\.first).filter {
 			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]

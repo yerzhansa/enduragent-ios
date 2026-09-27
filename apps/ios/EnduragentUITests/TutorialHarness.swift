@@ -43,22 +43,26 @@ enum TutorialHarness {
 	static let historyUnavailable = "Conversation history is temporarily unavailable."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
+	static let keptCurrentKey = "Kept the current key."
+	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
 	static let freshSession =
 		"Started a fresh session - earlier conversation is archived, and I still have your key details in memory."
 	static let closedAfterBreak = "Closed after a break"
 	static let draft = "Is Thursday still on?"
+	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 	static let recoveryArgument = "-EnduragentFixtureRecovery"
+	static let hostArgument = "-EnduragentFixtureHost"
 	static let clockArgument = "-EnduragentFixtureClock"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
-		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US",
-		clock: String? = nil
+		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
+		locale: String = "en_US", clock: String? = nil
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
@@ -72,6 +76,9 @@ enum TutorialHarness {
 		}
 		if let coalescingMilliseconds {
 			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
+		if let host {
+			app.launchArguments += [hostArgument, host]
 		}
 		if let clock {
 			app.launchArguments += [clockArgument, clock]
@@ -186,7 +193,7 @@ enum TutorialHarness {
 		XCTAssertEqual(named(app, "starter.credits").label, "200 credits")
 		named(app, "starter.start").tap()
 		wait(named(app, "chat.composer"))
-		waitForWelcome(app)
+		wait(named(app, "chat.welcome"))
 	}
 
 	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
@@ -251,11 +258,45 @@ enum TutorialHarness {
 		wait(named(app, "records.device"))
 	}
 
+	static func openCredentials(_ app: XCUIApplication) {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let credentials = named(app, "debug.credentials")
+		wait(credentials)
+		credentials.tap()
+		wait(named(app, "credentials.outcome"))
+	}
+
+	static func waitForIdentifier(
+		_ app: XCUIApplication, _ identifier: String, reading label: String,
+		timeout: TimeInterval = 8
+	) {
+		let element = app.descendants(matching: .any).matching(
+			NSPredicate(format: "identifier == %@ AND label == %@", identifier, label)
+		).firstMatch
+		XCTAssertTrue(
+			element.waitForExistence(timeout: timeout),
+			"\(identifier) never read \(label); it reads \(named(app, identifier).label)")
+	}
+
 	static func closeMenu(_ app: XCUIApplication) {
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
-		waitUntilHittable(named(app, "chat.sidebar"))
+		let sidebar = named(app, "chat.sidebar")
+		for _ in 0..<3 {
+			app.swipeDown(velocity: .fast)
+			if becomesHittable(sidebar, within: 2) {
+				break
+			}
+		}
+		waitUntilHittable(sidebar)
 		wait(named(app, "chat.composer"))
+	}
+
+	private static func becomesHittable(_ element: XCUIElement, within timeout: TimeInterval)
+		-> Bool
+	{
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		return XCTWaiter.wait(for: [hittable], timeout: timeout) == .completed
 	}
 
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
@@ -304,8 +345,7 @@ enum TutorialHarness {
 		let head = named(app, "fixture.historyHead")
 		wait(head)
 		let label = head.label
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 		return label
 	}
 

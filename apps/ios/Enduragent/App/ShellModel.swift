@@ -8,7 +8,6 @@ import StoreKit
 final class ShellModel {
 	var route: ShellRoute = .onboarding(.notice)
 	private(set) var chat: ChatSnapshot?
-	private(set) var status: CoachStatus?
 	private(set) var languageNotSaved: LanguagePreference?
 	var showLanguage = false
 	var draft = Draft(id: DraftID(), text: "")
@@ -16,12 +15,12 @@ final class ShellModel {
 	private(set) var isSending = false
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
-	var athlete: AthleteProfile?
-	var todayWellness: WellnessDay?
+	private(set) var status: CoachStatus?
 	var starterLine: String?
 	var starterResolved = false
 	var balance: Credits?
 	var catalog: PackCatalog?
+	var creditsNotice: AthleteNotice?
 	private(set) var history: HistoryList = .loading
 	private(set) var newConversationUncertain = false
 	var errorLine: String?
@@ -39,7 +38,6 @@ final class ShellModel {
 	private let defaults: UserDefaults
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
-	private var statusObservation: Task<Void, Never>?
 
 	init(builder: ServicesBuilder) {
 		self.builder = builder
@@ -57,7 +55,7 @@ final class ShellModel {
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
 
-	var services: AppServices? {
+	var services: AppServices {
 		builder.services
 	}
 
@@ -69,6 +67,20 @@ final class ShellModel {
 		languageNotSaved.map {
 			$0.notSaved(keeping: status?.language ?? .automatic, in: phrasebook)
 		}
+	}
+
+	var connected: IntervalsSummary? {
+		guard case .connected(let summary, _)? = status?.training else { return nil }
+		return summary
+	}
+
+	var athleteFirstName: String {
+		guard let name = connected?.athleteName?.trimmingCharacters(in: .whitespacesAndNewlines),
+			!name.isEmpty
+		else {
+			return ""
+		}
+		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
 	}
 
 	var visibleProposal: PendingProposal? {
@@ -87,14 +99,15 @@ final class ShellModel {
 	}
 
 	func connect() async {
-		do {
-			let result = try await builder.connectIntervals(apiKey: connectKey)
-			athlete = result.athlete
-			todayWellness = result.wellness
+		let outcome = await services.coach.changeTraining(
+			.replace(apiKey: connectKey, athlete: .keyOwner))
+		switch outcome {
+		case .replaced:
 			connectError = nil
 			didConnect = true
-		} catch {
-			connectError = "intervals.icu did not accept that key"
+			await refreshStatus()
+		case .kept, .disconnected, .refused, .failedPreviousKept:
+			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
 		}
 	}
@@ -105,8 +118,6 @@ final class ShellModel {
 	}
 
 	func skipConnect() {
-		athlete = nil
-		todayWellness = nil
 		didConnect = false
 		connectError = nil
 		route = .onboarding(.starter)
@@ -117,7 +128,7 @@ final class ShellModel {
 		starterLoaded = true
 		do {
 			let token = try await builder.deviceCheck.token()
-			let outcome = try await builder.credits.grant(deviceCheck: token)
+			let outcome = try await services.coach.credits.grant(deviceCheck: token)
 			switch outcome {
 			case .minted(let credits):
 				starterLine = "\(credits.units) credits"
@@ -129,49 +140,50 @@ final class ShellModel {
 					?? "This device already used its starter credits."
 			}
 		} catch {
-			starterLine = grantFailureName(error)
+			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
 		}
 		starterResolved = true
 	}
 
 	private func existingBalanceLine() async throws -> String? {
-		guard try builder.secrets.openRouterKey() != nil else { return nil }
-		let scale = try await builder.credits.catalog().scale
-		let balance = try await builder.credits.balance(scale: scale)
+		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
+		let scale = try await services.coach.credits.catalog().scale
+		let balance = try await services.coach.credits.balance(scale: scale)
 		return "\(balance.credits.units) credits"
 	}
 
 	func appear() async {
 		guard route == .chat else { return }
-		do {
-			_ = try builder.completedServices()
-			observeChat()
-			try await refreshAthlete()
-		} catch {
-			errorLine = failureMessage(error)
-		}
+		observeChat()
+		await refreshStatus()
+	}
+
+	@discardableResult
+	func refreshStatus() async -> CoachStatus {
+		let current = await services.coach.status()
+		status = current
+		return current
+	}
+
+	func sceneChanged(_ event: AppLifecycleEvent) async {
+		await lifecycle.forward(event)
+		guard event == .becameActive, route == .chat else { return }
+		await refreshStatus()
 	}
 
 	func startChatting() {
-		do {
-			_ = try builder.completedServices()
-			defaults.set(true, forKey: Self.onboardingCompletedKey)
-			route = .chat
-			observeChat()
-		} catch {
-			errorLine = String(describing: error)
-		}
+		defaults.set(true, forKey: Self.onboardingCompletedKey)
+		route = .chat
+		observeChat()
 	}
 
 	func newConversation() async {
-		guard let services else { return }
 		confirmLine = nil
 		errorLine = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
 	func loadHistory() async {
-		guard let services else { return }
 		do {
 			history = .loaded(try await services.coach.history())
 		} catch {
@@ -183,12 +195,12 @@ final class ShellModel {
 	}
 
 	func loadCredits() async {
-		guard let services else { return }
 		do {
-			let loaded = try await services.credits.catalog()
+			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
-			let held = try await services.credits.balance(scale: loaded.scale)
+			let held = try await services.coach.credits.balance(scale: loaded.scale)
 			balance = held.credits
+			creditsNotice = nil
 			if services.isFixture {
 				packPrices = [:]
 			} else {
@@ -197,7 +209,7 @@ final class ShellModel {
 					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
 			}
 		} catch {
-			errorLine = String(describing: error)
+			creditsNotice = AthleteNotice.credits(failure: error)
 		}
 	}
 
@@ -220,8 +232,9 @@ final class ShellModel {
 	}
 
 	func send() async {
-		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty, !isSending, let services else { return }
+		let sent = draft
+		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !text.isEmpty, !isSending else { return }
 		isSending = true
 		defer { isSending = false }
 		notSent = false
@@ -229,23 +242,20 @@ final class ShellModel {
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
 			return
 		}
 		do {
-			switch try await services.coach.send(Draft(id: draft.id, text: text), to: .main) {
+			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
 			case .accepted:
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(.main)
+				clear(sent)
 			case .showLanguagePicker:
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(.main)
+				clear(sent)
 				languageNotSaved = nil
 				showLanguage = true
 			case .newConversation(let outcome):
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(.main)
+				clear(sent)
 				showNewConversation(outcome)
 			case .ignoredBlank:
 				break
@@ -258,12 +268,17 @@ final class ShellModel {
 		}
 	}
 
+	private func clear(_ sent: Draft) {
+		guard draft.id == sent.id else { return }
+		draft = Draft(id: DraftID(), text: draft == sent ? "" : draft.text)
+		drafts.save(draft, for: .main)
+	}
+
 	func stop() async {
-		await services?.coach.stop(.main)
+		await services.coach.stop(.main)
 	}
 
 	func chooseLanguage(_ preference: LanguagePreference) async {
-		guard let services else { return }
 		do {
 			try await services.coach.setLanguage(preference)
 			languageNotSaved = nil
@@ -273,15 +288,16 @@ final class ShellModel {
 				languageNotSaved = preference
 			}
 		}
+		await refreshStatus()
 	}
 
 	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
-		guard let services else { throw .notSaved }
 		try await services.coach.setSession(settings)
+		await refreshStatus()
 	}
 
 	func confirmPending() async {
-		guard let services, let pending = visibleProposal else { return }
+		guard let pending = visibleProposal, pending.confirmable(under: status) else { return }
 		do {
 			let outcome = try await services.coach.confirm(chatId: .main, nonce: pending.nonce)
 			switch outcome {
@@ -315,7 +331,7 @@ final class ShellModel {
 	}
 
 	private func observeChat() {
-		guard let services, observation == nil else { return }
+		guard observation == nil else { return }
 		let coach = services.coach
 		observation = Task { [weak self] in
 			for await snapshot in await coach.observe(.main) {
@@ -323,33 +339,5 @@ final class ShellModel {
 				self.chat = snapshot
 			}
 		}
-		statusObservation = Task { [weak self] in
-			for await status in await coach.observeStatus() {
-				guard let self, !Task.isCancelled else { return }
-				self.status = status
-			}
-		}
-	}
-
-	private func refreshAthlete() async throws {
-		guard let services else { return }
-		athlete = try await services.intervals.fetchAthlete()
-		let today = CivilDates.today(clock: builder.clock)
-		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today)
-			.first
-	}
-
-	private func failureMessage(_ error: Error) -> String {
-		if let intervals = error as? IntervalsError {
-			return intervals.details
-		}
-		return String(describing: error)
-	}
-
-	private func grantFailureName(_ error: Error) -> String {
-		if let failure = error as? CreditsFailure {
-			return String(describing: failure)
-		}
-		return String(describing: error)
 	}
 }

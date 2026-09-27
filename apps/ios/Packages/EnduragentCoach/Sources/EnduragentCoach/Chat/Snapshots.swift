@@ -13,11 +13,13 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
+	public let completedInBackground: Bool
 }
 
 public enum ChatActivity: Sendable, Equatable {
 	case idle
 	case working(label: CatalogKey)
+	case startingNewConversation(label: CatalogKey)
 	case stopping
 }
 
@@ -48,7 +50,7 @@ public enum ConversationOpening: Sendable, Equatable {
 		switch (segment.openedBy, segment.turns.isEmpty) {
 		case (.reset(.explicit(let reset)), true):
 			self = .afterNewConversation(
-				memorySaved: jobs.first { $0.reset == reset }.map(\.settled) ?? true)
+				memorySaved: jobs.first { $0.reset == reset }.map(\.saved) ?? true)
 		case (.reset(let kind), false) where kind == .daily || kind == .idle:
 			self = .afterAutomaticReset(kind)
 		case (_, true):
@@ -91,13 +93,43 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 }
 
 public struct CoachStatus: Sendable, Equatable {
+	public let setup: SetupState
+	public let training: TrainingStatus
 	public let language: LanguagePreference
 	public let session: SessionSettings
 
-	package init(_ preferences: Preferences) {
+	package init(
+		setup: SetupState, training: TrainingStatus, preferences: Preferences
+	) {
+		self.setup = setup
+		self.training = training
 		self.language = preferences.language
 		self.session = preferences.session
 	}
+
+	public var notice: AthleteNotice? {
+		AthleteNotices.notice(for: self)
+	}
+
+	package var trainingAccount: TrainingAccount? {
+		switch training {
+		case .unconnected: .unconnected
+		case .connected(_, let account): account
+		case .unavailable: nil
+		}
+	}
+}
+
+public enum SetupState: Sendable, Equatable {
+	case needsAccessMethod
+	case ready
+	case accessTemporarilyUnavailable(AccessUnavailable)
+}
+
+public enum TrainingStatus: Sendable, Equatable {
+	case unconnected
+	case connected(IntervalsSummary, account: TrainingAccount)
+	case unavailable(AccessUnavailable)
 }
 
 public enum RetryRefusal: Error, Sendable, Equatable {
@@ -119,6 +151,8 @@ extension ChatSnapshot {
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
+		resetting: Bool,
+		finishedAway: Set<TurnID>,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
 		process: ProcessID,
@@ -129,12 +163,15 @@ extension ChatSnapshot {
 		let current = conversation.current
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			live: live, window: window, queued: queued, waiting: waiting, device: device,
-			process: process, today: CivilDate(date: now, timeZone: zone))
+			live: live, window: window, queued: queued, waiting: waiting,
+			finishedAway: finishedAway, device: device, process: process,
+			today: CivilDate(date: now, timeZone: zone))
 		if stopping {
 			self.activity = .stopping
 		} else if live != nil || window != nil || !queued.isEmpty {
 			self.activity = .working(label: Catalog.chatNoticeWorking)
+		} else if resetting, opening == .continuing {
+			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
 		} else {
 			self.activity = .idle
 		}
@@ -145,7 +182,7 @@ extension ChatSnapshot {
 extension Segment {
 	package func turnViews(
 		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
-		device: DeviceID, process: ProcessID, today: CivilDate
+		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
 		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
@@ -158,7 +195,8 @@ extension Segment {
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process)
+					of: facts, live: live, overlay: overlay, device: device, process: process),
+				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
 	}
@@ -178,13 +216,19 @@ extension RetryRefusal {
 }
 
 extension PendingProposal {
-	package init(_ body: ProposalBody) {
+	public func confirmable(under status: CoachStatus?) -> Bool {
+		guard let current = status?.trainingAccount else { return true }
+		return account.authority(under: current) != .changed
+	}
+
+	package init(_ body: ProposalBody, account: TrainingAccount) {
 		self.init(
 			chatId: body.chatId,
 			nonce: body.nonce,
 			summary: body.summary,
 			description: body.description,
-			expiresAt: body.expiresAt
+			expiresAt: body.expiresAt,
+			account: account
 		)
 	}
 }

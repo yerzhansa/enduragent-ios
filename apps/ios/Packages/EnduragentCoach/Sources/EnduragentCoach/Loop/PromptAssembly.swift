@@ -190,6 +190,9 @@ public struct HistoryWindow {
 			totalTokens -= estimateTokens(conversation[startIdx].text)
 			startIdx += 1
 		}
+		while startIdx > 0, startIdx < conversation.count, conversation[startIdx].role != .user {
+			startIdx += 1
+		}
 		return (
 			Array(conversation[startIdx...]),
 			Array(conversation[..<startIdx]),

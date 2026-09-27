@@ -30,6 +30,21 @@ import Testing
 		#expect(result.kept.last == messages.last)
 	}
 
+	@Test func trimKeepsWholeTurns() {
+		let budget = HistoryWindow.historyTokenBudget(
+			systemTokens: 1_000, window: TurnPolicy.contextWindowCap, ratio: 0.3)
+		func message(_ role: ChatMessage.Role, tokens: Int) -> ChatMessage {
+			ChatMessage(role: role, text: String(repeating: "x", count: tokens * 10 / 3))
+		}
+		let messages = [
+			message(.user, tokens: budget / 2), message(.assistant, tokens: budget / 4),
+			message(.user, tokens: budget / 4), message(.assistant, tokens: budget / 4),
+		]
+		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
+		#expect(result.dropped == Array(messages.prefix(2)))
+		#expect(result.kept == Array(messages.suffix(2)))
+	}
+
 	@Test func trimUsesTheRatioItIsGiven() {
 		let messages = (0..<20).map { index in
 			ChatMessage(

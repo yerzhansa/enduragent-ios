@@ -35,6 +35,7 @@ struct LanguageView: View {
 		}
 		.navigationTitle(model.phrasebook.say(Catalog.languageChooseTitle, [:]))
 		.navigationBarTitleDisplayMode(.inline)
+		.task { await model.refreshStatus() }
 	}
 
 	private var current: LanguagePreference {

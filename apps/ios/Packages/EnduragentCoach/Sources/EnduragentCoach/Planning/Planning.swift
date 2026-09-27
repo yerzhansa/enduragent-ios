@@ -123,12 +123,10 @@ public enum PlanningPolicy {
 
 public actor Planning {
 	private let store: any RecordLog
-	private let intervals: any IntervalsClient
 	private let clock: any Clock
 
-	public init(store: any RecordLog, intervals: any IntervalsClient, clock: any Clock) {
+	public init(store: any RecordLog, clock: any Clock) {
 		self.store = store
-		self.intervals = intervals
 		self.clock = clock
 	}
 

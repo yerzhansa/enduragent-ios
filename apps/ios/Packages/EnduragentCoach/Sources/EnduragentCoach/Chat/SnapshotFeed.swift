@@ -1,12 +1,12 @@
 import Foundation
 import Synchronization
 
-final class SnapshotFeed<Snapshot: Sendable>: Sendable {
-	private let observers = Mutex<[UUID: AsyncStream<Snapshot>.Continuation]>([:])
+final class SnapshotFeed: Sendable {
+	private let observers = Mutex<[UUID: AsyncStream<ChatSnapshot>.Continuation]>([:])
 
-	func subscribe(from first: Snapshot) -> AsyncStream<Snapshot> {
+	func subscribe(from first: ChatSnapshot) -> AsyncStream<ChatSnapshot> {
 		let id = UUID()
-		let (stream, continuation) = AsyncStream<Snapshot>.makeStream(
+		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
 			bufferingPolicy: .unbounded)
 		continuation.onTermination = { [weak self] _ in
 			self?.observers.withLock { _ = $0.removeValue(forKey: id) }
@@ -16,7 +16,7 @@ final class SnapshotFeed<Snapshot: Sendable>: Sendable {
 		return stream
 	}
 
-	func publish(_ snapshot: Snapshot) {
+	func publish(_ snapshot: ChatSnapshot) {
 		for continuation in observers.withLock({ Array($0.values) }) {
 			continuation.yield(snapshot)
 		}

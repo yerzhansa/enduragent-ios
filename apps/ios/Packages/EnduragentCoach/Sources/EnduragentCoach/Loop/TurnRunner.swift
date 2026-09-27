@@ -13,7 +13,7 @@ public enum TurnPolicy {
 	public static let gatedPrefixTokenCeiling = 13_600
 }
 
-package struct TurnAttempt: Sendable, Equatable {
+package struct TurnAttempt: Sendable {
 	package let turn: TurnID
 	package let attempt: AttemptID
 	package let chat: ChatID
@@ -22,6 +22,8 @@ package struct TurnAttempt: Sendable, Equatable {
 	package let language: LanguageResolution
 	package let session: SessionSettings
 	package let access: ResolvedAccess
+	package let training: TrainingConnection
+	package let process: ProcessID
 	package let autoReset: ResetKind?
 
 	package var models: ModelRoles {
@@ -59,29 +61,23 @@ package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Voi
 
 package struct TurnRunner: Sendable {
 	private let transport: any ModelTransport
-	private let intervals: any IntervalsClient
 	private let ledger: Ledger
 	private let clock: any Clock
-	private let tools: ToolRuntime
 	private let planning: Planning
 	private let diagnostics: DiagnosticsLog
 	private let ladder: RetryLadder
 
 	package init(
 		transport: any ModelTransport,
-		intervals: any IntervalsClient,
 		ledger: Ledger,
 		clock: any Clock,
-		tools: ToolRuntime,
 		planning: Planning,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder
 	) {
 		self.transport = transport
-		self.intervals = intervals
 		self.ledger = ledger
 		self.clock = clock
-		self.tools = tools
 		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
@@ -188,7 +184,7 @@ package struct TurnRunner: Sendable {
 	) async throws(CancellationError) {
 		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
-		let flushes = flushWork(attempt.chat)
+		let flushes = flushWork(attempt)
 		let job: FlushJob
 		do {
 			job = try await flushes.open(trigger, covering: rows.map(\.ulid), stamp: scope.stamp)
@@ -202,9 +198,10 @@ package struct TurnRunner: Sendable {
 			scope: scope)
 	}
 
-	private func flushWork(_ chat: ChatID) -> FlushWork {
+	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
 		FlushWork(
-			chat: chat, ledger: ledger, memory: Memory(ledger: ledger, clock: clock),
+			chat: attempt.chat, process: attempt.process, ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock),
 			transport: transport, clock: clock, diagnostics: diagnostics)
 	}
 
@@ -228,9 +225,9 @@ package struct TurnRunner: Sendable {
 				planHeadline: nil,
 				orphanNames: []
 			)
-		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
+		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = await loadSnapshot()
+		let snapshot = await loadSnapshot(from: attempt.training.client)
 		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
@@ -247,12 +244,16 @@ package struct TurnRunner: Sendable {
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
 			try await flushOnce(
-				.trim, covering: transcript.unflushed, attempt: attempt, scope: scope,
+				.trim, covering: transcript.window, attempt: attempt, scope: scope,
 				progress: progress)
 			do {
+				let firstKept =
+					trim.kept.isEmpty
+					? transcript.current?.ulid ?? attempt.turn.ulid
+					: history.ulids[trim.dropped.count]
 				summary = try await summarizeDropped(
-					trim.dropped, previous: summary, firstKept: history.ulids[trim.dropped.count],
-					attempt: attempt, scope: scope, progress: progress)
+					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					scope: scope, progress: progress)
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
@@ -267,7 +268,7 @@ package struct TurnRunner: Sendable {
 				messagesSinceLastFlush: transcript.unflushed.count),
 			await scope.takeFlushLatch()
 		{
-			_ = try await flushWork(chatId).open(
+			_ = try await flushWork(attempt).open(
 				.softThreshold, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
 		}
 
@@ -282,7 +283,7 @@ package struct TurnRunner: Sendable {
 		return TurnPrompt(
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
 			archiveMarker: archived, wire: wire,
-			inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 },
+			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
 			window: attempt.models.chatWindow)
 	}
 
@@ -381,7 +382,7 @@ package struct TurnRunner: Sendable {
 					toolCallId: nil)
 			)
 			await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
-			let outcomes = try await runTools(step.toolCalls, chatId: attempt.chat, scope: scope)
+			let outcomes = try await runTools(step.toolCalls, for: attempt, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -511,22 +512,28 @@ package struct TurnRunner: Sendable {
 		return GenerateStep(text: text, toolCalls: calls, reason: reason, usage: usage)
 	}
 
+	private func tools(for attempt: TurnAttempt) -> ToolRuntime {
+		ToolRuntime(
+			intervals: attempt.training.client, ledger: ledger, planning: planning, clock: clock)
+	}
+
 	private func runTools(
 		_ calls: [WireToolCall],
-		chatId: ChatID,
+		for attempt: TurnAttempt,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
-		try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
+		let runtime = tools(for: attempt)
+		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
 				group.addTask {
 					let arguments =
 						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
 					let outcome: ToolOutcome
 					do {
-						outcome = try await self.tools.execute(
+						outcome = try await runtime.execute(
 							name: call.name,
 							arguments: arguments,
-							chatId: chatId,
+							chatId: attempt.chat,
 							scope: scope
 						).outcome
 					} catch is CancellationError {
@@ -577,7 +584,7 @@ package struct TurnRunner: Sendable {
 		}
 	}
 
-	private func loadSnapshot() async -> AthleteSnapshot? {
+	private func loadSnapshot(from intervals: any IntervalsClient) async -> AthleteSnapshot? {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let oldest = today.adding(days: -(7 - 1))
 		guard let days = try? await intervals.fetchWellness(oldest: oldest, newest: today) else {
@@ -597,6 +604,7 @@ package struct TurnRunner: Sendable {
 		let jobs = try await ledger.flushJobs(in: chatId)
 		return Transcript(
 			history: conversation.current.promptHistory(excluding: turn),
+			pending: conversation.outstandingRows(jobs),
 			unflushed: conversation.current.messagesSinceLastFlush(jobs, excluding: turn),
 			flushPending: jobs.contains { !$0.settled },
 			current: conversation.turn(turn)?.userRow
@@ -663,13 +671,6 @@ private struct GenerateStep: Sendable {
 	var toolCalls: [WireToolCall]
 	var reason: FinishReason
 	var usage: Usage
-}
-
-private struct Transcript: Sendable {
-	let history: PromptHistory
-	let unflushed: [(ulid: ULID, message: ChatMessage)]
-	let flushPending: Bool
-	let current: (ulid: ULID, message: ChatMessage)?
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {

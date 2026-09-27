@@ -4,11 +4,28 @@ package struct FlushJob: Sendable, Equatable {
 	package let id: FlushJobID
 	package let trigger: FlushTrigger
 	package let messages: [ULID]
-	package let settled: Bool
+	package var process: ProcessID?
+	package var settled: Bool
 	package var reset: ResetID?
+	package var abandoned = false
+
+	package var saved: Bool {
+		settled && !abandoned
+	}
 
 	package var coverage: ULID {
 		messages.max() ?? id.ulid
+	}
+
+	package func covers(_ older: FlushJob) -> Bool {
+		guard older.id.ulid < id.ulid else { return false }
+		guard !older.messages.isEmpty else { return true }
+		return Set(older.messages).isSubset(of: Set(messages))
+	}
+
+	package static func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
+		let pending = jobs.filter { !$0.settled }
+		return pending.filter { job in !pending.contains { $0.covers(job) } }
 	}
 }
 
@@ -52,18 +69,26 @@ extension ConversationFold {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
 		var settled = consumedJobs(markers)
+		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
 				settled.insert(body.job)
+				if body.settlement == .abandoned { abandoned.insert(body.job) }
 			}
 		}
-		return owned.compactMap { record in
+		var jobs = owned.compactMap { record -> FlushJob? in
 			guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
 			let id = FlushJobID(ulid: record.ulid)
 			return FlushJob(
-				id: id, trigger: body.trigger, messages: body.messageUlids,
-				settled: settled.contains(id), reset: resetOpened(by: record.cause))
+				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
+				settled: settled.contains(id), reset: resetOpened(by: record.cause),
+				abandoned: abandoned.contains(id))
 		}
+		let done = jobs.filter(\.settled)
+		for index in jobs.indices where !jobs[index].settled {
+			jobs[index].settled = done.contains { $0.covers(jobs[index]) }
+		}
+		return jobs
 	}
 
 	private static func resetOpened(by cause: RecordCause) -> ResetID? {
@@ -103,14 +128,30 @@ extension Segment {
 
 extension Conversation {
 	package func flushMessages(for job: FlushJob) -> [ChatMessage] {
-		guard job.messages.isEmpty else { return messages(for: job.messages) }
+		flushRows(for: job).map(\.message)
+	}
+
+	package func flushRows(for job: FlushJob) -> [(ulid: ULID, message: ChatMessage)] {
+		guard job.messages.isEmpty else { return rows(for: job.messages) }
 		let segment = segments.last { $0.id.boundary.map { $0 <= job.id.ulid } ?? true }
-		return (segment?.turns ?? []).flatMap(\.messageRows)
-			.filter { $0.ulid < job.id.ulid }
-			.map(\.message)
+		return (segment?.turns ?? []).flatMap(\.messageRows).filter { $0.ulid < job.id.ulid }
+	}
+
+	package func outstandingRows(_ jobs: [FlushJob]) -> [(ulid: ULID, message: ChatMessage)] {
+		var byUlid: [ULID: ChatMessage] = [:]
+		for job in FlushJob.outstanding(jobs) {
+			for (ulid, message) in flushRows(for: job) {
+				byUlid[ulid] = message
+			}
+		}
+		return byUlid.sorted { $0.key < $1.key }.map { ($0.key, $0.value) }
 	}
 
 	package func messages(for ulids: [ULID]) -> [ChatMessage] {
+		rows(for: ulids).map(\.message)
+	}
+
+	private func rows(for ulids: [ULID]) -> [(ulid: ULID, message: ChatMessage)] {
 		var byUlid: [ULID: ChatMessage] = [:]
 		for segment in segments {
 			for turn in segment.turns {
@@ -119,7 +160,7 @@ extension Conversation {
 				}
 			}
 		}
-		return ulids.compactMap { byUlid[$0] }
+		return ulids.compactMap { ulid in byUlid[ulid].map { (ulid, $0) } }
 	}
 }
 
@@ -158,6 +199,7 @@ extension Ledger {
 
 package struct FlushWork: Sendable {
 	package let chat: ChatID
+	package let process: ProcessID
 	package let ledger: Ledger
 	package let memory: Memory
 	package let transport: any ModelTransport
@@ -169,12 +211,15 @@ package struct FlushWork: Sendable {
 	{
 		let records = try await ledger.commit(
 			local: [
-				.flushPending(FlushPendingBody(chatId: chat, trigger: trigger, messageUlids: ulids))
+				.flushPending(
+					FlushPendingBody(
+						chatId: chat, trigger: trigger, messageUlids: ulids, process: process))
 			],
 			stamp: stamp)
 		guard let record = records.first else { throw LedgerFailure.rejectedBatch }
 		return FlushJob(
-			id: FlushJobID(ulid: record.ulid), trigger: trigger, messages: ulids, settled: false)
+			id: FlushJobID(ulid: record.ulid), trigger: trigger, messages: ulids, process: process,
+			settled: false)
 	}
 
 	package func run(
@@ -212,7 +257,13 @@ package struct FlushWork: Sendable {
 	}
 
 	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
-		guard let settlement = outcome.settlement else { return }
+		let settlement: FlushSettlement
+		if let saved = outcome.settlement {
+			settlement = saved
+		} else {
+			guard job.process != process else { return }
+			settlement = .abandoned
+		}
 		do {
 			_ = try await ledger.commit(
 				local: [
@@ -236,7 +287,7 @@ package struct FlushWork: Sendable {
 
 	package func drain(
 		_ id: FlushJobID, in conversation: Conversation,
-		access: () throws(AccessUnavailable) -> ResolvedAccess
+		access: () async throws(AccessUnavailable) -> ResolvedAccess
 	) async {
 		do {
 			guard let job = try await ledger.flushJobs(in: chat).first(where: { $0.id == id }),
@@ -245,7 +296,7 @@ package struct FlushWork: Sendable {
 				return
 			}
 			_ = try await run(
-				job, messages: conversation.flushMessages(for: job), access: try access(),
+				job, messages: conversation.flushMessages(for: job), access: try await access(),
 				scope: nil)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
