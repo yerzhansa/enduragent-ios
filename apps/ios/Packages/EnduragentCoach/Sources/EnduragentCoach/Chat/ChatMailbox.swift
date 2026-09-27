@@ -325,7 +325,8 @@ package actor ChatMailbox {
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language(), access: access)
+			slash: facts.slash, language: await environment.language(), access: access,
+			process: process)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in

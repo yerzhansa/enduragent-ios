@@ -167,7 +167,8 @@ import Testing
 			request: request,
 			slash: nil,
 			language: LanguagePreference(ui: .en, coachReply: nil),
-			access: testAccess
+			access: testAccess,
+			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}
 }
