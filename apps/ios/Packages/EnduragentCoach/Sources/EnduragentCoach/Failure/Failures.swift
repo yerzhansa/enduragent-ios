@@ -135,6 +135,8 @@ extension CoachFailure {
 
 package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
+	package static let unrecoveredClaim = AthleteNotice(
+		key: Catalog.chatHistoryFailure, action: nil)
 
 	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice
