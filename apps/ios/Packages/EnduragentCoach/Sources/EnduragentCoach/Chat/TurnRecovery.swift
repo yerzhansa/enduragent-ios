@@ -23,7 +23,7 @@ package enum TurnRecovery {
 	])
 
 	package static func plan(
-		turns: [TurnFacts], flushQueue: [FlushJob] = [], writes: [AttemptID: WriteSummary],
+		turns: [TurnFacts], drain: [FlushJobID] = [], writes: [AttemptID: WriteSummary],
 		device: DeviceID, process: ProcessID
 	) -> RecoveryPlan {
 		RecoveryPlan(
@@ -33,7 +33,7 @@ package enum TurnRecovery {
 					turn: facts.turn, attempt: open.attempt,
 					saved: writes[open.attempt, default: .none])
 			},
-			drain: FlushJob.outstanding(flushQueue).map(\.id))
+			drain: drain)
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])

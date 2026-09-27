@@ -238,8 +238,10 @@ public actor Coach {
 		}
 		var plans: [ChatID: RecoveryPlan] = [:]
 		for chat in Set(turns.keys).union(flushQueue.keys) {
+			let drain = FlushJob.outstanding(
+				flushQueue[chat] ?? [], in: try await ledger.conversation(chat))
 			let plan = TurnRecovery.plan(
-				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
+				turns: turns[chat] ?? [], drain: drain.map(\.id), writes: writes,
 				device: device, process: process)
 			if !plan.isEmpty {
 				plans[chat] = plan

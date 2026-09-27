@@ -14,15 +14,16 @@ package struct FlushJob: Sendable, Equatable {
 		settled && !abandoned
 	}
 
-	package func covers(_ older: FlushJob) -> Bool {
+	package func covers(_ older: FlushJob, in conversation: Conversation) -> Bool {
 		guard older.id.ulid < id.ulid else { return false }
-		guard !older.messages.isEmpty else { return true }
-		return Set(older.messages).isSubset(of: Set(messages))
+		return Set(conversation.flushRows(for: older).map(\.ulid))
+			.isSubset(of: Set(conversation.flushRows(for: self).map(\.ulid)))
 	}
 
-	package static func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
+	package static func outstanding(_ jobs: [FlushJob], in conversation: Conversation) -> [FlushJob]
+	{
 		let pending = jobs.filter { !$0.settled }
-		return pending.filter { job in !pending.contains { $0.covers(job) } }
+		return pending.filter { job in !pending.contains { $0.covers(job, in: conversation) } }
 	}
 }
 
@@ -61,9 +62,10 @@ extension ConversationFold {
 	package static let consumedMarkerScope: RecordQuery.Scope = .synced([.provenance])
 
 	package static func flushJobs(
-		chat: ChatID, local: [AthleteRecord], markers: [AthleteRecord], device: DeviceID
+		in conversation: Conversation, local: [AthleteRecord], markers: [AthleteRecord],
+		device: DeviceID
 	) -> [FlushJob] {
-		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
+		let owned = local.filter { $0.chatId == conversation.chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
 		let consumed = consumedJobs(markers)
 		var settled: Set<FlushJobID> = []
@@ -85,7 +87,7 @@ extension ConversationFold {
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
-			jobs[index].settled = done.contains { $0.covers(jobs[index]) }
+			jobs[index].settled = done.contains { $0.covers(jobs[index], in: conversation) }
 		}
 		return jobs
 	}
@@ -165,7 +167,7 @@ extension Conversation {
 
 	package func outstandingRows(_ jobs: [FlushJob]) -> [(ulid: ULID, message: ChatMessage)] {
 		var byUlid: [ULID: ChatMessage] = [:]
-		for job in FlushJob.outstanding(jobs) {
+		for job in FlushJob.outstanding(jobs, in: self) {
 			for (ulid, message) in flushRows(for: job) {
 				byUlid[ulid] = message
 			}
@@ -205,9 +207,9 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let hasV1Jobs = chats.contains { chat in
-			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
-				.contains { $0.process == nil }
+		let hasV1Jobs = local.contains { record in
+			guard case .deviceLocal(.flushPending(let body)) = record.body else { return false }
+			return body.process == nil
 		}
 		var markers: [AthleteRecord] = []
 		if hasV1Jobs {
@@ -217,7 +219,7 @@ extension Ledger {
 		var jobs: [ChatID: [FlushJob]] = [:]
 		for chat in chats {
 			jobs[chat] = ConversationFold.flushJobs(
-				chat: chat, local: local, markers: markers, device: deviceId)
+				in: try await conversation(chat), local: local, markers: markers, device: deviceId)
 		}
 		return jobs
 	}

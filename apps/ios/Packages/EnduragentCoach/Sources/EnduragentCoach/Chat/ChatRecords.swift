@@ -57,7 +57,7 @@ final class ChatRecords {
 		from flushes: FlushWork, isolation: isolated (any Actor)? = #isolation
 	) async -> [FlushJobID] {
 		jobs = await flushes.jobs()
-		return FlushJob.outstanding(jobs).map(\.id)
+		return FlushJob.outstanding(jobs, in: conversation).map(\.id)
 	}
 
 	func apply(_ committed: [AthleteRecord]) {

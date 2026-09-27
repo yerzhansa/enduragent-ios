@@ -10,15 +10,16 @@ import Testing
 
 	@Test func aJobIsDoneWhenASettledJobCoversAllItsMessages() {
 		let jobs = [
-			job(8, messages: [1]), job(9, messages: []), job(10, messages: [1, 2]),
+			job(8, messages: [1]), job(9, messages: [1, 2]), job(10, messages: [1, 2]),
 			job(11, messages: [1, 2, 3], settled: true), job(12, messages: [4]),
 		]
+		let conversation = coverageConversation()
 		let local = jobs.enumerated().flatMap { records(for: $1, at: $0) }
 		let folded = ConversationFold.flushJobs(
-			chat: .main, local: local, markers: [], device: store.deviceId)
+			in: conversation, local: local, markers: [], device: store.deviceId)
 		#expect(folded.map(\.settled) == [true, true, true, true, false])
-		#expect(!job(13, messages: [1, 2]).covers(job(14, messages: [1])))
-		#expect(!job(15, messages: [1]).covers(job(14, messages: [1, 2])))
+		#expect(!job(13, messages: [1, 2]).covers(job(14, messages: [1]), in: conversation))
+		#expect(!job(15, messages: [1]).covers(job(14, messages: [1, 2]), in: conversation))
 	}
 
 	@Test func aJobKeepsItsProcessAndAnAbandonedSettlementRoundTrips() throws {
@@ -53,7 +54,8 @@ import Testing
 		let newer = job(11, messages: [1, 2, 3])
 		let separate = job(12, messages: [4])
 		#expect(
-			FlushJob.outstanding([older, newer, separate]).map(\.id) == [newer.id, separate.id])
+			FlushJob.outstanding([older, newer, separate], in: coverageConversation()).map(\.id)
+				== [newer.id, separate.id])
 	}
 
 	@Test func anOlderJobNeverRunsAfterANewerWindowThatCoversIt() async throws {
@@ -213,6 +215,21 @@ import Testing
 		}
 		#expect(sent(.chatAttempt, by: transport).count == 2)
 		#expect(sent(.droppedSummary, by: transport).count == 1)
+	}
+
+	private func coverageConversation() -> Conversation {
+		let records = [1, 3].flatMap { first in
+			let turn = TurnID(ulid: fixedUlid(first))
+			return [
+				storedRecord(
+					device: store.deviceId, wall: Int64(first), ulid: fixedUlid(first),
+					body: .synced(sampleUser(chatId: .main, text: "Question", turn: turn))),
+				storedRecord(
+					device: store.deviceId, wall: Int64(first + 1), ulid: fixedUlid(first + 1),
+					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Reply"))),
+			]
+		}
+		return ConversationFold.fold(chat: .main, synced: records, device: store.deviceId)
 	}
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {

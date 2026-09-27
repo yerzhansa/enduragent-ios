@@ -50,7 +50,8 @@ import Testing
 			Array(store.reads.dropFirst(before))
 				== (hasV1Jobs
 					? [ConversationFold.flushScope, ConversationFold.consumedMarkerScope]
-					: [ConversationFold.flushScope]))
+					: [ConversationFold.flushScope])
+				+ [ConversationFold.syncedScope, ConversationFold.localScope])
 	}
 
 	@Test(arguments: [false, true])
@@ -74,7 +75,12 @@ import Testing
 			}
 		#expect(jobs.count == 1)
 		#expect(jobs.allSatisfy { !$0.settled })
-		#expect(Array(store.reads.dropFirst(before)) == [ConversationFold.flushScope])
+		#expect(
+			Array(store.reads.dropFirst(before))
+				== [
+					ConversationFold.flushScope, ConversationFold.syncedScope,
+					ConversationFold.localScope,
+				])
 	}
 
 	@Test func aConsumedMarkerCannotSettleAModernJob() async throws {

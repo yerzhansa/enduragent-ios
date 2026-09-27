@@ -310,7 +310,7 @@ import Testing
 			job(24, messages: [10, 11], settled: true),
 		]
 		#expect(!abandoned.saved)
-		#expect(FlushJob.outstanding(jobs).map(\.id) == [jobs[3].id])
+		#expect(FlushJob.outstanding(jobs, in: conversation).map(\.id) == [jobs[3].id])
 		#expect(conversation.outstandingRows(jobs).map(\.ulid) == [7, 8].map(fixedUlid))
 		#expect(
 			conversation.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid)

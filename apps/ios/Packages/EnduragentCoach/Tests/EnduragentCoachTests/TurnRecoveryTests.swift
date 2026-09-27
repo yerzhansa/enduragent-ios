@@ -243,20 +243,6 @@ import Testing
 				== RecoveryPlan(interrupt: []))
 	}
 
-	@Test func pendingFlushJobsAreDrainedAndSettledOnesAreNot() {
-		let pending = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(10)), trigger: .trim, messages: [fixedUlid(1)],
-			settled: false)
-		let settled = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(11)), trigger: .softThreshold,
-			messages: [fixedUlid(2)], settled: true)
-		#expect(
-			TurnRecovery.plan(
-				turns: [], flushQueue: [pending, settled], writes: [:], device: store.deviceId,
-				process: ProcessID(ulid: fixedUlid(60)))
-				== RecoveryPlan(interrupt: [], drain: [pending.id]))
-	}
-
 	@Test func stampedWritesAreCountedPerAttempt() async throws {
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let turn = TurnID(ulid: fixedUlid(1))
