@@ -123,7 +123,8 @@ enum DeviceLocalPayload: Encodable {
 					chatId: value.chatId.rawValue,
 					turn: value.turn.ulid.rawValue,
 					attempt: value.attempt.ulid.rawValue,
-					process: value.process?.ulid.rawValue
+					process: value.process?.ulid.rawValue,
+					lease: value.lease.rawValue
 				)
 			)
 		case .replyObserved(let value):

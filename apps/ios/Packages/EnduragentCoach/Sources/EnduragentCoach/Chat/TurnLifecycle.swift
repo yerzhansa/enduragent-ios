@@ -2,7 +2,7 @@ import Foundation
 
 package enum TurnEvent: Sendable, Equatable {
 	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
-	case claim(AttemptID, process: ProcessID)
+	case claim(AttemptID, process: ProcessID, lease: LeaseKind)
 	case observeReply(AttemptID)
 	case settle(AttemptID, Settlement)
 	case stopBeforeStart(AttemptID)
@@ -59,13 +59,13 @@ package enum TurnLifecycle {
 						)
 					)
 				]))
-		case .claim(let attempt, let process):
+		case .claim(let attempt, let process, let lease):
 			guard let facts else { return .failure(.unknownTurn) }
 			if let refusal = claimRefusal(of: facts, device: device, process: process) {
 				return .failure(refusal)
 			}
 			let claim = TurnClaimBody(
-				chatId: chat, turn: facts.turn, attempt: attempt, process: process)
+				chatId: chat, turn: facts.turn, attempt: attempt, process: process, lease: lease)
 			return .success(.local([.turnClaim(claim)]))
 		case .observeReply(let attempt):
 			guard let facts else { return .failure(.unknownTurn) }

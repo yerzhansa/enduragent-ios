@@ -13,8 +13,9 @@ struct FixtureDirector: Sendable {
 
 	let transport: FakeModelTransport
 	let records: FaultInjectingRecordLog
+	let host: ImmediateExecutionHost
 
-	func prepare(for text: String) -> FixtureDirective {
+	func prepare(for text: String) async -> FixtureDirective {
 		reset(replyingTo: text)
 		guard text.hasPrefix(Self.prefix) else { return .sendToCoach }
 		let words = text.dropFirst(Self.prefix.count).split(separator: " ").map(String.init)
@@ -48,6 +49,8 @@ struct FixtureDirector: Sendable {
 			transport.flushScript = Self.flushPartial
 		case "storage" where arguments == ["fail-next-append"]:
 			records.failNextAppend = true
+		case "expire" where arguments.isEmpty:
+			await host.expire(.systemExpired)
 		default:
 			return .rejected(Self.unknown(text))
 		}

@@ -12,6 +12,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
+	public let completedInBackground: Bool
 }
 
 public enum ChatActivity: Sendable, Equatable {
@@ -48,6 +49,7 @@ extension ChatSnapshot {
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
+		finishedAway: Set<TurnID>,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
 		process: ProcessID,
@@ -67,7 +69,8 @@ extension ChatSnapshot {
 				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process)
+					of: facts, live: live, overlay: overlay, device: device, process: process),
+				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
 		if stopping {

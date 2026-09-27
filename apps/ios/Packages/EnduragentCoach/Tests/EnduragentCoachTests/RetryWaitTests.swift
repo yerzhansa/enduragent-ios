@@ -240,7 +240,8 @@ private func milliseconds(_ date: Date) -> Int64 {
 			ClaimedAttempt(
 				hlc: HybridLogicalClock(wallMs: wall + 1, logical: 0, deviceId: phone),
 				body: TurnClaimBody(
-					chatId: .main, turn: rateLimitedTurn, attempt: AttemptID(ulid: fixedUlid(42)))))
+					chatId: .main, turn: rateLimitedTurn, attempt: AttemptID(ulid: fixedUlid(42)),
+					lease: .continuedProcessing)))
 		#expect(RetryWaits.wait(of: claimed, now: now) == nil)
 	}
 }

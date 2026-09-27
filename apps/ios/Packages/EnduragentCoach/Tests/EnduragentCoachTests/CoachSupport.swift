@@ -35,7 +35,8 @@ func makeCoach(
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
-	secrets: any SecretStore = keyedSecrets()
+	secrets: any SecretStore = keyedSecrets(),
+	host: any ExecutionHost = ImmediateExecutionHost()
 ) -> Coach {
 	Coach(
 		sport: .cycling,
@@ -46,6 +47,7 @@ func makeCoach(
 		store: store,
 		clock: clock,
 		language: .init(ui: .en, coachReply: nil),
+		host: host,
 		coalescing: coalescing
 	)
 }
@@ -84,6 +86,11 @@ extension Coach {
 		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
 	}
 
+	func interruption(of turn: TurnID) async -> InterruptionCause? {
+		guard case .interrupted(let interrupted)? = await state(of: turn) else { return nil }
+		return interrupted.cause
+	}
+
 	func waitForState(
 		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
 	) async throws -> TurnState? {
@@ -105,6 +112,29 @@ extension Coach {
 		}
 		await lifecycle(.willTerminate)
 	}
+}
+
+func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) async throws {
+	let deadline = ContinuousClock.now + limit
+	while !condition() {
+		guard ContinuousClock.now < deadline else {
+			Issue.record("condition never held")
+			return
+		}
+		try await Task.sleep(for: .milliseconds(10))
+	}
+}
+
+func settlements(of turn: TurnID, in store: any RecordLog) async throws -> [Settlement] {
+	try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
+		.compactMap { record in
+			guard case .synced(.turnSettled(let body)) = record.body else { return nil }
+			return body.settlement
+		}
+}
+
+func claims(of turn: TurnID, in store: any RecordLog) async throws -> [AthleteRecord] {
+	try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)).records
 }
 
 func waitForRecords(
@@ -135,6 +165,11 @@ func replyText(_ state: TurnState) -> String? {
 		return nil
 	}
 	return text
+}
+
+func isInterrupted(_ state: TurnState) -> Bool {
+	guard case .interrupted = state else { return false }
+	return true
 }
 
 func failure(_ state: TurnState) -> CoachFailure? {

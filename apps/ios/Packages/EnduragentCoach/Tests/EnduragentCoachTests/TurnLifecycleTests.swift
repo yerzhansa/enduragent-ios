@@ -28,7 +28,8 @@ import Testing
 			ClaimedAttempt(
 				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phoneA),
 				body: TurnClaimBody(
-					chatId: .main, turn: minted, attempt: attempt, process: claimer ?? process)))
+					chatId: .main, turn: minted, attempt: attempt, process: claimer ?? process,
+					lease: .continuedProcessing)))
 		return facts
 	}
 
@@ -81,43 +82,58 @@ import Testing
 	}
 
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
-		let result = try writes(.claim(attempt, process: process), on: accepted()).get()
+		let result = try writes(
+			.claim(attempt, process: process, lease: .continuedProcessing), on: accepted()
+		).get()
 		#expect(
 			result
 				== .local([
 					.turnClaim(
 						TurnClaimBody(
-							chatId: .main, turn: minted, attempt: attempt, process: process))
+							chatId: .main, turn: minted, attempt: attempt, process: process,
+							lease: .continuedProcessing))
 				]
 				))
 	}
 
 	@Test func claimOfATurnAcceptedElsewhereIsRefused() {
 		#expect(
-			writes(.claim(attempt, process: process), on: accepted(on: phoneB))
+			writes(
+				.claim(attempt, process: process, lease: .continuedProcessing),
+				on: accepted(on: phoneB))
 				== .failure(.acceptedElsewhere))
-		#expect(writes(.claim(attempt, process: process), on: nil) == .failure(.unknownTurn))
+		#expect(
+			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: nil)
+				== .failure(.unknownTurn))
 	}
 
 	@Test func claimIsAcceptedOnlyAfterAStopOrFailureThatSavedNothing() throws {
 		let replied = settled(.replied(.model("done"), lineage: nil))
 		#expect(
-			writes(.claim(attempt, process: process), on: replied) == .failure(.alreadyAnswered))
+			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: replied)
+				== .failure(.alreadyAnswered))
 		let failed = settled(.failed(.model(.providerDown(.outage)), saved: .none))
 		let retry = AttemptID(ulid: fixedUlid(9))
 		#expect(
-			try writes(.claim(retry, process: process), on: failed).get()
+			try writes(.claim(retry, process: process, lease: .continuedProcessing), on: failed)
+				.get()
 				== .local([
 					.turnClaim(
-						TurnClaimBody(chatId: .main, turn: minted, attempt: retry, process: process)
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: retry, process: process,
+							lease: .continuedProcessing)
 					)
 				]))
 		let interrupted = settled(.interrupted(partial: "so", cause: .athleteStopped, saved: .none))
 		#expect(
-			try writes(.claim(retry, process: process), on: interrupted).get()
+			try writes(
+				.claim(retry, process: process, lease: .continuedProcessing), on: interrupted
+			).get()
 				== .local([
 					.turnClaim(
-						TurnClaimBody(chatId: .main, turn: minted, attempt: retry, process: process)
+						TurnClaimBody(
+							chatId: .main, turn: minted, attempt: retry, process: process,
+							lease: .continuedProcessing)
 					)
 				]))
 		let saved = WriteSummary(
@@ -125,12 +141,14 @@ import Testing
 		let failedAfterSave = settled(
 			.failed(.model(.budgetExhausted(.generateCalls)), saved: saved))
 		#expect(
-			writes(.claim(retry, process: process), on: failedAfterSave)
+			writes(
+				.claim(retry, process: process, lease: .continuedProcessing), on: failedAfterSave)
 				== .failure(.alreadyAnswered))
 		let stoppedAfterSave = settled(
 			.interrupted(partial: "so", cause: .athleteStopped, saved: saved))
 		#expect(
-			writes(.claim(retry, process: process), on: stoppedAfterSave)
+			writes(
+				.claim(retry, process: process, lease: .continuedProcessing), on: stoppedAfterSave)
 				== .failure(.alreadyAnswered))
 	}
 
@@ -194,7 +212,9 @@ import Testing
 			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(state == .accepted(.beforeUpgrade))
 		#expect(!state.retryable)
-		#expect(writes(.claim(attempt, process: process), on: legacy) == .failure(.alreadyAnswered))
+		#expect(
+			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: legacy)
+				== .failure(.alreadyAnswered))
 	}
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {

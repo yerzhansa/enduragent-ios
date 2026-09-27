@@ -241,7 +241,9 @@ final class ShellModel {
 	}
 
 	func send() async {
-		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
+		let sent = draft
+		let chat = chatId
+		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !text.isEmpty, !isSending, let services else { return }
 		isSending = true
 		defer { isSending = false }
@@ -249,15 +251,14 @@ final class ShellModel {
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
 			return
 		}
 		do {
-			switch try await services.coach.send(Draft(id: draft.id, text: text), to: chatId) {
+			switch try await services.coach.send(Draft(id: sent.id, text: text), to: chat) {
 			case .accepted, .showLanguagePicker:
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(chatId)
+				clear(sent, from: chat)
 			case .ignoredBlank:
 				break
 			}
@@ -266,6 +267,16 @@ final class ShellModel {
 			case .storageUnavailable:
 				notSent = true
 			}
+		}
+	}
+
+	private func clear(_ sent: Draft, from chat: ChatID) {
+		let current = chat == chatId ? draft : drafts.load(chat)
+		guard let current, current.id == sent.id else { return }
+		let kept = Draft(id: DraftID(), text: current == sent ? "" : current.text)
+		drafts.save(kept, for: chat)
+		if chat == chatId {
+			draft = kept
 		}
 	}
 

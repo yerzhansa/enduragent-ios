@@ -39,14 +39,17 @@ enum TutorialHarness {
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
 	static let draft = "Is Thursday still on?"
+	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 	static let recoveryArgument = "-EnduragentFixtureRecovery"
+	static let hostArgument = "-EnduragentFixtureHost"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
-		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
+		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
+		locale: String = "en_US"
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
@@ -60,6 +63,9 @@ enum TutorialHarness {
 		}
 		if let coalescingMilliseconds {
 			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
+		if let host {
+			app.launchArguments += [hostArgument, host]
 		}
 		app.launch()
 	}
