@@ -284,14 +284,15 @@ package actor CredentialVault {
 
 	private func recoverStaging() {
 		guard !stagingRecovered else { return }
-		stagingRecovered = true
 		discardStaging()
 	}
 
 	private func discardStaging() {
 		do {
 			try store.delete(.intervalsConnectionStaging)
+			stagingRecovered = true
 		} catch {
+			stagingRecovered = false
 			diagnostics.record(
 				.secureStorageFailed(.intervalsConnectionStaging, detail: String(describing: error))
 			)
