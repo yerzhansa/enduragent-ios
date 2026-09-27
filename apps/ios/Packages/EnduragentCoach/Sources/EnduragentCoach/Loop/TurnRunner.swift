@@ -269,9 +269,11 @@ package struct TurnRunner: Sendable {
 				.trim, covering: transcript.window, attempt: attempt, scope: scope,
 				progress: progress)
 			do {
+				let firstKept =
+					trim.kept.isEmpty ? attempt.turn.ulid : history.ulids[trim.dropped.count]
 				summary = try await summarizeDropped(
-					trim.dropped, previous: summary, firstKept: history.ulids[trim.dropped.count],
-					attempt: attempt, scope: scope, progress: progress)
+					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					scope: scope, progress: progress)
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
