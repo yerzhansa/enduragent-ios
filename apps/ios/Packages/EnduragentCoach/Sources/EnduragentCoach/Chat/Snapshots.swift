@@ -120,7 +120,7 @@ extension ChatSnapshot {
 			self.activity = .stopping
 		} else if live != nil || window != nil || !queued.isEmpty {
 			self.activity = .working(label: Catalog.chatNoticeWorking)
-		} else if resetting {
+		} else if resetting, opening == .continuing {
 			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
 		} else {
 			self.activity = .idle

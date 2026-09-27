@@ -69,6 +69,14 @@ import Testing
 		let coach = coach()
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.requestDelay = .milliseconds(500)
+		let published = Task {
+			var seen: [ChatSnapshot] = []
+			for await snapshot in await coach.observe(.main) {
+				seen.append(snapshot)
+				if snapshot.opening != .continuing, snapshot.activity == .idle { break }
+			}
+			return seen
+		}
 		let resetting = startNewConversation(on: coach)
 		try await waitUntil { !sent(.memoryFlush, by: transport).isEmpty }
 		let saving = try #require(await coach.currentSnapshot(.main))
@@ -78,6 +86,9 @@ import Testing
 		let started = try #require(await coach.currentSnapshot(.main))
 		#expect(started.activity == .idle)
 		#expect(started.opening == .afterNewConversation(memorySaved: true))
+		let snapshots = await published.value
+		#expect(snapshots.contains { $0.activity != .idle })
+		#expect(!snapshots.contains { $0.opening != .continuing && $0.activity != .idle })
 	}
 
 	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
