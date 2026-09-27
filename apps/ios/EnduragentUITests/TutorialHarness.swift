@@ -213,10 +213,24 @@ enum TutorialHarness {
 	}
 
 	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+		let progress = named(app, "chat.turnProgress")
+		wait(progress)
+		let value = progress.value as? String ?? ""
+		let fields = value.split(separator: " ")
+		guard fields.count == 4, fields[0] == "turns", fields[2] == "settled",
+			let count = Int(fields[1])
+		else {
+			XCTFail("invalid chat turn progress: \(value)")
+			return
+		}
 		send(app, text)
-		let working = named(app, "chat.working")
-		wait(working, timeout: 5)
-		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
+		let expected = "turns \(count + 1) settled \(count + 1)"
+		let settled = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "value == %@", expected), object: progress)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [settled], timeout: timeout), .completed,
+			"\(text) never settled: expected \(expected), got \(progress.value as? String ?? "missing")"
+		)
 	}
 
 	static func sendLong(_ app: XCUIApplication) {
@@ -271,7 +285,7 @@ enum TutorialHarness {
 	) {
 		let deadline = Date().addingTimeInterval(timeout)
 		while recordCount(app, kind) != expected, Date() < deadline {
-			app.buttons["Refresh"].tap()
+			app.navigationBars.buttons["records.refresh"].tap()
 		}
 		XCTAssertEqual(recordCount(app, kind), expected)
 	}

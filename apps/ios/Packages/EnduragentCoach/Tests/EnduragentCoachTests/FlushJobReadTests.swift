@@ -4,7 +4,9 @@ import Testing
 
 @Suite struct FlushJobReadTests {
 	@Test(arguments: [false, true], [false, true])
-	func provenanceIsReadOnlyWhenV1JobsExist(allChats: Bool, hasV1Jobs: Bool) async throws {
+	func provenanceIsReadOnlyWhenUnsettledV1JobsExist(allChats: Bool, hasUnsettledV1Jobs: Bool)
+		async throws
+	{
 		let store = BatchRecordingLog(inner: InMemoryRecordLog())
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -20,7 +22,7 @@ import Testing
 			local: [
 				.flushSettled(FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave))
 			], stamp: testStamp())
-		if hasV1Jobs {
+		if hasUnsettledV1Jobs {
 			let legacy = try await ledger.commit(
 				local: [
 					.flushPending(
@@ -44,14 +46,79 @@ import Testing
 			} else {
 				try await ledger.flushJobs(in: .main)
 			}
-		#expect(jobs.count == (hasV1Jobs ? 2 : 1))
+		#expect(jobs.count == (hasUnsettledV1Jobs ? 2 : 1))
 		#expect(jobs.allSatisfy { $0.saved })
 		#expect(
 			Array(store.reads.dropFirst(before))
-				== (hasV1Jobs
+				== (hasUnsettledV1Jobs
 					? [ConversationFold.flushScope, ConversationFold.consumedMarkerScope]
 					: [ConversationFold.flushScope])
 				+ [ConversationFold.syncedScope, ConversationFold.localScope])
+	}
+
+	@Test(arguments: [false, true])
+	func modernSettlementsOfV1JobsDoNotReadProvenance(allChats: Bool) async throws {
+		let store = BatchRecordingLog(inner: InMemoryRecordLog())
+		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		for message in [fixedUlid(1), fixedUlid(2)] {
+			let records = try await ledger.commit(
+				local: [
+					.flushPending(
+						FlushPendingBody(
+							chatId: .main, trigger: .softThreshold, messageUlids: [message]))
+				], stamp: testStamp())
+			let job = FlushJobID(ulid: try #require(records.first?.ulid))
+			_ = try await ledger.commit(
+				local: [
+					.flushSettled(
+						FlushSettledBody(
+							chatId: .main, job: job, settlement: .saved(sections: 1, events: 0)))
+				], stamp: testStamp())
+		}
+		let before = store.reads.count
+		let jobs =
+			if allChats {
+				try await ledger.flushJobsByChat()[.main] ?? []
+			} else {
+				try await ledger.flushJobs(in: .main)
+			}
+		#expect(jobs.count == 2)
+		#expect(jobs.allSatisfy { $0.process == nil && $0.saved && !$0.consumedInV1 })
+		#expect(Array(store.reads.dropFirst(before)) == [ConversationFold.flushScope])
+	}
+
+	@Test(arguments: [false, true])
+	func anEmptyConsumedV1JobReadsProvenanceAndSettles(allChats: Bool) async throws {
+		let store = BatchRecordingLog(inner: InMemoryRecordLog())
+		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let records = try await ledger.commit(
+			local: [
+				.flushPending(
+					FlushPendingBody(chatId: .main, trigger: .softThreshold, messageUlids: []))
+			], stamp: testStamp())
+		let id = try #require(records.first?.ulid)
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(
+					ProvenanceBody(
+						key: MemoryFlushPolicy.consumedFlushKeyPrefix + id.rawValue,
+						garmin: false, nonGarmin: false, unknown: false,
+						contentSha256: "consumed"))
+			], stamp: testStamp())
+		let before = store.reads.count
+		let jobs =
+			if allChats {
+				try await ledger.flushJobsByChat()[.main] ?? []
+			} else {
+				try await ledger.flushJobs(in: .main)
+			}
+		#expect(jobs.count == 1)
+		#expect(jobs.allSatisfy { $0.saved })
+		#expect(
+			Array(store.reads.dropFirst(before))
+				== [ConversationFold.flushScope, ConversationFold.consumedMarkerScope])
 	}
 
 	@Test(arguments: [false, true])

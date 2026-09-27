@@ -124,8 +124,7 @@ private struct FlushCoverage {
 				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
 				if job.messages.isEmpty {
 					legacyBefore = max(legacyBefore ?? job.id.ulid, job.id.ulid)
-				} else if job.consumedInV1 {
-					let through = max(job.messages.max() ?? job.id.ulid, job.id.ulid)
+				} else if job.consumedInV1, let through = job.messages.max() {
 					legacyThrough = max(legacyThrough ?? through, through)
 				}
 			}
@@ -207,19 +206,25 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let hasV1Jobs = local.contains { record in
-			guard case .deviceLocal(.flushPending(let body)) = record.body else { return false }
-			return body.process == nil
+		var conversations: [ChatID: Conversation] = [:]
+		for chat in chats {
+			conversations[chat] = try await conversation(chat)
+		}
+		let hasUnsettledV1Jobs = conversations.values.contains { conversation in
+			ConversationFold.flushJobs(
+				in: conversation, local: local, markers: [], device: deviceId
+			)
+			.contains { $0.process == nil && !$0.settled }
 		}
 		var markers: [AthleteRecord] = []
-		if hasV1Jobs {
+		if hasUnsettledV1Jobs {
 			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
 				.records
 		}
 		var jobs: [ChatID: [FlushJob]] = [:]
-		for chat in chats {
+		for (chat, conversation) in conversations {
 			jobs[chat] = ConversationFold.flushJobs(
-				in: try await conversation(chat), local: local, markers: markers, device: deviceId)
+				in: conversation, local: local, markers: markers, device: deviceId)
 		}
 		return jobs
 	}
