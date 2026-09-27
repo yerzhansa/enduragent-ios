@@ -55,12 +55,12 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Notice | `notice.continue` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
+| Chat | `chat.sidebar` labeled `Menu`, `chat.newConversation` labeled `Start new conversation`, `chat.welcome`, `chat.newConversation.notice`, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
 | Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Confirmed preview` group |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note` |
-| History | `history.row.<chat id>` |
+| History | `history.row.<boundary or chat id>`, then `archive.readOnly` in the pushed conversation |
 | Debug | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead` (the first line of the history the last reply was sent with) |
 
 The fixture athlete is Ada Kovač. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
@@ -106,22 +106,21 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 
 The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
-The run passes with zero failures and exactly two skips, `UpgradeKeepsTranscriptProof` and `UpgradeKeepsProposalProof`. Each opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the four upgrade steps below. On 2026-09-26 the run took 41 minutes.
+The run passes with zero failures and exactly one skip, `UpgradeHistoryProof`. It opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the upgrade steps below. On 2026-09-26 the run took 41 minutes.
 
-**Upgrade proofs.** These two prove that the app opens a store the last v1 build wrote. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. Then alternate the two builds on one run. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so each trunk proof leaves its state for the head proof that follows:
+**Upgrade proofs.** `UpgradeHistoryProof` proves that the app opens a store the last v1 build wrote with two chats: the chat opens on the welcome, and History lists both chats as `Earlier chat`. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. No v1 proof creates two chats, so copy `helpers/V1TwoChatsSeedProof.swift` into the v1 checkout's UI tests before its build. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so the trunk proof leaves its state for the head proof that follows:
 
 ```sh
 git worktree add --detach .worktrees/v1-trunk 82254bb
+cp .claude/skills/verify-ios/helpers/V1TwoChatsSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
 TRUNK=.worktrees/v1-trunk/.claude/skills/verify-ios/helpers/sim.mjs
 SIM=.claude/skills/verify-ios/helpers/sim.mjs
 $TRUNK build
-$TRUNK test <run id> RelaunchKeepsChatProof
-$SIM test <run id> UpgradeKeepsTranscriptProof
-$TRUNK test <run id> ConfirmedPreviewProof
-$SIM test <run id> UpgradeKeepsProposalProof
+$TRUNK test <run id> V1TwoChatsSeedProof
+$SIM test <run id> UpgradeHistoryProof
 ```
 
-Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove .worktrees/v1-trunk` when the run is done.
+Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove --force .worktrees/v1-trunk` when the run is done; `--force` drops the copied seed proof.
 
 ## Compare with the prototype
 
@@ -139,9 +138,9 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 | Prototype state | App state today |
 | --- | --- |
-| `chat-welcome` | Chat right after onboarding, with `Hello, Ada.` or `Hello.` after a skip |
+| `chat-welcome` | Chat right after onboarding: `chat.welcome`, without the `/sync` line after a skip |
 | `chat-menu`, `chat-menu-nosync` | The slash list after typing `/` in `chat.composer`. The nosync state is the same list after `Skip for now`. |
-| `chat-new-conversation` | The greeting after `New chat` |
+| `chat-new-conversation` | A reply with `chat.newConversation` in the top bar; after the tap, the welcome with `New conversation started.` |
 | `review-ready` | The `Confirmed preview` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |

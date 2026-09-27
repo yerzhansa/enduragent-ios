@@ -1,10 +1,10 @@
 # Chat
 
-The athlete writes to the coach in the composer, sees the message and the coach's reply in the transcript, opens the slash-command list by typing `/`, and starts over with `New chat`.
+The athlete writes to the coach in the composer, sees the message and the coach's reply in the transcript, opens the slash-command list by typing `/`, and starts over with `Start new conversation` or `/start`. There is one conversation; earlier ones are in History.
 
 ## Sub-features
 
-- `chat-greeting` shows `Hello, Ada.`, or `Hello.` after a skipped connect, above an empty transcript, with the disclaimer `Not medical advice, and not a substitute for a doctor or a certified coach.` under the composer.
+- `chat-welcome` shows npm's welcome, `Welcome to Cycling Coach!` and its command list, in `chat.welcome` above an empty conversation. The `/sync` line shows only when intervals.icu is connected, so it is missing after `Skip for now`. The disclaimer `Not medical advice, and not a substitute for a doctor or a certified coach.` sits under the composer. The welcome disappears with the first message.
 - `chat-send` saves the athlete's message before the model runs, shows it in the transcript the moment Send is tapped, and clears the composer. `chat.send` is disabled while the message is being saved, and a second send of the same draft adds nothing.
 - `chat-draft` keeps typed, unsent text in the composer across a kill and relaunch, and shows `Not sent. Your draft is still here.` in `chat.composer.notSent` when the message could not be saved.
 - `chat-reply` shows the coach's reply under the message. A settled reply never shows `chat.working` again, however long the transcript grows.
@@ -33,10 +33,10 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 - `chat-summary` keeps a long conversation in the prompt. When the history no longer fits, the coach summarizes the oldest messages with the compaction model before it answers. Records lists `compactionSummary` and `windowStart`. The next prompts start with `[Previous conversation summary]`, read in Debug as `fixture.historyHead`. The transcript still shows every message. When the summary call fails, the dropped messages stay in the prompt. An overflow or a slow reply compacts only that attempt's prompt: it summarizes all but the last four messages and writes no record, and with four or fewer messages it makes no summary call, as npm does.
 - `chat-coalesce` joins two free-text messages sent within 1.5 seconds into one turn whose athlete text has both lines, and the model receives both lines; Records lists `userMessage 2` with one turn. A message saved after the turn started gets its own turn.
 - `chat-review` answers `/review` with the Saturday group ride.
-- `chat-slash-list` lists `/review`, `/status`, `/workout`, and `/language` above the composer, and never `/plan`.
+- `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` above the composer in npm's menu order, each with its npm description (`Start a fresh session` for `/start`), and never `/plan`.
 - `chat-slash-fill` fills the composer with the chosen command and a space, which hides the list.
-- `chat-plan` sends `/plan` to the coach as an ordinary message; the fixture answers with the week summary.
-- `chat-new` clears the transcript back to the greeting.
+- `chat-plan` sends `/plan` to the coach as an ordinary message with no slash command; the fixture answers with the week summary and no `chat.error` appears.
+- `chat-new-conversation` runs npm's reset from `chat.newConversation` (`Start new conversation`, no confirmation) or a typed `/start`. It waits behind a running reply, saves memory from the conversation's unsaved messages (`flushPending` with trigger `explicitReset`), then writes the `windowStart` boundary, then `flushSettled` when the save finished. The transcript shows the welcome and `New conversation started.` in `chat.newConversation.notice`; the old messages move to History. When the save failed part way, the notice reads `New conversation started. Some recent details may not have been saved to coach memory.` and the job stays pending. When the boundary could not be saved, the old conversation stays and the notice reads `We couldn’t confirm whether the new conversation started. Your visible conversation is preserved.` A pending workout preview stays pending. A message sent while the reset waits opens the new conversation.
 - `chat-no-network` keeps `fixture.requestCount` at `0 requests` through every turn.
 
 ## How to get to it (user POV)
@@ -44,7 +44,7 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 - Finish onboarding. The chat opens.
 - Tap `Message your coach`, type, and choose `Send message`.
 - Type `/` as the first character in `Message your coach`.
-- Choose `New chat` in the top bar.
+- Choose `Start new conversation` in the top bar, or send `/start`.
 - Choose `Menu`, then `Debug`, to read the request count.
 
 ## Driving it with sim.mjs and XCUITest
@@ -59,7 +59,7 @@ Preconditions:
 - **Slash list.** Tap `chat.composer` and type `/`. Run `sim.mjs test <run id> SlashListNoPlanProof`. `chat.slash.review`, `chat.slash.status`, `chat.slash.workout`, and `chat.slash.language` exist, and `chat.slash.plan` does not. Attachment `slash-list-no-plan` shows the list.
 - **Fill from the list.** This step is interactive. With the list open, tap `chat.slash.status`. The composer reads `/status ` and the list disappears. Capture it with `sim.mjs shot <run id> slash-filled`.
 - **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `/plan` appears as the athlete's message and the week summary follows. Capture it with `sim.mjs shot <run id> plan-sent`.
-- **New chat.** This step is interactive. After a reply, tap the `New chat` button. The transcript returns to the greeting and the composer is empty. Capture it with `sim.mjs shot <run id> new-chat`.
+- **New conversation.** After a reply, tap `chat.newConversation`. Run `sim.mjs test <run id> NewConversationProof`. `chat.welcome` starts with `Welcome to Cycling Coach!` and lists `/sync`, `chat.newConversation.notice` reads `New conversation started.`, the question is gone, and Records lists `windowStart 1`, `flushPending 1`, and `flushSettled 1`. Attachments `new-conversation` and `new-conversation-records` show it, and `new-conversation-latency-ms` holds the tap-to-welcome time. `HistoryListProof` sends `/start` instead.
 - **No network.** Tap `chat.sidebar`, then `sidebar.debug`. `fixture.requestCount` reads `0 requests`. Capture it with `sim.mjs shot <run id> request-count`. `FirstConversationProof` asserts the same value.
 - **Working and streaming.** Send `fixture:slow`. Run `sim.mjs test <run id> SlowReplyProof`. Attachment `slow-reply-working` shows `Coach is working…` under the message with no reply text, `slow-reply-streaming` shows part of the week summary with the working row still under it, and `slow-reply-done` shows the whole reply with the working row gone. Interactively, send `fixture:slow` and take `sim.mjs shot <run id> working` within one second and `sim.mjs shot <run id> streaming` at about three seconds.
 - **Retry ladder.** Send `fixture:fail 500`, then `fixture:fail 429 7 x4`. Run `sim.mjs test <run id> RetryLadderProof`. Attachment `retry-ladder-reply` shows the week summary after one silent retry, `retry-ladder-send-to-reply` records the seconds from Send to the reply, and `retry-ladder-rate-limited` shows `Rate limited — please try again in ~7 seconds.` with `Try again` after about 21 seconds of `Coach is working…`. Interactively, send `fixture:fail 429 7` and `chat.working` stays for about seven seconds before the week summary arrives.
@@ -92,7 +92,7 @@ Preconditions:
 - **Storage fault.** Send `fixture:storage fail-next-append`. Run `sim.mjs test <run id> StorageFaultProof`. The directive itself is the message that fails to save: the composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. After a relaunch with the kept store the composer still holds the text and Records lists no `userMessage`. Attachments `storage-fault-not-sent`, `storage-fault-nothing-saved`, and `storage-fault-records` show it.
 - **Stop.** This step is interactive. Send `fixture:slow`, wait about three seconds, and tap `chat.stop`. The streamed text stays dimmed under the message with `This reply stopped before it finished. Nothing was changed.` and `Try again`. Capture it with `sim.mjs shot <run id> stopped`.
 - **Coalescing.** Send `Thursday?` and then `Friday?` within 1.5 seconds. Run `sim.mjs test <run id> CoalesceProof`. The transcript shows one turn whose athlete text has both lines and one reply, and Records lists `userMessage 2`, `turnClaim 1`, and `turnSettled 1`. Attachments `coalesce` and `coalesce-records` show it.
-- **Draft survives.** Type `Is Thursday still on?`, do not send, and relaunch with the kept store. Run `sim.mjs test <run id> DraftSurvivesKillProof`. The composer holds the typed text, the transcript shows only the greeting, and Records lists no `userMessage`. Attachment `draft-survives` shows it.
+- **Draft survives.** Type `Is Thursday still on?`, do not send, and relaunch with the kept store. Run `sim.mjs test <run id> DraftSurvivesKillProof`. The composer holds the typed text, the transcript shows only the welcome, and Records lists no `userMessage`. Attachment `draft-survives` shows it.
 - **Relaunch with the kept store.** After a reply, kill and reopen the app with the kept store. Run `sim.mjs test <run id> RelaunchKeepsChatProof`. The chat shows the question and the reply and the notice is not on screen. Attachment `relaunch-keeps-chat` shows it. Interactively, run `sim.mjs launch <run id> --keep` after a reply.
 
 ## Gotchas
@@ -117,7 +117,9 @@ Preconditions:
 - `TutorialHarness.waitForLabel` waits 10 seconds for an exact label before it falls back to a `CONTAINS` match. Replies longer than the expected fragment still pass, but each such wait adds 10 seconds.
 - A rate limit's `Try again` stays disabled for the hinted seconds after the notice shows, and the coach enables it when the wait ends. The fixture waits real seconds for it, so `fixture:fail 429 90 x4` keeps it disabled for 90 seconds after the notice.
 - `-EnduragentFixtureKeychain empty` only skips installing the Credits key, so use it with a fresh store. A kept store still holds the key an earlier launch installed.
-- `Choose access method` opens the onboarding connect step, and `Start chatting` from there opens a new chat until the app keeps one conversation.
-- `New chat` has no accessibility identifier. Find it by its label.
+- `Choose access method` opens the onboarding connect step, and `Start chatting` from there returns to the same conversation.
+- `chat.welcome` is one text element holding the whole welcome. Check `label.hasPrefix("Welcome to Cycling Coach!")` or `CONTAINS`, not an exact label.
+- `fixture:flush-partial` then `chat.newConversation` shows the memory warning: the reset's flush is the next memory flush.
+- The History sheet sits over the chat, and the chat's `chat.composer` and `chat.send` stay in the accessibility tree behind it. Assert they are not hittable, not that they are missing.
 - The menu sheet has no close button. Swipe down to dismiss it, twice from the Debug screen. The sheet animates away after the swipe, so `chat.sidebar` is not hittable at once; `TutorialHarness.closeMenu` and `openSidebar` wait until it is.
 - Typing `/` into a composer that already has text does not open the list. The list shows only while the composer starts with `/` and has no space.
