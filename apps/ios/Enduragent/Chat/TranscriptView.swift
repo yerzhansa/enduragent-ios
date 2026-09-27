@@ -21,6 +21,11 @@ struct TranscriptView: View {
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
 					}
+					if case .startingNewConversation(let label)? = model.chat?.activity {
+						Text(model.builder.phrasebook.say(label, [:]))
+							.foregroundStyle(.secondary)
+							.accessibilityIdentifier("chat.working")
+					}
 					if model.newConversationUncertain {
 						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}

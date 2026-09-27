@@ -71,6 +71,36 @@ import Testing
 		#expect(athlete.ending == .finished(nil))
 	}
 
+	@Test func theChatShowsWorkingWhileTheResetSavesMemory() async throws {
+		transport.script = [.text("Two rides."), .finish(reason: .stop)]
+		let coach = coach()
+		_ = try await coach.sendAndSettle("How was my week?")
+		transport.requestDelay = .milliseconds(500)
+		let resetting = startNewConversation(on: coach)
+		try await waitFor { !sent(.memoryFlush, by: transport).isEmpty }
+		let saving = try #require(await coach.currentSnapshot(.main))
+		#expect(saving.activity == .startingNewConversation(label: Catalog.chatNoticeWorking))
+		#expect(saving.opening == .continuing)
+		#expect(try await outcome(resetting) == .started(memory: .saved))
+		let started = try #require(await coach.currentSnapshot(.main))
+		#expect(started.activity == .idle)
+		#expect(started.opening == .afterNewConversation(memorySaved: true))
+	}
+
+	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
+		transport.script = [.text("Thursday is"), .hang]
+		let coach = coach()
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await coach.waitForLiveText(turn)
+		let resetting = startNewConversation(on: coach)
+		try await Task.sleep(for: .milliseconds(200))
+		#expect(
+			await coach.currentSnapshot(.main)?.activity
+				== .working(label: Catalog.chatNoticeWorking))
+		await coach.stop(.main)
+		#expect(try await outcome(resetting) == .started(memory: .saved))
+	}
+
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
 		transport.script = [.text("Thursday is"), .hang]
 		let coach = coach()

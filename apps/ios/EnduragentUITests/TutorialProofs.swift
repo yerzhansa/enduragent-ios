@@ -212,6 +212,26 @@ final class NewConversationProof: XCTestCase {
 	}
 }
 
+final class NewConversationWorkingProof: XCTestCase {
+	func testWorkingWhileMemorySaves() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:slow")
+		let button = TutorialHarness.named(app, "chat.newConversation")
+		TutorialHarness.waitUntilHittable(button)
+		button.tap()
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		XCTAssertEqual(working.label, TutorialHarness.working)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
+		TutorialHarness.attach(self, name: "new-conversation-working", app: app)
+		TutorialHarness.waitForWelcome(app)
+		XCTAssertTrue(working.waitForNonExistence(timeout: 2))
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+	}
+}
+
 final class HistoryArchivedProof: XCTestCase {
 	func testHistoryArchived() {
 		let app = XCUIApplication()

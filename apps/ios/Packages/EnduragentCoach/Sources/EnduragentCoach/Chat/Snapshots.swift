@@ -19,6 +19,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 public enum ChatActivity: Sendable, Equatable {
 	case idle
 	case working(label: CatalogKey)
+	case startingNewConversation(label: CatalogKey)
 	case stopping
 }
 
@@ -100,6 +101,7 @@ extension ChatSnapshot {
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
+		resetting: Bool,
 		finishedAway: Set<TurnID>,
 		pendingProposal: PendingProposal?,
 		device: DeviceID,
@@ -118,6 +120,8 @@ extension ChatSnapshot {
 			self.activity = .stopping
 		} else if live != nil || window != nil || !queued.isEmpty {
 			self.activity = .working(label: Catalog.chatNoticeWorking)
+		} else if resetting {
+			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
 		} else {
 			self.activity = .idle
 		}

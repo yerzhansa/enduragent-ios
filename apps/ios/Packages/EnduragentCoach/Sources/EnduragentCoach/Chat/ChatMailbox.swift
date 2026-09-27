@@ -374,6 +374,7 @@ package actor ChatMailbox {
 			queued: queuedTurns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption != nil,
+			resetting: active?.reset != nil || work.contains { $0.reset != nil },
 			finishedAway: finishedAway,
 			pendingProposal: records.pendingProposal,
 			device: ledger.deviceId,
