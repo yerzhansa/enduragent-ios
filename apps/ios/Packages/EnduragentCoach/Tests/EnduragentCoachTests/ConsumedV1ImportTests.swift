@@ -100,6 +100,39 @@ import Testing
 				== (belowListedMaximum ? 10 : 8))
 	}
 
+	@Test func aConsumedV1ReceiptCoversLegacyRowsBetweenItsListedRows() async throws {
+		let job = FlushJobID(ulid: receiptID(20))
+		try await seed(
+			store,
+			[
+				record(4, body: legacyUser(chatId: .main, text: "First listed question")),
+				record(6, body: legacyReply(chatId: .main, text: "First listed reply")),
+				record(7, body: legacyUser(chatId: .main, text: "Merged question")),
+				record(8, body: legacyReply(chatId: .main, text: "Merged reply")),
+				record(9, body: legacyUser(chatId: .main, text: "Last listed question")),
+				record(10, body: legacyReply(chatId: .main, text: "Last listed reply")),
+				record(
+					20,
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [4, 6, 9, 10].map(receiptID))))),
+				record(
+					23,
+					body: .synced(
+						.provenance(
+							ProvenanceBody(
+								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
+								garmin: false, nonGarmin: false, unknown: false,
+								contentSha256: sha256Hex(job.ulid.rawValue))))),
+			])
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		try #require(await coach.transcript(.main).count == 6)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(sent(.memoryFlush, by: transport).isEmpty)
+	}
+
 	private func record(_ offset: Int, device: DeviceID? = nil, body: RecordBody)
 		-> AthleteRecord
 	{
