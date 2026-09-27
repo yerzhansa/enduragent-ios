@@ -15,6 +15,10 @@ final class StopProof: XCTestCase {
 		TutorialHarness.wait(notice)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertTrue(TutorialHarness.text(app, containing: "This week has").exists)
+		let message = app.staticTexts["fixture:slow"]
+		XCTAssertGreaterThan(
+			notice.frame.height, message.frame.height * 1.5,
+			"the two-line notice is cut to one line: \(notice.frame) vs \(message.frame)")
 		XCTAssertFalse(
 			TutorialHarness.text(app, containing: "quieter stretch between them.").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.stop").exists)

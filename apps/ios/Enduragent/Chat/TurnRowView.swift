@@ -49,6 +49,7 @@ struct TurnRowView: View {
 				notice(unrecovered.notice)
 			}
 		}
+		.fixedSize(horizontal: false, vertical: true)
 		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
