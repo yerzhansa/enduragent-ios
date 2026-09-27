@@ -103,4 +103,104 @@ import Testing
 		#expect(!window.contains("Question 0"))
 		#expect(window.contains("Question 1"))
 	}
+
+	@Test(arguments: [false, true])
+	func aLateReplyMustNotCoverTheNextConversationsQuestion(relaunch: Bool) async throws {
+		let (coach, user) = try await resetAcrossLateReply()
+		let next = relaunch ? makeCoach(transport: transport, store: store, clock: clock) : coach
+		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
+		let requests = sent(.memoryFlush, by: transport)
+		try #require(requests.count == 2)
+		#expect(!requests[0].messages.contains { $0.content == "Remember Saturdays" })
+		#expect(requests[1].messages.filter { $0.content == "Remember Saturdays" }.count == 1)
+		#expect(requests[1].messages.filter { $0.content == "Noted." }.count == 1)
+		let jobs = try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending])))
+			.records.sorted { $0.hlc < $1.hlc }.compactMap { record -> FlushPendingBody? in
+				guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
+				return body
+			}
+		try #require(jobs.count == 2)
+		#expect(!jobs[0].messageUlids.contains(user))
+		#expect(jobs[1].messageUlids.filter { $0 == user }.count == 1)
+		#expect(Set(jobs[1].messageUlids).count == jobs[1].messageUlids.count)
+	}
+
+	@Test func aSoftFlushAfterResetIncludesTheNextConversationsQuestion() async throws {
+		let (coach, user) = try await resetAcrossLateReply()
+		let reply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
+		transport.script = [
+			.text("Noted again."), .finish(reason: .stop),
+			.text(reply), .finish(reason: .stop),
+			.text("Ready."), .finish(reason: .stop),
+		]
+		_ = try await coach.sendAndSettle("Remember Sundays too")
+		_ = try await coach.sendAndSettle("Plan the week")
+		_ = try await coach.sendAndSettle("Anything else?")
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 2, in: store)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let jobs = try await ledger.flushJobs(in: .main)
+		#expect(jobs.map(\.trigger) == [.explicitReset, .softThreshold])
+		let job = try #require(jobs.last)
+		#expect(job.messages.filter { $0 == user }.count == 1)
+		let window = try #require(flushed().last)
+		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)
+		#expect(!window.contains("How was my week?"))
+		#expect(!window.contains("Two rides."))
+	}
+
+	@Test func aSyncedTurnBeyondTheResetBoundaryStaysUnsavedInTheNewConversation() async throws {
+		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "phone-b"))
+		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
+		let turns = try await seedHistory(foreign, clock: ahead, turns: 1, tokens: 40)
+		try await seed(store, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
+		let coach = coach()
+		let before = await coach.transcript(.main)
+		try #require(before.count == 2)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let conversation = try await ledger.conversation(.main)
+		let boundary = try #require(conversation.current.id.boundary)
+		let first = try #require(turns.first)
+		try #require(boundary < first.user)
+		#expect(await coach.transcript(.main) == before)
+		#expect(flushed().isEmpty)
+		#expect(try await ledger.flushJobs(in: .main).isEmpty)
+	}
+
+	private func resetAcrossLateReply() async throws -> (Coach, ULID) {
+		let held = HeldAppendLog(inner: store, holding: "replyObserved", occurrence: 1)
+		let coach = coach(over: held)
+		transport.script = [
+			.text("Two rides."), .finish(reason: .stop),
+			.text("Noted."), .finish(reason: .stop),
+		]
+		let first = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		var reached = held.reached.makeAsyncIterator()
+		await reached.next()
+		let resetting = startNewConversation(on: coach)
+		try await Task.sleep(for: .milliseconds(200))
+		let second = try #require(
+			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
+		held.release()
+		#expect(try await outcome(resetting) == .started(memory: .saved))
+		#expect(
+			replyText(try #require(await coach.settledState(of: second, in: .main))) == "Noted.")
+		let user = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: second))
+				.records.first?.ulid)
+		let firstReply = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: first))
+				.records.first?.ulid)
+		let boundaries = try await store.fetch(RecordQuery(scope: .synced([.windowStart]))).records
+			.compactMap { record -> WindowStartBody? in
+				guard case .synced(.windowStart(let body)) = record.body else { return nil }
+				return body
+			}
+		let opening = try #require(boundaries.first)
+		try #require(opening.firstIncludedUlid < user)
+		try #require(user < firstReply)
+		#expect(await coach.transcript(.main) == ["Remember Saturdays", "Noted."])
+		return (coach, user)
+	}
 }

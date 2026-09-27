@@ -38,8 +38,7 @@ package struct ConversationReset: Sendable {
 		let jobs = await flushes.jobs()
 		let rows =
 			conversation.outstandingRows(jobs)
-			+ conversation.current.closing(at: reset.ulid).messagesSinceLastFlush(
-				jobs, excluding: nil)
+			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.ulid)
 		var flushed: (job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)?
 		if !rows.isEmpty {
 			let job: FlushJob

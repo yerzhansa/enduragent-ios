@@ -624,7 +624,7 @@ package struct TurnRunner: Sendable {
 		return Transcript(
 			history: conversation.current.promptHistory(excluding: turn),
 			pending: conversation.outstandingRows(jobs),
-			unflushed: conversation.current.messagesSinceLastFlush(jobs, excluding: turn),
+			unflushed: conversation.messagesSinceLastFlush(jobs, excluding: turn),
 			flushPending: jobs.contains { !$0.settled },
 			current: conversation.turn(turn)?.userRow,
 			lastDate: lastDate
