@@ -54,7 +54,8 @@ import Testing
 						.flushPending(
 							FlushPendingBody(
 								chatId: .main, trigger: .softThreshold,
-								messageUlids: [local.user, local.reply])))),
+								messageUlids: [local.user, local.reply],
+								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(
 					store, at: at.addingTimeInterval(1), ulid: job.ulid.incremented(),
 					body: .deviceLocal(
@@ -340,7 +341,8 @@ import Testing
 	private func job(_ offset: Int, messages: [Int], settled: Bool) -> FlushJob {
 		FlushJob(
 			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
-			messages: messages.map(fixedUlid), settled: settled)
+			messages: messages.map(fixedUlid),
+			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: settled)
 	}
 
 	private func record(

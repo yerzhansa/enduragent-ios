@@ -124,7 +124,8 @@ import Testing
 		#expect(record.deviceId == phoneA)
 	}
 
-	@Test func consumedMarkerReadStaysWithinTheAttemptBudget() async throws {
+	@Test(arguments: [false, true])
+	func consumedMarkerReadStaysWithinTheAttemptBudget(oneUnsettled: Bool) async throws {
 		let store = InMemoryRecordLog(deviceId: phoneA)
 		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
 		let pending = jobs.map { job in
@@ -135,7 +136,7 @@ import Testing
 						FlushPendingBody(
 							chatId: .main, trigger: .softThreshold, messageUlids: [job.ulid]))))
 		}
-		let settled = jobs.enumerated().map { index, job in
+		let settled = jobs.prefix(oneUnsettled ? 199 : 200).enumerated().map { index, job in
 			storedRecord(
 				device: store.deviceId, wall: 2, ulid: fixedUlid(201 + index),
 				body: .deviceLocal(
@@ -166,7 +167,7 @@ import Testing
 			String(format: "%.3f", elapsed / .milliseconds(1)), named: "consumed-marker-read-ms.txt"
 		)
 		#expect(Set(read.map(\.id)) == Set(jobs))
-		#expect(read.allSatisfy { $0.saved && $0.consumedByV1 })
+		#expect(read.allSatisfy { $0.saved && $0.process == nil })
 		#expect(elapsed < .milliseconds(50), "200 jobs, 5,000 provenance records: \(elapsed)")
 	}
 }

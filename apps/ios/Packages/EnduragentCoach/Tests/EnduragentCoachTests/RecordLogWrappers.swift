@@ -7,6 +7,9 @@ import Testing
 final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	let inner: any RecordLog
 	private(set) var batches: [[String]] = []
+	private let scopes = Mutex<[RecordQuery.Scope]>([])
+
+	var reads: [RecordQuery.Scope] { scopes.withLock { $0 } }
 
 	init(inner: any RecordLog) {
 		self.inner = inner
@@ -20,7 +23,8 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
+		scopes.withLock { $0.append(query.scope) }
+		return try await inner.fetch(query)
 	}
 
 	var imports: AsyncStream<Void> { inner.imports }

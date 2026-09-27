@@ -8,7 +8,6 @@ package struct FlushJob: Sendable, Equatable {
 	package var settled: Bool
 	package var reset: ResetID?
 	package var abandoned = false
-	package var consumedByV1 = false
 
 	package var saved: Bool {
 		settled && !abandoned
@@ -65,8 +64,7 @@ extension ConversationFold {
 	) -> [FlushJob] {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
-		let consumed = consumedJobs(markers)
-		var settled = consumed
+		var settled = consumedJobs(markers)
 		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
@@ -80,7 +78,7 @@ extension ConversationFold {
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
 				settled: settled.contains(id), reset: resetOpened(by: record.cause),
-				abandoned: abandoned.contains(id), consumedByV1: consumed.contains(id))
+				abandoned: abandoned.contains(id))
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
@@ -115,7 +113,7 @@ private struct FlushCoverage {
 
 	init(_ jobs: [FlushJob], in segment: SegmentID) {
 		for job in jobs {
-			if job.consumedByV1 || job.messages.isEmpty {
+			if job.process == nil || job.messages.isEmpty {
 				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
 				let through = job.messages.max() ?? job.id.ulid
 				legacyThrough = max(legacyThrough ?? through, through)
@@ -197,8 +195,15 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
-			.records
+		let unsettledByRecord = chats.contains { chat in
+			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
+				.contains { !$0.settled }
+		}
+		var markers: [AthleteRecord] = []
+		if unsettledByRecord {
+			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
+				.records
+		}
 		var jobs: [ChatID: [FlushJob]] = [:]
 		for chat in chats {
 			jobs[chat] = ConversationFold.flushJobs(
