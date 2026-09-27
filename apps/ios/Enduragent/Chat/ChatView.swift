@@ -23,6 +23,13 @@ struct ChatView: View {
 				}
 				ComposerView(model: model)
 			}
+			#if DEBUG
+				.overlay(alignment: .topLeading) {
+					if let snapshot = model.chat {
+						TurnProgressDebugView(snapshot: snapshot)
+					}
+				}
+			#endif
 			.navigationTitle("Coach")
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
