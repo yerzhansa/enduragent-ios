@@ -262,7 +262,8 @@ public actor Coach {
 			ledger: ledger,
 			runner: runner,
 			flushes: FlushWork(
-				chat: chatId, ledger: ledger, memory: memory, transport: transport, clock: clock,
+				chat: chatId, process: process, ledger: ledger, memory: memory,
+				transport: transport, clock: clock,
 				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,

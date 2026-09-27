@@ -33,7 +33,7 @@ package enum TurnRecovery {
 					turn: facts.turn, attempt: open.attempt,
 					saved: writes[open.attempt, default: .none])
 			},
-			drain: flushQueue.filter { !$0.settled }.map(\.id))
+			drain: FlushJob.outstanding(flushQueue).map(\.id))
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])

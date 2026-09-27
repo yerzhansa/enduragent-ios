@@ -24,6 +24,7 @@ package struct TurnAttempt: Sendable, Equatable {
 	package let slash: SlashCommand?
 	package let language: LanguagePreference
 	package let access: ResolvedAccess
+	package let process: ProcessID
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -185,7 +186,7 @@ package struct TurnRunner: Sendable {
 	) async throws(CancellationError) {
 		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
-		let flushes = flushWork(attempt.chat)
+		let flushes = flushWork(attempt)
 		let job: FlushJob
 		do {
 			job = try await flushes.open(trigger, covering: rows.map(\.ulid), stamp: scope.stamp)
@@ -197,9 +198,10 @@ package struct TurnRunner: Sendable {
 			job, messages: rows.map(\.message), access: attempt.access, scope: scope)
 	}
 
-	private func flushWork(_ chat: ChatID) -> FlushWork {
+	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
 		FlushWork(
-			chat: chat, ledger: ledger, memory: Memory(ledger: ledger, clock: clock),
+			chat: attempt.chat, process: attempt.process, ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock),
 			transport: transport, clock: clock, diagnostics: diagnostics)
 	}
 
@@ -213,9 +215,9 @@ package struct TurnRunner: Sendable {
 		let stamp = scope.stamp
 		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
 		if shouldDailyReset(last: transcript.lastDate) {
-			if !transcript.unflushed.isEmpty {
-				_ = try await flushWork(chatId).open(
-					.staleReset, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+			if !transcript.window.isEmpty {
+				_ = try await flushWork(attempt).open(
+					.staleReset, covering: transcript.window.map(\.ulid), stamp: stamp)
 			}
 			let marker = await ledger.nextULID()
 			_ = try await ledger.commit(
@@ -264,12 +266,16 @@ package struct TurnRunner: Sendable {
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
 			try await flushOnce(
-				.trim, covering: transcript.unflushed, attempt: attempt, scope: scope,
+				.trim, covering: transcript.window, attempt: attempt, scope: scope,
 				progress: progress)
 			do {
+				let firstKept =
+					trim.kept.isEmpty
+					? transcript.current?.ulid ?? attempt.turn.ulid
+					: history.ulids[trim.dropped.count]
 				summary = try await summarizeDropped(
-					trim.dropped, previous: summary, firstKept: history.ulids[trim.dropped.count],
-					attempt: attempt, scope: scope, progress: progress)
+					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					scope: scope, progress: progress)
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
@@ -284,7 +290,7 @@ package struct TurnRunner: Sendable {
 				messagesSinceLastFlush: transcript.unflushed.count),
 			await scope.takeFlushLatch()
 		{
-			_ = try await flushWork(chatId).open(
+			_ = try await flushWork(attempt).open(
 				.softThreshold, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
 		}
 
@@ -297,7 +303,7 @@ package struct TurnRunner: Sendable {
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		return TurnPrompt(
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
-			wire: wire, inTurnRows: transcript.unflushed + [transcript.current].compactMap { $0 })
+			wire: wire, inTurnRows: transcript.window + [transcript.current].compactMap { $0 })
 	}
 
 	private func summarizeDropped(
@@ -616,6 +622,7 @@ package struct TurnRunner: Sendable {
 		}
 		return Transcript(
 			history: conversation.current.promptHistory(excluding: turn),
+			pending: conversation.outstandingRows(jobs),
 			unflushed: conversation.current.messagesSinceLastFlush(jobs, excluding: turn),
 			flushPending: jobs.contains { !$0.settled },
 			current: conversation.turn(turn)?.userRow,
@@ -695,20 +702,6 @@ private struct GenerateStep: Sendable {
 	var toolCalls: [WireToolCall]
 	var reason: FinishReason
 	var usage: Usage
-}
-
-private struct Transcript: Sendable {
-	let history: PromptHistory
-	let unflushed: [(ulid: ULID, message: ChatMessage)]
-	let flushPending: Bool
-	let current: (ulid: ULID, message: ChatMessage)?
-	let lastDate: Date?
-
-	func afterReset() -> Transcript {
-		Transcript(
-			history: PromptHistory(summary: nil, messages: [], ulids: []), unflushed: [],
-			flushPending: flushPending || !unflushed.isEmpty, current: current, lastDate: nil)
-	}
 }
 
 private func wireMessage(from message: ChatMessage) -> WireMessage {
