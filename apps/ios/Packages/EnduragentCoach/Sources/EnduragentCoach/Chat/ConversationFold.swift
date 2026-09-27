@@ -165,7 +165,7 @@ package enum ConversationFold {
 				continue
 			}
 		}
-		return Conversation(chat: chat, segments: segments)
+		return Conversation(chat: chat, segments: segments, legacyMessageUlids: legacyMessages)
 	}
 
 	package static func applying(
@@ -208,6 +208,9 @@ package enum ConversationFold {
 			case .deviceLocal(.replyObserved(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
+			case .synced(.windowStart(let body)):
+				guard case .reset(let kind) = body.reason else { continue }
+				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
 			default:
 				continue
 			}
@@ -229,6 +232,7 @@ extension Ledger {
 package struct Conversation: Sendable, Equatable {
 	package let chat: ChatID
 	package var segments: [Segment]
+	package var legacyMessageUlids: Set<ULID> = []
 
 	package var current: Segment {
 		guard let last = segments.last else {

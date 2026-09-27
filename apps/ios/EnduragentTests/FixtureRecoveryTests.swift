@@ -83,7 +83,7 @@ extension FixtureLaunchTests {
 			records.failAppends(ofKind: kind)
 		}
 		let reopened = try #require(
-			await firstSnapshot(try relaunch(.keep).0, chat: model.chatId))
+			await firstSnapshot(try relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -111,7 +111,7 @@ extension FixtureLaunchTests {
 			try await Task.sleep(for: .milliseconds(20))
 		}
 		let reopened = try #require(
-			await firstSnapshot(try relaunch(.keep).0, chat: killed.chatId))
+			await firstSnapshot(try relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == dead.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -143,11 +143,11 @@ extension FixtureLaunchTests {
 		let recovery = await clock.measure { await recovering.coach.lifecycle(.becameActive) }
 		var reopened: ChatSnapshot?
 		let firstShow = await clock.measure {
-			reopened = await firstSnapshot(recovering, chat: seeded.chatId)
+			reopened = await firstSnapshot(recovering, chat: .main)
 		}
 		let (clean, _) = try relaunch(.keep)
 		let cleanOpen = await clock.measure { await clean.coach.lifecycle(.becameActive) }
-		let cleanShow = await clock.measure { _ = await firstSnapshot(clean, chat: seeded.chatId) }
+		let cleanShow = await clock.measure { _ = await firstSnapshot(clean, chat: .main) }
 		let overhead = recovery + firstShow - cleanOpen - cleanShow
 		Attachment.record(
 			"recovery \(recovery), first snapshot \(firstShow), clean open \(cleanOpen), "

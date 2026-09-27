@@ -112,7 +112,7 @@ import Testing
 		#expect(SlashRouting.parse("/language") == .language)
 		#expect(SlashRouting.parse("  /language  ") == .language)
 		#expect(SlashRouting.parse("/language it") == .language)
-		#expect(SlashCommand.language.startsModelTurn == false)
+		#expect(SlashCommand.language.route == .languagePicker)
 		#expect(SlashRouting.parse("/review") != .language)
 	}
 

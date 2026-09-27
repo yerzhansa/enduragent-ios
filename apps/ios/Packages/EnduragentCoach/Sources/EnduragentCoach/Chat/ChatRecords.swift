@@ -1,10 +1,14 @@
 import Foundation
 
-final class TurnRecords {
+final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
 	private let clock: any Clock
 	private(set) var conversation: Conversation
+	var pendingProposal: PendingProposal?
+	private(set) var jobs: [FlushJob] = []
+	private var loaded = false
+	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 
 	init(chat: ChatID, ledger: Ledger, clock: any Clock) {
 		self.chat = chat
@@ -13,8 +17,52 @@ final class TurnRecords {
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
 
-	func replace(with folded: Conversation) {
-		conversation = folded
+	func load(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		guard !loaded else { return }
+		let reading =
+			loading
+			?? Task {
+				_ = isolation
+				return await self.read()
+			}
+		loading = reading
+		try await reading.value.get()
+	}
+
+	private func read(isolation: isolated (any Actor)? = #isolation) async
+		-> Result<Void, LedgerFailure>
+	{
+		defer { loading = nil }
+		do {
+			let folded = try await ledger.conversation(chat)
+			pendingProposal = try await ProposalPolicy.pending(chat, from: ledger, at: clock.now)
+			jobs = try await ledger.flushJobs(in: chat)
+			conversation = folded
+			loaded = true
+			return .success(())
+		} catch {
+			return .failure(error)
+		}
+	}
+
+	func refreshProposal(isolation: isolated (any Actor)? = #isolation) async {
+		do {
+			pendingProposal = try await ProposalPolicy.pending(chat, from: ledger, at: clock.now)
+		} catch {
+			pendingProposal = nil
+		}
+	}
+
+	func refreshJobs(
+		from flushes: FlushWork, isolation: isolated (any Actor)? = #isolation
+	) async -> [FlushJobID] {
+		jobs = await flushes.jobs()
+		return FlushJob.outstanding(jobs).map(\.id)
+	}
+
+	func apply(_ committed: [AthleteRecord]) {
+		conversation = ConversationFold.applying(
+			committed, to: conversation, device: ledger.deviceId)
 	}
 
 	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {

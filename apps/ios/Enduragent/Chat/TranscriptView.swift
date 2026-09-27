@@ -8,13 +8,26 @@ struct TranscriptView: View {
 		ScrollViewReader { proxy in
 			List {
 				Group {
-					if showsGreeting {
+					if let opening = model.chat?.opening, opening != .continuing {
 						Text(
-							model.athleteFirstName.isEmpty
-								? "Hello." : "Hello, \(model.athleteFirstName).")
+							Welcome.text(
+								in: model.builder.phrasebook, showsSyncLine: model.athlete != nil)
+						)
+						.accessibilityIdentifier("chat.welcome")
+						if let notice = opening.notice {
+							newConversationNotice(notice)
+						}
 					}
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)
+					}
+					if case .startingNewConversation(let label)? = model.chat?.activity {
+						Text(model.builder.phrasebook.say(label, [:]))
+							.foregroundStyle(.secondary)
+							.accessibilityIdentifier("chat.working")
+					}
+					if model.newConversationUncertain {
+						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}
 					if let confirmLine = model.confirmLine {
 						Text(confirmLine)
@@ -39,7 +52,9 @@ struct TranscriptView: View {
 		}
 	}
 
-	private var showsGreeting: Bool {
-		model.chat?.turns.isEmpty ?? true
+	private func newConversationNotice(_ key: CatalogKey) -> some View {
+		Text(model.builder.phrasebook.say(key, [:]))
+			.foregroundStyle(.secondary)
+			.accessibilityIdentifier("chat.newConversation.notice")
 	}
 }

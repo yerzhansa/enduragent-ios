@@ -6,9 +6,12 @@ package struct FlushJob: Sendable, Equatable {
 	package let messages: [ULID]
 	package var process: ProcessID?
 	package var settled: Bool
+	package var reset: ResetID?
+	package var abandoned = false
+	package var consumedInV1 = false
 
-	package var coverage: ULID {
-		messages.max() ?? id.ulid
+	package var saved: Bool {
+		settled && !abandoned
 	}
 
 	package func covers(_ older: FlushJob) -> Bool {
@@ -62,24 +65,34 @@ extension ConversationFold {
 	) -> [FlushJob] {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
-		var settled = consumedJobs(markers)
+		let consumed = consumedJobs(markers)
+		var settled: Set<FlushJobID> = []
+		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
 				settled.insert(body.job)
+				if body.settlement == .abandoned { abandoned.insert(body.job) }
 			}
 		}
 		var jobs = owned.compactMap { record -> FlushJob? in
 			guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
 			let id = FlushJobID(ulid: record.ulid)
+			let consumedInV1 = body.process == nil && consumed.contains(id)
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
-				settled: settled.contains(id))
+				settled: consumedInV1 || settled.contains(id), reset: resetOpened(by: record.cause),
+				abandoned: abandoned.contains(id), consumedInV1: consumedInV1)
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
 			jobs[index].settled = done.contains { $0.covers(jobs[index]) }
 		}
 		return jobs
+	}
+
+	private static func resetOpened(by cause: RecordCause) -> ResetID? {
+		guard case .operation(.conversationReset(let reset), _) = cause else { return nil }
+		return reset
 	}
 
 	private static func consumedJobs(_ markers: [AthleteRecord]) -> Set<FlushJobID> {
@@ -97,22 +110,48 @@ extension ConversationFold {
 	}
 }
 
-extension Segment {
-	package func messagesSinceLastFlush(_ jobs: [FlushJob], excluding turn: TurnID?)
-		-> [(ulid: ULID, message: ChatMessage)]
-	{
-		let history = promptHistory(excluding: turn)
-		let coverage = jobs.map(\.coverage).max()
+private struct FlushCoverage {
+	private var listed: Set<ULID> = []
+	private var legacyThrough: ULID?
+	private var legacyBefore: ULID?
+
+	init(_ jobs: [FlushJob], in segment: SegmentID) {
+		for job in jobs {
+			listed.formUnion(job.messages)
+			if job.process == nil {
+				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
+				if job.messages.isEmpty {
+					legacyBefore = max(legacyBefore ?? job.id.ulid, job.id.ulid)
+				} else if job.consumedInV1, let through = job.messages.max() {
+					legacyThrough = max(legacyThrough ?? through, through)
+				}
+			}
+		}
+	}
+
+	func covers(_ ulid: ULID, legacy: Bool) -> Bool {
+		listed.contains(ulid)
+			|| (legacy
+				&& (legacyThrough.map { ulid <= $0 } ?? false
+					|| legacyBefore.map { ulid < $0 } ?? false))
+	}
+}
+
+extension Conversation {
+	package func messagesSinceLastFlush(
+		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: ULID? = nil
+	) -> [(ulid: ULID, message: ChatMessage)] {
+		let segment = boundary.map { current.closing(at: $0) } ?? current
+		let history = segment.promptHistory(excluding: turn)
+		let coverage = FlushCoverage(jobs, in: segment.id)
 		return zip(history.ulids, history.messages).compactMap { ulid, message in
-			if let coverage, ulid <= coverage {
+			if coverage.covers(ulid, legacy: legacyMessageUlids.contains(ulid)) {
 				return nil
 			}
 			return (ulid, message)
 		}
 	}
-}
 
-extension Conversation {
 	package func flushMessages(for job: FlushJob) -> [ChatMessage] {
 		flushRows(for: job).map(\.message)
 	}
@@ -165,12 +204,12 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let unsettledByRecord = chats.contains { chat in
+		let hasUnsettledV1Jobs = chats.contains { chat in
 			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
-				.contains { !$0.settled }
+				.contains { $0.process == nil && !$0.settled }
 		}
 		var markers: [AthleteRecord] = []
-		if unsettledByRecord {
+		if hasUnsettledV1Jobs {
 			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
 				.records
 		}
@@ -211,23 +250,43 @@ package struct FlushWork: Sendable {
 	package func run(
 		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?
 	) async throws(CancellationError) -> FlushOutcome {
-		let stamp = OperationStamp(
+		let stamp = await stamp(for: job)
+		let outcome = try await extract(
+			job, messages: messages, access: access, scope: scope, stamp: stamp)
+		await settle(job, outcome, stamp: stamp)
+		return outcome
+	}
+
+	package func stamp(for job: FlushJob) async -> OperationStamp {
+		OperationStamp(
 			operation: .memoryFlush(job.id),
 			attempt: AttemptID(ulid: await ledger.nextULID()),
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
+	}
+
+	package func extract(
+		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?,
+		stamp: OperationStamp
+	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
 			job, messages: messages, access: access, transport: transport, stamp: stamp,
 			scope: scope)
+		if outcome.settlement == nil {
+			diagnostics.record(
+				.memoryFlushFailed(chat, detail: "\(outcome)"),
+				redacting: [access.credential.secret])
+		}
+		return outcome
+	}
+
+	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
 		let settlement: FlushSettlement
 		if let saved = outcome.settlement {
 			settlement = saved
 		} else {
-			diagnostics.record(
-				.memoryFlushFailed(chat, detail: "\(outcome)"),
-				redacting: [access.credential.secret])
-			guard job.process != process else { return outcome }
+			guard job.process != process else { return }
 			settlement = .abandoned
 		}
 		do {
@@ -240,12 +299,11 @@ package struct FlushWork: Sendable {
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 		}
-		return outcome
 	}
 
-	package func pending() async -> [FlushJobID] {
+	package func jobs() async -> [FlushJob] {
 		do {
-			return FlushJob.outstanding(try await ledger.flushJobs(in: chat)).map(\.id)
+			return try await ledger.flushJobs(in: chat)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return []

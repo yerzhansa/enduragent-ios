@@ -1,20 +1,35 @@
 import Foundation
 
 public enum SlashCommand: String, Sendable, CaseIterable {
-	case review = "/review"
-	case status = "/status"
+	case start = "/start"
 	case workout = "/workout"
-	case plan = "/plan"
+	case status = "/status"
+	case review = "/review"
 	case language = "/language"
 
-	public static let all: [SlashCommand] = [.review, .status, .workout, .plan, .language]
-
-	public var startsModelTurn: Bool {
+	public var menuTitle: CatalogKey {
 		switch self {
-		case .review, .status, .workout: return true
-		case .plan, .language: return false
+		case .start: Catalog.telegramMenuStart
+		case .workout: Catalog.telegramMenuWorkout
+		case .status: Catalog.telegramMenuStatus
+		case .review: Catalog.telegramMenuReview
+		case .language: Catalog.telegramLanguageChoose
 		}
 	}
+
+	package var route: SlashRoute {
+		switch self {
+		case .start: .resetConversation
+		case .language: .languagePicker
+		case .workout, .status, .review: .modelTurn
+		}
+	}
+}
+
+package enum SlashRoute: Sendable, Equatable {
+	case resetConversation
+	case languagePicker
+	case modelTurn
 }
 
 public enum SlashRouting {

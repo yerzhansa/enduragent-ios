@@ -18,7 +18,7 @@ extension ShellModel {
 			services.fixtureDirector?.prepareRetry(of: text)
 		}
 		do {
-			try await services.coach.retry(turn, in: chatId)
+			try await services.coach.retry(turn, in: .main)
 		} catch {
 			switch error {
 			case .alreadyRunning, .alreadyAnswered, .acceptedOnOtherDevice, .unknownTurn,

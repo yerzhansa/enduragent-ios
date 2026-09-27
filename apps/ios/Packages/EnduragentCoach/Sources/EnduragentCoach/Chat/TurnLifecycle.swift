@@ -270,10 +270,23 @@ public struct CoalescingPolicy: Sendable, Equatable {
 package enum MailboxWork: Sendable, Equatable {
 	case turn(TurnID)
 	case flush(FlushJobID)
+	case reset(ResetID)
 
 	package var turn: TurnID? {
 		guard case .turn(let turn) = self else { return nil }
 		return turn
+	}
+
+	package var reset: ResetID? {
+		guard case .reset(let reset) = self else { return nil }
+		return reset
+	}
+
+	package var initiator: LeaseInitiator {
+		switch self {
+		case .turn, .reset: .athlete
+		case .flush: .recovery
+		}
 	}
 }
 
