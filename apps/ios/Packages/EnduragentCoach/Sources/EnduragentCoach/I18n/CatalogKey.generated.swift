@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2431
-	public static let keyCount = 2467
+	public static let englishLeafCount = 2432
+	public static let keyCount = 2468
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
