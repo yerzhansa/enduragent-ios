@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2432
-	public static let keyCount = 2468
+	public static let englishLeafCount = 2434
+	public static let keyCount = 2470
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -838,6 +838,8 @@ public enum Catalog {
 	public static let desktopTrayTelegramTransferRequired = CatalogKey(rawValue: "desktop.tray.telegram.transferRequired")
 	public static let languageChooseTitle = CatalogKey(rawValue: "language.chooseTitle")
 	public static let languageContinue = CatalogKey(rawValue: "language.continue")
+	public static let languageSaveFailed = CatalogKey(rawValue: "language.saveFailed")
+	public static let languageSaveFailedAutomatic = CatalogKey(rawValue: "language.saveFailedAutomatic")
 	public static let onboardingNoticeHealth = CatalogKey(rawValue: "onboarding.notice.health")
 	public static let planDetailsCalendarComplete = CatalogKey(rawValue: "plan.details.calendar.complete")
 	public static let planDetailsCalendarConnectionRequired = CatalogKey(rawValue: "plan.details.calendar.connectionRequired")

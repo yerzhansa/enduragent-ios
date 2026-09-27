@@ -1,8 +1,38 @@
 import Foundation
 
-public enum LanguagePreference: Sendable, Equatable {
+public enum LanguagePreference: Sendable, Hashable, Identifiable {
 	case automatic
 	case fixed(LanguageTag)
+
+	public static let choices: [LanguagePreference] =
+		[.automatic] + LanguageTag.contractOrder.map(LanguagePreference.fixed)
+
+	public var id: String {
+		switch self {
+		case .automatic: "automatic"
+		case .fixed(let tag): tag.rawValue
+		}
+	}
+
+	public func title(in phrasebook: any Phrasebook) -> String {
+		switch self {
+		case .automatic: phrasebook.say(Catalog.commonAutomatic, [:])
+		case .fixed(let tag): tag.endonym
+		}
+	}
+
+	public func notSaved(keeping current: LanguagePreference, in phrasebook: any Phrasebook)
+		-> String
+	{
+		switch current {
+		case .automatic:
+			phrasebook.say(Catalog.languageSaveFailedAutomatic, ["language": title(in: phrasebook)])
+		case .fixed(let tag):
+			phrasebook.say(
+				Catalog.languageSaveFailed,
+				["language": title(in: phrasebook), "current": tag.endonym])
+		}
+	}
 
 	public func appLanguage(device: LanguageTag) -> LanguageTag {
 		switch self {

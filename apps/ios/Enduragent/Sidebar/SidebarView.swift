@@ -1,3 +1,4 @@
+import EnduragentCoach
 import SwiftUI
 
 struct SidebarView: View {
@@ -37,6 +38,14 @@ struct SidebarView: View {
 					RecordSyncDebugView(probe: model.services?.coach.recordSyncProbe())
 				}
 				.accessibilityIdentifier("debug.records")
+				NavigationLink(model.phrasebook.say(Catalog.settingsLanguageTitle, [:])) {
+					LanguageView(model: model)
+				}
+				.accessibilityIdentifier("debug.language")
+				NavigationLink(model.phrasebook.say(Catalog.settingsConversationTitle, [:])) {
+					SessionDebugView(model: model)
+				}
+				.accessibilityIdentifier("debug.session")
 				if model.builder.isFixture {
 					FixtureCountsDebugView(services: model.services)
 				}

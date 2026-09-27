@@ -8,6 +8,9 @@ import StoreKit
 final class ShellModel {
 	var route: ShellRoute = .onboarding(.notice)
 	private(set) var chat: ChatSnapshot?
+	private(set) var status: CoachStatus?
+	private(set) var languageNotSaved: LanguagePreference?
+	var showLanguage = false
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
@@ -36,6 +39,7 @@ final class ShellModel {
 	private let defaults: UserDefaults
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
+	private var statusObservation: Task<Void, Never>?
 
 	init(builder: ServicesBuilder) {
 		self.builder = builder
@@ -55,6 +59,16 @@ final class ShellModel {
 
 	var services: AppServices? {
 		builder.services
+	}
+
+	var phrasebook: any Phrasebook {
+		(status?.language ?? .automatic).phrasebook(device: builder.language)
+	}
+
+	var languageNotSavedLine: String? {
+		languageNotSaved.map {
+			$0.notSaved(keeping: status?.language ?? .automatic, in: phrasebook)
+		}
 	}
 
 	var visibleProposal: PendingProposal? {
@@ -221,9 +235,14 @@ final class ShellModel {
 		}
 		do {
 			switch try await services.coach.send(Draft(id: draft.id, text: text), to: .main) {
-			case .accepted, .showLanguagePicker:
+			case .accepted:
 				draft = Draft(id: DraftID(), text: "")
 				drafts.clear(.main)
+			case .showLanguagePicker:
+				draft = Draft(id: DraftID(), text: "")
+				drafts.clear(.main)
+				languageNotSaved = nil
+				showLanguage = true
 			case .newConversation(let outcome):
 				draft = Draft(id: DraftID(), text: "")
 				drafts.clear(.main)
@@ -241,6 +260,24 @@ final class ShellModel {
 
 	func stop() async {
 		await services?.coach.stop(.main)
+	}
+
+	func chooseLanguage(_ preference: LanguagePreference) async {
+		guard let services else { return }
+		do {
+			try await services.coach.setLanguage(preference)
+			languageNotSaved = nil
+		} catch {
+			switch error {
+			case .notSaved:
+				languageNotSaved = preference
+			}
+		}
+	}
+
+	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		guard let services else { throw .notSaved }
+		try await services.coach.setSession(settings)
 	}
 
 	func confirmPending() async {
@@ -284,6 +321,12 @@ final class ShellModel {
 			for await snapshot in await coach.observe(.main) {
 				guard let self, !Task.isCancelled else { return }
 				self.chat = snapshot
+			}
+		}
+		statusObservation = Task { [weak self] in
+			for await status in await coach.observeStatus() {
+				guard let self, !Task.isCancelled else { return }
+				self.status = status
 			}
 		}
 	}

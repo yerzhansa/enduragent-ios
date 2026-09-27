@@ -12,13 +12,12 @@ struct TranscriptView: View {
 						if opening.showsWelcome {
 							Text(
 								Welcome.text(
-									in: model.builder.phrasebook,
-									showsSyncLine: model.athlete != nil)
+									in: model.phrasebook, showsSyncLine: model.athlete != nil)
 							)
 							.accessibilityIdentifier("chat.welcome")
 						}
 						if case .afterAutomaticReset = opening, let notice = opening.notice {
-							Text(model.builder.phrasebook.say(notice, [:]))
+							Text(model.phrasebook.say(notice, [:]))
 								.foregroundStyle(.secondary)
 								.accessibilityIdentifier("chat.automaticReset.notice")
 						} else if let notice = opening.notice {
@@ -55,7 +54,7 @@ struct TranscriptView: View {
 	}
 
 	private func newConversationNotice(_ key: CatalogKey) -> some View {
-		Text(model.builder.phrasebook.say(key, [:]))
+		Text(model.phrasebook.say(key, [:]))
 			.foregroundStyle(.secondary)
 			.accessibilityIdentifier("chat.newConversation.notice")
 	}

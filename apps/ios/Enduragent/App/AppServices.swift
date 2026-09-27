@@ -45,7 +45,6 @@ struct AppServices: Sendable {
 	var credits: any CreditsClient
 	var secrets: any SecretStore
 	var deviceCheck: any DeviceCheckTokenProviding
-	var phrasebook: any Phrasebook
 	var clock: any Clock
 	var isFixture: Bool
 	var fixtureDirector: FixtureDirector?
@@ -63,10 +62,8 @@ struct AppServices: Sendable {
 			throw FixtureLaunchError.unknownFixture(launch.name)
 		}
 		FixtureBlockingURLProtocol.register()
-		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let clock = FixtureClock(
-			calendar: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana"))
+			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()
@@ -97,7 +94,7 @@ struct AppServices: Sendable {
 			intervals: intervals,
 			store: records,
 			clock: clock,
-			deviceLanguage: language,
+			deviceLanguage: Language.uiTag(systemLanguages: Locale.preferredLanguages),
 			coalescing: launch.coalescing
 		)
 		return AppServices(
@@ -106,7 +103,6 @@ struct AppServices: Sendable {
 			credits: credits,
 			secrets: secrets,
 			deviceCheck: FakeDeviceCheckTokenProvider(),
-			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: true,
 			fixtureDirector: FixtureDirector(transport: transport, records: records)
@@ -129,7 +125,6 @@ struct AppServices: Sendable {
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
 		let credits = PhoneCreditsClient(secrets: secrets, workerBase: creditsWorkerBase)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let coach = Coach(
 			sport: .cycling,
 			models: .openRouter(baseURL: ModelService.openRouterAPI),
@@ -146,7 +141,6 @@ struct AppServices: Sendable {
 			credits: credits,
 			secrets: secrets,
 			deviceCheck: DeviceCheckTokenProvider(),
-			phrasebook: phrasebook,
 			clock: clock,
 			isFixture: false,
 			fixtureDirector: nil
@@ -166,7 +160,6 @@ struct AppServices: Sendable {
 @MainActor
 final class ServicesBuilder {
 	let language: LanguageTag
-	let phrasebook: any Phrasebook
 	let secrets: any SecretStore
 	let credits: any CreditsClient
 	let deviceCheck: any DeviceCheckTokenProviding
@@ -205,7 +198,6 @@ final class ServicesBuilder {
 
 	init(fixture services: AppServices, language: LanguageTag, defaults: UserDefaults) {
 		self.language = language
-		self.phrasebook = services.phrasebook
 		self.secrets = services.secrets
 		self.credits = services.credits
 		self.deviceCheck = services.deviceCheck
@@ -218,7 +210,6 @@ final class ServicesBuilder {
 
 	private init(liveLanguage language: LanguageTag) {
 		self.language = language
-		self.phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let secrets = ICloudKeychainStore()
 		self.secrets = secrets
 		self.credits = PhoneCreditsClient(

@@ -12,7 +12,7 @@ struct SlashListView: View {
 				} label: {
 					VStack(alignment: .leading, spacing: 2) {
 						Text(command.rawValue)
-						Text(model.builder.phrasebook.say(command.menuTitle, [:]))
+						Text(model.phrasebook.say(command.menuTitle, [:]))
 							.font(.footnote)
 							.foregroundStyle(.secondary)
 					}

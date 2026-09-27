@@ -50,6 +50,17 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		requests.count
 	}
 
+	public var lastReplyLanguage: String? {
+		lock.withLock {
+			let system = requests.last { $0.charge == .chatAttempt }?.messages.first?.content ?? ""
+			guard let section = system.components(separatedBy: "# Reply language\n\n").last,
+				section != system
+			else { return nil }
+			return section.split(separator: "\n", omittingEmptySubsequences: false).first
+				.map(String.init)
+		}
+	}
+
 	public var lastChatHistoryHead: String? {
 		lock.withLock {
 			let chat = requests.last { $0.charge == .chatAttempt }

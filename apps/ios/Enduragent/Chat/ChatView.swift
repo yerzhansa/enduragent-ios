@@ -24,7 +24,7 @@ struct ChatView: View {
 				}
 				ComposerView(model: model)
 			}
-			.navigationTitle("Coach")
+			.navigationTitle(model.phrasebook.say(Catalog.chatViewTitle, [:]))
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button("Menu") {
@@ -33,7 +33,7 @@ struct ChatView: View {
 					.accessibilityIdentifier("chat.sidebar")
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button(model.builder.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
+					Button(model.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
 						Task { await model.newConversation() }
 					}
 					.accessibilityIdentifier("chat.newConversation")
@@ -45,6 +45,24 @@ struct ChatView: View {
 			.sheet(isPresented: $model.showSidebar) {
 				NavigationStack {
 					SidebarView(model: model)
+				}
+			}
+			.sheet(isPresented: $model.showLanguage) {
+				NavigationStack {
+					LanguageView(model: model)
+						.toolbar {
+							ToolbarItem(placement: .topBarTrailing) {
+								Button {
+									model.showLanguage = false
+								} label: {
+									Image(systemName: "xmark")
+								}
+								.accessibilityLabel(
+									model.phrasebook.say(Catalog.chatViewCloseContext, [:])
+								)
+								.accessibilityIdentifier("language.close")
+							}
+						}
 				}
 			}
 		}
