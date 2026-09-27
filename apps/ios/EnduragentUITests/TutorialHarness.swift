@@ -45,15 +45,20 @@ enum TutorialHarness {
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
+	static let freshSession =
+		"Started a fresh session - earlier conversation is archived, and I still have your key details in memory."
+	static let closedAfterBreak = "Closed after a break"
 	static let draft = "Is Thursday still on?"
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 	static let recoveryArgument = "-EnduragentFixtureRecovery"
+	static let clockArgument = "-EnduragentFixtureClock"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
-		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
+		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US",
+		clock: String? = nil
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
@@ -67,6 +72,9 @@ enum TutorialHarness {
 		}
 		if let coalescingMilliseconds {
 			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
+		}
+		if let clock {
+			app.launchArguments += [clockArgument, clock]
 		}
 		app.launch()
 	}
@@ -91,7 +99,9 @@ enum TutorialHarness {
 	private static let v1StoreMissing =
 		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
-	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
+	static func relaunchKeepingStore(
+		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil
+	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		guard let index = app.launchArguments.firstIndex(of: storeArgument),
@@ -105,6 +115,12 @@ enum TutorialHarness {
 			app.launchArguments.removeSubrange(flag...(flag + 1))
 		}
 		app.launchArguments += [recoveryArgument, recovery]
+		if let clock {
+			if let flag = app.launchArguments.firstIndex(of: clockArgument) {
+				app.launchArguments.removeSubrange(flag...(flag + 1))
+			}
+			app.launchArguments += [clockArgument, clock]
+		}
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}

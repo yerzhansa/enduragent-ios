@@ -5,7 +5,7 @@ The menu's History screen, titled `Past chats`, lists archived conversations new
 ## Sub-features
 
 - `history-empty` reads `No past conversations yet. Starting a new conversation keeps the old one here.` while the current conversation is the only one.
-- `history-list` shows one `history.row.<boundary>` row per archived conversation with its first message, its reason, and `1998-06-15`. The reason reads `You started a new conversation` after `Start new conversation` or `/start`, `Closed after a break` after an automatic daily reset, and `Earlier chat` for a chat from a v1 build.
+- `history-list` shows one `history.row.<boundary>` row per archived conversation with its first message, its reason, and `1998-06-15`. The reason reads `You started a new conversation` after `Start new conversation` or `/start`, `Closed after a break` after an automatic daily or idle reset, and `Earlier chat` for a chat from a v1 build.
 - `history-archived` pushes `Past conversation`, the old questions and replies with no composer, no `Try again`, and `Past conversations are read-only.` in `archive.readOnly`.
 - `history-upgrade` opens a store written by a v1 build with two chats on the welcome, and History lists both as `Earlier chat`.
 - `history-no-network` reads records only. Opening History makes no model request and drains no pending memory job.
@@ -23,6 +23,7 @@ Preconditions:
 
 - **Empty, then one row.** Run `sim.mjs test <run id> HistoryListProof`. After the week question, History shows the empty line and no row. After `/start`, it shows one row with the question, `You started a new conversation`, and `1998-06-15`. Attachments `history-empty` and `history-list` show them.
 - **Read an archived conversation.** Run `sim.mjs test <run id> HistoryArchivedProof`. After `chat.newConversation`, the row reads `You started a new conversation`, and the pushed screen shows the question, the reply, and `archive.readOnly`. Attachments `history-row` and `history-archived` show them.
+- **Closed after a break.** Run `sim.mjs test <run id> DailyResetProof/testFortyMinutesOpensAFreshSession`. History lists one row with the week question and `Closed after a break`. Attachment `m1-12-daily-reset-history` shows it.
 - **Upgrade from v1.** Follow **Upgrade proofs** in the skill, then run `sim.mjs test <run id> UpgradeHistoryProof`. The chat opens on the welcome with no reset notice, History lists two `Earlier chat` rows with the week question and the remember message, and a row opens read-only. Attachments `upgrade-welcome`, `upgrade-history`, and `upgrade-history-read-only` show them.
 - **Open time with 50 archived conversations.** Run `sim.mjs test <run id> HistoryOpenProbe/testSeedFiftyResets`, then `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithFiftyArchived`. The attachment `history-open-ms` holds the time from the History tap to the newest row.
 
