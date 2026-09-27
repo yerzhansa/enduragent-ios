@@ -123,4 +123,50 @@ import Testing
 		#expect(record.account == .unconnected)
 		#expect(record.deviceId == phoneA)
 	}
+
+	@Test func consumedMarkerReadStaysWithinTheAttemptBudget() async throws {
+		let store = InMemoryRecordLog(deviceId: phoneA)
+		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
+		let pending = jobs.map { job in
+			storedRecord(
+				device: store.deviceId, wall: 1, ulid: job.ulid,
+				body: .deviceLocal(
+					.flushPending(
+						FlushPendingBody(
+							chatId: .main, trigger: .softThreshold, messageUlids: [job.ulid]))))
+		}
+		let settled = jobs.enumerated().map { index, job in
+			storedRecord(
+				device: store.deviceId, wall: 2, ulid: fixedUlid(201 + index),
+				body: .deviceLocal(
+					.flushSettled(
+						FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave))))
+		}
+		let provenance = (0..<5_000).map { index in
+			let key =
+				index < jobs.count
+				? MemoryFlushPolicy.consumedFlushKeyPrefix + jobs[index].ulid.rawValue
+				: "activity:\(index)"
+			return storedRecord(
+				device: store.deviceId, wall: 3, ulid: fixedUlid(401 + index),
+				body: .synced(
+					.provenance(
+						ProvenanceBody(
+							key: key, garmin: false, nonGarmin: false, unknown: false,
+							contentSha256: "consumed"))))
+		}
+		try await store.append(pending + settled, locality: .deviceLocal)
+		try await store.append(provenance, locality: .synced)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
+		let started = ContinuousClock.now
+		let read = try await ledger.flushJobs(in: .main)
+		let elapsed = ContinuousClock.now - started
+		Attachment.record(
+			String(format: "%.3f", elapsed / .milliseconds(1)), named: "consumed-marker-read-ms.txt"
+		)
+		#expect(Set(read.map(\.id)) == Set(jobs))
+		#expect(read.allSatisfy { $0.saved && $0.consumedByV1 })
+		#expect(elapsed < .milliseconds(50), "200 jobs, 5,000 provenance records: \(elapsed)")
+	}
 }
