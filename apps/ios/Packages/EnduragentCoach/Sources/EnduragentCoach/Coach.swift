@@ -157,6 +157,7 @@ public actor Coach {
 	}
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
+		guard await loadedPreferences().language != preference else { return }
 		try await commitPreference(
 			.languagePreference(LanguagePreferenceBody(preference: preference)))
 	}

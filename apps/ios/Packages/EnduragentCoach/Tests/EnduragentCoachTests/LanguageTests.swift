@@ -242,6 +242,18 @@ import Testing
 		#expect(automatic.request.titleText == "Coach is working…")
 	}
 
+	@Test func choosingTheCurrentLanguageWritesNothing() async throws {
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		try await coach.setLanguage(.automatic)
+		try await coach.setLanguage(.fixed(.fr))
+		try await coach.setLanguage(.fixed(.fr))
+		#expect(
+			try await store.fetch(RecordQuery(scope: .synced([.languagePreference]))).records
+				.count == 1)
+		#expect(await coach.status().language == .fixed(.fr))
+	}
+
 	@Test func failedWriteKeepsThePreviousPreference() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = makeCoach(transport: FakeModelTransport(), store: log)
