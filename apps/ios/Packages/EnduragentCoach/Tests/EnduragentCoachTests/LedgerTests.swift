@@ -125,7 +125,7 @@ import Testing
 	}
 
 	@Test(arguments: [false, true])
-	func consumedMarkerReadStaysWithinTheAttemptBudget(oneUnsettled: Bool) async throws {
+	func consumedMarkerReadInMemoryStaysWithinTheAttemptBudget(oneUnsettled: Bool) async throws {
 		let store = InMemoryRecordLog(deviceId: phoneA)
 		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
 		let pending = jobs.map { job in

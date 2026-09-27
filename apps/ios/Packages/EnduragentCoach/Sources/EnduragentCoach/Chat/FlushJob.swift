@@ -113,18 +113,17 @@ private struct FlushCoverage {
 
 	init(_ jobs: [FlushJob], in segment: SegmentID) {
 		for job in jobs {
-			if job.process == nil || job.messages.isEmpty {
+			listed.formUnion(job.messages)
+			if job.process == nil {
 				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
 				let through = job.messages.max() ?? job.id.ulid
 				legacyThrough = max(legacyThrough ?? through, through)
-			} else {
-				listed.formUnion(job.messages)
 			}
 		}
 	}
 
-	func covers(_ ulid: ULID) -> Bool {
-		listed.contains(ulid) || legacyThrough.map { ulid <= $0 } ?? false
+	func covers(_ ulid: ULID, legacy: Bool) -> Bool {
+		listed.contains(ulid) || (legacy && legacyThrough.map { ulid <= $0 } ?? false)
 	}
 }
 
@@ -136,7 +135,7 @@ extension Conversation {
 		let history = segment.promptHistory(excluding: turn)
 		let coverage = FlushCoverage(jobs, in: segment.id)
 		return zip(history.ulids, history.messages).compactMap { ulid, message in
-			if coverage.covers(ulid) {
+			if coverage.covers(ulid, legacy: legacyMessageUlids.contains(ulid)) {
 				return nil
 			}
 			return (ulid, message)

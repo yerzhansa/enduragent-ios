@@ -221,7 +221,8 @@ import Testing
 		#expect(!latest.contains(huge))
 	}
 
-	@Test func aLegacyWatermarkDoesNotReachIntoTheNextConversation() async throws {
+	@Test(arguments: [false, true])
+	func aLegacyWatermarkDoesNotReachIntoTheNextConversation(legacyRows: Bool) async throws {
 		let job = FlushJobID(ulid: fixedUlid(7))
 		let foreign = DeviceID(rawValue: "other-phone")
 		let turn = TurnID(ulid: fixedUlid(11))
@@ -258,9 +259,14 @@ import Testing
 								reason: .reset(.explicit(ResetID(ulid: fixedUlid(10)))))))),
 				record(
 					11,
-					body: .synced(sampleUser(chatId: .main, text: "Current question", turn: turn))),
+					body: legacyRows
+						? legacyUser(chatId: .main, text: "Current question")
+						: .synced(sampleUser(chatId: .main, text: "Current question", turn: turn))),
 				record(
-					12, body: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
+					12,
+					body: legacyRows
+						? legacyReply(chatId: .main, text: "Current reply")
+						: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
 				),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -273,7 +279,7 @@ import Testing
 	}
 
 	@Test func legacyCoverageStaysWithinTheAttemptBudget() {
-		let conversation = conversation(turns: 1_000, startingAt: 1_000)
+		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
 		let jobs = (1...200).map { job($0, messages: [], settled: true) }
 		let started = ContinuousClock.now
 		let rows = conversation.messagesSinceLastFlush(jobs, excluding: nil)
@@ -285,7 +291,7 @@ import Testing
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
-		let conversation = conversation(turns: 3)
+		let conversation = conversation(turns: 3, legacy: true)
 		let legacy = job(6, messages: [], settled: true)
 		#expect(
 			conversation.flushRows(for: legacy).map(\.ulid) == [1, 2, 4, 5].map(fixedUlid))
@@ -322,17 +328,23 @@ import Testing
 		#expect(conversation.outstandingRows([pending]).map(\.ulid) == [1, 2].map(fixedUlid))
 	}
 
-	private func conversation(turns count: Int, startingAt: Int = 1) -> Conversation {
+	private func conversation(turns count: Int, startingAt: Int = 1, legacy: Bool = false)
+		-> Conversation
+	{
 		let records = (0..<count).flatMap { index in
 			let first = index * 3 + startingAt
 			let turn = TurnID(ulid: fixedUlid(first))
 			return [
 				storedRecord(
 					device: store.deviceId, wall: Int64(first), ulid: fixedUlid(first),
-					body: .synced(sampleUser(chatId: .main, text: "Question \(index)", turn: turn))),
+					body: legacy
+						? legacyUser(chatId: .main, text: "Question \(index)")
+						: .synced(sampleUser(chatId: .main, text: "Question \(index)", turn: turn))),
 				storedRecord(
 					device: store.deviceId, wall: Int64(first + 1), ulid: fixedUlid(first + 1),
-					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Reply \(index)"))),
+					body: legacy
+						? legacyReply(chatId: .main, text: "Reply \(index)")
+						: .synced(sampleReply(chatId: .main, turn: turn, text: "Reply \(index)"))),
 			]
 		}
 		return ConversationFold.fold(chat: .main, synced: records, device: store.deviceId)

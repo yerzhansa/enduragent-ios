@@ -136,6 +136,122 @@ import Testing
 		#expect(!extracted.contains("Legacy reply"))
 	}
 
+	@Test(arguments: [false, true])
+	func twoLegacyReceiptsCoverMergedRowsThroughTheNewestCutoff(emptyLatestList: Bool) async throws
+	{
+		let records = (0..<3).flatMap { index in
+			let first = index * 3 + 1
+			return [
+				record(
+					fixedUlid(first), logical: UInt32(first),
+					body: legacyUser(chatId: .main, text: "Saved question \(index)")),
+				record(
+					fixedUlid(first + 1), logical: UInt32(first + 1),
+					body: legacyReply(chatId: .main, text: "Saved reply \(index)")),
+			]
+		}
+		try await seed(store, records)
+		for (id, messages) in [(3, [1, 2]), (9, emptyLatestList ? [] : [7, 8])] {
+			let job = FlushJobID(ulid: fixedUlid(id))
+			try await seed(
+				store,
+				[
+					record(
+						job.ulid, logical: UInt32(id),
+						body: .deviceLocal(
+							.flushPending(
+								FlushPendingBody(
+									chatId: .main, trigger: .softThreshold,
+									messageUlids: messages.map(fixedUlid))))),
+					record(fixedUlid(id + 10), logical: UInt32(id + 10), body: consumed(job)),
+				])
+		}
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		try #require(await coach.transcript(.main).count == 6)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(sent(.memoryFlush, by: transport).isEmpty)
+	}
+
+	@Test func aModernEmptyReceiptDoesNotCoverUnlistedLegacyRows() async throws {
+		let job = FlushJobID(ulid: fixedUlid(7))
+		try await seed(
+			store,
+			[
+				record(
+					fixedUlid(1), logical: 1,
+					body: legacyUser(chatId: .main, text: "Unsaved legacy question")),
+				record(
+					fixedUlid(2), logical: 2,
+					body: legacyReply(chatId: .main, text: "Unsaved legacy reply")),
+				record(
+					job.ulid, logical: 3,
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold, messageUlids: [],
+								process: ProcessID(ulid: fixedUlid(60)))))),
+				record(fixedUlid(8), logical: 4, body: consumed(job)),
+			])
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		#expect(extracted.filter { $0 == "Unsaved legacy question" }.count == 1)
+		#expect(extracted.filter { $0 == "Unsaved legacy reply" }.count == 1)
+	}
+
+	@Test(arguments: [false, true])
+	func aModernReplyToALegacyQuestionIsNotInferredCovered(incremental: Bool) {
+		let question = record(
+			fixedUlid(1), logical: 1,
+			body: legacyUser(chatId: .main, text: "Legacy question"))
+		let reply = record(
+			fixedUlid(2), logical: 2,
+			body: .synced(
+				sampleReply(
+					chatId: .main, turn: TurnID(ulid: question.ulid),
+					text: "Modern reply")))
+		let conversation: Conversation
+		if incremental {
+			let initial = ConversationFold.fold(
+				chat: .main, synced: [question], device: store.deviceId)
+			conversation = ConversationFold.applying([reply], to: initial, device: store.deviceId)
+		} else {
+			conversation = ConversationFold.fold(
+				chat: .main, synced: [question, reply], device: store.deviceId)
+		}
+		let legacy = FlushJob(
+			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true)
+		#expect(
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
+				reply.ulid
+			])
+	}
+
+	@Test(arguments: [false, true])
+	func anEmptyReceiptDoesNotCoverModernRows(legacyReceipt: Bool) {
+		let question = record(
+			fixedUlid(1), logical: 1,
+			body: .synced(
+				sampleUser(chatId: .main, text: "Modern question", turn: TurnID(ulid: fixedUlid(1)))
+			))
+		let reply = record(
+			fixedUlid(2), logical: 2,
+			body: .synced(
+				sampleReply(chatId: .main, turn: TurnID(ulid: question.ulid), text: "Modern reply"))
+		)
+		let conversation = ConversationFold.fold(
+			chat: .main, synced: [question, reply], device: store.deviceId)
+		let receipt = FlushJob(
+			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			messages: [], process: legacyReceipt ? nil : ProcessID(ulid: fixedUlid(60)),
+			settled: true)
+		#expect(
+			conversation.messagesSinceLastFlush([receipt], excluding: nil).map(\.ulid) == [
+				question.ulid, reply.ulid,
+			])
+	}
+
 	private func consumed(_ job: FlushJobID) -> RecordBody {
 		.synced(
 			.provenance(
