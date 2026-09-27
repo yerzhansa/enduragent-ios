@@ -206,7 +206,7 @@ public actor Coach {
 			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
 		).records
 		let flushQueue = try await ledger.flushJobsByChat()
-		let turns = try await deadClaimTurns(claims, device: device)
+		let turns = try await claimedTurns(claims, device: device)
 		let dead = Set(
 			turns.values.flatMap {
 				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
@@ -231,10 +231,10 @@ public actor Coach {
 		return plans
 	}
 
-	private func deadClaimTurns(_ claims: [AthleteRecord], device: DeviceID)
+	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
 		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
 	{
-		let chats = TurnRecovery.chats(claimedOutside: process, in: claims)
+		let chats = Set(claims.compactMap(\.chatId))
 		guard !chats.isEmpty else { return [:] }
 		let synced = try await ledger.read(
 			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)

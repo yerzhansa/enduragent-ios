@@ -33,6 +33,7 @@ enum TutorialHarness {
 		"This reply stopped before it finished. Some information was saved first."
 	static let interruptedNothingChanged =
 		"This reply stopped before it finished. Nothing was changed."
+	static let historyUnavailable = "Conversation history is temporarily unavailable."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let tryAgain = "Try again"
@@ -41,6 +42,7 @@ enum TutorialHarness {
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
+	static let recoveryArgument = "-EnduragentFixtureRecovery"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
@@ -82,7 +84,7 @@ enum TutorialHarness {
 	private static let v1StoreMissing =
 		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
-	static func relaunchKeepingStore(_ app: XCUIApplication) {
+	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		guard let index = app.launchArguments.firstIndex(of: storeArgument),
@@ -92,6 +94,10 @@ enum TutorialHarness {
 			return
 		}
 		app.launchArguments[index + 1] = "keep"
+		if let flag = app.launchArguments.firstIndex(of: recoveryArgument) {
+			app.launchArguments.removeSubrange(flag...(flag + 1))
+		}
+		app.launchArguments += [recoveryArgument, recovery]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}

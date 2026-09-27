@@ -36,18 +36,6 @@ package enum TurnRecovery {
 			drain: flushQueue.filter { !$0.settled }.map(\.id))
 	}
 
-	package static func chats(claimedOutside process: ProcessID, in claims: [AthleteRecord])
-		-> Set<ChatID>
-	{
-		Set(
-			claims.compactMap { record in
-				guard case .deviceLocal(.turnClaim(let claim)) = record.body,
-					claim.process != process
-				else { return nil }
-				return claim.chatId
-			})
-	}
-
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])
 		-> [AttemptID: WriteSummary]
 	{

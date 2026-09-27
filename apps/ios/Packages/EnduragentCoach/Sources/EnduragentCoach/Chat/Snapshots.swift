@@ -36,6 +36,7 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 	case alreadyAnswered
 	case alreadyRunning
 	case rateLimitWaitRunning
+	case unrecovered
 }
 
 extension ChatSnapshot {
@@ -88,6 +89,7 @@ extension RetryRefusal {
 		case .alreadyAnswered: self = .alreadyAnswered
 		case .attemptInFlight: self = .alreadyRunning
 		case .rateLimitWaitRunning: self = .rateLimitWaitRunning
+		case .unrecovered: self = .unrecovered
 		}
 	}
 }
