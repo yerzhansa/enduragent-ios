@@ -8,6 +8,7 @@ package struct FlushJob: Sendable, Equatable {
 	package var settled: Bool
 	package var reset: ResetID?
 	package var abandoned = false
+	package var consumedInV1 = false
 
 	package var saved: Bool {
 		settled && !abandoned
@@ -64,7 +65,8 @@ extension ConversationFold {
 	) -> [FlushJob] {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
-		var settled = consumedJobs(markers)
+		let consumed = consumedJobs(markers)
+		var settled: Set<FlushJobID> = []
 		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
@@ -75,10 +77,11 @@ extension ConversationFold {
 		var jobs = owned.compactMap { record -> FlushJob? in
 			guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
 			let id = FlushJobID(ulid: record.ulid)
+			let consumedInV1 = body.process == nil && consumed.contains(id)
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
-				settled: settled.contains(id), reset: resetOpened(by: record.cause),
-				abandoned: abandoned.contains(id))
+				settled: consumedInV1 || settled.contains(id), reset: resetOpened(by: record.cause),
+				abandoned: abandoned.contains(id), consumedInV1: consumedInV1)
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
@@ -110,20 +113,28 @@ extension ConversationFold {
 private struct FlushCoverage {
 	private var listed: Set<ULID> = []
 	private var legacyThrough: ULID?
+	private var legacyBefore: ULID?
 
 	init(_ jobs: [FlushJob], in segment: SegmentID) {
 		for job in jobs {
 			listed.formUnion(job.messages)
 			if job.process == nil {
 				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
-				let through = job.messages.max() ?? job.id.ulid
-				legacyThrough = max(legacyThrough ?? through, through)
+				if job.messages.isEmpty {
+					legacyBefore = max(legacyBefore ?? job.id.ulid, job.id.ulid)
+				} else if job.consumedInV1 {
+					let through = max(job.messages.max() ?? job.id.ulid, job.id.ulid)
+					legacyThrough = max(legacyThrough ?? through, through)
+				}
 			}
 		}
 	}
 
 	func covers(_ ulid: ULID, legacy: Bool) -> Bool {
-		listed.contains(ulid) || (legacy && legacyThrough.map { ulid <= $0 } ?? false)
+		listed.contains(ulid)
+			|| (legacy
+				&& (legacyThrough.map { ulid <= $0 } ?? false
+					|| legacyBefore.map { ulid < $0 } ?? false))
 	}
 }
 
@@ -194,12 +205,12 @@ extension Ledger {
 	{
 		let local = try await read(query).records
 		let chats = Set(local.compactMap(\.chatId))
-		let unsettledByRecord = chats.contains { chat in
+		let hasV1Jobs = chats.contains { chat in
 			ConversationFold.flushJobs(chat: chat, local: local, markers: [], device: deviceId)
-				.contains { !$0.settled }
+				.contains { $0.process == nil }
 		}
 		var markers: [AthleteRecord] = []
-		if unsettledByRecord {
+		if hasV1Jobs {
 			markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
 				.records
 		}

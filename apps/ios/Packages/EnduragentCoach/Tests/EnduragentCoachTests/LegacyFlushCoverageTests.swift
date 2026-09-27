@@ -190,7 +190,11 @@ import Testing
 							FlushPendingBody(
 								chatId: .main, trigger: .softThreshold, messageUlids: [],
 								process: ProcessID(ulid: fixedUlid(60)))))),
-				record(fixedUlid(8), logical: 4, body: consumed(job)),
+				record(
+					fixedUlid(8), logical: 4,
+					body: .deviceLocal(
+						.flushSettled(
+							FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave)))),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -221,7 +225,7 @@ import Testing
 		}
 		let legacy = FlushJob(
 			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
-			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true)
+			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true, consumedInV1: true)
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				reply.ulid

@@ -34,7 +34,8 @@ import Testing
 						.flushPending(
 							FlushPendingBody(
 								chatId: .main, trigger: .softThreshold,
-								messageUlids: history.prefix(2).flatMap { [$0.user, $0.reply] })))),
+								messageUlids: history.prefix(2).flatMap { [$0.user, $0.reply] },
+								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(
 					store, at: at.addingTimeInterval(1),
 					ulid: ULID.generate(at: at.addingTimeInterval(1)),
