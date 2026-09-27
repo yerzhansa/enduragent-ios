@@ -110,6 +110,21 @@ extension FixtureLaunchTests {
 				== "Unlock your iPhone to continue. Your message is saved.")
 	}
 
+	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let services = try services(keychain: .locked)
+		let fixture = try #require(services.fixtureDirector)
+		let model = model(services)
+		await model.appear()
+		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		fixture.secrets.locked = false
+		await model.sceneChanged(.enteredBackground)
+		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		await model.sceneChanged(.becameActive)
+		#expect(model.status?.setup == .ready)
+		#expect(model.status?.notice == nil)
+	}
+
 	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
 		let services = try services()
 		let fixture = try #require(services.fixtureDirector)

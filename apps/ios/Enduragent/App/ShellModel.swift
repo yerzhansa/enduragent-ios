@@ -153,6 +153,12 @@ final class ShellModel {
 		status = await services.coach.status()
 	}
 
+	func sceneChanged(_ event: AppLifecycleEvent) async {
+		await lifecycle.forward(event)
+		guard event == .becameActive, route == .chat else { return }
+		await refreshStatus()
+	}
+
 	func startChatting() {
 		beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
 		saveSession()
