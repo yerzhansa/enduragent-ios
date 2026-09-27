@@ -88,6 +88,23 @@ import Testing
 		#expect(toolMessage.content.contains("intervals.icu is unavailable."))
 	}
 
+	@Test func failedWellnessReadKeepsTheReplyAndReportsTheTrainingFailure() async throws {
+		intervals.loadFailure = IntervalsError(
+			code: "down", details: "private upstream detail", status: 503)
+		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		let settled = try await coach.sendAndSettle("How am I recovering?")
+		#expect(replyText(settled) == "Easy spin today.")
+		let request = try #require(transport.requests.first)
+		#expect(
+			request.messages.first?.content.contains(PromptStaticBlocks.snapshotFallback) == true)
+		#expect(request.messages.first?.content.contains("private upstream detail") == false)
+		#expect(
+			coach.diagnostics.entries.contains {
+				String(describing: $0.event).contains("trainingUnavailable")
+			})
+	}
+
 	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
 		failing.failAppends(ofKind: SyncedKind.ledgerEvent)
