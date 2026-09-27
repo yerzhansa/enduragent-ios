@@ -89,7 +89,7 @@ package enum ProposalPolicy {
 			if live.nonce != nonce {
 				return .mismatch
 			}
-			guard record.account == binding.account else { return .expired }
+			guard record.account.matchesAthlete(binding.account) else { return .expired }
 			let stamp = OperationStamp(
 				operation: .workoutChangeSet(
 					ChangeSetID(ulid: await ledger.nextULID()), ChangeSetRevision(rawValue: 1)),

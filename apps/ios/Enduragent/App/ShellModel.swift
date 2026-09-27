@@ -266,10 +266,11 @@ final class ShellModel {
 			switch outcome {
 			case .executed(let summary):
 				errorLine = nil
-				confirmLine = "Done — \(summary)."
+				confirmLine = builder.phrasebook.say(
+					Catalog.coachConfirmationExecuted, ["summary": summary])
 			case .expired:
 				errorLine = nil
-				confirmLine = "That proposal expired — ask me again and I'll re-propose."
+				confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])
 			case .refused(let message), .failed(let message):
 				errorLine = message
 			case .mismatch, .none:

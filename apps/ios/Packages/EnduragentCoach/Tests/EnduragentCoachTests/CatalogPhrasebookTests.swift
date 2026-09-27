@@ -57,6 +57,16 @@ import Testing
 		#expect(book.say(Catalog.commonCancel) == "Annulla")
 	}
 
+	@Test func frenchConfirmationUsesTheFrenchCatalog() {
+		let book = CatalogPhrasebook(tag: .fr, locale: "fr-FR")
+		#expect(
+			book.say(Catalog.coachConfirmationExpired)
+				== "Cette proposition a expiré — redemande-moi et je te la proposerai à nouveau.")
+		#expect(
+			book.say(Catalog.coachConfirmationExecuted, ["summary": "Endurance"])
+				== "C’est fait — Endurance.")
+	}
+
 	@Test func polishCountThreeSelectsTheFewForm() {
 		let book = CatalogPhrasebook(tag: .pl, locale: "pl-PL")
 		#expect(

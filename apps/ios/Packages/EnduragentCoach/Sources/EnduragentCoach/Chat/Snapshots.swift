@@ -197,7 +197,7 @@ extension RetryRefusal {
 extension PendingProposal {
 	public func confirmable(under status: CoachStatus?) -> Bool {
 		guard let current = status?.trainingAccount else { return true }
-		return account == current
+		return account.matchesAthlete(current)
 	}
 
 	package init(_ body: ProposalBody, account: TrainingAccount) {

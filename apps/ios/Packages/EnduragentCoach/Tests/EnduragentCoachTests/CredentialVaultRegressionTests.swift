@@ -53,7 +53,7 @@ extension CredentialVaultTests {
 			})
 	}
 
-	@Test func sameAthleteReplacementExpiresThePreviousConnectionProposal() async throws {
+	@Test func sameAthleteRotationPreservesProposal() async throws {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
@@ -61,6 +61,56 @@ extension CredentialVaultTests {
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
 		#expect(current.id != testConnection.id)
+		#expect(pending.account.authority(under: try account(current)) == .sameAthlete)
+		#expect(pending.confirmable(under: await coach.status()))
+		#expect(
+			try await coach.confirm(chatId: .main, nonce: pending.nonce)
+				== .executed(summary: pending.summary))
+		#expect(
+			ada.calls.contains {
+				if case .createEvent = $0 { return true }
+				return false
+			})
+	}
+
+	@Test func resolvingTheSameConnectionPreservesProposal() async throws {
+		let secrets = keyedSecrets()
+		try secrets.storeIntervalsConnection(
+			IntervalsConnection(
+				id: testConnection.id, credential: testConnection.credential,
+				selection: .keyOwner, resolvedAthlete: nil))
+		let coach = coach(secrets)
+		let pending = try await proposeRide(on: coach)
+		let status = await coach.status()
+		let current = try #require(try secrets.intervalsConnection())
+		#expect(current.id == testConnection.id)
+		#expect(current.resolvedAthlete != nil)
+		#expect(pending.account.authority(under: try account(current)) == .same)
+		#expect(pending.confirmable(under: status))
+		#expect(
+			try await coach.confirm(chatId: .main, nonce: pending.nonce)
+				== .executed(summary: pending.summary))
+		#expect(
+			ada.calls.contains {
+				if case .createEvent = $0 { return true }
+				return false
+			})
+	}
+
+	@Test func unresolvedProposalCannotFollowAReplacementConnection() async throws {
+		let secrets = keyedSecrets()
+		try secrets.storeIntervalsConnection(
+			IntervalsConnection(
+				id: testConnection.id, credential: testConnection.credential,
+				selection: .keyOwner, resolvedAthlete: nil))
+		let coach = coach(secrets)
+		let pending = try await proposeRide(on: coach)
+		_ = await coach.changeTraining(
+			.replaceConfirmingAthleteSwitch(apiKey: "same-athlete-new-key", athlete: .keyOwner))
+		let current = try #require(try secrets.intervalsConnection())
+		#expect(current.id != testConnection.id)
+		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
+		#expect(pending.account.authority(under: try account(current)) == .unverifiable)
 		#expect(!pending.confirmable(under: await coach.status()))
 		#expect(try await coach.confirm(chatId: .main, nonce: pending.nonce) == .expired)
 		#expect(
