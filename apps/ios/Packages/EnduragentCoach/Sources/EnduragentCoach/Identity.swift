@@ -257,7 +257,9 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public static func isRealDateKey(_ value: String) -> Bool {
-		if let answer = canonicalKeyIsReal(Array(value.utf8)) { return answer }
+		if value.utf8.count == 10, let answer = canonicalKeyIsReal(Array(value.utf8)) {
+			return answer
+		}
 		let formatter = DateFormatter()
 		formatter.calendar = Calendar(identifier: .gregorian)
 		formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -268,15 +270,17 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	private static func canonicalKeyIsReal(_ bytes: [UInt8]) -> Bool? {
-		if bytes.count == 10, bytes[4] == 45, bytes[7] == 45,
+		if bytes[4] == UInt8(ascii: "-"), bytes[7] == UInt8(ascii: "-"),
 			bytes.enumerated().allSatisfy({ index, byte in
-				index == 4 || index == 7 || (48...57).contains(byte)
+				index == 4 || index == 7 || (UInt8(ascii: "0")...UInt8(ascii: "9")).contains(byte)
 			})
 		{
-			let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - 48) }
-			if year >= 1583 {
-				let month = Int(bytes[5] - 48) * 10 + Int(bytes[6] - 48)
-				let day = Int(bytes[8] - 48) * 10 + Int(bytes[9] - 48)
+			let firstGregorianYear = 1583
+			let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - UInt8(ascii: "0")) }
+			if year >= firstGregorianYear {
+				let month =
+					Int(bytes[5] - UInt8(ascii: "0")) * 10 + Int(bytes[6] - UInt8(ascii: "0"))
+				let day = Int(bytes[8] - UInt8(ascii: "0")) * 10 + Int(bytes[9] - UInt8(ascii: "0"))
 				guard (1...12).contains(month) else { return false }
 				let daysInMonth: Int
 				switch month {

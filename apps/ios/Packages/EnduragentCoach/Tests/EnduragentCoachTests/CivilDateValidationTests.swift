@@ -4,6 +4,21 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct CivilDateValidationTests {
+	@Test func matchesFormatterForEveryASCIIByteAtEveryPosition() {
+		let oracle = dateFormatterOracle()
+		let original = Array("2024-06-15".utf8)
+		for index in original.indices {
+			for byte in UInt8(1)...UInt8(127) {
+				var bytes = original
+				bytes[index] = byte
+				let key = String(decoding: bytes, as: UTF8.self)
+				let expected = oracle.date(from: key) != nil
+				#expect(CivilDate.isRealDateKey(key) == expected, "\(key.debugDescription)")
+				#expect((CivilDate(rawValue: key) != nil) == expected, "\(key.debugDescription)")
+			}
+		}
+	}
+
 	@Test func matchesFormatterForEveryDayAndMonthBoundaryFrom1900Through2100() {
 		let oracle = dateFormatterOracle()
 		var accepted = 0
