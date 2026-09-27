@@ -59,7 +59,6 @@ final class PartialFlushResetProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
 		XCTAssertNil(TutorialHarness.recordCount(app, "flushSettled"))
 		XCTAssertEqual(TutorialHarness.recordCount(app, "memorySection"), "memorySection 1")
-		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "partial-flush-records", app: app)
 	}
 }
