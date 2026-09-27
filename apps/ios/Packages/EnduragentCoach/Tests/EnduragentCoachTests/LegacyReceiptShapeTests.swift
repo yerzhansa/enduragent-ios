@@ -75,41 +75,6 @@ import Testing
 		#expect(rows.contains("Imported reply"))
 	}
 
-	@Test func aConsumedV1SoftJobDoesNotReplayItsTriggeringTurn() async throws {
-		try await seed(
-			store,
-			[
-				record(4, body: legacyUser(chatId: .main, text: "Earlier question")),
-				record(6, body: legacyReply(chatId: .main, text: "Earlier reply")),
-				record(8, body: legacyUser(chatId: .main, text: "Triggering question")),
-				record(9, body: legacyReply(chatId: .main, text: "Triggering reply")),
-				record(
-					10,
-					body: .deviceLocal(
-						.flushPending(
-							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
-				record(
-					11,
-					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix
-									+ fixedUlid(10).rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed")))),
-			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
-		try #require(await coach.transcript(.main).count == 4)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
-		#expect(!rows.contains("Triggering question"))
-		#expect(!rows.contains("Triggering reply"))
-		#expect(!rows.contains("Earlier question"))
-		#expect(sent(.memoryFlush, by: transport).isEmpty)
-	}
-
 	private func record(_ offset: Int, device: DeviceID? = nil, body: RecordBody)
 		-> AthleteRecord
 	{

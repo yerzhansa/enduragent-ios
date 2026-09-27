@@ -54,6 +54,39 @@ import Testing
 	}
 
 	@Test(arguments: [false, true])
+	func anEmptyConsumedV1JobReadsProvenanceAndSettles(allChats: Bool) async throws {
+		let store = BatchRecordingLog(inner: InMemoryRecordLog())
+		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let records = try await ledger.commit(
+			local: [
+				.flushPending(
+					FlushPendingBody(chatId: .main, trigger: .softThreshold, messageUlids: []))
+			], stamp: testStamp())
+		let id = try #require(records.first?.ulid)
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(
+					ProvenanceBody(
+						key: MemoryFlushPolicy.consumedFlushKeyPrefix + id.rawValue,
+						garmin: false, nonGarmin: false, unknown: false,
+						contentSha256: "consumed"))
+			], stamp: testStamp())
+		let before = store.reads.count
+		let jobs =
+			if allChats {
+				try await ledger.flushJobsByChat()[.main] ?? []
+			} else {
+				try await ledger.flushJobs(in: .main)
+			}
+		#expect(jobs.count == 1)
+		#expect(jobs.allSatisfy { $0.saved })
+		#expect(
+			Array(store.reads.dropFirst(before))
+				== [ConversationFold.flushScope, ConversationFold.consumedMarkerScope])
+	}
+
+	@Test(arguments: [false, true])
 	func aPendingModernJobDoesNotReadProvenance(allChats: Bool) async throws {
 		let store = BatchRecordingLog(inner: InMemoryRecordLog())
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
