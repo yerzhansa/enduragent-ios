@@ -1736,6 +1736,7 @@
       "title": "Conversation & time",
       "unavailable": "Conversation settings aren’t available. Reconnect and reload.",
       "validation": {
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more.",
         "dailyResetHour": "Enter a whole hour from 0 to 23.",
         "historyTokenBudgetRatio": "Enter a history budget above 0% and no more than 100%.",
         "idleMinutes": "Enter a safe whole number of minutes, 0 or more.",

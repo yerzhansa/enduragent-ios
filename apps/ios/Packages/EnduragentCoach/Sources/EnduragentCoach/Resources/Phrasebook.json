@@ -207865,6 +207865,16 @@
         }
       }
     },
+    "settings.conversation.validation.contextWindowTokens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        }
+      }
+    },
     "settings.conversation.validation.dailyResetHour": {
       "localizations": {
         "en": {

@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2431
-	public static let keyCount = 2467
+	public static let englishLeafCount = 2432
+	public static let keyCount = 2468
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -1490,6 +1490,7 @@ public enum Catalog {
 	public static let settingsConversationSaving = CatalogKey(rawValue: "settings.conversation.saving")
 	public static let settingsConversationTitle = CatalogKey(rawValue: "settings.conversation.title")
 	public static let settingsConversationUnavailable = CatalogKey(rawValue: "settings.conversation.unavailable")
+	public static let settingsConversationValidationContextWindowTokens = CatalogKey(rawValue: "settings.conversation.validation.contextWindowTokens")
 	public static let settingsConversationValidationDailyResetHour = CatalogKey(rawValue: "settings.conversation.validation.dailyResetHour")
 	public static let settingsConversationValidationHistoryTokenBudgetRatio = CatalogKey(rawValue: "settings.conversation.validation.historyTokenBudgetRatio")
 	public static let settingsConversationValidationIdleMinutes = CatalogKey(rawValue: "settings.conversation.validation.idleMinutes")
