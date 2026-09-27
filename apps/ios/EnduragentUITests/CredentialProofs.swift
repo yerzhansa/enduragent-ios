@@ -112,6 +112,76 @@ final class UpgradeConnectionProof: XCTestCase {
 	}
 }
 
+final class CredentialTransactionProof: XCTestCase {
+	func testBlankCancelAndFailedWriteKeepTheKey() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.openCredentials(app)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		let connection = TutorialHarness.named(app, "credentials.connection").label
+		TutorialHarness.named(app, "credentials.replaceBlank").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
+		TutorialHarness.attach(self, name: "credential-blank", app: app)
+		TutorialHarness.named(app, "credentials.failNextWrite").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: "The next keychain write fails.")
+		TutorialHarness.named(app, "credentials.cancel").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
+		let key = TutorialHarness.named(app, "credentials.apiKey")
+		key.tap()
+		key.typeText("fixture-2")
+		TutorialHarness.named(app, "credentials.replace").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.previousKeyKept)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		XCTAssertEqual(TutorialHarness.named(app, "credentials.connection").label, connection)
+		TutorialHarness.attach(self, name: "credential-transaction", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.attach(self, name: "credential-transaction-reply", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class LockedKeychainProof: XCTestCase {
+	func testLockedKeychainKeepsTheConversation() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		app.launchArguments += [TutorialHarness.keychainArgument, "locked"]
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.waitForIdentifier(
+			app, "chat.composer.notice", reading: TutorialHarness.locked)
+		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
+		TutorialHarness.attach(self, name: "locked-keychain", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class StorageUnavailableProof: XCTestCase {
+	func testUnreadableStoreShowsTheNotice() {
+		let app = XCUIApplication()
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "unreadable",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		TutorialHarness.wait(TutorialHarness.named(app, "launch.storageUnavailable"))
+		TutorialHarness.waitForLabel(app, "Conversation history is temporarily unavailable.")
+		TutorialHarness.waitForLabel(app, "Quit and reopen Enduragent.")
+		XCTAssertEqual(app.state, .runningForeground)
+		TutorialHarness.attach(self, name: "storage-unavailable", app: app)
+	}
+}
+
 extension TutorialHarness {
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."

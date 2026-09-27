@@ -10,6 +10,7 @@ struct FixtureDirector: Sendable {
 	static let prefix = "fixture:"
 	static let slowFirstWordDelay: Duration = .seconds(2)
 	static let slowWordDelay: Duration = .milliseconds(250)
+	static let slowFlushDelay: Duration = .seconds(6)
 
 	let transport: FakeModelTransport
 	let records: FaultInjectingRecordLog
@@ -28,6 +29,8 @@ struct FixtureDirector: Sendable {
 			transport.requestDelay = Self.slowFirstWordDelay
 			transport.deltaDelay = Self.slowWordDelay
 			transport.script = FirstWeekFixture.weekSummaryByWord()
+		case "slow-flush" where arguments.isEmpty:
+			transport.requestDelay = Self.slowFlushDelay
 		case "hang" where arguments.isEmpty:
 			transport.hangUntilCancelled = true
 		case "fail":

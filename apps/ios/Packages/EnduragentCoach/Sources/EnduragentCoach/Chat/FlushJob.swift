@@ -6,6 +6,12 @@ package struct FlushJob: Sendable, Equatable {
 	package let messages: [ULID]
 	package var process: ProcessID?
 	package var settled: Bool
+	package var reset: ResetID?
+	package var abandoned = false
+
+	package var saved: Bool {
+		settled && !abandoned
+	}
 
 	package var coverage: ULID {
 		messages.max() ?? id.ulid
@@ -63,9 +69,11 @@ extension ConversationFold {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
 		var settled = consumedJobs(markers)
+		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
 				settled.insert(body.job)
+				if body.settlement == .abandoned { abandoned.insert(body.job) }
 			}
 		}
 		var jobs = owned.compactMap { record -> FlushJob? in
@@ -73,13 +81,19 @@ extension ConversationFold {
 			let id = FlushJobID(ulid: record.ulid)
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
-				settled: settled.contains(id))
+				settled: settled.contains(id), reset: resetOpened(by: record.cause),
+				abandoned: abandoned.contains(id))
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
 			jobs[index].settled = done.contains { $0.covers(jobs[index]) }
 		}
 		return jobs
+	}
+
+	private static func resetOpened(by cause: RecordCause) -> ResetID? {
+		guard case .operation(.conversationReset(let reset), _) = cause else { return nil }
+		return reset
 	}
 
 	private static func consumedJobs(_ markers: [AthleteRecord]) -> Set<FlushJobID> {
@@ -211,23 +225,43 @@ package struct FlushWork: Sendable {
 	package func run(
 		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?
 	) async throws(CancellationError) -> FlushOutcome {
-		let stamp = OperationStamp(
+		let stamp = await stamp(for: job)
+		let outcome = try await extract(
+			job, messages: messages, access: access, scope: scope, stamp: stamp)
+		await settle(job, outcome, stamp: stamp)
+		return outcome
+	}
+
+	package func stamp(for job: FlushJob) async -> OperationStamp {
+		OperationStamp(
 			operation: .memoryFlush(job.id),
 			attempt: AttemptID(ulid: await ledger.nextULID()),
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
+	}
+
+	package func extract(
+		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?,
+		stamp: OperationStamp
+	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
 			job, messages: messages, access: access, transport: transport, stamp: stamp,
 			scope: scope)
+		if outcome.settlement == nil {
+			diagnostics.record(
+				.memoryFlushFailed(chat, detail: "\(outcome)"),
+				redacting: [access.credential.secret])
+		}
+		return outcome
+	}
+
+	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
 		let settlement: FlushSettlement
 		if let saved = outcome.settlement {
 			settlement = saved
 		} else {
-			diagnostics.record(
-				.memoryFlushFailed(chat, detail: "\(outcome)"),
-				redacting: [access.credential.secret])
-			guard job.process != process else { return outcome }
+			guard job.process != process else { return }
 			settlement = .abandoned
 		}
 		do {
@@ -240,12 +274,11 @@ package struct FlushWork: Sendable {
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 		}
-		return outcome
 	}
 
-	package func pending() async -> [FlushJobID] {
+	package func jobs() async -> [FlushJob] {
 		do {
-			return FlushJob.outstanding(try await ledger.flushJobs(in: chat)).map(\.id)
+			return try await ledger.flushJobs(in: chat)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return []

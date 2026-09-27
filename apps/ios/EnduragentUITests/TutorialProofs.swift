@@ -139,6 +139,7 @@ final class SlashListNoPlanProof: XCTestCase {
 		composer.tap()
 		composer.typeText("/")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.slash.review"))
+		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.start").exists)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.status").exists)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.workout").exists)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.slash.language").exists)
@@ -154,16 +155,105 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.history").tap()
-		let row = app.descendants(matching: .any).matching(
-			NSPredicate(format: "identifier BEGINSWITH %@", "history.row.")
-		).firstMatch
+		TutorialHarness.openHistory(app)
+		TutorialHarness.waitForLabel(app, "No past conversations yet.")
+		XCTAssertFalse(TutorialHarness.historyRows(app).firstMatch.exists)
+		TutorialHarness.attach(self, name: "history-empty", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, "/start")
+		TutorialHarness.waitForWelcome(app)
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+		TutorialHarness.openHistory(app)
+		let row = TutorialHarness.historyRows(app).firstMatch
 		TutorialHarness.wait(row)
+		XCTAssertEqual(TutorialHarness.historyRows(app).count, 1)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.startedNewConversation)
 		TutorialHarness.waitForLabel(app, "1998-06-15")
 		TutorialHarness.attach(self, name: "history-list", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
+final class NewConversationProof: XCTestCase {
+	func testNewConversation() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		let button = TutorialHarness.named(app, "chat.newConversation")
+		TutorialHarness.waitUntilHittable(button)
+		XCTAssertEqual(button.label, "Start new conversation")
+		let welcome = TutorialHarness.named(app, "chat.welcome")
+		let tapped = Date()
+		button.tap()
+		while !welcome.exists, Date().timeIntervalSince(tapped) < 30 {
+			continue
+		}
+		let latency = Date().timeIntervalSince(tapped)
+		TutorialHarness.waitForWelcome(app)
+		let sample = XCTAttachment(string: String(format: "%.0f", latency * 1_000))
+		sample.name = "new-conversation-latency-ms"
+		sample.lifetime = .keepAlways
+		add(sample)
+		XCTAssertTrue(welcome.label.contains(TutorialHarness.syncLine))
+		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
+		TutorialHarness.wait(notice)
+		XCTAssertEqual(notice.label, TutorialHarness.newConversationStarted)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "new-conversation", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushPending"), "flushPending 1")
+		XCTAssertEqual(TutorialHarness.recordCount(app, "flushSettled"), "flushSettled 1")
+		TutorialHarness.attach(self, name: "new-conversation-records", app: app)
+	}
+}
+
+final class NewConversationWorkingProof: XCTestCase {
+	func testWorkingWhileMemorySaves() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.exchange(app, "fixture:slow-flush")
+		let button = TutorialHarness.named(app, "chat.newConversation")
+		TutorialHarness.waitUntilHittable(button)
+		button.tap()
+		let working = TutorialHarness.named(app, "chat.working")
+		TutorialHarness.wait(working, timeout: 2)
+		XCTAssertEqual(working.label, TutorialHarness.working)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
+		TutorialHarness.attach(self, name: "new-conversation-working", app: app)
+		TutorialHarness.waitForWelcome(app)
+		XCTAssertTrue(working.waitForNonExistence(timeout: 2))
+		TutorialHarness.waitForLabel(app, TutorialHarness.newConversationStarted)
+	}
+}
+
+final class HistoryArchivedProof: XCTestCase {
+	func testHistoryArchived() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.startNewConversation(app)
+		TutorialHarness.openHistory(app)
+		let row = TutorialHarness.historyRows(app).firstMatch
+		TutorialHarness.wait(row)
+		TutorialHarness.waitForLabel(app, TutorialHarness.startedNewConversation)
+		TutorialHarness.attach(self, name: "history-row", app: app)
+		row.tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "archive.readOnly"))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "archive.readOnly").label, TutorialHarness.readOnly)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").isHittable)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.send").isHittable)
+		TutorialHarness.attach(self, name: "history-archived", app: app)
 	}
 }
 
@@ -250,110 +340,31 @@ final class RecordsClockOrderProof: XCTestCase {
 	}
 }
 
-final class UpgradeKeepsTranscriptProof: XCTestCase {
-	func testUpgradeKeepsTranscript() throws {
+final class UpgradeHistoryProof: XCTestCase {
+	func testUpgradeHistory() throws {
 		let app = XCUIApplication()
 		try TutorialHarness.launchKeepingStore(
-			app, expecting: app.staticTexts[TutorialHarness.weekQuestion])
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.openRecords(app)
-		XCTAssertEqual(
-			TutorialHarness.recordCount(app, "assistantMessage"), "assistantMessage 1")
-		TutorialHarness.attach(self, name: "upgrade-transcript", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.remember)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+			app, expecting: TutorialHarness.named(app, "chat.welcome"))
+		TutorialHarness.waitForWelcome(app)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.newConversation.notice").exists)
+		TutorialHarness.attach(self, name: "upgrade-welcome", app: app)
+		TutorialHarness.openHistory(app)
+		let rows = TutorialHarness.historyRows(app)
+		TutorialHarness.wait(rows.firstMatch)
+		XCTAssertEqual(rows.count, 2)
+		let earlier = app.staticTexts.matching(
+			NSPredicate(format: "label == %@", TutorialHarness.earlierChat))
+		XCTAssertEqual(earlier.count, 2)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
-		TutorialHarness.attach(self, name: "upgrade-then-reply", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
-		XCTAssertEqual(
-			TutorialHarness.recordCount(app, "assistantMessage"), "assistantMessage 1")
-		TutorialHarness.attach(self, name: "upgrade-then-reply-records", app: app)
-	}
-}
-
-final class UpgradeKeepsProposalProof: XCTestCase {
-	func testUpgradeKeepsProposal() throws {
-		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(
-			app, expecting: TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.waitForLabel(app, "Confirmed preview")
-		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
-		let add = TutorialHarness.named(app, "chat.preview.add")
-		XCTAssertTrue(cancel.exists)
-		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
-		TutorialHarness.attach(self, name: "upgrade-proposal", app: app)
-	}
-}
-
-final class CredentialTransactionProof: XCTestCase {
-	func testBlankCancelAndFailedWriteKeepTheKey() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.openCredentials(app)
-		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
-		let connection = TutorialHarness.named(app, "credentials.connection").label
-		TutorialHarness.named(app, "credentials.replaceBlank").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
-		TutorialHarness.attach(self, name: "credential-blank", app: app)
-		TutorialHarness.named(app, "credentials.failNextWrite").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "credentials.outcome", reading: "The next keychain write fails.")
-		TutorialHarness.named(app, "credentials.cancel").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "credentials.outcome", reading: TutorialHarness.keptCurrentKey)
-		let key = TutorialHarness.named(app, "credentials.apiKey")
-		key.tap()
-		key.typeText("fixture-2")
-		TutorialHarness.named(app, "credentials.replace").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "credentials.outcome", reading: TutorialHarness.previousKeyKept)
-		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
-		XCTAssertEqual(TutorialHarness.named(app, "credentials.connection").label, connection)
-		TutorialHarness.attach(self, name: "credential-transaction", app: app)
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.remember)
+		TutorialHarness.attach(self, name: "upgrade-history", app: app)
+		rows.element(boundBy: 1).tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "archive.readOnly"))
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.attach(self, name: "credential-transaction-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class LockedKeychainProof: XCTestCase {
-	func testLockedKeychainKeepsTheConversation() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		app.launchArguments += [TutorialHarness.keychainArgument, "locked"]
-		TutorialHarness.relaunchKeepingStore(app)
-		TutorialHarness.waitForIdentifier(
-			app, "chat.composer.notice", reading: TutorialHarness.locked)
-		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
-		TutorialHarness.attach(self, name: "locked-keychain", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class StorageUnavailableProof: XCTestCase {
-	func testUnreadableStoreShowsTheNotice() {
-		let app = XCUIApplication()
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "unreadable",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
-		app.launch()
-		TutorialHarness.wait(TutorialHarness.named(app, "launch.storageUnavailable"))
-		TutorialHarness.waitForLabel(app, "Conversation history is temporarily unavailable.")
-		TutorialHarness.waitForLabel(app, "Quit and reopen Enduragent.")
-		XCTAssertEqual(app.state, .runningForeground)
-		TutorialHarness.attach(self, name: "storage-unavailable", app: app)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").isHittable)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.send").isHittable)
+		TutorialHarness.attach(self, name: "upgrade-history-read-only", app: app)
 	}
 }

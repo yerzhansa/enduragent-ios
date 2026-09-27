@@ -31,8 +31,8 @@ Preconditions:
 - **Record store cannot open.** Run `sim.mjs test <run id> StorageUnavailableProof`. The app launches with `-EnduragentFixtureStore unreadable`, stays running, and `launch.storageUnavailable` reads `Conversation history is temporarily unavailable.` and `Quit and reopen Enduragent.` instead of the notice. Attachment `storage-unavailable` shows it.
 - **Locked Keychain after onboarding.** Run `sim.mjs test <run id> LockedKeychainProof`. The chat reopens with the earlier question and reply, `chat.composer.notice` reads `Unlock your iPhone to continue. Your message is saved.`, and the notice screen does not appear. Attachment `locked-keychain` shows it.
 - **Starter credits.** After connecting, choose `Continue` (`connect.continue`). Run `sim.mjs test <run id> StarterCreditsProof`. `starter.credits` reads `200 credits` and `starter.start` exists. Attachment `03-starter-credits` shows both.
-- **Skip.** This step is interactive. Tap `connect.skip`, wait for `200 credits` and `Start chatting`, then tap `starter.start`. The chat opens with the greeting `Hello.` and no name. Capture it with `sim.mjs shot <run id> skip-chat`.
-- **Into the chat with no network.** Run `sim.mjs test <run id> FirstConversationProof`. A pass means onboarding reached `chat.composer` with `Hello, Ada.`, two replies arrived, and `fixture.requestCount` read `0 requests`. Attachment `04-first-conversation` shows the chat.
+- **Skip.** This step is interactive. Tap `connect.skip`, wait for `200 credits` and `Start chatting`, then tap `starter.start`. The chat opens on the welcome without the `/sync` line. Capture it with `sim.mjs shot <run id> skip-chat`.
+- **Into the chat with no network.** Run `sim.mjs test <run id> FirstConversationProof`. A pass means onboarding reached `chat.composer` with the welcome, two replies arrived, and `fixture.requestCount` read `0 requests`. Attachment `04-first-conversation` shows the chat.
 
 ## Gotchas
 

@@ -27,6 +27,7 @@
     "pageFailure": "This conversation is temporarily unavailable.",
     "readOnly": "Past conversations are read-only.",
     "reason": {
+      "earlierChat": "Earlier chat",
       "explicit": "You started a new conversation",
       "stale": "Closed after a break"
     },

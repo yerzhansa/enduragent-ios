@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2433
-	public static let keyCount = 2469
+	public static let englishLeafCount = 2434
+	public static let keyCount = 2470
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -21,6 +21,7 @@ public enum Catalog {
 	public static let archiveLoading = CatalogKey(rawValue: "archive.loading")
 	public static let archivePageFailure = CatalogKey(rawValue: "archive.pageFailure")
 	public static let archiveReadOnly = CatalogKey(rawValue: "archive.readOnly")
+	public static let archiveReasonEarlierChat = CatalogKey(rawValue: "archive.reason.earlierChat")
 	public static let archiveReasonExplicit = CatalogKey(rawValue: "archive.reason.explicit")
 	public static let archiveReasonStale = CatalogKey(rawValue: "archive.reason.stale")
 	public static let archiveRetry = CatalogKey(rawValue: "archive.retry")

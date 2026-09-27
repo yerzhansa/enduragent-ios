@@ -2241,6 +2241,16 @@
         }
       }
     },
+    "archive.reason.earlierChat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        }
+      }
+    },
     "archive.reason.explicit": {
       "localizations": {
         "en": {
