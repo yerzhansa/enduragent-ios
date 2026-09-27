@@ -118,6 +118,7 @@ import Testing
 			return
 		}
 		#expect(stopped.partial == "Thursday is")
+		#expect(await host.ended(1)?.request == athleteLease)
 		#expect(
 			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: true))
 	}
