@@ -110,7 +110,7 @@ final class PendingResets {
 	}
 
 	func run(
-		_ reset: ResetID, on records: TurnRecords,
+		_ reset: ResetID, on records: ChatRecords,
 		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess,
 		isolation: isolated (any Actor)? = #isolation
 	) async {

@@ -10,11 +10,7 @@ package actor ChatMailbox {
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
 
-	private var loaded = false
-	private var loading: Task<Result<Void, LedgerFailure>, Never>?
-	private let records: TurnRecords
-	private var pendingProposal: PendingProposal?
-	private var jobs: [FlushJob] = []
+	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private var work: [MailboxWork] = []
@@ -53,12 +49,12 @@ package actor ChatMailbox {
 		self.environment = environment
 		self.process = process
 		self.leases = LeaseSlot(host: host, chat: chatId)
-		self.records = TurnRecords(chat: chatId, ledger: ledger, clock: clock)
+		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
 		do {
-			try await load()
+			try await records.load()
 		} catch {
 			switch error {
 			case .unavailable, .rejectedBatch:
@@ -85,7 +81,7 @@ package actor ChatMailbox {
 	package func reset() async -> ResetOutcome {
 		await admission.enter()
 		do {
-			try await load()
+			try await records.load()
 		} catch {
 			admission.leave()
 			return .notStarted(.local(.recordStorage))
@@ -102,7 +98,7 @@ package actor ChatMailbox {
 		-> SendOutcome
 	{
 		do {
-			try await load()
+			try await records.load()
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
@@ -145,7 +141,7 @@ package actor ChatMailbox {
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
 		do {
-			try await load()
+			try await records.load()
 		} catch {
 			throw RetryRefusal.unknownTurn
 		}
@@ -201,7 +197,7 @@ package actor ChatMailbox {
 	}
 
 	package func recover(_ plan: RecoveryPlan) async throws(LedgerFailure) {
-		try await load()
+		try await records.load()
 		for dead in plan.interrupt {
 			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
 			await records.settle(
@@ -219,33 +215,8 @@ package actor ChatMailbox {
 	}
 
 	package func refreshProposal() async {
-		do {
-			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
-		} catch {
-			pendingProposal = nil
-		}
+		await records.refreshProposal()
 		publish()
-	}
-
-	private func load() async throws(LedgerFailure) {
-		guard !loaded else { return }
-		let reading = loading ?? Task { await self.read() }
-		loading = reading
-		try await reading.value.get()
-	}
-
-	private func read() async -> Result<Void, LedgerFailure> {
-		defer { loading = nil }
-		do {
-			let folded = try await ledger.conversation(chatId)
-			pendingProposal = try await ProposalPolicy.pending(chatId, from: ledger, at: clock.now)
-			jobs = try await ledger.flushJobs(in: chatId)
-			records.replace(with: folded)
-			loaded = true
-			return .success(())
-		} catch {
-			return .failure(error)
-		}
 	}
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
@@ -282,10 +253,10 @@ package actor ChatMailbox {
 			case .flush(let job):
 				await self.flushes.drain(
 					job, in: self.records.conversation, access: self.environment.access)
-				self.jobs = await self.flushes.jobs()
+				_ = await self.records.refreshJobs(from: self.flushes)
 			case .reset(let reset):
 				await self.resets.run(reset, on: self.records, access: self.environment.access)
-				self.jobs = await self.flushes.jobs()
+				_ = await self.records.refreshJobs(from: self.flushes)
 				self.publish()
 			}
 			self.workFinished()
@@ -360,9 +331,8 @@ package actor ChatMailbox {
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		finish(turn, under: lease)
 		if !terminating {
-			jobs = await flushes.jobs()
-			for job in jobs where !job.settled {
-				enqueue(.flush(job.id))
+			for job in await records.refreshJobs(from: flushes) {
+				enqueue(.flush(job))
 			}
 		}
 	}
@@ -384,7 +354,7 @@ package actor ChatMailbox {
 		}
 		guard var current = live, current.attempt == stamp.attempt else { return }
 		if case .proposalPending(let proposal) = progress {
-			pendingProposal = proposal
+			records.pendingProposal = proposal
 		}
 		current.apply(progress)
 		live = current
@@ -395,14 +365,14 @@ package actor ChatMailbox {
 		ChatSnapshot(
 			chat: chatId,
 			conversation: records.conversation,
-			jobs: jobs,
+			jobs: records.jobs,
 			live: live,
 			window: window.open,
 			queued: queuedTurns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption != nil,
 			finishedAway: finishedAway,
-			pendingProposal: pendingProposal,
+			pendingProposal: records.pendingProposal,
 			device: ledger.deviceId,
 			process: process,
 			now: clock.now,
