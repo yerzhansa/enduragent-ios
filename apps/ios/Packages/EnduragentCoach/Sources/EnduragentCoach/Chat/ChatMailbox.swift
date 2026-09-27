@@ -14,8 +14,7 @@ package actor ChatMailbox {
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private let records: TurnRecords
 	private var pendingProposal: PendingProposal?
-	private var work = MailboxQueue()
-	private var window = JoinWindow()
+	private let work = MailboxQueue()
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
 	private let interruption = Interruption()
@@ -23,7 +22,6 @@ package actor ChatMailbox {
 	private var foreground = true
 	private var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
-	private let admission = Admission()
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
@@ -71,7 +69,7 @@ package actor ChatMailbox {
 		if slash == .language {
 			return .showLanguagePicker
 		}
-		return try await admission.pass { admitted throws(AcceptFailure) in
+		return try await work.pass { admitted throws(AcceptFailure) in
 			try await admit(Draft(id: draft.id, text: text), slash: slash, admitted)
 		}
 	}
@@ -88,7 +86,7 @@ package actor ChatMailbox {
 			return .accepted(known.turn)
 		}
 		let joining: TurnID?
-		if let window = window.open, slash == nil {
+		if let window = work.window, slash == nil {
 			joining = window.turn
 		} else {
 			closeWindow(admitted)
@@ -113,8 +111,8 @@ package actor ChatMailbox {
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
-		holdLease(.athlete).add(message.turn)
-		window.arm(message.turn, at: clock.now, for: coalescing.window, admitted) { armed in
+		holdLease(.athlete)?.add(message.turn)
+		admitted.arm(message.turn, at: clock.now, for: coalescing.window) { armed in
 			await self.closeWindowAdmitted(armed)
 		}
 		publish()
@@ -122,7 +120,7 @@ package actor ChatMailbox {
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
-		try await admission.pass { admitted throws(RetryRefusal) in
+		try await work.pass { admitted throws(RetryRefusal) in
 			do {
 				try await load()
 			} catch {
@@ -131,27 +129,27 @@ package actor ChatMailbox {
 			let waiting = waits.waiting(among: records.conversation.current.turns)
 			let queued = work.turns(includingActive: true)
 			let overlay = TurnOverlay(
-				of: turn, window: window.open, queued: queued, waiting: waiting)
+				of: turn, window: work.window, queued: queued, waiting: waiting)
 			let refusal = TurnLifecycle.retryRefusal(
 				of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
 				process: process)
 			if let refusal { throw RetryRefusal(refusal) }
-			holdLease(.athlete).add(turn)
+			holdLease(.athlete)?.add(turn)
 			enqueue(turn, admitted)
 		}
 	}
 
 	package func interrupt(_ cause: InterruptionCause) async {
 		guard interruption.cause == nil else { return await interruption.join() }
-		guard running != nil || window.open != nil || !work.isEmpty || admission.held else {
+		guard running != nil || work.window != nil || !work.isEmpty || work.held else {
 			return
 		}
 		interruption.begin(cause)
 		publish()
 		running?.cancel()
-		await admission.pass { _ in
+		await work.pass { admitted in
 			await running?.value
-			let unstarted = work.dropWaiting() + [window.close()].compactMap { $0 }
+			let unstarted = work.dropWaiting() + [admitted.closeWindow()].compactMap { $0 }
 			for turn in unstarted {
 				let stamp = await stamp(for: turn)
 				await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
@@ -182,7 +180,7 @@ package actor ChatMailbox {
 			return
 		case .enteredBackground:
 			foreground = false
-			await admission.pass { admitted in closeWindow(admitted) }
+			await work.pass { admitted in closeWindow(admitted) }
 		case .willTerminate:
 			terminating = true
 			await terminate()
@@ -236,16 +234,16 @@ package actor ChatMailbox {
 	}
 
 	private func closeWindowAdmitted(_ armed: Int) async {
-		await admission.pass { admitted in closeWindow(admitted, ifArmed: armed) }
+		await work.pass { admitted in closeWindow(admitted, ifArmed: armed) }
 	}
 
 	private func closeWindow(_ admitted: borrowing Admitted, ifArmed armed: Int? = nil) {
-		guard let turn = window.close(ifArmed: armed) else { return }
+		guard let turn = admitted.closeWindow(ifArmed: armed) else { return }
 		enqueue(turn, admitted)
 	}
 
 	private func enqueue(_ turn: TurnID, _ admitted: borrowing Admitted) {
-		if work.add(turn, admitted) { workAdded() }
+		if admitted.add(turn) { workAdded() }
 	}
 
 	private func enqueue(_ job: FlushJobID) {
@@ -258,9 +256,9 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, interruption.cause == nil, !terminating, let next = work.start()
+		guard running == nil, interruption.cause == nil, let initiator = work.next?.initiator,
+			let lease = holdLease(initiator), let next = work.start()
 		else { return }
-		let lease = holdLease(next.turn == nil ? .recovery : .athlete)
 		running = Task {
 			switch next {
 			case .turn(let turn):
@@ -277,7 +275,7 @@ package actor ChatMailbox {
 		running = nil
 		work.finish()
 		if work.isEmpty {
-			if window.open == nil, interruption.cause == nil, !terminating {
+			if work.window == nil, interruption.cause == nil, !terminating {
 				leases.end { $0.finish() }
 			}
 			publish()
@@ -286,8 +284,9 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease {
-		leases.hold(initiator) { [weak self] generation, cause in
+	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease? {
+		guard !terminating else { return nil }
+		return leases.hold(initiator) { [weak self] generation, cause in
 			await self?.expire(cause, lease: generation)
 		}
 	}
@@ -377,7 +376,7 @@ package actor ChatMailbox {
 			chat: chatId,
 			conversation: records.conversation,
 			live: live,
-			window: window.open,
+			window: work.window,
 			queued: work.turns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption.cause != nil,

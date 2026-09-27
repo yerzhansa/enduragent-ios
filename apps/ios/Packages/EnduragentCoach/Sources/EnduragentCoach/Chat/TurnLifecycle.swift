@@ -275,6 +275,10 @@ package enum MailboxWork: Sendable, Equatable {
 		guard case .turn(let turn) = self else { return nil }
 		return turn
 	}
+
+	package var initiator: LeaseInitiator {
+		turn == nil ? .recovery : .athlete
+	}
 }
 
 package struct OpenWindow: Sendable, Equatable {

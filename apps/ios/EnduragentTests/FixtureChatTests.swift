@@ -66,6 +66,76 @@ extension FixtureLaunchTests {
 		#expect(model.draft.text.isEmpty)
 	}
 
+	@Test func aSendFromAChatTheAthleteLeftClearsOnlyThatChatsDraft() async throws {
+		let services = try services()
+		let model = model(services)
+		model.startChatting()
+		let first = model.chatId
+		model.newChat()
+		let second = model.chatId
+		model.draft.text = "draft in the second chat"
+		model.draftChanged(from: "")
+		await model.openChat(first)
+		model.draft.text = "message for the first chat"
+		model.draftChanged(from: "")
+		let sending = Task { await model.send() }
+		await Task.yield()
+		try #require(model.isSending)
+		await model.openChat(second)
+		await sending.value
+		#expect(await athleteTexts(services, in: first) == ["message for the first chat"])
+		#expect(await athleteTexts(services, in: second).isEmpty)
+		#expect(model.draft.text == "draft in the second chat")
+		#expect(model.drafts.load(first) == nil)
+		#expect(model.drafts.load(second) == model.draft)
+	}
+
+	@Test func aSendThenNewChatLeavesTheNewComposerAlone() async throws {
+		let services = try services()
+		let model = model(services)
+		model.startChatting()
+		let first = model.chatId
+		model.draft.text = "message for the first chat"
+		model.draftChanged(from: "")
+		let sending = Task { await model.send() }
+		await Task.yield()
+		try #require(model.isSending)
+		model.newChat()
+		let fresh = model.chatId
+		model.draft.text = "typing in the new chat"
+		model.draftChanged(from: "")
+		await sending.value
+		#expect(await athleteTexts(services, in: first) == ["message for the first chat"])
+		#expect(await athleteTexts(services, in: fresh).isEmpty)
+		#expect(model.draft.text == "typing in the new chat")
+		#expect(model.drafts.load(first) == nil)
+	}
+
+	@Test func textTypedAfterSwitchingAwayAndBackStaysInTheComposer() async throws {
+		let model = model(try services())
+		model.startChatting()
+		let first = model.chatId
+		model.newChat()
+		let second = model.chatId
+		await model.openChat(first)
+		model.draft.text = "hello"
+		model.draftChanged(from: "")
+		let sending = Task { await model.send() }
+		await Task.yield()
+		try #require(model.isSending)
+		await model.openChat(second)
+		await model.openChat(first)
+		model.draft.text = "hello again"
+		model.draftChanged(from: "hello")
+		await sending.value
+		#expect(model.draft.text == "hello again")
+		#expect(model.drafts.load(first) == model.draft)
+	}
+
+	private func athleteTexts(_ services: AppServices, in chat: ChatID) async -> [String] {
+		await firstSnapshot(services, chat: chat)?.turns.compactMap(\.athleteText) ?? []
+	}
+
 	@Test func sendKeepsDraftWhenAcceptFails() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
