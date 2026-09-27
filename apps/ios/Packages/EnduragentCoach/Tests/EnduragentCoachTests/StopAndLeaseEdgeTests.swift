@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -8,14 +9,6 @@ import Testing
 	let saturdays: ScriptedEvent = .toolCall(
 		name: "ledger_append",
 		arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
-
-	func settlements(of turn: TurnID, in store: any RecordLog) async throws -> [Settlement] {
-		try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
-			.compactMap { record in
-				guard case .synced(.turnSettled(let body)) = record.body else { return nil }
-				return body.settlement
-			}
-	}
 
 	@Test func stopExpiryAndTerminateTogetherSettleEachTurnOnce() async throws {
 		let transport = FakeModelTransport()
@@ -33,9 +26,9 @@ import Testing
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
 		let expired = Task { await host.expire(lease: 0, .systemExpired) }
-		try await Task.sleep(for: .milliseconds(50))
+		try await Task.sleep(for: .milliseconds(200))
 		let terminated = Task { await coach.lifecycle(.willTerminate) }
-		try await Task.sleep(for: .milliseconds(50))
+		try await Task.sleep(for: .milliseconds(200))
 		store.release()
 		await stopped.value
 		await expired.value
@@ -43,7 +36,106 @@ import Testing
 		let runningSettled = try await settlements(of: running, in: store)
 		let queuedSettled = try await settlements(of: queued, in: store)
 		#expect(runningSettled.count == 1)
-		#expect(queuedSettled.count <= 1)
+		#expect(queuedSettled.count == 1)
+		#expect(await coach.interruption(of: queued) == .stoppedBeforeStart)
+	}
+
+	@Test func anExpiryDuringAStopSettlesTheQueuedTurnExactlyOnce() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
+		let host = KeepingHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
+		for await snapshot in await coach.observe(.main) {
+			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
+		}
+		async let stopped: Void = coach.stop(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let expired: Void = host.expire(lease: 0, .systemExpired)
+		try await Task.sleep(for: .milliseconds(200))
+		store.release()
+		await stopped
+		await expired
+		#expect(try await settlements(of: queued, in: store).count == 1)
+		#expect(await coach.interruption(of: queued) == .stoppedBeforeStart)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
+	}
+
+	@Test func willTerminateDuringAStopReturnsWithoutWaitingOnAdmission() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 3)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
+		for await snapshot in await coach.observe(.main) {
+			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
+		}
+		async let sent = coach.send(draft("three"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
+		let terminated = Mutex(false)
+		let terminating = Task {
+			await coach.lifecycle(.willTerminate)
+			terminated.withLock { $0 = true }
+		}
+		try await waitUntil(within: .seconds(2)) { terminated.withLock { $0 } }
+		#expect(await coach.currentSnapshot(.main)?.activity == .stopping)
+		store.release()
+		await stopped
+		await terminating.value
+		let third = try #require(try await sent.acceptedTurn)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
+		for turn in [queued, third] {
+			#expect(await coach.interruption(of: turn) == .stoppedBeforeStart)
+			#expect(try await settlements(of: turn, in: store).count == 1)
+			#expect(try await claims(of: turn, in: store).isEmpty)
+		}
+	}
+
+	@Test func willTerminateEndsTheLeaseAsInterrupted() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), clock: clock, host: host)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		await coach.lifecycle(.willTerminate)
+		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(host.leases.count == 1)
+	}
+
+	@Test func anExpiryDuringTerminationJoinsItAndLeavesQueuedTurnsUnclaimed() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
+		let host = KeepingHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
+		for await snapshot in await coach.observe(.main) {
+			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
+		}
+		async let terminated: Void = coach.lifecycle(.willTerminate)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let expired: Void = host.expire(lease: 0, .systemExpired)
+		try await Task.sleep(for: .milliseconds(200))
+		store.release()
+		await terminated
+		await expired
+		#expect(await coach.interruption(of: running) == .appTerminating)
+		#expect(try await settlements(of: queued, in: store).isEmpty)
+		#expect(try await claims(of: queued, in: store).isEmpty)
 	}
 
 	@Test func aFailedTurnEndsItsLeaseWithNoNotice() async throws {

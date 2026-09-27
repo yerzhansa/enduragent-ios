@@ -35,8 +35,10 @@ package struct ConversationReset: Sendable {
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
-		let rows = conversation.current
-			.messagesSinceLastFlush(await flushes.jobs(), excluding: nil)
+		let jobs = await flushes.jobs()
+		let rows =
+			(conversation.outstandingRows(jobs)
+			+ conversation.current.messagesSinceLastFlush(jobs, excluding: nil))
 			.filter { $0.ulid < reset.ulid }
 		var flushed: (job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)?
 		if !rows.isEmpty {
@@ -95,33 +97,39 @@ package struct ConversationReset: Sendable {
 final class PendingResets {
 	private let work: ConversationReset
 	private var waiting: [ResetID: CheckedContinuation<ResetOutcome, Never>] = [:]
+	private var finished: [ResetID: ResetOutcome] = [:]
 
 	init(_ work: ConversationReset) {
 		self.work = work
 	}
 
-	func outcome(
-		of reset: ResetID, isolation: isolated (any Actor)? = #isolation, queue: () -> Void
-	) async -> ResetOutcome {
-		await withCheckedContinuation { continuation in
-			waiting[reset] = continuation
-			queue()
+	func outcome(of reset: ResetID, isolation: isolated (any Actor)? = #isolation) async
+		-> ResetOutcome
+	{
+		if let done = finished.removeValue(forKey: reset) {
+			return done
 		}
+		return await withCheckedContinuation { waiting[reset] = $0 }
 	}
 
 	func run(
 		_ reset: ResetID, on records: ChatRecords,
 		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess,
-		isolation: isolated (any Actor)? = #isolation
-	) async -> ResetOutcome {
+		isolation: isolated (any Actor)? = #isolation, then publish: () -> Void
+	) async {
 		let result = await work.run(reset, archiving: records.conversation, access: access)
 		records.apply(result.boundary)
 		_ = await records.refreshJobs(from: work.flushes)
-		return result.outcome
+		publish()
+		finish(reset, result.outcome)
 	}
 
-	func finish(_ reset: ResetID, _ outcome: ResetOutcome) {
-		waiting.removeValue(forKey: reset)?.resume(returning: outcome)
+	private func finish(_ reset: ResetID, _ outcome: ResetOutcome) {
+		guard let waiter = waiting.removeValue(forKey: reset) else {
+			finished[reset] = outcome
+			return
+		}
+		waiter.resume(returning: outcome)
 	}
 }
 

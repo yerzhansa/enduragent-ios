@@ -44,6 +44,9 @@ final class SummaryFirstProof: XCTestCase {
 		TutorialHarness.send(app, TutorialHarness.remember)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply, timeout: 30)
 		XCTAssertEqual(TutorialHarness.historyHead(app), TutorialHarness.summaryHead)
+		XCTAssertTrue(
+			TutorialHarness.text(app, containing: TutorialHarness.rememberReply).isHittable,
+			"the newest reply is off screen after the menu closes")
 		TutorialHarness.attach(self, name: "summary-first-next-turn", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}

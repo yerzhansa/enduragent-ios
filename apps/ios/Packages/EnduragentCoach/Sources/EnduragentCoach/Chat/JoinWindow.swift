@@ -5,7 +5,7 @@ package struct JoinWindow: Sendable {
 	private var armed = 0
 
 	mutating func arm(
-		_ turn: TurnID, at now: Date, for duration: Duration,
+		_ turn: TurnID, at now: Date, for duration: Duration, _: borrowing Admitted,
 		then close: @escaping @Sendable (Int) async -> Void
 	) {
 		armed += 1

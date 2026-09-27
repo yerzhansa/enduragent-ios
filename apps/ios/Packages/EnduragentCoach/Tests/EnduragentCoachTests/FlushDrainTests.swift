@@ -94,14 +94,17 @@ import Testing
 	}
 
 	@Test func partialJobStaysPendingAndRerunDedupesLedgerEvents() async throws {
-		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
-		try await seedJob(covering: history[0], settled: false)
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		transport.flushScript = [
 			saturdays, schedule, .finish(reason: .toolCalls), .fail(.http(status: 500)),
-			.fail(.http(status: 500)),
+			.fail(.http(status: 500)), saturdays, .finish(reason: .toolCalls),
+			.finish(reason: .stop),
 		]
-		let first = await relaunched()
-		try await waitForDiagnostic(in: first) { event in
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("Rest day?")
+		try await waitForDiagnostic(in: coach) { event in
 			if case .memoryFlushFailed(.main, _) = event { return true }
 			return false
 		}
@@ -109,8 +112,8 @@ import Testing
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
 		#expect(try await count(.synced([.memorySection])) == 1)
 
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
-		_ = await relaunched()
+		transport.script = [.text("Still noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("And Sunday?")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
@@ -181,19 +184,6 @@ import Testing
 			return
 		}
 		#expect(interrupted.cause == .processEnded)
-	}
-
-	private func waitUntil(
-		within limit: Duration = .seconds(5), _ condition: () -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit
-		while !condition() {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("condition never held")
-				return
-			}
-			try await Task.sleep(for: .milliseconds(10))
-		}
 	}
 
 	private func waitForDiagnostic(

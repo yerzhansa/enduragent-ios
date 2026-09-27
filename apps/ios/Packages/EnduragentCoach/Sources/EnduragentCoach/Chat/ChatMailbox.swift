@@ -13,8 +13,7 @@ package actor ChatMailbox {
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
-	private var work: [MailboxWork] = []
-	private var active: MailboxWork?
+	private var work = MailboxQueue()
 	private var window = JoinWindow()
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
@@ -73,31 +72,30 @@ package actor ChatMailbox {
 		case .resetConversation: return .newConversation(await reset())
 		case .modelTurn, nil: break
 		}
-		await admission.enter()
-		defer { admission.leave() }
-		return try await admit(Draft(id: draft.id, text: text), slash: slash)
+		return try await admission.pass { admitted throws(AcceptFailure) in
+			try await admit(Draft(id: draft.id, text: text), slash: slash, admitted)
+		}
 	}
 
 	package func reset() async -> ResetOutcome {
-		await admission.enter()
 		do {
-			try await records.load()
+			let reset = try await admission.pass { admitted throws(LedgerFailure) in
+				try await records.load()
+				closeWindow(admitted)
+				let reset = ResetID(ulid: await ledger.nextULID())
+				_ = holdLease(.athlete)
+				if work.add(reset, admitted) { workAdded() }
+				return reset
+			}
+			return await resets.outcome(of: reset)
 		} catch {
-			admission.leave()
 			return .notStarted(.local(.recordStorage))
-		}
-		closeWindow()
-		let reset = ResetID(ulid: await ledger.nextULID())
-		holdLease(.athlete)
-		return await resets.outcome(of: reset) {
-			enqueue(.reset(reset))
-			admission.leave()
 		}
 	}
 
-	private func admit(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
-		-> SendOutcome
-	{
+	private func admit(
+		_ draft: Draft, slash: SlashCommand?, _ admitted: borrowing Admitted
+	) async throws(AcceptFailure) -> SendOutcome {
 		do {
 			try await records.load()
 		} catch {
@@ -110,7 +108,7 @@ package actor ChatMailbox {
 		if let window = window.open, slash == nil {
 			joining = window.turn
 		} else {
-			closeWindow()
+			closeWindow(admitted)
 			joining = nil
 		}
 		let minted = TurnID(ulid: await ledger.nextULID())
@@ -133,7 +131,7 @@ package actor ChatMailbox {
 			throw AcceptFailure.storageUnavailable
 		}
 		holdLease(.athlete).add(message.turn)
-		window.arm(message.turn, at: clock.now, for: coalescing.window) { armed in
+		window.arm(message.turn, at: clock.now, for: coalescing.window, admitted) { armed in
 			await self.closeWindowAdmitted(armed)
 		}
 		publish()
@@ -141,46 +139,56 @@ package actor ChatMailbox {
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
-		do {
-			try await records.load()
-		} catch {
-			throw RetryRefusal.unknownTurn
+		try await admission.pass { admitted throws(RetryRefusal) in
+			do {
+				try await records.load()
+			} catch {
+				throw RetryRefusal.unknownTurn
+			}
+			let waiting = waits.waiting(among: records.conversation.current.turns)
+			let queued = work.turns(includingActive: true)
+			let overlay = TurnOverlay(
+				of: turn, window: window.open, queued: queued, waiting: waiting)
+			let refusal = TurnLifecycle.retryRefusal(
+				of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
+				process: process)
+			if let refusal { throw RetryRefusal(refusal) }
+			holdLease(.athlete).add(turn)
+			enqueue(turn, admitted)
 		}
-		let waiting = waits.waiting(among: records.conversation.current.turns)
-		let queued = queuedTurns(includingActive: true)
-		let overlay = TurnOverlay(of: turn, window: window.open, queued: queued, waiting: waiting)
-		let refusal = TurnLifecycle.retryRefusal(
-			of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
-			process: process)
-		if let refusal { throw RetryRefusal(refusal) }
-		holdLease(.athlete).add(turn)
-		enqueue(.turn(turn))
 	}
 
 	package func interrupt(_ cause: InterruptionCause) async {
 		guard interruption.cause == nil else { return await interruption.join() }
-		let active = running
-		guard active != nil || window.open != nil || !work.isEmpty else { return }
+		guard running != nil || window.open != nil || !work.isEmpty || admission.held else {
+			return
+		}
 		interruption.begin(cause)
 		publish()
-		active?.cancel()
-		if terminating {
-			await active?.value
-		} else {
-			await admission.enter()
-			await active?.value
-			let unstarted = queuedTurns(includingActive: false) + [window.close()].compactMap { $0 }
-			work.removeAll { $0.reset == nil }
+		running?.cancel()
+		await admission.pass { _ in
+			await running?.value
+			let unstarted = work.dropWaiting() + [window.close()].compactMap { $0 }
 			for turn in unstarted {
 				let stamp = await stamp(for: turn)
 				await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
 			}
-			admission.leave()
+			interruption.end()
+			leases.end { $0.interrupt() }
 		}
-		interruption.end()
-		leases.end { $0.interrupt() }
 		publish()
 		drainIfIdle()
+	}
+
+	private func terminate() async {
+		let owned = interruption.cause == nil
+		if owned { interruption.begin(.appTerminating) }
+		publish()
+		running?.cancel()
+		await running?.value
+		leases.end { $0.interrupt() }
+		if owned { interruption.end() }
+		publish()
 	}
 
 	package func lifecycle(_ event: AppLifecycleEvent) async {
@@ -191,12 +199,10 @@ package actor ChatMailbox {
 			return
 		case .enteredBackground:
 			foreground = false
-			await admission.enter()
-			closeWindow()
-			admission.leave()
+			await admission.pass { admitted in closeWindow(admitted) }
 		case .willTerminate:
 			terminating = true
-			await interrupt(.appTerminating)
+			await terminate()
 		}
 	}
 
@@ -208,14 +214,9 @@ package actor ChatMailbox {
 				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
 		}
 		for job in plan.drain {
-			enqueue(.flush(job))
+			enqueue(job)
 		}
 		publish()
-	}
-
-	private func queuedTurns(includingActive: Bool) -> [TurnID] {
-		let items = includingActive ? [active].compactMap { $0 } + work : work
-		return items.compactMap(\.turn)
 	}
 
 	package func refreshProposal() async {
@@ -228,28 +229,31 @@ package actor ChatMailbox {
 	}
 
 	private func closeWindowAdmitted(_ armed: Int) async {
-		await admission.enter()
-		closeWindow(ifArmed: armed)
-		admission.leave()
+		await admission.pass { admitted in closeWindow(admitted, ifArmed: armed) }
 	}
 
-	private func closeWindow(ifArmed armed: Int? = nil) {
+	private func closeWindow(_ admitted: borrowing Admitted, ifArmed armed: Int? = nil) {
 		guard let turn = window.close(ifArmed: armed) else { return }
-		enqueue(.turn(turn))
+		enqueue(turn, admitted)
 	}
 
-	private func enqueue(_ item: MailboxWork) {
-		guard active != item, !work.contains(item) else { return }
-		work.append(item)
+	private func enqueue(_ turn: TurnID, _ admitted: borrowing Admitted) {
+		if work.add(turn, admitted) { workAdded() }
+	}
+
+	private func enqueue(_ job: FlushJobID) {
+		if work.add(job) { workAdded() }
+	}
+
+	private func workAdded() {
 		publish()
 		drainIfIdle()
 	}
 
 	private func drainIfIdle() {
-		guard running == nil, interruption.cause == nil, !terminating, !work.isEmpty else { return }
-		let next = work.removeFirst()
+		guard running == nil, interruption.cause == nil, !terminating, let next = work.start()
+		else { return }
 		let lease = holdLease(next.initiator)
-		active = next
 		running = Task {
 			switch next {
 			case .turn(let turn):
@@ -259,10 +263,9 @@ package actor ChatMailbox {
 					job, in: self.records.conversation, access: self.environment.access)
 				_ = await self.records.refreshJobs(from: self.flushes)
 			case .reset(let reset):
-				let outcome = await self.resets.run(
-					reset, on: self.records, access: self.environment.access)
-				self.publish()
-				self.resets.finish(reset, outcome)
+				await self.resets.run(reset, on: self.records, access: self.environment.access) {
+					self.publish()
+				}
 			}
 			self.workFinished()
 		}
@@ -270,7 +273,7 @@ package actor ChatMailbox {
 
 	private func workFinished() {
 		running = nil
-		active = nil
+		work.finish()
 		if work.isEmpty {
 			if window.open == nil, interruption.cause == nil, !terminating {
 				leases.end { $0.finish() }
@@ -281,7 +284,6 @@ package actor ChatMailbox {
 		}
 	}
 
-	@discardableResult
 	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease {
 		leases.hold(initiator) { [weak self] generation, cause in
 			await self?.expire(cause, lease: generation)
@@ -321,7 +323,8 @@ package actor ChatMailbox {
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let request = TurnAttempt(
 			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language(), access: access)
+			slash: facts.slash, language: await environment.language(), access: access,
+			process: process)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in
@@ -338,14 +341,14 @@ package actor ChatMailbox {
 		finish(turn, under: lease)
 		if !terminating {
 			for job in await records.refreshJobs(from: flushes) {
-				enqueue(.flush(job))
+				enqueue(job)
 			}
 		}
 	}
 
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		live = nil
-		active = nil
+		work.finish()
 		let reply = records.conversation.turn(turn)?.reply
 		if reply != nil, !foreground {
 			finishedAway.insert(turn)
@@ -374,10 +377,10 @@ package actor ChatMailbox {
 			jobs: records.jobs,
 			live: live,
 			window: window.open,
-			queued: queuedTurns(includingActive: true),
+			queued: work.turns(includingActive: true),
 			waiting: waits.waiting(among: records.conversation.current.turns),
 			stopping: interruption.cause != nil,
-			resetting: active?.reset != nil || work.contains { $0.reset != nil },
+			resetting: work.resetting,
 			finishedAway: finishedAway,
 			pendingProposal: records.pendingProposal,
 			device: ledger.deviceId,

@@ -34,13 +34,6 @@ import Testing
 		return pending.landed
 	}
 
-	func waitFor(_ condition: () async throws -> Bool) async throws {
-		let deadline = ContinuousClock.now + .seconds(5)
-		while try await !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-	}
-
 	@Test func aNewConversationDuringRecoveryBeginsAnAthleteLeaseAtTheTap() async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		let at = clock.now.addingTimeInterval(-5)
@@ -59,9 +52,9 @@ import Testing
 		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
 		let coach = coach()
 		await coach.lifecycle(.becameActive)
-		try await waitFor { host.leases.count == 1 }
+		try await waitUntil { host.leases.count == 1 }
 		let resetting = startNewConversation(on: coach)
-		try await waitFor { host.leases.count == 2 }
+		try await waitUntil { host.leases.count == 2 }
 		#expect(host.leases.map(\.request.initiatedBy) == [.recovery, .athlete])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
@@ -77,7 +70,7 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.requestDelay = .milliseconds(500)
 		let resetting = startNewConversation(on: coach)
-		try await waitFor { !sent(.memoryFlush, by: transport).isEmpty }
+		try await waitUntil { !sent(.memoryFlush, by: transport).isEmpty }
 		let saving = try #require(await coach.currentSnapshot(.main))
 		#expect(saving.activity == .startingNewConversation(label: Catalog.chatNoticeWorking))
 		#expect(saving.opening == .continuing)
@@ -132,7 +125,6 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
-		try await waitFor { await coach.currentSnapshot(.main)?.activity != .idle }
 		try await Task.sleep(for: .milliseconds(200))
 		await coach.stop(.main)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
@@ -154,7 +146,7 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = [.hang]
 		let resetting = startNewConversation(on: coach)
-		try await waitFor { !sent(.memoryFlush, by: transport).isEmpty }
+		try await waitUntil { !sent(.memoryFlush, by: transport).isEmpty }
 		await host.expire(.systemExpired)
 		#expect(try await outcome(resetting) == .started(memory: .notSaved))
 		#expect(try await count(.synced([.windowStart])) == 1)

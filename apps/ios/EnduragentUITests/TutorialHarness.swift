@@ -242,10 +242,23 @@ enum TutorialHarness {
 	}
 
 	static func closeMenu(_ app: XCUIApplication) {
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
-		waitUntilHittable(named(app, "chat.sidebar"))
+		let sidebar = named(app, "chat.sidebar")
+		for _ in 0..<3 {
+			app.swipeDown(velocity: .fast)
+			if becomesHittable(sidebar, within: 2) {
+				break
+			}
+		}
+		waitUntilHittable(sidebar)
 		wait(named(app, "chat.composer"))
+	}
+
+	private static func becomesHittable(_ element: XCUIElement, within timeout: TimeInterval)
+		-> Bool
+	{
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		return XCTWaiter.wait(for: [hittable], timeout: timeout) == .completed
 	}
 
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
@@ -294,8 +307,7 @@ enum TutorialHarness {
 		let head = named(app, "fixture.historyHead")
 		wait(head)
 		let label = head.label
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
+		closeMenu(app)
 		return label
 	}
 

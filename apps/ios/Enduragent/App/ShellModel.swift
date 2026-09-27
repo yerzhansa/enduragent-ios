@@ -206,7 +206,8 @@ final class ShellModel {
 	}
 
 	func send() async {
-		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
+		let sent = draft
+		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !text.isEmpty, !isSending, let services else { return }
 		isSending = true
 		defer { isSending = false }
@@ -220,13 +221,11 @@ final class ShellModel {
 			return
 		}
 		do {
-			switch try await services.coach.send(Draft(id: draft.id, text: text), to: .main) {
+			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
 			case .accepted, .showLanguagePicker:
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(.main)
+				clear(sent)
 			case .newConversation(let outcome):
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(.main)
+				clear(sent)
 				showNewConversation(outcome)
 			case .ignoredBlank:
 				break
@@ -237,6 +236,12 @@ final class ShellModel {
 				notSent = true
 			}
 		}
+	}
+
+	private func clear(_ sent: Draft) {
+		guard draft.id == sent.id else { return }
+		draft = Draft(id: DraftID(), text: draft == sent ? "" : draft.text)
+		drafts.save(draft, for: .main)
 	}
 
 	func stop() async {

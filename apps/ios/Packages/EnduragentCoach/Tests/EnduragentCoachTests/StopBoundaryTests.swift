@@ -1,15 +1,11 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
 
 @Suite struct StopBoundaryTests {
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-
-	func interruption(of turn: TurnID, in coach: Coach) async -> InterruptionCause? {
-		guard case .interrupted(let interrupted)? = await coach.state(of: turn) else { return nil }
-		return interrupted.cause
-	}
 
 	@Test func aSendAfterTheTapRunsWhileStopWaitsOnTheRunningReply() async throws {
 		let transport = FakeModelTransport()
@@ -31,7 +27,7 @@ import Testing
 		let settled = try #require(
 			await coach.settledState(of: third, in: .main, within: .seconds(5)))
 		#expect(replyText(settled) == "Three.", "a send after the Stop tap was stopped: \(settled)")
-		#expect(await interruption(of: running, in: coach) == .athleteStopped)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
 	}
 
 	@Test func aSendMidAdmissionAtTheTapIsStoppedBeforeItStarts() async throws {
@@ -49,9 +45,112 @@ import Testing
 		store.release()
 		await stopped
 		let second = try #require(try await sent.acceptedTurn)
-		#expect(await interruption(of: running, in: coach) == .athleteStopped)
-		#expect(await interruption(of: second, in: coach) == .stoppedBeforeStart)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
+		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
 		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func aStopWhileTheOnlySendIsMidAdmissionStopsItBeforeItStarts() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Ran."), .finish(reason: .stop)]
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 1)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		async let sent = coach.send(draft("only"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		try await Task.sleep(for: .milliseconds(100))
+		store.release()
+		await stopped
+		let turn = try #require(try await sent.acceptedTurn)
+		#expect(await coach.interruption(of: turn) == .stoppedBeforeStart)
+		try await Task.sleep(for: .milliseconds(100))
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func aTryAgainAfterTheTapRunsOnceTheStopSettles() async throws {
+		let transport = FakeModelTransport()
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
+		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
+		transport.hangUntilCancelled = true
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let stopped: Void = coach.stop(.main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		transport.hangUntilCancelled = false
+		transport.script = [.text("Recovered."), .finish(reason: .stop)]
+		async let retried: Void = coach.retry(failed, in: .main)
+		try await Task.sleep(for: .milliseconds(100))
+		store.release()
+		await stopped
+		try await retried
+		let answered = try await coach.waitForState(of: failed) { state in
+			guard case .completed? = state else { return false }
+			return true
+		}
+		#expect(answered.flatMap(replyText) == "Recovered.", "Try again after the tap: \(answered)")
+		#expect(await coach.interruption(of: running) == .athleteStopped)
+	}
+
+	@Test func aTryAgainOfTheStoppedReplyWhileTheStopWaitsRunsAfterIt() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let sent = coach.send(draft("two"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
+		transport.hangUntilCancelled = false
+		transport.script = [.text("Again."), .finish(reason: .stop)]
+		async let retried: Void = coach.retry(running, in: .main)
+		try await Task.sleep(for: .milliseconds(100))
+		store.release()
+		await stopped
+		try await retried
+		let second = try #require(try await sent.acceptedTurn)
+		let answered = try await coach.waitForState(of: running) { state in
+			guard case .completed? = state else { return false }
+			return true
+		}
+		#expect(answered.flatMap(replyText) == "Again.", "Try again during the Stop: \(answered)")
+		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
+	}
+
+	@Test func anExpiryDuringAStopReturnsOnlyAfterTheStopSettles() async throws {
+		let transport = FakeModelTransport()
+		transport.hangUntilCancelled = true
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let host = KeepingHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(running)
+		async let sent = coach.send(draft("two"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let stopped: Void = coach.stop(.main)
+		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
+		let expiryReturned = Mutex(false)
+		let expired = Task {
+			await host.expire(lease: 0, .systemExpired)
+			expiryReturned.withLock { $0 = true }
+		}
+		try await Task.sleep(for: .milliseconds(200))
+		#expect(!expiryReturned.withLock { $0 }, "the expiry returned while the Stop still waited")
+		store.release()
+		await expired.value
+		let second = try #require(try await sent.acceptedTurn)
+		#expect(try await settlements(of: second, in: store).count == 1)
+		await stopped
+		#expect(await coach.interruption(of: running) == .athleteStopped)
+		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
 	}
 
 	@Test func anExpiryDuringAStopJoinsItAndASendAfterTheTapStillRuns() async throws {
@@ -79,7 +178,7 @@ import Testing
 			await coach.settledState(of: third, in: .main, within: .seconds(5)))
 		#expect(
 			replyText(settled) == "Three.", "the send after the Stop tap was stopped: \(settled)")
-		#expect(await interruption(of: running, in: coach) == .athleteStopped)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
 	}
 
 	@Test func theFirstInterruptionNamesTheCause() async throws {
@@ -99,7 +198,7 @@ import Testing
 		store.release()
 		await stopped
 		await expired
-		#expect(await interruption(of: running, in: coach) == .athleteStopped)
+		#expect(await coach.interruption(of: running) == .athleteStopped)
 	}
 
 	@Test func aTurnStillCollectingKeepsTheLeaseAfterAnEarlierTurnSettles() async throws {
