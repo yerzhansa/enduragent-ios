@@ -118,6 +118,20 @@ import Testing
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
 	}
 
+	@Test func anAbandonedResetFlushKeepsTheMemoryWarningAfterRelaunch() async throws {
+		let coach = coach()
+		answer("Two rides.")
+		_ = try await coach.sendAndSettle("How was my week?")
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 8)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 8)
+		let reopened = self.coach()
+		await reopened.lifecycle(.becameActive)
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
+		let snapshot = try #require(await reopened.currentSnapshot(.main))
+		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+	}
+
 	@Test func resetQueuesBehindRunningTurn() async throws {
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
 		let coach = coach(over: held)

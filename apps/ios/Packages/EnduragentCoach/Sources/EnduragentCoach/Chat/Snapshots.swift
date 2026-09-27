@@ -47,7 +47,7 @@ public enum ConversationOpening: Sendable, Equatable {
 			return
 		}
 		self = .afterNewConversation(
-			memorySaved: jobs.first { $0.reset == reset }.map(\.settled) ?? true)
+			memorySaved: jobs.first { $0.reset == reset }.map(\.saved) ?? true)
 	}
 }
 

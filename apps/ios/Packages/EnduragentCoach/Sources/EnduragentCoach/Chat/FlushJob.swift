@@ -7,6 +7,11 @@ package struct FlushJob: Sendable, Equatable {
 	package var process: ProcessID?
 	package var settled: Bool
 	package var reset: ResetID?
+	package var abandoned = false
+
+	package var saved: Bool {
+		settled && !abandoned
+	}
 
 	package var coverage: ULID {
 		messages.max() ?? id.ulid
@@ -64,9 +69,11 @@ extension ConversationFold {
 		let owned = local.filter { $0.chatId == chat && $0.deviceId == device }
 			.sorted { $0.hlc < $1.hlc }
 		var settled = consumedJobs(markers)
+		var abandoned: Set<FlushJobID> = []
 		for record in owned {
 			if case .deviceLocal(.flushSettled(let body)) = record.body {
 				settled.insert(body.job)
+				if body.settlement == .abandoned { abandoned.insert(body.job) }
 			}
 		}
 		var jobs = owned.compactMap { record -> FlushJob? in
@@ -74,7 +81,8 @@ extension ConversationFold {
 			let id = FlushJobID(ulid: record.ulid)
 			return FlushJob(
 				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
-				settled: settled.contains(id), reset: resetOpened(by: record.cause))
+				settled: settled.contains(id), reset: resetOpened(by: record.cause),
+				abandoned: abandoned.contains(id))
 		}
 		let done = jobs.filter(\.settled)
 		for index in jobs.indices where !jobs[index].settled {
