@@ -84,6 +84,18 @@ extension Coach {
 		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
 	}
 
+	func waitForState(
+		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
+	) async throws -> TurnState? {
+		let deadline = ContinuousClock.now + limit
+		while ContinuousClock.now < deadline {
+			let current = await state(of: turn)
+			if matches(current) { return current }
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		return await state(of: turn)
+	}
+
 	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
 		for kind in SyncedKind.allCases {
 			log.failAppends(ofKind: kind)

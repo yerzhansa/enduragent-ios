@@ -128,9 +128,9 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 	static let all = failures + interruptions + savedWork
 }
 
-private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notInThisProcess)
-	-> TurnState
-{
+private let thisProcess = ProcessID(ulid: fixedUlid(60))
+
+private func claimedFacts(by process: ProcessID) -> TurnFacts {
 	var facts = TurnFacts(turn: turn, chat: .main, origin: phone)
 	facts.fragments.append(
 		Fragment(
@@ -140,9 +140,14 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 	facts.claims.append(
 		ClaimedAttempt(
 			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
-			body: TurnClaimBody(
-				chatId: .main, turn: turn, attempt: attempt, process: ProcessID(ulid: fixedUlid(60))
-			)))
+			body: TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, process: process)))
+	return facts
+}
+
+private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notInThisProcess)
+	-> TurnState
+{
+	var facts = claimedFacts(by: thisProcess)
 	facts.settlements.append(
 		SettledAttempt(
 			ulid: fixedUlid(3),
@@ -150,8 +155,7 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 				wallMs: Int64(failedAt.timeIntervalSince1970 * 1000), logical: 0, deviceId: phone),
 			civilDate: "1998-06-16", attempt: attempt, settlement: settlement))
 	return TurnLifecycle.state(
-		of: facts, live: nil, overlay: overlay, device: phone,
-		process: ProcessID(ulid: fixedUlid(60)))
+		of: facts, live: nil, overlay: overlay, device: phone, process: thisProcess)
 }
 
 private func notice(of state: TurnState) -> AthleteNotice? {
@@ -159,6 +163,7 @@ private func notice(of state: TurnState) -> AthleteNotice? {
 	case .failed(let failed): failed.notice
 	case .interrupted(let interrupted): interrupted.notice
 	case .savedWork(let savedWork): savedWork.notice
+	case .unrecovered(let unrecovered): unrecovered.notice
 	case .accepted, .processing, .completed: nil
 	}
 }
@@ -217,6 +222,16 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			#expect(notice(of: clean)?.key == Catalog.chatTurnInterruptedNothingChanged)
 			#expect(clean.retryable)
 		}
+	}
+
+	@Test func aDeadClaimRecoveryHasNotSettledReadsHistoryUnavailableWithNoButton() throws {
+		let state = TurnLifecycle.state(
+			of: claimedFacts(by: ProcessID(ulid: fixedUlid(61))), live: nil,
+			overlay: .notInThisProcess, device: phone, process: thisProcess)
+		let shown = try #require(notice(of: state))
+		#expect(shown.sentence(in: english) == "Conversation history is temporarily unavailable.")
+		#expect(shown.action == nil)
+		#expect(!state.retryable)
 	}
 
 	@Test(arguments: [

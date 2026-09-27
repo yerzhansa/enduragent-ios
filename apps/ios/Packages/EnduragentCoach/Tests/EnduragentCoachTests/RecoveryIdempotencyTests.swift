@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -51,7 +50,8 @@ import Testing
 			of: facts, live: nil, overlay: .notInThisProcess, device: device, process: current)
 		#expect(state == .completed(TurnState.Completed(reply: .model("Thursday is on."))))
 		#expect(
-			TurnLifecycle.claimRefusal(of: facts, device: device) == .alreadyAnswered)
+			TurnLifecycle.claimRefusal(of: facts, device: device, process: current)
+				== .alreadyAnswered)
 	}
 
 	@Test func aSettlementWithoutAClaimAfterAClaimedAttemptIsTheOutcome() {
@@ -106,11 +106,33 @@ import Testing
 				== RecoveryPlan(interrupt: []))
 	}
 
-	@Test func aDeadClaimShowsInterruptedBeforeRecoveryWrites() {
+	@Test func aDeadClaimShowsHistoryUnavailableUntilRecoveryWrites() {
 		var dead = facts()
 		dead.claims = [claim(first, at: 2, by: earlier)]
 		let state = TurnLifecycle.state(
 			of: dead, live: nil, overlay: .notInThisProcess, device: device, process: current)
+		#expect(
+			state
+				== .unrecovered(
+					TurnState.Unrecovered(
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
+		#expect(!state.retryable)
+		#expect(
+			TurnLifecycle.claimRefusal(of: dead, device: device, process: current) == .unrecovered)
+		#expect(
+			TurnLifecycle.writes(
+				for: .claim(second, process: current), on: dead, chat: .main, device: device,
+				mint: { turn }) == .failure(.unrecovered))
+	}
+
+	@Test func aDeadClaimShowsInterruptedOnceRecoveryWrites() {
+		var recovered = facts()
+		recovered.claims = [claim(first, at: 2, by: earlier)]
+		recovered.settlements = [
+			settled(first, at: 5, .interrupted(partial: "", cause: .processEnded, saved: .none))
+		]
+		let state = TurnLifecycle.state(
+			of: recovered, live: nil, overlay: .notInThisProcess, device: device, process: current)
 		#expect(
 			state
 				== .interrupted(
@@ -120,6 +142,23 @@ import Testing
 							key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn))
 					)))
 		#expect(state.retryable)
+		#expect(TurnLifecycle.claimRefusal(of: recovered, device: device, process: current) == nil)
+	}
+
+	@Test func thisProcessesOpenClaimFoldsAsRunningNotDead() {
+		var running = facts()
+		running.claims = [claim(first, at: 2, by: current)]
+		let state = TurnLifecycle.state(
+			of: running, live: nil, overlay: .notInThisProcess, device: device, process: current)
+		#expect(
+			state
+				== .processing(
+					TurnState.Processing(
+						attempt: first, liveText: "", activity: .generating(step: 1))))
+		#expect(!state.retryable)
+		#expect(
+			TurnLifecycle.claimRefusal(of: running, device: device, process: current)
+				== .attemptInFlight)
 	}
 
 	@Test func anUnsavedSettlementIsNewerThanEveryClaim() {
@@ -174,7 +213,7 @@ import Testing
 		transport.hangUntilCancelled = false
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
 		try await coach.retry(turn, in: .main)
-		let replied = try await state(of: turn, in: coach) { $0.flatMap(replyText) != nil }
+		let replied = try await coach.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(replied.flatMap(replyText) == "Thursday is on.")
 		let recording = BatchRecordingLog(inner: store)
 		let reopened = makeCoach(transport: transport, store: recording, clock: clock)
@@ -187,12 +226,13 @@ import Testing
 	@Test func aRerunRecoveryLeavesThisProcessesRunningClaimAlone() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
-		let log = ClaimReadFaultLog(inner: InMemoryRecordLog())
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		log.failRecoveryReads = true
 		let coach = makeCoach(transport: transport, store: log, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
-		log.failing.withLock { $0 = false }
+		log.failRecoveryReads = false
 		await coach.lifecycle(.becameActive)
 		let state = await coach.state(of: turn)
 		guard case .processing? = state else {
@@ -207,43 +247,20 @@ import Testing
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
 		transport.requestDelay = .milliseconds(500)
 		let inner = InMemoryRecordLog()
-		let log = ClaimReadFaultLog(inner: inner)
+		let log = FaultInjectingRecordLog(wrapping: inner)
+		log.failRecoveryReads = true
 		let coach = makeCoach(transport: transport, store: log, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
-		log.failing.withLock { $0 = false }
+		log.failRecoveryReads = false
 		await coach.lifecycle(.becameActive)
-		let settled = try await state(of: turn, in: coach) { $0.flatMap(replyText) != nil }
+		let settled = try await coach.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(settled.flatMap(replyText) == "Thursday is on.")
 		let settlements = try await inner.fetch(
 			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
 		).records
 		#expect(settlements.count == 1)
-	}
-
-	@Test func aDeadClaimShowsInterruptedWhileRecoveryCannotRead() async throws {
-		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
-		let store = InMemoryRecordLog()
-		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
-		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
-		await before.waitUntilProcessing(turn)
-		await before.dieWithoutWriting(to: dying)
-		let after = makeCoach(
-			transport: transport, store: ClaimReadFaultLog(inner: store), clock: clock)
-		await after.lifecycle(.becameActive)
-		let state = try #require(await after.state(of: turn))
-		#expect(state != .accepted(.awaitingRestart))
-		guard case .interrupted(let interrupted) = state else {
-			Issue.record("expected interrupted, got \(state)")
-			return
-		}
-		#expect(interrupted.cause == .processEnded)
-		#expect(
-			try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
-				.isEmpty)
 	}
 
 	@Test func aClaimOnAnotherDevicesTurnIsLeftAlone() async throws {
@@ -268,45 +285,6 @@ import Testing
 		#expect(transport.requests.isEmpty)
 		await other.stop(.main)
 	}
-
-	private func state(
-		of turn: TurnID, in coach: Coach, within limit: Duration = .seconds(5),
-		until matches: (TurnState?) -> Bool
-	) async throws -> TurnState? {
-		let deadline = ContinuousClock.now + limit
-		while ContinuousClock.now < deadline {
-			let state = await coach.state(of: turn)
-			if matches(state) { return state }
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		return await coach.state(of: turn)
-	}
-}
-
-final class ClaimReadFaultLog: RecordLog, Sendable {
-	let inner: any RecordLog
-	let failing = Mutex(true)
-
-	init(inner: any RecordLog) {
-		self.inner = inner
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		try await inner.append(batch, locality: locality)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		if failing.withLock({ $0 }), query.writtenBy != nil,
-			query.scope.kindNames == ["turnClaim"]
-		{
-			throw RecordStorageFault(operation: .fetch)
-		}
-		return try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
 }
 
 final class DeviceAliasLog: RecordLog, Sendable {
