@@ -55,7 +55,7 @@ final class RetryWaits {
 	}
 
 	package static func wait(of facts: TurnFacts, now: Date) -> TryAgainWait? {
-		guard facts.openClaims.isEmpty, let latest = facts.latestSettlement,
+		guard facts.openClaim == nil, let latest = facts.latestSettlement,
 			case .failed(let failure, _) = latest.settlement,
 			TurnLifecycle.replayRefusal(after: latest.settlement) == nil,
 			let hint = failure.tryAgainWait

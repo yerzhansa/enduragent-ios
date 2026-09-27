@@ -143,6 +143,12 @@ package enum ProposalPolicy {
 		RecordQuery(scope: .deviceLocal([.pendingProposal, .proposalCleared]), chatId: chatId)
 	}
 
+	package static func pending(_ chatId: ChatID, from ledger: Ledger, at now: Date)
+		async throws(LedgerFailure) -> PendingProposal?
+	{
+		pending(in: try await ledger.read(proposalQuery(chatId)).records, chatId: chatId, now: now)
+	}
+
 	package static func pending(in records: [AthleteRecord], chatId: ChatID, now: Date)
 		-> PendingProposal?
 	{

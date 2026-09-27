@@ -57,7 +57,7 @@ extension Coach {
 				case .model(let text):
 					return question + [text]
 				}
-			case .accepted, .processing, .savedWork, .failed, .interrupted:
+			case .accepted, .processing, .savedWork, .failed, .interrupted, .unrecovered:
 				return question
 			}
 		}

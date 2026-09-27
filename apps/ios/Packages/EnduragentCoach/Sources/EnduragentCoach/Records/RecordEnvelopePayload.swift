@@ -103,11 +103,12 @@ enum SyncedPayload: Encodable {
 }
 
 enum DeviceLocalPayload: Encodable {
-	case turnClaim(TurnAttemptPayload)
+	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
 	case pendingProposal(ProposalPayload)
 	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
+	case flushSettled(FlushSettledPayload)
 	case planningCommand(PlanningCommandPayload)
 	case planRevision(PlanRevisionPayload)
 	case mirrorJob(MirrorJobPayload)
@@ -118,10 +119,12 @@ enum DeviceLocalPayload: Encodable {
 		switch body {
 		case .turnClaim(let value):
 			self = .turnClaim(
-				TurnAttemptPayload(
+				TurnClaimPayload(
 					chatId: value.chatId.rawValue,
 					turn: value.turn.ulid.rawValue,
-					attempt: value.attempt.ulid.rawValue
+					attempt: value.attempt.ulid.rawValue,
+					process: value.process?.ulid.rawValue,
+					lease: value.lease.rawValue
 				)
 			)
 		case .replyObserved(let value):
@@ -157,9 +160,12 @@ enum DeviceLocalPayload: Encodable {
 				FlushPendingPayload(
 					chatId: value.chatId.rawValue,
 					trigger: value.trigger.rawValue,
-					messageUlids: value.messageUlids.map(\.rawValue)
+					messageUlids: value.messageUlids.map(\.rawValue),
+					process: value.process?.ulid.rawValue
 				)
 			)
+		case .flushSettled(let value):
+			self = .flushSettled(FlushSettledPayload(value))
 		case .planningCommand(let value):
 			self = .planningCommand(
 				PlanningCommandPayload(
@@ -214,6 +220,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let payload): try payload.encode(to: encoder)
 		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)
+		case .flushSettled(let payload): try payload.encode(to: encoder)
 		case .planningCommand(let payload): try payload.encode(to: encoder)
 		case .planRevision(let payload): try payload.encode(to: encoder)
 		case .mirrorJob(let payload): try payload.encode(to: encoder)

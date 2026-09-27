@@ -11,11 +11,14 @@ public actor Coach {
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let host: any ExecutionHost
 	private var language: LanguagePreference
 	private let builtInModel: ModelID
 	private let vault: CredentialVault
 	private let runner: TurnRunner
 	private var mailboxes: [ChatID: ChatMailbox]
+	private var recovery: Task<Bool, Never>?
+	private let process: ProcessID
 
 	public init(
 		sport: SportID,
@@ -39,6 +42,7 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
+		self.host = ports.host
 		self.language = language
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: ports.records, clock: clock)
@@ -52,6 +56,7 @@ public actor Coach {
 			ladder: .npm
 		)
 		self.mailboxes = [:]
+		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
 
 	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
@@ -67,7 +72,21 @@ public actor Coach {
 	}
 
 	public func stop(_ chat: ChatID) async {
-		await mailbox(for: chat).stop()
+		await mailbox(for: chat).interrupt(.athleteStopped)
+	}
+
+	public func lifecycle(_ event: AppLifecycleEvent) async {
+		switch event {
+		case .becameActive:
+			await recoverOnce()
+		case .willResignActive:
+			return
+		case .enteredBackground, .willTerminate:
+			break
+		}
+		for mailbox in mailboxes.values {
+			await mailbox.lifecycle(event)
+		}
 	}
 
 	public func pendingProposal(chatId: ChatID) async -> PendingProposal? {
@@ -177,13 +196,80 @@ public actor Coach {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 	}
 
-	public func waitForMemoryFlush() async {
-		for box in mailboxes.values {
-			await box.flushAndDrain()
+	private func recoverOnce() async {
+		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
+		recovery = recovering
+		if await !recovering.value, recovery == recovering {
+			recovery = nil
 		}
 	}
 
-	private func mailbox(for chatId: ChatID) -> ChatMailbox {
+	private func recoverDeadClaims() async -> Bool {
+		do {
+			for (chat, plan) in try await recoveryPlans() {
+				try await makeMailbox(for: chat).recover(plan)
+			}
+			return true
+		} catch {
+			diagnostics.record(.recoveryUnavailable(error))
+			return false
+		}
+	}
+
+	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
+		let device = ledger.deviceId
+		let claims = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
+		).records
+		let flushQueue = try await ledger.flushJobsByChat()
+		let turns = try await claimedTurns(claims, device: device)
+		let dead = Set(
+			turns.values.flatMap {
+				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
+					.interrupt.map(\.attempt)
+			})
+		var writes: [AttemptID: WriteSummary] = [:]
+		if !dead.isEmpty {
+			let stamped = try await ledger.read(
+				RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+			).records
+			writes = TurnRecovery.writes(of: dead, in: stamped)
+		}
+		var plans: [ChatID: RecoveryPlan] = [:]
+		for chat in Set(turns.keys).union(flushQueue.keys) {
+			let plan = TurnRecovery.plan(
+				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
+				device: device, process: process)
+			if !plan.isEmpty {
+				plans[chat] = plan
+			}
+		}
+		return plans
+	}
+
+	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
+		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
+	{
+		let chats = Set(claims.compactMap(\.chatId))
+		guard !chats.isEmpty else { return [:] }
+		let synced = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
+		).records
+		var turns: [ChatID: [TurnFacts]] = [:]
+		for chat in chats {
+			turns[chat] = ConversationFold.fold(
+				chat: chat, synced: synced, local: claims, device: device
+			).segments.flatMap(\.turns)
+		}
+		return turns
+	}
+
+	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
+		await recoverOnce()
+		return makeMailbox(for: chatId)
+	}
+
+	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
 		if let existing = mailboxes[chatId] {
 			return existing
 		}
@@ -197,15 +283,19 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			flushes: FlushDrain(
-				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
+			flushes: FlushWork(
+				chat: chatId, process: process, ledger: ledger, memory: memory,
+				transport: transport, clock: clock,
+				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(
 				language: { await self.language }, access: access,
 				training: { () async throws(AccessUnavailable) in
 					try await vault.trainingConnection()
-				})
+				}),
+			process: process,
+			host: host
 		)
 		mailboxes[chatId] = created
 		return created

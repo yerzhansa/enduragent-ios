@@ -274,7 +274,9 @@ extension SwiftDataSuites {
 			]
 			let local: [DeviceLocalRecordBody] = [
 				.turnClaim(
-					TurnClaimBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+					TurnClaimBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						lease: .continuedProcessing)),
 				.replyObserved(
 					ReplyObservedBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
 				.pendingProposal(
@@ -291,6 +293,10 @@ extension SwiftDataSuites {
 					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .executed)),
 				.flushPending(
 					FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: [ulid])),
+				.flushSettled(
+					FlushSettledBody(
+						chatId: .main, job: FlushJobID(ulid: ulid),
+						settlement: .saved(sections: 2, events: 1))),
 				.planningCommand(
 					PlanningCommandBody(
 						commandName: .creationStart,

@@ -33,19 +33,25 @@ enum TutorialHarness {
 		"This reply stopped before it finished. Some information was saved first."
 	static let interruptedNothingChanged =
 		"This reply stopped before it finished. Nothing was changed."
+	static let historyUnavailable = "Conversation history is temporarily unavailable."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
 	static let keptCurrentKey = "Kept the current key."
 	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
+	static let summaryHead = "[Previous conversation summary]"
 	static let draft = "Is Thursday still on?"
+	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
+	static let recoveryArgument = "-EnduragentFixtureRecovery"
+	static let hostArgument = "-EnduragentFixtureHost"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
-		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
+		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
+		locale: String = "en_US"
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
@@ -60,6 +66,9 @@ enum TutorialHarness {
 		if let coalescingMilliseconds {
 			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
 		}
+		if let host {
+			app.launchArguments += [hostArgument, host]
+		}
 		app.launch()
 	}
 
@@ -70,13 +79,20 @@ enum TutorialHarness {
 		]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		if !element.waitForExistence(timeout: 10) {
-			throw XCTSkip(
-				"needs the fixture store an earlier build left; run it after a trunk proof")
+		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(v1StoreMissing)
 		}
+		openRecords(app)
+		let written = recordCount(app, "assistantMessage") != nil
+		closeMenu(app)
+		guard written else { throw XCTSkip(v1StoreMissing) }
+		wait(element)
 	}
 
-	static func relaunchKeepingStore(_ app: XCUIApplication) {
+	private static let v1StoreMissing =
+		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
+
+	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		guard let index = app.launchArguments.firstIndex(of: storeArgument),
@@ -86,6 +102,10 @@ enum TutorialHarness {
 			return
 		}
 		app.launchArguments[index + 1] = "keep"
+		if let flag = app.launchArguments.firstIndex(of: recoveryArgument) {
+			app.launchArguments.removeSubrange(flag...(flag + 1))
+		}
+		app.launchArguments += [recoveryArgument, recovery]
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}
@@ -99,6 +119,10 @@ enum TutorialHarness {
 
 	static func named(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+	}
+
+	static func text(_ app: XCUIApplication, containing fragment: String) -> XCUIElement {
+		app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", fragment)).firstMatch
 	}
 
 	static func notice(_ app: XCUIApplication, reading sentence: String) -> XCUIElement {
@@ -160,6 +184,18 @@ enum TutorialHarness {
 		send.tap()
 	}
 
+	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+		send(app, text)
+		let working = named(app, "chat.working")
+		wait(working, timeout: 5)
+		XCTAssertTrue(working.waitForNonExistence(timeout: timeout), "\(text) never finished")
+	}
+
+	static func sendLong(_ app: XCUIApplication) {
+		exchange(app, "fixture:long")
+		wait(text(app, containing: "Day 100. This week has"))
+	}
+
 	static func openSidebar(_ app: XCUIApplication) {
 		let sidebar = named(app, "chat.sidebar")
 		waitUntilHittable(sidebar)
@@ -199,10 +235,23 @@ enum TutorialHarness {
 	}
 
 	static func closeMenu(_ app: XCUIApplication) {
-		app.swipeDown(velocity: .fast)
-		app.swipeDown(velocity: .fast)
-		waitUntilHittable(named(app, "chat.sidebar"))
+		let sidebar = named(app, "chat.sidebar")
+		for _ in 0..<3 {
+			app.swipeDown(velocity: .fast)
+			if becomesHittable(sidebar, within: 2) {
+				break
+			}
+		}
+		waitUntilHittable(sidebar)
 		wait(named(app, "chat.composer"))
+	}
+
+	private static func becomesHittable(_ element: XCUIElement, within timeout: TimeInterval)
+		-> Bool
+	{
+		let hittable = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "hittable == true"), object: element)
+		return XCTWaiter.wait(for: [hittable], timeout: timeout) == .completed
 	}
 
 	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
@@ -220,6 +269,10 @@ enum TutorialHarness {
 		XCTAssertEqual(recordCount(app, kind), expected)
 	}
 
+	static func settlementRows(_ app: XCUIApplication) -> [String] {
+		recordRowLabels(app).filter { $0.hasPrefix("turnSettled") }
+	}
+
 	static func recordRowLabels(_ app: XCUIApplication) -> [String] {
 		var seen: [String] = []
 		var labels: [String] = []
@@ -233,12 +286,22 @@ enum TutorialHarness {
 				labels.append(row.label)
 				added = true
 			}
-			if !added {
+			if !added, !labels.isEmpty {
 				break
 			}
 			app.swipeUp()
 		}
 		return labels
+	}
+
+	static func historyHead(_ app: XCUIApplication) -> String {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let head = named(app, "fixture.historyHead")
+		wait(head)
+		let label = head.label
+		closeMenu(app)
+		return label
 	}
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {

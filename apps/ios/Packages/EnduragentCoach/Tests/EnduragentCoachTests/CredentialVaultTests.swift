@@ -40,7 +40,8 @@ import Testing
 			sport: .cycling,
 			ports: CoachPorts(
 				records: records, secrets: secrets, models: .scripted(transport),
-				training: training, credits: .fake(FakeCreditsClient()), clock: clock),
+				training: training, credits: .fake(FakeCreditsClient()),
+				host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel,
 			language: .init(ui: .en, coachReply: nil),
 			coalescing: quickWindow

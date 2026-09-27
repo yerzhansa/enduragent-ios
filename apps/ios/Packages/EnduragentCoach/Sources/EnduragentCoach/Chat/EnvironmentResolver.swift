@@ -16,12 +16,13 @@ package struct EnvironmentResolver: Sendable {
 	}
 
 	package func attempt(
-		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, in resolved: AttemptEnvironment
+		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, process: ProcessID,
+		in resolved: AttemptEnvironment
 	) async -> TurnAttempt {
 		TurnAttempt(
 			turn: facts.turn, attempt: attempt, chat: chat, request: facts.requestText,
 			slash: facts.slash, language: await language(), access: resolved.access,
-			training: resolved.training)
+			training: resolved.training, process: process)
 	}
 
 	package func resolve() async -> Result<AttemptEnvironment, AccessUnavailable> {

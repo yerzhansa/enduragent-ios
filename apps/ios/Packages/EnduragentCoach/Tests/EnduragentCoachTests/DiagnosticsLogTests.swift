@@ -95,26 +95,41 @@ import Testing
 	}
 
 	@Test(arguments: [true, false])
-	func softFlushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
+	func flushFailureIsRecordedNotDropped(keyStored: Bool) async throws {
+		let store = InMemoryRecordLog()
+		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		let at = clock.now.addingTimeInterval(-5)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: at, ulid: ULID.generate(at: at),
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, trigger: .softThreshold,
+								messageUlids: [history[0].user, history[0].reply]))))
+			])
 		let transport = FakeModelTransport()
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
 		let secrets = keyedSecrets()
+		secrets.locked = !keyStored
 		let coach = makeCoach(
-			transport: transport, store: InMemoryRecordLog(), clock: clock, secrets: secrets)
-		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
-		transport.maintenanceScript = [.fail(.http(status: 500))]
-		if !keyStored {
-			secrets.locked = true
+			transport: transport, store: store, clock: clock, secrets: secrets)
+		await coach.lifecycle(.becameActive)
+		let deadline = ContinuousClock.now + .seconds(5)
+		var flushFailures: [String] = []
+		while flushFailures.isEmpty, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(10))
+			flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
+				guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
+				return detail
+			}
 		}
-		await coach.waitForMemoryFlush()
-		let flushFailures = coach.diagnostics.entries.compactMap { entry -> String? in
-			guard case .memoryFlushFailed(.main, let detail) = entry.event else { return nil }
-			return detail
-		}
-		let expected = keyStored ? "serverError" : "secureStorageLocked"
+		let expected = keyStored ? "providerDown" : "secureStorageLocked"
 		#expect(flushFailures.count == 1)
 		#expect(flushFailures.first?.contains(expected) == true)
-		#expect(transport.requestCount == (keyStored ? 2 : 1))
+		#expect(transport.requestCount == (keyStored ? 2 : 0))
 	}
 }
 
@@ -164,7 +179,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
 		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
 		return detail.count
-	case .skippedRecord:
+	case .skippedRecord, .recoveryUnavailable:
 		return nil
 	}
 }

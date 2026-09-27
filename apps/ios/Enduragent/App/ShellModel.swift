@@ -14,7 +14,6 @@ final class ShellModel {
 	var dismissedProposal: Nonce?
 	var slashListVisible = false
 	private(set) var status: CoachStatus?
-	var starterCredits: Credits?
 	var starterLine: String?
 	var starterResolved = false
 	var balance: Credits?
@@ -32,6 +31,7 @@ final class ShellModel {
 	var packPrices: [String: String] = [:]
 
 	let builder: ServicesBuilder
+	let lifecycle: AppLifecycle
 	let chatIndex: ChatIndex
 	let drafts: DraftStore
 	private let defaults: UserDefaults
@@ -41,6 +41,7 @@ final class ShellModel {
 
 	init(builder: ServicesBuilder) {
 		self.builder = builder
+		self.lifecycle = AppLifecycle(builder: builder)
 		self.defaults = builder.defaults
 		self.chatIndex = ChatIndex(defaults: builder.defaults)
 		self.drafts = DraftStore(defaults: builder.defaults)
@@ -120,7 +121,6 @@ final class ShellModel {
 			let outcome = try await services.coach.credits.grant(deviceCheck: token)
 			switch outcome {
 			case .minted(let credits):
-				starterCredits = credits
 				starterLine = "\(credits.units) credits"
 			case .toppedUp(let added):
 				starterLine = "Added \(added.units) credits"
@@ -139,7 +139,6 @@ final class ShellModel {
 		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
 		let scale = try await services.coach.credits.catalog().scale
 		let balance = try await services.coach.credits.balance(scale: scale)
-		starterCredits = balance.credits
 		return "\(balance.credits.units) credits"
 	}
 
@@ -236,7 +235,9 @@ final class ShellModel {
 	}
 
 	func send() async {
-		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
+		let sent = draft
+		let chat = chatId
+		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !text.isEmpty, !isSending else { return }
 		isSending = true
 		defer { isSending = false }
@@ -244,15 +245,14 @@ final class ShellModel {
 		errorLine = nil
 		confirmLine = nil
 		slashListVisible = false
-		if case .rejected(let message)? = services.fixtureDirector?.prepare(for: text) {
+		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
 			return
 		}
 		do {
-			switch try await services.coach.send(Draft(id: draft.id, text: text), to: chatId) {
+			switch try await services.coach.send(Draft(id: sent.id, text: text), to: chat) {
 			case .accepted, .showLanguagePicker:
-				draft = Draft(id: DraftID(), text: "")
-				drafts.clear(chatId)
+				clear(sent, from: chat)
 			case .ignoredBlank:
 				break
 			}
@@ -261,6 +261,16 @@ final class ShellModel {
 			case .storageUnavailable:
 				notSent = true
 			}
+		}
+	}
+
+	private func clear(_ sent: Draft, from chat: ChatID) {
+		let current = chat == chatId ? draft : drafts.load(chat)
+		guard let current, current.id == sent.id else { return }
+		let kept = Draft(id: DraftID(), text: current == sent ? "" : current.text)
+		drafts.save(kept, for: chat)
+		if chat == chatId {
+			draft = kept
 		}
 	}
 

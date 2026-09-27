@@ -9,7 +9,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package let origin: DeviceID
 	package var legacy = false
 	package var fragments: [Fragment] = []
-	package var claims: [TurnClaimBody] = []
+	package var claims: [ClaimedAttempt] = []
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
 
@@ -21,12 +21,27 @@ package struct TurnFacts: Sendable, Equatable {
 		fragments.min { $0.index < $1.index }?.slash
 	}
 
-	package var latestSettlement: SettledAttempt? {
-		settlements.max { $0.hlc < $1.hlc }
+	package var latestAttempt: AttemptID? {
+		let claimed = claims.map { (attempt: $0.attempt, started: $0.hlc) }
+		let unclaimed = settlements.filter { settled in
+			!claims.contains { $0.attempt == settled.attempt }
+		}.map { (attempt: $0.attempt, started: $0.hlc) }
+		return (claimed + unclaimed).max { $0.started < $1.started }?.attempt
 	}
 
-	package var openClaims: [TurnClaimBody] {
-		claims.filter { claim in !settlements.contains { $0.attempt == claim.attempt } }
+	package var latestSettlement: SettledAttempt? {
+		guard let latest = latestAttempt else { return nil }
+		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
+	}
+
+	package var reply: ReplyText? {
+		guard case .replied(let text, _)? = latestSettlement?.settlement else { return nil }
+		return text
+	}
+
+	package var openClaim: ClaimedAttempt? {
+		guard let latest = latestAttempt, latestSettlement == nil else { return nil }
+		return claims.first { $0.attempt == latest }
 	}
 
 	var lastUlid: ULID {
@@ -34,13 +49,20 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
-		guard let first = fragments.min(by: { $0.index < $1.index }) else { return [] }
-		let question = (
-			first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)
-		)
-		guard let settled = latestSettlement else {
-			return legacy ? [question] : []
+		guard let userRow else { return [] }
+		if let replyRow {
+			return [userRow, replyRow]
 		}
+		return legacy && latestSettlement == nil ? [userRow] : []
+	}
+
+	var userRow: (ulid: ULID, message: ChatMessage)? {
+		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
+		return (first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate))
+	}
+
+	var replyRow: (ulid: ULID, message: ChatMessage)? {
+		guard let settled = latestSettlement else { return nil }
 		let replyText: String
 		switch settled.settlement {
 		case .replied(.model(let text), _):
@@ -50,16 +72,21 @@ package struct TurnFacts: Sendable, Equatable {
 		case .savedWork(let outcome, _):
 			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
 		case .interrupted, .failed:
-			return []
+			return nil
 		}
-		return [
-			question,
-			(
-				settled.ulid,
-				ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
-			),
-		]
+		return (
+			settled.ulid,
+			ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
+		)
 	}
+}
+
+package struct ClaimedAttempt: Sendable, Equatable {
+	package let hlc: HybridLogicalClock
+	package let body: TurnClaimBody
+
+	package var attempt: AttemptID { body.attempt }
+	package var process: ProcessID? { body.process }
 }
 
 package struct Fragment: Sendable, Equatable {

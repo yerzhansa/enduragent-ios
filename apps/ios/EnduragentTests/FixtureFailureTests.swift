@@ -39,7 +39,7 @@ extension FixtureLaunchTests {
 		),
 		("fixture:fail network x3", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 3),
 		("fixture:fail timeout x2", Catalog.coachErrorProviderDown, Catalog.chatTranscriptRetry, 2),
-		("fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 4 + 3),
+		("fixture:fail overflow x4", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 4 + 1),
 	])
 	func failDirectiveSettlesWithItsNotice(
 		directive: String, key: CatalogKey, button: CatalogKey, requests: Int
@@ -73,24 +73,24 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 2)
 	}
 
-	@Test func failDirectiveRepeatsOnlyWithACount() throws {
+	@Test func failDirectiveRepeatsOnlyWithACount() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let director = try #require(services.fixtureDirector)
-		#expect(director.prepare(for: "fixture:fail 429 7 x4") == .sendToCoach)
+		#expect(await director.prepare(for: "fixture:fail 429 7 x4") == .sendToCoach)
 		let limited = ScriptedEvent.fail(.http(status: 429, headers: ["retry-after": "7"]))
 		#expect(
 			Array(transport.script.prefix(5)) == Array(repeating: limited, count: 4) + [
 				.text(FirstWeekFixture.weekSummary)
 			])
-		#expect(director.prepare(for: "fixture:fail network") == .sendToCoach)
+		#expect(await director.prepare(for: "fixture:fail network") == .sendToCoach)
 		#expect(transport.script.first == .fail(.connection(.notConnectedToInternet)))
 		#expect(transport.script.dropFirst().first == .text(FirstWeekFixture.weekSummary))
 		#expect(
-			director.prepare(for: "fixture:fail 500 xlots")
+			await director.prepare(for: "fixture:fail 500 xlots")
 				== .rejected(
 					"Unknown fixture directive: fixture:fail 500 xlots"))
-		#expect(director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
+		#expect(await director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
 		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
 	}
 

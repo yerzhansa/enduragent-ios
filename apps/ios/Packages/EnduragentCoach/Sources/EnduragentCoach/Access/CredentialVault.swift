@@ -66,8 +66,12 @@ package actor CredentialVault {
 	package func change(
 		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
-		await changes.enter()
-		defer { changes.leave() }
+		await changes.pass { _ in await applying(change, boundWork: boundWork) }
+	}
+
+	private func applying(
+		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
+	) async -> CredentialOutcome<IntervalsSummary> {
 		recoverStaging()
 		let current: ActiveConnection?
 		do {

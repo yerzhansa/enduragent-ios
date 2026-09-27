@@ -33,6 +33,12 @@ struct AppServices: Sendable {
 		}
 		return ModelID(rawValue: raw)
 	}
+	static var bundleIdentifier: String {
+		guard let identifier = Bundle.main.bundleIdentifier else {
+			preconditionFailure("The app bundle has no identifier")
+		}
+		return identifier
+	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 
 	var coach: Coach
@@ -40,6 +46,7 @@ struct AppServices: Sendable {
 	var phrasebook: any Phrasebook
 	var clock: any Clock
 	var fixtureDirector: FixtureDirector?
+	var leases: @Sendable () async -> [LeaseRecord]
 
 	var isFixture: Bool {
 		fixtureDirector != nil
@@ -76,6 +83,7 @@ struct AppServices: Sendable {
 						path: ModelContainerHandle.localStoreFileName))
 			)
 		)
+		records.failRecoveryReads = launch.recovery == .unreadable
 		let secrets = try FakeSecretStore(directory: launch.directory)
 		if launch.keychain != .empty {
 			try FirstWeekFixture.install(on: secrets)
@@ -83,6 +91,7 @@ struct AppServices: Sendable {
 		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
+		let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
@@ -91,6 +100,7 @@ struct AppServices: Sendable {
 				models: .scripted(transport),
 				training: FirstWeekFixture.training(intervals),
 				credits: .fake(credits),
+				host: host,
 				clock: clock
 			),
 			builtInModel: builtInModel,
@@ -103,11 +113,13 @@ struct AppServices: Sendable {
 			phrasebook: phrasebook,
 			clock: clock,
 			fixtureDirector: FixtureDirector(
-				transport: transport, records: records, secrets: secrets, intervals: intervals,
-				credits: credits)
+				transport: transport, records: records, host: host, secrets: secrets,
+				intervals: intervals, credits: credits),
+			leases: { host.leases }
 		)
 	}
 
+	@MainActor
 	static func live(language: LanguageTag) throws -> AppServices {
 		let clock = SystemClock()
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
@@ -116,6 +128,10 @@ struct AppServices: Sendable {
 			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
+		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
+		let host = ContinuedProcessingHost(
+			phrasebook: phrasebook, bundleIdentifier: bundleIdentifier,
+			system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
@@ -124,6 +140,7 @@ struct AppServices: Sendable {
 				models: .openRouter(baseURL: ModelService.openRouterAPI),
 				training: .intervalsREST,
 				credits: .worker(creditsWorkerBase),
+				host: host,
 				clock: clock
 			),
 			builtInModel: builtInModel,
@@ -132,9 +149,10 @@ struct AppServices: Sendable {
 		return AppServices(
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
-			phrasebook: CatalogPhrasebook(tag: language, locale: language.defaultLocale),
+			phrasebook: phrasebook,
 			clock: clock,
-			fixtureDirector: nil
+			fixtureDirector: nil,
+			leases: { await host.leases }
 		)
 	}
 

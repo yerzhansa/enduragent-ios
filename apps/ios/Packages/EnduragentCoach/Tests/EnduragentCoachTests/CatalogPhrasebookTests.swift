@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2432)
-		#expect(Catalog.keyCount == 2468)
+		#expect(Catalog.englishLeafCount == 2433)
+		#expect(Catalog.keyCount == 2469)
 	}
 
 	@Test(arguments: [
@@ -42,6 +42,7 @@ import Testing
 		(Catalog.chatTurnRestorePurchases, "Restore purchases"),
 		(Catalog.chatTurnChooseAccessMethod, "Choose access method"),
 		(Catalog.chatTurnSignInAgain, "Sign in again"),
+		(Catalog.chatTurnFinishedWhileLocked, "Finished while the phone was locked."),
 	])
 	func newKeysRenderInEnglishAndFallBackForOtherTags(key: CatalogKey, english: String) {
 		#expect(CatalogPhrasebook(tag: .en, locale: "en-US").say(key) == english)
