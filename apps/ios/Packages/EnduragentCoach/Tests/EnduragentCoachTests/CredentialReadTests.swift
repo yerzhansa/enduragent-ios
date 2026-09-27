@@ -80,7 +80,8 @@ extension CredentialVaultTests {
 					credential: ProviderCredential(
 						secret: "sk-or-account", method: .openRouterAccount),
 					model: model))
-		#expect(secrets.reads == [.accessSelection, .openRouterAccountKey])
+		#expect(
+			secrets.reads == [.intervalsConnectionStaging, .accessSelection, .openRouterAccountKey])
 		try secrets.delete(.openRouterAccountKey)
 		await #expect(throws: AccessUnavailable.notConfigured(.openRouterAccount)) {
 			try await vault.modelAccess(builtInModel: testModel)

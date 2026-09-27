@@ -78,13 +78,6 @@ public enum TrainingAccount: Hashable, Sendable {
 	case unconnected
 	case intervals(connection: ConnectionID, athlete: IntervalsAthleteID?)
 
-	public func matchesAthlete(_ current: TrainingAccount) -> Bool {
-		switch authority(under: current) {
-		case .same, .sameAthlete: true
-		case .changed, .unverifiable: false
-		}
-	}
-
 	public func authority(under current: TrainingAccount) -> AccountAuthority {
 		switch (self, current) {
 		case (.unconnected, .unconnected):

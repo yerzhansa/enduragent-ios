@@ -118,7 +118,6 @@ private func ulidTimestamp(_ raw: String) throws -> UInt64 {
 		let bound = TrainingAccount.intervals(connection: connection, athlete: athlete)
 		let current = TrainingAccount.intervals(connection: connection, athlete: other)
 		#expect(bound.authority(under: current) == .changed)
-		#expect(!bound.matchesAthlete(current))
 	}
 
 	@Test func differentAthleteOrDisconnectIsChanged() throws {

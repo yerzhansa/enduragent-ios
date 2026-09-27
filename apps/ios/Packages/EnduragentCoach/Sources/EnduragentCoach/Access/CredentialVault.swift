@@ -305,6 +305,17 @@ package actor CredentialVault {
 	}
 
 	private func prepareStaging() throws(AccessUnavailable) {
+		do {
+			_ = try keychain(.intervalsConnectionStaging) { try store.stagedReplacement() }
+		} catch .malformedStoredCredential(.intervalsConnectionStaging) {
+			diagnostics.record(
+				.secureStorageFailed(
+					.intervalsConnectionStaging, detail: "Staged replacement could not be decoded.")
+			)
+			try keychain(.intervalsConnectionStaging) {
+				try store.delete(.intervalsConnectionStaging)
+			}
+		}
 		guard !stagingRecovered else { return }
 		try keychain(.intervalsConnectionStaging) { try store.rollbackStagedReplacement() }
 		stagingRecovered = true
