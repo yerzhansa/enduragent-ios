@@ -40,6 +40,7 @@ enum TutorialHarness {
 	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let draft = "Is Thursday still on?"
+	static let saturday = "How did Saturday go"
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
@@ -49,13 +50,11 @@ enum TutorialHarness {
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
 		coalescingMilliseconds: Int? = nil, language: String = "en", locale: String = "en_US"
 	) {
+		XCUIDevice.shared.appearance = dark ? .dark : .light
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
-		if dark {
-			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
-		}
 		if let keychain {
 			app.launchArguments += [keychainArgument, keychain]
 		}
@@ -127,6 +126,50 @@ enum TutorialHarness {
 		XCTAssertEqual(
 			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
 		)
+	}
+
+	static func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		wait(element, timeout: timeout)
+		let enabled = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "enabled == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [enabled], timeout: timeout), .completed, "not enabled \(element)")
+	}
+
+	static func waitForAbsence(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let gone = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "exists == false"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [gone], timeout: timeout), .completed, "still on screen \(element)")
+	}
+
+	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
+		guard let image = screenshot.image.cgImage else {
+			XCTFail("the screenshot has no bitmap")
+			return 1
+		}
+		let side = 16
+		var pixels = [UInt8](repeating: 0, count: side * side * 4)
+		let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+			guard
+				let context = CGContext(
+					data: buffer.baseAddress, width: side, height: side, bitsPerComponent: 8,
+					bytesPerRow: side * 4, space: CGColorSpaceCreateDeviceRGB(),
+					bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+			else {
+				return false
+			}
+			context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
+			return true
+		}
+		XCTAssertTrue(drawn, "could not sample the screenshot")
+		var total = 0.0
+		for index in stride(from: 0, to: pixels.count, by: 4) {
+			total +=
+				0.2126 * Double(pixels[index]) + 0.7152 * Double(pixels[index + 1])
+				+ 0.0722 * Double(pixels[index + 2])
+		}
+		return total / Double(side * side) / 255
 	}
 
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {

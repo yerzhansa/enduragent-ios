@@ -56,9 +56,9 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Record store unavailable | `launch.storageUnavailable` with `Conversation history is temporarily unavailable.` and `Quit and reopen Enduragent.` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.error`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.error` for failures outside a turn, `chat.slash.<command>` |
+| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.note` for a transcript note such as the `Done —` line after `Add to calendar`, `chat.review.notice` for the result of a workout review action, `chat.error` for an unknown fixture directive, `chat.slash.<command>` |
 | Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` labeled `<kind> <device> <HLC> <account>`, where a `turnSettled` row also names its outcome after the kind, such as `interrupted processEnded`, and the `Refresh` button with no identifier |
-| Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Confirmed preview` group |
+| Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Workout review` group, both disabled until the card reports it is on screen, and `chat.preview.notice` for the account-changed notice, which replaces both buttons |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note`, `credits.notice` |
 | Credentials | `debug.credentials` in Debug, `credentials.outcome`, `credentials.athlete`, `credentials.connection`, `credentials.keySuffix`, `credentials.lock`, `credentials.failNextWrite`, `credentials.apiKey`, `credentials.replace`, `credentials.replaceBlank`, `credentials.cancel`, `credentials.switchAthlete`, `credentials.disconnect` |
@@ -103,7 +103,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 1. Drive the app to the state with the interactive harness.
 2. Run `sim.mjs parity <run id> <prototype>-<state> <light|dark>`, for example `parity <run id> chat-menu dark`. The helper sets the simulator appearance, waits 1.5 seconds, and writes `parity/<prototype>-<state>-<theme>/` with `prototype.png`, `simulator.png` at 1170 × 2532, and `simulator-390.png` at the prototype's 390 × 844. An unknown state prints every available state. The appearance stays set afterwards.
-3. To use a proof screenshot instead, add `--from <attachment png>`. Launch that proof with `TutorialHarness.launch(app, dark: true)` for the dark theme.
+3. To use a proof screenshot instead, add `--from <attachment png>`. Launch that proof with `TutorialHarness.launch(app, dark: true)` for the dark theme. It sets the simulator to dark appearance through `XCUIDevice.shared.appearance`, the same setting as `xcrun simctl ui <udid> appearance dark`, and every other `launch` sets it back to light. The `-AppleInterfaceStyle Dark` launch argument does not change an iOS app.
 4. Read `prototype.png` and `simulator-390.png` together and check each item:
    - The same states exist, and the athlete can reach each one.
    - The same catalog copy appears word for word. Copy comes from `packages/i18n/catalogs/en.json` through `phrasebook.say`.
@@ -116,7 +116,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `chat-welcome` | Chat right after onboarding, with `Hello, Ada.` or `Hello.` after a skip |
 | `chat-menu`, `chat-menu-nosync` | The slash list after typing `/` in `chat.composer`. The nosync state is the same list after `Skip for now`. |
 | `chat-new-conversation` | The greeting after `New chat` |
-| `review-ready` | The `Confirmed preview` card after a workout request |
+| `review-ready` | The `Workout review` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |

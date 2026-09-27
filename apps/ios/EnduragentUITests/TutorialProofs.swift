@@ -100,36 +100,6 @@ final class CreditsProof: XCTestCase {
 	}
 }
 
-final class ConfirmedPreviewProof: XCTestCase {
-	func testConfirmedPreview() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.waitForLabel(app, "Confirmed preview")
-		TutorialHarness.waitForLabel(app, TutorialHarness.warmup)
-		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.cancel").exists)
-		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class AddedToCalendarProof: XCTestCase {
-	func testAddedToCalendar() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
-		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.wait(add)
-		add.tap()
-		TutorialHarness.waitForLabel(app, TutorialHarness.done)
-		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
 final class SlashListNoPlanProof: XCTestCase {
 	func testSlashListHidesPlan() {
 		let app = XCUIApplication()
@@ -164,19 +134,6 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, "1998-06-15")
 		TutorialHarness.attach(self, name: "history-list", app: app)
-	}
-}
-
-final class ConfirmedPreviewDarkProof: XCTestCase {
-	func testConfirmedPreviewDark() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, dark: true)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.waitForLabel(app, "Confirmed preview")
-		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -221,16 +178,20 @@ final class RecordsClockOrderProof: XCTestCase {
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.send(app, TutorialHarness.workout)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.named(app, "chat.preview.add").tap()
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		TutorialHarness.waitUntilEnabled(add)
+		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.attach(self, name: "records-clock-order", app: app)
 		let labels = TutorialHarness.recordRowLabels(app)
 		let rows = labels.map { $0.split(separator: " ").map(String.init) }
 		XCTAssertTrue(
-			rows.allSatisfy { $0.count == 4 || ($0.first == "turnSettled" && $0.count > 4) },
-			"every row shows kind, device, HLC, and account, and a turnSettled row its outcome: \(labels)"
+			rows.allSatisfy {
+				$0.count == 4
+					|| (["turnSettled", "proposalCleared"].contains($0.first) && $0.count > 4)
+			},
+			"every row shows kind, device, HLC, and account, and a settlement or clear its outcome: \(labels)"
 		)
 		let clocks = rows.compactMap { $0.dropLast().last }
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
@@ -277,7 +238,7 @@ final class UpgradeKeepsProposalProof: XCTestCase {
 		let app = XCUIApplication()
 		try TutorialHarness.launchKeepingStore(
 			app, expecting: TutorialHarness.named(app, "chat.preview.add"))
-		TutorialHarness.waitForLabel(app, "Confirmed preview")
+		TutorialHarness.waitForLabel(app, "Workout review")
 		let cancel = TutorialHarness.named(app, "chat.preview.cancel")
 		let add = TutorialHarness.named(app, "chat.preview.add")
 		XCTAssertTrue(cancel.exists)

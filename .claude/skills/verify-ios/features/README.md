@@ -44,6 +44,6 @@ Keep implementation details out of the map. Name only athlete paths, stable hand
 
 - [Onboarding](./onboarding.md) covers the notice, connecting or skipping intervals.icu, and the starter credits.
 - [Chat](./chat.md) covers sending, replies, the working line, the slash list, `/plan`, and `New chat`.
-- [Workout preview](./workout-preview.md) covers the `Confirmed preview` card with `Cancel` and `Add to calendar`.
+- [Workout preview](./workout-preview.md) covers the `Workout review` card with `Cancel` and `Add to calendar`.
 - [History](./history.md) covers the chat list in the menu and reopening a chat.
 - [Credits](./credits.md) covers the balance, the packs, and the tester note.
