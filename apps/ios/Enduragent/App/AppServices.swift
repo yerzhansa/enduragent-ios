@@ -124,10 +124,8 @@ struct AppServices: Sendable {
 			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let host = ContinuedProcessingHost(
-			phrasebook: phrasebook, bundleIdentifier: bundleIdentifier,
-			system: LiveBackgroundSystem())
+			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(

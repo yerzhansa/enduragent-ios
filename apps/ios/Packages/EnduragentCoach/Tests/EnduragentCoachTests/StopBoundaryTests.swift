@@ -222,7 +222,9 @@ import Testing
 		await coach.lifecycle(.enteredBackground)
 		_ = try #require(await coach.settledState(of: second, in: .main))
 		let lease = try #require(await host.ended(0))
-		#expect(lease.ending == .finished(CompletionNotice(reply: "Second.", turn: second)))
+		#expect(
+			lease.ending
+				== .finished(CompletionNotice(reply: "Second.", turn: second, language: .en)))
 		#expect(lease.progress?.settledTurns == 2)
 		#expect(host.leases.count == 1)
 	}

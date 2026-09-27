@@ -60,7 +60,8 @@ extension FixtureLaunchTests {
 		let system = StubBackgroundSystem()
 		let host = leaseHost(system)
 		let recovery = LeaseRequest(
-			chat: .main, initiatedBy: .recovery, title: Catalog.chatNoticeWorking)
+			chat: .main, initiatedBy: .recovery, title: Catalog.chatNoticeWorking,
+			language: .en)
 		let lease = await host.beginLease(recovery) { _ in }
 		#expect(lease.kind == .gracePeriodOnly)
 		#expect(system.submitted.isEmpty)
@@ -74,7 +75,8 @@ extension FixtureLaunchTests {
 		let system = StubBackgroundSystem()
 		let host = leaseHost(system)
 		let recovery = LeaseRequest(
-			chat: .main, initiatedBy: .recovery, title: Catalog.chatNoticeWorking)
+			chat: .main, initiatedBy: .recovery, title: Catalog.chatNoticeWorking,
+			language: .en)
 		for _ in 0...ContinuedProcessingHost.keptLeases {
 			await host.beginLease(recovery) { _ in }.end(.finished(nil))
 		}
@@ -157,13 +159,13 @@ extension FixtureLaunchTests {
 	}
 
 	private var athleteRequest: LeaseRequest {
-		LeaseRequest(chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking)
+		LeaseRequest(
+			chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
+			language: .en)
 	}
 
 	private func leaseHost(_ system: StubBackgroundSystem) -> ContinuedProcessingHost {
-		ContinuedProcessingHost(
-			phrasebook: CatalogPhrasebook(tag: .en, locale: "en-US"),
-			bundleIdentifier: "icu.enduragent.app", system: system)
+		ContinuedProcessingHost(bundleIdentifier: "icu.enduragent.app", system: system)
 	}
 
 	private func leaseCoach(host: ContinuedProcessingHost) throws -> Coach {

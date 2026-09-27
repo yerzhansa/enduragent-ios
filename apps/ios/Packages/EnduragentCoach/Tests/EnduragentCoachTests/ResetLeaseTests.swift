@@ -10,7 +10,8 @@ import Testing
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
 	let athleteLease = LeaseRequest(
-		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking)
+		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
+		language: .en)
 
 	func coach() -> Coach {
 		makeCoach(transport: transport, store: store, clock: clock, host: host)

@@ -216,6 +216,32 @@ import Testing
 		#expect(await coach.status().language == .fixed(.de))
 	}
 
+	@Test func leaseTitlesFollowTheAppLanguage() async throws {
+		let host = ImmediateExecutionHost()
+		let transport = FakeModelTransport()
+		transport.script = [
+			.text("Dos salidas."), .finish(reason: .stop), .text("Two rides."),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), host: host)
+		try await coach.setLanguage(.fixed(.es))
+		_ = try await coach.sendAndSettle("How was my week?")
+		let spanish = try #require(await host.ended(0))
+		#expect(spanish.request.language == .es)
+		#expect(spanish.request.titleText == "El entrenador está trabajando…")
+		guard case .finished(let notice?) = spanish.ending else {
+			Issue.record("the lease ended without a notice: \(String(describing: spanish.ending))")
+			return
+		}
+		#expect(notice.titleText == "Entrenador")
+		#expect(notice.excerpt == "Dos salidas.")
+		try await coach.setLanguage(.automatic)
+		_ = try await coach.sendAndSettle("And this week?")
+		let automatic = try #require(await host.ended(1))
+		#expect(automatic.request.language == .en)
+		#expect(automatic.request.titleText == "Coach is working…")
+	}
+
 	@Test func failedWriteKeepsThePreviousPreference() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = makeCoach(transport: FakeModelTransport(), store: log)

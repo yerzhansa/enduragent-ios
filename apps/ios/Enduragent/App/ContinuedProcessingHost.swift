@@ -32,13 +32,11 @@ enum ContinuedProcessingRefusal: Error, Equatable {
 final class ContinuedProcessingHost: ExecutionHost {
 	static let keptLeases = 50
 
-	private let phrasebook: any Phrasebook
 	private let bundleIdentifier: String
 	let system: any BackgroundSystem
 	private(set) var leases: [LeaseRecord] = []
 
-	init(phrasebook: any Phrasebook, bundleIdentifier: String, system: any BackgroundSystem) {
-		self.phrasebook = phrasebook
+	init(bundleIdentifier: String, system: any BackgroundSystem) {
 		self.bundleIdentifier = bundleIdentifier
 		self.system = system
 	}
@@ -77,7 +75,7 @@ final class ContinuedProcessingHost: ExecutionHost {
 	func notify(_ notice: CompletionNotice, lease identifier: String) async {
 		guard !system.isActive else { return }
 		let content = UNMutableNotificationContent()
-		content.title = phrasebook.say(notice.title, [:])
+		content.title = notice.titleText
 		content.body = notice.excerpt
 		let request = UNNotificationRequest(
 			identifier: "\(bundleIdentifier).reply.\(notice.turn.ulid.rawValue)",
@@ -101,7 +99,7 @@ final class ContinuedProcessingHost: ExecutionHost {
 			throw ContinuedProcessingRefusal.handlerNotRegistered(identifier)
 		}
 		let task = BGContinuedProcessingTaskRequest(
-			identifier: identifier, title: phrasebook.say(request.title, [:]), subtitle: "")
+			identifier: identifier, title: request.titleText, subtitle: "")
 		task.strategy = .fail
 		try system.submit(task)
 	}

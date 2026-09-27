@@ -51,7 +51,7 @@ package actor ChatMailbox {
 		self.coalescing = coalescing
 		self.environment = environment
 		self.process = process
-		self.leases = LeaseSlot(host: host, chat: chatId)
+		self.leases = LeaseSlot(host: host, chat: chatId) { await environment.appLanguage() }
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
 

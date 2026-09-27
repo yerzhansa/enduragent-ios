@@ -43,6 +43,10 @@ package struct EnvironmentResolver: Sendable {
 		}
 	}
 
+	package func appLanguage() async -> LanguageTag {
+		await preferences().language.appLanguage(device: deviceLanguage)
+	}
+
 	package func flushAccess() async
 		-> @Sendable () async throws(AccessUnavailable) -> ResolvedAccess
 	{

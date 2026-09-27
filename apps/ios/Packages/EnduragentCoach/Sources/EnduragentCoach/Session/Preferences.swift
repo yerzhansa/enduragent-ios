@@ -42,8 +42,7 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 	}
 
 	public func phrasebook(device: LanguageTag) -> CatalogPhrasebook {
-		let tag = appLanguage(device: device)
-		return CatalogPhrasebook(tag: tag, locale: tag.defaultLocale)
+		appLanguage(device: device).phrasebook
 	}
 
 	package func replyLanguage(for message: String, device: LanguageTag) -> LanguageResolution {
@@ -54,6 +53,12 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		case .fixed(let tag):
 			Language.resolve(saved: tag, messageHint: nil, surface: device)
 		}
+	}
+}
+
+extension LanguageTag {
+	public var phrasebook: CatalogPhrasebook {
+		CatalogPhrasebook(tag: self, locale: defaultLocale)
 	}
 }
 
