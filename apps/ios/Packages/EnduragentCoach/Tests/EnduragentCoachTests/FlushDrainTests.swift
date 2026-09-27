@@ -183,19 +183,6 @@ import Testing
 		#expect(interrupted.cause == .processEnded)
 	}
 
-	private func waitUntil(
-		within limit: Duration = .seconds(5), _ condition: () -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit
-		while !condition() {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("condition never held")
-				return
-			}
-			try await Task.sleep(for: .milliseconds(10))
-		}
-	}
-
 	private func waitForDiagnostic(
 		in coach: Coach, within limit: Duration = .seconds(5),
 		_ matches: (DiagnosticsEvent) -> Bool

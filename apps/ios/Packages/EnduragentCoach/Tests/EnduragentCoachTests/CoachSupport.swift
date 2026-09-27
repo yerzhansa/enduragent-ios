@@ -86,6 +86,11 @@ extension Coach {
 		await currentSnapshot(chat)?.turns.first(where: { $0.id == turn })?.state
 	}
 
+	func interruption(of turn: TurnID) async -> InterruptionCause? {
+		guard case .interrupted(let interrupted)? = await state(of: turn) else { return nil }
+		return interrupted.cause
+	}
+
 	func waitForState(
 		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
 	) async throws -> TurnState? {
@@ -107,6 +112,29 @@ extension Coach {
 		}
 		await lifecycle(.willTerminate)
 	}
+}
+
+func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) async throws {
+	let deadline = ContinuousClock.now + limit
+	while !condition() {
+		guard ContinuousClock.now < deadline else {
+			Issue.record("condition never held")
+			return
+		}
+		try await Task.sleep(for: .milliseconds(10))
+	}
+}
+
+func settlements(of turn: TurnID, in store: any RecordLog) async throws -> [Settlement] {
+	try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn)).records
+		.compactMap { record in
+			guard case .synced(.turnSettled(let body)) = record.body else { return nil }
+			return body.settlement
+		}
+}
+
+func claims(of turn: TurnID, in store: any RecordLog) async throws -> [AthleteRecord] {
+	try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)).records
 }
 
 func waitForRecords(
@@ -137,6 +165,11 @@ func replyText(_ state: TurnState) -> String? {
 		return nil
 	}
 	return text
+}
+
+func isInterrupted(_ state: TurnState) -> Bool {
+	guard case .interrupted = state else { return false }
+	return true
 }
 
 func failure(_ state: TurnState) -> CoachFailure? {
@@ -345,44 +378,4 @@ final class HeldAppendLog: RecordLog, Sendable {
 	}
 
 	var imports: AsyncStream<Void> { inner.imports }
-}
-
-final class KeepingHost: ExecutionHost {
-	private let inner = ImmediateExecutionHost()
-	private let expiries = Mutex<[@Sendable (ExpiryCause) async -> Void]>([])
-
-	func beginLease(
-		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
-	) async -> any ExecutionLease {
-		expiries.withLock { $0.append(onExpiry) }
-		return await inner.beginLease(request, onExpiry: onExpiry)
-	}
-
-	func expire(lease index: Int, _ cause: ExpiryCause) async {
-		let handler = expiries.withLock { $0[index] }
-		await handler(cause)
-	}
-}
-
-final class GraceOnlyHost: ExecutionHost {
-	private let inner = ImmediateExecutionHost()
-
-	func beginLease(
-		_ request: LeaseRequest, onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
-	) async -> any ExecutionLease {
-		GraceLease(inner: await inner.beginLease(request, onExpiry: onExpiry))
-	}
-}
-
-private struct GraceLease: ExecutionLease {
-	let inner: any ExecutionLease
-	let kind: LeaseKind = .gracePeriodOnly
-
-	func report(_ progress: LeaseProgress) async {
-		await inner.report(progress)
-	}
-
-	func end(_ ending: LeaseEnding) async {
-		await inner.end(ending)
-	}
 }

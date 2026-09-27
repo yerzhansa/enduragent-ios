@@ -46,6 +46,26 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 1)
 	}
 
+	@Test func textTypedWhileTheMessageIsBeingAcceptedStaysInTheComposer() async throws {
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		model.draftChanged(from: "")
+		let sending = Task { await model.send() }
+		await Task.yield()
+		try #require(model.isSending)
+		let typed = "And on Sunday?"
+		model.draft.text = typed
+		model.draftChanged(from: TutorialCopy.weekQuestion)
+		await sending.value
+		#expect(model.draft.text == typed)
+		#expect(model.drafts.load(model.chatId) == model.draft)
+		#expect(try await settledTurn(model, at: 0).athleteText == TutorialCopy.weekQuestion)
+		await model.send()
+		#expect(try await settledTurn(model, at: 1).athleteText == typed)
+		#expect(model.draft.text.isEmpty)
+	}
+
 	@Test func sendKeepsDraftWhenAcceptFails() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
