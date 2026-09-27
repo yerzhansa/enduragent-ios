@@ -63,19 +63,19 @@ final class FixtureLaunchTests {
 	) async throws -> TurnView {
 		let deadline = ContinuousClock.now + limit
 		while ContinuousClock.now < deadline {
-			if let turn = model.chat?.turns.last, isSettled(turn.state), turn.state != previous {
+			if let turn = model.chat?.turns.last, turn.state.isSettled, turn.state != previous {
 				return turn
 			}
 			try await Task.sleep(for: .milliseconds(20))
 		}
-		return try #require(model.chat?.turns.last(where: { isSettled($0.state) }))
+		return try #require(model.chat?.turns.last(where: { $0.state.isSettled }))
 	}
 
 	func settledTurn(_ model: ShellModel, at index: Int) async throws -> TurnView {
 		let deadline = ContinuousClock.now + .seconds(20)
 		while ContinuousClock.now < deadline {
 			if let turns = model.chat?.turns, turns.indices.contains(index),
-				isSettled(turns[index].state)
+				turns[index].state.isSettled
 			{
 				return turns[index]
 			}
@@ -290,11 +290,4 @@ func replyText(_ state: TurnState) -> String? {
 		return nil
 	}
 	return text
-}
-
-func isSettled(_ state: TurnState) -> Bool {
-	switch state {
-	case .completed, .savedWork, .failed, .interrupted: true
-	case .accepted, .processing, .unrecovered: false
-	}
 }
