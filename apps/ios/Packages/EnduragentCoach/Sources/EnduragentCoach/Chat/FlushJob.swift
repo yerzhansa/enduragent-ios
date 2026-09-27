@@ -192,33 +192,27 @@ extension Ledger {
 	package func flushJobsByChat(in conversations: [ChatID: Conversation], local: [AthleteRecord])
 		async throws(LedgerFailure) -> [ChatID: [FlushJob]]
 	{
+		var resolved: [ChatID: FlushRows] = [:]
 		var jobs: [ChatID: [FlushJob]] = [:]
-		for chat in conversations.keys {
-			jobs[chat] = ConversationFold.flushJobs(
+		for (chat, conversation) in conversations {
+			let unmarked = ConversationFold.flushJobs(
 				chat: chat, local: local, markers: [], device: deviceId)
+			let rows = FlushRows(unmarked, in: conversation)
+			resolved[chat] = rows
+			jobs[chat] = FlushJob.settling(unmarked, resolved: rows.byJob)
 		}
-		let hasUnsettledV1Jobs = jobs.values.contains { unmarked in
-			guard unmarked.contains(where: { $0.process == nil && !$0.settled }) else {
-				return false
-			}
-			let listed = Dictionary(
-				uniqueKeysWithValues: unmarked.map { ($0.id, Set($0.messages)) })
-			return FlushJob.settling(unmarked, resolved: listed).contains {
-				$0.process == nil && !$0.settled
-			}
+		let hasUnsettledV1Jobs = jobs.values.contains {
+			$0.contains { $0.process == nil && !$0.settled }
 		}
 		if hasUnsettledV1Jobs {
 			let markers = try await read(RecordQuery(scope: ConversationFold.consumedMarkerScope))
 				.records
-			for chat in conversations.keys {
-				jobs[chat] = ConversationFold.flushJobs(
-					chat: chat, local: local, markers: markers, device: deviceId)
+			for (chat, rows) in resolved {
+				jobs[chat] = FlushJob.settling(
+					ConversationFold.flushJobs(
+						chat: chat, local: local, markers: markers, device: deviceId),
+					resolved: rows.byJob)
 			}
-		}
-		for (chat, conversation) in conversations {
-			let pending = jobs[chat, default: []]
-			let rows = FlushRows(pending, in: conversation)
-			jobs[chat] = FlushJob.settling(pending, resolved: rows.byJob)
 		}
 		return jobs
 	}
