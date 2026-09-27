@@ -257,7 +257,17 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public static func isRealDateKey(_ value: String) -> Bool {
-		let bytes = Array(value.utf8)
+		if let answer = canonicalKeyIsReal(Array(value.utf8)) { return answer }
+		let formatter = DateFormatter()
+		formatter.calendar = Calendar(identifier: .gregorian)
+		formatter.locale = Locale(identifier: "en_US_POSIX")
+		formatter.timeZone = TimeZone(secondsFromGMT: 0)
+		formatter.dateFormat = "yyyy-MM-dd"
+		formatter.isLenient = false
+		return formatter.date(from: value) != nil
+	}
+
+	private static func canonicalKeyIsReal(_ bytes: [UInt8]) -> Bool? {
 		if bytes.count == 10, bytes[4] == 45, bytes[7] == 45,
 			bytes.enumerated().allSatisfy({ index, byte in
 				index == 4 || index == 7 || (48...57).contains(byte)
@@ -281,13 +291,7 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 				return (1...daysInMonth).contains(day)
 			}
 		}
-		let formatter = DateFormatter()
-		formatter.calendar = Calendar(identifier: .gregorian)
-		formatter.locale = Locale(identifier: "en_US_POSIX")
-		formatter.timeZone = TimeZone(secondsFromGMT: 0)
-		formatter.dateFormat = "yyyy-MM-dd"
-		formatter.isLenient = false
-		return formatter.date(from: value) != nil
+		return nil
 	}
 
 	public init(date: Date, timeZone: TimeZone) {
