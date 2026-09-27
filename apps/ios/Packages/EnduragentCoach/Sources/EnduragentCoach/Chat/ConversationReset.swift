@@ -113,10 +113,15 @@ final class PendingResets {
 		_ reset: ResetID, on records: ChatRecords,
 		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess,
 		isolation: isolated (any Actor)? = #isolation
-	) async {
+	) async -> ResetOutcome {
 		let result = await work.run(reset, archiving: records.conversation, access: access)
 		records.apply(result.boundary)
-		waiting.removeValue(forKey: reset)?.resume(returning: result.outcome)
+		_ = await records.refreshJobs(from: work.flushes)
+		return result.outcome
+	}
+
+	func finish(_ reset: ResetID, _ outcome: ResetOutcome) {
+		waiting.removeValue(forKey: reset)?.resume(returning: outcome)
 	}
 }
 

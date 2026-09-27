@@ -386,3 +386,30 @@ private struct GraceLease: ExecutionLease {
 		await inner.end(ending)
 	}
 }
+
+final class SlowScopeLog: RecordLog, Sendable {
+	let inner: any RecordLog
+	let scope: RecordQuery.Scope
+	let delay: Duration
+
+	init(inner: any RecordLog, scope: RecordQuery.Scope, delay: Duration) {
+		self.inner = inner
+		self.scope = scope
+		self.delay = delay
+	}
+
+	var deviceId: DeviceID { inner.deviceId }
+
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		try await inner.append(batch, locality: locality)
+	}
+
+	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		if query.scope == scope {
+			try await Task.sleep(for: delay)
+		}
+		return try await inner.fetch(query)
+	}
+
+	var imports: AsyncStream<Void> { inner.imports }
+}

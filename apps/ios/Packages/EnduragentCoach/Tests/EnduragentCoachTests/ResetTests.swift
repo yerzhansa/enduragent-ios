@@ -106,6 +106,18 @@ import Testing
 		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 	}
 
+	@Test func theSnapshotShowsTheMemoryWarningWhenNewConversationReturns() async throws {
+		let log = SlowScopeLog(
+			inner: store, scope: ConversationFold.flushScope, delay: .milliseconds(300))
+		let coach = coach(over: log)
+		answer("Two rides.")
+		_ = try await coach.sendAndSettle("How was my week?")
+		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+	}
+
 	@Test func resetQueuesBehindRunningTurn() async throws {
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
 		let coach = coach(over: held)

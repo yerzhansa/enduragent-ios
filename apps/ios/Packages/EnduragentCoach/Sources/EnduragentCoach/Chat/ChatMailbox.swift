@@ -256,9 +256,10 @@ package actor ChatMailbox {
 					job, in: self.records.conversation, access: self.environment.access)
 				_ = await self.records.refreshJobs(from: self.flushes)
 			case .reset(let reset):
-				await self.resets.run(reset, on: self.records, access: self.environment.access)
-				_ = await self.records.refreshJobs(from: self.flushes)
+				let outcome = await self.resets.run(
+					reset, on: self.records, access: self.environment.access)
 				self.publish()
+				self.resets.finish(reset, outcome)
 			}
 			self.workFinished()
 		}
