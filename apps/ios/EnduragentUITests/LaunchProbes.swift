@@ -60,7 +60,8 @@ final class HistoryOpenProbe: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		for index in 1...Self.resets {
 			TutorialHarness.send(app, "Archived \(index)")
-			TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 30)
+			TutorialHarness.wait(
+				TutorialHarness.text(app, containing: TutorialHarness.weekReply), timeout: 30)
 			TutorialHarness.startNewConversation(app)
 		}
 		TutorialHarness.openRecords(app)
@@ -75,19 +76,36 @@ final class HistoryOpenProbe: XCTestCase {
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
+		XCTAssertTrue(
+			stampHistoryOpen(
+				app, until: app.staticTexts["Archived \(Self.resets)"], name: "history-open-ms"))
+		TutorialHarness.attach(self, name: "history-with-fifty-archived", app: app)
+	}
+
+	func testHistoryOpenWithNoneArchived() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		XCTAssertTrue(
+			stampHistoryOpen(
+				app, until: TutorialHarness.text(app, containing: "No past conversations yet."),
+				name: "history-open-empty-ms"))
+	}
+
+	private func stampHistoryOpen(_ app: XCUIApplication, until shown: XCUIElement, name: String)
+		-> Bool
+	{
 		TutorialHarness.openSidebar(app)
-		let newest = app.staticTexts["Archived \(Self.resets)"]
 		let started = Date()
 		TutorialHarness.named(app, "sidebar.history").tap()
-		while !newest.exists, Date().timeIntervalSince(started) < 30 {
+		while !shown.exists, Date().timeIntervalSince(started) < 30 {
 			continue
 		}
 		let sample = XCTAttachment(
 			string: String(format: "%.0f", Date().timeIntervalSince(started) * 1_000))
-		sample.name = "history-open-ms"
+		sample.name = name
 		sample.lifetime = .keepAlways
 		add(sample)
-		XCTAssertTrue(newest.exists)
-		TutorialHarness.attach(self, name: "history-with-fifty-archived", app: app)
+		return shown.exists
 	}
 }
