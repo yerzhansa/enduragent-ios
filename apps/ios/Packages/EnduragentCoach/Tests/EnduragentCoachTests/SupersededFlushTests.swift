@@ -64,7 +64,9 @@ extension FlushCoverageTests {
 		#expect(rows.filter { $0 == "Uncovered question" }.count == 1)
 		#expect(rows.filter { $0 == "Uncovered reply" }.count == 1)
 		#expect(!rows.contains("Superseded partial"))
-		#expect(try await ledger.flushJobs(in: .main).allSatisfy(\.saved))
+		#expect(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).allSatisfy(\.saved)
+		)
 	}
 
 	@Test(arguments: [false, true], [false, true])
@@ -73,7 +75,9 @@ extension FlushCoverageTests {
 		await coach.lifecycle(.becameActive)
 		let ledger = try await seedSupersededJobs(
 			pending: implicit ? [] : [1, 2, 4, 5], newer: [1, 3], settled: newerSettled)
-		#expect(try await ledger.flushJobs(in: .main).first?.settled == false)
+		#expect(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.settled
+				== false)
 		transport.flushScript = [.fail(.http(status: 400)), .fail(.http(status: 400))]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let failed = sent(.memoryFlush, by: transport)
@@ -84,13 +88,17 @@ extension FlushCoverageTests {
 			#expect(rows.contains("Uncovered reply"))
 			#expect(!rows.contains("Superseded partial"))
 		}
-		#expect(try await ledger.flushJobs(in: .main).first?.settled == false)
+		#expect(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.settled
+				== false)
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
 		#expect(saved.contains("Uncovered question"))
 		#expect(saved.contains("Uncovered reply"))
-		#expect(try await ledger.flushJobs(in: .main).allSatisfy(\.saved))
+		#expect(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).allSatisfy(\.saved)
+		)
 	}
 
 	@Test func aSupersededOnlyJobDoesNotHideReplacementOrUnrelatedRows() async throws {
@@ -111,7 +119,8 @@ extension FlushCoverageTests {
 		}
 		let settlements = try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled])))
 		#expect(settlements.records.count == 1)
-		let pending = try #require(try await ledger.flushJobs(in: .main).last)
+		let pending = try #require(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(!pending.settled)
 		#expect(pending.messages.count == 3)
 		transport.flushScript = [.finish(reason: .stop)]

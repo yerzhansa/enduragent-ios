@@ -26,7 +26,8 @@ import Testing
 		_ = try #require(await coach.settledState(of: queued, in: .main))
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let soft = try #require(try await ledger.flushJobs(in: .main).first)
+		let soft = try #require(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first)
 		let question = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: queued))
 				.records.first?.ulid)
@@ -97,7 +98,8 @@ import Testing
 		#expect(!flushed.contains("Question 0"))
 		#expect(!flushed.contains { $0.hasPrefix("Answer 0") })
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let fresh = try #require(try await ledger.flushJobs(in: .main).last)
+		let fresh = try #require(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(fresh.messages == [question, reply])
 		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
 	}
@@ -132,7 +134,10 @@ import Testing
 								contentSha256: "consumed")))),
 			])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		try #require(try await ledger.flushJobs(in: .main).map(\.saved) == [true])
+		try #require(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.saved) == [
+				true
+			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))

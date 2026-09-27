@@ -56,14 +56,14 @@ import Testing
 		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
 		log.failRecoveryReads = true
 		await #expect(throws: RecordStorageFault(operation: .fetch)) {
-			_ = try await log.fetch(RecordQuery(scope: TurnRecovery.claimScope, writtenBy: phone))
+			_ = try await log.fetch(RecordQuery(scope: TurnRecovery.localScope, writtenBy: phone))
 		}
 		#expect(
 			try await log.fetch(RecordQuery(scope: ConversationFold.localScope)).records.isEmpty)
 		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
 		log.failRecoveryReads = false
 		#expect(
-			try await log.fetch(RecordQuery(scope: TurnRecovery.claimScope, writtenBy: phone))
+			try await log.fetch(RecordQuery(scope: TurnRecovery.localScope, writtenBy: phone))
 				.records.isEmpty)
 	}
 

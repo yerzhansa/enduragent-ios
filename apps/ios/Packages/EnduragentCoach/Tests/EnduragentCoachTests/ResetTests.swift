@@ -163,8 +163,11 @@ import Testing
 		#expect(window.contains("Question 0"))
 		#expect(window.contains("Question 1"))
 		#expect(
-			FlushJob.outstanding(await flushes.jobs(), in: try await ledger.conversation(.main))
-				.isEmpty)
+			FlushJob.outstanding(
+				await flushes.jobs(in: try await ledger.conversation(.main)),
+				in: try await ledger.conversation(.main)
+			)
+			.isEmpty)
 	}
 
 	@Test func resetQueuesBehindRunningTurn() async throws {

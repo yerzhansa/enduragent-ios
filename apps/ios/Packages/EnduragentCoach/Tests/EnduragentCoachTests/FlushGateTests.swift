@@ -48,7 +48,7 @@ import Testing
 			RecordQuery(scope: ConversationFold.syncedScope, chatId: .main))
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: synced.records, device: store.deviceId)
-		let jobs = try await ledger.flushJobs(in: .main)
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(
 			conversation.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid) == [
 				history[2].user, history[2].reply,
@@ -108,7 +108,7 @@ import Testing
 		}
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let jobs = try await ledger.flushJobs(in: .main)
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		let saved = try #require(jobs.first)
 		let user = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: turn))
@@ -126,7 +126,8 @@ import Testing
 		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)
 		#expect(window.filter { $0 == "Noted." }.count == 1)
 		#expect(!window.contains("First question"))
-		let reset = try #require(try await ledger.flushJobs(in: .main).last)
+		let reset = try #require(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(reset.messages.contains(user))
 	}
 }

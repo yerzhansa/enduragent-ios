@@ -35,7 +35,7 @@ package struct ConversationReset: Sendable {
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
-		let jobs = await flushes.jobs()
+		let jobs = await flushes.jobs(in: conversation)
 		let rows =
 			conversation.outstandingRows(jobs)
 			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.ulid)

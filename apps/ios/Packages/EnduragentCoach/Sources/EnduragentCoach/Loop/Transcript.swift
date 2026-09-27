@@ -19,3 +19,25 @@ struct Transcript: Sendable {
 			lastDate: nil)
 	}
 }
+
+extension Ledger {
+
+	func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
+		let conversation = try await conversation(chatId)
+		let jobs = try await flushJobs(in: conversation)
+		let lastDate: Date?
+		switch conversation.lastExchange {
+		case .none: lastDate = nil
+		case .at(let date): lastDate = date
+		}
+		return Transcript(
+			history: conversation.current.promptHistory(excluding: turn),
+			pending: conversation.outstandingRows(jobs),
+			unflushed: conversation.messagesSinceLastFlush(jobs, excluding: turn),
+			flushPending: jobs.contains { !$0.settled },
+			current: conversation.turn(turn)?.userRow,
+			lastDate: lastDate
+		)
+	}
+
+}
