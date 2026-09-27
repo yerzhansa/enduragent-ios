@@ -26,9 +26,10 @@ struct Admitted: ~Copyable {
 final class MailboxQueue {
 	fileprivate var joining = JoinWindow()
 	private(set) var active: MailboxWork?
-	private(set) var held = false
 	private var waiting: [MailboxWork] = []
-	private var line: [CheckedContinuation<Void, Never>] = []
+	private let door = Turnstile()
+
+	var held: Bool { door.held }
 
 	var window: OpenWindow? { joining.open }
 
@@ -40,9 +41,7 @@ final class MailboxQueue {
 		isolation: isolated (any Actor)? = #isolation,
 		_ body: nonisolated(nonsending) (borrowing Admitted) async throws(Failure) -> Value
 	) async throws(Failure) -> Value {
-		await enter()
-		defer { leave() }
-		return try await body(Admitted(self))
+		try await door.pass { () async throws(Failure) -> Value in try await body(Admitted(self)) }
 	}
 
 	func turns(includingActive: Bool) -> [TurnID] {
@@ -73,22 +72,6 @@ final class MailboxQueue {
 		guard !waiting.contains(item) else { return false }
 		waiting.append(item)
 		return true
-	}
-
-	private func enter(isolation: isolated (any Actor)? = #isolation) async {
-		guard held else {
-			held = true
-			return
-		}
-		await withCheckedContinuation { line.append($0) }
-	}
-
-	private func leave() {
-		if line.isEmpty {
-			held = false
-		} else {
-			line.removeFirst().resume()
-		}
 	}
 }
 
