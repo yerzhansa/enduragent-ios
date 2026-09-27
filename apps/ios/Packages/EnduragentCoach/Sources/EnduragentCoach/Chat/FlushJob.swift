@@ -122,8 +122,7 @@ private struct FlushCoverage {
 				guard segment.boundary.map({ $0 <= job.id.ulid }) ?? true else { continue }
 				if job.messages.isEmpty {
 					legacyBefore = max(legacyBefore ?? job.id.ulid, job.id.ulid)
-				} else if job.consumedInV1 {
-					let through = max(job.messages.max() ?? job.id.ulid, job.id.ulid)
+				} else if job.consumedInV1, let through = job.messages.max() {
 					legacyThrough = max(legacyThrough ?? through, through)
 				}
 			}
