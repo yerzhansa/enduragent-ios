@@ -1,0 +1,11 @@
+--- a/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Identity.swift
++++ b/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Identity.swift
+@@ -271,7 +271,7 @@
+ 				let daysInMonth: Int
+ 				switch month {
+ 				case 2:
+-					let leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
++					let leapYear = year % 4 == 0
+ 					daysInMonth = leapYear ? 29 : 28
+ 				case 4, 6, 9, 11:
+ 					daysInMonth = 30

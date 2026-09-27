@@ -1,0 +1,11 @@
+--- a/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Identity.swift
++++ b/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Identity.swift
+@@ -258,7 +258,7 @@
+ 
+ 	public static func isRealDateKey(_ value: String) -> Bool {
+ 		let bytes = Array(value.utf8)
+-		if bytes.count == 10, bytes[4] == 45, bytes[7] == 45,
++		if bytes.count == 10,
+ 			bytes.enumerated().allSatisfy({ index, byte in
+ 				index == 4 || index == 7 || (48...57).contains(byte)
+ 			})

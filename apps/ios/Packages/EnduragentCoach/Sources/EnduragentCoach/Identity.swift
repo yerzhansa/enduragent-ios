@@ -257,6 +257,30 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public static func isRealDateKey(_ value: String) -> Bool {
+		let bytes = Array(value.utf8)
+		if bytes.count == 10, bytes[4] == 45, bytes[7] == 45,
+			bytes.enumerated().allSatisfy({ index, byte in
+				index == 4 || index == 7 || (48...57).contains(byte)
+			})
+		{
+			let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - 48) }
+			if year >= 1583 {
+				let month = Int(bytes[5] - 48) * 10 + Int(bytes[6] - 48)
+				let day = Int(bytes[8] - 48) * 10 + Int(bytes[9] - 48)
+				guard (1...12).contains(month) else { return false }
+				let daysInMonth: Int
+				switch month {
+				case 2:
+					let leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+					daysInMonth = leapYear ? 29 : 28
+				case 4, 6, 9, 11:
+					daysInMonth = 30
+				default:
+					daysInMonth = 31
+				}
+				return (1...daysInMonth).contains(day)
+			}
+		}
 		let formatter = DateFormatter()
 		formatter.calendar = Calendar(identifier: .gregorian)
 		formatter.locale = Locale(identifier: "en_US_POSIX")
