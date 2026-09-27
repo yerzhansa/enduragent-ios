@@ -49,7 +49,7 @@ import Testing
 			chat: .main, synced: synced.records, device: store.deviceId)
 		let jobs = try await ledger.flushJobs(in: .main)
 		#expect(
-			conversation.current.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid) == [
+			conversation.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid) == [
 				history[2].user, history[2].reply,
 			])
 

@@ -13,10 +13,6 @@ package struct FlushJob: Sendable, Equatable {
 		settled && !abandoned
 	}
 
-	package var coverage: ULID {
-		messages.max() ?? id.ulid
-	}
-
 	package func covers(_ older: FlushJob) -> Bool {
 		guard older.id.ulid < id.ulid else { return false }
 		guard !older.messages.isEmpty else { return true }
@@ -111,22 +107,24 @@ extension ConversationFold {
 	}
 }
 
-extension Segment {
-	package func messagesSinceLastFlush(_ jobs: [FlushJob], excluding turn: TurnID?)
-		-> [(ulid: ULID, message: ChatMessage)]
-	{
-		let history = promptHistory(excluding: turn)
-		let coverage = jobs.map(\.coverage).max()
+extension Conversation {
+	package func messagesSinceLastFlush(
+		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: ULID? = nil
+	) -> [(ulid: ULID, message: ChatMessage)] {
+		let segment = boundary.map { current.closing(at: $0) } ?? current
+		let history = segment.promptHistory(excluding: turn)
+		let covered = Set(
+			jobs.flatMap { job in
+				job.messages.isEmpty ? flushRows(for: job).map(\.ulid) : job.messages
+			})
 		return zip(history.ulids, history.messages).compactMap { ulid, message in
-			if let coverage, ulid <= coverage {
+			if covered.contains(ulid) {
 				return nil
 			}
 			return (ulid, message)
 		}
 	}
-}
 
-extension Conversation {
 	package func flushMessages(for job: FlushJob) -> [ChatMessage] {
 		flushRows(for: job).map(\.message)
 	}

@@ -75,7 +75,7 @@ import Testing
 		#expect(
 			conversation.flushRows(for: legacy).map(\.ulid) == [1, 2, 4, 5].map(fixedUlid))
 		#expect(
-			conversation.current.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid)
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid)
 				== [7, 8].map(fixedUlid))
 	}
 
@@ -92,7 +92,7 @@ import Testing
 		#expect(FlushJob.outstanding(jobs).map(\.id) == [jobs[3].id])
 		#expect(conversation.outstandingRows(jobs).map(\.ulid) == [7, 8].map(fixedUlid))
 		#expect(
-			conversation.current.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid)
+			conversation.messagesSinceLastFlush(jobs, excluding: nil).map(\.ulid)
 				== [13, 14].map(fixedUlid))
 	}
 
@@ -101,7 +101,7 @@ import Testing
 		conversation.segments[0].promptWindow.firstIncluded = fixedUlid(4)
 		let running = TurnID(ulid: fixedUlid(7))
 		#expect(
-			conversation.current.messagesSinceLastFlush([], excluding: running).map(\.ulid)
+			conversation.messagesSinceLastFlush([], excluding: running).map(\.ulid)
 				== [4, 5].map(fixedUlid))
 		let pending = job(20, messages: [1, 2], settled: false)
 		#expect(conversation.outstandingRows([pending]).map(\.ulid) == [1, 2].map(fixedUlid))

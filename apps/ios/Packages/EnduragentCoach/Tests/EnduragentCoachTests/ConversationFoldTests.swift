@@ -378,7 +378,7 @@ import Testing
 		#expect(
 			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
 		#expect(
-			conversation.current.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				ulid(5), ulid(6),
 			])
 	}
