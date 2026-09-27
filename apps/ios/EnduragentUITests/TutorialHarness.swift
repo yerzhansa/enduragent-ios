@@ -10,7 +10,14 @@ enum TutorialHarness {
 	static let weekReply = "Tuesday sweet spot"
 	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 	static let reviewReply = "Saturday group ride"
-	static let greeting = "Hello, Ada."
+	static let welcomeHead = "Welcome to Cycling Coach!"
+	static let syncLine = "/sync — Force-refresh training data from intervals.icu"
+	static let newConversationStarted = "New conversation started."
+	static let newConversationMemoryWarning =
+		"New conversation started. Some recent details may not have been saved to coach memory."
+	static let startedNewConversation = "You started a new conversation"
+	static let earlierChat = "Earlier chat"
+	static let readOnly = "Past conversations are read-only."
 	static let done = "Done — Create workout \"Endurance with tempo\" on 1998-06-16."
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
@@ -163,7 +170,30 @@ enum TutorialHarness {
 		XCTAssertEqual(named(app, "starter.credits").label, "200 credits")
 		named(app, "starter.start").tap()
 		wait(named(app, "chat.composer"))
-		waitForLabel(app, greeting)
+		waitForWelcome(app)
+	}
+
+	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+		let welcome = named(app, "chat.welcome")
+		wait(welcome, timeout: timeout)
+		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
+	}
+
+	static func startNewConversation(_ app: XCUIApplication) {
+		let button = named(app, "chat.newConversation")
+		waitUntilHittable(button)
+		button.tap()
+		waitForWelcome(app)
+	}
+
+	static func openHistory(_ app: XCUIApplication) {
+		openSidebar(app)
+		named(app, "sidebar.history").tap()
+	}
+
+	static func historyRows(_ app: XCUIApplication) -> XCUIElementQuery {
+		app.descendants(matching: .any).matching(
+			NSPredicate(format: "identifier BEGINSWITH %@", "history.row."))
 	}
 
 	static func send(_ app: XCUIApplication, _ text: String) {

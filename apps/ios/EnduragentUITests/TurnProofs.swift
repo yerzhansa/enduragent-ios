@@ -119,7 +119,7 @@ final class StorageFaultProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
+		TutorialHarness.waitForWelcome(app)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").value as? String,
 			"fixture:storage fail-next-append")
@@ -159,7 +159,7 @@ final class DraftSurvivesKillProof: XCTestCase {
 		composer.typeText(TutorialHarness.draft)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(composer)
-		TutorialHarness.waitForLabel(app, TutorialHarness.greeting)
+		TutorialHarness.waitForWelcome(app)
 		XCTAssertEqual(composer.value as? String, TutorialHarness.draft)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.draft].exists)
 		TutorialHarness.attach(self, name: "draft-survives", app: app)

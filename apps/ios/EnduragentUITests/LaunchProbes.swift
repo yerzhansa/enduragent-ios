@@ -50,3 +50,44 @@ final class LaunchLatencyProbe: XCTestCase {
 		add(sample)
 	}
 }
+
+final class HistoryOpenProbe: XCTestCase {
+	static let resets = 50
+
+	func testSeedFiftyResets() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app, coalescingMilliseconds: 1)
+		TutorialHarness.completeOnboarding(app)
+		for index in 1...Self.resets {
+			TutorialHarness.send(app, "Archived \(index)")
+			TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 30)
+			TutorialHarness.startNewConversation(app)
+		}
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "windowStart", "windowStart \(Self.resets)")
+		TutorialHarness.attach(self, name: "seeded-resets", app: app)
+	}
+
+	func testHistoryOpenWithFiftyArchived() {
+		let app = XCUIApplication()
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		TutorialHarness.openSidebar(app)
+		let newest = app.staticTexts["Archived \(Self.resets)"]
+		let started = Date()
+		TutorialHarness.named(app, "sidebar.history").tap()
+		while !newest.exists, Date().timeIntervalSince(started) < 30 {
+			continue
+		}
+		let sample = XCTAttachment(
+			string: String(format: "%.0f", Date().timeIntervalSince(started) * 1_000))
+		sample.name = "history-open-ms"
+		sample.lifetime = .keepAlways
+		add(sample)
+		XCTAssertTrue(newest.exists)
+		TutorialHarness.attach(self, name: "history-with-fifty-archived", app: app)
+	}
+}
