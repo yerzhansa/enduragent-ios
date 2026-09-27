@@ -33,6 +33,34 @@ final class DifferentAthleteProof: XCTestCase {
 	}
 }
 
+final class SameAthleteRotationProof: XCTestCase {
+	func testRotatingTheKeyForTheSameAthleteKeepsTheCard() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		TutorialHarness.openCredentials(app)
+		let before = TutorialHarness.connectedAccount(app)
+		TutorialHarness.type(app, "fixture-rotated", into: "credentials.apiKey")
+		TutorialHarness.named(app, "credentials.replace").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.rotatedForAda)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		let after = TutorialHarness.connectedAccount(app)
+		XCTAssertNotEqual(after, before)
+		XCTAssertTrue(after.hasSuffix(":i1001"), "the rotated connection reads \(after)")
+		TutorialHarness.closeMenu(app)
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		TutorialHarness.wait(add)
+		TutorialHarness.attach(self, name: "same-athlete-rotation", app: app)
+		add.tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.done)
+		TutorialHarness.attach(self, name: "same-athlete-rotation-added", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
 final class DisconnectProof: XCTestCase {
 	func testDisconnectLeavesTheNextTurnUnconnected() {
 		let app = XCUIApplication()
@@ -209,6 +237,7 @@ extension TutorialHarness {
 		"needs a store and keychain that a build before M1-11 left after connecting intervals.icu"
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."
+	static let rotatedForAda = "Replaced. Ada Kovač, authority sameAthlete."
 
 	static func type(_ app: XCUIApplication, _ text: String, into identifier: String) {
 		let field = named(app, identifier)
