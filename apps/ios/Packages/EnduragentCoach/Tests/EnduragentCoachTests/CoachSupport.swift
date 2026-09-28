@@ -50,7 +50,8 @@ func makeCoach(
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
-	host: any ExecutionHost = ImmediateExecutionHost()
+	host: any ExecutionHost = ImmediateExecutionHost(),
+	deviceLanguage: LanguageTag = .en
 ) -> Coach {
 	Coach(
 		sport: .cycling,
@@ -60,7 +61,7 @@ func makeCoach(
 			host: host, clock: clock
 		),
 		builtInModel: testModel,
-		deviceLanguage: .en,
+		deviceLanguage: deviceLanguage,
 		coalescing: coalescing
 	)
 }

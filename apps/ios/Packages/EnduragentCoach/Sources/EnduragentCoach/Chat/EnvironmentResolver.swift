@@ -25,8 +25,7 @@ package struct EnvironmentResolver: Sendable {
 		TurnAttempt(
 			turn: facts.turn, attempt: attempt, chat: chat, request: facts.requestText,
 			slash: facts.slash,
-			language: resolved.preferences.language.replyLanguage(
-				for: facts.requestText, device: deviceLanguage),
+			language: resolved.preferences.language.replyLanguage(device: deviceLanguage),
 			session: resolved.preferences.session, access: resolved.access,
 			training: resolved.training, process: process, autoReset: autoReset)
 	}

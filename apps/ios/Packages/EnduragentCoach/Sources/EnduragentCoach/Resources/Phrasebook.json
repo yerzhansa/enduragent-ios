@@ -121242,7 +121242,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+            "value": "Couldn't save %#@language@. The app and replies still follow your iPhone's language. Try again."
           },
           "substitutions": {
             "language": {
