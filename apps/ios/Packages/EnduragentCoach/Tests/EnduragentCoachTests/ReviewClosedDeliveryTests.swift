@@ -1,0 +1,24 @@
+import Foundation
+import Testing
+
+@testable import EnduragentCoach
+
+extension SingleProposalReviewsTests {
+	@Test func probeStaleReadCannotResurrectFinishedReview() async throws {
+		let proposal = try await propose(on: coach())
+		let staleRead = ReviewGate()
+		let log = GatedReviewLog(inner: records, gate: ReviewGate(), readGate: staleRead)
+		let coach = gatedCoach(log: log, client: ada)
+		await staleRead.arm()
+		let refresh = Task { await coach.decide(.presented(proposal.ref), in: .main) }
+		#expect(await staleRead.waitUntilEntered())
+		let token = try await presentedToken(on: coach)
+		#expect(
+			await coach.decide(.approve(token), in: .main)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		await staleRead.release()
+		#expect(await refresh.value == .staleControl)
+		#expect(await coach.currentSnapshot(.main)?.review == nil)
+		#expect(ada.calls.filter(\.isWrite).count == 1)
+	}
+}
