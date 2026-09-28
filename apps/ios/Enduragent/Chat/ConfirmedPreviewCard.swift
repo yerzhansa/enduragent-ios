@@ -19,10 +19,20 @@ struct ConfirmedPreviewCard: View {
 						Task { await model.confirmPending() }
 					}
 					.accessibilityIdentifier("chat.preview.add")
+					.shown(if: pending.confirmable(under: model.status))
 				}
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
 		}
 		.accessibilityElement(children: .contain)
+	}
+}
+
+extension View {
+	@ViewBuilder
+	fileprivate func shown(if condition: Bool) -> some View {
+		if condition {
+			self
+		}
 	}
 }

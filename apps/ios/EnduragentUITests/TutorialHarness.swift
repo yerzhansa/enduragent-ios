@@ -43,6 +43,8 @@ enum TutorialHarness {
 	static let historyUnavailable = "Conversation history is temporarily unavailable."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
+	static let keptCurrentKey = "Kept the current key."
+	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
 	static let draft = "Is Thursday still on?"
@@ -253,6 +255,27 @@ enum TutorialHarness {
 		XCTAssertEqual(count.label, "0 requests")
 		named(app, "debug.records").tap()
 		wait(named(app, "records.device"))
+	}
+
+	static func openCredentials(_ app: XCUIApplication) {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let credentials = named(app, "debug.credentials")
+		wait(credentials)
+		credentials.tap()
+		wait(named(app, "credentials.outcome"))
+	}
+
+	static func waitForIdentifier(
+		_ app: XCUIApplication, _ identifier: String, reading label: String,
+		timeout: TimeInterval = 8
+	) {
+		let element = app.descendants(matching: .any).matching(
+			NSPredicate(format: "identifier == %@ AND label == %@", identifier, label)
+		).firstMatch
+		XCTAssertTrue(
+			element.waitForExistence(timeout: timeout),
+			"\(identifier) never read \(label); it reads \(named(app, identifier).label)")
 	}
 
 	static func closeMenu(_ app: XCUIApplication) {

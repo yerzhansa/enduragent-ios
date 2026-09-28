@@ -7,11 +7,16 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let clock: any Clock
 
 	public init(
-		credential: IntervalsCredential, session: URLSession? = nil,
-		clock: any Clock = SystemClock()
+		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
+		session: URLSession? = nil, clock: any Clock = SystemClock()
 	) {
 		self.credential = credential
-		self.athletePath = IntervalsPolicy.athletePath
+		switch athlete {
+		case .keyOwner:
+			self.athletePath = IntervalsPolicy.athletePath
+		case .athlete(let id):
+			self.athletePath = id.rawValue
+		}
 		self.clock = clock
 		if let session {
 			self.session = session

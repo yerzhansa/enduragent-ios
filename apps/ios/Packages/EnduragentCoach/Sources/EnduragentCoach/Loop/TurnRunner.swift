@@ -16,7 +16,7 @@ public enum TurnPolicy {
 	public static let gatedPrefixTokenCeiling = 13_600
 }
 
-package struct TurnAttempt: Sendable, Equatable {
+package struct TurnAttempt: Sendable {
 	package let turn: TurnID
 	package let attempt: AttemptID
 	package let chat: ChatID
@@ -24,6 +24,7 @@ package struct TurnAttempt: Sendable, Equatable {
 	package let slash: SlashCommand?
 	package let language: LanguagePreference
 	package let access: ResolvedAccess
+	package let training: TrainingConnection
 	package let process: ProcessID
 }
 
@@ -57,29 +58,23 @@ package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Voi
 
 package struct TurnRunner: Sendable {
 	private let transport: any ModelTransport
-	private let intervals: any IntervalsClient
 	private let ledger: Ledger
 	private let clock: any Clock
-	private let tools: ToolRuntime
 	private let planning: Planning
 	private let diagnostics: DiagnosticsLog
 	private let ladder: RetryLadder
 
 	package init(
 		transport: any ModelTransport,
-		intervals: any IntervalsClient,
 		ledger: Ledger,
 		clock: any Clock,
-		tools: ToolRuntime,
 		planning: Planning,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder
 	) {
 		self.transport = transport
-		self.intervals = intervals
 		self.ledger = ledger
 		self.clock = clock
-		self.tools = tools
 		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
@@ -241,9 +236,10 @@ package struct TurnRunner: Sendable {
 				planHeadline: nil,
 				orphanNames: []
 			)
-		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
+		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = await loadSnapshot()
+		let snapshot = try await attempt.training.loadSnapshot(
+			clock: clock, attempt: attempt.attempt, diagnostics: diagnostics)
 		let language = attempt.language
 		let resolution = LanguageResolution(
 			language: language.coachReply ?? language.ui,
@@ -401,7 +397,7 @@ package struct TurnRunner: Sendable {
 					toolCallId: nil)
 			)
 			await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
-			let outcomes = try await runTools(step.toolCalls, chatId: attempt.chat, scope: scope)
+			let outcomes = try await runTools(step.toolCalls, for: attempt, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -531,22 +527,28 @@ package struct TurnRunner: Sendable {
 		return GenerateStep(text: text, toolCalls: calls, reason: reason, usage: usage)
 	}
 
+	private func tools(for attempt: TurnAttempt) -> ToolRuntime {
+		ToolRuntime(
+			intervals: attempt.training.client, ledger: ledger, planning: planning, clock: clock)
+	}
+
 	private func runTools(
 		_ calls: [WireToolCall],
-		chatId: ChatID,
+		for attempt: TurnAttempt,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
-		try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
+		let runtime = tools(for: attempt)
+		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
 				group.addTask {
 					let arguments =
 						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
 					let outcome: ToolOutcome
 					do {
-						outcome = try await self.tools.execute(
+						outcome = try await runtime.execute(
 							name: call.name,
 							arguments: arguments,
-							chatId: chatId,
+							chatId: attempt.chat,
 							scope: scope
 						).outcome
 					} catch is CancellationError {
@@ -595,18 +597,6 @@ package struct TurnRunner: Sendable {
 		if prompt.overBudget {
 			throw AttemptFailure.rescueFailed(.windowExceededFinish)
 		}
-	}
-
-	private func loadSnapshot() async -> AthleteSnapshot? {
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let oldest = today.adding(days: -(7 - 1))
-		guard let days = try? await intervals.fetchWellness(oldest: oldest, newest: today) else {
-			return nil
-		}
-		guard let latest = days.last else {
-			return nil
-		}
-		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
 	}
 
 	private func shouldDailyReset(last: Date?) -> Bool {

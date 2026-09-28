@@ -26,6 +26,10 @@ struct CreditsView: View {
 			}
 			Text("Testers cannot buy packs yet.")
 				.accessibilityIdentifier("credits.note")
+			if let notice = model.creditsNotice {
+				Text(notice.sentence(in: model.builder.phrasebook))
+					.accessibilityIdentifier("credits.notice")
+			}
 		}
 		.navigationTitle("Credits")
 		.task {

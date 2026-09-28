@@ -35,6 +35,12 @@ extension OperationStamp {
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
 	}
+
+	package func bound(to account: TrainingAccount) -> OperationStamp {
+		OperationStamp(
+			operation: operation, attempt: attempt,
+			binding: ActionBinding(account: account, zone: binding.zone))
+	}
 }
 
 public struct ActionBinding: Hashable, Sendable {
@@ -79,6 +85,9 @@ public enum TrainingAccount: Hashable, Sendable {
 		case (.unconnected, .intervals), (.intervals, .unconnected):
 			return .changed
 		case (.intervals(let bound, let boundAthlete), .intervals(let now, let nowAthlete)):
+			if let boundAthlete, let nowAthlete, boundAthlete != nowAthlete {
+				return .changed
+			}
 			if bound == now {
 				return .same
 			}

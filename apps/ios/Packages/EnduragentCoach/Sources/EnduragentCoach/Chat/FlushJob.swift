@@ -308,7 +308,7 @@ package struct FlushWork: Sendable {
 
 	package func drain(
 		_ id: FlushJobID, in conversation: Conversation,
-		access: () throws(AccessUnavailable) -> ResolvedAccess
+		access: () async throws(AccessUnavailable) -> ResolvedAccess
 	) async {
 		do {
 			guard
@@ -319,7 +319,7 @@ package struct FlushWork: Sendable {
 				return
 			}
 			_ = try await run(
-				job, messages: conversation.flushMessages(for: job), access: try access(),
+				job, messages: conversation.flushMessages(for: job), access: try await access(),
 				scope: nil)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))

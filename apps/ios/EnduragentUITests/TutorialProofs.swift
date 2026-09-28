@@ -320,11 +320,11 @@ final class RecordsClockOrderProof: XCTestCase {
 		let rows = labels.map { $0.split(separator: " ").map(String.init) }
 		XCTAssertTrue(
 			rows.allSatisfy {
-				$0.count == 3 || (["turnSettled", "turnClaim"].contains($0.first) && $0.count > 3)
+				$0.count == 4 || (["turnSettled", "turnClaim"].contains($0.first) && $0.count > 4)
 			},
-			"every row shows kind, device, and HLC, a turnSettled row its outcome, and a turnClaim row its lease: \(labels)"
+			"every row shows kind, device, HLC, and account, a turnSettled row its outcome, and a turnClaim row its lease: \(labels)"
 		)
-		let clocks = rows.compactMap(\.last)
+		let clocks = rows.map { $0[$0.count - 2] }
 		XCTAssertEqual(Set(clocks).count, clocks.count, "no two rows share an HLC: \(labels)")
 		let causal = rows.compactMap(\.first).filter {
 			["userMessage", "turnClaim", "turnSettled", "pendingProposal", "proposalCleared"]

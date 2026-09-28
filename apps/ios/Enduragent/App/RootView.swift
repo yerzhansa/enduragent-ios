@@ -23,7 +23,7 @@ struct RootView: View {
 		}
 		.onChange(of: scenePhase, initial: true) { _, phase in
 			guard let event = AppLifecycleEvent(phase) else { return }
-			Task { await model.lifecycle.forward(event) }
+			Task { await model.sceneChanged(event) }
 		}
 	}
 }

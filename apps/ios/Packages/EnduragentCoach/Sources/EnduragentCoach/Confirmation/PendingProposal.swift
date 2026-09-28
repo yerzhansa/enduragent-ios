@@ -6,6 +6,7 @@ public struct PendingProposal: Sendable, Equatable {
 	public var summary: String
 	public var description: String
 	public var expiresAt: Date
+	public var account: TrainingAccount
 }
 
 public enum GatedToolInput: Sendable, Equatable {
@@ -69,7 +70,8 @@ package enum ProposalPolicy {
 			nonce: nonce,
 			summary: summary,
 			description: description,
-			expiresAt: expiresAt
+			expiresAt: expiresAt,
+			account: stamp.binding.account
 		)
 	}
 
@@ -82,9 +84,14 @@ package enum ProposalPolicy {
 		run: @Sendable (GatedToolInput) async throws -> JSONValue
 	) async throws -> ProposalLookup {
 		let records = try await ledger.read(proposalQuery(chatId)).records
-		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
+		if let record = UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now) {
+			let live = record.body
 			if live.nonce != nonce {
 				return .mismatch
+			}
+			switch record.account.authority(under: binding.account) {
+			case .same, .sameAthlete: break
+			case .changed, .unverifiable: return .expired
 			}
 			let stamp = OperationStamp(
 				operation: .workoutChangeSet(
@@ -144,9 +151,15 @@ package enum ProposalPolicy {
 	package static func pending(_ chatId: ChatID, from ledger: Ledger, at now: Date)
 		async throws(LedgerFailure) -> PendingProposal?
 	{
-		let records = try await ledger.read(proposalQuery(chatId)).records
-		return UnionMerge.pendingProposal(records, chatId: chatId, now: now)
-			.map(PendingProposal.init)
+		pending(in: try await ledger.read(proposalQuery(chatId)).records, chatId: chatId, now: now)
+	}
+
+	package static func pending(in records: [AthleteRecord], chatId: ChatID, now: Date)
+		-> PendingProposal?
+	{
+		UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now).map {
+			PendingProposal($0.body, account: $0.account)
+		}
 	}
 
 	private static func latestUncleared(_ records: [AthleteRecord], chatId: ChatID) -> ProposalBody?

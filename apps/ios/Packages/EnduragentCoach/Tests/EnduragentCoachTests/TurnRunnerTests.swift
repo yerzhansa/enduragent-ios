@@ -50,7 +50,10 @@ import Testing
 		#expect(synced.map(\.body.kind) == ["userMessage", "turnSettled"])
 		#expect(local.map(\.body.kind) == ["turnClaim"])
 		#expect(Set((synced + local).map(\.body.turn)) == [turn])
-		#expect((synced + local).allSatisfy { $0.account == .unconnected })
+		let connected = TrainingAccount.intervals(
+			connection: try #require(testConnection.id), athlete: testConnection.resolvedAthlete)
+		#expect(synced.map(\.account) == [.unconnected, connected])
+		#expect(local.map(\.account) == [connected])
 		guard case .operation(.turn(let claimedTurn), let attempt)? = local.first?.cause else {
 			Issue.record("expected a turn stamp on the claim")
 			return
@@ -83,6 +86,33 @@ import Testing
 		let toolMessage = try #require(
 			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(toolMessage.content.contains("intervals.icu is unavailable."))
+	}
+
+	@Test func failedWellnessReadKeepsTheReplyAndReportsTheTrainingFailure() async throws {
+		intervals.loadFailure = IntervalsError(
+			code: "down", details: "private upstream detail", status: 503)
+		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		let settled = try await coach.sendAndSettle("How am I recovering?")
+		#expect(replyText(settled) == "Easy spin today.")
+		let request = try #require(transport.requests.only)
+		#expect(
+			request.messages.first?.content.contains(PromptStaticBlocks.snapshotFallback) == true)
+		#expect(request.messages.first?.content.contains("private upstream detail") == false)
+		#expect(
+			coach.diagnostics.entries.contains {
+				$0.event == .trainingUnavailable(request.attempt, .temporarilyUnavailable)
+			})
+	}
+
+	@Test func unconnectedTurnDoesNotReportATrainingOutage() async throws {
+		let secrets = keyedSecrets()
+		try secrets.delete(.intervalsConnection)
+		transport.script = [.text("Let's start with your goals."), .finish(reason: .stop)]
+		let coach = makeCoach(secrets: secrets)
+		let settled = try await coach.sendAndSettle("Hello")
+		#expect(replyText(settled) == "Let's start with your goals.")
+		#expect(coach.diagnostics.entries.isEmpty)
 	}
 
 	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
