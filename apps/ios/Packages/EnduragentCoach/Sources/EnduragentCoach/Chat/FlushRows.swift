@@ -40,7 +40,8 @@ struct FlushRows {
 	init(_ jobs: [FlushJob], in conversation: Conversation) {
 		let rows = ConversationRows(conversation)
 		self.rows = rows
-		byJob = Dictionary(uniqueKeysWithValues: jobs.map { ($0.id, Set(rows.ulids(for: $0))) })
+		byJob = Dictionary(
+			jobs.map { ($0.id, Set(rows.ulids(for: $0))) }, uniquingKeysWith: { $0.union($1) })
 	}
 
 	func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
