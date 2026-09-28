@@ -58,17 +58,28 @@ struct PerformanceSamples {
 	}
 
 	func check(relativeTo baseline: Self, limit: Double, name: String) throws {
-		let reference = try baseline.minimum()
-		try #require(reference > .zero)
-		let elapsed = try minimum()
-		let ratio = elapsed / reference
+		let ratio = try medianRatio(relativeTo: baseline)
 		let result =
 			"\(name) ratio=\(String(format: "%.3f", ratio)) limit=\(limit)"
-			+ " baseline_minimum_ms=\(Self.milliseconds(reference))"
-			+ " measured_minimum_ms=\(Self.milliseconds(elapsed))"
+			+ " statistic=median-paired-ratio"
 			+ " baseline_samples_ms=\(baseline.description) measured_samples_ms=\(description)\n"
 		try Self.record(result, name: name)
 		#expect(ratio < limit, "\(result)")
+	}
+
+	func medianRatio(relativeTo baseline: Self) throws -> Double {
+		try #require(batches.count == expectedBatchCount)
+		try #require(baseline.batches.count == baseline.expectedBatchCount)
+		try #require(batches.count == baseline.batches.count)
+		let ratios = try zip(batches, baseline.batches).flatMap { measured, reference in
+			try #require(!measured.isEmpty && measured.count == reference.count)
+			return try zip(measured, reference).map { elapsed, duration in
+				try #require(duration > .zero)
+				return elapsed / duration
+			}
+		}.sorted()
+		try #require(!ratios.isEmpty)
+		return ratios[ratios.count / 2]
 	}
 
 	private var description: String {

@@ -12,30 +12,25 @@ extension SwiftDataSuites {
 			var samples = PerformanceSamples()
 			for _ in 0..<PerformanceSamples.batchCount {
 				let formatters = Mutex(0)
-				try await samples.measure(count: 1) {
-					let before = (fixture.log.reads.count, fixture.log.fetchedRecordCount)
-					let read = try await CivilDate.$didCreateFormatter.withValue({
-						formatters.withLock { $0 += 1 }
-					}) {
+				var before = (fixture.log.reads.count, fixture.log.fetchedRecordCount)
+				try await CivilDate.$didCreateFormatter.withValue({
+					formatters.withLock { $0 += 1 }
+				}) {
+					try await samples.measure(count: 1) {
 						try await fixture.ledger.flushJobs(in: conversation)
+					} validate: { read in
+						#expect(formatters.withLock { $0 } == 0)
+						#expect(fixture.log.reads.count - before.0 == 1)
+						#expect(fixture.log.fetchedRecordCount - before.1 == 400)
+						#expect(read.count == fixture.jobs.count)
+						#expect(Set(read.map(\.id)) == Set(fixture.jobs))
+						#expect(read.allSatisfy { $0.settled })
+						before = (fixture.log.reads.count, fixture.log.fetchedRecordCount)
+						formatters.withLock { $0 = 0 }
 					}
-					return (
-						read, fixture.log.reads.count - before.0,
-						fixture.log.fetchedRecordCount - before.1
-					)
-				} validate: { read, fetches, records in
-					#expect(formatters.withLock { $0 } == 0)
-					#expect(fetches == 1)
-					#expect(records == 400)
-					#expect(read.count == fixture.jobs.count)
-					#expect(Set(read.map(\.id)) == Set(fixture.jobs))
-					#expect(read.allSatisfy { $0.settled })
 				}
 			}
-			let elapsed = try samples.minimum()
-			Attachment.record(
-				"settled-read minimum_ms=\(elapsed / .milliseconds(1)) reference_budget_ms=50"
-					+ " samples=\(samples.batches)", named: "settled-read-cost.txt")
+			try samples.check(budget: .milliseconds(50), name: "settled-read")
 		}
 
 		@Test func measureUnsettledRead() async throws {

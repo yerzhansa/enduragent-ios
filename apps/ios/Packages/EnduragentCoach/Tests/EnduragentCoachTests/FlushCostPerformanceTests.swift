@@ -10,7 +10,7 @@ extension SwiftDataSuites {
 			for oldest in [false, true] {
 				let ledger = try await fixture.ledger(oldest: oldest)
 				let conversation = try await ledger.conversation(.main)
-				let batchCount = 3
+				let batchCount = 9
 				var localRead = PerformanceSamples(expectedBatchCount: batchCount)
 				var flush = PerformanceSamples(expectedBatchCount: batchCount)
 				var fold = PerformanceSamples(expectedBatchCount: batchCount)

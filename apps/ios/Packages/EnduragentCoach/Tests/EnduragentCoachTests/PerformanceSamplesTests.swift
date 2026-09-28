@@ -29,10 +29,22 @@ import Testing
 
 	@Test func aStalledReferenceCannotHideARegression() throws {
 		var baseline = Array(
-			repeating: [Duration.milliseconds(10)], count: PerformanceSamples.batchCount)
+			repeating: [Duration.milliseconds(10)], count: 9)
 		baseline[4] = [.milliseconds(100)]
 		let measured = PerformanceSamples(
-			batches: Array(repeating: [.milliseconds(40)], count: PerformanceSamples.batchCount))
-		#expect(try measured.minimum() / PerformanceSamples(batches: baseline).minimum() == 4)
+			expectedBatchCount: 9, batches: Array(repeating: [.milliseconds(40)], count: 9))
+		#expect(
+			try measured.medianRatio(
+				relativeTo: PerformanceSamples(expectedBatchCount: 9, batches: baseline)) == 4)
+	}
+
+	@Test func ratiosCompareAttemptsUnderTheSameLoad() throws {
+		let baseline = PerformanceSamples(
+			expectedBatchCount: 9,
+			batches: [10, 100, 200, 100, 200, 100, 200, 100, 200].map { [.milliseconds($0)] })
+		let measured = PerformanceSamples(
+			expectedBatchCount: 9,
+			batches: [40, 150, 300, 150, 300, 150, 300, 150, 300].map { [.milliseconds($0)] })
+		#expect(try measured.medianRatio(relativeTo: baseline) == 1.5)
 	}
 }
