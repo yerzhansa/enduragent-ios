@@ -55,6 +55,26 @@ import Testing
 		#expect(try restarted.stagedReplacement() == nil)
 	}
 
+	@Test func transientStagingReadKeepsTheUndoRecord() async throws {
+		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		let memory = MemorySecretStoreBacking()
+		let original = ICloudKeychainStore(backing: memory)
+		try original.storeAppAccountToken(oldToken)
+		try original.storeOpenRouterKey("test-old-credits-key")
+		try original.stageReplacement(
+			.credits(previousKey: "test-old-credits-key", previousAppAccountToken: oldToken))
+		try original.storeOpenRouterKey("test-new-credits-key")
+
+		let backing = OnceFailingStagingBacking(base: memory)
+		let restarted = ICloudKeychainStore(backing: backing)
+		let vault = testVault(restarted)
+		_ = await vault.setup(builtInModel: testModel)
+		_ = await vault.setup(builtInModel: testModel)
+
+		#expect(try original.openRouterKey() == "test-old-credits-key")
+		#expect(try original.appAccountToken() == oldToken)
+	}
+
 	@Test func restartRestoresMissingPreviousKey() async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
@@ -127,4 +147,34 @@ import Testing
 enum RecoveryCrashPoint: CaseIterable, Sendable {
 	case afterKeyWrite
 	case afterTokenWrite
+}
+
+private final class OnceFailingStagingBacking: SecretStoreBacking, @unchecked Sendable {
+	private let base: MemorySecretStoreBacking
+	private let lock = NSLock()
+	private var failed = false
+
+	init(base: MemorySecretStoreBacking) {
+		self.base = base
+	}
+
+	func add(account: String, data: Data) throws { try base.add(account: account, data: data) }
+
+	func copy(account: String) throws -> Data? {
+		let failNow = lock.withLock {
+			guard account == CredentialSlot.intervalsConnectionStaging.rawValue, !failed else {
+				return false
+			}
+			failed = true
+			return true
+		}
+		if failNow { throw KeychainStoreError(status: errSecNotAvailable) }
+		return try base.copy(account: account)
+	}
+
+	func update(account: String, data: Data) throws {
+		try base.update(account: account, data: data)
+	}
+
+	func delete(account: String) throws { try base.delete(account: account) }
 }
