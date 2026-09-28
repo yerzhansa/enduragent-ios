@@ -143,7 +143,7 @@ import Testing
 				]).canonicalDigestInput())
 	}
 
-	@Test func toolFailureDetailGoesOnlyToDiagnostics() async throws {
+	@Test func toolFailureDiagnosticsKeepOnlyTheTypedFailure() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
 		failing.failAppends(ofKind: SyncedKind.ledgerEvent)
 		transport.script = [
@@ -161,14 +161,14 @@ import Testing
 			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(!toolMessage.content.contains("LedgerFailure"))
 		#expect(transport.requests[1].attempt == transport.requests[0].attempt)
-		let failures = coach.diagnostics.entries.compactMap { entry -> String? in
+		let failures = coach.diagnostics.entries.compactMap { entry -> ToolFault? in
 			guard
-				case .toolFailed(transport.requests[0].attempt, .ledgerAppend, let detail) = entry
+				case .toolFailed(transport.requests[0].attempt, .ledgerAppend, let failure) = entry
 					.event
 			else { return nil }
-			return detail
+			return failure
 		}
-		#expect(failures == ["rejectedBatch"])
+		#expect(failures == [.saveFailed])
 	}
 
 	@Test func providerErrorsSettleAsTypedFailures() async throws {

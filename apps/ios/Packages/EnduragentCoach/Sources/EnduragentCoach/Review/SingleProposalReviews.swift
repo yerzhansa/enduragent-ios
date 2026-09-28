@@ -113,7 +113,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 		} catch {
 			diagnostics.record(
 				.toolFailed(
-					stamp.attempt, live.body.tool.toolName, detail: String(describing: error)))
+					stamp.attempt, live.body.tool.toolName, failure: ToolFault(error)))
 			guard let failure = Self.stopped(error) else {
 				return .uncertain(done: [], unresolved: card)
 			}

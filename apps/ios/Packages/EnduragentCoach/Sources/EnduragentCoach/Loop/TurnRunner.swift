@@ -545,7 +545,7 @@ package struct TurnRunner: Sendable {
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								scope.stamp.attempt, call.name, detail: String(describing: error)))
+								scope.stamp.attempt, call.name, failure: ToolFault(error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
