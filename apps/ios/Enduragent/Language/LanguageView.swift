@@ -21,7 +21,7 @@ struct LanguageView: View {
 							Text(choice.title(in: model.phrasebook))
 								.foregroundStyle(Color.primary)
 							Spacer()
-							if choice == current {
+							if choice == model.languagePreference {
 								Image(systemName: "checkmark")
 									.foregroundStyle(.tint)
 									.accessibilityHidden(true)
@@ -29,16 +29,12 @@ struct LanguageView: View {
 						}
 					}
 					.accessibilityIdentifier("language.choice.\(choice.id)")
-					.accessibilityAddTraits(choice == current ? .isSelected : [])
+					.accessibilityAddTraits(choice == model.languagePreference ? .isSelected : [])
 				}
 			}
 		}
 		.navigationTitle(model.phrasebook.say(Catalog.languageChooseTitle, [:]))
 		.navigationBarTitleDisplayMode(.inline)
 		.task { await model.refreshStatus() }
-	}
-
-	private var current: LanguagePreference {
-		model.status?.language ?? .automatic
 	}
 }

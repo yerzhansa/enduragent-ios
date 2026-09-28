@@ -88,4 +88,39 @@ import Testing
 				last: last, now: try at("1998-06-15T21:20:00Z"), zone: amsterdam, settings: tokyo)
 				== .fresh)
 	}
+
+	@Test(arguments: [
+		("1998-03-29T03:30:00+02:00", "1998-03-28T04:00:00+01:00"),
+		("1998-10-26T03:00:00+01:00", "1998-10-25T04:00:00+01:00"),
+		("1998-10-25T03:20:00+01:00", "1998-10-24T04:00:00+02:00"),
+	])
+	func previousDayResetIsFourLocalAcrossDST(now: String, expected: String) throws {
+		let reset = SessionFreshness.mostRecentReset(
+			at: .npmDefault, before: try at(now), in: amsterdam)
+		#expect(reset == (try at(expected)))
+	}
+
+	@Test(arguments: [
+		("1998-03-29T01:30:00+01:00", "1998-03-28T02:00:00+01:00"),
+		("1998-03-29T03:00:00+02:00", "1998-03-29T03:00:00+02:00"),
+		("1998-03-29T03:30:00+02:00", "1998-03-29T03:00:00+02:00"),
+		("1998-03-30T01:00:00+02:00", "1998-03-29T03:00:00+02:00"),
+	])
+	func missingResetHourUsesTheFirstValidInstant(now: String, expected: String) throws {
+		let reset = SessionFreshness.mostRecentReset(
+			at: try DailyResetHour(2), before: try at(now), in: amsterdam)
+		#expect(reset == (try at(expected)))
+	}
+
+	@Test(arguments: [
+		("1998-10-25T01:30:00+02:00", "1998-10-24T02:00:00+02:00"),
+		("1998-10-25T02:30:00+02:00", "1998-10-25T02:00:00+02:00"),
+		("1998-10-25T02:30:00+01:00", "1998-10-25T02:00:00+02:00"),
+		("1998-10-26T01:00:00+01:00", "1998-10-25T02:00:00+02:00"),
+	])
+	func repeatedResetHourUsesTheFirstOccurrence(now: String, expected: String) throws {
+		let reset = SessionFreshness.mostRecentReset(
+			at: try DailyResetHour(2), before: try at(now), in: amsterdam)
+		#expect(reset == (try at(expected)))
+	}
 }

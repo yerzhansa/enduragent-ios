@@ -6,9 +6,9 @@ enum AppLaunch {
 	case ready(ShellModel)
 	case storageUnavailable(any Phrasebook, failure: any Error)
 
-	static func start() -> AppLaunch {
+	static func start() async -> AppLaunch {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		return open(language: language) {
+		return await open(language: language) {
 			guard let fixture = try fixtureLaunch() else {
 				return (try AppServices.live(language: language), .standard)
 			}
@@ -19,13 +19,14 @@ enum AppLaunch {
 
 	static func open(
 		language: LanguageTag, _ services: () throws -> (AppServices, UserDefaults)
-	) -> AppLaunch {
+	) async -> AppLaunch {
 		do {
 			let (built, defaults) = try services()
-			return .ready(
-				ShellModel(
-					builder: ServicesBuilder(
-						services: built, language: language, defaults: defaults)))
+			let preference = await built.coach.languagePreference()
+			let model = ShellModel(
+				builder: ServicesBuilder(services: built, language: language, defaults: defaults),
+				initialLanguage: preference)
+			return .ready(model)
 		} catch let error as FixtureLaunchError {
 			fatalError("The fixture launch arguments are invalid: \(error)")
 		} catch {

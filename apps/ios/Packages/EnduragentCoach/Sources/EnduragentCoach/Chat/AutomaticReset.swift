@@ -18,9 +18,8 @@ package struct AutomaticReset: Sendable {
 		guard case .reset(let kind) = freshness else { return nil }
 		let jobs = await flushes.jobs(in: conversation)
 		let archived =
-			(conversation.outstandingRows(jobs)
-			+ conversation.messagesSinceLastFlush(jobs, excluding: turn, before: opened))
-			.filter { $0.ulid < opened }
+			conversation.outstandingRows(jobs)
+			+ conversation.messagesSinceLastFlush(jobs, excluding: turn, before: opened)
 		do {
 			if !archived.isEmpty {
 				_ = try await flushes.open(

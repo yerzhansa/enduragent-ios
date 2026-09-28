@@ -2,15 +2,23 @@ import SwiftUI
 
 @main
 struct EnduragentApp: App {
-	@State private var launch = AppLaunch.start()
+	@State private var launch: AppLaunch?
 
 	var body: some Scene {
 		WindowGroup {
-			switch launch {
-			case .ready(let model):
-				RootView(model: model)
-			case .storageUnavailable(let phrasebook, let failure):
-				StorageUnavailableView(phrasebook: phrasebook, failure: failure)
+			Group {
+				switch launch {
+				case .ready(let model):
+					RootView(model: model)
+				case .storageUnavailable(let phrasebook, let failure):
+					StorageUnavailableView(phrasebook: phrasebook, failure: failure)
+				case nil:
+					ProgressView()
+				}
+			}
+			.task {
+				guard launch == nil else { return }
+				launch = await AppLaunch.start()
 			}
 		}
 	}

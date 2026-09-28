@@ -20,7 +20,7 @@ public struct TrainingService: Sendable {
 	}
 
 	public static func fake(
-		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> FakeIntervalsClient
+		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> any IntervalsClient
 	) -> TrainingService {
 		TrainingService { credential, athlete, _ in client(credential, athlete) }
 	}

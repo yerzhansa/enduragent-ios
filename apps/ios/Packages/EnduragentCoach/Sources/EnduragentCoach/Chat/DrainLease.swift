@@ -4,7 +4,7 @@ import Synchronization
 package final class DrainLease: Sendable {
 	package let generation: Int
 	private let initiator: LeaseInitiator
-	private let begun: Task<(lease: any ExecutionLease, language: LanguageTag), Never>
+	private let begun: Task<any ExecutionLease, Never>
 	private let commands: AsyncStream<Command>.Continuation
 	private let tally = Mutex(LeaseTally())
 
@@ -26,18 +26,19 @@ package final class DrainLease: Sendable {
 			let request = LeaseRequest(
 				chat: chat, initiatedBy: initiator, title: Catalog.chatNoticeWorking,
 				language: spoken)
-			return (lease: await host.beginLease(request, onExpiry: onExpiry), language: spoken)
+			return await host.beginLease(request, onExpiry: onExpiry)
 		}
 		let (stream, commands) = AsyncStream<Command>.makeStream(bufferingPolicy: .unbounded)
 		self.begun = begun
 		self.commands = commands
 		Task {
-			let (lease, spoken) = await begun.value
+			let lease = await begun.value
 			for await command in stream {
 				switch command {
 				case .report(let progress):
 					await lease.report(progress)
 				case .finish(let reply):
+					let spoken = await language()
 					let notice = reply.map {
 						CompletionNotice(reply: $0.text, turn: $0.turn, language: spoken)
 					}
@@ -56,7 +57,7 @@ package final class DrainLease: Sendable {
 	}
 
 	package var kind: LeaseKind {
-		get async { await begun.value.lease.kind }
+		get async { await begun.value.kind }
 	}
 
 	package func add(_ turn: TurnID) {

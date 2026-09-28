@@ -164,6 +164,37 @@ import Testing
 		#expect(system.contains("reply in Italian (Italiano)."))
 	}
 
+	@Test func automaticRepliesFollowEachMessageWithTheInterfaceLanguageFallback() async throws {
+		let transport = FakeModelTransport()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), deviceLanguage: .fr)
+		let messages: [(String, LanguageTag)] = [
+			("Come è andata la mia settimana di allenamento oggi?", .it),
+			("How was my training week and what should I do today?", .en),
+			("123", .fr),
+		]
+		for (message, language) in messages {
+			transport.script = [.text("Reply"), .finish(reason: .stop)]
+			_ = try await coach.sendAndSettle(message)
+			let system = try #require(
+				sent(.chatAttempt, by: transport).last?.messages.first?.content)
+			#expect(system.contains("No language is saved."))
+			#expect(system.contains("Reply in the language of the athlete's latest message"))
+			#expect(system.contains("reply in \(language.englishName) (\(language.endonym))."))
+		}
+	}
+
+	@Test(arguments: [LanguageTag.es, .fr])
+	func automaticAppTextFollowsANonEnglishPhone(device: LanguageTag) async {
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), deviceLanguage: device)
+		let preference = await coach.status().language
+		#expect(preference == .automatic)
+		#expect(
+			preference.phrasebook(device: device).say(Catalog.chatComposerMessagePlaceholder)
+				== device.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
+	}
+
 	@Test func legacyCoachReplyLanguageFoldsOnlyWithoutPreference() async throws {
 		let device = DeviceID(rawValue: "phone-a")
 		let italian = storedRecord(
@@ -246,6 +277,30 @@ import Testing
 		let automatic = try #require(await host.ended(1))
 		#expect(automatic.request.language == .en)
 		#expect(automatic.request.titleText == "Coach is working…")
+	}
+
+	@Test func completionTitleFollowsAChoiceMadeDuringTheReply() async throws {
+		let host = ImmediateExecutionHost()
+		let transport = FakeModelTransport()
+		transport.script = [.text("One more ride."), .finish(reason: .stop)]
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
+		let coach = makeCoach(transport: transport, store: store, host: host)
+		let turn = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		try await coach.setLanguage(.fixed(.es))
+		#expect(await coach.status().language == .fixed(.es))
+		store.release()
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		let ended = try #require(await host.ended(0))
+		#expect(ended.request.titleText == "Coach is working…")
+		guard case .finished(let notice?) = ended.ending else {
+			Issue.record("Missing completion notice")
+			return
+		}
+		#expect(notice.titleText == "Entrenador")
+		#expect(notice.excerpt == "One more ride.")
 	}
 
 	@Test func choosingTheCurrentLanguageWritesNothing() async throws {
