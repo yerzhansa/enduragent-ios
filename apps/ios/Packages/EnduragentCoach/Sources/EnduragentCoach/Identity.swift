@@ -236,6 +236,8 @@ public struct Nonce: Hashable, Sendable, RawRepresentable {
 public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLiteral,
 	CustomStringConvertible
 {
+	@TaskLocal static var didCreateFormatter: (@Sendable () -> Void)?
+
 	public let rawValue: String
 
 	public init?(rawValue: String) {
@@ -261,6 +263,7 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 			return answer
 		}
 		let formatter = DateFormatter()
+		didCreateFormatter?()
 		formatter.calendar = Calendar(identifier: .gregorian)
 		formatter.locale = Locale(identifier: "en_US_POSIX")
 		formatter.timeZone = TimeZone(secondsFromGMT: 0)
