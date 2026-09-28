@@ -8,6 +8,9 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	let inner: any RecordLog
 	private(set) var batches: [[String]] = []
 	private let scopes = Mutex<[RecordQuery.Scope]>([])
+	private let recordCounts = Mutex(0)
+
+	var fetchedRecordCount: Int { recordCounts.withLock { $0 } }
 
 	var reads: [RecordQuery.Scope] { scopes.withLock { $0 } }
 
@@ -24,7 +27,9 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		scopes.withLock { $0.append(query.scope) }
-		return try await inner.fetch(query)
+		let page = try await inner.fetch(query)
+		recordCounts.withLock { $0 += page.records.count + page.skipped.count }
+		return page
 	}
 
 	var imports: AsyncStream<Void> { inner.imports }

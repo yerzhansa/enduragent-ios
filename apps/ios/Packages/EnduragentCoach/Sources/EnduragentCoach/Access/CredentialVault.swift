@@ -6,7 +6,7 @@ package actor CredentialVault {
 	private let training: TrainingService
 	private let clock: any Clock
 	private let diagnostics: DiagnosticsLog
-	private let changes = Admission()
+	private let changes = Turnstile()
 	private var stagingRecovered = false
 
 	package init(
@@ -66,7 +66,7 @@ package actor CredentialVault {
 	package func change(
 		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
-		await changes.pass { _ in await applying(change, boundWork: boundWork) }
+		await changes.pass { await applying(change, boundWork: boundWork) }
 	}
 
 	private func applying(
@@ -133,7 +133,7 @@ package actor CredentialVault {
 	package func storeRecovery(key: NonEmptySecret, appAccountToken: UUID)
 		async throws(AccessUnavailable)
 	{
-		try await changes.pass { _ throws(AccessUnavailable) in
+		try await changes.pass { () throws(AccessUnavailable) in
 			try prepareStaging()
 			let previous = CredentialReplacement.credits(
 				previousKey: try keychain(.creditsKey) { try store.openRouterKey() },

@@ -5,6 +5,7 @@ import Testing
 
 struct RecordReadBenchmark {
 	let ledger: Ledger
+	let log: BatchRecordingLog
 	let jobs: [FlushJobID]
 
 	init(settled: Bool) async throws {
@@ -15,7 +16,9 @@ struct RecordReadBenchmark {
 		let synced = try ModelContainerHandle.withoutCloudKit(
 			storeURL: root.appending(path: "synced.store"))
 		let device = DeviceID(rawValue: "phone-a")
-		let log = SwiftDataRecordLog(deviceId: device, synced: synced, local: local)
+		let log = BatchRecordingLog(
+			inner: SwiftDataRecordLog(deviceId: device, synced: synced, local: local))
+		self.log = log
 		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
 		self.jobs = jobs
 		let pending = jobs.map { job in

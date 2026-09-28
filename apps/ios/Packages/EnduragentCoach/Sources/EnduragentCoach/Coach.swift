@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 public actor Coach {
 	public let memory: Memory
@@ -21,6 +22,7 @@ public actor Coach {
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
 	private var mailboxes: [ChatID: ChatMailbox]
+	private let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
 	private let process: ProcessID
 
@@ -103,7 +105,9 @@ public actor Coach {
 			await recoverOnce()
 		case .willResignActive:
 			return
-		case .enteredBackground, .willTerminate:
+		case .willTerminate:
+			lifetime.terminate()
+		case .enteredBackground:
 			break
 		}
 		for mailbox in mailboxes.values {
@@ -329,9 +333,22 @@ public actor Coach {
 				}, deviceLanguage: deviceLanguage),
 			reviews: reviews,
 			process: process,
-			host: host
+			host: host,
+			lifetime: lifetime
 		)
 		mailboxes[chatId] = created
 		return created
+	}
+
+	package final class Lifetime: Sendable {
+		private let ended = Mutex(false)
+
+		fileprivate init() {}
+
+		var terminating: Bool { ended.withLock { $0 } }
+
+		fileprivate func terminate() {
+			ended.withLock { $0 = true }
+		}
 	}
 }

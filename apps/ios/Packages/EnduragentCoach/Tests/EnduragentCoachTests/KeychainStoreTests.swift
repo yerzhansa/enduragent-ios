@@ -105,6 +105,8 @@ import Testing
 final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 	private let lock = NSLock()
 	private var items: [String: Data]
+	private var copied = 0
+	var readCount: Int { lock.withLock { copied } }
 	private var written: [String: Int] = [:]
 	private var failures: [String: OSStatus] = [:]
 	private var writeFailures: [String: OSStatus] = [:]
@@ -138,6 +140,7 @@ final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 
 	func copy(account: String) throws -> Data? {
 		try lock.withLock {
+			copied += 1
 			try check(account)
 			return items[account]
 		}

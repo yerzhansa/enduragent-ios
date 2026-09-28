@@ -84,6 +84,29 @@ extension ChatMailboxTests {
 		#expect(replyText(settled) == "Still on.")
 	}
 
+	@Test func enteringTheBackgroundWaitsBehindASendBeingAdmitted() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Joined."), .finish(reason: .stop)]
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = makeCoach(
+			transport: transport, store: store, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(60)))
+		let first = try #require(try await coach.send(draft("a"), to: .main).acceptedTurn)
+		async let sent = coach.send(draft("b"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let backgrounded: Void = coach.lifecycle(.enteredBackground)
+		try await Task.sleep(for: .milliseconds(100))
+		store.release()
+		await backgrounded
+		let second = try #require(try await sent.acceptedTurn)
+		let settled = try #require(
+			await coach.settledState(of: first, in: .main, within: .seconds(5)))
+		#expect(second == first, "the message being admitted missed the window it joined")
+		#expect(replyText(settled) == "Joined.")
+		#expect(await coach.transcript(.main) == ["a\nb", "Joined."])
+	}
+
 	@Test func willTerminateInterruptsTheRunningAttemptAndLeavesQueuedTurnsUnclaimed() async throws
 	{
 		let transport = FakeModelTransport()
