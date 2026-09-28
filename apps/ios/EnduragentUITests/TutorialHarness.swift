@@ -240,7 +240,10 @@ enum TutorialHarness {
 		send.tap()
 	}
 
-	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+	static func exchange(
+		_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30,
+		opensFreshSession: Bool = false
+	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
 		let value = progress.value as? String ?? ""
@@ -252,7 +255,11 @@ enum TutorialHarness {
 			return
 		}
 		send(app, text)
-		let expected = "turns \(count + 1) settled \(count + 1)"
+		if opensFreshSession {
+			wait(named(app, "chat.automaticReset.notice"), timeout: timeout)
+		}
+		let turns = opensFreshSession ? 1 : count + 1
+		let expected = "turns \(turns) settled \(turns)"
 		let settled = XCTNSPredicateExpectation(
 			predicate: NSPredicate(format: "value == %@", expected), object: progress)
 		XCTAssertEqual(
