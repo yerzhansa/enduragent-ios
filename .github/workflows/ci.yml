@@ -45,6 +45,8 @@ jobs:
       - run: xcodebuild -version
       - run: pnpm check:catalogs
       - run: pnpm test:swift
+      - name: Build coach package in Release
+        run: swift build -c release --package-path apps/ios/Packages/EnduragentCoach
       - name: Install pinned XcodeGen
         run: |
           curl --fail --location --output /tmp/xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
@@ -56,3 +58,5 @@ jobs:
         run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
+      - name: Build unsigned iPhone app in Release
+        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
