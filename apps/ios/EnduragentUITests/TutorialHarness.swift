@@ -84,11 +84,14 @@ enum TutorialHarness {
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", storeArgument, "keep",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
+	static func launchKeepingStore(
+		_ app: XCUIApplication, expecting element: XCUIElement, arguments: [String] = []
+	) throws {
+		app.launchArguments =
+			[
+				"-EnduragentFixture", "first-week", storeArgument, "keep",
+				"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			] + arguments
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
