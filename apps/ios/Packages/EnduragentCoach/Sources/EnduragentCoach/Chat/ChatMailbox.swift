@@ -145,7 +145,7 @@ package actor ChatMailbox {
 		admitted.arm(message.turn, at: clock.now, for: coalescing.window) { armed in
 			await self.closeWindowAdmitted(armed)
 		}
-		feed.publish(snapshot())
+		publish()
 		return .accepted(message.turn)
 	}
 
@@ -175,7 +175,7 @@ package actor ChatMailbox {
 			return
 		}
 		interruption.begin(cause)
-		feed.publish(snapshot())
+		publish()
 		running?.cancel()
 		await pass { admitted in
 			await running?.value
@@ -187,7 +187,7 @@ package actor ChatMailbox {
 			interruption.end()
 			leases.end { $0.interrupt() }
 		}
-		feed.publish(snapshot())
+		publish()
 		drainIfIdle()
 	}
 
@@ -203,12 +203,12 @@ package actor ChatMailbox {
 		case .willTerminate:
 			let owned = interruption.cause == nil
 			if owned { interruption.begin(.appTerminating) }
-			feed.publish(snapshot())
+			publish()
 			running?.cancel()
 			await running?.value
 			leases.end { $0.interrupt() }
 			if owned { interruption.end() }
-			feed.publish(snapshot())
+			publish()
 		}
 	}
 
@@ -222,12 +222,12 @@ package actor ChatMailbox {
 		for job in plan.drain {
 			if work.add(job) { workAdded() }
 		}
-		feed.publish(snapshot())
+		publish()
 	}
 
 	package func reviewChanged() async {
 		await records.refreshReview()
-		feed.publish(snapshot())
+		publish()
 	}
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
@@ -248,7 +248,7 @@ package actor ChatMailbox {
 	}
 
 	private func workAdded() {
-		feed.publish(snapshot())
+		publish()
 		drainIfIdle()
 	}
 
@@ -267,7 +267,7 @@ package actor ChatMailbox {
 			case .reset(let reset):
 				let access = await self.environment.flushAccess()
 				await self.resets.run(reset, on: self.records, access: access) {
-					self.feed.publish(self.snapshot())
+					self.publish()
 				}
 			}
 			self.workFinished()
@@ -281,7 +281,7 @@ package actor ChatMailbox {
 			if work.window == nil, interruption.cause == nil, !lifetime.terminating {
 				leases.end { $0.finish() }
 			}
-			feed.publish(snapshot())
+			publish()
 		} else {
 			drainIfIdle()
 		}
@@ -310,7 +310,7 @@ package actor ChatMailbox {
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
-		feed.publish(snapshot())
+		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let settlement: Settlement
 		do {
@@ -341,7 +341,7 @@ package actor ChatMailbox {
 			finishedAway.insert(turn)
 		}
 		lease.settle(turn, reply: reply)
-		feed.publish(snapshot())
+		publish()
 	}
 
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
@@ -352,11 +352,15 @@ package actor ChatMailbox {
 			await records.refreshReview()
 		}
 		guard var current = live, current.attempt == stamp.attempt else {
-			feed.publish(snapshot())
+			publish()
 			return
 		}
 		current.apply(progress)
 		live = current
+		publish()
+	}
+
+	private func publish() {
 		feed.publish(snapshot())
 	}
 
@@ -381,7 +385,7 @@ package actor ChatMailbox {
 	}
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
-		if waits.end(turn, attempt: attempt) { feed.publish(snapshot()) }
+		if waits.end(turn, attempt: attempt) { publish() }
 	}
 
 	struct Admitted: ~Copyable {
