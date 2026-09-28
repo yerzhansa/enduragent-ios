@@ -129,13 +129,17 @@ final class ShellModel {
 			let outcome = try await services.coach.credits.grant(deviceCheck: token)
 			switch outcome {
 			case .minted(let credits):
-				starterLine = "\(credits.units) credits"
+				starterLine = phrasebook.say(
+					Catalog.creditsBalance,
+					["count": String(credits.units), "formattedCount": String(credits.units)])
 			case .toppedUp(let added):
-				starterLine = "Added \(added.units) credits"
+				starterLine = phrasebook.say(
+					Catalog.onboardingStarterAdded,
+					["count": String(added.units), "formattedCount": String(added.units)])
 			case .alreadyGranted:
 				starterLine =
 					try await existingBalanceLine()
-					?? "This device already used its starter credits."
+					?? phrasebook.say(Catalog.onboardingStarterAlreadyGranted, [:])
 			}
 		} catch {
 			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
@@ -147,7 +151,12 @@ final class ShellModel {
 		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
 		let scale = try await services.coach.credits.catalog().scale
 		let balance = try await services.coach.credits.balance(scale: scale)
-		return "\(balance.credits.units) credits"
+		return phrasebook.say(
+			Catalog.creditsBalance,
+			[
+				"count": String(balance.credits.units),
+				"formattedCount": String(balance.credits.units),
+			])
 	}
 
 	func appear() async {

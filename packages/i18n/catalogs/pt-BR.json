@@ -29,7 +29,8 @@
     "truncated": "Apenas as conversas anteriores mais recentes são listadas.",
     "turnCount_one": "{{formattedCount}} mensagem",
     "turnCount_other": "{{formattedCount}} mensagens",
-    "unavailable": "Esta conversa não está mais disponível."
+    "unavailable": "Esta conversa não está mais disponível.",
+    "history": "Histórico"
   },
   "common": {
     "automatic": "Automático",
@@ -861,7 +862,8 @@
       "plan": "Plano",
       "settings": "Configurações",
       "training": "Treinamento"
-    }
+    },
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Envie uma mensagem ao seu treinador",
       "responding": "O treinador está respondendo…",
       "send": "Enviar mensagem",
-      "stop": "Parar resposta"
+      "stop": "Parar resposta",
+      "messageField": "Mensagem",
+      "sendButton": "Enviar"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1015,7 +1019,8 @@
       "responseFailure": "O treinador não conseguiu responder. Tente novamente.",
       "retryMessage": "Tentar enviar a mensagem novamente",
       "savedChoice": "Escolha salva",
-      "working": "O treinador está trabalhando…"
+      "working": "O treinador está trabalhando…",
+      "responseStopped": "Resposta interrompida. A resposta parcial foi preservada."
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -1447,7 +1452,9 @@
       "showContext": "Mostrar contexto de treinamento",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Adicionar ao calendário",
+    "menu": "Menu",
+    "title": "Treinador"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Série principal",
       "cooldown": "Desaquecimento",
       "ramp": "rampa"
+    }
+  },
+  "credits": {
+    "buy": "Comprar",
+    "testers": "Os testadores ainda não podem comprar pacotes.",
+    "title": "Créditos",
+    "balance_one": "{{formattedCount}} crédito",
+    "pack_one": "{{formattedCount}} crédito",
+    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
+    "balance_other": "{{formattedCount}} créditos",
+    "pack_other": "{{formattedCount}} créditos",
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Conectar",
+      "apiKey": "Chave de API do intervals.icu",
+      "fatigue": "Fadiga {{value}}",
+      "fitness": "Condicionamento {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Pular por agora"
+    },
+    "starter": {
+      "start": "Começar a conversar",
+      "progress": "Solicitando créditos iniciais",
+      "alreadyGranted": "Este dispositivo já usou seus créditos iniciais.",
+      "added_one": "{{formattedCount}} crédito adicionado",
+      "added_other": "{{formattedCount}} créditos adicionados"
     }
   }
 }

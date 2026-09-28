@@ -544,7 +544,8 @@
     "truncated": "Sono elencate solo le conversazioni passate più recenti.",
     "turnCount_one": "{{formattedCount}} messaggio",
     "turnCount_other": "{{formattedCount}} messaggi",
-    "unavailable": "Questa conversazione non è più disponibile."
+    "unavailable": "Questa conversazione non è più disponibile.",
+    "history": "Cronologia"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Piano",
       "settings": "Impostazioni",
       "training": "Allenamento"
-    }
+    },
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Scrivi al tuo coach",
       "responding": "Il coach sta rispondendo…",
       "send": "Invia messaggio",
-      "stop": "Interrompi risposta"
+      "stop": "Interrompi risposta",
+      "messageField": "Messaggio",
+      "sendButton": "Invia"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1015,7 +1019,8 @@
       "responseFailure": "Il coach non ha potuto rispondere. Riprova.",
       "retryMessage": "Riprova messaggio",
       "savedChoice": "Scelta salvata",
-      "working": "Il coach sta elaborando…"
+      "working": "Il coach sta elaborando…",
+      "responseStopped": "Risposta interrotta. La risposta parziale è conservata."
     },
     "planChange": {
       "activePlan": "Piano attivo",
@@ -1447,7 +1452,9 @@
       "showContext": "Mostra contesto di allenamento",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Aggiungi al calendario",
+    "menu": "Menu",
+    "title": "Coach"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Blocco principale",
       "cooldown": "Defaticamento",
       "ramp": "rampa"
+    }
+  },
+  "credits": {
+    "buy": "Acquista",
+    "testers": "I tester non possono ancora acquistare pacchetti.",
+    "title": "Crediti",
+    "balance_one": "{{formattedCount}} credito",
+    "pack_one": "{{formattedCount}} credito",
+    "packPrice_one": "{{formattedCount}} credito · {{price}}",
+    "balance_other": "{{formattedCount}} crediti",
+    "pack_other": "{{formattedCount}} crediti",
+    "packPrice_other": "{{formattedCount}} crediti · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Collega",
+      "apiKey": "Chiave API di intervals.icu",
+      "fatigue": "Fatica {{value}}",
+      "fitness": "Forma fisica {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Salta per ora"
+    },
+    "starter": {
+      "start": "Inizia a chattare",
+      "progress": "Richiesta dei crediti iniziali",
+      "alreadyGranted": "Questo dispositivo ha già utilizzato i suoi crediti iniziali.",
+      "added_one": "{{formattedCount}} credito aggiunto",
+      "added_other": "{{formattedCount}} crediti aggiunti"
     }
   }
 }

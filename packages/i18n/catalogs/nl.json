@@ -544,7 +544,8 @@
     "truncated": "Alleen de meest recente eerdere gesprekken worden weergegeven.",
     "turnCount_one": "{{formattedCount}} bericht",
     "turnCount_other": "{{formattedCount}} berichten",
-    "unavailable": "Dit gesprek is niet meer beschikbaar."
+    "unavailable": "Dit gesprek is niet meer beschikbaar.",
+    "history": "Geschiedenis"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Instellingen",
       "training": "Training"
-    }
+    },
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Stuur je coach een bericht",
       "responding": "De coach antwoordt…",
       "send": "Bericht verzenden",
-      "stop": "Antwoord stoppen"
+      "stop": "Antwoord stoppen",
+      "messageField": "Bericht",
+      "sendButton": "Versturen"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1015,7 +1019,8 @@
       "responseFailure": "De coach kon niet antwoorden. Probeer het opnieuw.",
       "retryMessage": "Bericht opnieuw proberen",
       "savedChoice": "Opgeslagen keuze",
-      "working": "De coach is bezig…"
+      "working": "De coach is bezig…",
+      "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard."
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",
@@ -1447,7 +1452,9 @@
       "showContext": "Trainingscontext tonen",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Toevoegen aan agenda",
+    "menu": "Menu",
+    "title": "Coach"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Hoofdblok",
       "cooldown": "Cooling-down",
       "ramp": "oplopend"
+    }
+  },
+  "credits": {
+    "buy": "Kopen",
+    "testers": "Testers kunnen nog geen pakketten kopen.",
+    "title": "Tegoed",
+    "balance_one": "{{formattedCount}} tegoedpunt",
+    "pack_one": "{{formattedCount}} tegoedpunt",
+    "packPrice_one": "{{formattedCount}} tegoedpunt · {{price}}",
+    "balance_other": "{{formattedCount}} tegoedpunten",
+    "pack_other": "{{formattedCount}} tegoedpunten",
+    "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Verbinden",
+      "apiKey": "intervals.icu API-sleutel",
+      "fatigue": "Vermoeidheid {{value}}",
+      "fitness": "Conditie {{value}}",
+      "form": "Vorm {{value}}",
+      "skip": "Voorlopig overslaan"
+    },
+    "starter": {
+      "start": "Beginnen met chatten",
+      "progress": "Starttegoed aanvragen",
+      "alreadyGranted": "Dit apparaat heeft het starttegoed al gebruikt.",
+      "added_one": "{{formattedCount}} tegoedpunt toegevoegd",
+      "added_other": "{{formattedCount}} tegoedpunten toegevoegd"
     }
   }
 }

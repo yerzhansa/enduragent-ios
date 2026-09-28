@@ -1711,6 +1711,112 @@
         }
       }
     },
+    "archive.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historique"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cronologia"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verlauf"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geschiedenis"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historik"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historik"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historikk"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Histórico"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Histórico"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historia"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기록"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "履歴"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史记录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歷史紀錄"
+          }
+        }
+      }
+    },
     "archive.listFailure": {
       "localizations": {
         "en": {
@@ -3831,6 +3937,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "此對話已無法使用。"
+          }
+        }
+      }
+    },
+    "chat.addToCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to calendar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir al calendario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter au calendrier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi al calendario"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Kalender hinzufügen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen aan agenda"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Føj til kalender"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till i kalendern"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legg til i kalenderen"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lisää kalenteriin"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar ao calendário"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar ao calendário"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj do kalendarza"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더에 추가"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーに追加"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到日历"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入行事曆"
           }
         }
       }
@@ -12857,6 +13069,112 @@
         }
       }
     },
+    "chat.composer.messageField": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensaje"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messaggio"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachricht"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bericht"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Besked"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meddelande"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melding"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viesti"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensagem"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensagem"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiadomość"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "메시지"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メッセージ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消息"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訊息"
+          }
+        }
+      }
+    },
     "chat.composer.messagePlaceholder": {
       "localizations": {
         "en": {
@@ -13181,6 +13499,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "傳送訊息"
+          }
+        }
+      }
+    },
+    "chat.composer.sendButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoyer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invia"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versturen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skicka"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lähetä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyślij"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보내기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "傳送"
           }
         }
       }
@@ -19869,6 +20293,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "教練無法回覆。請重試。"
+          }
+        }
+      }
+    },
+    "chat.notice.responseStopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Response stopped. Your partial response is preserved."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respuesta detenida. Se conserva la respuesta parcial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réponse arrêtée. La réponse partielle est conservée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risposta interrotta. La risposta parziale è conservata."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret er stoppet. Det delvise svar bliver bevaret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret stoppades. Den del av svaret som kom fram finns kvar."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret er stoppet. Den ferdige delen av svaret er bevart."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vastaus pysäytetty. Osittainen vastaus säilyy."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta interrompida. A resposta parcial mantém-se."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta interrompida. A resposta parcial foi preservada."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答を停止しました。途中までの回答は残っています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止回复。已生成的部分回复已保留。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止回覆。已產生的部分回覆已保留。"
           }
         }
       }
@@ -62345,6 +62875,112 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "chat.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrenador"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træner"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tränare"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trener"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valmentaja"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treinador"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treinador"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trener"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "코치"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コーチ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "教练"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "教練"
           }
         }
       }
@@ -110681,6 +111317,536 @@
         }
       }
     },
+    "credits.balance": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediitti"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediittiä"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyt"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyty"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytów"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytu"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.buy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquista"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaufen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Køb"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köp"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøp"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osta"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購買"
+          }
+        }
+      }
+    },
     "credits.error.accessRejected": {
       "localizations": {
         "en": {
@@ -110707,6 +111873,1134 @@
           "stringUnit": {
             "state": "translated",
             "value": "Credits are unavailable right now. Try again later."
+          }
+        }
+      }
+    },
+    "credits.pack": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediitti"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediittiä"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyt"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyty"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytów"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytu"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.packPrice": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditt · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kreditter · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediitti · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ krediittiä · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyt · %#@price@"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredyty · %#@price@"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytów · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ kredytu · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジット · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分 · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 积分 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數 · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 點數 · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.testers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testers cannot buy packs yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los probadores aún no pueden comprar paquetes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les testeurs ne peuvent pas encore acheter de packs."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I tester non possono ancora acquistare pacchetti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tester können noch keine Pakete kaufen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testers kunnen nog geen pakketten kopen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testere kan ikke købe pakker endnu."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testare kan inte köpa paket ännu."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testere kan ikke kjøpe pakker ennå."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testaajat eivät voi vielä ostaa paketteja."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os utilizadores de teste ainda não podem comprar pacotes."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os testadores ainda não podem comprar pacotes."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testerzy nie mogą jeszcze kupować pakietów."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "테스터는 아직 팩을 구매할 수 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テスターはまだパックを購入できません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试者暂时还不能购买积分包。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "測試者目前還不能購買點數包。"
+          }
+        }
+      }
+    },
+    "credits.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créditos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crédits"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crediti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guthaben"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegoed"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediter"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediitit"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créditos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créditos"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kredyty"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크레딧"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クレジット"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點數"
           }
         }
       }
@@ -121673,12 +123967,1696 @@
         }
       }
     },
+    "onboarding.connect.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collega"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinden"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opret forbindelse"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anslut"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koble til"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yhdistä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połącz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連結"
+          }
+        }
+      }
+    },
+    "onboarding.connect.apiKey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clave API de intervals.icu"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clé API intervals.icu"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiave API di intervals.icu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-API-Schlüssel"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API-sleutel"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API-nøgle"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API-nyckel"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API-nøkkel"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-API-avain"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chave API do intervals.icu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chave de API do intervals.icu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz API intervals.icu"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API 키"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu APIキー"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API 密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API 金鑰"
+          }
+        }
+      }
+    },
+    "onboarding.connect.fatigue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatigue %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatiga %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatigue %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatica %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ermüdung %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vermoeidheid %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træthed %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trötthet %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tretthet %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Väsymys %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fadiga %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fadiga %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmęczenie %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "피로도 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "疲労度 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "疲劳 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "疲勞 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.fitness": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitness %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condición física %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condition physique %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma fisica %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitness %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conditie %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kondition %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kondition %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kondisjon %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunto %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condição física %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Condicionamento %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kondycja %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "체력 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フィットネス %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "体能 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "體能 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.form": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forme %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorm %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vire %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forma %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "컨디션 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フォーム %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "狀態 %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip for now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar por ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passer pour l’instant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salta per ora"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorerst überspringen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voorlopig overslaan"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spring over for nu"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoppa över tills vidare"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hopp over foreløpig"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ohita toistaiseksi"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ignorar por agora"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pular por agora"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pomiń na razie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금은 건너뛰기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今はスキップ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时跳过"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫時略過"
+          }
+        }
+      }
+    },
     "onboarding.notice.health": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        }
+      }
+    },
+    "onboarding.starter.added": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Added %#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se añadió %#@formattedCount@ crédito"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se añadieron %#@formattedCount@ créditos"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédit ajouté"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédits ajoutés"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credito aggiunto"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crediti aggiunti"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkt hinzugefügt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ Guthabenpunkte hinzugefügt"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunt toegevoegd"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ tegoedpunten toegevoegd"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tilføjede %#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tilføjede %#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lade till %#@formattedCount@ kredit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lade till %#@formattedCount@ krediter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "La til %#@formattedCount@ kreditt"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "La til %#@formattedCount@ kreditter"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätty %#@formattedCount@ krediitti"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Lisätty %#@formattedCount@ krediittiä"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito adicionado"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos adicionados"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ crédito adicionado"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ créditos adicionados"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredyt"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredyty"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredytów"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Dodano %#@formattedCount@ kredytu"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 추가됨"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 크레딧 추가됨"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジットを追加しました"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@クレジットを追加しました"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已添加 %#@formattedCount@ 积分"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已添加 %#@formattedCount@ 积分"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已新增 %#@formattedCount@ 點數"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已新增 %#@formattedCount@ 點數"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.starter.alreadyGranted": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device already used its starter credits."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo ya utilizó sus créditos iniciales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet appareil a déjà utilisé ses crédits de départ."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo dispositivo ha già utilizzato i suoi crediti iniziali."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Gerät hat sein Startguthaben bereits verwendet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit apparaat heeft het starttegoed al gebruikt."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne enhed har allerede brugt sine startkreditter."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här enheten har redan använt sina startkrediter."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne enheten har allerede brukt startkredittene sine."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä laite on jo käyttänyt aloituskrediittinsä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo já utilizou os seus créditos iniciais."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo já usou seus créditos iniciais."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To urządzenie wykorzystało już swoje kredyty na start."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 기기는 이미 시작 크레딧을 사용했습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このデバイスはすでに初回クレジットを使用しています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备已使用过初始积分。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此裝置已使用過初始點數。"
+          }
+        }
+      }
+    },
+    "onboarding.starter.progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requesting starter credits"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitando créditos iniciales"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande des crédits de départ"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Richiesta dei crediti iniziali"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startguthaben wird angefordert"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starttegoed aanvragen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmoder om startkreditter"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begär startkrediter"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ber om startkreditter"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pyydetään aloituskrediittejä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A pedir créditos iniciais"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitando créditos iniciais"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wysyłanie prośby o kredyty na start"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시작 크레딧 요청 중"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初回クレジットをリクエスト中"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在申请初始积分"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在申請初始點數"
+          }
+        }
+      }
+    },
+    "onboarding.starter.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start chatting"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar a chatear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commencer à discuter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inizia a chattare"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat starten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginnen met chatten"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start en chat"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Börja chatta"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start en chat"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aloita keskustelu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar a conversar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Começar a conversar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpocznij rozmowę"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "채팅 시작"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャットを始める"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始聊天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始聊天"
           }
         }
       }
@@ -285449,6 +289427,112 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "sidebar.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menú"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menü"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meny"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meny"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valikko"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "메뉴"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニュー"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "菜单"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選單"
           }
         }
       }

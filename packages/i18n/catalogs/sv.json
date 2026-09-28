@@ -544,7 +544,8 @@
     "truncated": "Endast de senaste tidigare samtalen visas.",
     "turnCount_one": "{{formattedCount}} meddelande",
     "turnCount_other": "{{formattedCount}} meddelanden",
-    "unavailable": "Det här samtalet är inte längre tillgängligt."
+    "unavailable": "Det här samtalet är inte längre tillgängligt.",
+    "history": "Historik"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Inställningar",
       "training": "Träning"
-    }
+    },
+    "menu": "Meny"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Skriv till din tränare",
       "responding": "Tränaren svarar…",
       "send": "Skicka meddelande",
-      "stop": "Stoppa svaret"
+      "stop": "Stoppa svaret",
+      "messageField": "Meddelande",
+      "sendButton": "Skicka"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1015,7 +1019,8 @@
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
       "retryMessage": "Försök skicka meddelandet igen",
       "savedChoice": "Sparat val",
-      "working": "Tränaren arbetar…"
+      "working": "Tränaren arbetar…",
+      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar."
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1447,7 +1452,9 @@
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
     },
-    "menu": "Meny"
+    "addToCalendar": "Lägg till i kalendern",
+    "menu": "Meny",
+    "title": "Tränare"
   },
   "training": {
     "export": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Huvuddel",
       "cooldown": "Nedvarvning",
       "ramp": "gradvis ökning"
+    }
+  },
+  "credits": {
+    "buy": "Köp",
+    "testers": "Testare kan inte köpa paket ännu.",
+    "title": "Krediter",
+    "balance_one": "{{formattedCount}} kredit",
+    "pack_one": "{{formattedCount}} kredit",
+    "packPrice_one": "{{formattedCount}} kredit · {{price}}",
+    "balance_other": "{{formattedCount}} krediter",
+    "pack_other": "{{formattedCount}} krediter",
+    "packPrice_other": "{{formattedCount}} krediter · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Anslut",
+      "apiKey": "intervals.icu API-nyckel",
+      "fatigue": "Trötthet {{value}}",
+      "fitness": "Kondition {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hoppa över tills vidare"
+    },
+    "starter": {
+      "start": "Börja chatta",
+      "progress": "Begär startkrediter",
+      "alreadyGranted": "Den här enheten har redan använt sina startkrediter.",
+      "added_one": "Lade till {{formattedCount}} kredit",
+      "added_other": "Lade till {{formattedCount}} krediter"
     }
   }
 }

@@ -2,31 +2,31 @@ import Foundation
 
 package actor ChatMailbox {
 	package let chatId: ChatID
-	private let ledger: Ledger
+	let ledger: Ledger
 	private let runner: TurnRunner
 	private let flushes: FlushWork
-	private let clock: any Clock
+	let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
-	private let process: ProcessID
+	let process: ProcessID
 
-	private let records: ChatRecords
+	let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
 		chat: chatId, records: records, environment: environment,
 		freshness: AutomaticReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock),
 		process: process)
-	private let work = MailboxQueue()
+	let work = MailboxQueue()
 	private let door = Turnstile()
-	private var live: LiveAttempt?
+	private(set) var live: LiveAttempt?
 	private var running: Task<Void, Never>?
-	private let interruption = Interruption()
+	let interruption = Interruption()
 	private let lifetime: Coach.Lifetime
 	private var foreground = true
-	private var finishedAway: Set<TurnID> = []
+	private(set) var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
-	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
+	private(set) lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
 	private let feed = SnapshotFeed()
@@ -365,26 +365,6 @@ package actor ChatMailbox {
 
 	private func publish() {
 		feed.publish(snapshot())
-	}
-
-	private func snapshot() -> ChatSnapshot {
-		ChatSnapshot(
-			chat: chatId,
-			conversation: records.conversation,
-			jobs: records.jobs,
-			live: live,
-			window: work.window,
-			queued: work.turns(includingActive: true),
-			waiting: waits.waiting(among: records.conversation.current.turns),
-			stopping: interruption.cause != nil,
-			resetting: work.resetting,
-			finishedAway: finishedAway,
-			review: records.review,
-			device: ledger.deviceId,
-			process: process,
-			now: clock.now,
-			zone: clock.timeZone
-		)
 	}
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {

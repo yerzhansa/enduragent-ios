@@ -544,7 +544,8 @@
     "truncated": "Kun de seneste tidligere samtaler vises.",
     "turnCount_one": "{{formattedCount}} besked",
     "turnCount_other": "{{formattedCount}} beskeder",
-    "unavailable": "Denne samtale er ikke længere tilgængelig."
+    "unavailable": "Denne samtale er ikke længere tilgængelig.",
+    "history": "Historik"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Indstillinger",
       "training": "Træning"
-    }
+    },
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Skriv til din træner",
       "responding": "Træneren svarer…",
       "send": "Send besked",
-      "stop": "Stop svaret"
+      "stop": "Stop svaret",
+      "messageField": "Besked",
+      "sendButton": "Send"
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1015,7 +1019,8 @@
       "responseFailure": "Træneren kunne ikke svare. Prøv igen.",
       "retryMessage": "Prøv beskeden igen",
       "savedChoice": "Gemt valg",
-      "working": "Træneren arbejder…"
+      "working": "Træneren arbejder…",
+      "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret."
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -1447,7 +1452,9 @@
       "showContext": "Vis træningskontekst",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Føj til kalender",
+    "menu": "Menu",
+    "title": "Træner"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedkøling",
       "ramp": "gradvis stigning"
+    }
+  },
+  "credits": {
+    "buy": "Køb",
+    "testers": "Testere kan ikke købe pakker endnu.",
+    "title": "Kreditter",
+    "balance_one": "{{formattedCount}} kredit",
+    "pack_one": "{{formattedCount}} kredit",
+    "packPrice_one": "{{formattedCount}} kredit · {{price}}",
+    "balance_other": "{{formattedCount}} kreditter",
+    "pack_other": "{{formattedCount}} kreditter",
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Opret forbindelse",
+      "apiKey": "intervals.icu API-nøgle",
+      "fatigue": "Træthed {{value}}",
+      "fitness": "Kondition {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Spring over for nu"
+    },
+    "starter": {
+      "start": "Start en chat",
+      "progress": "Anmoder om startkreditter",
+      "alreadyGranted": "Denne enhed har allerede brugt sine startkreditter.",
+      "added_one": "Tilføjede {{formattedCount}} kredit",
+      "added_other": "Tilføjede {{formattedCount}} kreditter"
     }
   }
 }

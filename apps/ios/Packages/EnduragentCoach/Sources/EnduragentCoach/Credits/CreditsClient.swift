@@ -280,10 +280,13 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: 0)
 		}
 		guard (200..<300).contains(http.statusCode) else {
-			if let wire = try? JSONDecoder().decode(ErrorWire.self, from: data),
-				let failure = Self.failures[wire.error]
-			{
-				throw failure
+			do {
+				let wire = try JSONDecoder().decode(ErrorWire.self, from: data)
+				if let failure = Self.failures[wire.error] {
+					throw failure
+				}
+			} catch is DecodingError {
+				throw CreditsFailure.unexpectedResponse(status: http.statusCode)
 			}
 			throw CreditsFailure.unexpectedResponse(status: http.statusCode)
 		}
@@ -304,64 +307,4 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: status)
 		}
 	}
-}
-
-private struct GrantBody: Encodable {
-	var athleteId: String
-	var deviceCheckToken: String
-}
-
-private struct SignedTransactionBody: Encodable {
-	var signedTransaction: String
-}
-
-private struct ErrorWire: Decodable {
-	var error: String
-}
-
-private struct KindWire: Decodable {
-	var kind: String
-}
-
-private struct GrantMintedWire: Decodable {
-	var key: String
-	var credits: Int
-}
-
-private struct GrantToppedUpWire: Decodable {
-	var added: Int
-}
-
-private struct ClaimMintedWire: Decodable {
-	var key: String
-	var creditsAdded: Int
-}
-
-private struct ClaimToppedUpWire: Decodable {
-	var creditsAdded: Int
-}
-
-private struct RecoveredWire: Decodable {
-	var athleteId: UUID
-	var key: String
-	var credits: Int
-}
-
-private struct CatalogWire: Decodable {
-	var purchasesEnabled: Bool
-	var creditsPerUsd: Int
-	var packs: [CatalogPackWire]
-}
-
-private struct CatalogPackWire: Decodable {
-	var productId: String
-	var credits: Int
-}
-
-private struct OpenRouterKeyWire: Decodable {
-	var data: OpenRouterKeyDataWire
-}
-
-private struct OpenRouterKeyDataWire: Decodable {
-	var limit_remaining: Double?
 }

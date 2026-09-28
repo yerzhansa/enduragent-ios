@@ -73,7 +73,7 @@
 		@MainActor
 		private func bootstrap() async {
 			if session == nil {
-				session = CreditsDebugSession(coach: coach)
+				session = CreditsDebugSession(coach: coach, onSettlementFailure: present)
 			}
 			await reload()
 		}
@@ -213,8 +213,9 @@
 		let purchases: StoreKitPurchaseCoordinator
 		let deviceCheck = DeviceCheckTokenProvider()
 
-		init(coach: Coach) {
-			self.purchases = StoreKitPurchaseCoordinator(coach: coach)
+		init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
+			self.purchases = StoreKitPurchaseCoordinator(
+				coach: coach, onSettlementFailure: onSettlementFailure)
 		}
 	}
 #endif

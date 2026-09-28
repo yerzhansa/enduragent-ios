@@ -18,6 +18,16 @@ import Testing
 		#expect(await coach.transcript(.main).isEmpty)
 	}
 
+	@Test func historyPropagatesARecordReadFailure() async {
+		let failing = FaultInjectingRecordLog(wrapping: store)
+		failing.failFetches = true
+		let coach = EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: failing, clock: clock)
+		await #expect(throws: HistoryUnavailable.storageUnavailable) {
+			try await coach.history()
+		}
+	}
+
 	@Test func replyStreamsTextThenFinishes() async throws {
 		transport.script = [
 			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),

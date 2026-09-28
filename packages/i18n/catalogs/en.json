@@ -37,7 +37,8 @@
     "truncated": "Only the most recent past conversations are listed.",
     "turnCount_one": "{{formattedCount}} message",
     "turnCount_other": "{{formattedCount}} messages",
-    "unavailable": "This conversation is no longer available."
+    "unavailable": "This conversation is no longer available.",
+    "history": "History"
   },
   "chat": {
     "attachment": {
@@ -122,7 +123,9 @@
       "notSent": "Not sent. Your draft is still here.",
       "responding": "Coach is responding…",
       "send": "Send message",
-      "stop": "Stop responding"
+      "stop": "Stop responding",
+      "messageField": "Message",
+      "sendButton": "Send"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -193,7 +196,8 @@
       "retryMessage": "Retry message",
       "savedChoice": "Saved choice",
       "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
-      "working": "Coach is working…"
+      "working": "Coach is working…",
+      "responseStopped": "Response stopped. Your partial response is preserved."
     },
     "planChange": {
       "activePlan": "Active Plan",
@@ -635,7 +639,9 @@
       "showContext": "Show training context",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Add to calendar",
+    "menu": "Menu",
+    "title": "Coach"
   },
   "cli": {
     "language": {
@@ -870,7 +876,16 @@
       "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
       "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
       "unavailable": "Credits are unavailable right now. Try again later."
-    }
+    },
+    "balance_one": "{{formattedCount}} credit",
+    "balance_other": "{{formattedCount}} credits",
+    "buy": "Buy",
+    "pack_one": "{{formattedCount}} credit",
+    "pack_other": "{{formattedCount}} credits",
+    "packPrice_one": "{{formattedCount}} credit · {{price}}",
+    "packPrice_other": "{{formattedCount}} credits · {{price}}",
+    "testers": "Testers cannot buy packs yet.",
+    "title": "Credits"
   },
   "desktop": {
     "credentials": {
@@ -966,6 +981,21 @@
   "onboarding": {
     "notice": {
       "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    },
+    "connect": {
+      "action": "Connect",
+      "apiKey": "intervals.icu API key",
+      "fatigue": "Fatigue {{value}}",
+      "fitness": "Fitness {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Skip for now"
+    },
+    "starter": {
+      "start": "Start chatting",
+      "progress": "Requesting starter credits",
+      "added_one": "Added {{formattedCount}} credit",
+      "added_other": "Added {{formattedCount}} credits",
+      "alreadyGranted": "This device already used its starter credits."
     }
   },
   "plan": {
@@ -2422,7 +2452,8 @@
       "plan": "Plan",
       "settings": "Settings",
       "training": "Training"
-    }
+    },
+    "menu": "Menu"
   },
   "telegram": {
     "capture": {

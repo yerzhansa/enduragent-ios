@@ -548,7 +548,8 @@
     "turnCount_other": "{{formattedCount}} wiadomości",
     "unavailable": "Ta rozmowa nie jest już dostępna.",
     "turnCount_few": "{{formattedCount}} wiadomości",
-    "turnCount_many": "{{formattedCount}} wiadomości"
+    "turnCount_many": "{{formattedCount}} wiadomości",
+    "history": "Historia"
   },
   "setup": {
     "ai": {
@@ -877,7 +878,8 @@
       "training": "Trening"
     },
     "planAttention_few": "Plan, {{formattedCount}} elementy wymagają uwagi",
-    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi"
+    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi",
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -961,7 +963,9 @@
       "messagePlaceholder": "Napisz do trenera",
       "responding": "Trener odpowiada…",
       "send": "Wyślij wiadomość",
-      "stop": "Zatrzymaj odpowiedź"
+      "stop": "Zatrzymaj odpowiedź",
+      "messageField": "Wiadomość",
+      "sendButton": "Wyślij"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1031,7 +1035,8 @@
       "responseFailure": "Trener nie mógł odpowiedzieć. Spróbuj ponownie.",
       "retryMessage": "Ponów wiadomość",
       "savedChoice": "Zapisany wybór",
-      "working": "Trener pracuje…"
+      "working": "Trener pracuje…",
+      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
     },
     "planChange": {
       "activePlan": "Aktywny plan",
@@ -1473,7 +1478,9 @@
       "showContext": "Pokaż kontekst treningowy",
       "title": "Czat"
     },
-    "menu": "Menu"
+    "addToCalendar": "Dodaj do kalendarza",
+    "menu": "Menu",
+    "title": "Trener"
   },
   "plan": {
     "details": {
@@ -2971,6 +2978,42 @@
       "mainSet": "Seria główna",
       "cooldown": "Schłodzenie",
       "ramp": "narastająco"
+    }
+  },
+  "credits": {
+    "buy": "Kup",
+    "testers": "Testerzy nie mogą jeszcze kupować pakietów.",
+    "title": "Kredyty",
+    "balance_one": "{{formattedCount}} kredyt",
+    "pack_one": "{{formattedCount}} kredyt",
+    "packPrice_one": "{{formattedCount}} kredyt · {{price}}",
+    "balance_other": "{{formattedCount}} kredytu",
+    "pack_other": "{{formattedCount}} kredytu",
+    "packPrice_other": "{{formattedCount}} kredytu · {{price}}",
+    "balance_few": "{{formattedCount}} kredyty",
+    "pack_few": "{{formattedCount}} kredyty",
+    "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
+    "balance_many": "{{formattedCount}} kredytów",
+    "pack_many": "{{formattedCount}} kredytów",
+    "packPrice_many": "{{formattedCount}} kredytów · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Połącz",
+      "apiKey": "Klucz API intervals.icu",
+      "fatigue": "Zmęczenie {{value}}",
+      "fitness": "Kondycja {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Pomiń na razie"
+    },
+    "starter": {
+      "start": "Rozpocznij rozmowę",
+      "progress": "Wysyłanie prośby o kredyty na start",
+      "alreadyGranted": "To urządzenie wykorzystało już swoje kredyty na start.",
+      "added_one": "Dodano {{formattedCount}} kredyt",
+      "added_other": "Dodano {{formattedCount}} kredytu",
+      "added_few": "Dodano {{formattedCount}} kredyty",
+      "added_many": "Dodano {{formattedCount}} kredytów"
     }
   }
 }

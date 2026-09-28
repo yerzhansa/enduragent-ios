@@ -11,14 +11,22 @@ enum StoreKitPurchaseFailure: Error {
 @MainActor
 final class StoreKitPurchaseCoordinator {
 	private let coach: Coach
+	private let onSettlementFailure: @MainActor (Error) -> Void
 	private var updatesTask: Task<Void, Never>?
 
-	init(coach: Coach) {
+	init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
 		self.coach = coach
+		self.onSettlementFailure = onSettlementFailure
 		updatesTask = Task { [weak self] in
 			for await update in Transaction.updates {
 				guard let self else { return }
-				_ = try? await self.settle(update)
+				do {
+					_ = try await self.settle(update)
+				} catch is CancellationError {
+					return
+				} catch {
+					self.onSettlementFailure(error)
+				}
 			}
 		}
 	}
