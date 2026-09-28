@@ -130,11 +130,16 @@ $SIM test <run id> UpgradeHistoryProof
 
 Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator.
 
-`LegacyReviewNoticeProof` needs a different v1 store: a pending workout review in the `main` chat, the only chat the upgraded app shows. A v1 build opens `main` only when onboarding is marked complete and no chat exists yet, so the seed proof launches with `-enduragent.onboardingCompleted YES` and skips onboarding. Copy `helpers/V1PendingReviewSeedProof.swift` beside the two-chats seed before the v1 build, and run the pair after the two-chats pair, because each v1 seed starts from a fresh store:
+`LegacyReviewNoticeProof` needs a different v1 store: a pending workout review in the `main` chat, the only chat the upgraded app shows. A v1 build opens `main` only when onboarding is marked complete and no chat exists yet, so the seed proof launches with `-enduragent.onboardingCompleted YES` and skips onboarding. The v1 fixture scripts only a new workout, so `helpers/V1ReviewActionsFixture.patch` adds two requests to the v1 checkout's `FirstWeekFixture`: `Rename my Thursday ride to Recovery spin` proposes an edit and `Delete my Thursday ride` proposes a deletion. Apply the patch and copy `helpers/V1PendingReviewSeedProof.swift` beside the two-chats seed before the v1 build. Run each seed and the head proof as a pair after the two-chats pair, because each v1 seed starts from a fresh store:
 
 ```sh
+git -C .worktrees/v1-trunk apply "$PWD/.claude/skills/verify-ios/helpers/V1ReviewActionsFixture.patch"
 cp .claude/skills/verify-ios/helpers/V1PendingReviewSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
 $TRUNK test <run id> V1PendingReviewSeedProof
+$SIM test <run id> LegacyReviewNoticeProof
+$TRUNK test <run id> V1PendingEditSeedProof
+$SIM test <run id> LegacyReviewNoticeProof
+$TRUNK test <run id> V1PendingDeleteSeedProof
 $SIM test <run id> LegacyReviewNoticeProof
 ```
 
