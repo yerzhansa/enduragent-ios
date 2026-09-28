@@ -30,6 +30,7 @@ import Testing
 		(.historyBudgetRatio, "1.5", "Enter a history budget above 0% and no more than 100%."),
 		(.idleReset, "-1", "Enter a safe whole number of minutes, 0 or more."),
 		(.idleReset, "2.5", "Enter a safe whole number of minutes, 0 or more."),
+		(.dailyResetHour, "24", "Enter a whole hour from 0 to 23."),
 		(.dailyResetHour, "25", "Enter a whole hour from 0 to 23."),
 		(.archiveRetention, "-3", "Enter a safe whole number of days, 0 or more."),
 		(.timeZone, "Mars/Olympus", "Enter a valid IANA timezone, such as Europe/London."),

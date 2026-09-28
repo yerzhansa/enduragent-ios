@@ -242,6 +242,93 @@ import Testing
 		#expect(await coach.transcript(.main) == ["And tomorrow?", "Easy spin."])
 	}
 
+	@Test func idleExpiryStillResetsDuringDailyGrace() async throws {
+		let clock = FixedClock(now: "1998-06-16T03:50:00+02:00", timeZone: "Europe/Amsterdam")
+		answer("Earlier", "Later")
+		let coach = coach(at: clock)
+		try await coach.setSession(SessionSettings.npmDefaults.replacing(.idleReset, with: "5"))
+		_ = try await coach.sendAndSettle("First question")
+		clock.advance(by: 20 * 60)
+		_ = try await coach.sendAndSettle("Second question")
+		#expect(await coach.currentSnapshot(.main)?.opening == .afterAutomaticReset(.idle))
+		#expect(try await coach.history().count == 1)
+	}
+
+	@Test func springDSTResetStillOccursAtFourLocal() async throws {
+		let clock = FixedClock(now: "1998-03-29T03:10:00+02:00", timeZone: "Europe/Amsterdam")
+		answer("Earlier", "Later")
+		let coach = coach(at: clock)
+		_ = try await coach.sendAndSettle("Before four")
+		clock.advance(by: 60 * 60)
+		_ = try await coach.sendAndSettle("After four")
+		#expect(await coach.currentSnapshot(.main)?.opening == .afterAutomaticReset(.daily))
+		#expect(try await coach.history().count == 1)
+	}
+
+	@Test func autumnDSTDoesNotResetAnHourEarly() async throws {
+		let clock = FixedClock(now: "1998-10-25T02:20:00+01:00", timeZone: "Europe/Amsterdam")
+		answer("Earlier", "Later")
+		let coach = coach(at: clock)
+		_ = try await coach.sendAndSettle("Before three")
+		clock.advance(by: 60 * 60)
+		_ = try await coach.sendAndSettle("Still before four")
+		#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
+		#expect(try await coach.history().isEmpty)
+	}
+
+	@Test func staleResetPreservesAnOlderTurnsReplyAfterTheTriggerWasAccepted() async throws {
+		let clock = FixedClock(now: "1998-06-16T09:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let prior = TurnID(ulid: fixedUlid(1))
+		let pending = TurnID(ulid: fixedUlid(2))
+		let questionAt = clock.now.addingTimeInterval(-330 * 60)
+		let triggerAt = questionAt.addingTimeInterval(5 * 60)
+		let replyAt = questionAt.addingTimeInterval(10 * 60)
+		let priorQuestion = ULID.generate(at: questionAt)
+		let triggerQuestion = ULID.generate(at: triggerAt)
+		let priorReply = ULID.generate(at: replyAt)
+		try await seed(
+			store,
+			[
+				seededRecord(
+					store, at: questionAt, ulid: priorQuestion,
+					body: .synced(
+						sampleUser(chatId: .main, text: "Remember my Saturday ride", turn: prior))),
+				seededRecord(
+					store, at: triggerAt, ulid: triggerQuestion,
+					body: .synced(
+						sampleUser(chatId: .main, text: "Queued before the reply", turn: pending))),
+				seededRecord(
+					store, at: replyAt, ulid: priorReply,
+					body: .synced(
+						sampleReply(chatId: .main, turn: prior, text: "Saturday is a recovery ride")
+					)),
+			])
+		transport.script = [.text("New answer"), .finish(reason: .stop)]
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		try await coach.retry(pending, in: .main)
+		_ = try #require(await coach.settledState(of: pending, in: .main))
+		_ = try #require(await host.ended(0))
+		let history = try await coach.history()
+		#expect(
+			history.first?.turns.compactMap { replyText($0.state) } == [
+				"Saturday is a recovery ride"
+			])
+		let jobs = try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records
+			.compactMap {
+				record -> FlushPendingBody? in
+				guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
+				return body
+			}
+		#expect(
+			jobs.filter { $0.trigger == .staleReset }.map(\.messageUlids) == [
+				[priorQuestion, priorReply]
+			])
+		let flushed = sent(.memoryFlush, by: transport).flatMap { $0.messages.map(\.content) }
+		#expect(flushed.filter { $0 == "Saturday is a recovery ride" }.count == 1)
+		#expect(!flushed.contains("Queued before the reply"))
+	}
+
 	@Test func aResetThatCannotBeSavedAnswersInTheSameConversation() async throws {
 		let clock = FixedClock(now: "1998-06-15T20:00:00+02:00", timeZone: "Europe/Amsterdam")
 		let log = FaultInjectingRecordLog(wrapping: store)
