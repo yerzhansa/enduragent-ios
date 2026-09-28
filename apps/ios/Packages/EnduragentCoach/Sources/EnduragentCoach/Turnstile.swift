@@ -1,20 +1,16 @@
 import Foundation
 
-struct Admitted: ~Copyable {
-	fileprivate init() {}
-}
-
-final class Admission {
+final class Turnstile {
 	private(set) var held = false
-	private var waiting: [CheckedContinuation<Void, Never>] = []
+	private var line: [CheckedContinuation<Void, Never>] = []
 
 	func pass<Value, Failure: Error>(
 		isolation: isolated (any Actor)? = #isolation,
-		_ body: (borrowing Admitted) async throws(Failure) -> Value
+		_ body: nonisolated(nonsending) () async throws(Failure) -> Value
 	) async throws(Failure) -> Value {
 		await enter()
 		defer { leave() }
-		return try await body(Admitted())
+		return try await body()
 	}
 
 	private func enter(isolation: isolated (any Actor)? = #isolation) async {
@@ -22,14 +18,14 @@ final class Admission {
 			held = true
 			return
 		}
-		await withCheckedContinuation { waiting.append($0) }
+		await withCheckedContinuation { line.append($0) }
 	}
 
 	private func leave() {
-		if waiting.isEmpty {
+		if line.isEmpty {
 			held = false
 		} else {
-			waiting.removeFirst().resume()
+			line.removeFirst().resume()
 		}
 	}
 }

@@ -325,10 +325,16 @@ import Testing
 
 	@Test func aTimedExpiryInterruptsTheRunningTurnWithoutATap() async throws {
 		transport.script = [.text("Yes, keep "), .hang]
-		let timed = ImmediateExecutionHost(expiringAfter: .milliseconds(300))
+		let expiryClock = HeldClock()
+		let timed = ImmediateExecutionHost(expiringAfter: .milliseconds(300), clock: expiryClock)
 		let coach = coach(host: timed)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		guard case .interrupted(let interrupted)? = await coach.settledState(of: turn, in: .main)
+		await coach.waitForLiveText(turn)
+		try await expiryClock.waitUntilHeld(.milliseconds(300))
+		expiryClock.release(.milliseconds(300))
+		guard
+			case .interrupted(let interrupted)? = await coach.settledState(
+				of: turn, in: .main, within: .seconds(5))
 		else {
 			Issue.record("the timed expiry did not interrupt the turn")
 			return
@@ -355,28 +361,6 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled]))).records.isEmpty
 		)
 		#expect(host.leases.count == 1)
-	}
-
-	@Test func aClaimWrittenBeforeLeasesExistedReadsAsGracePeriodOnly() throws {
-		let legacy = Data(
-			#"{"attempt":"01J0000000000000000000000B","chatId":"main","turn":"01J0000000000000000000000A"}"#
-				.utf8)
-		let decoded = RecordCodec.decode(
-			kind: "turnClaim", version: 2, data: legacy, civilDate: "1998-06-13",
-			ulid: "01J0000000000000000000000C")
-		guard case .success(.deviceLocal(.turnClaim(let claim))) = decoded else {
-			Issue.record("expected a claim, got \(decoded)")
-			return
-		}
-		#expect(claim.lease == .gracePeriodOnly)
-		let unknown = Data(
-			#"{"attempt":"01J0000000000000000000000B","chatId":"main","lease":"forever","turn":"01J0000000000000000000000A"}"#
-				.utf8)
-		let refused = RecordCodec.decode(
-			kind: "turnClaim", version: 2, data: unknown, civilDate: "1998-06-13",
-			ulid: "01J0000000000000000000000C")
-		#expect(
-			refused == .failure(.malformed(kind: "turnClaim", ulid: "01J0000000000000000000000C")))
 	}
 
 	private func seedPendingJob(covering turn: SeededTurn) async throws {

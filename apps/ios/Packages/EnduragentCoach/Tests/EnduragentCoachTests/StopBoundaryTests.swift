@@ -124,6 +124,32 @@ import Testing
 		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
 	}
 
+	@Test func aTryAgainMidAdmissionAtTheTapIsStoppedBeforeItStarts() async throws {
+		let transport = FakeModelTransport()
+		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
+		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
+		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
+		transport.script = [.text("Should not run."), .finish(reason: .stop)]
+		let before = transport.requests.count
+		async let sent = coach.send(draft("two"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		async let retried: Void = coach.retry(failed, in: .main)
+		try await Task.sleep(for: .milliseconds(100))
+		async let stopped: Void = coach.stop(.main)
+		try await Task.sleep(for: .milliseconds(100))
+		store.release()
+		await stopped
+		try await retried
+		let second = try #require(try await sent.acceptedTurn)
+		try await Task.sleep(for: .milliseconds(300))
+		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
+		#expect(await coach.interruption(of: failed) == .stoppedBeforeStart)
+		#expect(transport.requests.count == before)
+	}
+
 	@Test func anExpiryDuringAStopReturnsOnlyAfterTheStopSettles() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true

@@ -3,6 +3,7 @@ import Synchronization
 
 public final class ImmediateExecutionHost: ExecutionHost {
 	private let expiringAfter: Duration?
+	private let clock: any Clock
 	private let state = Mutex<State>(State())
 
 	private struct State {
@@ -10,8 +11,9 @@ public final class ImmediateExecutionHost: ExecutionHost {
 		var expiries: [Int: @Sendable (ExpiryCause) async -> Void] = [:]
 	}
 
-	public init(expiringAfter: Duration? = nil) {
+	public init(expiringAfter: Duration? = nil, clock: any Clock = SystemClock()) {
 		self.expiringAfter = expiringAfter
+		self.clock = clock
 	}
 
 	public var leases: [LeaseRecord] {
@@ -33,7 +35,7 @@ public final class ImmediateExecutionHost: ExecutionHost {
 		if let expiringAfter {
 			Task {
 				do {
-					try await Task.sleep(for: expiringAfter)
+					try await self.clock.sleep(for: expiringAfter)
 				} catch is CancellationError {
 					return
 				} catch {
