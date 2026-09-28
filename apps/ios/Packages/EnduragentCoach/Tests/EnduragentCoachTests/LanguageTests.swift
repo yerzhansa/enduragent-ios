@@ -143,8 +143,8 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		let systems = sent(.chatAttempt, by: transport).compactMap { $0.messages.first?.content }
 		try #require(systems.count == 2)
-		#expect(systems[0].contains("The athlete chose English (English)."))
-		#expect(systems[0].contains("Write every athlete-facing sentence in English"))
+		#expect(systems[0].contains("No language is saved."))
+		#expect(systems[0].contains("reply in English (English)."))
 		#expect(systems[1].contains("The athlete chose French (Français)."))
 		#expect(
 			await makeCoach(transport: FakeModelTransport(), store: store).status().language
@@ -154,22 +154,34 @@ import Testing
 				.count == 1)
 	}
 
-	@Test(arguments: [
-		(LanguageTag.en, "Come è andata la mia settimana di allenamento oggi?"),
-		(.fr, "How was my training week and what should I do today?"),
-	])
-	func automaticPreferenceRepliesInThePhoneLanguage(device: LanguageTag, message: String)
-		async throws
-	{
+	@Test func automaticPreferenceRepliesInTheMessageLanguage() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Two rides."), .finish(reason: .stop)]
-		let coach = makeCoach(
-			transport: transport, store: InMemoryRecordLog(), deviceLanguage: device)
-		_ = try await coach.sendAndSettle(message)
+		transport.script = [.text("Bene."), .finish(reason: .stop)]
+		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		_ = try await coach.sendAndSettle("Come è andata la mia settimana di allenamento oggi?")
 		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
-		#expect(system.contains("\(device.englishName) (\(device.endonym))"))
-		#expect(system.contains("Write every athlete-facing sentence in \(device.englishName)"))
-		#expect(!system.contains("Reply in the language of the athlete's latest message"))
+		#expect(system.contains("No language is saved."))
+		#expect(system.contains("reply in Italian (Italiano)."))
+	}
+
+	@Test func automaticRepliesFollowEachMessageWithTheInterfaceLanguageFallback() async throws {
+		let transport = FakeModelTransport()
+		let coach = makeCoach(
+			transport: transport, store: InMemoryRecordLog(), deviceLanguage: .fr)
+		let messages: [(String, LanguageTag)] = [
+			("Come è andata la mia settimana di allenamento oggi?", .it),
+			("How was my training week and what should I do today?", .en),
+			("123", .fr),
+		]
+		for (message, language) in messages {
+			transport.script = [.text("Reply"), .finish(reason: .stop)]
+			_ = try await coach.sendAndSettle(message)
+			let system = try #require(
+				sent(.chatAttempt, by: transport).last?.messages.first?.content)
+			#expect(system.contains("No language is saved."))
+			#expect(system.contains("Reply in the language of the athlete's latest message"))
+			#expect(system.contains("reply in \(language.englishName) (\(language.endonym))."))
+		}
 	}
 
 	@Test(arguments: [LanguageTag.es, .fr])

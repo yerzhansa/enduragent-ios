@@ -45,8 +45,14 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		appLanguage(device: device).phrasebook
 	}
 
-	package func replyLanguage(device: LanguageTag) -> LanguageResolution {
-		Language.resolve(saved: appLanguage(device: device), messageHint: nil, surface: device)
+	package func replyLanguage(for message: String, device: LanguageTag) -> LanguageResolution {
+		switch self {
+		case .automatic:
+			Language.resolve(
+				saved: nil, messageHint: Language.detectMessageLanguage(message), surface: device)
+		case .fixed(let tag):
+			Language.resolve(saved: tag, messageHint: nil, surface: device)
+		}
 	}
 }
 
