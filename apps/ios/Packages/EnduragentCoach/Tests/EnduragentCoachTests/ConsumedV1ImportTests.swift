@@ -61,7 +61,7 @@ import Testing
 		try #require(
 			beforeImport.current.messages.map(\.text)
 				== Array(alreadyExtracted.dropFirst(belowListedMaximum ? 0 : 2)))
-		let originalJobs = try await ledger.flushJobs(in: .main)
+		let originalJobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		try #require(originalJobs.count == 1)
 		try #require(originalJobs.allSatisfy { $0.saved })
 		let first = belowListedMaximum ? 1 : 12

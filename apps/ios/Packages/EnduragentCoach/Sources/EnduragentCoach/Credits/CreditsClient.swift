@@ -1,5 +1,4 @@
 import Foundation
-import Security
 
 public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible
 {
@@ -97,115 +96,15 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case noAthleteKey
 }
 
-public enum IntervalsCredential: Sendable, Equatable {
-	case apiKey(String)
-	case oauth(access: String, refresh: String)
-}
+public struct CreditsService: Sendable {
+	package let makeClient: @Sendable (CredentialVault) -> any CreditsClient
 
-public protocol SecretStore: Sendable {
-	func appAccountToken() throws -> UUID
-	func storeAppAccountToken(_ token: UUID) throws
-	func openRouterKey() throws -> String?
-	func storeOpenRouterKey(_ key: String) throws
-	func intervalsCredential() throws -> IntervalsCredential?
-	func storeIntervalsCredential(_ credential: IntervalsCredential) throws
-}
-
-public struct KeychainStoreError: Error, Sendable, Equatable {
-	public var status: OSStatus
-
-	public init(status: OSStatus) {
-		self.status = status
-	}
-}
-
-package protocol SecretStoreBacking: Sendable {
-	func add(account: String, data: Data) throws
-	func copy(account: String) throws -> Data?
-	func update(account: String, data: Data) throws
-}
-
-public struct ICloudKeychainStore: SecretStore {
-	package static let serviceName = "icu.enduragent.ios"
-	package static let accessGroupName = "icu.enduragent.ios"
-
-	private let backing: any SecretStoreBacking
-
-	public init() {
-		self.backing = SecItemSecretStoreBacking(service: Self.serviceName, accessGroup: nil)
+	public static func worker(_ base: URL) -> CreditsService {
+		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
 	}
 
-	package init(backing: any SecretStoreBacking) {
-		self.backing = backing
-	}
-
-	public func appAccountToken() throws -> UUID {
-		if let token = try readToken() {
-			return token
-		}
-		let token = UUID()
-		do {
-			try backing.add(
-				account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
-			return token
-		} catch let error as KeychainStoreError where error.status == errSecDuplicateItem {
-			if let existing = try readToken() {
-				return existing
-			}
-			throw error
-		}
-	}
-
-	public func storeAppAccountToken(_ token: UUID) throws {
-		try write(account: KeychainAccount.appAccountToken, data: Data(token.uuidString.utf8))
-	}
-
-	public func openRouterKey() throws -> String? {
-		try readString(account: KeychainAccount.openRouterKey)
-	}
-
-	public func storeOpenRouterKey(_ key: String) throws {
-		try write(account: KeychainAccount.openRouterKey, data: Data(key.utf8))
-	}
-
-	public func intervalsCredential() throws -> IntervalsCredential? {
-		guard let data = try backing.copy(account: KeychainAccount.intervalsCredential) else {
-			return nil
-		}
-		return try JSONDecoder().decode(StoredIntervalsCredential.self, from: data).credential
-	}
-
-	public func storeIntervalsCredential(_ credential: IntervalsCredential) throws {
-		let encoded = try JSONEncoder().encode(StoredIntervalsCredential(credential))
-		try write(account: KeychainAccount.intervalsCredential, data: encoded)
-	}
-
-	private func readToken() throws -> UUID? {
-		guard let raw = try readString(account: KeychainAccount.appAccountToken) else {
-			return nil
-		}
-		guard let token = UUID(uuidString: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return token
-	}
-
-	private func readString(account: String) throws -> String? {
-		guard let data = try backing.copy(account: account) else {
-			return nil
-		}
-		guard let string = String(data: data, encoding: .utf8) else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return string
-	}
-
-	private func write(account: String, data: Data) throws {
-		if try backing.copy(account: account) == nil {
-			try backing.add(account: account, data: data)
-		} else {
-			try backing.update(account: account, data: data)
-		}
+	public static func fake(_ client: FakeCreditsClient) -> CreditsService {
+		CreditsService { _ in client }
 	}
 }
 
@@ -243,25 +142,25 @@ public struct PhoneCreditsClient: CreditsClient {
 	]
 	private static let timeout: TimeInterval = 20
 
-	private let secrets: any SecretStore
+	private let vault: CredentialVault
 	private let workerBase: URL
 	private let openRouterBase: URL
 	private let session: URLSession
 
-	public init(
-		secrets: any SecretStore,
+	package init(
+		vault: CredentialVault,
 		workerBase: URL,
 		openRouterBase: URL = ModelService.openRouterAPI,
 		session: URLSession = .shared
 	) {
-		self.secrets = secrets
+		self.vault = vault
 		self.workerBase = workerBase
 		self.openRouterBase = openRouterBase
 		self.session = session
 	}
 
 	public func grant(deviceCheck: Data) async throws -> GrantOutcome {
-		let athleteId = try secrets.appAccountToken()
+		let athleteId = try await vault.appAccountToken()
 		let (status, data) = try await worker(
 			path: "grant",
 			method: "POST",
@@ -273,7 +172,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "grantMinted":
 			let wire = try decode(GrantMintedWire.self, from: data, status: status)
-			try secrets.storeOpenRouterKey(wire.key)
+			try await vault.storeCreditsKey(try mintedKey(wire.key, status: status))
 			return .minted(Credits(units: wire.credits))
 		case "grantToppedUp":
 			let wire = try decode(GrantToppedUpWire.self, from: data, status: status)
@@ -294,7 +193,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "claimMinted":
 			let wire = try decode(ClaimMintedWire.self, from: data, status: status)
-			try secrets.storeOpenRouterKey(wire.key)
+			try await vault.storeCreditsKey(try mintedKey(wire.key, status: status))
 			return .minted(creditsAdded: Credits(units: wire.creditsAdded))
 		case "claimToppedUp":
 			let wire = try decode(ClaimToppedUpWire.self, from: data, status: status)
@@ -316,8 +215,8 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: status)
 		}
 		let wire = try decode(RecoveredWire.self, from: data, status: status)
-		try secrets.storeOpenRouterKey(wire.key)
-		try secrets.storeAppAccountToken(wire.athleteId)
+		try await vault.storeRecovery(
+			key: try mintedKey(wire.key, status: status), appAccountToken: wire.athleteId)
 		return Recovery(athleteId: wire.athleteId, credits: Credits(units: wire.credits))
 	}
 
@@ -339,7 +238,7 @@ public struct PhoneCreditsClient: CreditsClient {
 	}
 
 	public func balance(scale: CreditScale) async throws -> CreditBalance {
-		guard let key = try secrets.openRouterKey() else {
+		guard let key = try await vault.creditsKey()?.value else {
 			throw CreditsFailure.noAthleteKey
 		}
 		let (status, data) = try await send(
@@ -389,6 +288,13 @@ public struct PhoneCreditsClient: CreditsClient {
 			throw CreditsFailure.unexpectedResponse(status: http.statusCode)
 		}
 		return (http.statusCode, data)
+	}
+
+	private func mintedKey(_ raw: String, status: Int) throws -> NonEmptySecret {
+		guard let key = NonEmptySecret(raw) else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
+		return key
 	}
 
 	private func decode<T: Decodable>(_ type: T.Type, from data: Data, status: Int) throws -> T {
@@ -458,89 +364,4 @@ private struct OpenRouterKeyWire: Decodable {
 
 private struct OpenRouterKeyDataWire: Decodable {
 	var limit_remaining: Double?
-}
-
-private enum KeychainAccount {
-	static let appAccountToken = "appAccountToken"
-	static let openRouterKey = "openRouterKey"
-	static let intervalsCredential = "intervalsCredential"
-}
-
-private enum StoredIntervalsCredential: Codable {
-	case apiKey(String)
-	case oauth(access: String, refresh: String)
-
-	init(_ credential: IntervalsCredential) {
-		switch credential {
-		case .apiKey(let key):
-			self = .apiKey(key)
-		case .oauth(let access, let refresh):
-			self = .oauth(access: access, refresh: refresh)
-		}
-	}
-
-	var credential: IntervalsCredential {
-		switch self {
-		case .apiKey(let key):
-			return .apiKey(key)
-		case .oauth(let access, let refresh):
-			return .oauth(access: access, refresh: refresh)
-		}
-	}
-}
-
-private struct SecItemSecretStoreBacking: SecretStoreBacking {
-	var service: String
-	var accessGroup: String?
-
-	func add(account: String, data: Data) throws {
-		var query = baseQuery(account: account)
-		query[kSecValueData as String] = data
-		query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-		let status = SecItemAdd(query as CFDictionary, nil)
-		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
-		}
-	}
-
-	func copy(account: String) throws -> Data? {
-		var query = baseQuery(account: account)
-		query[kSecReturnData as String] = true
-		query[kSecMatchLimit as String] = kSecMatchLimitOne
-		var result: AnyObject?
-		let status = SecItemCopyMatching(query as CFDictionary, &result)
-		if status == errSecItemNotFound {
-			return nil
-		}
-		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
-		}
-		guard let data = result as? Data else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return data
-	}
-
-	func update(account: String, data: Data) throws {
-		let status = SecItemUpdate(
-			baseQuery(account: account) as CFDictionary,
-			[kSecValueData as String: data] as CFDictionary
-		)
-		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
-		}
-	}
-
-	private func baseQuery(account: String) -> [String: Any] {
-		var query: [String: Any] = [
-			kSecClass as String: kSecClassGenericPassword,
-			kSecAttrService as String: service,
-			kSecAttrAccount as String: account,
-			kSecAttrSynchronizable as String: kCFBooleanTrue as Any,
-		]
-		if let accessGroup {
-			query[kSecAttrAccessGroup as String] = accessGroup
-		}
-		return query
-	}
 }

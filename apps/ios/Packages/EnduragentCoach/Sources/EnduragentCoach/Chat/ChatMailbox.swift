@@ -297,7 +297,8 @@ package actor ChatMailbox {
 	private func runTurn(_ turn: TurnID, under lease: DrainLease) async {
 		guard let facts = records.conversation.turn(turn) else { return }
 		lease.add(turn)
-		let stamp = await stamp(for: turn)
+		let resolution = await environment.resolve()
+		let stamp = await stamp(for: turn).bound(to: resolution.account)
 		let attempt = stamp.attempt
 		let claiming = records.writes(
 			.claim(attempt, process: process, lease: await lease.kind), for: turn)
@@ -309,9 +310,9 @@ package actor ChatMailbox {
 				turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))
 			return finish(turn, under: lease)
 		}
-		let access: ResolvedAccess
+		let resolved: AttemptEnvironment
 		do {
-			access = try environment.access()
+			resolved = try resolution.get()
 		} catch {
 			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
 			await records.settle(turn, .settle(attempt, unavailable), stamp: stamp)
@@ -320,10 +321,8 @@ package actor ChatMailbox {
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		let request = TurnAttempt(
-			turn: turn, attempt: attempt, chat: chatId, request: facts.requestText,
-			slash: facts.slash, language: await environment.language(), access: access,
-			process: process)
+		let request = await environment.attempt(
+			of: facts, attempt: attempt, chat: chatId, process: process, in: resolved)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in

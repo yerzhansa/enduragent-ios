@@ -1,0 +1,161 @@
+import Foundation
+import Security
+
+package struct StoredIntervalsConnection: Codable, Equatable, Sendable {
+	private enum CodingKeys: String, CodingKey {
+		case id
+		case credential
+		case athlete
+		case resolvedAthlete
+	}
+
+	private var id: UUID?
+	private var credential: StoredIntervalsCredential
+	private var athlete: String?
+	private var resolvedAthlete: String?
+
+	package init(_ connection: IntervalsConnection) {
+		self.id = connection.id?.rawValue
+		self.credential = StoredIntervalsCredential(connection.credential)
+		switch connection.selection {
+		case .keyOwner:
+			self.athlete = nil
+		case .athlete(let athlete):
+			self.athlete = athlete.rawValue
+		}
+		self.resolvedAthlete = connection.resolvedAthlete?.rawValue
+	}
+
+	package init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		guard container.contains(.credential) else {
+			self.id = nil
+			self.credential = try StoredIntervalsCredential(from: decoder)
+			self.athlete = nil
+			self.resolvedAthlete = nil
+			return
+		}
+		self.id = try container.decodeIfPresent(UUID.self, forKey: .id)
+		self.credential = try container.decode(StoredIntervalsCredential.self, forKey: .credential)
+		self.athlete = try container.decodeIfPresent(String.self, forKey: .athlete)
+		self.resolvedAthlete = try container.decodeIfPresent(String.self, forKey: .resolvedAthlete)
+	}
+
+	package func connection() throws -> IntervalsConnection {
+		IntervalsConnection(
+			id: id.map(ConnectionID.init(rawValue:)),
+			credential: credential.credential,
+			selection: try athlete.map { .athlete(try Self.athleteID($0)) } ?? .keyOwner,
+			resolvedAthlete: try resolvedAthlete.map(Self.athleteID)
+		)
+	}
+
+	private static func athleteID(_ raw: String) throws -> IntervalsAthleteID {
+		guard let athlete = IntervalsAthleteID(rawValue: raw) else {
+			throw KeychainStoreError(status: errSecDecode)
+		}
+		return athlete
+	}
+}
+
+package enum StoredIntervalsCredential: Codable, Equatable, Sendable {
+	case apiKey(String)
+	case oauth(access: String, refresh: String)
+
+	package init(_ credential: IntervalsCredential) {
+		switch credential {
+		case .apiKey(let key):
+			self = .apiKey(key)
+		case .oauth(let access, let refresh):
+			self = .oauth(access: access, refresh: refresh)
+		}
+	}
+
+	package var credential: IntervalsCredential {
+		switch self {
+		case .apiKey(let key):
+			return .apiKey(key)
+		case .oauth(let access, let refresh):
+			return .oauth(access: access, refresh: refresh)
+		}
+	}
+}
+
+package enum StoredAccessSelection: Codable, Equatable, Sendable {
+	case credits
+	case openRouterAccount(model: String, provider: String, consentModel: String, consentAt: Date)
+
+	package init(_ selection: AccessSelection) {
+		switch selection {
+		case .credits:
+			self = .credits
+		case .openRouterAccount(let model, let consent):
+			self = .openRouterAccount(
+				model: model.rawValue, provider: consent.provider,
+				consentModel: consent.model.rawValue, consentAt: consent.at)
+		}
+	}
+
+	package func selection() -> AccessSelection {
+		switch self {
+		case .credits:
+			return .credits
+		case .openRouterAccount(let model, let provider, let consentModel, let consentAt):
+			return .openRouterAccount(
+				model: ModelID(rawValue: model),
+				consent: ProviderConsent(
+					provider: provider, model: ModelID(rawValue: consentModel), at: consentAt))
+		}
+	}
+}
+
+package enum StoredCredentialReplacement: Codable, Sendable {
+	case intervals(StoredIntervalsConnection)
+	case credits(previousKey: String?, previousAppAccountToken: UUID)
+
+	private enum CodingKeys: String, CodingKey {
+		case intervals, credits
+	}
+
+	private enum CreditsKeys: String, CodingKey {
+		case previousKey, previousAppAccountToken
+	}
+
+	private enum IntervalsKeys: String, CodingKey {
+		case connection = "_0"
+	}
+
+	package init(_ replacement: CredentialReplacement) {
+		switch replacement {
+		case .intervals(let connection): self = .intervals(StoredIntervalsConnection(connection))
+		case .credits(let key, let token):
+			self = .credits(previousKey: key, previousAppAccountToken: token)
+		}
+	}
+
+	package init(from decoder: any Decoder) throws {
+		let container = try decoder.container(keyedBy: CodingKeys.self)
+		if container.contains(.credits) {
+			let credits = try container.nestedContainer(keyedBy: CreditsKeys.self, forKey: .credits)
+			self = .credits(
+				previousKey: try credits.decodeIfPresent(String.self, forKey: .previousKey),
+				previousAppAccountToken: try credits.decode(
+					UUID.self, forKey: .previousAppAccountToken))
+		} else if container.contains(.intervals) {
+			let intervals = try container.nestedContainer(
+				keyedBy: IntervalsKeys.self, forKey: .intervals)
+			self = .intervals(
+				try intervals.decode(StoredIntervalsConnection.self, forKey: .connection))
+		} else {
+			self = .intervals(try StoredIntervalsConnection(from: decoder))
+		}
+	}
+
+	package func replacement() throws -> CredentialReplacement {
+		switch self {
+		case .intervals(let stored): .intervals(try stored.connection())
+		case .credits(let key, let token):
+			.credits(previousKey: key, previousAppAccountToken: token)
+		}
+	}
+}

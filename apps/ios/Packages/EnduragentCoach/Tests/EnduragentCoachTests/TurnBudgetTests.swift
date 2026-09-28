@@ -145,14 +145,11 @@ import Testing
 	private func runner() -> TurnRunner {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
-		let planning = Planning(store: store, intervals: intervals, clock: clock)
+		let planning = Planning(store: store, clock: clock)
 		return TurnRunner(
 			transport: transport,
-			intervals: intervals,
 			ledger: ledger,
 			clock: clock,
-			tools: ToolRuntime(
-				intervals: intervals, ledger: ledger, planning: planning, clock: clock),
 			planning: planning,
 			diagnostics: diagnostics,
 			ladder: .npm
@@ -168,6 +165,8 @@ import Testing
 			slash: nil,
 			language: LanguagePreference(ui: .en, coachReply: nil),
 			access: testAccess,
+			training: TrainingConnection(
+				account: .intervals(connection: ConnectionID(), athlete: nil), client: intervals),
 			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}

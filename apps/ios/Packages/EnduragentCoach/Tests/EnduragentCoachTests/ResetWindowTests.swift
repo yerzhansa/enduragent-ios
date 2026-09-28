@@ -138,7 +138,7 @@ import Testing
 		_ = try await coach.sendAndSettle("Anything else?")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 2, in: store)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let jobs = try await ledger.flushJobs(in: .main)
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.map(\.trigger) == [.explicitReset, .softThreshold])
 		let job = try #require(jobs.last)
 		#expect(job.messages.filter { $0 == user }.count == 1)
@@ -164,7 +164,7 @@ import Testing
 		try #require(boundary < first.user)
 		#expect(await coach.transcript(.main) == before)
 		#expect(flushed().isEmpty)
-		#expect(try await ledger.flushJobs(in: .main).isEmpty)
+		#expect(try await ledger.flushJobs(in: try await ledger.conversation(.main)).isEmpty)
 	}
 
 	private func resetAcrossLateReply() async throws -> (Coach, ULID) {

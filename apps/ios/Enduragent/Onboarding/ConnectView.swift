@@ -16,6 +16,7 @@ struct ConnectView: View {
 				.accessibilityIdentifier("connect.connect")
 				if let connectError = model.connectError {
 					Text(connectError)
+						.accessibilityIdentifier("connect.error")
 				}
 				if !model.didConnect {
 					Button("Skip for now") {
@@ -23,10 +24,12 @@ struct ConnectView: View {
 					}
 					.accessibilityIdentifier("connect.skip")
 				}
-				if model.didConnect, let athlete = model.athlete {
-					Text(athlete.name)
-						.accessibilityIdentifier("connect.athleteName")
-					if let wellness = model.todayWellness {
+				if model.didConnect, let connected = model.connected {
+					if let athleteName = connected.athleteName {
+						Text(athleteName)
+							.accessibilityIdentifier("connect.athleteName")
+					}
+					if let wellness = connected.today {
 						Text("Fitness \(wholeNumber(wellness.fitness))")
 							.accessibilityIdentifier("connect.fitness")
 						Text("Fatigue \(wholeNumber(wellness.fatigue))")

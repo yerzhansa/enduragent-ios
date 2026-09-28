@@ -160,16 +160,20 @@ extension FixtureLaunchTests {
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
 		let secrets = FakeSecretStore()
 		try secrets.storeOpenRouterKey("sk-or-test-lease")
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		return Coach(
 			sport: .cycling,
-			models: .scripted(transport),
+			ports: CoachPorts(
+				records: InMemoryRecordLog(),
+				secrets: secrets,
+				models: .scripted(transport),
+				training: .fake { _, _ in intervals },
+				credits: .fake(FakeCreditsClient()),
+				host: host,
+				clock: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+			),
 			builtInModel: ModelID(rawValue: "test/lease-model"),
-			secrets: secrets,
-			intervals: FakeIntervalsClient(athleteName: "Ada", ftp: 250),
-			store: InMemoryRecordLog(),
-			clock: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana"),
 			language: LanguagePreference(ui: .en, coachReply: nil),
-			host: host,
 			coalescing: CoalescingPolicy(window: .milliseconds(20))
 		)
 	}

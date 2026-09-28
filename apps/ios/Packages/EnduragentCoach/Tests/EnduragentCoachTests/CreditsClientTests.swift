@@ -62,6 +62,52 @@ struct CreditsClientTests {
 		#expect(try secrets.openRouterKey() == "sk-or-test-existing")
 	}
 
+	@Test func grantWritesCreditsKeyOnlyAndNeverTheSelection() async throws {
+		let secrets = FakeSecretStore()
+		let model = ModelID(rawValue: "test/account-model")
+		let selection = AccessSelection.openRouterAccount(
+			model: model,
+			consent: ProviderConsent(
+				provider: "Test Provider", model: model, at: Date(timeIntervalSince1970: 0)))
+		try secrets.storeOpenRouterAccountKey("sk-or-test-account")
+		try secrets.storeAccessSelection(selection)
+		let client = try makeClient(secrets: secrets)
+		_ = try await CreditsURLStub.withHandler({ _ in
+			.json(200, #"{"kind":"grantMinted","key":"sk-or-test-granted","credits":200}"#)
+		}) {
+			try await client.grant(deviceCheck: Data([0x01]))
+		}
+		_ = try await CreditsURLStub.withHandler({ _ in
+			.json(200, #"{"kind":"claimMinted","key":"sk-or-test-claimed","creditsAdded":500}"#)
+		}) {
+			try await client.claim(signedTransaction: "header.payload.signature")
+		}
+		#expect(try secrets.openRouterKey() == "sk-or-test-claimed")
+		#expect(try secrets.accessSelection() == selection)
+		#expect(try secrets.openRouterAccountKey() == "sk-or-test-account")
+		#expect(
+			try await testVault(secrets).modelAccess(builtInModel: testModel).credential
+				== ProviderCredential(secret: "sk-or-test-account", method: .openRouterAccount))
+	}
+
+	@Test func emptyMintedKeyIsRefusedAndNothingIsWritten() async throws {
+		let secrets = FakeSecretStore()
+		let token = try secrets.appAccountToken()
+		let client = try makeClient(secrets: secrets)
+		await #expect(throws: CreditsFailure.unexpectedResponse(status: 200)) {
+			try await CreditsURLStub.withHandler({ _ in
+				.json(
+					200,
+					#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"  ","credits":150}"#
+				)
+			}) {
+				try await client.recover(signedTransaction: "header.payload.signature")
+			}
+		}
+		#expect(try secrets.openRouterKey() == nil)
+		#expect(try secrets.appAccountToken() == token)
+	}
+
 	@Test("banned maps from error code not status")
 	func bannedMapsFromErrorCodeNotStatus() async throws {
 		let client = try makeClient(secrets: FakeSecretStore())
@@ -200,7 +246,7 @@ private func makeClient(secrets: FakeSecretStore) throws -> PhoneCreditsClient {
 	configuration.timeoutIntervalForRequest = 20
 	let session = URLSession(configuration: configuration)
 	return PhoneCreditsClient(
-		secrets: secrets,
+		vault: testVault(secrets),
 		workerBase: try #require(URL(string: "https://credits.test")),
 		openRouterBase: try #require(URL(string: "https://openrouter.test/api/v1")),
 		session: session

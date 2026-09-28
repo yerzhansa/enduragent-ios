@@ -90,7 +90,10 @@ import Testing
 		_ = try await relaunched().sendAndSettle("Anything else?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		#expect(try await ledger.flushJobs(in: .main).map(\.settled) == [true])
+		#expect(
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.settled) == [
+				true
+			])
 	}
 
 	@Test func partialJobStaysPendingAndRerunDedupesLedgerEvents() async throws {

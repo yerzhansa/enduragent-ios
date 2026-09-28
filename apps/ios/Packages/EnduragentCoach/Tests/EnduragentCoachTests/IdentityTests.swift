@@ -113,6 +113,13 @@ private func ulidTimestamp(_ raw: String) throws -> UInt64 {
 		#expect(bound.authority(under: rotated) == .sameAthlete)
 	}
 
+	@Test func conflictingAthleteIdsOnTheSameConnectionAreChanged() {
+		let connection = ConnectionID()
+		let bound = TrainingAccount.intervals(connection: connection, athlete: athlete)
+		let current = TrainingAccount.intervals(connection: connection, athlete: other)
+		#expect(bound.authority(under: current) == .changed)
+	}
+
 	@Test func differentAthleteOrDisconnectIsChanged() throws {
 		let bound = TrainingAccount.intervals(connection: ConnectionID(), athlete: athlete)
 		let another = TrainingAccount.intervals(connection: ConnectionID(), athlete: other)

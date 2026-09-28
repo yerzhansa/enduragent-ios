@@ -11,7 +11,7 @@ struct TranscriptView: View {
 					if let opening = model.chat?.opening, opening != .continuing {
 						Text(
 							Welcome.text(
-								in: model.builder.phrasebook, showsSyncLine: model.athlete != nil)
+								in: model.builder.phrasebook, showsSyncLine: model.connected != nil)
 						)
 						.accessibilityIdentifier("chat.welcome")
 						if let notice = opening.notice {

@@ -201,11 +201,13 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var streams: JSONValue
 	public var events: [CalendarEvent]
 	public private(set) var calls: [FakeIntervalsCall]
+	public var athleteId: String
 	public var athleteName: String
 	public var ftp: Int
-	public var loadFailure: IntervalsError?
+	public var loadFailure: (any Error)?
 
-	public init(athleteName: String, ftp: Int) {
+	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
+		self.athleteId = athleteId
 		self.athleteName = athleteName
 		self.ftp = ftp
 		self.activities = []
@@ -224,7 +226,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		if let loadFailure {
 			throw loadFailure
 		}
-		return AthleteProfile(id: "0", name: athleteName, ftp: ftp)
+		return AthleteProfile(id: athleteId, name: athleteName, ftp: ftp)
 	}
 
 	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {

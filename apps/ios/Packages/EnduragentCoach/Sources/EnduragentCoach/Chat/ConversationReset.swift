@@ -27,7 +27,7 @@ package struct ConversationReset: Sendable {
 
 	package func run(
 		_ reset: ResetID, archiving conversation: Conversation,
-		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess
+		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess
 	) async -> (outcome: ResetOutcome, boundary: [AthleteRecord]) {
 		let stamp = OperationStamp(
 			operation: .conversationReset(reset),
@@ -35,7 +35,7 @@ package struct ConversationReset: Sendable {
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
-		let jobs = await flushes.jobs()
+		let jobs = await flushes.jobs(in: conversation)
 		let rows =
 			conversation.outstandingRows(jobs)
 			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.ulid)
@@ -74,11 +74,12 @@ package struct ConversationReset: Sendable {
 
 	private func extract(
 		_ job: FlushJob, _ messages: [ChatMessage],
-		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess, stamp: OperationStamp
+		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess,
+		stamp: OperationStamp
 	) async -> FlushOutcome? {
 		let resolved: ResolvedAccess
 		do {
-			resolved = try access()
+			resolved = try await access()
 		} catch {
 			flushes.diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return nil
@@ -113,7 +114,7 @@ final class PendingResets {
 
 	func run(
 		_ reset: ResetID, on records: ChatRecords,
-		access: @Sendable () throws(AccessUnavailable) -> ResolvedAccess,
+		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess,
 		isolation: isolated (any Actor)? = #isolation, then publish: () -> Void
 	) async {
 		let result = await work.run(reset, archiving: records.conversation, access: access)

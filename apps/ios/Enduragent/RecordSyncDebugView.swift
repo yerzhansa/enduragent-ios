@@ -47,11 +47,16 @@
 								Text(row.hlc)
 									.font(.caption2)
 									.monospaced()
+								Text(row.account)
+									.font(.caption2)
+									.monospaced()
 							}
 							.accessibilityElement(children: .ignore)
 							.accessibilityLabel(
-								[row.kind, row.detail, row.deviceId, row.hlc].filter { !$0.isEmpty }
-									.joined(separator: " ")
+								[row.kind, row.detail, row.deviceId, row.hlc, row.account].filter {
+									!$0.isEmpty
+								}
+								.joined(separator: " ")
 							)
 							.accessibilityIdentifier("records.row.\(row.id)")
 						}

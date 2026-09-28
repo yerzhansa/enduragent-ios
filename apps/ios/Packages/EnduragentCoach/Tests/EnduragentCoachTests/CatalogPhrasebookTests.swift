@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2432)
-		#expect(Catalog.keyCount == 2468)
+		#expect(Catalog.englishLeafCount == 2434)
+		#expect(Catalog.keyCount == 2470)
 	}
 
 	@Test(arguments: [
@@ -25,6 +25,8 @@ import Testing
 		),
 		(Catalog.accessErrorLocked, "Unlock your iPhone to continue. Your message is saved."),
 		(Catalog.accessErrorNotConfigured, "Choose how the coach reaches a model to continue."),
+		(Catalog.connectErrorRejected, "intervals.icu did not accept that key."),
+		(Catalog.creditsErrorUnavailable, "Credits are unavailable right now. Try again later."),
 		(
 			Catalog.chatTurnInterruptedNothingChanged,
 			"This reply stopped before it finished. Nothing was changed."
@@ -53,6 +55,16 @@ import Testing
 	@Test func italianCancelUsesTheItalianCatalog() {
 		let book = CatalogPhrasebook(tag: .it, locale: "it-IT")
 		#expect(book.say(Catalog.commonCancel) == "Annulla")
+	}
+
+	@Test func frenchConfirmationUsesTheFrenchCatalog() {
+		let book = CatalogPhrasebook(tag: .fr, locale: "fr-FR")
+		#expect(
+			book.say(Catalog.coachConfirmationExpired)
+				== "Cette proposition a expiré — redemande-moi et je te la proposerai à nouveau.")
+		#expect(
+			book.say(Catalog.coachConfirmationExecuted, ["summary": "Endurance"])
+				== "C’est fait — Endurance.")
 	}
 
 	@Test func polishCountThreeSelectsTheFewForm() {

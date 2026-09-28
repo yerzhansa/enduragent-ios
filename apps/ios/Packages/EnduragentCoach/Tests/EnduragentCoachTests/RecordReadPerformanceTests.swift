@@ -7,10 +7,11 @@ extension SwiftDataSuites {
 	@Suite struct RecordReadPerformanceTests {
 		@Test func settledReadFitsAttemptBudget() async throws {
 			let fixture = try await RecordReadBenchmark(settled: true)
+			let conversation = try await fixture.ledger.conversation(.main)
 			var samples: [Duration] = []
 			for _ in 0..<3 {
 				let started = ContinuousClock.now
-				let read = try await fixture.ledger.flushJobs(in: .main)
+				let read = try await fixture.ledger.flushJobs(in: conversation)
 				samples.append(ContinuousClock.now - started)
 				#expect(read.count == fixture.jobs.count)
 				#expect(Set(read.map(\.id)) == Set(fixture.jobs))
@@ -27,8 +28,9 @@ extension SwiftDataSuites {
 
 		@Test func measureUnsettledRead() async throws {
 			let fixture = try await RecordReadBenchmark(settled: false)
+			let conversation = try await fixture.ledger.conversation(.main)
 			let started = ContinuousClock.now
-			let read = try await fixture.ledger.flushJobs(in: .main)
+			let read = try await fixture.ledger.flushJobs(in: conversation)
 			let elapsed = ContinuousClock.now - started
 			RecordReadBenchmark.record(elapsed, name: "unsettled-read")
 			#expect(read.count == fixture.jobs.count)
