@@ -8,10 +8,78 @@ import Testing
 	func everyEnglishKeyHasAValueInEveryLocale(_ tag: LanguageTag) throws {
 		let english = try leaves(in: catalogs.appending(path: "en.json"))
 		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
+		let exceptions = try sharedValues(for: tag.rawValue)
 		#expect(LanguageTag.allCases.count == 17)
-		for key in english.keys.sorted() {
-			#expect(localized[key] != nil, "\(tag.rawValue) is missing \(key)")
+		for issue in issues(
+			english: english, localized: localized, tag: tag.rawValue, exceptions: exceptions)
+		{
+			Issue.record(Comment(rawValue: issue))
 		}
+	}
+
+	@Test(arguments: ["", " \n\t"])
+	func emptyTranslationsAreRejected(_ value: String) {
+		#expect(
+			issues(english: ["message": "Hello"], localized: ["message": value], tag: "de") == [
+				"de has an empty value for message"
+			])
+	}
+
+	@Test func copiedEnglishIsRejected() {
+		#expect(
+			issues(
+				english: ["message": "Try again."], localized: ["message": "Try again."], tag: "de")
+				== ["de copies English for message"])
+	}
+
+	@Test(arguments: ["extra", "message_bogus", "message_few"])
+	func keysOutsideEnglishAreRejected(_ key: String) {
+		#expect(
+			issues(
+				english: ["message": "Hello"], localized: ["message": "Hallo", key: "Zusatz"],
+				tag: "de") == ["de has an unexpected key \(key)"])
+	}
+
+	@Test func polishPluralVariantsRequireAnEnglishPluralFamily() {
+		let english = ["message_other": "Messages"]
+		#expect(
+			issues(
+				english: english,
+				localized: [
+					"message_other": "Wiadomości", "message_few": "Wiadomości",
+					"message_many": "Wiadomości",
+				], tag: "pl"
+			).isEmpty)
+		#expect(
+			issues(
+				english: english,
+				localized: ["message_other": "Wiadomości", "extra_few": "Dodatki"], tag: "pl") == [
+					"pl has an unexpected key extra_few"
+				])
+	}
+
+	@Test(arguments: ["ja", "ko", "zh-Hans", "zh-Hant"])
+	func languagesWithoutSingularPluralsOnlyNeedOther(_ tag: String) {
+		#expect(
+			issues(
+				english: ["message_one": "Message", "message_other": "Messages"],
+				localized: ["message_other": "訳"], tag: tag
+			).isEmpty)
+	}
+
+	@Test func sharedValuesAreLimitedToTheirReviewedKeyAndValue() {
+		let english = ["title": "Coach"]
+		#expect(
+			issues(english: english, localized: english, tag: "de", exceptions: ["title": "Coach"])
+				.isEmpty)
+		#expect(
+			issues(
+				english: english, localized: english, tag: "de", exceptions: ["another": "Coach"])
+				== ["de copies English for title"])
+		#expect(
+			issues(
+				english: english, localized: english, tag: "de", exceptions: ["title": "Training"])
+				== ["de copies English for title"])
 	}
 
 	@Test(arguments: LanguageTag.allCases)
@@ -25,6 +93,62 @@ import Testing
 		}
 		#expect(localized["chat.menu"] != nil)
 		#expect(localized["language.continue"] != nil)
+	}
+
+	private func issues(
+		english: [String: String], localized: [String: String], tag: String,
+		exceptions: [String: String] = [:]
+	) -> [String] {
+		var result: [String] = []
+		for key in english.keys.sorted() {
+			let required =
+				["ja", "ko", "zh-Hans", "zh-Hant"].contains(tag) && key.hasSuffix("_one")
+				? String(key.dropLast(4)) + "_other" : key
+			if localized[required] == nil {
+				result.append("\(tag) is missing \(required)")
+			}
+		}
+		for key in localized.keys.sorted() {
+			let pluralVariant = tag == "pl" && (key.hasSuffix("_few") || key.hasSuffix("_many"))
+			let englishKey =
+				pluralVariant ? String(key.dropLast(key.hasSuffix("_few") ? 4 : 5)) + "_other" : key
+			guard let source = english[englishKey] else {
+				result.append("\(tag) has an unexpected key \(key)")
+				continue
+			}
+			guard let value = localized[key],
+				!value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+			else {
+				result.append("\(tag) has an empty value for \(key)")
+				continue
+			}
+			if tag != "en", value == source, exceptions[key] != value {
+				result.append("\(tag) copies English for \(key)")
+			}
+		}
+		return result
+	}
+
+	private func sharedValues(for tag: String) throws -> [String: String] {
+		let url = try #require(
+			Bundle.module.url(
+				forResource: "CatalogSharedValues", withExtension: "tsv", subdirectory: "Fixtures"))
+		let rows = try String(contentsOf: url, encoding: .utf8).split(separator: "\n")
+		var values: [String: String] = [:]
+		for row in rows {
+			let fields = row.split(separator: "\t", omittingEmptySubsequences: false).map(
+				String.init)
+			try #require(fields.count == 4)
+			try #require(
+				!fields[3].trimmingCharacters(in: .whitespaces).isEmpty,
+				"Shared catalog value needs a reason")
+			if fields[0].split(separator: ",").contains(Substring(tag)) {
+				try #require(
+					values.updateValue(fields[2], forKey: fields[1]) == nil,
+					"Duplicate shared catalog value")
+			}
+		}
+		return values
 	}
 
 	private var catalogs: URL {

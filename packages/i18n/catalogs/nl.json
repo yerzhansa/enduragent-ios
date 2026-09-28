@@ -9,8 +9,8 @@
   "language": {
     "chooseTitle": "Kies je taal",
     "continue": "Doorgaan",
-    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
-    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
+    "saveFailed": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in het {{current}}. Probeer het opnieuw.",
+    "saveFailedAutomatic": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in de taal van elk bericht. Probeer het opnieuw."
   },
   "settings": {
     "appearance": {
@@ -194,7 +194,7 @@
         "idleMinutes": "Voer een veilig geheel aantal minuten in, 0 of meer.",
         "resetArchiveRetentionDays": "Voer een veilig geheel aantal dagen in, 0 of meer.",
         "timezone": "Voer een geldige IANA-tijdzone in, zoals {{timezone}}.",
-        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
+        "contextWindowTokens": "Voer een geheel aantal tokens in binnen het geldige bereik, minimaal 1."
       }
     },
     "credentials": {
@@ -408,7 +408,7 @@
           "gap": "{{telegram}} is na een lange onderbreking opnieuw verbonden. Sommige berichten zijn mogelijk niet aangekomen.",
           "invalidToken": "{{telegram}} heeft dit token geweigerd. Verwijder de verbinding en koppel een nieuwe bot met een nieuw token van {{botFather}}.",
           "off": "{{telegram}} is uitgeschakeld.",
-          "online": "{{telegram}} is online.",
+          "online": "{{telegram}} is beschikbaar.",
           "transferRequired": "Deze bot hoort nog bij een andere Desktop-installatie. Verwijder de verbinding daar voordat je de bot hier verbindt.",
           "waitingForToken": "Kopieer een bottoken van {{botFather}} en plak het vanaf het klembord."
         },
@@ -540,7 +540,7 @@
     "reason": {
       "explicit": "Je bent een nieuw gesprek begonnen",
       "stale": "Gesloten na een pauze",
-      "earlierChat": "Earlier chat"
+      "earlierChat": "Eerdere chat"
     },
     "retry": "Opnieuw proberen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -951,7 +951,7 @@
       "responding": "De coach antwoordt…",
       "send": "Bericht verzenden",
       "stop": "Antwoord stoppen",
-      "notSent": "Not sent. Your draft is still here."
+      "notSent": "Niet verzonden. Je concept staat hier nog."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1023,7 +1023,7 @@
       "savedChoice": "Opgeslagen keuze",
       "working": "De coach is bezig…",
       "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
-      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
+      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",
@@ -1384,7 +1384,7 @@
       "anchorDetail": "{{source}} · {{confidence}}",
       "available": "Beschikbaar voor de coach",
       "confidence": {
-        "fit": "fit",
+        "fit": "aanpassing",
         "manual": "handmatig",
         "platform": "platform"
       },
@@ -1457,14 +1457,14 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Buy Credits",
-      "chooseAccessMethod": "Choose access method",
-      "finishedWhileLocked": "Finished while the phone was locked.",
-      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
-      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
-      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
-      "restorePurchases": "Restore purchases",
-      "signInAgain": "Sign in again"
+      "buyCredits": "Tegoed kopen",
+      "chooseAccessMethod": "Toegangsmethode kiezen",
+      "finishedWhileLocked": "Voltooid terwijl de telefoon vergrendeld was.",
+      "interruptedNothingChanged": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd.",
+      "interruptedSomeSaved": "Dit antwoord werd onderbroken voordat het klaar was. Een deel van de informatie was al opgeslagen.",
+      "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden.",
+      "restorePurchases": "Aankopen herstellen",
+      "signInAgain": "Opnieuw inloggen"
     }
   },
   "plan": {
@@ -2930,9 +2930,9 @@
     "pack_other": "{{formattedCount}} tegoedpunten",
     "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
     "error": {
-      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
-      "unavailable": "Credits are unavailable right now. Try again later."
+      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan.",
+      "exhausted": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account.",
+      "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw."
     }
   },
   "onboarding": {
@@ -2952,19 +2952,19 @@
       "added_other": "{{formattedCount}} tegoedpunten toegevoegd"
     },
     "notice": {
-      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+      "health": "Trainingssuggesties, geen medisch advies. Overleg met een arts voordat je grote veranderingen aanbrengt."
     }
   },
   "access": {
     "error": {
-      "locked": "Unlock your iPhone to continue. Your message is saved.",
-      "notConfigured": "Choose how the coach reaches a model to continue.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+      "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
+      "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
+      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
     }
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu did not accept that key."
+      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd."
     }
   }
 }

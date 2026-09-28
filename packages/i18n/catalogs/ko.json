@@ -9,8 +9,8 @@
   "language": {
     "chooseTitle": "언어를 선택하세요",
     "continue": "계속",
-    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
-    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
+    "saveFailed": "{{language}} 설정을 저장하지 못했습니다. 답변 언어는 {{current}}로 유지됩니다. 다시 시도하세요.",
+    "saveFailedAutomatic": "{{language}} 설정을 저장하지 못했습니다. 답변은 계속 각 메시지의 언어로 제공됩니다. 다시 시도하세요."
   },
   "settings": {
     "appearance": {
@@ -85,8 +85,7 @@
         "cause": "{{strava}} API 제한으로 인해 {{intervalsLower}}에서 {{strava}}의 활동을 {{product}}에 공유할 수 없습니다. API 키에는 문제가 없습니다.",
         "future": "기록 기기를 {{intervalsLower}}에 직접 연결하고 {{strava}} 연결도 유지하세요. 무료이며 향후 라이딩에 적용됩니다.",
         "past": "{{intervalsLower}} 설정에서 모든 {{strava}} 데이터 가져오기를 사용하세요. 지난 라이딩에 적용되며 {{intervalsLower}} 후원자 구독이 필요합니다.",
-        "title_other": "전체 활동 {{total}}개 중 {{restricted}}개가 {{strava}}에 의해 숨겨져 있습니다",
-        "title_one": "전체 활동 {{total}}개 중 {{restricted}}개가 {{strava}}에 의해 숨겨져 있습니다"
+        "title_other": "전체 활동 {{total}}개 중 {{restricted}}개가 {{strava}}에 의해 숨겨져 있습니다"
       },
       "reviewSetup": "초기 설정 확인",
       "save": "선수 ID 저장",
@@ -194,7 +193,7 @@
         "idleMinutes": "분 단위로 0 이상의 안전한 범위의 정수를 입력하세요.",
         "resetArchiveRetentionDays": "일 단위로 0 이상의 안전한 범위의 정수를 입력하세요.",
         "timezone": "{{timezone}} 등의 유효한 IANA 시간대를 입력하세요.",
-        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
+        "contextWindowTokens": "유효한 범위 내에서 1 이상의 정수로 토큰 수를 입력하세요."
       }
     },
     "credentials": {
@@ -540,7 +539,7 @@
     "reason": {
       "explicit": "새 대화를 시작했습니다",
       "stale": "한동안 대화가 없어 종료되었습니다",
-      "earlierChat": "Earlier chat"
+      "earlierChat": "이전 채팅"
     },
     "retry": "다시 시도",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -548,8 +547,7 @@
     "truncated": "가장 최근의 이전 대화만 표시됩니다.",
     "turnCount_other": "메시지 {{formattedCount}}개",
     "unavailable": "이 대화를 더 이상 사용할 수 없습니다.",
-    "history": "기록",
-    "turnCount_one": "메시지 {{formattedCount}}개"
+    "history": "기록"
   },
   "setup": {
     "ai": {
@@ -719,8 +717,7 @@
       "fileCount_other": "라이딩 파일 {{formattedCount}}개",
       "importing": "라이딩 파일 가져오는 중…",
       "unavailable": "로컬 라이브러리 가져오기: {{imported}}개 가져옴. {{quarantined}}개 격리됨. 코칭에서 활동과 시계열 데이터에 일시적으로 접근할 수 없습니다. 가져오기를 다시 시도하세요.",
-      "unconfirmed": "로컬 라이브러리 가져오기에 실패했습니다. 결과를 확인하지 못했습니다. 라이브러리를 확인한 후 다시 시도하세요.",
-      "fileCount_one": "라이딩 파일 {{formattedCount}}개"
+      "unconfirmed": "로컬 라이브러리 가져오기에 실패했습니다. 결과를 확인하지 못했습니다. 라이브러리를 확인한 후 다시 시도하세요."
     },
     "intake": {
       "managing": "부상 관리 중",
@@ -835,9 +832,7 @@
         "published": "훈련 데이터 확인이 완료되었습니다.",
         "publishedRestricted_other": "훈련 데이터 확인이 완료되었습니다. {{source}} API 제한으로 인해 {{provider}}에서 활동 {{formattedCount}}개를 공유할 수 없어 해당 활동은 포함되지 않았습니다.",
         "queued": "동기화가 대기열에 추가되었습니다.",
-        "running": "훈련 데이터 동기화 중…",
-        "noChangeRestricted_one": "로컬 훈련 데이터 처리가 완료되었습니다. {{source}} API 제한으로 인해 {{provider}}에서 활동 {{formattedCount}}개를 공유할 수 없어 해당 활동은 포함되지 않았습니다.",
-        "publishedRestricted_one": "훈련 데이터 확인이 완료되었습니다. {{source}} API 제한으로 인해 {{provider}}에서 활동 {{formattedCount}}개를 공유할 수 없어 해당 활동은 포함되지 않았습니다."
+        "running": "훈련 데이터 동기화 중…"
       },
       "restriction": {
         "fixAction": "· 해결 방법",
@@ -845,9 +840,7 @@
         "label_other": "{{source}}에 의해 {{formattedCount}}개 숨겨짐",
         "tooltipBody": "{{source}} API 제한으로 인해 {{provider}}에서 이 활동들을 {{product}}에 공유할 수 없습니다.",
         "tooltipLabel": "활동이 숨겨진 이유는 무엇인가요?",
-        "tooltipLead_other": "{{source}}에 의해 활동 {{formattedCount}}개 숨겨짐",
-        "label_one": "{{source}}에 의해 {{formattedCount}}개 숨겨짐",
-        "tooltipLead_one": "{{source}}에 의해 활동 {{formattedCount}}개 숨겨짐"
+        "tooltipLead_other": "{{source}}에 의해 활동 {{formattedCount}}개 숨겨짐"
       },
       "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}:{{second}} {{timezone}}",
       "unknownTimestamp": "동기화 시간 알 수 없음"
@@ -865,8 +858,7 @@
       "plan": "계획",
       "settings": "설정",
       "training": "훈련"
-    },
-    "planAttention_one": "계획, 항목 {{formattedCount}}개 확인 필요"
+    }
   },
   "chat": {
     "attachment": {
@@ -951,7 +943,7 @@
       "responding": "코치가 답변 중…",
       "send": "메시지 전송",
       "stop": "답변 중지",
-      "notSent": "Not sent. Your draft is still here."
+      "notSent": "전송되지 않았습니다. 작성 중인 메시지는 그대로 있습니다."
     },
     "date": {
       "civil": "{{year}}년 {{month}} {{day}}일",
@@ -1023,7 +1015,7 @@
       "savedChoice": "저장된 선택",
       "working": "코치가 작업 중…",
       "responseStopped": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다.",
-      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
+      "savedUnverified": "정보는 저장했지만 답변을 확인하지 못했습니다. 다시 시도하세요."
     },
     "planChange": {
       "activePlan": "활성 계획",
@@ -1156,8 +1148,7 @@
       "workout": "워크아웃",
       "workoutOption": "{{name}} · {{minutes}}분",
       "workoutPower": "{{date}} · {{minutes}}분 · {{watts}} W",
-      "workoutValue": "{{date}} · {{minutes}}분",
-      "weeklyHours_one": "매주 {{hours}}시간"
+      "workoutValue": "{{date}} · {{minutes}}분"
     },
     "planCreation": {
       "activate": "계획 활성화",
@@ -1308,9 +1299,7 @@
       "didIReadThis": "맞게 이해했나요?",
       "iUnderstood": "이렇게 이해했습니다",
       "skipForNow": "지금은 건너뛰기",
-      "youWrote": "작성한 내용",
-      "outlineSummary_one": "{{weeks}}주 · 워크아웃 {{workouts}}개 · {{minutes}}분",
-      "span_one": "{{start}}~{{end}} · {{weeks}}주 · {{kind}}"
+      "youWrote": "작성한 내용"
     },
     "planReference": {
       "active": "활성",
@@ -1341,8 +1330,7 @@
       "removeLabel": "대기 중인 메시지 {{number}} 삭제",
       "retry": "중단된 메시지 재시도",
       "run": "명령 실행",
-      "title": "대기 중인 메시지",
-      "count_one": "대기 중인 메시지 {{number}}개"
+      "title": "대기 중인 메시지"
     },
     "slashPopup": {
       "choose": "선택",
@@ -1404,8 +1392,7 @@
       "waiting": "훈련 데이터 대기 중",
       "week": "{{total}}주 중 {{week}}주차",
       "weekPhase": "{{total}}주 중 {{week}}주차 · {{phase}}",
-      "workoutDetail": "{{minutes}}분 · {{sport}}",
-      "activities_one": "{{days}}일간 사이클링 활동 {{formattedCount}}개"
+      "workoutDetail": "{{minutes}}분 · {{sport}}"
     },
     "transcript": {
       "athleteLabel": "내 메시지",
@@ -1457,14 +1444,14 @@
     },
     "menu": "메뉴",
     "turn": {
-      "buyCredits": "Buy Credits",
-      "chooseAccessMethod": "Choose access method",
-      "finishedWhileLocked": "Finished while the phone was locked.",
-      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
-      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
-      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
-      "restorePurchases": "Restore purchases",
-      "signInAgain": "Sign in again"
+      "buyCredits": "크레딧 구매",
+      "chooseAccessMethod": "연결 방법 선택",
+      "finishedWhileLocked": "휴대폰이 잠긴 동안 완료되었습니다.",
+      "interruptedNothingChanged": "이 답변은 완료되기 전에 중단되었습니다. 변경된 내용은 없습니다.",
+      "interruptedSomeSaved": "이 답변은 완료되기 전에 중단되었습니다. 일부 정보는 그전에 저장되었습니다.",
+      "receivedBeforeClose": "앱이 닫히기 전에 수신되었습니다. 전송하려면 다시 시도를 누르세요.",
+      "restorePurchases": "구매 복원",
+      "signInAgain": "다시 로그인"
     }
   },
   "plan": {
@@ -1529,9 +1516,7 @@
       },
       "stopped": "중단됨",
       "unknownReason": "알 수 없는 이유",
-      "weekCount_other": "{{weeks}}주",
-      "span_one": "{{start}}~{{end}} · {{weeks}}주",
-      "weekCount_one": "{{weeks}}주"
+      "weekCount_other": "{{weeks}}주"
     },
     "view": {
       "active": {
@@ -1607,8 +1592,7 @@
       },
       "attention": {
         "decisionCount_other": "{{formattedCount}}개 항목에 결정이 필요합니다.",
-        "planAttention": "확인이 필요한 계획 항목",
-        "decisionCount_one": "{{formattedCount}}개 항목에 결정이 필요합니다."
+        "planAttention": "확인이 필요한 계획 항목"
       },
       "chatOriginatedPlanResult": {
         "addedToPlan": "계획에 추가됨",
@@ -1647,8 +1631,7 @@
         "previousMonth": "이전 달",
         "recalculatePlan": "계획 다시 계산",
         "useShortBlock": "단기 블록 사용",
-        "useThisDate": "이 날짜 사용",
-        "dateSummary_one": "{{start}}~{{end}} · {{weeks}}주 · 시작일과 종료일 포함 {{days}}일"
+        "useThisDate": "이 날짜 사용"
       },
       "decimalHours": {
         "hours": "{{value1}}시간"
@@ -1691,8 +1674,7 @@
         "summary": "워크아웃 {{value1}}개 · {{value2}} · {{value3}}",
         "updatedDescription": "코치가 요청한 변경을 적용했습니다.",
         "updateDraft": "초안 업데이트",
-        "weeks_other": "{{weeks}}주",
-        "weeks_one": "{{weeks}}주"
+        "weeks_other": "{{weeks}}주"
       },
       "draftFormation": {
         "buildingTheReplacementDraft": "대체 초안 생성 중",
@@ -2168,8 +2150,7 @@
       "unavailableMetric": "확인 불가",
       "unchanged": "변화 없음",
       "watts": "{{value}} W",
-      "windowComparison": "{{start}}~{{end}} · 이전 28일과 비교",
-      "heartRateSummary_one": "심박수 반응 · 기록 {{value}}개"
+      "windowComparison": "{{start}}~{{end}} · 이전 28일과 비교"
     },
     "response": {
       "cadence": "케이던스",
@@ -2230,8 +2211,7 @@
       "segment": "구간",
       "strongCoverage": "충분한 데이터 범위",
       "unavailable": "확인 불가",
-      "warmupExcluded": "웜업 제외",
-      "distributionSummary_one": "측정된 라이딩 시간 {{duration}} · 기록된 범위 {{value}}개"
+      "warmupExcluded": "웜업 제외"
     },
     "ride": {
       "analysisFailed": "지금은 라이딩을 분석할 수 없습니다.",
@@ -2375,10 +2355,7 @@
       "unknownDate": "알 수 없는 날짜",
       "wholeRide": "{{provenance}} · 전체 라이딩",
       "zone": "존",
-      "zoneValue": "존 {{value}}",
-      "groupSegments_one": "구간 {{values}}",
-      "groupsSuffix_one": " · 그룹 {{value}}개",
-      "halfMeta_one": "{{duration}} · 표본 {{value}}개"
+      "zoneValue": "존 {{value}}"
     },
     "view": {
       "announcement": "{{period}}. {{notice}}",
@@ -2450,8 +2427,7 @@
       "unavailable": "확인 불가",
       "week": "주",
       "weeklySummary": "주간 요약",
-      "weekRange": "{{start}}~{{end}}",
-      "rideCount_one": "라이딩 {{number}}회"
+      "weekRange": "{{start}}~{{end}}"
     }
   },
   "cli": {
@@ -2556,10 +2532,7 @@
       "whereToStoreSecrets": "비밀 정보를 어디에 저장할까요?",
       "wizardFailedAfterCreatingNewBackend_other": "새 저장소 항목 {{formattedCount}}개를 만든 후 초기 설정에 실패했습니다. 이 항목들은 아직 {{configFile}}에 등록되지 않았습니다.",
       "wizardOrphanedBackendItemsCreatedThis": "[wizard] 이번 실행에서 만든 연결되지 않은 저장소 항목입니다. 필요하면 직접 삭제하세요:",
-      "yourCurrentProviderIsNotOffered": "현재 제공업체 `{{prevProvider}}`는 초기 설정에서 선택할 수 없습니다. 초기 설정을 다시 실행하면 다른 제공업체로 바뀝니다.",
-      "deleteTheOrphanItemSNow_one": "연결되지 않은 항목 {{formattedCount}}개를 지금 삭제할까요?",
-      "operatorAlreadyConfiguredIdAllowfromHas_one": "운영자가 이미 설정되어 있습니다(ID: {{operator}}, allowFrom 항목 {{formattedCount}}개). 다시 확인할까요? 기존 항목은 모두 유지됩니다.",
-      "wizardFailedAfterCreatingNewBackend_one": "새 저장소 항목 {{formattedCount}}개를 만든 후 초기 설정에 실패했습니다. 이 항목들은 아직 {{configFile}}에 등록되지 않았습니다."
+      "yourCurrentProviderIsNotOffered": "현재 제공업체 `{{prevProvider}}`는 초기 설정에서 선택할 수 없습니다. 초기 설정을 다시 실행하면 다른 제공업체로 바뀝니다."
     },
     "startup": {
       "allowedSenders_other": "허용된 발신자 ({{formattedCount}}명):",
@@ -2602,10 +2575,7 @@
       "unknownCommand": "알 수 없는 명령: {{command}}\n",
       "usageCommandCommandsSetupInteractiveWizard": "사용법: {{binaryName}} [command]\n\n명령:\n  {{setup}}                     설정 파일을 만드는 대화형 초기 설정\n  {{version}}                   현재 버전 표시\n  {{addSender}}       {{telegram}} 사용자 ID의 봇 사용 허용\n  {{removeSender}}    이전에 허용한 {{telegram}} 사용자 ID의 권한 취소\n  {{listSenders}}              현재 허용 목록과 알려진 세션 후보 표시\n  (없음)                    코칭 에이전트 시작 ({{telegram}} 또는 CLI 모드)\n\n옵션:\n  {{help}}                    이 도움말 표시",
       "usageUserid": "사용법: {{binaryName}} {{command}} <userId>",
-      "userId": "  사용자 ID:      {{capturedId}}",
-      "allowedSenders_one": "허용된 발신자 ({{formattedCount}}명):",
-      "linesLastModified_one": "  {{chatId}}  {{formattedCount}}줄  마지막 수정 {{lastModified}}",
-      "sessionCandidates_one": "세션 후보 ({{formattedCount}}개):"
+      "userId": "  사용자 ID:      {{capturedId}}"
     },
     "update": {
       "installing": "{{package}} 설치 중...",
@@ -2630,9 +2600,7 @@
       "rateLimitSeconds_other": "요청 한도에 도달했습니다. 약 {{seconds}}초 후 다시 시도해 주세요.",
       "reauth": "{{provider}} 로그인이 더 이상 유효하지 않습니다. 계속하려면 다시 로그인해 주세요.",
       "reauthSetup": "{{provider}} 로그인이 더 이상 유효하지 않습니다. 초기 설정을 열고 다시 로그인해 주세요.",
-      "unknown": "죄송합니다. 문제가 발생했습니다. 다시 시도해 주세요.",
-      "rateLimitMinutes_one": "요청 한도에 도달했습니다. 약 {{minutes}}분 후 다시 시도해 주세요.",
-      "rateLimitSeconds_one": "요청 한도에 도달했습니다. 약 {{seconds}}초 후 다시 시도해 주세요."
+      "unknown": "죄송합니다. 문제가 발생했습니다. 다시 시도해 주세요."
     },
     "fallback": {
       "stepLimit": "데이터를 모으다가 처리 단계 한도에 도달했습니다. 계속해 달라고 말씀하시면 멈춘 곳부터 이어가겠습니다.",
@@ -2666,8 +2634,7 @@
       "unnamed": "이름 없는 워크아웃",
       "update": "{{date}}의 워크아웃 \"{{name}}\" 수정: {{detail}}",
       "deleteFallback": "워크아웃 삭제",
-      "updateFallback": "워크아웃 수정: {{detail}}",
-      "duration_one": "시간을 {{seconds}}초로"
+      "updateFallback": "워크아웃 수정: {{detail}}"
     }
   },
   "telegram": {
@@ -2764,9 +2731,7 @@
       "permissions": "[security] {{path}}의 권한을 {{previous}}에서 {{next}}(으)로 제한했습니다.",
       "recoveryRequired": "{{service}} 발신자 권한을 복구해야 합니다.",
       "recoveryRequiredAt": "{{path}}의 {{service}} 발신자 권한을 복구해야 합니다.",
-      "serving": "[security] 공개 DM 정책: 허용 목록에 없는 발신자 {{senderId}}에게 응답합니다.",
-      "allowlist_one": "[security] {{service}} 허용 목록: {{policy}} 모드 (허용된 발신자 {{formattedCount}}명, 주 운영자: {{primary}}). 출처: {{source}}.",
-      "open_one": "[security] 경고: DM 정책이 OPEN입니다. 이 봇을 찾은 모든 {{service}} 사용자에게 답변합니다.\n[security] 경고: 허용 목록/페어링을 복원하려면 {{variable}} 설정을 해제하세요.\n[security] 저장된 허용 목록: 발신자 {{formattedCount}}명 (주 운영자: {{primary}}). 출처: {{source}}."
+      "serving": "[security] 공개 DM 정책: 허용 목록에 없는 발신자 {{senderId}}에게 응답합니다."
     },
     "session": {
       "resetCaveat": "이전 대화를 완전히 초기화하지 못해 일부 내용이 아직 반영될 수 있습니다.",
@@ -2801,8 +2766,7 @@
       "secondsAgo": "{{seconds}}초 전",
       "unchanged": "이미 최신 상태입니다. 마지막 동기화 이후 변경 사항이 없습니다.",
       "unreachable": "지금은 {{service}}에 연결할 수 없습니다.",
-      "working": "{{service}}에서 훈련 데이터를 동기화하고 있습니다...",
-      "restricted_one": "전체 활동 {{total}}개 중 {{number}}개가 {{source}}에 의해 숨겨져 있어 포함되지 않았습니다. {{source}} API 제한으로 인해 {{service}}에서 {{source}}의 활동을 공유할 수 없습니다. 향후 라이딩을 위해 기록 기기를 {{service}}에 직접 연결하고 {{source}} 연결도 유지하세요. 지난 라이딩은 {{service}} 설정에서 {{importAction}} 기능을 사용하세요. {{service}} 후원자 구독이 필요합니다."
+      "working": "{{service}}에서 훈련 데이터를 동기화하고 있습니다..."
     },
     "update": {
       "available": "업데이트 가능: {{current}} → {{latest}}\n{{updateInstruction}}\n\n{{platform}}용 데스크톱 앱: {{desktopUrl}}\n\n컴퓨터를 켜 두지 않고 봇을 {{availability}} 실행하려면 {{provider}} 템플릿을 배포하세요: {{railwayUrl}}",
@@ -2923,16 +2887,13 @@
     "buy": "구매",
     "testers": "테스터는 아직 팩을 구매할 수 없습니다.",
     "title": "크레딧",
-    "balance_one": "{{formattedCount}} 크레딧",
-    "pack_one": "{{formattedCount}} 크레딧",
-    "packPrice_one": "{{formattedCount}} 크레딧 · {{price}}",
     "balance_other": "{{formattedCount}} 크레딧",
     "pack_other": "{{formattedCount}} 크레딧",
     "packPrice_other": "{{formattedCount}} 크레딧 · {{price}}",
     "error": {
-      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
-      "unavailable": "Credits are unavailable right now. Try again later."
+      "accessRejected": "크레딧을 사용할 수 없었습니다. 계속하려면 구매를 복원하세요.",
+      "exhausted": "크레딧을 모두 사용했습니다. 추가로 구매하거나 OpenRouter 계정으로 전환하세요.",
+      "unavailable": "지금은 크레딧을 이용할 수 없습니다. 나중에 다시 시도하세요."
     }
   },
   "onboarding": {
@@ -2948,23 +2909,22 @@
       "start": "채팅 시작",
       "progress": "시작 크레딧 요청 중",
       "alreadyGranted": "이 기기는 이미 시작 크레딧을 사용했습니다.",
-      "added_one": "{{formattedCount}} 크레딧 추가됨",
       "added_other": "{{formattedCount}} 크레딧 추가됨"
     },
     "notice": {
-      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+      "health": "훈련 제안이며 의학적 조언이 아닙니다. 큰 변화를 주기 전에 의사와 상담하세요."
     }
   },
   "access": {
     "error": {
-      "locked": "Unlock your iPhone to continue. Your message is saved.",
-      "notConfigured": "Choose how the coach reaches a model to continue.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+      "locked": "계속하려면 iPhone의 잠금을 해제하세요. 메시지는 저장되어 있습니다.",
+      "notConfigured": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요.",
+      "openRouterFunds": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요."
     }
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu did not accept that key."
+      "rejected": "intervals.icu에서 해당 키를 거부했습니다."
     }
   }
 }

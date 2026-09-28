@@ -9,8 +9,8 @@
   "language": {
     "chooseTitle": "Vælg dit sprog",
     "continue": "Fortsæt",
-    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
-    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
+    "saveFailed": "Kunne ikke gemme {{language}}. Svarene bliver på {{current}}. Prøv igen.",
+    "saveFailedAutomatic": "Kunne ikke gemme {{language}}. Svarene bliver på sproget i hver besked. Prøv igen."
   },
   "settings": {
     "appearance": {
@@ -194,7 +194,7 @@
         "idleMinutes": "Indtast et sikkert helt antal minutter, 0 eller mere.",
         "resetArchiveRetentionDays": "Indtast et sikkert helt antal dage, 0 eller mere.",
         "timezone": "Indtast en gyldig IANA-tidszone, f.eks. {{timezone}}.",
-        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
+        "contextWindowTokens": "Indtast et helt antal tokens inden for det gyldige interval, mindst 1."
       }
     },
     "credentials": {
@@ -540,7 +540,7 @@
     "reason": {
       "explicit": "Du startede en ny samtale",
       "stale": "Lukket efter en pause",
-      "earlierChat": "Earlier chat"
+      "earlierChat": "Tidligere chat"
     },
     "retry": "Prøv igen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -735,7 +735,7 @@
     "retrySavedKeys": "Prøv gemte nøgler igen",
     "retryStatus": "Prøv opsætningsstatus igen",
     "settingsHeading": "Opsætning",
-    "startCoaching": "Start coaching",
+    "startCoaching": "Start med din træner",
     "statusUnavailable": "Opsætningsstatus kunne ikke indlæses. Kontrollér, at {{product}} kører, og prøv igen.",
     "telegram": {
       "announcement": "Opsætning af {{telegram}}-bot er åbnet under denne række.",
@@ -951,7 +951,7 @@
       "responding": "Træneren svarer…",
       "send": "Send besked",
       "stop": "Stop svaret",
-      "notSent": "Not sent. Your draft is still here."
+      "notSent": "Ikke sendt. Din kladde er stadig her."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1023,7 +1023,7 @@
       "savedChoice": "Gemt valg",
       "working": "Træneren arbejder…",
       "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
-      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
+      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -1384,7 +1384,7 @@
       "anchorDetail": "{{source}} · {{confidence}}",
       "available": "Tilgængelig for træneren",
       "confidence": {
-        "fit": "fit",
+        "fit": "tilpasning",
         "manual": "manuel",
         "platform": "platform"
       },
@@ -1457,14 +1457,14 @@
     },
     "menu": "Menu",
     "turn": {
-      "buyCredits": "Buy Credits",
-      "chooseAccessMethod": "Choose access method",
-      "finishedWhileLocked": "Finished while the phone was locked.",
-      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
-      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
-      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
-      "restorePurchases": "Restore purchases",
-      "signInAgain": "Sign in again"
+      "buyCredits": "Køb kreditter",
+      "chooseAccessMethod": "Vælg adgangsmetode",
+      "finishedWhileLocked": "Blev færdig, mens telefonen var låst.",
+      "interruptedNothingChanged": "Svaret blev afbrudt, før det var færdigt. Intet blev ændret.",
+      "interruptedSomeSaved": "Svaret blev afbrudt, før det var færdigt. Nogle oplysninger blev gemt inden da.",
+      "receivedBeforeClose": "Modtaget, før appen lukkede. Tryk på Prøv igen for at sende beskeden.",
+      "restorePurchases": "Gendan køb",
+      "signInAgain": "Log ind igen"
     }
   },
   "plan": {
@@ -2930,9 +2930,9 @@
     "pack_other": "{{formattedCount}} kreditter",
     "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
     "error": {
-      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
-      "unavailable": "Credits are unavailable right now. Try again later."
+      "accessRejected": "Dine kreditter kunne ikke bruges. Gendan køb for at fortsætte.",
+      "exhausted": "Du er løbet tør for kreditter. Køb flere, eller skift til din OpenRouter-konto.",
+      "unavailable": "Kreditter er ikke tilgængelige lige nu. Prøv igen senere."
     }
   },
   "onboarding": {
@@ -2952,19 +2952,19 @@
       "added_other": "Tilføjede {{formattedCount}} kreditter"
     },
     "notice": {
-      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+      "health": "Træningsforslag, ikke lægelig rådgivning. Tal med en læge før større ændringer."
     }
   },
   "access": {
     "error": {
-      "locked": "Unlock your iPhone to continue. Your message is saved.",
-      "notConfigured": "Choose how the coach reaches a model to continue.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+      "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
+      "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
+      "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
     }
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu did not accept that key."
+      "rejected": "intervals.icu accepterede ikke den nøgle."
     }
   }
 }
