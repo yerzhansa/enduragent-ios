@@ -8,6 +8,7 @@ When the athlete asks for a workout, the coach proposes it in a `Workout review`
 - `preview-add` writes the workout and shows `Done — Create workout "Endurance with tempo" on 1998-06-16.` in the transcript as `chat.note`. The line is a synced `reviewApplied` record, so it is still there after a relaunch and appears in History after New conversation.
 - `preview-cancel` removes the card without writing. It records `proposalCleared` with the reason `canceled`, so the card does not come back on the next message or after a relaunch.
 - `preview-account-changed` replaces both buttons with `chat.preview.notice` when the card was prepared for a different intervals.icu athlete than the one connected now.
+- `preview-earlier-version` shows `chat.preview.notice` in the Chat screen's `Workout review` card for a restored, unexpired v1 `pendingProposal`, whether it adds, edits, or deletes a workout. Check both an intervals.icu-connected athlete and a disconnected athlete. The notice reads `This workout review is from an earlier version of the app and can no longer be applied.` through `review.earlierVersion` in the selected language, and neither `chat.preview.cancel` nor `chat.preview.add` appears.
 - `preview-outcome` shows the result of a tap that did not add the workout in `chat.review.notice`: the expired sentence for an expired or stale card, the account-changed sentence, a connection sentence when the Keychain cannot be read, or an intervals.icu sentence when the write failed or its result is unknown.
 - `preview-dark` shows the same card in dark appearance.
 
