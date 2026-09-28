@@ -1,37 +1,45 @@
 # History
 
-The menu's History screen, titled `Past chats`, lists archived conversations newest first. `Start new conversation` or `/start` archives the current conversation, and after an upgrade every chat a v1 build kept becomes one archived conversation. Each row shows the first message, why the conversation closed, and its start day. Choosing a row opens it read-only.
+History contains archived conversations and opens each one read-only. There is still only one ongoing conversation. New conversation and automatic resets close earlier messages into History; a v1 upgrade exposes earlier chats as archived conversations.
 
 ## Sub-features
 
-- `history-empty` reads `No past conversations yet. Starting a new conversation keeps the old one here.` while the current conversation is the only one.
-- `history-list` shows one `history.row.<boundary>` row per archived conversation with its first message, its reason, and `1998-06-15`. The reason reads `You started a new conversation` after `Start new conversation` or `/start`, `Closed after a break` after an automatic daily or idle reset, and `Earlier chat` for a chat from a v1 build.
-- `history-archived` pushes `Past conversation`, the old questions and replies with no composer, no `Try again`, and `Past conversations are read-only.` in `archive.readOnly`.
-- `history-upgrade` opens a store written by a v1 build with two chats on the welcome, and History lists both as `Earlier chat`.
-- `history-no-network` reads records only. Opening History makes no model request and drains no pending memory job.
+- `history-empty` shows `No past conversations yet. Starting a new conversation keeps the old one here.` when nothing has been archived.
+- `history-list` lists archived conversations newest first under the catalog title `Past chats`. Rows show the first athlete message, close reason, and start day.
+- `history-reasons` shows `You started a new conversation`, `Closed after a break`, or `Earlier chat` for explicit reset, automatic reset, or v1 content respectively.
+- `history-archived` opens `Past conversation` with the saved turns and review outcomes. `archive.readOnly` says `Past conversations are read-only.` There is no active composer or recovery action in the archived content.
+- `history-upgrade` puts v1 chats in History and opens the ongoing conversation on the welcome.
+- `history-unavailable` shows the catalog failure sentence if records cannot be read. Opening History starts no model request and runs no pending memory work.
 
 ## How to get to it (user POV)
 
-- In the chat, choose `Menu`, then `History`.
+- Choose Menu, then History from the ongoing conversation.
+- Tap a `history.row.<id>` to read an archived conversation.
+- Create an archive with Start new conversation, `/start`, or the next message after an automatic reset becomes due. The [conversation map](./chat.md) covers those paths.
 
 ## Driving it with sim.mjs and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
-- For interactive steps, the app is on the chat after onboarding and at least one message has a reply.
+- Follow the [index](./README.md) setup. Upgrade proofs additionally require the earlier store described in the verify-ios skill's Upgrade proofs section.
 
-- **Empty, then one row.** Run `sim.mjs test <run id> HistoryListProof`. After the week question, History shows the empty line and no row. After `/start`, it shows one row with the question, `You started a new conversation`, and `1998-06-15`. Attachments `history-empty` and `history-list` show them.
-- **Read an archived conversation.** Run `sim.mjs test <run id> HistoryArchivedProof`. After `chat.newConversation`, the row reads `You started a new conversation`, and the pushed screen shows the question, the reply, and `archive.readOnly`. Attachments `history-row` and `history-archived` show them.
-- **Closed after a break.** Run `sim.mjs test <run id> DailyResetProof/testFortyMinutesOpensAFreshSession`. History lists one row with the week question and `Closed after a break`. Attachment `m1-12-daily-reset-history` shows it.
-- **Upgrade from v1.** Follow **Upgrade proofs** in the skill, then run `sim.mjs test <run id> UpgradeHistoryProof`. The chat opens on the welcome with no reset notice, History lists two `Earlier chat` rows with the week question and the remember message, and a row opens read-only. Attachments `upgrade-welcome`, `upgrade-history`, and `upgrade-history-read-only` show them.
-- **Open time with 50 archived conversations.** Run `sim.mjs test <run id> HistoryOpenProbe/testSeedFiftyResets`, then `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithFiftyArchived`. The attachment `history-open-ms` holds the time from the History tap to the newest row. Run `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithNoneArchived` on a fresh launch for `history-open-empty-ms`, the same tap with nothing archived. The rule: 50 archived conversations open no more than 1 second slower than an empty History, measured at a 1-minute load under 20. `HistoryOpenTests` in the package checks that reading 50 archived conversations over SwiftData takes under 1 second.
+| Action and command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> HistoryListProof` | History is empty after the first reply; `/start` creates one row, `history-empty`, `history-list`. |
+| `sim.mjs test <run id> HistoryArchivedProof` | The toolbar reset creates a row; opening it shows the prior question, reply, and read-only notice, `history-row`, `history-archived`. |
+| `sim.mjs test <run id> DailyResetProof/testFortyMinutesOpensAFreshSession` | The next message crosses the daily reset and archives the prior conversation as Closed after a break, `m1-12-daily-reset-history`. |
+| `sim.mjs test <run id> IdleResetProof` | The next message after 31 idle minutes with a 30-minute setting creates the same close reason, `m1-12-idle-reset-history`. |
+| `sim.mjs test <run id> UpgradeHistoryProof` | Two v1 rows read Earlier chat; one opens read-only, `upgrade-welcome`, `upgrade-history`, `upgrade-history-read-only`. Missing prior data makes the proof skip. |
+| `sim.mjs test <run id> HistoryOpenProbe/testSeedFiftyResets`, then `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithFiftyArchived` | The kept store has 50 archives; `history-open-ms` measures opening them and `history-with-fifty-archived` shows the list. |
+| `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithNoneArchived` | A fresh store supplies the empty baseline, `history-open-empty-ms`. |
+
+Compare the 50-archive and empty measurements under a one-minute load below 20. The acceptance bound is no more than one additional second for 50 archives. Do not loosen it after a load-related failure. The package test for History read failure supplies the unavailable case; there is no UI fixture directive for that read failure.
 
 ## Gotchas
 
-- `sim.mjs launch <run id>` wipes the fixture state and empties History. `sim.mjs launch <run id> --keep` keeps the rows.
-- A row identifier ends in the conversation's boundary ULID, or in the chat id for a v1 chat and for the first conversation. Match it with the prefix `history.row.`.
-- The date is the fixture's fixed day `1998-06-15`, not the simulator's date.
-- History reloads each time the screen appears.
-- The History sheet covers the chat, and the chat's controls stay in the accessibility tree behind it. Assert `chat.composer` and `chat.send` are not hittable, not that they are missing.
-- A conversation with no messages, such as two resets in a row, is not listed.
+- Fresh launch erases the fixture archives. Use a kept store between a seed and its measurement.
+- Match the `history.row.` prefix. Its suffix is the boundary identifier or the earlier conversation identifier, not a stable sequence number.
+- The fixture date is 1998-06-15 unless the proof supplies another clock instant.
+- History reloads when it appears. It does not provide an action to resume an archived conversation.
+- The Menu sheet leaves the ongoing conversation's controls in the accessibility tree behind it. Assert they are not hittable while reading History.
+- Consecutive resets with no messages do not create empty History rows.

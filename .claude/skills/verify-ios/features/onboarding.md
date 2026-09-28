@@ -1,45 +1,57 @@
-# Onboarding
+# Onboarding and connection
 
-A first launch shows the health notice, then lets the athlete connect intervals.icu with an API key or skip it, then grants starter credits and opens the chat.
+The athlete accepts the health notice, connects intervals.icu or skips it, receives starter Credits, and enters the one ongoing conversation. A kept store reopens that conversation. Debug, Credentials provides the existing controls for replacing or disconnecting the training connection.
 
 ## Sub-features
 
-- `onboarding-notice` shows the health notice and `Continue`.
-- `onboarding-connect` accepts a key and shows the athlete's name, Fitness, Fatigue, and Form.
-- `onboarding-connect-empty` rejects an empty key with `intervals.icu did not accept that key.` in `connect.error`, from the catalog key `connect.error.rejected`.
-- `onboarding-skip` continues without intervals.icu.
-- `onboarding-starter` shows the starter grant and opens the chat with `Start chatting`.
+- `onboarding-notice` shows the health notice with `notice.continue`.
+- `onboarding-connect` accepts a non-blank key, shows the connected athlete and training values, and offers `connect.continue`.
+- `onboarding-connect-empty` keeps the connect screen and shows `intervals.icu did not accept that key.` in `connect.error`.
+- `onboarding-skip` opens starter Credits without a training connection. The conversation welcome omits `/sync`.
+- `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
+- `onboarding-credentials` keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
+- `onboarding-unavailable` shows `launch.storageUnavailable` when the record store cannot open. A locked keychain on a kept store preserves the transcript and shows `chat.composer.notice`.
 
 ## How to get to it (user POV)
 
-- Open the app. Every fresh fixture launch starts here.
-- On the connect screen, enter a key and choose `Connect`.
-- On the connect screen, choose `Skip for now`.
+- Open the app with a fresh store and choose Continue.
+- Enter an intervals.icu key and choose Connect, or choose Skip for now.
+- Choose Continue after connection, then Start chatting after starter Credits.
+- From the conversation, choose Menu, Debug, Credentials. The controls are Replace, Blank key, Cancel, Switch athlete, and Disconnect. Fixture builds also offer Lock keychain and Fail next write.
+- Choose access method under a turn notice returns to the connect step; finishing it returns to the existing conversation.
 
 ## Driving it with sim.mjs and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
-- For interactive steps, `sim.mjs launch <run id>` has run and the notice is on screen.
+- Follow the [index](./README.md) setup and require a passing doctor. Each proof prepares its own fixture state unless it needs an upgrade store.
+- The fixture athlete is Ada Kovač, `i1001`, with Fitness 42, Fatigue 49, and Form -7 on 1998-06-15.
 
-- **Notice.** Open the app. Run `sim.mjs test <run id> InstallOpenProof`. The run passes and attachment `01-install-open` shows `Training suggestions, not medical advice. Check with a doctor before big changes.` above `Continue`.
-- **Connect with a key.** Choose `Continue` (`notice.continue`), type `fixture` into `connect.apiKey`, and choose `Connect` (`connect.connect`). Run `sim.mjs test <run id> ConnectIntervalsProof`. `connect.athleteName` reads `Ada Kovač`, `connect.fitness` reads `Fitness 42`, `connect.fatigue` reads `Fatigue 49`, and `connect.form` reads `Form -7`. Attachment `02-connect-intervals` shows them.
-- **Empty key.** This step is interactive. Leave `connect.apiKey` empty and tap `connect.connect`. `connect.error` reading `intervals.icu did not accept that key.` appears between `Connect` and `Skip for now`. Capture it with `sim.mjs shot <run id> connect-empty-key`.
-- **Replace or disconnect after onboarding.** Open `Menu`, `Debug`, then `Credentials` (`debug.credentials`). Replace, Replace with a blank key, Cancel, Switch athlete, and Disconnect call the coach's credential intents; Lock keychain and Fail next write arm the fixture keychain. `credentials.outcome` reads `Kept the current key.` after a blank key or Cancel, `Previous key kept.` after a failed write, and names both athlete ids when the key belongs to another athlete while a `Workout review` card or an unsettled turn exists. Run `sim.mjs test <run id> CredentialTransactionProof`. Attachments `credential-blank`, `credential-transaction`, and `credential-transaction-reply` show Ada Kovač still connected and the next reply.
-- **Credential lanes as proofs.** `DifferentAthleteProof` replaces the key with `other-athlete` while a `Workout review` card exists, reads the refusal, checks the next reply's `turnClaim` still carries the old account, then taps Switch athlete and checks `chat.preview.add` is gone. `SameAthleteRotationProof` replaces the key with `fixture-rotated`, which resolves to the same athlete, reads `authority sameAthlete` and a new connection id ending `:i1001`, then taps `chat.preview.add` and reads the done line. `DisconnectProof` checks the next `turnClaim` reads `unconnected`. `ConnectAfterLaunchProof` skips the connect step, stores `fixture` from Debug, Credentials, and checks the next `turnClaim` carries the new connection without a relaunch. `FailedWriteRecordsProof` arms a failed write, replaces with `fixture-2`, and checks the next `turnClaim` keeps the old connection. `UpgradeConnectionProof` needs a store and keychain from a build before M1-11 and skips without one; it checks Debug, Credentials shows Ada Kovač and a connection id.
-- **Record store cannot open.** Run `sim.mjs test <run id> StorageUnavailableProof`. The app launches with `-EnduragentFixtureStore unreadable`, stays running, and `launch.storageUnavailable` reads `Conversation history is temporarily unavailable.` and `Quit and reopen Enduragent.` instead of the notice. Attachment `storage-unavailable` shows it.
-- **Locked Keychain after onboarding.** Run `sim.mjs test <run id> LockedKeychainProof`. The chat reopens with the earlier question and reply, `chat.composer.notice` reads `Unlock your iPhone to continue. Your message is saved.`, and the notice screen does not appear. Attachment `locked-keychain` shows it.
-- **Starter credits.** After connecting, choose `Continue` (`connect.continue`). Run `sim.mjs test <run id> StarterCreditsProof`. `starter.credits` reads `200 credits` and `starter.start` exists. Attachment `03-starter-credits` shows both.
-- **Skip.** This step is interactive. Tap `connect.skip`, wait for `200 credits` and `Start chatting`, then tap `starter.start`. The chat opens on the welcome without the `/sync` line. Capture it with `sim.mjs shot <run id> skip-chat`.
-- **Into the chat with no network.** Run `sim.mjs test <run id> FirstConversationProof`. A pass means onboarding reached `chat.composer` with the welcome, two replies arrived, and `fixture.requestCount` read `0 requests`. Attachment `04-first-conversation` shows the chat.
+| Action and command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> InstallOpenProof` | Health notice and Continue, `01-install-open`. |
+| `sim.mjs test <run id> ConnectIntervalsProof` | `connect.athleteName`, `.fitness`, `.fatigue`, and `.form` show the fixture values, `02-connect-intervals`. |
+| `sim.mjs test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
+| `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome after skipping has no `/sync`, `welcome-after-skip`. |
+| `sim.mjs test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
+| `sim.mjs test <run id> CredentialTransactionProof` | Blank key, Cancel, and a failed replacement preserve Ada's key; the next reply succeeds, `credential-blank`, `credential-transaction`, `credential-transaction-reply`. |
+| `sim.mjs test <run id> DifferentAthleteProof` | Replace with `other-athlete` refuses the switch while a review exists. Confirming Switch athlete removes approval controls, `different-athlete`, `switch-confirmed`. |
+| `sim.mjs test <run id> SameAthleteRotationProof` | `fixture-rotated` keeps review authority for the same athlete, then approval succeeds, `same-athlete-rotation`, `same-athlete-rotation-added`. |
+| `sim.mjs test <run id> DisconnectProof` | The next turn's record names `unconnected`, `disconnect`. |
+| `sim.mjs test <run id> ConnectAfterLaunchProof` | Connecting after Skip affects the next turn without relaunch, `connect-after-launch`. |
+| `sim.mjs test <run id> FailedWriteRecordsProof` | A failed replacement preserves the connection stamped on the next turn, `failed-write`, `failed-write-records`. |
+| `sim.mjs test <run id> UpgradeConnectionProof` | An existing pre-vault connection reaches the next turn, `upgrade-item`. Requires its earlier store and keychain; a skip is not a pass. |
+| `sim.mjs test <run id> LockedKeychainProof` | The kept conversation remains visible with the unlock notice, `locked-keychain`. |
+| `sim.mjs test <run id> StorageUnavailableProof` | An unreadable store shows the history-unavailable and reopen notice, `storage-unavailable`. |
+| `sim.mjs test <run id> AccessNoticeProof` | An absent Credits key opens the connect step; a locked keychain preserves the message and offers Try again, `access-not-configured`, `access-not-configured-connect`, `access-locked`. |
+
+For the empty-key path, launch fresh, tap `notice.continue`, leave `connect.apiKey` empty, and tap `connect.connect`. Capture `connect.error` with `sim.mjs shot <run id> connect-empty-key`. This path has no dedicated XCUITest class. Grant-failure copy is covered by the hosted app test `creditsFailuresShowCatalogNotices`; no fixture directive reaches that failure.
 
 ## Gotchas
 
-- `sim.mjs launch` always passes `-EnduragentFixture first-week`. A bare `simctl launch` without it starts the live app, which uses the real keychain and calls the credits worker at the starter step.
-- `sim.mjs launch <run id>` wipes the fixture state, so it returns to the notice even after onboarding. `sim.mjs launch <run id> --keep` reopens on the chat like the live app does.
-- `sim.mjs launch <run id> --keep -EnduragentFixtureKeychain locked` makes every keychain read and write fail as on a locked iPhone. The chat opens with the transcript and `chat.composer.notice`; a sent message fails with the same sentence and `Try again`.
-- Any non-empty key connects, in fixture mode and live, because a key is stored when it is not blank and the profile read after it is for display only. A connect proof does not prove key validation.
-- Records rows end with the training account each record was written under: `unconnected`, or `intervals:<connection id>:<athlete id>`. A turn's `userMessage` is always `unconnected`; its `turnClaim` and `turnSettled` carry the connection the attempt used.
-- `starter.progress` with `Requesting starter credits` shows only until the fake grant resolves, which is too fast to capture.
-- A fresh simulator can show a `Ready for Apple Intelligence` banner over the top of the screen for a few seconds. Wait and capture again.
+- Use fixture launches. A launch without `-EnduragentFixture first-week` uses live services.
+- Any non-empty fixture key connects. This proves the connection transaction, not validation against the real intervals.icu service.
+- `credentials.apiKey`, `.replace`, `.replaceBlank`, `.cancel`, `.switchAthlete`, `.disconnect`, `.lock`, and `.failNextWrite` identify the Debug controls. Read `.outcome`, `.athlete`, `.connection`, and `.keySuffix` afterwards.
+- `-EnduragentFixtureKeychain locked` fails reads and writes. `empty` skips installing the fixture Credits key; use it with a fresh store because it does not erase a kept key.
+- The connection proof uses the fixture's default day. Other dates may have no fixture wellness values.
+- Record rows identify the account used by an attempt. The accepted athlete-message row is unconnected; claim and settlement rows carry that attempt's connection.

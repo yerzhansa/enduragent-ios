@@ -1,42 +1,53 @@
-# Workout preview
+# Workout review
 
-When the athlete asks for a workout, the coach proposes it in a `Workout review` card, and the athlete either adds it to the intervals.icu calendar or cancels it. The card is the chat's `ReviewSnapshot`, and every button sends one `ReviewDecision` to `Coach.decide`, which never waits behind a running reply and never asks the model.
+The coach puts proposed calendar changes in a Workout review in the ongoing conversation. The athlete approves or cancels the review as one decision. A successful approval leaves a saved outcome in the transcript; an unavailable review explains why its controls cannot be used.
 
 ## Sub-features
 
-- `preview-show` shows the card with the workout description, including `Warmup`, and the buttons `Cancel` and `Add to calendar` in that order. Both stay disabled until the card reports that it is on screen.
-- `preview-add` writes the workout and shows `Done — Create workout "Endurance with tempo" on 1998-06-16.` in the transcript as `chat.note`. The line is a synced `reviewApplied` record, so it is still there after a relaunch and appears in History after New conversation.
-- `preview-cancel` removes the card without writing. It records `proposalCleared` with the reason `canceled`, so the card does not come back on the next message or after a relaunch.
-- `preview-account-changed` replaces both buttons with `chat.preview.notice` when the card was prepared for a different intervals.icu athlete than the one connected now.
-- `preview-earlier-version` shows `chat.preview.notice` in the Chat screen's `Workout review` card for a restored, unexpired v1 `pendingProposal`, whether it adds, edits, or deletes a workout. Check both an intervals.icu-connected athlete and a disconnected athlete. The notice reads `This workout review is from an earlier version of the app and can no longer be applied.` through `review.earlierVersion` in the selected language, and neither `chat.preview.cancel` nor `chat.preview.add` appears.
-- `preview-outcome` shows the result of a tap that did not add the workout in `chat.review.notice`: the expired sentence for an expired or stale card, the account-changed sentence, a connection sentence when the Keychain cannot be read, or an intervals.icu sentence when the write failed or its result is unknown.
-- `preview-dark` shows the same card in dark appearance.
+- `preview-show` displays the workout cards with Cancel to the left of Add to calendar. Both controls wait until the review has appeared before they enable.
+- `preview-add` applies the review and saves its Done line as `chat.note`. The line survives relaunch and is readable in History after New conversation.
+- `preview-cancel` clears the review without writing the workouts. It remains gone after another message and after relaunch.
+- `preview-account-changed` replaces approval controls with `chat.preview.notice` when the connected athlete differs from the one the review was prepared for.
+- `preview-earlier-version` shows `This workout review is from an earlier version of the app and can no longer be applied.` for an unexpired v1 review. Check create, update, and delete reviews, both connected to intervals.icu and disconnected. The notice uses `review.earlierVersion` in the chosen language, and neither approval nor cancel controls appear.
+- `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result.
+- `preview-language` localizes the title, buttons, notices, and saved Done line.
+- `preview-dark` keeps the review legible in dark appearance.
 
 ## How to get to it (user POV)
 
-- In the chat, send a workout request that contains `endurance ride`, such as `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks`.
+- Send `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks` from the conversation.
+- Choose Cancel or Add to calendar on the resulting review.
+- Change the connected athlete through Menu, Debug, Credentials while a review exists.
+- Reopen a kept v1 store containing an unexpired workout review, once connected and once disconnected, to inspect the earlier-version notice.
 
 ## Driving it with sim.mjs and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
-- For interactive steps, the app is on the chat after onboarding. Connecting and skipping both work.
+- Follow the [index](./README.md) setup. Approval proofs connect the fixture athlete during onboarding.
+- Wait for `chat.preview.add` or `chat.preview.cancel` to become enabled before tapping.
 
-The review proofs live in `apps/ios/EnduragentUITests/ReviewProofs.swift`.
+| Action and command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
+| `sim.mjs test <run id> AddedToCalendarProof` | `Done — Create workout "Endurance with tempo" on 1998-06-16.`, `07b-added-to-calendar`; `add-to-done-ms` records the delay. |
+| `sim.mjs test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
+| `sim.mjs test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
+| `sim.mjs test <run id> ReviewLanguageProof` | French title, controls, and durable outcome before and after relaunch, `review-french`, `review-french-relaunch`. |
+| `sim.mjs test <run id> ConfirmedPreviewDarkProof` | Dark review capture with an asserted luminance bound, `07-confirmed-preview-dark`. |
+| `sim.mjs test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete`, `switch-confirmed`. |
+| `sim.mjs test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-rotation-added`. |
+| `sim.mjs test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
+| `sim.mjs test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
 
-- **Show the preview.** Run `sim.mjs test <run id> ConfirmedPreviewProof`. `chat.preview.add` and `chat.preview.cancel` become enabled, `Cancel` sits left of `Add to calendar`, and the screen shows `Workout review` and `Warmup`. Attachment `07-confirmed-preview` shows the card.
-- **Add to calendar.** Run `sim.mjs test <run id> AddedToCalendarProof`. The transcript shows `Done — Create workout "Endurance with tempo" on 1998-06-16.` Attachment `07b-added-to-calendar` shows it, and the string attachment `add-to-done-ms` holds the time from the tap to the line.
-- **The Done line survives a relaunch.** Run `sim.mjs test <run id> DoneLineSurvivesRelaunchProof`. Attachments `done-before-relaunch` and `done-after-relaunch` show the line before and after a relaunch that keeps the store.
-- **Chosen language.** Run `sim.mjs test <run id> ReviewLanguageProof`. The card title, buttons, and saved Done line render in French after `/language` selects French, and the Done line remains French after relaunch. Attachments `review-french` and `review-french-relaunch` show both states.
-- **Cancel.** Run `sim.mjs test <run id> PreviewCancelStaysGoneProof`. It taps `chat.preview.cancel`, sends `How did Saturday go`, relaunches, and opens Records. Attachments `preview-before-cancel`, `preview-canceled-after-next-message`, and `preview-canceled-records` show the card, the chat without it after the reply, and Records with `proposalCleared 1` and a `proposalCleared canceled` row.
-- **Account changed.** Send the workout request, then Menu, Debug, Credentials, type `other-athlete` in `credentials.apiKey`, and tap `credentials.switchAthlete`. Back in the chat, the card shows `chat.preview.notice` reading `This workout was prepared for a different intervals.icu athlete. Ask me again to prepare it for the connected athlete.` and has no `chat.preview.add`.
-- **Dark appearance.** Run `sim.mjs test <run id> ConfirmedPreviewDarkProof`. `sim.mjs test` runs it in dark appearance, and the proof asserts that its capture is dark, so a run that did not switch the simulator fails instead of passing on a light screen. Attachment `07-confirmed-preview-dark` shows the card. For an interactive capture, run `xcrun simctl ui <udid> appearance dark`, then `sim.mjs parity <run id> review-ready dark` with the card on screen, then set the appearance back to `light`.
+For the v1 notice, preserve an earlier fixture store with an unexpired review and install the current build over it. Launch with `sim.mjs launch <run id> --keep`, keeping the fixture clock within that review's lifetime. Capture `chat.preview.notice` and the absence of `chat.preview.add` and `chat.preview.cancel` with `sim.mjs shot <run id> review-v1-connected`. Repeat with the disconnected store for `review-v1-disconnected`. Repeat the checks for create, update, and delete review data. There is no current XCUITest class or fixture directive that seeds these states. If the required stores are unavailable, record these paths as unverified. The package test `v1PendingReviewHasNoControls` covers the connected and disconnected data cases, but does not replace those screen captures.
 
 ## Gotchas
 
-- `/workout` alone does not produce a preview in the fixture. Use a message containing `endurance ride`.
-- On iPhone 17e the card cuts its description short, so the cooldown step shows as `Cooldown…` or not at all. Observed on 2026-09-25.
-- The fake intervals.icu client keeps the written workout in memory, and the app has no calendar screen. The `Done` line and Debug, Records are the observable proof of the write.
-- A card expires 10 minutes after the coach proposed it. After that, a launch shows no card, and a tap on a card still on screen shows `That proposal expired — ask me again and I'll re-propose.` in `chat.review.notice`.
-- The buttons enable when the card appears on screen. A proof must wait for `enabled == true` before it taps, as `TutorialHarness.waitUntilEnabled` does, or the tap lands on a disabled button and does nothing.
+- The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
+- The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.
+- A review expires after ten minutes. A later launch omits the expired review, while a decision on a stale on-screen review shows the expiry notice.
+- A review can survive New conversation. It is not a second ongoing conversation.
+- A restored v1 review must be unexpired to exercise the earlier-version notice. Connected and disconnected are distinct cases.
+- The compact phone can truncate a long workout description. Inspect the visible cards and controls, and preserve the screenshot rather than assuming every step fits.
+- The helper selects dark appearance for the dark proof. Interactive captures must restore light appearance afterwards.
