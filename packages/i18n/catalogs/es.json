@@ -544,7 +544,8 @@
     "truncated": "Solo se muestran las conversaciones anteriores más recientes.",
     "turnCount_one": "{{formattedCount}} mensaje",
     "turnCount_other": "{{formattedCount}} mensajes",
-    "unavailable": "Esta conversación ya no está disponible."
+    "unavailable": "Esta conversación ya no está disponible.",
+    "history": "Historial"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Ajustes",
       "training": "Entrenamiento"
-    }
+    },
+    "menu": "Menú"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Escribe a tu entrenador",
       "responding": "El entrenador está respondiendo…",
       "send": "Enviar mensaje",
-      "stop": "Detener respuesta"
+      "stop": "Detener respuesta",
+      "messageField": "Mensaje",
+      "sendButton": "Enviar"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1447,7 +1451,10 @@
       "hideContext": "Ocultar contexto de entrenamiento",
       "showContext": "Mostrar contexto de entrenamiento",
       "title": "Chat"
-    }
+    },
+    "addToCalendar": "Añadir al calendario",
+    "menu": "Menú",
+    "title": "Entrenador"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Bloque principal",
       "cooldown": "Enfriamiento",
       "ramp": "rampa"
+    }
+  },
+  "credits": {
+    "buy": "Comprar",
+    "testers": "Los probadores aún no pueden comprar paquetes.",
+    "title": "Créditos",
+    "balance_one": "{{formattedCount}} crédito",
+    "pack_one": "{{formattedCount}} crédito",
+    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
+    "balance_other": "{{formattedCount}} créditos",
+    "pack_other": "{{formattedCount}} créditos",
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Conectar",
+      "apiKey": "Clave API de intervals.icu",
+      "fatigue": "Fatiga {{value}}",
+      "fitness": "Condición física {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Saltar por ahora"
+    },
+    "starter": {
+      "start": "Empezar a chatear",
+      "progress": "Solicitando créditos iniciales",
+      "alreadyGranted": "Este dispositivo ya utilizó sus créditos iniciales.",
+      "added_one": "Se añadió {{formattedCount}} crédito",
+      "added_other": "Se añadieron {{formattedCount}} créditos"
     }
   }
 }

@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2473
-	public static let keyCount = 2512
+	public static let englishLeafCount = 2477
+	public static let keyCount = 2517
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -871,6 +871,11 @@ public enum Catalog {
 	public static let onboardingConnectForm = CatalogKey(rawValue: "onboarding.connect.form")
 	public static let onboardingConnectSkip = CatalogKey(rawValue: "onboarding.connect.skip")
 	public static let onboardingNoticeHealth = CatalogKey(rawValue: "onboarding.notice.health")
+	public static let onboardingStarterAdded = CatalogKey(rawValue: "onboarding.starter.added")
+	public static let onboardingStarterAddedOne = CatalogKey(rawValue: "onboarding.starter.added_one")
+	public static let onboardingStarterAddedOther = CatalogKey(rawValue: "onboarding.starter.added_other")
+	public static let onboardingStarterAlreadyGranted = CatalogKey(rawValue: "onboarding.starter.alreadyGranted")
+	public static let onboardingStarterProgress = CatalogKey(rawValue: "onboarding.starter.progress")
 	public static let onboardingStarterStart = CatalogKey(rawValue: "onboarding.starter.start")
 	public static let planDetailsCalendarComplete = CatalogKey(rawValue: "plan.details.calendar.complete")
 	public static let planDetailsCalendarConnectionRequired = CatalogKey(rawValue: "plan.details.calendar.connectionRequired")

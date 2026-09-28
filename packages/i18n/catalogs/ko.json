@@ -542,7 +542,8 @@
     "title": "이전 채팅",
     "truncated": "가장 최근의 이전 대화만 표시됩니다.",
     "turnCount_other": "메시지 {{formattedCount}}개",
-    "unavailable": "이 대화를 더 이상 사용할 수 없습니다."
+    "unavailable": "이 대화를 더 이상 사용할 수 없습니다.",
+    "history": "기록"
   },
   "setup": {
     "ai": {
@@ -853,7 +854,8 @@
       "plan": "계획",
       "settings": "설정",
       "training": "훈련"
-    }
+    },
+    "menu": "메뉴"
   },
   "chat": {
     "attachment": {
@@ -937,7 +939,9 @@
       "messagePlaceholder": "코치에게 메시지 보내기",
       "responding": "코치가 답변 중…",
       "send": "메시지 전송",
-      "stop": "답변 중지"
+      "stop": "답변 중지",
+      "messageField": "메시지",
+      "sendButton": "보내기"
     },
     "date": {
       "civil": "{{year}}년 {{month}} {{day}}일",
@@ -1434,7 +1438,10 @@
       "hideContext": "훈련 맥락 숨기기",
       "showContext": "훈련 맥락 보기",
       "title": "채팅"
-    }
+    },
+    "addToCalendar": "캘린더에 추가",
+    "menu": "메뉴",
+    "title": "코치"
   },
   "plan": {
     "details": {
@@ -2863,6 +2870,34 @@
       "mainSet": "메인 세트",
       "cooldown": "쿨다운",
       "ramp": "램프"
+    }
+  },
+  "credits": {
+    "buy": "구매",
+    "testers": "테스터는 아직 팩을 구매할 수 없습니다.",
+    "title": "크레딧",
+    "balance_one": "{{formattedCount}} 크레딧",
+    "pack_one": "{{formattedCount}} 크레딧",
+    "packPrice_one": "{{formattedCount}} 크레딧 · {{price}}",
+    "balance_other": "{{formattedCount}} 크레딧",
+    "pack_other": "{{formattedCount}} 크레딧",
+    "packPrice_other": "{{formattedCount}} 크레딧 · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "연결",
+      "apiKey": "intervals.icu API 키",
+      "fatigue": "피로도 {{value}}",
+      "fitness": "체력 {{value}}",
+      "form": "컨디션 {{value}}",
+      "skip": "지금은 건너뛰기"
+    },
+    "starter": {
+      "start": "채팅 시작",
+      "progress": "시작 크레딧 요청 중",
+      "alreadyGranted": "이 기기는 이미 시작 크레딧을 사용했습니다.",
+      "added_one": "{{formattedCount}} 크레딧 추가됨",
+      "added_other": "{{formattedCount}} 크레딧 추가됨"
     }
   }
 }

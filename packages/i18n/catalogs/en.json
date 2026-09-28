@@ -991,7 +991,11 @@
       "skip": "Skip for now"
     },
     "starter": {
-      "start": "Start chatting"
+      "start": "Start chatting",
+      "progress": "Requesting starter credits",
+      "added_one": "Added {{formattedCount}} credit",
+      "added_other": "Added {{formattedCount}} credits",
+      "alreadyGranted": "This device already used its starter credits."
     }
   },
   "plan": {

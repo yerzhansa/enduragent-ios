@@ -29,7 +29,8 @@
     "truncated": "Só são apresentadas as conversas anteriores mais recentes.",
     "turnCount_one": "{{formattedCount}} mensagem",
     "turnCount_other": "{{formattedCount}} mensagens",
-    "unavailable": "Esta conversa já não está disponível."
+    "unavailable": "Esta conversa já não está disponível.",
+    "history": "Histórico"
   },
   "common": {
     "automatic": "Automático",
@@ -861,7 +862,8 @@
       "plan": "Plano",
       "settings": "Definições",
       "training": "Treino"
-    }
+    },
+    "menu": "Menu"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Envia uma mensagem ao teu treinador",
       "responding": "O treinador está a responder…",
       "send": "Enviar mensagem",
-      "stop": "Parar resposta"
+      "stop": "Parar resposta",
+      "messageField": "Mensagem",
+      "sendButton": "Enviar"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1447,7 +1451,10 @@
       "hideContext": "Ocultar contexto de treino",
       "showContext": "Mostrar contexto de treino",
       "title": "Conversa"
-    }
+    },
+    "addToCalendar": "Adicionar ao calendário",
+    "menu": "Menu",
+    "title": "Treinador"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Série principal",
       "cooldown": "Arrefecimento",
       "ramp": "rampa"
+    }
+  },
+  "credits": {
+    "buy": "Comprar",
+    "testers": "Os utilizadores de teste ainda não podem comprar pacotes.",
+    "title": "Créditos",
+    "balance_one": "{{formattedCount}} crédito",
+    "pack_one": "{{formattedCount}} crédito",
+    "packPrice_one": "{{formattedCount}} crédito · {{price}}",
+    "balance_other": "{{formattedCount}} créditos",
+    "pack_other": "{{formattedCount}} créditos",
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Ligar",
+      "apiKey": "Chave API do intervals.icu",
+      "fatigue": "Fadiga {{value}}",
+      "fitness": "Condição física {{value}}",
+      "form": "Forma {{value}}",
+      "skip": "Ignorar por agora"
+    },
+    "starter": {
+      "start": "Começar a conversar",
+      "progress": "A pedir créditos iniciais",
+      "alreadyGranted": "Este dispositivo já utilizou os seus créditos iniciais.",
+      "added_one": "{{formattedCount}} crédito adicionado",
+      "added_other": "{{formattedCount}} créditos adicionados"
     }
   }
 }

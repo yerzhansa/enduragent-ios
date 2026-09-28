@@ -544,7 +544,8 @@
     "truncated": "Es werden nur die neuesten früheren Gespräche angezeigt.",
     "turnCount_one": "{{formattedCount}} Nachricht",
     "turnCount_other": "{{formattedCount}} Nachrichten",
-    "unavailable": "Dieses Gespräch ist nicht mehr verfügbar."
+    "unavailable": "Dieses Gespräch ist nicht mehr verfügbar.",
+    "history": "Verlauf"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Einstellungen",
       "training": "Training"
-    }
+    },
+    "menu": "Menü"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Schreib deinem Coach",
       "responding": "Der Coach antwortet…",
       "send": "Nachricht senden",
-      "stop": "Antwort stoppen"
+      "stop": "Antwort stoppen",
+      "messageField": "Nachricht",
+      "sendButton": "Senden"
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1447,7 +1451,10 @@
       "hideContext": "Trainingskontext ausblenden",
       "showContext": "Trainingskontext anzeigen",
       "title": "Chat"
-    }
+    },
+    "addToCalendar": "Zum Kalender hinzufügen",
+    "menu": "Menü",
+    "title": "Coach"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Hauptteil",
       "cooldown": "Cooldown",
       "ramp": "Rampe"
+    }
+  },
+  "credits": {
+    "buy": "Kaufen",
+    "testers": "Tester können noch keine Pakete kaufen.",
+    "title": "Guthaben",
+    "balance_one": "{{formattedCount}} Guthabenpunkt",
+    "pack_one": "{{formattedCount}} Guthabenpunkt",
+    "packPrice_one": "{{formattedCount}} Guthabenpunkt · {{price}}",
+    "balance_other": "{{formattedCount}} Guthabenpunkte",
+    "pack_other": "{{formattedCount}} Guthabenpunkte",
+    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Verbinden",
+      "apiKey": "intervals.icu-API-Schlüssel",
+      "fatigue": "Ermüdung {{value}}",
+      "fitness": "Fitness {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Vorerst überspringen"
+    },
+    "starter": {
+      "start": "Chat starten",
+      "progress": "Startguthaben wird angefordert",
+      "alreadyGranted": "Dieses Gerät hat sein Startguthaben bereits verwendet.",
+      "added_one": "{{formattedCount}} Guthabenpunkt hinzugefügt",
+      "added_other": "{{formattedCount}} Guthabenpunkte hinzugefügt"
     }
   }
 }

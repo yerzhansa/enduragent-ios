@@ -544,7 +544,8 @@
     "truncated": "Bare de nyeste tidligere samtalene vises.",
     "turnCount_one": "{{formattedCount}} melding",
     "turnCount_other": "{{formattedCount}} meldinger",
-    "unavailable": "Denne samtalen er ikke lenger tilgjengelig."
+    "unavailable": "Denne samtalen er ikke lenger tilgjengelig.",
+    "history": "Historikk"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Plan",
       "settings": "Innstillinger",
       "training": "Trening"
-    }
+    },
+    "menu": "Meny"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Skriv til treneren din",
       "responding": "Treneren svarer…",
       "send": "Send melding",
-      "stop": "Stopp svaret"
+      "stop": "Stopp svaret",
+      "messageField": "Melding",
+      "sendButton": "Send"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1447,7 +1451,10 @@
       "hideContext": "Skjul treningskontekst",
       "showContext": "Vis treningskontekst",
       "title": "Chat"
-    }
+    },
+    "addToCalendar": "Legg til i kalenderen",
+    "menu": "Meny",
+    "title": "Trener"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedtrapping",
       "ramp": "gradvis økning"
+    }
+  },
+  "credits": {
+    "buy": "Kjøp",
+    "testers": "Testere kan ikke kjøpe pakker ennå.",
+    "title": "Kreditter",
+    "balance_one": "{{formattedCount}} kreditt",
+    "pack_one": "{{formattedCount}} kreditt",
+    "packPrice_one": "{{formattedCount}} kreditt · {{price}}",
+    "balance_other": "{{formattedCount}} kreditter",
+    "pack_other": "{{formattedCount}} kreditter",
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Koble til",
+      "apiKey": "intervals.icu API-nøkkel",
+      "fatigue": "Tretthet {{value}}",
+      "fitness": "Kondisjon {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hopp over foreløpig"
+    },
+    "starter": {
+      "start": "Start en chat",
+      "progress": "Ber om startkreditter",
+      "alreadyGranted": "Denne enheten har allerede brukt startkredittene sine.",
+      "added_one": "La til {{formattedCount}} kreditt",
+      "added_other": "La til {{formattedCount}} kreditter"
     }
   }
 }

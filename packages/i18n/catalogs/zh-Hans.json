@@ -542,7 +542,8 @@
     "title": "历史聊天",
     "truncated": "仅列出最近的历史对话。",
     "turnCount_other": "{{formattedCount}} 条消息",
-    "unavailable": "这段对话已不可用。"
+    "unavailable": "这段对话已不可用。",
+    "history": "历史记录"
   },
   "setup": {
     "ai": {
@@ -853,7 +854,8 @@
       "plan": "计划",
       "settings": "设置",
       "training": "训练"
-    }
+    },
+    "menu": "菜单"
   },
   "chat": {
     "attachment": {
@@ -937,7 +939,9 @@
       "messagePlaceholder": "给教练发消息",
       "responding": "教练正在回复…",
       "send": "发送消息",
-      "stop": "停止回复"
+      "stop": "停止回复",
+      "messageField": "消息",
+      "sendButton": "发送"
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -1434,7 +1438,10 @@
       "hideContext": "隐藏训练背景",
       "showContext": "显示训练背景",
       "title": "聊天"
-    }
+    },
+    "addToCalendar": "添加到日历",
+    "menu": "菜单",
+    "title": "教练"
   },
   "plan": {
     "details": {
@@ -2863,6 +2870,34 @@
       "mainSet": "主训练",
       "cooldown": "放松",
       "ramp": "渐增"
+    }
+  },
+  "credits": {
+    "buy": "购买",
+    "testers": "测试者暂时还不能购买积分包。",
+    "title": "积分",
+    "balance_one": "{{formattedCount}} 积分",
+    "pack_one": "{{formattedCount}} 积分",
+    "packPrice_one": "{{formattedCount}} 积分 · {{price}}",
+    "balance_other": "{{formattedCount}} 积分",
+    "pack_other": "{{formattedCount}} 积分",
+    "packPrice_other": "{{formattedCount}} 积分 · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "连接",
+      "apiKey": "intervals.icu API 密钥",
+      "fatigue": "疲劳 {{value}}",
+      "fitness": "体能 {{value}}",
+      "form": "状态 {{value}}",
+      "skip": "暂时跳过"
+    },
+    "starter": {
+      "start": "开始聊天",
+      "progress": "正在申请初始积分",
+      "alreadyGranted": "此设备已使用过初始积分。",
+      "added_one": "已添加 {{formattedCount}} 积分",
+      "added_other": "已添加 {{formattedCount}} 积分"
     }
   }
 }

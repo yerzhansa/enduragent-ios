@@ -17,7 +17,7 @@ struct StarterView: View {
 					}
 					.accessibilityIdentifier("starter.start")
 				} else {
-					ProgressView("Requesting starter credits")
+					ProgressView(model.phrasebook.say(Catalog.onboardingStarterProgress, [:]))
 						.accessibilityIdentifier("starter.progress")
 				}
 			}

@@ -544,7 +544,8 @@
     "truncated": "Luettelossa näkyvät vain uusimmat aiemmat keskustelut.",
     "turnCount_one": "{{formattedCount}} viesti",
     "turnCount_other": "{{formattedCount}} viestiä",
-    "unavailable": "Tämä keskustelu ei ole enää käytettävissä."
+    "unavailable": "Tämä keskustelu ei ole enää käytettävissä.",
+    "history": "Historia"
   },
   "setup": {
     "ai": {
@@ -861,7 +862,8 @@
       "plan": "Suunnitelma",
       "settings": "Asetukset",
       "training": "Harjoittelu"
-    }
+    },
+    "menu": "Valikko"
   },
   "chat": {
     "attachment": {
@@ -945,7 +947,9 @@
       "messagePlaceholder": "Lähetä viesti valmentajallesi",
       "responding": "Valmentaja vastaa…",
       "send": "Lähetä viesti",
-      "stop": "Pysäytä vastaus"
+      "stop": "Pysäytä vastaus",
+      "messageField": "Viesti",
+      "sendButton": "Lähetä"
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1447,7 +1451,10 @@
       "hideContext": "Piilota harjoittelun taustatiedot",
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
-    }
+    },
+    "addToCalendar": "Lisää kalenteriin",
+    "menu": "Valikko",
+    "title": "Valmentaja"
   },
   "plan": {
     "details": {
@@ -2899,6 +2906,34 @@
       "mainSet": "Pääsarja",
       "cooldown": "Jäähdyttely",
       "ramp": "tehon nousu"
+    }
+  },
+  "credits": {
+    "buy": "Osta",
+    "testers": "Testaajat eivät voi vielä ostaa paketteja.",
+    "title": "Krediitit",
+    "balance_one": "{{formattedCount}} krediitti",
+    "pack_one": "{{formattedCount}} krediitti",
+    "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
+    "balance_other": "{{formattedCount}} krediittiä",
+    "pack_other": "{{formattedCount}} krediittiä",
+    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Yhdistä",
+      "apiKey": "intervals.icu-API-avain",
+      "fatigue": "Väsymys {{value}}",
+      "fitness": "Kunto {{value}}",
+      "form": "Vire {{value}}",
+      "skip": "Ohita toistaiseksi"
+    },
+    "starter": {
+      "start": "Aloita keskustelu",
+      "progress": "Pyydetään aloituskrediittejä",
+      "alreadyGranted": "Tämä laite on jo käyttänyt aloituskrediittinsä.",
+      "added_one": "Lisätty {{formattedCount}} krediitti",
+      "added_other": "Lisätty {{formattedCount}} krediittiä"
     }
   }
 }

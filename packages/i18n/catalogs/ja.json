@@ -542,7 +542,8 @@
     "title": "過去のチャット",
     "truncated": "最近の過去の会話のみを表示しています。",
     "turnCount_other": "{{formattedCount}}件のメッセージ",
-    "unavailable": "この会話は利用できなくなりました。"
+    "unavailable": "この会話は利用できなくなりました。",
+    "history": "履歴"
   },
   "setup": {
     "ai": {
@@ -853,7 +854,8 @@
       "plan": "プラン",
       "settings": "設定",
       "training": "トレーニング"
-    }
+    },
+    "menu": "メニュー"
   },
   "chat": {
     "attachment": {
@@ -937,7 +939,9 @@
       "messagePlaceholder": "コーチにメッセージを送る",
       "responding": "コーチが回答中…",
       "send": "メッセージを送信",
-      "stop": "回答を停止"
+      "stop": "回答を停止",
+      "messageField": "メッセージ",
+      "sendButton": "送信"
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -1434,7 +1438,10 @@
       "hideContext": "トレーニング情報を非表示",
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
-    }
+    },
+    "addToCalendar": "カレンダーに追加",
+    "menu": "メニュー",
+    "title": "コーチ"
   },
   "plan": {
     "details": {
@@ -2863,6 +2870,34 @@
       "mainSet": "メインセット",
       "cooldown": "クールダウン",
       "ramp": "ランプ"
+    }
+  },
+  "credits": {
+    "buy": "購入",
+    "testers": "テスターはまだパックを購入できません。",
+    "title": "クレジット",
+    "balance_one": "{{formattedCount}}クレジット",
+    "pack_one": "{{formattedCount}}クレジット",
+    "packPrice_one": "{{formattedCount}}クレジット · {{price}}",
+    "balance_other": "{{formattedCount}}クレジット",
+    "pack_other": "{{formattedCount}}クレジット",
+    "packPrice_other": "{{formattedCount}}クレジット · {{price}}"
+  },
+  "onboarding": {
+    "connect": {
+      "action": "接続",
+      "apiKey": "intervals.icu APIキー",
+      "fatigue": "疲労度 {{value}}",
+      "fitness": "フィットネス {{value}}",
+      "form": "フォーム {{value}}",
+      "skip": "今はスキップ"
+    },
+    "starter": {
+      "start": "チャットを始める",
+      "progress": "初回クレジットをリクエスト中",
+      "alreadyGranted": "このデバイスはすでに初回クレジットを使用しています。",
+      "added_one": "{{formattedCount}}クレジットを追加しました",
+      "added_other": "{{formattedCount}}クレジットを追加しました"
     }
   }
 }

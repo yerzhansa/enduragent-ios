@@ -40,7 +40,7 @@ struct ChatView: View {
 			.navigationTitle(model.phrasebook.say(Catalog.chatViewTitle, [:]))
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
-					Button("Menu") {
+					Button(model.phrasebook.say(Catalog.chatMenu, [:])) {
 						model.showSidebar = true
 					}
 					.accessibilityIdentifier("chat.sidebar")
