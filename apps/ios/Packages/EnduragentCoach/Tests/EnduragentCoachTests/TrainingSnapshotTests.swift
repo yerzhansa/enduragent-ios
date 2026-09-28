@@ -35,7 +35,7 @@ import Testing
 			).wellnessLine == nil)
 		#expect(
 			diagnostics.entries.map(\.event) == [
-				.evidenceUnavailable(attempt, failure, detail: String(describing: error))
+				.evidenceUnavailable(attempt, failure)
 			])
 	}
 

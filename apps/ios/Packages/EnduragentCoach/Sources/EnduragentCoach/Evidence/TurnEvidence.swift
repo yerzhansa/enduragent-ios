@@ -36,9 +36,7 @@ package struct WellnessEvidence: TurnEvidence {
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {
-			diagnostics.record(
-				.evidenceUnavailable(
-					attempt, TrainingFailure(error), detail: String(describing: error)))
+			diagnostics.record(.evidenceUnavailable(attempt, TrainingFailure(error)))
 			return EvidenceBlock(wellnessLine: nil)
 		}
 		return EvidenceBlock(wellnessLine: days.last.flatMap(Self.line))

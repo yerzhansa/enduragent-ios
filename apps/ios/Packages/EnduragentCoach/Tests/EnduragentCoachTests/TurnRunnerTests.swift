@@ -101,8 +101,7 @@ import Testing
 		#expect(request.messages.first?.content.contains("private upstream detail") == false)
 		#expect(
 			coach.diagnostics.entries.contains {
-				if case .evidenceUnavailable(request.attempt, .temporarilyUnavailable, _) = $0.event
-				{
+				if case .evidenceUnavailable(request.attempt, .temporarilyUnavailable) = $0.event {
 					return true
 				}
 				return false

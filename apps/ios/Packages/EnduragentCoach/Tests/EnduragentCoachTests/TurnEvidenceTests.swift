@@ -27,8 +27,7 @@ import Testing
 		#expect(!system.contains(" · Fatigue "))
 		#expect(
 			coach.diagnostics.entries.map(\.event).contains(
-				.evidenceUnavailable(
-					request.attempt, .temporarilyUnavailable, detail: String(describing: failure))))
+				.evidenceUnavailable(request.attempt, .temporarilyUnavailable)))
 	}
 
 	@Test func wellnessLineCarriesTheLatestDay() async throws {
