@@ -16,8 +16,8 @@ import Testing
 		let coach = coach()
 		let review = try await propose(on: coach)
 		#expect(review.controls == .none)
-		#expect(review.cards.map(\.name) == ["Endurance"])
-		#expect(review.cards.first?.steps.first == "Warmup")
+		#expect(review.cards.map { $0.name.sentence(in: phrasebook) } == ["Endurance"])
+		#expect(review.cards.first?.lines(in: LanguageTag.en.phrasebook).first == "Warmup")
 
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 
@@ -252,8 +252,9 @@ import Testing
 
 	@Test func everyReviewOutcomeReadsACatalogSentenceWithNoSwiftType() {
 		let card = ReviewCard(
-			index: 0, action: .add, name: "Endurance", date: "1998-06-14", chart: nil,
-			steps: ["Warmup"], durationMinutes: nil, estimatedLoad: nil)
+			index: 0, action: .add, name: .supplied("Endurance"), date: "1998-06-14", chart: nil,
+			instructions: ReviewInstructions(content: .supplied("Warmup")), durationMinutes: nil,
+			estimatedLoad: nil)
 		let rows: [(ReviewOutcome, String?)] = [
 			(.applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]), nil),
 			(.canceled(kept: []), nil),
@@ -288,7 +289,7 @@ import Testing
 		}
 	}
 
-	private func coach() -> Coach {
+	func coach() -> Coach {
 		let (ada, bo) = (ada, bo)
 		return Coach(
 			sport: .cycling,
@@ -303,7 +304,7 @@ import Testing
 		)
 	}
 
-	private func propose(on coach: Coach) async throws -> ReviewSnapshot {
+	func propose(on coach: Coach) async throws -> ReviewSnapshot {
 		transport.script = [
 			.toolCall(
 				name: "intervals_create_workout",
@@ -318,7 +319,7 @@ import Testing
 		return try #require(await coach.currentSnapshot(.main)?.review)
 	}
 
-	private func presentedToken(on coach: Coach) async throws -> ReviewControlToken {
+	func presentedToken(on coach: Coach) async throws -> ReviewControlToken {
 		let review =
 			if let shown = await coach.currentSnapshot(.main)?.review {
 				shown

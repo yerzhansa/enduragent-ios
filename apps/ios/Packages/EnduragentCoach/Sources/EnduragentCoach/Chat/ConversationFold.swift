@@ -148,7 +148,9 @@ package enum ConversationFold {
 		for record in ordered {
 			guard case .synced(.reviewApplied(let body)) = record.body else { continue }
 			segments[segmentIndex(for: record.ulid)].notes.append(
-				ReviewNote(ulid: record.ulid, summary: body.summary))
+				ReviewNote(
+					ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
+					summary: body.summary))
 		}
 		for firstIncluded in legacyTrims {
 			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
@@ -214,7 +216,10 @@ package enum ConversationFold {
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
 			case .synced(.reviewApplied(let body)):
-				next.appendNote(ReviewNote(ulid: record.ulid, summary: body.summary))
+				next.appendNote(
+					ReviewNote(
+						ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
+						summary: body.summary))
 			case .synced(.windowStart(let body)):
 				guard case .reset(let kind) = body.reason else { continue }
 				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
@@ -309,7 +314,9 @@ package struct Conversation: Sendable, Equatable {
 		if segments.isEmpty {
 			segments.append(Segment(id: SegmentID(boundary: nil), openedBy: .chatStart))
 		}
-		segments[segments.count - 1].notes.append(note)
+		let index = segments.lastIndex { $0.id.boundary.map { $0 <= note.ulid } ?? true } ?? 0
+		segments[index].notes.append(note)
+		segments[index].notes.sort { $0.hlc < $1.hlc }
 	}
 
 	package func lastExchange(before turn: TurnID) -> LastExchange {

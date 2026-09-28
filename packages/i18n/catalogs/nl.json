@@ -2796,7 +2796,9 @@
       "structure": "trainingsopbouw",
       "trainingLoad": "trainingsbelasting naar {{load}}",
       "unnamed": "Naamloze training",
-      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}"
+      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}",
+      "deleteFallback": "Een training verwijderen",
+      "updateFallback": "Een training bijwerken: {{detail}}"
     }
   },
   "desktop": {
@@ -2889,6 +2891,12 @@
     "add": "Toevoegen aan kalender",
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
     "title": "Training controleren",
-    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt."
+    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
+    "workout": {
+      "warmup": "Warming-up",
+      "mainSet": "Hoofdblok",
+      "cooldown": "Cooling-down",
+      "ramp": "oplopend"
+    }
   }
 }

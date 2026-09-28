@@ -2646,7 +2646,9 @@
       "structure": "Trainingsstruktur",
       "trainingLoad": "Trainingsbelastung auf {{load}}",
       "unnamed": "Unbenanntes Training",
-      "update": "Training \"{{name}}\" am {{date}} aktualisieren: {{detail}}"
+      "update": "Training \"{{name}}\" am {{date}} aktualisieren: {{detail}}",
+      "deleteFallback": "Ein Training löschen",
+      "updateFallback": "Ein Training aktualisieren: {{detail}}"
     }
   },
   "telegram": {
@@ -2889,6 +2891,12 @@
     "add": "Zum Kalender hinzufügen",
     "cannotVerify": "Ich konnte deine Verbindung zu {{service}} nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal.",
     "title": "Training prüfen",
-    "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest."
+    "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
+    "workout": {
+      "warmup": "Aufwärmen",
+      "mainSet": "Hauptteil",
+      "cooldown": "Cooldown",
+      "ramp": "Rampe"
+    }
   }
 }

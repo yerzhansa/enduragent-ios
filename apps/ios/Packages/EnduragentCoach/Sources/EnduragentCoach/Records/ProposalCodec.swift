@@ -119,7 +119,9 @@ extension WorkoutPayload {
 	}
 
 	func workout() throws -> IntervalsWorkoutInput {
-		IntervalsWorkoutInput(name: name, steps: try steps.map { try $0.step() })
+		let workout = IntervalsWorkoutInput(name: name, steps: try steps.map { try $0.step() })
+		try IntervalsSerializer.validate(workout)
+		return workout
 	}
 }
 

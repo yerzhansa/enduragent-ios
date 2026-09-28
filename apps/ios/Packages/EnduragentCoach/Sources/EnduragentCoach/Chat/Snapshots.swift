@@ -177,17 +177,19 @@ extension ChatSnapshot {
 			self.activity = .idle
 		}
 		self.review = review
-		let shown = turns
-		self.notes = current.notes.map { note in
-			TranscriptNote(
-				id: note.ulid,
-				after: shown.last { $0.id.ulid < note.ulid }?.id,
-				notice: AthleteNotices.notice(forApplied: note.summary))
-		}
+		self.notes = current.transcriptNotes(among: turns)
 	}
 }
 
 extension Segment {
+	package func transcriptNotes(among turns: [TurnView]) -> [TranscriptNote] {
+		notes.map { note in
+			TranscriptNote(
+				id: note.ulid, after: turns.last { $0.id.ulid < note.ulid }?.id,
+				summary: note.summary)
+		}
+	}
+
 	package func turnViews(
 		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
 		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
@@ -226,5 +228,10 @@ extension RetryRefusal {
 public struct TranscriptNote: Sendable, Equatable, Identifiable {
 	public let id: ULID
 	public let after: TurnID?
-	public let notice: AthleteNotice
+	public let summary: ReviewSummary
+
+	public func sentence(in phrasebook: any Phrasebook) -> String {
+		phrasebook.say(
+			Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
+	}
 }

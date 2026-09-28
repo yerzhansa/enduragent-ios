@@ -178,11 +178,6 @@ package enum AthleteNotices {
 	package static let accountChanged = ReviewNotice(
 		kind: .accountChanged, key: Catalog.reviewAccountChanged, vars: ["service": intervals])
 
-	package static func notice(forApplied summary: String) -> AthleteNotice {
-		AthleteNotice(
-			key: Catalog.coachConfirmationExecuted, vars: ["summary": summary], action: nil)
-	}
-
 	package static func notice(for outcome: ReviewOutcome) -> AthleteNotice? {
 		switch outcome {
 		case .applied, .canceled, .presentationRecorded:

@@ -154,9 +154,7 @@ enum RecordCodec {
 		case .reviewApplied:
 			let payload = try payload(
 				ReviewAppliedPayload.self, version: version, kind: name, data: data)
-			return .reviewApplied(
-				ReviewAppliedBody(
-					chatId: try decodeChatID(payload.chatId), summary: payload.summary))
+			return .reviewApplied(try payload.body())
 		case .memorySection:
 			let payload = try payload(
 				MemorySectionPayload.self, version: version, kind: name, data: data)

@@ -2646,7 +2646,9 @@
       "structure": "harjoituksen rakenne",
       "trainingLoad": "harjoituskuormaksi {{load}}",
       "unnamed": "Nimetön harjoitus",
-      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}"
+      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}",
+      "deleteFallback": "Poista harjoitus",
+      "updateFallback": "Päivitä harjoitus. {{detail}}"
     }
   },
   "telegram": {
@@ -2889,6 +2891,12 @@
     "add": "Lisää kalenteriin",
     "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
     "title": "Harjoituksen tarkistus",
-    "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen."
+    "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
+    "workout": {
+      "warmup": "Lämmittely",
+      "mainSet": "Pääsarja",
+      "cooldown": "Jäähdyttely",
+      "ramp": "tehon nousu"
+    }
   }
 }

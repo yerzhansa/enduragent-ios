@@ -2603,7 +2603,9 @@
       "structure": "训练课程结构",
       "trainingLoad": "训练负荷改为 {{load}}",
       "unnamed": "未命名训练课程",
-      "update": "更新 {{date}} 的训练课程“{{name}}”：{{detail}}"
+      "update": "更新 {{date}} 的训练课程“{{name}}”：{{detail}}",
+      "deleteFallback": "删除训练课程",
+      "updateFallback": "更新训练课程：{{detail}}"
     },
     "history": {
       "diskFull": "\n\n（提醒一下：磁盘已满，无法将这次交流保存到历史记录中，但消息已收到。方便时请清理一些空间。）",
@@ -2853,6 +2855,12 @@
     "add": "添加到日历",
     "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
     "title": "训练审核",
-    "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。"
+    "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
+    "workout": {
+      "warmup": "热身",
+      "mainSet": "主训练",
+      "cooldown": "放松",
+      "ramp": "渐增"
+    }
   }
 }

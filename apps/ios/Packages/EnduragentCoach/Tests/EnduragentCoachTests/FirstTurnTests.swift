@@ -134,9 +134,11 @@ import Testing
 		#expect(review.ref.chat == "main")
 		let card = try #require(review.cards.first)
 		#expect(card.action == .add)
-		#expect(card.name == "Endurance")
+		#expect(card.name.sentence(in: LanguageTag.en.phrasebook) == "Endurance")
 		#expect(card.date == "1998-06-14")
-		#expect(card.steps.joined(separator: "\n").hasPrefix("Warmup\n- 10m 55-65%"))
+		#expect(
+			card.lines(in: LanguageTag.en.phrasebook).joined(separator: "\n").hasPrefix(
+				"Warmup\n- 10m 55-65%"))
 		#expect(
 			review.totals
 				== ReviewTotals(additions: 1, edits: 0, deletions: 0, durationMinutes: nil))
@@ -165,7 +167,8 @@ import Testing
 		]
 		let coach = makeCoach()
 		let review = try await proposeEnduranceRide(coach)
-		#expect(review.cards.map(\.name) == ["Endurance"])
+		#expect(
+			review.cards.map { $0.name.sentence(in: LanguageTag.en.phrasebook) } == ["Endurance"])
 		#expect(
 			await coach.transcript(.main).contains("I've prepared the ride. Confirm to add it."))
 	}

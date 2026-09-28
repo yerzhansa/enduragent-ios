@@ -2638,7 +2638,9 @@
       "structure": "treningsøktens oppbygging",
       "trainingLoad": "treningsbelastning til {{load}}",
       "unnamed": "Treningsøkt uten navn",
-      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}"
+      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}",
+      "deleteFallback": "Slett en treningsøkt",
+      "updateFallback": "Oppdater en treningsøkt — {{detail}}"
     }
   },
   "cli": {
@@ -2889,6 +2891,12 @@
     "add": "Legg til i kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
     "title": "Gjennomgang av treningsøkt",
-    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen."
+    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
+    "workout": {
+      "warmup": "Oppvarming",
+      "mainSet": "Hoveddel",
+      "cooldown": "Nedtrapping",
+      "ramp": "gradvis økning"
+    }
   }
 }

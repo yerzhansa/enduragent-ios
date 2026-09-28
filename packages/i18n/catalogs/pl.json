@@ -2712,7 +2712,9 @@
       "structure": "strukturę treningu",
       "trainingLoad": "obciążenie treningowe na {{load}}",
       "unnamed": "Trening bez nazwy",
-      "update": "Zaktualizuj trening „{{name}}” z {{date}} — {{detail}}"
+      "update": "Zaktualizuj trening „{{name}}” z {{date}} — {{detail}}",
+      "deleteFallback": "Usuń trening",
+      "updateFallback": "Zaktualizuj trening — {{detail}}"
     }
   },
   "telegram": {
@@ -2961,6 +2963,12 @@
     "add": "Dodaj do kalendarza",
     "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
     "title": "Przegląd treningu",
-    "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie."
+    "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
+    "workout": {
+      "warmup": "Rozgrzewka",
+      "mainSet": "Seria główna",
+      "cooldown": "Schłodzenie",
+      "ramp": "narastająco"
+    }
   }
 }

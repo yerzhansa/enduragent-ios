@@ -94,32 +94,7 @@ package enum ProposalPolicy {
 	}
 
 	package static func summary(for input: GatedToolInput) -> String {
-		switch input {
-		case .createWorkout(let date, let workout):
-			return "Create workout \"\(workout.name)\" on \(date.rawValue)"
-		case .createStrengthWorkout(let date, let name, _):
-			return "Create strength workout \"\(name)\" on \(date.rawValue)"
-		case .deleteWorkout:
-			return "Delete a workout"
-		case .updateWorkout(let update):
-			var fields: [String] = []
-			if let date = update.date {
-				fields.append("date to \(date.rawValue)")
-			}
-			if let name = update.name {
-				fields.append("name to \"\(name)\"")
-			}
-			if update.description != nil {
-				fields.append("description")
-			}
-			let detail = fields.isEmpty ? "selected fields" : fields.joined(separator: ", ")
-			return "Update workout — \(detail)"
-		case .planSave(let headline):
-			if headline.name.isEmpty {
-				return "Save the training plan — replaces the current saved plan"
-			}
-			return "Save the training plan — replaces the current saved plan — \(headline.name)"
-		}
+		ReviewSummary(input).sentence(in: LanguageTag.en.phrasebook)
 	}
 
 	package static func proposalQuery(_ chatId: ChatID) -> RecordQuery {

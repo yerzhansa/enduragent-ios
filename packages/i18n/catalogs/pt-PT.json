@@ -2646,7 +2646,9 @@
       "structure": "estrutura do treino",
       "trainingLoad": "carga de treino para {{load}}",
       "unnamed": "Treino sem nome",
-      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}"
+      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}",
+      "deleteFallback": "Eliminar um treino",
+      "updateFallback": "Atualizar um treino. {{detail}}"
     }
   },
   "telegram": {
@@ -2889,6 +2891,12 @@
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
     "title": "Revisão do treino",
-    "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente."
+    "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
+    "workout": {
+      "warmup": "Aquecimento",
+      "mainSet": "Série principal",
+      "cooldown": "Arrefecimento",
+      "ramp": "rampa"
+    }
   }
 }

@@ -2603,7 +2603,9 @@
       "structure": "訓練課表結構",
       "trainingLoad": "訓練負荷改為 {{load}}",
       "unnamed": "未命名訓練課表",
-      "update": "更新 {{date}} 的訓練課表「{{name}}」：{{detail}}"
+      "update": "更新 {{date}} 的訓練課表「{{name}}」：{{detail}}",
+      "deleteFallback": "刪除訓練課表",
+      "updateFallback": "更新訓練課表：{{detail}}"
     },
     "history": {
       "diskFull": "\n\n（提醒一下：磁碟已滿，無法將這次交流儲存到歷史記錄中，但訊息已收到。方便時請清出一些空間。）",
@@ -2853,6 +2855,12 @@
     "add": "加入行事曆",
     "cannotVerify": "無法檢查你的 {{service}} 連線，因此未做任何變更。請稍後重試。",
     "title": "訓練審核",
-    "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。"
+    "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。",
+    "workout": {
+      "warmup": "暖身",
+      "mainSet": "主要訓練",
+      "cooldown": "緩和",
+      "ramp": "漸增"
+    }
   }
 }

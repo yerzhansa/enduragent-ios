@@ -11,7 +11,9 @@ package enum SegmentOpening: Sendable, Equatable {
 
 package struct ReviewNote: Sendable, Equatable {
 	package let ulid: ULID
-	package let summary: String
+	package let hlc: HybridLogicalClock
+	package let date: CivilDate
+	package let summary: ReviewSummary
 }
 
 package struct PromptWindow: Sendable, Equatable {

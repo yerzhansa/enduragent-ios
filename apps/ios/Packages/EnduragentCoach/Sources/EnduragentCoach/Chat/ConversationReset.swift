@@ -138,6 +138,7 @@ extension Conversation {
 		var opened = Segment(id: SegmentID(boundary: boundary), openedBy: opening)
 		if let last = segments.indices.last {
 			opened.turns = segments[last].turns.filter { $0.opens(atOrAfter: boundary) }
+			opened.notes = segments[last].notes.filter { $0.ulid >= boundary }
 			segments[last] = segments[last].closing(at: boundary)
 		}
 		segments.append(opened)
@@ -148,6 +149,7 @@ extension Segment {
 	package func closing(at boundary: ULID) -> Segment {
 		var closing = self
 		closing.turns.removeAll { $0.opens(atOrAfter: boundary) }
+		closing.notes.removeAll { $0.ulid >= boundary }
 		return closing
 	}
 }

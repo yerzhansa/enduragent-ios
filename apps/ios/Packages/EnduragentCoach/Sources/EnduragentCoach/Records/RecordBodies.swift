@@ -123,7 +123,7 @@ public enum ProposalClearReason: String, Sendable {
 
 public struct ReviewAppliedBody: Sendable, Equatable {
 	public var chatId: ChatID
-	public var summary: String
+	public var summary: ReviewSummary
 }
 
 public struct FlushPendingBody: Sendable, Equatable {

@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2442
-	public static let keyCount = 2478
+	public static let englishLeafCount = 2448
+	public static let keyCount = 2484
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -749,6 +749,7 @@ public enum Catalog {
 	public static let coachProposalCreateStrengthFallback = CatalogKey(rawValue: "coach.proposal.createStrengthFallback")
 	public static let coachProposalDate = CatalogKey(rawValue: "coach.proposal.date")
 	public static let coachProposalDelete = CatalogKey(rawValue: "coach.proposal.delete")
+	public static let coachProposalDeleteFallback = CatalogKey(rawValue: "coach.proposal.deleteFallback")
 	public static let coachProposalDescription = CatalogKey(rawValue: "coach.proposal.description")
 	public static let coachProposalDuration = CatalogKey(rawValue: "coach.proposal.duration")
 	public static let coachProposalDurationOne = CatalogKey(rawValue: "coach.proposal.duration_one")
@@ -761,6 +762,7 @@ public enum Catalog {
 	public static let coachProposalTrainingLoad = CatalogKey(rawValue: "coach.proposal.trainingLoad")
 	public static let coachProposalUnnamed = CatalogKey(rawValue: "coach.proposal.unnamed")
 	public static let coachProposalUpdate = CatalogKey(rawValue: "coach.proposal.update")
+	public static let coachProposalUpdateFallback = CatalogKey(rawValue: "coach.proposal.updateFallback")
 	public static let commonAutomatic = CatalogKey(rawValue: "common.automatic")
 	public static let commonBack = CatalogKey(rawValue: "common.back")
 	public static let commonCancel = CatalogKey(rawValue: "common.cancel")
@@ -1376,6 +1378,10 @@ public enum Catalog {
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewTitle = CatalogKey(rawValue: "review.title")
 	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")
+	public static let reviewWorkoutCooldown = CatalogKey(rawValue: "review.workout.cooldown")
+	public static let reviewWorkoutMainSet = CatalogKey(rawValue: "review.workout.mainSet")
+	public static let reviewWorkoutRamp = CatalogKey(rawValue: "review.workout.ramp")
+	public static let reviewWorkoutWarmup = CatalogKey(rawValue: "review.workout.warmup")
 	public static let settingsAppearanceDark = CatalogKey(rawValue: "settings.appearance.dark")
 	public static let settingsAppearanceDetail = CatalogKey(rawValue: "settings.appearance.detail")
 	public static let settingsAppearanceLight = CatalogKey(rawValue: "settings.appearance.light")

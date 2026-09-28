@@ -257,7 +257,8 @@ extension SwiftDataSuites {
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
 				.reviewApplied(
 					ReviewAppliedBody(
-						chatId: .main, summary: "Create workout \"Endurance\" on 1998-06-14")),
+						chatId: .main,
+						summary: .createWorkout(name: "Endurance", date: "1998-06-14"))),
 				.memorySection(MemorySectionBody(name: .person, content: "Ada")),
 				.dailyNote(DailyNoteBody(note: "note")),
 				.ledgerEvent(

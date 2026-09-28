@@ -46,7 +46,7 @@ extension FixtureLaunchTests {
 		#expect(model.reviewNotice == nil)
 		try await waitUntil { model.chat?.notes.count == 1 }
 		#expect(
-			model.chat?.notes.first?.notice.sentence(in: model.phrasebook)
+			model.chat?.notes.first?.sentence(in: model.phrasebook)
 				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
 	}
 

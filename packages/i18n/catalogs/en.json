@@ -847,7 +847,9 @@
       "structure": "workout structure",
       "trainingLoad": "training load to {{load}}",
       "unnamed": "Unnamed workout",
-      "update": "Update workout \"{{name}}\" on {{date}} — {{detail}}"
+      "update": "Update workout \"{{name}}\" on {{date}} — {{detail}}",
+      "deleteFallback": "Delete a workout",
+      "updateFallback": "Update workout — {{detail}}"
     }
   },
   "common": {
@@ -1590,7 +1592,13 @@
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
     "title": "Workout review",
-    "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again."
+    "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
+    "workout": {
+      "warmup": "Warmup",
+      "mainSet": "Main set",
+      "cooldown": "Cooldown",
+      "ramp": "ramp"
+    }
   },
   "settings": {
     "appearance": {

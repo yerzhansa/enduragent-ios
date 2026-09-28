@@ -87,7 +87,7 @@ enum SyncedPayload: Encodable {
 			)
 		case .reviewApplied(let value):
 			self = .reviewApplied(
-				ReviewAppliedPayload(chatId: value.chatId.rawValue, summary: value.summary))
+				ReviewAppliedPayload(value))
 		case .sessionSettings(let value):
 			self = .sessionSettings(SessionSettingsPayload(value))
 		case .languagePreference(let value):

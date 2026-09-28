@@ -85,12 +85,16 @@ public struct ReviewCard: Sendable, Equatable {
 	}
 	public let index: Int
 	public let action: Action
-	public let name: String
+	public let name: ReviewSummary
 	public let date: CivilDate?
 	public let chart: WorkoutChartModel?
-	public let steps: [String]
+	public let instructions: ReviewInstructions
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
+
+	public func lines(in phrasebook: any Phrasebook) -> [String] {
+		instructions.lines(in: phrasebook)
+	}
 }
 
 public struct KeptWorkout: Sendable, Equatable {

@@ -2796,7 +2796,9 @@
       "structure": "structure de l’entraînement",
       "trainingLoad": "charge d’entraînement fixée à {{load}}",
       "unnamed": "Entraînement sans nom",
-      "update": "Mettre à jour l’entraînement « {{name}} » le {{date}} — {{detail}}"
+      "update": "Mettre à jour l’entraînement « {{name}} » le {{date}} — {{detail}}",
+      "deleteFallback": "Supprimer un entraînement",
+      "updateFallback": "Mettre à jour un entraînement — {{detail}}"
     }
   },
   "desktop": {
@@ -2889,6 +2891,12 @@
     "add": "Ajouter au calendrier",
     "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
     "title": "Vérification de la séance",
-    "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander."
+    "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
+    "workout": {
+      "warmup": "Échauffement",
+      "mainSet": "Bloc principal",
+      "cooldown": "Retour au calme",
+      "ramp": "progressif"
+    }
   }
 }

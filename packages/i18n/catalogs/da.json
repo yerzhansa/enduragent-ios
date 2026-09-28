@@ -2796,7 +2796,9 @@
       "structure": "træningsstruktur",
       "trainingLoad": "træningsbelastning til {{load}}",
       "unnamed": "Unavngiven træning",
-      "update": "Opdater træningen \"{{name}}\" den {{date}} — {{detail}}"
+      "update": "Opdater træningen \"{{name}}\" den {{date}} — {{detail}}",
+      "deleteFallback": "Slet en træning",
+      "updateFallback": "Opdater en træning — {{detail}}"
     }
   },
   "desktop": {
@@ -2889,6 +2891,12 @@
     "add": "Føj til kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
     "title": "Gennemgang af træningspas",
-    "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen."
+    "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
+    "workout": {
+      "warmup": "Opvarmning",
+      "mainSet": "Hoveddel",
+      "cooldown": "Nedkøling",
+      "ramp": "gradvis stigning"
+    }
   }
 }

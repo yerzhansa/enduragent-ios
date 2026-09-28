@@ -59,7 +59,7 @@ struct TranscriptView: View {
 
 	private func notes(after turn: TurnID?) -> some View {
 		ForEach((model.chat?.notes ?? []).filter { $0.after == turn }) { note in
-			Text(note.notice.sentence(in: model.phrasebook))
+			Text(note.sentence(in: model.phrasebook))
 				.accessibilityIdentifier("chat.note")
 		}
 	}

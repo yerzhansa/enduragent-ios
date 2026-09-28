@@ -204,7 +204,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 		do {
 			_ = try await ledger.commit(
 				synced: [
-					.reviewApplied(ReviewAppliedBody(chatId: body.chatId, summary: body.summary))
+					.reviewApplied(
+						ReviewAppliedBody(
+							chatId: body.chatId, summary: ReviewSummary(body.toolInput)))
 				],
 				stamp: stamp)
 		} catch {
@@ -290,30 +292,34 @@ private enum LiveLookup {
 
 extension ReviewCard {
 	fileprivate init(_ body: ProposalBody) {
-		let steps =
-			body.description.isEmpty
-			? []
-			: body.description.split(separator: "\n", omittingEmptySubsequences: false).map(
-				String.init)
+		let instructions: ReviewInstructions
+		if case .createWorkout(_, let workout) = body.toolInput {
+			instructions = ReviewInstructions(content: .cycling(workout))
+		} else {
+			instructions = ReviewInstructions(content: .supplied(body.description))
+		}
 		let action: Action
-		let name: String
+		let name: ReviewSummary
 		let date: CivilDate?
 		switch body.toolInput {
 		case .createWorkout(let day, let workout):
-			(action, name, date) = (.add, workout.name, day)
+			(action, name, date) = (.add, .supplied(workout.name), day)
 		case .createStrengthWorkout(let day, let title, _):
-			(action, name, date) = (.add, title, day)
+			(action, name, date) = (.add, .supplied(title), day)
 		case .updateWorkout(let update):
 			(action, name, date) = (
-				.edit(previousName: nil), update.name ?? body.summary, update.date
+				.edit(previousName: nil),
+				update.name.map(ReviewSummary.supplied) ?? ReviewSummary(body.toolInput),
+				update.date
 			)
 		case .deleteWorkout:
-			(action, name, date) = (.delete, body.summary, nil)
+			(action, name, date) = (.delete, ReviewSummary(body.toolInput), nil)
 		case .planSave:
-			(action, name, date) = (.add, body.summary, nil)
+			(action, name, date) = (.add, ReviewSummary(body.toolInput), nil)
 		}
 		self.init(
-			index: 0, action: action, name: name, date: date, chart: nil, steps: steps,
+			index: 0, action: action, name: name, date: date, chart: nil,
+			instructions: instructions,
 			durationMinutes: nil, estimatedLoad: nil)
 	}
 }
