@@ -220,38 +220,6 @@ enum TutorialHarness {
 		XCTAssertTrue(partial.waitForExistence(timeout: 2), "missing text \(text)")
 	}
 
-	static func completeOnboarding(_ app: XCUIApplication) {
-		waitForLabel(app, notice)
-		named(app, "notice.continue").tap()
-		let key = named(app, "connect.apiKey")
-		wait(key)
-		key.tap()
-		key.typeText("fixture")
-		named(app, "connect.connect").tap()
-		wait(named(app, "connect.athleteName"))
-		XCTAssertEqual(named(app, "connect.athleteName").label, "Ada Kovač")
-		XCTAssertEqual(named(app, "connect.fitness").label, "Fitness 42")
-		XCTAssertEqual(named(app, "connect.fatigue").label, "Fatigue 49")
-		XCTAssertEqual(named(app, "connect.form").label, "Form -7")
-		named(app, "connect.continue").tap()
-		wait(named(app, "starter.credits"))
-		XCTAssertEqual(named(app, "starter.credits").label, "200 credits")
-		named(app, "starter.start").tap()
-		wait(named(app, "chat.composer"))
-		wait(named(app, "chat.welcome"))
-	}
-
-	static func startUnconnected(_ app: XCUIApplication) {
-		waitForLabel(app, notice)
-		named(app, "notice.continue").tap()
-		let skip = named(app, "connect.skip")
-		wait(skip)
-		skip.tap()
-		let start = named(app, "starter.start")
-		wait(start)
-		start.tap()
-	}
-
 	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
