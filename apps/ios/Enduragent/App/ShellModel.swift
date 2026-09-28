@@ -27,7 +27,7 @@ final class ShellModel {
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
-	var confirmLine: String?
+	private var confirmation: (key: CatalogKey, vars: [String: String])?
 	var showSidebar = false
 	var showCredits = false
 	var packPrices: [String: String] = [:]
@@ -61,6 +61,10 @@ final class ShellModel {
 
 	var phrasebook: any Phrasebook {
 		(status?.language ?? .automatic).phrasebook(device: builder.language)
+	}
+
+	var confirmLine: String? {
+		confirmation.map { phrasebook.say($0.key, $0.vars) }
 	}
 
 	var languageNotSavedLine: String? {
@@ -178,7 +182,7 @@ final class ShellModel {
 	}
 
 	func newConversation() async {
-		confirmLine = nil
+		confirmation = nil
 		errorLine = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
@@ -240,7 +244,7 @@ final class ShellModel {
 		notSent = false
 		newConversationUncertain = false
 		errorLine = nil
-		confirmLine = nil
+		confirmation = nil
 		slashListVisible = false
 		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
@@ -303,11 +307,10 @@ final class ShellModel {
 			switch outcome {
 			case .executed(let summary):
 				errorLine = nil
-				confirmLine = phrasebook.say(
-					Catalog.coachConfirmationExecuted, ["summary": summary])
+				confirmation = (Catalog.coachConfirmationExecuted, ["summary": summary])
 			case .expired:
 				errorLine = nil
-				confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])
+				confirmation = (Catalog.coachConfirmationExpired, [:])
 			case .refused(let message), .failed(let message):
 				errorLine = message
 			case .mismatch, .none:
