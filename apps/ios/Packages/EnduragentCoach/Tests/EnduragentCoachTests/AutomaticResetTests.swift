@@ -114,6 +114,68 @@ import Testing
 		#expect(outstanding.map(\.messages) == [rows])
 	}
 
+	@Test func dailyResetKeepsTheWholeTriggeringTurnAndLaterTurns() async throws {
+		let clock = FixedClock(now: "1998-06-16T09:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let evening = clock.now.addingTimeInterval(-13 * 3_600)
+		let previous = TurnID(ulid: fixedUlid(1))
+		let running = TurnID(ulid: fixedUlid(9))
+		let later = TurnID(ulid: fixedUlid(12))
+		let bodies: [(Int, Date, SyncedRecordBody)] = [
+			(
+				1, evening.addingTimeInterval(-1),
+				sampleUser(chatId: .main, text: "Yesterday", turn: previous)
+			),
+			(2, evening, sampleReply(chatId: .main, turn: previous, text: "Rest tonight")),
+			(
+				10, clock.now.addingTimeInterval(-2),
+				sampleUser(chatId: .main, text: "Today", turn: running)
+			),
+			(
+				11, clock.now.addingTimeInterval(-1),
+				.userMessage(
+					UserMessageBody(
+						chatId: .main, turn: running, fragment: 1, draft: DraftID(),
+						athleteText: "And tomorrow", slash: nil))
+			),
+			(12, clock.now, sampleUser(chatId: .main, text: "Later question", turn: later)),
+		]
+		try await seed(
+			store,
+			bodies.map { offset, date, body in
+				seededRecord(store, at: date, ulid: fixedUlid(offset), body: .synced(body))
+			})
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
+		let flushes = FlushWork(
+			chat: .main, process: ProcessID(ulid: fixedUlid(60)), ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock),
+			transport: transport, clock: clock, diagnostics: diagnostics)
+		let conversation = try await ledger.conversation(.main)
+		#expect(conversation.lastExchange(before: running) == .at(evening))
+		let reset = try #require(
+			await AutomaticReset(
+				chat: .main, ledger: ledger, flushes: flushes, clock: clock
+			).run(
+				before: running, in: conversation, session: .npmDefaults,
+				stamp: .turn(running, attempt: AttemptID(ulid: fixedUlid(61)), clock: clock)))
+		#expect(reset.kind == .daily)
+		#expect(
+			reset.boundary.map(\.body) == [
+				.synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: fixedUlid(10), reason: .reset(.daily))
+					))
+			])
+		let opened = ConversationFold.applying(
+			reset.boundary, to: conversation, device: store.deviceId)
+		#expect(opened.segments.first?.turns.map(\.turn) == [previous])
+		#expect(opened.current.turns.map(\.turn) == [running, later])
+		#expect(opened.current.turns.first?.fragments.map(\.text) == ["Today", "And tomorrow"])
+		#expect(try await ledger.conversation(.main).current == opened.current)
+		#expect(await flushes.jobs(in: opened).map(\.messages) == [[fixedUlid(1), fixedUlid(2)]])
+	}
+
 	@Test func recentExchangeAcrossTheResetHourKeepsTheConversation() async throws {
 		let clock = FixedClock(now: "1998-06-16T03:50:00+02:00", timeZone: "Europe/Amsterdam")
 		let coach = coach(at: clock)
