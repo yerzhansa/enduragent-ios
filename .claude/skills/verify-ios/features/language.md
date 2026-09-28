@@ -51,7 +51,7 @@ Preconditions:
 | The same `LanguagePickerProof` run sends the week question and taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
 | `sim.mjs test <run id> AutomaticFrenchPhoneProof` | A French phone with Automatic shows French app text. Its English week question produces a reply instruction ending `reply in English (English).`; `m1-12-automatic-fr-phone` shows the conversation. |
 | `sim.mjs test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
-| `sim.mjs test <run id> FrenchFallbackProof` | A new notice without French copy uses the English sentence and expected action, `fallback-french`. |
+| `sim.mjs test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
 | `sim.mjs test <run id> ReviewLanguageProof` | French review title, controls, and saved Done line, before and after relaunch, `review-french`, `review-french-relaunch`. |
 
 For the Debug entry point, open `chat.sidebar`, `sidebar.debug`, and `debug.language`, then select a row and go Back. Capture `sim.mjs shot <run id> language-debug-entry`. No dedicated XCUITest class proves this alternate entry. The hosted app test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` covers a failed save; there is no fixture directive for that write failure.

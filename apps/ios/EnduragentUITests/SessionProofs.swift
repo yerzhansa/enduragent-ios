@@ -90,7 +90,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 	func testEnglishMessageOnAFrenchPhoneGetsAnEnglishReply() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
-		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.completeOnboarding(app, language: .fr)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")

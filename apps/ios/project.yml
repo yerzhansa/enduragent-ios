@@ -96,6 +96,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+      - package: EnduragentCoach
 schemes:
   Enduragent:
     build:

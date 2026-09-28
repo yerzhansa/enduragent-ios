@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 final class NoticeCopyProof: XCTestCase {
@@ -136,16 +137,20 @@ final class RateLimitTryAgainOpensProof: XCTestCase {
 	}
 }
 
-final class FrenchFallbackProof: XCTestCase {
-	func testNewNoticesFallBackToEnglish() {
+final class FrenchNoticesProof: XCTestCase {
+	func testNewNoticesUseFrenchCatalog() {
 		let app = XCUIApplication()
+		let phrasebook = CatalogPhrasebook(tag: .fr, locale: "fr_FR")
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
-		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.completeOnboarding(app, language: .fr)
 		TutorialHarness.send(app, "fixture:fail 402")
-		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
+		TutorialHarness.wait(
+			TutorialHarness.notice(app, reading: phrasebook.say(Catalog.creditsErrorExhausted)))
 		XCTAssertEqual(
-			TutorialHarness.named(app, "chat.turn.buyCredits").label, TutorialHarness.buyCredits)
-		XCTAssertEqual(TutorialHarness.named(app, "chat.send").label, "Envoyer le message")
-		TutorialHarness.attach(self, name: "fallback-french", app: app)
+			TutorialHarness.named(app, "chat.turn.buyCredits").label,
+			phrasebook.say(Catalog.chatTurnBuyCredits))
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.send").label, phrasebook.say(Catalog.chatComposerSend))
+		TutorialHarness.attach(self, name: "notices-french", app: app)
 	}
 }

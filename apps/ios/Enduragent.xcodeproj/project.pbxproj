@@ -12,6 +12,7 @@
 		07771411F8BAABE782AFEE03 /* FixtureReviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B225A02F617E4975CE70633 /* FixtureReviewTests.swift */; };
 		0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */; };
 		10A55CC659645AB2D5BC08D4 /* SessionProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D4C9AF40138E19D5FFA8BA0 /* SessionProofs.swift */; };
+		13E25F8A50B94ECF9510408C /* EnduragentCoach in Frameworks */ = {isa = PBXBuildFile; productRef = 61B66D1BD5941B9122D258E5 /* EnduragentCoach */; };
 		1DC3B0CD1837296C8BCFFBB3 /* NoticeProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CBEE09DFEC29B17C094758A /* NoticeProofs.swift */; };
 		225211C880C7EBC5688C16BE /* RecoveryActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */; };
 		23696DA3541426F1263AB892 /* SessionDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838FE3EA4616467DBD4EC26F /* SessionDebugView.swift */; };
@@ -55,6 +56,7 @@
 		9C2038BE1099186A0284A13B /* AppLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C817FBBA11C32739DD15F72 /* AppLifecycle.swift */; };
 		9D824167E6DDBE222B9B0B8E /* FlushProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C69207093FE40792AD4922 /* FlushProofs.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
+		A481F4E43A366EEAD932009D /* TutorialOnboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B6C704B58D02FA0A31BEE5 /* TutorialOnboarding.swift */; };
 		A5BDC822FBE199CA79733EFD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E410F19BC06DE08527699D1 /* Assets.xcassets */; };
 		A702FC8F1E012667637FA986 /* SidebarDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE898BFA4E10AB7DEEB3C79B /* SidebarDebugView.swift */; };
 		AA4AAD1A684A6632A3CCEB2D /* NoticeActionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335D14394F58238C2E63C9FD /* NoticeActionTests.swift */; };
@@ -102,6 +104,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		02B6C704B58D02FA0A31BEE5 /* TutorialOnboarding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialOnboarding.swift; sourceTree = "<group>"; };
 		05DE1643D8AAF084B95462CB /* SlashListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlashListView.swift; sourceTree = "<group>"; };
 		0637E18468A727A40517708C /* FixtureRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureRecoveryTests.swift; sourceTree = "<group>"; };
 		0B225A02F617E4975CE70633 /* FixtureReviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureReviewTests.swift; sourceTree = "<group>"; };
@@ -184,6 +187,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0BE3A8EF27C65E3B12DE04F2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13E25F8A50B94ECF9510408C /* EnduragentCoach in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B6E5FDE64A8B6FF457BB7CCF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -254,6 +265,7 @@
 				DBF9AE579F24B1C8065F903A /* TranscriptProofs.swift */,
 				61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */,
 				5502A456F209EE30186C41C0 /* TutorialHarness.swift */,
+				02B6C704B58D02FA0A31BEE5 /* TutorialOnboarding.swift */,
 				648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */,
 				760174393D807B09C5B4E0BB /* TutorialRecords.swift */,
 			);
@@ -430,6 +442,7 @@
 			buildConfigurationList = FCBFF68A8F1D84AC6548BAB9 /* Build configuration list for PBXNativeTarget "EnduragentUITests" */;
 			buildPhases = (
 				650CAFFCFFA4B8FCF5960196 /* Sources */,
+				0BE3A8EF27C65E3B12DE04F2 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -438,6 +451,7 @@
 			);
 			name = EnduragentUITests;
 			packageProductDependencies = (
+				61B66D1BD5941B9122D258E5 /* EnduragentCoach */,
 			);
 			productName = EnduragentUITests;
 			productReference = 616327945A67A8217D98FC35 /* EnduragentUITests.xctest */;
@@ -523,6 +537,7 @@
 				2F5D040B90612F3109E80D53 /* TranscriptProofs.swift in Sources */,
 				0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */,
 				6FBFFEBC9CDCAD2E9AFCDE9A /* TutorialHarness.swift in Sources */,
+				A481F4E43A366EEAD932009D /* TutorialOnboarding.swift in Sources */,
 				D74E3051E2D7865B708A229E /* TutorialProofs.swift in Sources */,
 				967E01C7C48453DFAA9E6B47 /* TutorialRecords.swift in Sources */,
 			);
@@ -929,6 +944,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		61B66D1BD5941B9122D258E5 /* EnduragentCoach */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EnduragentCoach;
+		};
 		E957E38AABE221883FA39FAE /* EnduragentCoach */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = EnduragentCoach;
