@@ -866,8 +866,7 @@
       "plan": "Suunnitelma",
       "settings": "Asetukset",
       "training": "Harjoittelu"
-    },
-    "menu": "Valikko"
+    }
   },
   "chat": {
     "attachment": {
@@ -952,8 +951,6 @@
       "responding": "Valmentaja vastaa…",
       "send": "Lähetä viesti",
       "stop": "Pysäytä vastaus",
-      "messageField": "Viesti",
-      "sendButton": "Lähetä",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
     },
-    "addToCalendar": "Lisää kalenteriin",
     "menu": "Valikko",
-    "title": "Valmentaja",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

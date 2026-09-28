@@ -866,8 +866,7 @@
       "plan": "Plan",
       "settings": "Inställningar",
       "training": "Träning"
-    },
-    "menu": "Meny"
+    }
   },
   "chat": {
     "attachment": {
@@ -952,8 +951,6 @@
       "responding": "Tränaren svarar…",
       "send": "Skicka meddelande",
       "stop": "Stoppa svaret",
-      "messageField": "Meddelande",
-      "sendButton": "Skicka",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
     },
-    "addToCalendar": "Lägg till i kalendern",
     "menu": "Meny",
-    "title": "Tränare",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

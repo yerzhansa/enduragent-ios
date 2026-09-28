@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2477
-	public static let keyCount = 2517
+	public static let englishLeafCount = 2472
+	public static let keyCount = 2512
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -33,7 +33,6 @@ public enum Catalog {
 	public static let archiveTurnCountOne = CatalogKey(rawValue: "archive.turnCount_one")
 	public static let archiveTurnCountOther = CatalogKey(rawValue: "archive.turnCount_other")
 	public static let archiveUnavailable = CatalogKey(rawValue: "archive.unavailable")
-	public static let chatAddToCalendar = CatalogKey(rawValue: "chat.addToCalendar")
 	public static let chatAttachmentActivity = CatalogKey(rawValue: "chat.attachment.activity")
 	public static let chatAttachmentAdding = CatalogKey(rawValue: "chat.attachment.adding")
 	public static let chatAttachmentAdmissionFailed = CatalogKey(rawValue: "chat.attachment.admissionFailed")
@@ -105,12 +104,10 @@ public enum Catalog {
 	public static let chatComposerAttach = CatalogKey(rawValue: "chat.composer.attach")
 	public static let chatComposerFinishPlanQuestion = CatalogKey(rawValue: "chat.composer.finishPlanQuestion")
 	public static let chatComposerLabel = CatalogKey(rawValue: "chat.composer.label")
-	public static let chatComposerMessageField = CatalogKey(rawValue: "chat.composer.messageField")
 	public static let chatComposerMessagePlaceholder = CatalogKey(rawValue: "chat.composer.messagePlaceholder")
 	public static let chatComposerNotSent = CatalogKey(rawValue: "chat.composer.notSent")
 	public static let chatComposerResponding = CatalogKey(rawValue: "chat.composer.responding")
 	public static let chatComposerSend = CatalogKey(rawValue: "chat.composer.send")
-	public static let chatComposerSendButton = CatalogKey(rawValue: "chat.composer.sendButton")
 	public static let chatComposerStop = CatalogKey(rawValue: "chat.composer.stop")
 	public static let chatDateCivil = CatalogKey(rawValue: "chat.date.civil")
 	public static let chatDateMonthApril = CatalogKey(rawValue: "chat.date.month.april")
@@ -496,7 +493,6 @@ public enum Catalog {
 	public static let chatSupportingEventRoleTraining = CatalogKey(rawValue: "chat.supportingEvent.role.training")
 	public static let chatSupportingEventSource = CatalogKey(rawValue: "chat.supportingEvent.source")
 	public static let chatSupportingEventSourceOption = CatalogKey(rawValue: "chat.supportingEvent.sourceOption")
-	public static let chatTitle = CatalogKey(rawValue: "chat.title")
 	public static let chatTrainingContextActivities = CatalogKey(rawValue: "chat.trainingContext.activities")
 	public static let chatTrainingContextActivitiesOne = CatalogKey(rawValue: "chat.trainingContext.activities_one")
 	public static let chatTrainingContextActivitiesOther = CatalogKey(rawValue: "chat.trainingContext.activities_other")
@@ -2005,7 +2001,6 @@ public enum Catalog {
 	public static let shellPlatformCredentialEncryptionUnavailableWindows = CatalogKey(rawValue: "shell.platform.credentialEncryptionUnavailable.windows")
 	public static let shellPlatformCredentialRecoveryActionMac = CatalogKey(rawValue: "shell.platform.credentialRecoveryAction.mac")
 	public static let shellPlatformCredentialRecoveryActionWindows = CatalogKey(rawValue: "shell.platform.credentialRecoveryAction.windows")
-	public static let sidebarMenu = CatalogKey(rawValue: "sidebar.menu")
 	public static let sidebarNavigation = CatalogKey(rawValue: "sidebar.navigation")
 	public static let sidebarNewChat = CatalogKey(rawValue: "sidebar.newChat")
 	public static let sidebarPlanAttention = CatalogKey(rawValue: "sidebar.planAttention")

@@ -866,8 +866,7 @@
       "plan": "Plan",
       "settings": "Instellingen",
       "training": "Training"
-    },
-    "menu": "Menu"
+    }
   },
   "chat": {
     "attachment": {
@@ -952,8 +951,6 @@
       "responding": "De coach antwoordt…",
       "send": "Bericht verzenden",
       "stop": "Antwoord stoppen",
-      "messageField": "Bericht",
-      "sendButton": "Versturen",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "Trainingscontext tonen",
       "title": "Chat"
     },
-    "addToCalendar": "Toevoegen aan agenda",
     "menu": "Menu",
-    "title": "Coach",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

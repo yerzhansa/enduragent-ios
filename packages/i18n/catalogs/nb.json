@@ -866,8 +866,7 @@
       "plan": "Plan",
       "settings": "Innstillinger",
       "training": "Trening"
-    },
-    "menu": "Meny"
+    }
   },
   "chat": {
     "attachment": {
@@ -952,8 +951,6 @@
       "responding": "Treneren svarer…",
       "send": "Send melding",
       "stop": "Stopp svaret",
-      "messageField": "Melding",
-      "sendButton": "Send",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "Vis treningskontekst",
       "title": "Chat"
     },
-    "addToCalendar": "Legg til i kalenderen",
     "menu": "Meny",
-    "title": "Trener",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

@@ -866,7 +866,6 @@
       "settings": "设置",
       "training": "训练"
     },
-    "menu": "菜单",
     "planAttention_one": "计划，{{formattedCount}} 项需要处理"
   },
   "chat": {
@@ -952,8 +951,6 @@
       "responding": "教练正在回复…",
       "send": "发送消息",
       "stop": "停止回复",
-      "messageField": "消息",
-      "sendButton": "发送",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "显示训练背景",
       "title": "聊天"
     },
-    "addToCalendar": "添加到日历",
     "menu": "菜单",
-    "title": "教练",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

@@ -866,7 +866,6 @@
       "settings": "설정",
       "training": "훈련"
     },
-    "menu": "메뉴",
     "planAttention_one": "계획, 항목 {{formattedCount}}개 확인 필요"
   },
   "chat": {
@@ -952,8 +951,6 @@
       "responding": "코치가 답변 중…",
       "send": "메시지 전송",
       "stop": "답변 중지",
-      "messageField": "메시지",
-      "sendButton": "보내기",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "훈련 맥락 보기",
       "title": "채팅"
     },
-    "addToCalendar": "캘린더에 추가",
     "menu": "메뉴",
-    "title": "코치",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

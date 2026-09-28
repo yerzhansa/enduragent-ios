@@ -866,8 +866,7 @@
       "plan": "Plan",
       "settings": "Paramètres",
       "training": "Entraînement"
-    },
-    "menu": "Menu"
+    }
   },
   "chat": {
     "attachment": {
@@ -952,8 +951,6 @@
       "responding": "Le coach répond…",
       "send": "Envoyer le message",
       "stop": "Arrêter la réponse",
-      "messageField": "Message",
-      "sendButton": "Envoyer",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "Afficher le contexte d’entraînement",
       "title": "Conversation"
     },
-    "addToCalendar": "Ajouter au calendrier",
     "menu": "Menu",
-    "title": "Coach",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

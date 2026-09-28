@@ -882,8 +882,7 @@
       "training": "Trening"
     },
     "planAttention_few": "Plan, {{formattedCount}} elementy wymagają uwagi",
-    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi",
-    "menu": "Menu"
+    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi"
   },
   "chat": {
     "attachment": {
@@ -968,8 +967,6 @@
       "responding": "Trener odpowiada…",
       "send": "Wyślij wiadomość",
       "stop": "Zatrzymaj odpowiedź",
-      "messageField": "Wiadomość",
-      "sendButton": "Wyślij",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1484,9 +1481,7 @@
       "showContext": "Pokaż kontekst treningowy",
       "title": "Czat"
     },
-    "addToCalendar": "Dodaj do kalendarza",
     "menu": "Menu",
-    "title": "Trener",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

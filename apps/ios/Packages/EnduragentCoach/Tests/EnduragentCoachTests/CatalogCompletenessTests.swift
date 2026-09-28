@@ -6,17 +6,33 @@ import Testing
 @Suite struct CatalogCompletenessTests {
 	@Test(arguments: LanguageTag.allCases)
 	func everyEnglishKeyHasAValueInEveryLocale(_ tag: LanguageTag) throws {
-		var root = URL(filePath: #filePath)
-		for _ in 0..<7 {
-			root.deleteLastPathComponent()
-		}
-		let catalogs = root.appending(path: "packages/i18n/catalogs")
 		let english = try leaves(in: catalogs.appending(path: "en.json"))
 		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
 		#expect(LanguageTag.allCases.count == 17)
 		for key in english.keys.sorted() {
 			#expect(localized[key] != nil, "\(tag.rawValue) is missing \(key)")
 		}
+	}
+
+	@Test(arguments: LanguageTag.allCases)
+	func retiredChromeKeysStayAbsent(_ tag: LanguageTag) throws {
+		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
+		for key in [
+			"sidebar.menu", "chat.title", "chat.addToCalendar",
+			"chat.composer.messageField", "chat.composer.sendButton",
+		] {
+			#expect(localized[key] == nil, "\(tag.rawValue) retains \(key)")
+		}
+		#expect(localized["chat.menu"] != nil)
+		#expect(localized["language.continue"] != nil)
+	}
+
+	private var catalogs: URL {
+		var root = URL(filePath: #filePath)
+		for _ in 0..<7 {
+			root.deleteLastPathComponent()
+		}
+		return root.appending(path: "packages/i18n/catalogs")
 	}
 
 	private func leaves(in url: URL) throws -> [String: String] {

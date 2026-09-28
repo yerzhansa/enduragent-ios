@@ -866,7 +866,6 @@
       "settings": "設定",
       "training": "トレーニング"
     },
-    "menu": "メニュー",
     "planAttention_one": "プラン、{{formattedCount}}項目の確認が必要です"
   },
   "chat": {
@@ -952,8 +951,6 @@
       "responding": "コーチが回答中…",
       "send": "メッセージを送信",
       "stop": "回答を停止",
-      "messageField": "メッセージ",
-      "sendButton": "送信",
       "notSent": "Not sent. Your draft is still here."
     },
     "date": {
@@ -1458,9 +1455,7 @@
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
     },
-    "addToCalendar": "カレンダーに追加",
     "menu": "メニュー",
-    "title": "コーチ",
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",

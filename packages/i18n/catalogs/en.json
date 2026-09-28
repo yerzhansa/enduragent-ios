@@ -123,9 +123,7 @@
       "notSent": "Not sent. Your draft is still here.",
       "responding": "Coach is responding…",
       "send": "Send message",
-      "stop": "Stop responding",
-      "messageField": "Message",
-      "sendButton": "Send"
+      "stop": "Stop responding"
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -639,9 +637,7 @@
       "showContext": "Show training context",
       "title": "Chat"
     },
-    "addToCalendar": "Add to calendar",
-    "menu": "Menu",
-    "title": "Coach"
+    "menu": "Menu"
   },
   "cli": {
     "language": {
@@ -2452,8 +2448,7 @@
       "plan": "Plan",
       "settings": "Settings",
       "training": "Training"
-    },
-    "menu": "Menu"
+    }
   },
   "telegram": {
     "capture": {
