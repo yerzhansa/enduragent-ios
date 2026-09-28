@@ -325,10 +325,16 @@ import Testing
 
 	@Test func aTimedExpiryInterruptsTheRunningTurnWithoutATap() async throws {
 		transport.script = [.text("Yes, keep "), .hang]
-		let timed = ImmediateExecutionHost(expiringAfter: .milliseconds(300))
+		let expiryClock = HeldClock()
+		let timed = ImmediateExecutionHost(expiringAfter: .milliseconds(300), clock: expiryClock)
 		let coach = coach(host: timed)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		guard case .interrupted(let interrupted)? = await coach.settledState(of: turn, in: .main)
+		await coach.waitForLiveText(turn)
+		try await expiryClock.waitUntilHeld(.milliseconds(300))
+		expiryClock.release(.milliseconds(300))
+		guard
+			case .interrupted(let interrupted)? = await coach.settledState(
+				of: turn, in: .main, within: .seconds(5))
 		else {
 			Issue.record("the timed expiry did not interrupt the turn")
 			return
