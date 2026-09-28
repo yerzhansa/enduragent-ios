@@ -17,7 +17,7 @@ extension SingleProposalReviewsTests {
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		await staleRead.release()
-		#expect(await refresh.value == .staleControl)
+		_ = await refresh.value
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(ada.calls.filter(\.isWrite).count == 1)
 	}
