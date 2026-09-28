@@ -44,6 +44,32 @@ final class ShellLanguageTests {
 	}
 
 	@Test(arguments: [true, false])
+	func launchShowsTheSavedLanguageBeforeSlowTrainingLoads(completedOnboarding: Bool) async throws
+	{
+		let intervals = SlowTrainingClient()
+		try await services(intervals: intervals).coach.setLanguage(.fixed(.es))
+		defaults.set(completedOnboarding, forKey: ShellModel.onboardingCompletedKey)
+		let launch = await AppLaunch.open(language: .en) {
+			(try services(intervals: intervals), defaults)
+		}
+		guard case .ready(let model) = launch else {
+			Issue.record("The saved language did not reopen into a ready shell")
+			return
+		}
+		#expect(await intervals.reads.calls.isEmpty)
+		#expect(
+			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
+				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
+		await model.appear()
+		#expect(await intervals.reads.calls == [.athlete, .wellness])
+		#expect(model.connected?.athleteName == "Ada")
+		#expect(model.status?.language == .fixed(.es))
+		#expect(
+			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
+				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
+	}
+
+	@Test(arguments: [true, false])
 	func visibleConfirmationChangesWithTheLanguagePreference(expires: Bool) async throws {
 		transport.script = [
 			.toolCall(
@@ -77,14 +103,15 @@ final class ShellLanguageTests {
 		#expect(model.confirmLine == LanguageTag.es.phrasebook.say(key, variables))
 	}
 
-	private func services() throws -> AppServices {
+	private func services(
+		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+	) throws -> AppServices {
 		let secrets = FakeSecretStore()
 		try secrets.storeOpenRouterKey("sk-or-test-shell-language")
 		try secrets.storeIntervalsConnection(
 			IntervalsConnection(
 				id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
 				resolvedAthlete: IntervalsAthleteID(rawValue: "i1001")))
-		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(

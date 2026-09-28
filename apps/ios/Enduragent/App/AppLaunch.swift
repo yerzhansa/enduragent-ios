@@ -22,9 +22,10 @@ enum AppLaunch {
 	) async -> AppLaunch {
 		do {
 			let (built, defaults) = try services()
+			let preference = await built.coach.languagePreference()
 			let model = ShellModel(
-				builder: ServicesBuilder(services: built, language: language, defaults: defaults))
-			await model.refreshStatus()
+				builder: ServicesBuilder(services: built, language: language, defaults: defaults),
+				initialLanguage: preference)
 			return .ready(model)
 		} catch let error as FixtureLaunchError {
 			fatalError("The fixture launch arguments are invalid: \(error)")

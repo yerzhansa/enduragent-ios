@@ -150,6 +150,10 @@ public actor Coach {
 		}
 	}
 
+	public func languagePreference() async -> LanguagePreference {
+		await loadedPreferences().language
+	}
+
 	public func status() async -> CoachStatus {
 		CoachStatus(
 			setup: await vault.setup(builtInModel: builtInModel),

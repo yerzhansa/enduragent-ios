@@ -36,10 +36,12 @@ final class ShellModel {
 	let lifecycle: AppLifecycle
 	let drafts: DraftStore
 	private let defaults: UserDefaults
+	private let initialLanguage: LanguagePreference
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
 
-	init(builder: ServicesBuilder) {
+	init(builder: ServicesBuilder, initialLanguage: LanguagePreference = .automatic) {
+		self.initialLanguage = initialLanguage
 		self.builder = builder
 		self.lifecycle = AppLifecycle(builder: builder)
 		self.defaults = builder.defaults
@@ -59,8 +61,12 @@ final class ShellModel {
 		builder.services
 	}
 
+	var languagePreference: LanguagePreference {
+		status?.language ?? initialLanguage
+	}
+
 	var phrasebook: any Phrasebook {
-		(status?.language ?? .automatic).phrasebook(device: builder.language)
+		languagePreference.phrasebook(device: builder.language)
 	}
 
 	var confirmLine: String? {
@@ -69,7 +75,7 @@ final class ShellModel {
 
 	var languageNotSavedLine: String? {
 		languageNotSaved.map {
-			$0.notSaved(keeping: status?.language ?? .automatic, in: phrasebook)
+			$0.notSaved(keeping: languagePreference, in: phrasebook)
 		}
 	}
 
@@ -157,8 +163,9 @@ final class ShellModel {
 	}
 
 	func appear() async {
-		guard route == .chat else { return }
-		observeChat()
+		if route == .chat {
+			observeChat()
+		}
 		await refreshStatus()
 	}
 
