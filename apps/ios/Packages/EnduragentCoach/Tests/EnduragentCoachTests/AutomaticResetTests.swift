@@ -95,16 +95,21 @@ import Testing
 			chat: .main, process: process, ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock),
 			transport: transport, clock: clock, diagnostics: diagnostics)
-		#expect(FlushJob.outstanding(await flushes.jobs()).map(\.messages) == [Array(rows[0...1])])
+		let conversation = try await ledger.conversation(.main)
+		#expect(
+			FlushJob.outstanding(await flushes.jobs(in: conversation), in: conversation).map(
+				\.messages)
+				== [Array(rows[0...1])])
 		let reset = await AutomaticReset(
 			chat: .main, ledger: ledger, flushes: flushes, clock: clock
 		)
 		.run(
-			before: turn, in: try await ledger.conversation(.main), session: .npmDefaults,
+			before: turn, in: conversation, session: .npmDefaults,
 			stamp: .turn(turn, attempt: AttemptID(ulid: ULID.generate(at: clock.now)), clock: clock)
 		)
 		#expect(reset?.kind == .daily)
-		let outstanding = FlushJob.outstanding(await flushes.jobs())
+		let outstanding = FlushJob.outstanding(
+			await flushes.jobs(in: conversation), in: conversation)
 		#expect(outstanding.map(\.trigger) == [.staleReset])
 		#expect(outstanding.map(\.messages) == [rows])
 	}
