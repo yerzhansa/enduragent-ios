@@ -5,23 +5,21 @@
 	struct PublicSurfaceTests {
 		@Test func publicSymbolsMatchTheDesignList() throws {
 			let root = try apiRoot()
-			let expected = try symbols(in: "PublicSurfaceDesign")
-				.union(symbols(in: "PublicSurfaceAppDependencies"))
-			let actual = Set((root.children ?? []).flatMap { $0.publicNames() })
-			#expect(
-				actual == expected,
-				"Added: \(actual.subtracting(expected).sorted()); removed: \(expected.subtracting(actual).sorted())"
-			)
+			let expected =
+				try symbols(in: "PublicSurfaceDesign")
+				+ symbols(in: "PublicSurfaceAppDependencies")
+			let actual = (root.children ?? []).flatMap { $0.publicNames() }.sorted()
+			let changes = actual.difference(from: expected.sorted())
+			#expect(changes.isEmpty, "Public API declarations changed: \(Array(changes))")
 			try checkImplementationFolders()
 		}
 
-		private func symbols(in resource: String) throws -> Set<String> {
+		private func symbols(in resource: String) throws -> [String] {
 			let url = try #require(
 				Bundle.module.url(
 					forResource: resource, withExtension: "txt", subdirectory: "Fixtures"))
-			return Set(
-				try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map(String.init)
-			)
+			return try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map(
+				String.init)
 		}
 
 		private func apiRoot() throws -> APINode {
@@ -106,7 +104,7 @@
 					actual.insert(String(source[range]))
 				}
 			}
-			let retained = try symbols(in: "PublicSurfaceRecordDependencies")
+			let retained = try Set(symbols(in: "PublicSurfaceRecordDependencies"))
 			#expect(
 				actual == retained,
 				"Records public declarations changed: \(actual.symmetricDifference(retained).sorted())"
