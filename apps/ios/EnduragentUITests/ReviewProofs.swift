@@ -109,3 +109,83 @@ final class DoneLineSurvivesRelaunchProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
+
+final class ExpiredReviewProof: XCTestCase {
+	func testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.workout)
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		TutorialHarness.waitUntilEnabled(add)
+		TutorialHarness.attach(self, name: "review-before-expiry", app: app)
+		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T08:11:00Z")
+		TutorialHarness.waitForLabel(app, TutorialHarness.workout)
+		XCTAssertFalse(add.exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.done].exists)
+		TutorialHarness.attach(self, name: "review-expired-after-relaunch", app: app)
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "pendingProposal", "pendingProposal 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "reviewApplied"))
+		TutorialHarness.attach(self, name: "review-expired-records", app: app)
+	}
+}
+
+final class LegacyReviewNoticeProof: XCTestCase {
+	static let onboarded = ["-enduragent.onboardingCompleted", "YES"]
+	static let english =
+		"This workout review is from an earlier version of the app and can no longer be applied."
+	static let german =
+		"Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden."
+
+	func testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman() throws {
+		let app = XCUIApplication()
+		try TutorialHarness.launchKeepingStore(
+			app, expecting: TutorialHarness.named(app, "chat.preview.notice"),
+			arguments: Self.onboarded)
+		TutorialHarness.openCredentials(app)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "—")
+		TutorialHarness.closeMenu(app)
+		assertReadOnly(app, reading: Self.english)
+		TutorialHarness.attach(self, name: "v1-review-disconnected", app: app)
+		TutorialHarness.openCredentials(app)
+		TutorialHarness.type(app, "fixture", into: "credentials.apiKey")
+		TutorialHarness.named(app, "credentials.replace").tap()
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		TutorialHarness.closeMenu(app)
+		assertReadOnly(app, reading: Self.english)
+		TutorialHarness.attach(self, name: "v1-review-connected", app: app)
+		assertNothingWritten(app, attaching: "v1-review-records")
+		app.terminate()
+		app.launchArguments = app.launchArguments.map {
+			switch $0 {
+			case "(en)": "(de)"
+			case "en_US": "de_DE"
+			default: $0
+			}
+		}
+		app.launch()
+		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		assertReadOnly(app, reading: Self.german)
+		TutorialHarness.attach(self, name: "v1-review-german", app: app)
+		assertNothingWritten(app, attaching: "v1-review-german-records")
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+
+	private func assertReadOnly(_ app: XCUIApplication, reading sentence: String) {
+		TutorialHarness.waitForIdentifier(app, "chat.preview.notice", reading: sentence)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
+	}
+
+	private func assertNothingWritten(_ app: XCUIApplication, attaching name: String) {
+		TutorialHarness.openRecords(app)
+		TutorialHarness.waitForRecordCount(app, "pendingProposal", "pendingProposal 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "reviewApplied"))
+		TutorialHarness.attach(self, name: name, app: app)
+		TutorialHarness.closeMenu(app)
+	}
+}

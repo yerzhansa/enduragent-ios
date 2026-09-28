@@ -13,8 +13,10 @@ pnpm check:source
 pnpm lint:swift
 pnpm check:format
 pnpm test:swift
+swift build -c release --package-path apps/ios/Packages/EnduragentCoach
 xcodegen generate --spec apps/ios/project.yml
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
 CI runs these focused checks on every pull request and every push to main.

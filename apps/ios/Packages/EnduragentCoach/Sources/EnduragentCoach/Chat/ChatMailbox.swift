@@ -101,7 +101,10 @@ package actor ChatMailbox {
 	private func pass<Value, Failure: Error>(
 		_ body: nonisolated(nonsending) (borrowing Admitted) async throws(Failure) -> Value
 	) async throws(Failure) -> Value {
-		try await door.pass { () async throws(Failure) -> Value in try await body(Admitted(work)) }
+		try await door.pass { () async throws(Failure) -> Value in
+			let admitted = Admitted(work)
+			return try await body(admitted)
+		}
 	}
 
 	private func admit(

@@ -56,7 +56,7 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Record store unavailable | `launch.storageUnavailable` with `Conversation history is temporarily unavailable.` and `Quit and reopen Enduragent.` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.error`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, `chat.newConversation` labeled `Start new conversation`, `chat.welcome`, `chat.newConversation.notice`, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.turn.finishedWhileLocked`, `chat.note` for a durable review outcome, `chat.review.notice` for a review action result, `chat.error` for unknown fixture directives, `chat.slash.<command>`, `chat.automaticReset.notice` |
+| Chat | `chat.sidebar` labeled `Menu`, `chat.newConversation` labeled `Start new conversation`, `chat.welcome`, `chat.newConversation.notice`, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.turn.finishedWhileLocked`, `chat.note` for a durable review outcome, `chat.review.notice` for a review action result, `chat.error` for unknown fixture directives, `chat.slash.<command>`, `chat.automaticReset.notice`, `chat.transcript` for the List, `chat.composer.container` for the whole composer; `ReviewCardComposerProof` checks row separation and hittable Send with the keyboard open |
 | Chat turn probe | Debug builds expose the invisible `chat.turnProgress` element with accessibility value `turns <count> settled <settled count>`. `TutorialHarness.exchange` reads it before sending and waits for one more turn with every turn settled. A message that opens a fresh session leaves one turn on screen, so pass `opensFreshSession: true`: the wait then needs `chat.automaticReset.notice` and `turns 1 settled 1`. |
 | Language sheet | `language.choice.<automatic or tag>` with the selected trait on the current choice, `language.close`, `language.saveFailed` |
 | Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded` or a `turnClaim` row's lease kind, `continuedProcessing` or `gracePeriodOnly`, and ends with the row's training account, `unconnected` or `intervals:<connection id>:<athlete id>`, and the toolbar `Refresh` button identified by `records.refresh` |
@@ -114,7 +114,7 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 
 The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
-The run passes with zero failures and exactly one skip, `UpgradeHistoryProof`. It opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the upgrade steps below. On 2026-09-26 the run took 41 minutes.
+The run passes with zero failures and exactly two skips, `UpgradeHistoryProof` and `LegacyReviewNoticeProof`. Each opens the kept store, and each skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the upgrade steps below. On 2026-09-26 the run took 41 minutes.
 
 **Upgrade proofs.** `UpgradeHistoryProof` proves that the app opens a store the last v1 build wrote with two chats: the chat opens on the welcome, and History lists both chats as `Earlier chat`. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. No v1 proof creates two chats, so copy `helpers/V1TwoChatsSeedProof.swift` into the v1 checkout's UI tests before its build. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so the trunk proof leaves its state for the head proof that follows:
 
@@ -128,7 +128,22 @@ $TRUNK test <run id> V1TwoChatsSeedProof
 $SIM test <run id> UpgradeHistoryProof
 ```
 
-Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove --force .worktrees/v1-trunk` when the run is done; `--force` drops the copied seed proof.
+Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator.
+
+`LegacyReviewNoticeProof` needs a different v1 store: a pending workout review in the `main` chat, the only chat the upgraded app shows. A v1 build opens `main` only when onboarding is marked complete and no chat exists yet, so the seed proof launches with `-enduragent.onboardingCompleted YES` and skips onboarding. The v1 fixture scripts only a new workout, so `helpers/V1ReviewActionsFixture.patch` adds two requests to the v1 checkout's `FirstWeekFixture`: `Rename my Thursday ride to Recovery spin` proposes an edit and `Delete my Thursday ride` proposes a deletion. Apply the patch and copy `helpers/V1PendingReviewSeedProof.swift` beside the two-chats seed before the v1 build. Run each seed and the head proof as a pair after the two-chats pair, because each v1 seed starts from a fresh store:
+
+```sh
+git -C .worktrees/v1-trunk apply "$PWD/.claude/skills/verify-ios/helpers/V1ReviewActionsFixture.patch"
+cp .claude/skills/verify-ios/helpers/V1PendingReviewSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
+$TRUNK test <run id> V1PendingReviewSeedProof
+$SIM test <run id> LegacyReviewNoticeProof
+$TRUNK test <run id> V1PendingEditSeedProof
+$SIM test <run id> LegacyReviewNoticeProof
+$TRUNK test <run id> V1PendingDeleteSeedProof
+$SIM test <run id> LegacyReviewNoticeProof
+```
+
+The seeded review expires ten minutes after the fixture clock's `1998-06-15T08:00:00Z`, and both builds start at that time, so the head reads it as pending. The head proof reads the notice with intervals.icu disconnected, connects `fixture` from Debug, Credentials and reads it again, relaunches in German, and checks that Records lists no `proposalCleared` and no `reviewApplied` after each view. Remove the worktree with `git worktree remove --force .worktrees/v1-trunk` when the run is done; `--force` drops the copied seed proof.
 
 ## Compare with the prototype
 
