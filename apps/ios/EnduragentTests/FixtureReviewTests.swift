@@ -5,6 +5,38 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
+	@Test(arguments: [false, true])
+	func reviewNoticeClearsWhenContinuingOrStartingANewConversation(newConversation: Bool)
+		async throws
+	{
+		let services = try services()
+		let secrets = try #require(services.fixtureDirector?.secrets)
+		let model = model(services)
+		model.startChatting()
+		let token = try await presentedReview(on: model)
+		_ = try await settledTurn(model)
+		secrets.locked = true
+		await model.decide(.approve(token))
+		try #require(model.reviewNotice?.key == Catalog.reviewCannotVerify)
+		secrets.locked = false
+
+		if newConversation {
+			await model.newConversation()
+			#expect(model.reviewNotice == nil)
+			#expect(!model.newConversationUncertain)
+			try await waitUntil { model.chat?.turns.isEmpty == true }
+		} else {
+			model.draft.text = "How did Saturday go"
+			await model.send()
+			#expect(model.reviewNotice == nil)
+			#expect(!model.notSent)
+			#expect(model.draft.text.isEmpty)
+			let turn = try await settledTurn(model, at: 1)
+			#expect(turn.athleteText == "How did Saturday go")
+		}
+		#expect(model.reviewNotice == nil)
+	}
+
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
 		let services = try services()
 		let model = model(services)
