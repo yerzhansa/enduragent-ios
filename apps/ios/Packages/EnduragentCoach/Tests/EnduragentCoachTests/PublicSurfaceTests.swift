@@ -11,7 +11,7 @@
 			let actual = (root.children ?? []).flatMap { $0.publicNames() }.sorted()
 			let changes = actual.difference(from: expected.sorted())
 			#expect(changes.isEmpty, "Public API declarations changed: \(Array(changes))")
-			try checkImplementationFolders()
+			try checkImplementationFolders(root)
 		}
 
 		private func symbols(in resource: String) throws -> [String] {
@@ -73,42 +73,76 @@
 			throw APITestFailure.compiledModuleMissing
 		}
 
-		private func checkImplementationFolders() throws {
+		@Test(arguments: [
+			"public extension Coach { nonisolated func probe() -> Int { 0 } }",
+			"public private(set) var probe: Int",
+			"public lazy var probe = 0",
+			"public indirect enum Probe { case next(Probe) }",
+			"public nonisolated(unsafe) var probe = 0",
+			"public prefix func + (value: Probe) -> Probe { value }",
+			"public postfix func + (value: Probe) -> Probe { value }",
+			"public infix func + (left: Probe, right: Probe) -> Probe { left }",
+			"public\nextension Coach { func probe() -> Int { 0 } }",
+		])
+		func publicDeclarationModifiersAreRecognized(_ source: String) throws {
+			#expect(try publicDeclarations(in: source).count == 1)
+		}
+
+		@Test func recordMembersAreIndividuallyNamed() throws {
+			let declarations = try publicDeclarations(
+				in: "public struct Record { public var probe: Int }")
+			#expect(declarations.map(\.description) == ["struct Record", "var probe"])
+		}
+
+		private func checkImplementationFolders(_ root: APINode) throws {
 			let package = URL(fileURLWithPath: #filePath)
 				.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
 			let sources = package.appendingPathComponent("Sources/EnduragentCoach")
-			let publicDeclaration = try NSRegularExpression(
-				pattern:
-					#"\b(?:public|open)\s+(?:(?:final|nonisolated|static|override|mutating|required|convenience)\s+)*(?:actor|class|struct|enum|protocol|typealias|func|var|let|init|subscript)\b"#
-			)
 			for folder in ["Loop", "Transport"] {
 				for file in try swiftFiles(in: sources.appendingPathComponent(folder)) {
-					let source = try String(contentsOf: file, encoding: .utf8)
+					let declarations = try publicDeclarations(
+						in: String(contentsOf: file, encoding: .utf8))
 					#expect(
-						publicDeclaration.firstMatch(
-							in: source, range: NSRange(source.startIndex..., in: source)) == nil,
-						"Public declaration in \(folder)/\(file.lastPathComponent)")
+						declarations.isEmpty,
+						"Public declarations in \(folder)/\(file.lastPathComponent): \(declarations)"
+					)
 				}
 			}
+			var recordDeclarations: [String] = []
+			var recordTypes: Set<String> = []
+			for file in try swiftFiles(in: sources.appendingPathComponent("Records")) {
+				let declarations = try publicDeclarations(
+					in: String(contentsOf: file, encoding: .utf8))
+				recordDeclarations += declarations.map {
+					"source \(file.lastPathComponent): \($0)"
+				}
+				recordTypes.formUnion(declarations.filter(\.isType).map(\.name))
+			}
+			let recordMembers = (root.children ?? []).filter { recordTypes.contains($0.name) }
+				.flatMap { $0.publicNames() }.map { "symbol \($0)" }
+			let retained = try symbols(in: "PublicSurfaceRecordDependencies")
+			let changes = (recordDeclarations + recordMembers).sorted()
+				.difference(from: retained.sorted())
+			#expect(
+				changes.isEmpty,
+				"Records public declarations changed: \(Array(changes))")
+		}
+
+		private func publicDeclarations(in source: String) throws -> [PublicSourceDeclaration] {
 			let declaration = try NSRegularExpression(
 				pattern:
-					#"\bpublic\s+(?:final\s+)?(?:actor|class|struct|enum|protocol|typealias)\s+(\w+)"#
+					#"\b(?:public|open)\s+(?:[A-Za-z_]\w*(?:\s*\([^)]*\))?\s+)*?(actor|class|struct|enum|protocol|typealias|extension|func|var|let|init|subscript)\b(?:\s+([^\s(:{=<]+))?"#
 			)
-			var actual: Set<String> = []
-			for file in try swiftFiles(in: sources.appendingPathComponent("Records")) {
-				let source = try String(contentsOf: file, encoding: .utf8)
-				for match in declaration.matches(
-					in: source, range: NSRange(source.startIndex..., in: source))
-				{
-					let range = try #require(Range(match.range(at: 1), in: source))
-					actual.insert(String(source[range]))
-				}
+			return try declaration.matches(
+				in: source, range: NSRange(source.startIndex..., in: source)
+			)
+			.map { match in
+				let kindRange = try #require(Range(match.range(at: 1), in: source))
+				let nameRange = Range(match.range(at: 2), in: source)
+				return PublicSourceDeclaration(
+					kind: String(source[kindRange]),
+					name: nameRange.map { String(source[$0]) } ?? "")
 			}
-			let retained = try Set(symbols(in: "PublicSurfaceRecordDependencies"))
-			#expect(
-				actual == retained,
-				"Records public declarations changed: \(actual.symmetricDifference(retained).sorted())"
-			)
 		}
 
 		private func swiftFiles(in directory: URL) throws -> [URL] {
@@ -124,6 +158,17 @@
 			}
 			return files
 		}
+	}
+
+	private struct PublicSourceDeclaration: CustomStringConvertible {
+		let kind: String
+		let name: String
+
+		var isType: Bool {
+			["actor", "class", "struct", "enum", "protocol", "typealias"].contains(kind)
+		}
+
+		var description: String { name.isEmpty ? kind : "\(kind) \(name)" }
 	}
 
 	private struct APIDump: Decodable {

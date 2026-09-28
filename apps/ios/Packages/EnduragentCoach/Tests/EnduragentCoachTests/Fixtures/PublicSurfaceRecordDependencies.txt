@@ -1,56 +1,530 @@
-AssistantMessageBody
-AthleteRecord
-CoachReplyLanguageBody
-CompactionSummaryBody
-DailyNoteBody
-DeviceLocalKind
-DeviceLocalRecordBody
-FlushPendingBody
-FlushSettledBody
-FlushSettlement
-HybridLogicalClock
-InMemoryRecordLog
-JournalBody
-LanguagePreferenceBody
-LedgerEventBody
-LegacyKind
-LegacyRecordBody
-MemorySectionBody
-MirrorJobBody
-ModelContainerHandle
-PlanRevisionBody
-PlanningCommandBody
-PlanningDeviceBody
-ProposalBody
-ProposalClearReason
-ProposalClearedBody
-ProvenanceBody
-RecordBody
-RecordCause
-RecordLocality
-RecordLog
-RecordPage
-RecordQuery
-RecordSyncCount
-RecordSyncProbe
-RecordSyncRow
-RecordSyncSnapshot
-ReplyLineage
-ReplyObservedBody
-ReplyText
-ResetKind
-ReviewAppliedBody
-Scope
-SessionSettingsBody
-Settlement
-SkippedRow
-SwiftDataRecordLog
-SyncedKind
-SyncedRecordBody
-TurnClaimBody
-TurnSettledBody
-UserMessageBody
-WindowReason
-WindowStartBody
-WorkoutDriftBody
-WorkoutMatchBody
+source AthleteRecord.swift: enum DeviceLocalKind
+source AthleteRecord.swift: enum DeviceLocalRecordBody
+source AthleteRecord.swift: enum LegacyKind
+source AthleteRecord.swift: enum RecordBody
+source AthleteRecord.swift: enum RecordCause
+source AthleteRecord.swift: enum RecordLocality
+source AthleteRecord.swift: enum SyncedKind
+source AthleteRecord.swift: enum SyncedRecordBody
+source AthleteRecord.swift: let account
+source AthleteRecord.swift: let body
+source AthleteRecord.swift: let cause
+source AthleteRecord.swift: let civilDate
+source AthleteRecord.swift: let deviceId
+source AthleteRecord.swift: let hlc
+source AthleteRecord.swift: let timeZone
+source AthleteRecord.swift: let ulid
+source AthleteRecord.swift: struct AthleteRecord
+source AthleteRecord.swift: var chatId
+source AthleteRecord.swift: var chatId
+source AthleteRecord.swift: var chatId
+source AthleteRecord.swift: var chatId
+source AthleteRecord.swift: var id
+source AthleteRecord.swift: var kind
+source AthleteRecord.swift: var kind
+source AthleteRecord.swift: var kind
+source AthleteRecord.swift: var locality
+source AthleteRecord.swift: var locality
+source AthleteRecord.swift: var turn
+source AthleteRecord.swift: var turn
+source AthleteRecord.swift: var turn
+source HybridLogicalClock.swift: func
+source HybridLogicalClock.swift: func tick
+source HybridLogicalClock.swift: init
+source HybridLogicalClock.swift: struct HybridLogicalClock
+source HybridLogicalClock.swift: var deviceId
+source HybridLogicalClock.swift: var logical
+source HybridLogicalClock.swift: var wallMs
+source LegacyRecordBody.swift: enum LegacyRecordBody
+source LegacyRecordBody.swift: struct AssistantMessageBody
+source LegacyRecordBody.swift: var assembledHash
+source LegacyRecordBody.swift: var chatId
+source LegacyRecordBody.swift: var chatId
+source LegacyRecordBody.swift: var kind
+source LegacyRecordBody.swift: var templateHash
+source LegacyRecordBody.swift: var text
+source ModelContainerFactory.swift: func applicationSupportDirectory
+source ModelContainerFactory.swift: func deviceLocal
+source ModelContainerFactory.swift: func syncedCloudKit
+source ModelContainerFactory.swift: func withoutCloudKit
+source ModelContainerFactory.swift: let cloudKitContainerIdentifier
+source ModelContainerFactory.swift: let localStoreFileName
+source ModelContainerFactory.swift: let syncedStoreFileName
+source RecordBodies.swift: enum FlushSettlement
+source RecordBodies.swift: enum ProposalClearReason
+source RecordBodies.swift: enum ReplyText
+source RecordBodies.swift: enum ResetKind
+source RecordBodies.swift: enum Settlement
+source RecordBodies.swift: enum WindowReason
+source RecordBodies.swift: struct CoachReplyLanguageBody
+source RecordBodies.swift: struct CompactionSummaryBody
+source RecordBodies.swift: struct DailyNoteBody
+source RecordBodies.swift: struct FlushPendingBody
+source RecordBodies.swift: struct FlushSettledBody
+source RecordBodies.swift: struct JournalBody
+source RecordBodies.swift: struct LanguagePreferenceBody
+source RecordBodies.swift: struct LedgerEventBody
+source RecordBodies.swift: struct MemorySectionBody
+source RecordBodies.swift: struct MirrorJobBody
+source RecordBodies.swift: struct PlanRevisionBody
+source RecordBodies.swift: struct PlanningCommandBody
+source RecordBodies.swift: struct PlanningDeviceBody
+source RecordBodies.swift: struct ProposalBody
+source RecordBodies.swift: struct ProposalClearedBody
+source RecordBodies.swift: struct ProvenanceBody
+source RecordBodies.swift: struct ReplyLineage
+source RecordBodies.swift: struct ReplyObservedBody
+source RecordBodies.swift: struct ReviewAppliedBody
+source RecordBodies.swift: struct SessionSettingsBody
+source RecordBodies.swift: struct TurnClaimBody
+source RecordBodies.swift: struct TurnSettledBody
+source RecordBodies.swift: struct UserMessageBody
+source RecordBodies.swift: struct WindowStartBody
+source RecordBodies.swift: struct WorkoutDriftBody
+source RecordBodies.swift: struct WorkoutMatchBody
+source RecordBodies.swift: var activatedAt
+source RecordBodies.swift: var activityId
+source RecordBodies.swift: var askedAt
+source RecordBodies.swift: var assembledHash
+source RecordBodies.swift: var athleteText
+source RecordBodies.swift: var attempt
+source RecordBodies.swift: var attempt
+source RecordBodies.swift: var attempt
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var chatId
+source RecordBodies.swift: var commandId
+source RecordBodies.swift: var commandName
+source RecordBodies.swift: var content
+source RecordBodies.swift: var contentSha256
+source RecordBodies.swift: var date
+source RecordBodies.swift: var decision
+source RecordBodies.swift: var description
+source RecordBodies.swift: var draft
+source RecordBodies.swift: var expiresAt
+source RecordBodies.swift: var failureCount
+source RecordBodies.swift: var firstIncludedUlid
+source RecordBodies.swift: var fragment
+source RecordBodies.swift: var garmin
+source RecordBodies.swift: var job
+source RecordBodies.swift: var key
+source RecordBodies.swift: var kind
+source RecordBodies.swift: var kind
+source RecordBodies.swift: var lease
+source RecordBodies.swift: var markdown
+source RecordBodies.swift: var messageUlids
+source RecordBodies.swift: var name
+source RecordBodies.swift: var nonGarmin
+source RecordBodies.swift: var nonce
+source RecordBodies.swift: var nonce
+source RecordBodies.swift: var note
+source RecordBodies.swift: var op
+source RecordBodies.swift: var planUlid
+source RecordBodies.swift: var planUlid
+source RecordBodies.swift: var planUlid
+source RecordBodies.swift: var planWorkoutId
+source RecordBodies.swift: var planWorkoutId
+source RecordBodies.swift: var planningDeviceId
+source RecordBodies.swift: var preference
+source RecordBodies.swift: var preview
+source RecordBodies.swift: var process
+source RecordBodies.swift: var process
+source RecordBodies.swift: var reason
+source RecordBodies.swift: var reason
+source RecordBodies.swift: var requestDigest
+source RecordBodies.swift: var result
+source RecordBodies.swift: var settings
+source RecordBodies.swift: var settlement
+source RecordBodies.swift: var settlement
+source RecordBodies.swift: var slash
+source RecordBodies.swift: var snapshot
+source RecordBodies.swift: var source
+source RecordBodies.swift: var status
+source RecordBodies.swift: var status
+source RecordBodies.swift: var summary
+source RecordBodies.swift: var summary
+source RecordBodies.swift: var tag
+source RecordBodies.swift: var templateHash
+source RecordBodies.swift: var text
+source RecordBodies.swift: var tool
+source RecordBodies.swift: var toolInput
+source RecordBodies.swift: var trigger
+source RecordBodies.swift: var turn
+source RecordBodies.swift: var turn
+source RecordBodies.swift: var turn
+source RecordBodies.swift: var turn
+source RecordBodies.swift: var unknown
+source RecordBodies.swift: var version
+source RecordBodies.swift: var windowEnd
+source RecordBodies.swift: var windowStart
+source RecordLog.swift: class InMemoryRecordLog
+source RecordLog.swift: enum Scope
+source RecordLog.swift: enum SkippedRow
+source RecordLog.swift: func append
+source RecordLog.swift: func append
+source RecordLog.swift: func fetch
+source RecordLog.swift: func fetch
+source RecordLog.swift: func synced
+source RecordLog.swift: init
+source RecordLog.swift: init
+source RecordLog.swift: init
+source RecordLog.swift: init
+source RecordLog.swift: let deviceId
+source RecordLog.swift: let deviceId
+source RecordLog.swift: let everyDeviceLocal
+source RecordLog.swift: let everySynced
+source RecordLog.swift: let records
+source RecordLog.swift: let skipped
+source RecordLog.swift: protocol RecordLog
+source RecordLog.swift: struct ModelContainerHandle
+source RecordLog.swift: struct RecordPage
+source RecordLog.swift: struct RecordQuery
+source RecordLog.swift: struct SwiftDataRecordLog
+source RecordLog.swift: var chatId
+source RecordLog.swift: var from
+source RecordLog.swift: var imports
+source RecordLog.swift: var imports
+source RecordLog.swift: var scope
+source RecordLog.swift: var to
+source RecordLog.swift: var turn
+source RecordLog.swift: var writtenBy
+source RecordSyncProbe.swift: func appendLocalSample
+source RecordSyncProbe.swift: func appendSyncedSamples
+source RecordSyncProbe.swift: func snapshot
+source RecordSyncProbe.swift: let account
+source RecordSyncProbe.swift: let count
+source RecordSyncProbe.swift: let counts
+source RecordSyncProbe.swift: let detail
+source RecordSyncProbe.swift: let deviceId
+source RecordSyncProbe.swift: let deviceId
+source RecordSyncProbe.swift: let hlc
+source RecordSyncProbe.swift: let id
+source RecordSyncProbe.swift: let kind
+source RecordSyncProbe.swift: let kind
+source RecordSyncProbe.swift: let newestHLC
+source RecordSyncProbe.swift: let rows
+source RecordSyncProbe.swift: let skipped
+source RecordSyncProbe.swift: struct RecordSyncCount
+source RecordSyncProbe.swift: struct RecordSyncProbe
+source RecordSyncProbe.swift: struct RecordSyncRow
+source RecordSyncProbe.swift: struct RecordSyncSnapshot
+source RecordSyncProbe.swift: var deviceId
+source RecordSyncProbe.swift: var id
+symbol AssistantMessageBody
+symbol AssistantMessageBody.assembledHash
+symbol AssistantMessageBody.chatId
+symbol AssistantMessageBody.templateHash
+symbol AssistantMessageBody.text
+symbol AthleteRecord
+symbol AthleteRecord.account
+symbol AthleteRecord.body
+symbol AthleteRecord.cause
+symbol AthleteRecord.chatId
+symbol AthleteRecord.civilDate
+symbol AthleteRecord.deviceId
+symbol AthleteRecord.hlc
+symbol AthleteRecord.id
+symbol AthleteRecord.locality
+symbol AthleteRecord.timeZone
+symbol AthleteRecord.ulid
+symbol CoachReplyLanguageBody
+symbol CoachReplyLanguageBody.tag
+symbol CompactionSummaryBody
+symbol CompactionSummaryBody.chatId
+symbol CompactionSummaryBody.markdown
+symbol DailyNoteBody
+symbol DailyNoteBody.note
+symbol DeviceLocalKind
+symbol DeviceLocalKind.flushPending
+symbol DeviceLocalKind.flushSettled
+symbol DeviceLocalKind.mirrorJob
+symbol DeviceLocalKind.pendingProposal
+symbol DeviceLocalKind.planRevision
+symbol DeviceLocalKind.planningCommand
+symbol DeviceLocalKind.proposalCleared
+symbol DeviceLocalKind.replyObserved
+symbol DeviceLocalKind.turnClaim
+symbol DeviceLocalKind.workoutDrift
+symbol DeviceLocalKind.workoutMatch
+symbol DeviceLocalRecordBody
+symbol DeviceLocalRecordBody.chatId
+symbol DeviceLocalRecordBody.flushPending
+symbol DeviceLocalRecordBody.flushSettled
+symbol DeviceLocalRecordBody.kind
+symbol DeviceLocalRecordBody.mirrorJob
+symbol DeviceLocalRecordBody.pendingProposal
+symbol DeviceLocalRecordBody.planRevision
+symbol DeviceLocalRecordBody.planningCommand
+symbol DeviceLocalRecordBody.proposalCleared
+symbol DeviceLocalRecordBody.replyObserved
+symbol DeviceLocalRecordBody.turn
+symbol DeviceLocalRecordBody.turnClaim
+symbol DeviceLocalRecordBody.workoutDrift
+symbol DeviceLocalRecordBody.workoutMatch
+symbol FlushPendingBody
+symbol FlushPendingBody.chatId
+symbol FlushPendingBody.messageUlids
+symbol FlushPendingBody.process
+symbol FlushPendingBody.trigger
+symbol FlushSettledBody
+symbol FlushSettledBody.chatId
+symbol FlushSettledBody.job
+symbol FlushSettledBody.settlement
+symbol FlushSettlement
+symbol FlushSettlement.abandoned
+symbol FlushSettlement.nothingToSave
+symbol FlushSettlement.saved
+symbol HybridLogicalClock
+symbol HybridLogicalClock.<(_:_:)
+symbol HybridLogicalClock.deviceId
+symbol HybridLogicalClock.init(wallMs:logical:deviceId:)
+symbol HybridLogicalClock.logical
+symbol HybridLogicalClock.tick(now:deviceId:last:)
+symbol HybridLogicalClock.wallMs
+symbol InMemoryRecordLog
+symbol InMemoryRecordLog.append(_:locality:)
+symbol InMemoryRecordLog.deviceId
+symbol InMemoryRecordLog.fetch(_:)
+symbol InMemoryRecordLog.imports
+symbol InMemoryRecordLog.init(deviceId:)
+symbol JournalBody
+symbol JournalBody.op
+symbol JournalBody.preview
+symbol LanguagePreferenceBody
+symbol LanguagePreferenceBody.preference
+symbol LedgerEventBody
+symbol LedgerEventBody.date
+symbol LedgerEventBody.kind
+symbol LedgerEventBody.source
+symbol LedgerEventBody.text
+symbol LegacyKind
+symbol LegacyKind.assistantMessage
+symbol LegacyKind.userMessage
+symbol LegacyKind.windowStart
+symbol LegacyRecordBody
+symbol LegacyRecordBody.assistantMessage
+symbol LegacyRecordBody.chatId
+symbol LegacyRecordBody.kind
+symbol LegacyRecordBody.userMessageV1
+symbol LegacyRecordBody.windowStartV1
+symbol MemorySectionBody
+symbol MemorySectionBody.content
+symbol MemorySectionBody.name
+symbol MirrorJobBody
+symbol MirrorJobBody.failureCount
+symbol MirrorJobBody.kind
+symbol MirrorJobBody.planUlid
+symbol MirrorJobBody.windowEnd
+symbol MirrorJobBody.windowStart
+symbol ModelContainerHandle
+symbol ModelContainerHandle.applicationSupportDirectory()
+symbol ModelContainerHandle.cloudKitContainerIdentifier
+symbol ModelContainerHandle.deviceLocal(directory:)
+symbol ModelContainerHandle.localStoreFileName
+symbol ModelContainerHandle.syncedCloudKit(directory:)
+symbol ModelContainerHandle.syncedStoreFileName
+symbol ModelContainerHandle.withoutCloudKit(storeURL:)
+symbol PlanRevisionBody
+symbol PlanRevisionBody.planUlid
+symbol PlanRevisionBody.snapshot
+symbol PlanRevisionBody.status
+symbol PlanRevisionBody.version
+symbol PlanningCommandBody
+symbol PlanningCommandBody.commandId
+symbol PlanningCommandBody.commandName
+symbol PlanningCommandBody.requestDigest
+symbol PlanningCommandBody.result
+symbol PlanningCommandBody.status
+symbol PlanningDeviceBody
+symbol PlanningDeviceBody.activatedAt
+symbol PlanningDeviceBody.planUlid
+symbol PlanningDeviceBody.planningDeviceId
+symbol ProposalBody
+symbol ProposalBody.chatId
+symbol ProposalBody.description
+symbol ProposalBody.expiresAt
+symbol ProposalBody.nonce
+symbol ProposalBody.summary
+symbol ProposalBody.tool
+symbol ProposalBody.toolInput
+symbol ProposalClearReason
+symbol ProposalClearReason.canceled
+symbol ProposalClearReason.executed
+symbol ProposalClearReason.expired
+symbol ProposalClearReason.replaced
+symbol ProposalClearedBody
+symbol ProposalClearedBody.chatId
+symbol ProposalClearedBody.nonce
+symbol ProposalClearedBody.reason
+symbol ProvenanceBody
+symbol ProvenanceBody.contentSha256
+symbol ProvenanceBody.garmin
+symbol ProvenanceBody.key
+symbol ProvenanceBody.nonGarmin
+symbol ProvenanceBody.unknown
+symbol RecordBody
+symbol RecordBody.chatId
+symbol RecordBody.deviceLocal
+symbol RecordBody.kind
+symbol RecordBody.legacy
+symbol RecordBody.locality
+symbol RecordBody.synced
+symbol RecordBody.turn
+symbol RecordCause
+symbol RecordCause.legacy
+symbol RecordCause.operation
+symbol RecordLocality
+symbol RecordLocality.deviceLocal
+symbol RecordLocality.synced
+symbol RecordLog
+symbol RecordLog.append(_:locality:)
+symbol RecordLog.deviceId
+symbol RecordLog.fetch(_:)
+symbol RecordLog.imports
+symbol RecordPage
+symbol RecordPage.init(records:skipped:)
+symbol RecordPage.records
+symbol RecordPage.skipped
+symbol RecordQuery
+symbol RecordQuery.Scope
+symbol RecordQuery.Scope.deviceLocal
+symbol RecordQuery.Scope.everyDeviceLocal
+symbol RecordQuery.Scope.everySynced
+symbol RecordQuery.Scope.synced
+symbol RecordQuery.Scope.synced(_:)
+symbol RecordQuery.chatId
+symbol RecordQuery.from
+symbol RecordQuery.init(scope:chatId:turn:from:to:writtenBy:)
+symbol RecordQuery.scope
+symbol RecordQuery.to
+symbol RecordQuery.turn
+symbol RecordQuery.writtenBy
+symbol RecordSyncCount
+symbol RecordSyncCount.count
+symbol RecordSyncCount.id
+symbol RecordSyncCount.kind
+symbol RecordSyncProbe
+symbol RecordSyncProbe.appendLocalSample()
+symbol RecordSyncProbe.appendSyncedSamples()
+symbol RecordSyncProbe.deviceId
+symbol RecordSyncProbe.snapshot()
+symbol RecordSyncRow
+symbol RecordSyncRow.account
+symbol RecordSyncRow.detail
+symbol RecordSyncRow.deviceId
+symbol RecordSyncRow.hlc
+symbol RecordSyncRow.id
+symbol RecordSyncRow.kind
+symbol RecordSyncSnapshot
+symbol RecordSyncSnapshot.counts
+symbol RecordSyncSnapshot.deviceId
+symbol RecordSyncSnapshot.newestHLC
+symbol RecordSyncSnapshot.rows
+symbol RecordSyncSnapshot.skipped
+symbol ReplyLineage
+symbol ReplyLineage.assembledHash
+symbol ReplyLineage.templateHash
+symbol ReplyObservedBody
+symbol ReplyObservedBody.attempt
+symbol ReplyObservedBody.chatId
+symbol ReplyObservedBody.turn
+symbol ReplyText
+symbol ReplyText.model
+symbol ResetKind
+symbol ResetKind.daily
+symbol ResetKind.explicit
+symbol ResetKind.idle
+symbol ReviewAppliedBody
+symbol ReviewAppliedBody.chatId
+symbol ReviewAppliedBody.summary
+symbol SessionSettingsBody
+symbol SessionSettingsBody.settings
+symbol Settlement
+symbol Settlement.failed
+symbol Settlement.interrupted
+symbol Settlement.replied
+symbol Settlement.savedWork
+symbol SkippedRow
+symbol SkippedRow.malformed
+symbol SkippedRow.newerKind
+symbol SkippedRow.newerVersion
+symbol SwiftDataRecordLog
+symbol SwiftDataRecordLog.append(_:locality:)
+symbol SwiftDataRecordLog.deviceId
+symbol SwiftDataRecordLog.fetch(_:)
+symbol SwiftDataRecordLog.imports
+symbol SwiftDataRecordLog.init(deviceId:synced:local:)
+symbol SyncedKind
+symbol SyncedKind.coachReplyLanguage
+symbol SyncedKind.compactionSummary
+symbol SyncedKind.dailyNote
+symbol SyncedKind.journal
+symbol SyncedKind.languagePreference
+symbol SyncedKind.ledgerEvent
+symbol SyncedKind.memorySection
+symbol SyncedKind.planningDevice
+symbol SyncedKind.provenance
+symbol SyncedKind.reviewApplied
+symbol SyncedKind.sessionSettings
+symbol SyncedKind.turnSettled
+symbol SyncedKind.userMessage
+symbol SyncedKind.windowStart
+symbol SyncedRecordBody
+symbol SyncedRecordBody.chatId
+symbol SyncedRecordBody.coachReplyLanguage
+symbol SyncedRecordBody.compactionSummary
+symbol SyncedRecordBody.dailyNote
+symbol SyncedRecordBody.journal
+symbol SyncedRecordBody.kind
+symbol SyncedRecordBody.languagePreference
+symbol SyncedRecordBody.ledgerEvent
+symbol SyncedRecordBody.memorySection
+symbol SyncedRecordBody.planningDevice
+symbol SyncedRecordBody.provenance
+symbol SyncedRecordBody.reviewApplied
+symbol SyncedRecordBody.sessionSettings
+symbol SyncedRecordBody.turn
+symbol SyncedRecordBody.turnSettled
+symbol SyncedRecordBody.userMessage
+symbol SyncedRecordBody.windowStart
+symbol TurnClaimBody
+symbol TurnClaimBody.attempt
+symbol TurnClaimBody.chatId
+symbol TurnClaimBody.lease
+symbol TurnClaimBody.process
+symbol TurnClaimBody.turn
+symbol TurnSettledBody
+symbol TurnSettledBody.attempt
+symbol TurnSettledBody.chatId
+symbol TurnSettledBody.settlement
+symbol TurnSettledBody.turn
+symbol UserMessageBody
+symbol UserMessageBody.athleteText
+symbol UserMessageBody.chatId
+symbol UserMessageBody.draft
+symbol UserMessageBody.fragment
+symbol UserMessageBody.slash
+symbol UserMessageBody.turn
+symbol WindowReason
+symbol WindowReason.compaction
+symbol WindowReason.reset
+symbol WindowReason.trim
+symbol WindowStartBody
+symbol WindowStartBody.chatId
+symbol WindowStartBody.firstIncludedUlid
+symbol WindowStartBody.reason
+symbol WorkoutDriftBody
+symbol WorkoutDriftBody.askedAt
+symbol WorkoutDriftBody.planWorkoutId
+symbol WorkoutMatchBody
+symbol WorkoutMatchBody.activityId
+symbol WorkoutMatchBody.decision
+symbol WorkoutMatchBody.planWorkoutId
