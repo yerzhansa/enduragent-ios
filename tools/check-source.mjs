@@ -53,6 +53,10 @@ try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
+      const state = /^\s*(?:(?:public|internal|package|private\(set\))\s+)?(?:lazy\s+)?(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/m;
+      if (state.test(text)) report(file, 'mailbox-private-state');
+    }
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bbuilder\s*\.\s*phrasebook\b/.test(text)) report(file, 'device-only-phrasebook');
     if (/(?:["'](?:id|activity_?id)["']\s*:\s*["']?\d{9,}\b|\/activit(?:y|ies)\/\d{9,}\b|\bactivity_?[Ii][Dd]\s*[:=]\s*["']?\d{9,}\b)/.test(text)) report(file, 'activity-id');
