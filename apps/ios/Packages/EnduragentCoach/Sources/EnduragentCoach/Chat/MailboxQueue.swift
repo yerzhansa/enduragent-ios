@@ -1,12 +1,6 @@
 import Foundation
 
-struct Admitted: ~Copyable {
-	private let queue: MailboxQueue
-
-	fileprivate init(_ queue: MailboxQueue) {
-		self.queue = queue
-	}
-
+extension ChatMailbox.Admitted {
 	func add(_ turn: TurnID) -> Bool {
 		queue.append(.turn(turn))
 	}
@@ -31,9 +25,6 @@ final class MailboxQueue {
 	fileprivate var joining = JoinWindow()
 	private(set) var active: MailboxWork?
 	private var waiting: [MailboxWork] = []
-	private let door = Turnstile()
-
-	var held: Bool { door.held }
 
 	var window: OpenWindow? { joining.open }
 
@@ -43,13 +34,6 @@ final class MailboxQueue {
 
 	var resetting: Bool {
 		active?.reset != nil || waiting.contains { $0.reset != nil }
-	}
-
-	func pass<Value, Failure: Error>(
-		isolation: isolated (any Actor)? = #isolation,
-		_ body: nonisolated(nonsending) (borrowing Admitted) async throws(Failure) -> Value
-	) async throws(Failure) -> Value {
-		try await door.pass { () async throws(Failure) -> Value in try await body(Admitted(self)) }
 	}
 
 	func turns(includingActive: Bool) -> [TurnID] {

@@ -157,11 +157,11 @@ import Testing
 
 	@Test func willTerminateDoesNotWaitOnTheFlushQueueAfterTheStoppedTurn() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.script = [.text("Working."), .hang]
 		let store = HeldFlushReadLog(inner: InMemoryRecordLog())
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
-		await coach.waitUntilProcessing(running)
+		await coach.waitForLiveText(running)
 		store.holdNextChatFlushRead()
 		let terminated = Mutex(false)
 		let terminating = Task {

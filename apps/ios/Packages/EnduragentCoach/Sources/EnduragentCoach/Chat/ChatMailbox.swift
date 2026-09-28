@@ -14,10 +14,11 @@ package actor ChatMailbox {
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private let work = MailboxQueue()
+	private let door = Turnstile()
 	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
 	private let interruption = Interruption()
-	private var terminating = false
+	private let lifetime: Coach.Lifetime
 	private var foreground = true
 	private var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
@@ -35,7 +36,7 @@ package actor ChatMailbox {
 		coalescing: CoalescingPolicy,
 		environment: EnvironmentResolver,
 		process: ProcessID,
-		host: any ExecutionHost
+		host: any ExecutionHost, lifetime: Coach.Lifetime
 	) {
 		self.chatId = chatId
 		self.ledger = ledger
@@ -45,6 +46,7 @@ package actor ChatMailbox {
 		self.coalescing = coalescing
 		self.environment = environment
 		self.process = process
+		self.lifetime = lifetime
 		self.leases = LeaseSlot(host: host, chat: chatId)
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
@@ -70,14 +72,14 @@ package actor ChatMailbox {
 		case .resetConversation: return .newConversation(await reset())
 		case .modelTurn, nil: break
 		}
-		return try await work.pass { admitted throws(AcceptFailure) in
+		return try await pass { admitted throws(AcceptFailure) in
 			try await admit(Draft(id: draft.id, text: text), slash: slash, admitted)
 		}
 	}
 
 	package func reset() async -> ResetOutcome {
 		do {
-			let reset = try await work.pass { admitted throws(LedgerFailure) in
+			let reset = try await pass { admitted throws(LedgerFailure) in
 				try await records.load()
 				closeWindow(admitted)
 				let reset = ResetID(ulid: await ledger.nextULID())
@@ -89,6 +91,12 @@ package actor ChatMailbox {
 		} catch {
 			return .notStarted(.local(.recordStorage))
 		}
+	}
+
+	private func pass<Value, Failure: Error>(
+		_ body: nonisolated(nonsending) (borrowing Admitted) async throws(Failure) -> Value
+	) async throws(Failure) -> Value {
+		try await door.pass { () async throws(Failure) -> Value in try await body(Admitted(work)) }
 	}
 
 	private func admit(
@@ -132,12 +140,12 @@ package actor ChatMailbox {
 		admitted.arm(message.turn, at: clock.now, for: coalescing.window) { armed in
 			await self.closeWindowAdmitted(armed)
 		}
-		publish()
+		feed.publish(snapshot())
 		return .accepted(message.turn)
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
-		try await work.pass { admitted throws(RetryRefusal) in
+		try await pass { admitted throws(RetryRefusal) in
 			do {
 				try await records.load()
 			} catch {
@@ -158,13 +166,13 @@ package actor ChatMailbox {
 
 	package func interrupt(_ cause: InterruptionCause) async {
 		guard interruption.cause == nil else { return await interruption.join() }
-		guard running != nil || work.window != nil || !work.isEmpty || work.held else {
+		guard running != nil || work.window != nil || !work.isEmpty || door.held else {
 			return
 		}
 		interruption.begin(cause)
-		publish()
+		feed.publish(snapshot())
 		running?.cancel()
-		await work.pass { admitted in
+		await pass { admitted in
 			await running?.value
 			let unstarted = work.dropWaiting() + [admitted.closeWindow()].compactMap { $0 }
 			for turn in unstarted {
@@ -174,19 +182,8 @@ package actor ChatMailbox {
 			interruption.end()
 			leases.end { $0.interrupt() }
 		}
-		publish()
+		feed.publish(snapshot())
 		drainIfIdle()
-	}
-
-	private func terminate() async {
-		let owned = interruption.cause == nil
-		if owned { interruption.begin(.appTerminating) }
-		publish()
-		running?.cancel()
-		await running?.value
-		leases.end { $0.interrupt() }
-		if owned { interruption.end() }
-		publish()
 	}
 
 	package func lifecycle(_ event: AppLifecycleEvent) async {
@@ -197,10 +194,16 @@ package actor ChatMailbox {
 			return
 		case .enteredBackground:
 			foreground = false
-			await work.pass { admitted in closeWindow(admitted) }
+			await pass { admitted in closeWindow(admitted) }
 		case .willTerminate:
-			terminating = true
-			await terminate()
+			let owned = interruption.cause == nil
+			if owned { interruption.begin(.appTerminating) }
+			feed.publish(snapshot())
+			running?.cancel()
+			await running?.value
+			leases.end { $0.interrupt() }
+			if owned { interruption.end() }
+			feed.publish(snapshot())
 		}
 	}
 
@@ -212,14 +215,14 @@ package actor ChatMailbox {
 				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
 		}
 		for job in plan.drain {
-			enqueue(job)
+			if work.add(job) { workAdded() }
 		}
-		publish()
+		feed.publish(snapshot())
 	}
 
 	package func refreshProposal() async {
 		await records.refreshProposal()
-		publish()
+		feed.publish(snapshot())
 	}
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
@@ -227,7 +230,7 @@ package actor ChatMailbox {
 	}
 
 	private func closeWindowAdmitted(_ armed: Int) async {
-		await work.pass { admitted in closeWindow(admitted, ifArmed: armed) }
+		await pass { admitted in closeWindow(admitted, ifArmed: armed) }
 	}
 
 	private func closeWindow(_ admitted: borrowing Admitted, ifArmed armed: Int? = nil) {
@@ -239,12 +242,8 @@ package actor ChatMailbox {
 		if admitted.add(turn) { workAdded() }
 	}
 
-	private func enqueue(_ job: FlushJobID) {
-		if work.add(job) { workAdded() }
-	}
-
 	private func workAdded() {
-		publish()
+		feed.publish(snapshot())
 		drainIfIdle()
 	}
 
@@ -262,7 +261,7 @@ package actor ChatMailbox {
 				_ = await self.records.refreshJobs(from: self.flushes)
 			case .reset(let reset):
 				await self.resets.run(reset, on: self.records, access: self.environment.access) {
-					self.publish()
+					self.feed.publish(self.snapshot())
 				}
 			}
 			self.workFinished()
@@ -273,17 +272,17 @@ package actor ChatMailbox {
 		running = nil
 		work.finish()
 		if work.isEmpty {
-			if work.window == nil, interruption.cause == nil, !terminating {
+			if work.window == nil, interruption.cause == nil, !lifetime.terminating {
 				leases.end { $0.finish() }
 			}
-			publish()
+			feed.publish(snapshot())
 		} else {
 			drainIfIdle()
 		}
 	}
 
 	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease? {
-		guard !terminating else { return nil }
+		guard !lifetime.terminating else { return nil }
 		return leases.hold(initiator) { [weak self] generation, cause in
 			await self?.expire(cause, lease: generation)
 		}
@@ -319,7 +318,7 @@ package actor ChatMailbox {
 			return finish(turn, under: lease)
 		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
-		publish()
+		feed.publish(snapshot())
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let request = await environment.attempt(
 			of: facts, attempt: attempt, chat: chatId, process: process, in: resolved)
@@ -337,9 +336,9 @@ package actor ChatMailbox {
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		finish(turn, under: lease)
-		if !terminating {
+		if !lifetime.terminating {
 			for job in await records.refreshJobs(from: flushes) {
-				enqueue(job)
+				if work.add(job) { workAdded() }
 			}
 		}
 	}
@@ -352,7 +351,7 @@ package actor ChatMailbox {
 			finishedAway.insert(turn)
 		}
 		lease.settle(turn, reply: reply)
-		publish()
+		feed.publish(snapshot())
 	}
 
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
@@ -365,7 +364,7 @@ package actor ChatMailbox {
 		}
 		current.apply(progress)
 		live = current
-		publish()
+		feed.publish(snapshot())
 	}
 
 	private func snapshot() -> ChatSnapshot {
@@ -388,11 +387,14 @@ package actor ChatMailbox {
 		)
 	}
 
-	private func publish() {
-		feed.publish(snapshot())
+	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
+		if waits.end(turn, attempt: attempt) { feed.publish(snapshot()) }
 	}
 
-	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
-		if waits.end(turn, attempt: attempt) { publish() }
+	struct Admitted: ~Copyable {
+		private let bound: MailboxQueue
+		var queue: MailboxQueue { bound }
+
+		fileprivate init(_ queue: MailboxQueue) { bound = queue }
 	}
 }
