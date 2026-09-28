@@ -1031,7 +1031,8 @@
       "responseFailure": "Trener nie mógł odpowiedzieć. Spróbuj ponownie.",
       "retryMessage": "Ponów wiadomość",
       "savedChoice": "Zapisany wybór",
-      "working": "Trener pracuje…"
+      "working": "Trener pracuje…",
+      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
     },
     "planChange": {
       "activePlan": "Aktywny plan",

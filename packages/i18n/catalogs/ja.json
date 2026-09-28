@@ -1007,7 +1007,8 @@
       "responseFailure": "コーチが回答できませんでした。もう一度お試しください。",
       "retryMessage": "メッセージを再試行",
       "savedChoice": "保存済みの選択",
-      "working": "コーチが処理中…"
+      "working": "コーチが処理中…",
+      "responseStopped": "回答を停止しました。途中までの回答は残っています。"
     },
     "planChange": {
       "activePlan": "有効なプラン",

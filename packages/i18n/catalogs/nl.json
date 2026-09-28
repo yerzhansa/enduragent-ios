@@ -1015,7 +1015,8 @@
       "responseFailure": "De coach kon niet antwoorden. Probeer het opnieuw.",
       "retryMessage": "Bericht opnieuw proberen",
       "savedChoice": "Opgeslagen keuze",
-      "working": "De coach is bezig…"
+      "working": "De coach is bezig…",
+      "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard."
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",

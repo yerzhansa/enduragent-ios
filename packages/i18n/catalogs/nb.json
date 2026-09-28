@@ -1015,7 +1015,8 @@
       "responseFailure": "Treneren kunne ikke svare. Prøv igjen.",
       "retryMessage": "Prøv meldingen igjen",
       "savedChoice": "Lagret valg",
-      "working": "Treneren jobber…"
+      "working": "Treneren jobber…",
+      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart."
     },
     "planChange": {
       "activePlan": "Aktiv plan",

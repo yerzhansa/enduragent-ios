@@ -9,7 +9,7 @@ struct NoticeView: View {
 			VStack(spacing: 24) {
 				Text(model.phrasebook.say(Catalog.onboardingNoticeHealth, [:]))
 					.multilineTextAlignment(.center)
-				Button("Continue") {
+				Button(model.phrasebook.say(Catalog.commonContinue, [:])) {
 					model.continueNotice()
 				}
 				.accessibilityIdentifier("notice.continue")

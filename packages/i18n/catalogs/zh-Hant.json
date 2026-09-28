@@ -1007,7 +1007,8 @@
       "responseFailure": "教練無法回覆。請重試。",
       "retryMessage": "重試傳送訊息",
       "savedChoice": "已儲存的選擇",
-      "working": "教練正在處理…"
+      "working": "教練正在處理…",
+      "responseStopped": "已停止回覆。已產生的部分回覆已保留。"
     },
     "planChange": {
       "activePlan": "目前啟用的計畫",

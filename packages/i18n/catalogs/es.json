@@ -1015,7 +1015,8 @@
       "responseFailure": "El entrenador no pudo responder. Inténtalo de nuevo.",
       "retryMessage": "Reintentar mensaje",
       "savedChoice": "Elección guardada",
-      "working": "El entrenador está trabajando…"
+      "working": "El entrenador está trabajando…",
+      "responseStopped": "Respuesta detenida. Se conserva la respuesta parcial."
     },
     "planChange": {
       "activePlan": "Plan activo",

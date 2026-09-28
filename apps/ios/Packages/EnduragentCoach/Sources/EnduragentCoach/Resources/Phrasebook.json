@@ -1711,6 +1711,16 @@
         }
       }
     },
+    "archive.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        }
+      }
+    },
     "archive.listFailure": {
       "localizations": {
         "en": {
@@ -3831,6 +3841,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "此對話已無法使用。"
+          }
+        }
+      }
+    },
+    "chat.addToCalendar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to calendar"
           }
         }
       }
@@ -12857,6 +12877,16 @@
         }
       }
     },
+    "chat.composer.messageField": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message"
+          }
+        }
+      }
+    },
     "chat.composer.messagePlaceholder": {
       "localizations": {
         "en": {
@@ -13181,6 +13211,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "傳送訊息"
+          }
+        }
+      }
+    },
+    "chat.composer.sendButton": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
           }
         }
       }
@@ -16591,6 +16631,16 @@
         }
       }
     },
+    "chat.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        }
+      }
+    },
     "chat.newConversation.attachmentDraft": {
       "localizations": {
         "en": {
@@ -19763,6 +19813,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "教練無法回覆。請重試。"
+          }
+        }
+      }
+    },
+    "chat.notice.responseStopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Response stopped. Your partial response is preserved."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Respuesta detenida. Se conserva la respuesta parcial."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réponse arrêtée. La réponse partielle est conservée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Risposta interrotta. La risposta parziale è conservata."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret er stoppet. Det delvise svar bliver bevaret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret stoppades. Den del av svaret som kom fram finns kvar."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret er stoppet. Den ferdige delen av svaret er bevart."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vastaus pysäytetty. Osittainen vastaus säilyy."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta interrompida. A resposta parcial mantém-se."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resposta interrompida. A resposta parcial foi preservada."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答を停止しました。途中までの回答は残っています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止回复。已生成的部分回复已保留。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止回覆。已產生的部分回覆已保留。"
           }
         }
       }
@@ -62239,6 +62395,16 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "chat.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach"
           }
         }
       }
@@ -110575,6 +110741,44 @@
         }
       }
     },
+    "credits.balance": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.buy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy"
+          }
+        }
+      }
+    },
     "credits.error.accessRejected": {
       "localizations": {
         "en": {
@@ -110601,6 +110805,86 @@
           "stringUnit": {
             "state": "translated",
             "value": "Credits are unavailable right now. Try again later."
+          }
+        }
+      }
+    },
+    "credits.pack": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.packPrice": {
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credit · %#@price@"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ credits · %#@price@"
+                }
+              }
+            }
+          },
+          "substitutions": {
+            "formattedCount": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "price": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "credits.testers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testers cannot buy packs yet."
+          }
+        }
+      }
+    },
+    "credits.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits"
           }
         }
       }
@@ -121567,12 +121851,100 @@
         }
       }
     },
+    "onboarding.connect.action": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect"
+          }
+        }
+      }
+    },
+    "onboarding.connect.apiKey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API key"
+          }
+        }
+      }
+    },
+    "onboarding.connect.fatigue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fatigue %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.fitness": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fitness %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.form": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Form %#@value@"
+          },
+          "substitutions": {
+            "value": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "onboarding.connect.skip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip for now"
+          }
+        }
+      }
+    },
     "onboarding.notice.health": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        }
+      }
+    },
+    "onboarding.starter.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start chatting"
           }
         }
       }
@@ -285343,6 +285715,16 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
+          }
+        }
+      }
+    },
+    "sidebar.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
           }
         }
       }

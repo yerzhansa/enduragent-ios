@@ -1015,7 +1015,8 @@
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
       "retryMessage": "Försök skicka meddelandet igen",
       "savedChoice": "Sparat val",
-      "working": "Tränaren arbetar…"
+      "working": "Tränaren arbetar…",
+      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar."
     },
     "planChange": {
       "activePlan": "Aktiv plan",

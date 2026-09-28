@@ -1007,7 +1007,8 @@
       "responseFailure": "코치가 답변하지 못했습니다. 다시 시도하세요.",
       "retryMessage": "메시지 재시도",
       "savedChoice": "저장된 선택",
-      "working": "코치가 작업 중…"
+      "working": "코치가 작업 중…",
+      "responseStopped": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다."
     },
     "planChange": {
       "activePlan": "활성 계획",

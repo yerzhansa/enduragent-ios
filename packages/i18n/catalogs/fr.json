@@ -1015,7 +1015,8 @@
       "responseFailure": "Le coach n’a pas pu répondre. Réessaie.",
       "retryMessage": "Réessayer le message",
       "savedChoice": "Choix enregistré",
-      "working": "Le coach travaille…"
+      "working": "Le coach travaille…",
+      "responseStopped": "Réponse arrêtée. La réponse partielle est conservée."
     },
     "planChange": {
       "activePlan": "Plan actif",

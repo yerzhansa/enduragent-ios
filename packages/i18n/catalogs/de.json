@@ -1015,7 +1015,8 @@
       "responseFailure": "Der Coach konnte nicht antworten. Bitte versuche es erneut.",
       "retryMessage": "Nachricht erneut senden",
       "savedChoice": "Gespeicherte Auswahl",
-      "working": "Der Coach arbeitet…"
+      "working": "Der Coach arbeitet…",
+      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten."
     },
     "planChange": {
       "activePlan": "Aktiver Plan",

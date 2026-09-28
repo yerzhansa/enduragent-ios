@@ -1015,7 +1015,8 @@
       "responseFailure": "Valmentaja ei voinut vastata. Yritä uudelleen.",
       "retryMessage": "Yritä viestiä uudelleen",
       "savedChoice": "Tallennettu valinta",
-      "working": "Valmentaja työskentelee…"
+      "working": "Valmentaja työskentelee…",
+      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy."
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
