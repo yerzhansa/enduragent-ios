@@ -24,7 +24,7 @@ extension FixtureLaunchTests {
 		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
 		#expect(failed.notice.vars.isEmpty)
 		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test(arguments: [
@@ -58,7 +58,7 @@ extension FixtureLaunchTests {
 		#expect(failure.notice.key == key)
 		#expect(failure.notice.action?.title == button)
 		#expect(transport.requestCount == requests)
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func failDirectiveRetriesOnceThenReplies() async throws {
@@ -150,7 +150,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
 		#expect(failure.notice.action == .tryAgain(failed.id))
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 		await model.perform(.tryAgain(failed.id))
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)

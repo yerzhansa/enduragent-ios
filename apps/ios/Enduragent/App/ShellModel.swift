@@ -22,7 +22,7 @@ final class ShellModel {
 	var creditsNotice: AthleteNotice?
 	private(set) var history: HistoryList = .loading
 	private(set) var newConversationUncertain = false
-	var errorLine: String?
+	private(set) var fixtureFeedback: String?
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
@@ -31,7 +31,7 @@ final class ShellModel {
 	var showCredits = false
 	var packPrices: [String: String] = [:]
 
-	let builder: ServicesBuilder
+	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
 	let drafts: DraftStore
 	private let defaults: UserDefaults
@@ -39,12 +39,12 @@ final class ShellModel {
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
 
-	init(builder: ServicesBuilder, initialLanguage: LanguagePreference = .automatic) {
+	init(environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic) {
 		self.initialLanguage = initialLanguage
-		self.builder = builder
-		self.lifecycle = AppLifecycle(builder: builder)
-		self.defaults = builder.defaults
-		self.drafts = DraftStore(defaults: builder.defaults)
+		self.environment = environment
+		self.lifecycle = AppLifecycle(environment: environment)
+		self.defaults = environment.defaults
+		self.drafts = DraftStore(defaults: environment.defaults)
 		if defaults.bool(forKey: Self.onboardingCompletedKey) {
 			route = .chat
 		}
@@ -57,7 +57,7 @@ final class ShellModel {
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
 
 	var services: AppServices {
-		builder.services
+		environment.services
 	}
 
 	var languagePreference: LanguagePreference {
@@ -65,7 +65,7 @@ final class ShellModel {
 	}
 
 	var phrasebook: any Phrasebook {
-		languagePreference.phrasebook(device: builder.language)
+		languagePreference.phrasebook(device: environment.language)
 	}
 
 	var languageNotSavedLine: String? {
@@ -125,7 +125,7 @@ final class ShellModel {
 		guard !starterLoaded else { return }
 		starterLoaded = true
 		do {
-			let token = try await builder.deviceCheck.token()
+			let token = try await environment.deviceCheck.token()
 			let outcome = try await services.coach.credits.grant(deviceCheck: token)
 			switch outcome {
 			case .minted(let credits):
@@ -187,7 +187,7 @@ final class ShellModel {
 
 	func newConversation() async {
 		reviewNotice = nil
-		errorLine = nil
+		fixtureFeedback = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
@@ -247,11 +247,11 @@ final class ShellModel {
 		defer { isSending = false }
 		notSent = false
 		newConversationUncertain = false
-		errorLine = nil
+		fixtureFeedback = nil
 		reviewNotice = nil
 		slashListVisible = false
 		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
-			errorLine = message
+			fixtureFeedback = message
 			return
 		}
 		do {

@@ -80,7 +80,8 @@ final class ShellLanguageTests {
 			.finish(reason: .stop),
 		]
 		let model = ShellModel(
-			builder: ServicesBuilder(services: try services(), language: .en, defaults: defaults))
+			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		)
 		model.startChatting()
 		await model.appear()
 		model.draft.text = "Add a core workout tomorrow."

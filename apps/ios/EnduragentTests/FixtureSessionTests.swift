@@ -46,7 +46,7 @@ extension FixtureLaunchTests {
 				"The athlete chose French (Français).") == true)
 		let (kept, keptDefaults) = try relaunch(.keep)
 		let reopened = ShellModel(
-			builder: ServicesBuilder(services: kept, language: language, defaults: keptDefaults))
+			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		#expect(reopened.route == .chat)
 		await reopened.appear()
 		#expect(reopened.status?.language == .fixed(.fr))
@@ -95,7 +95,7 @@ extension FixtureLaunchTests {
 		morning.clock = "1998-06-16T02:20:00Z"
 		let keptDefaults = try morning.prepare()
 		let second = ShellModel(
-			builder: ServicesBuilder(
+			environment: AppEnvironment(
 				services: try AppServices.fixture(morning, defaults: keptDefaults),
 				language: language,
 				defaults: keptDefaults))

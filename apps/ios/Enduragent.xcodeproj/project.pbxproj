@@ -63,6 +63,7 @@
 		B8B5B2CD54D504408A81CF72 /* AppLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369087E8FEFAB5E7EFE6A0D3 /* AppLaunch.swift */; };
 		BA0900D87796BFA9E7546569 /* FirstWeekFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */; };
 		BBF95D94732005A056255F82 /* StorageUnavailableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED6E798065E1F8F455AE4F5 /* StorageUnavailableView.swift */; };
+		BFC0E371CC6DB4C88746E035 /* FixtureFeedbackDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104AF180D9DC0C7498CCF0A2 /* FixtureFeedbackDebugView.swift */; };
 		C1581048028E54850D1ECDE7 /* FixtureDirector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D8D3A3B2A059733579AEDA6 /* FixtureDirector.swift */; };
 		C97AC1EF5C858E7B5CBD5738 /* TurnRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6932D7AAEE51A2B4AD64EA7 /* TurnRowView.swift */; };
 		CCB3E03617B218C658E5A729 /* NoticeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4D837BF9883269DAD6C615 /* NoticeView.swift */; };
@@ -105,6 +106,7 @@
 		0B225A02F617E4975CE70633 /* FixtureReviewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureReviewTests.swift; sourceTree = "<group>"; };
 		0B51C0FB7523F97C0604B17D /* FixtureClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureClock.swift; sourceTree = "<group>"; };
 		1041134C33C16BE411AFAA91 /* Enduragent.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Enduragent.entitlements; sourceTree = "<group>"; };
+		104AF180D9DC0C7498CCF0A2 /* FixtureFeedbackDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureFeedbackDebugView.swift; sourceTree = "<group>"; };
 		16035C888264B4CE716D1273 /* ShellLanguageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellLanguageTests.swift; sourceTree = "<group>"; };
 		18D2308DCE3D595679027103 /* ArchivedConversationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivedConversationView.swift; sourceTree = "<group>"; };
 		1C817FBBA11C32739DD15F72 /* AppLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycle.swift; sourceTree = "<group>"; };
@@ -261,6 +263,7 @@
 				84FFE0F37052EAEFF6684E41 /* ChatView.swift */,
 				A3AACD11ECD033AD6D4D3192 /* ComposerView.swift */,
 				B2BFC46DAB3C2B1821D44A57 /* ConfirmedPreviewCard.swift */,
+				104AF180D9DC0C7498CCF0A2 /* FixtureFeedbackDebugView.swift */,
 				8EB7696FF20BC4E9BEBAD2F6 /* RecoveryActions.swift */,
 				05DE1643D8AAF084B95462CB /* SlashListView.swift */,
 				20BFB776A369E9C4E27001B2 /* TranscriptView.swift */,
@@ -566,6 +569,7 @@
 				6635CCEF056BD1CAD87E075D /* FixtureClock.swift in Sources */,
 				77D344E858CDF341593223BD /* FixtureCountsDebugView.swift in Sources */,
 				C1581048028E54850D1ECDE7 /* FixtureDirector.swift in Sources */,
+				BFC0E371CC6DB4C88746E035 /* FixtureFeedbackDebugView.swift in Sources */,
 				6A7D5F727985CD17A6E911B8 /* FixtureLaunch.swift in Sources */,
 				27BF6610E2121427ED6213CE /* HistoryView.swift in Sources */,
 				E1824FC9E849FCF1BC7860E4 /* LanguageView.swift in Sources */,

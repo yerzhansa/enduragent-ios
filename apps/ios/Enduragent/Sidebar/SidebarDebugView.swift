@@ -31,7 +31,7 @@ import SwiftUI
 					LeasesDebugView(leases: model.services.leases)
 				}
 				.accessibilityIdentifier("debug.leases")
-				if model.builder.isFixture {
+				if model.environment.isFixture {
 					FixtureCountsDebugView(services: model.services)
 				}
 			}

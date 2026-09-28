@@ -53,11 +53,11 @@ final class FixtureLaunchTests {
 	}
 
 	func model(_ services: AppServices) -> ShellModel {
-		ShellModel(builder: builder(services))
+		ShellModel(environment: environment(services))
 	}
 
-	func builder(_ services: AppServices) -> ServicesBuilder {
-		ServicesBuilder(services: services, language: language, defaults: defaults)
+	func environment(_ services: AppServices) -> AppEnvironment {
+		AppEnvironment(services: services, language: language, defaults: defaults)
 	}
 
 	func settledTurn(
@@ -288,7 +288,7 @@ final class FixtureLaunchTests {
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
 		let reopened = ShellModel(
-			builder: ServicesBuilder(services: second, language: language, defaults: kept))
+			environment: AppEnvironment(services: second, language: language, defaults: kept))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.chat == .main)

@@ -22,12 +22,9 @@ struct ChatView: View {
 						.padding(.horizontal)
 						.padding(.vertical, 8)
 				}
-				if let errorLine = model.errorLine {
-					Text(errorLine)
-						.accessibilityIdentifier("chat.error")
-						.padding(.horizontal)
-						.padding(.vertical, 8)
-				}
+				#if DEBUG
+					FixtureFeedbackDebugView(model: model)
+				#endif
 				ComposerView(model: model)
 			}
 			#if DEBUG
