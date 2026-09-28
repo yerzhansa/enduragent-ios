@@ -1,0 +1,25 @@
+--- a/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionFreshness.swift
++++ b/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionFreshness.swift
+@@ -29,18 +29,11 @@
+ 	) -> Date {
+ 		var calendar = Calendar(identifier: .gregorian)
+ 		calendar.timeZone = zone.timeZone
+-		guard let today = calendar.date(bySettingHour: hour.hour, minute: 0, second: 0, of: now)
+-		else {
+-			fatalError("Cannot resolve the daily reset hour in the athlete's calendar")
+-		}
++		let offset = TimeInterval(hour.hour) * 3_600
++		let today = calendar.startOfDay(for: now).addingTimeInterval(offset)
+ 		guard now < today else { return today }
+-		guard let previousDay = calendar.date(byAdding: .day, value: -1, to: now),
+-			let yesterday = calendar.date(
+-				bySettingHour: hour.hour, minute: 0, second: 0, of: previousDay)
+-		else {
+-			fatalError("Cannot resolve the previous daily reset in the athlete's calendar")
+-		}
+-		return yesterday
++		return calendar.startOfDay(for: today.addingTimeInterval(-86_400)).addingTimeInterval(
++			offset)
+ 	}
+ }
+ 

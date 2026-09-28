@@ -1,0 +1,23 @@
+--- a/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionFreshness.swift
++++ b/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionFreshness.swift
+@@ -12,16 +12,16 @@
+ 		case .malformed: return .reset(.daily)
+ 		case .at(let date): lastAt = date
+ 		}
+-		let dailyDue = lastAt < mostRecentReset(at: settings.dailyResetHour, before: now, in: zone)
+-		if dailyDue, now.timeIntervalSince(lastAt) >= dailyResetGrace.timeInterval {
+-			return .reset(.daily)
++		if lastAt < mostRecentReset(at: settings.dailyResetHour, before: now, in: zone) {
++			let recent = now.timeIntervalSince(lastAt) < dailyResetGrace.timeInterval
++			return recent ? .deferredDailyReset : .reset(.daily)
+ 		}
+ 		if case .after(let minutes) = settings.idleReset,
+ 			now > lastAt.addingTimeInterval(TimeInterval(minutes) * 60)
+ 		{
+ 			return .reset(.idle)
+ 		}
+-		return dailyDue ? .deferredDailyReset : .fresh
++		return .fresh
+ 	}
+ 
+ 	package static func mostRecentReset(

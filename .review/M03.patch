@@ -1,0 +1,11 @@
+--- a/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionSettings.swift
++++ b/apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Session/SessionSettings.swift
+@@ -129,7 +129,7 @@
+ 	public static let npmDefault = DailyResetHour(unchecked: 4)
+ 
+ 	public init(_ hour: Int) throws(SessionSettingRejected) {
+-		guard (0...23).contains(hour) else {
++		guard (0...24).contains(hour) else {
+ 			throw SessionSettingRejected(.dailyResetHour)
+ 		}
+ 		self.hour = hour
