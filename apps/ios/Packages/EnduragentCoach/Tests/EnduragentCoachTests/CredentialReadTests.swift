@@ -146,15 +146,19 @@ extension CredentialVaultTests {
 		try keychain.storeOpenRouterKey(testKey)
 		try keychain.storeIntervalsConnection(testConnection)
 		let vault = vault(keychain)
-		var samples: [Duration] = []
-		for _ in 0..<200 {
-			let started = ContinuousClock.now
-			_ = try await vault.modelAccess(builtInModel: testModel)
-			_ = try await vault.trainingConnection()
-			samples.append(ContinuousClock.now - started)
+		let expectedAccount = try account(testConnection)
+		var samples = PerformanceSamples()
+		for _ in 0..<PerformanceSamples.batchCount {
+			try await samples.measure(count: 200) {
+				let access = try await vault.modelAccess(builtInModel: testModel)
+				let connection = try await vault.trainingConnection()
+				return (access, connection)
+			} validate: { access, connection in
+				#expect(access == testAccess(secret: testKey))
+				#expect(connection.account == expectedAccount)
+			}
 		}
-		let sorted = samples.sorted()
-		#expect(sorted[sorted.count / 2] < .milliseconds(50))
-		#expect(sorted[sorted.count * 95 / 100] < .milliseconds(50))
+		try samples.check(budget: .milliseconds(50), name: "credential-median")
+		try samples.check(budget: .milliseconds(50), quantile: .p95, name: "credential-p95")
 	}
 }

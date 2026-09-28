@@ -270,16 +270,18 @@ import Testing
 		#expect(!rows.contains("Archived late reply"))
 	}
 
-	@Test func legacyCoverageStaysWithinTheAttemptBudget() {
+	@Test func legacyCoverageStaysWithinTheAttemptBudget() async throws {
 		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
 		let jobs = (1...200).map { job($0, messages: [], settled: true) }
-		let started = ContinuousClock.now
-		let rows = conversation.messagesSinceLastFlush(jobs, excluding: nil)
-		let elapsed = ContinuousClock.now - started
-		Attachment.record(
-			String(format: "%.3f", elapsed / .milliseconds(1)), named: "legacy-coverage-ms.txt")
-		#expect(rows.count == 2_000)
-		#expect(elapsed < .milliseconds(50), "200 jobs, 2,000 rows: \(elapsed)")
+		var samples = PerformanceSamples()
+		for _ in 0..<PerformanceSamples.batchCount {
+			await samples.measure(count: 1) {
+				conversation.messagesSinceLastFlush(jobs, excluding: nil)
+			} validate: { rows in
+				#expect(rows.count == 2_000)
+			}
+		}
+		try samples.check(budget: .milliseconds(50), name: "legacy-coverage")
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {

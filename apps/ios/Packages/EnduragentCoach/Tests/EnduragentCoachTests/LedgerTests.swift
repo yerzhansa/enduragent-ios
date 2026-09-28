@@ -160,14 +160,16 @@ import Testing
 		try await store.append(provenance, locality: .synced)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
-		let started = ContinuousClock.now
-		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		let elapsed = ContinuousClock.now - started
-		Attachment.record(
-			String(format: "%.3f", elapsed / .milliseconds(1)), named: "consumed-marker-read-ms.txt"
-		)
-		#expect(Set(read.map(\.id)) == Set(jobs))
-		#expect(read.allSatisfy { $0.saved && $0.process == nil })
-		#expect(elapsed < .milliseconds(50), "200 jobs, 5,000 provenance records: \(elapsed)")
+		var samples = PerformanceSamples()
+		for _ in 0..<PerformanceSamples.batchCount {
+			try await samples.measure(count: 1) {
+				try await ledger.flushJobs(in: try await ledger.conversation(.main))
+			} validate: { read in
+				#expect(Set(read.map(\.id)) == Set(jobs))
+				#expect(read.allSatisfy { $0.saved && $0.process == nil })
+			}
+		}
+		try samples.check(
+			budget: .milliseconds(50), name: "consumed-marker-unsettled-\(oneUnsettled)")
 	}
 }
