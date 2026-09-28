@@ -163,11 +163,13 @@ import Testing
 			chat: .main,
 			request: request,
 			slash: nil,
-			language: LanguagePreference(ui: .en, coachReply: nil),
+			language: LanguagePreference.automatic.replyLanguage(for: request, device: .en),
+			session: .npmDefaults,
 			access: testAccess,
 			training: TrainingConnection(
 				account: .intervals(connection: ConnectionID(), athlete: nil), client: intervals),
-			process: ProcessID(ulid: scope.stamp.attempt.ulid)
+			process: ProcessID(ulid: scope.stamp.attempt.ulid),
+			autoReset: nil
 		)
 	}
 }

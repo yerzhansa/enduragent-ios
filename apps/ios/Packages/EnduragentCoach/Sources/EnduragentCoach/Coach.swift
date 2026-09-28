@@ -12,7 +12,10 @@ public actor Coach {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let host: any ExecutionHost
-	private var language: LanguagePreference
+	private let deviceLanguage: LanguageTag
+	private var preferenceRecords: [AthleteRecord] = []
+	private var preferencesLoaded = false
+	private var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
 	private let builtInModel: ModelID
 	private let vault: CredentialVault
 	private let runner: TurnRunner
@@ -24,7 +27,7 @@ public actor Coach {
 		sport: SportID,
 		ports: CoachPorts,
 		builtInModel: ModelID,
-		language: LanguagePreference,
+		deviceLanguage: LanguageTag,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
@@ -43,7 +46,7 @@ public actor Coach {
 		self.clock = clock
 		self.coalescing = coalescing
 		self.host = ports.host
-		self.language = language
+		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: ports.records, clock: clock)
 		self.planning = planning
@@ -147,10 +150,24 @@ public actor Coach {
 		}
 	}
 
+	public func languagePreference() async -> LanguagePreference {
+		await loadedPreferences().language
+	}
+
 	public func status() async -> CoachStatus {
 		CoachStatus(
 			setup: await vault.setup(builtInModel: builtInModel),
-			training: await vault.trainingStatus())
+			training: await vault.trainingStatus(), preferences: await loadedPreferences())
+	}
+
+	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
+		guard await loadedPreferences().language != preference else { return }
+		try await commitPreference(
+			.languagePreference(LanguagePreferenceBody(preference: preference)))
+	}
+
+	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await commitPreference(.sessionSettings(SessionSettingsBody(settings: settings)))
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async
@@ -188,17 +205,6 @@ public actor Coach {
 		return false
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: binding
-		)
-		_ = try await ledger.commit(
-			synced: [.coachReplyLanguage(CoachReplyLanguageBody(tag: tag))], stamp: stamp)
-		language.coachReply = tag
-	}
-
 	#if DEBUG
 		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
 			RecordSyncProbe(ledger: ledger, clock: clock)
@@ -207,6 +213,54 @@ public actor Coach {
 
 	private var binding: ActionBinding {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
+	}
+
+	private func commitPreference(_ body: SyncedRecordBody) async throws(PreferenceWriteFailure) {
+		_ = await loadedPreferences()
+		let stamp = OperationStamp(
+			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: binding
+		)
+		let committed: [AthleteRecord]
+		do {
+			committed = try await ledger.commit(synced: [body], stamp: stamp)
+		} catch {
+			throw .notSaved
+		}
+		preferenceRecords += committed
+	}
+
+	private func loadedPreferences() async -> Preferences {
+		guard !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
+		let reading = preferencesRead ?? Task { await self.readPreferences() }
+		preferencesRead = reading
+		let result = await reading.value
+		if preferencesRead == reading {
+			preferencesRead = nil
+		}
+		switch result {
+		case .success(let stored) where !preferencesLoaded:
+			preferenceRecords =
+				stored
+				+ preferenceRecords.filter { written in
+					!stored.contains { $0.ulid == written.ulid }
+				}
+			preferencesLoaded = true
+		case .success:
+			break
+		case .failure(let error):
+			diagnostics.record(.preferencesUnavailable(error))
+		}
+		return Preferences.fold(preferenceRecords)
+	}
+
+	private func readPreferences() async -> Result<[AthleteRecord], LedgerFailure> {
+		do {
+			return .success(try await ledger.read(RecordQuery(scope: Preferences.scope)).records)
+		} catch {
+			return .failure(error)
+		}
 	}
 
 	private func recoverOnce() async {
@@ -298,10 +352,10 @@ public actor Coach {
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(
-				language: { await self.language }, access: access,
+				preferences: { await self.loadedPreferences() }, access: access,
 				training: { () async throws(AccessUnavailable) in
 					try await vault.trainingConnection()
-				}),
+				}, deviceLanguage: deviceLanguage),
 			process: process,
 			host: host
 		)

@@ -7,7 +7,7 @@ struct NoticeView: View {
 	var body: some View {
 		NavigationStack {
 			VStack(spacing: 24) {
-				Text(model.builder.phrasebook.say(Catalog.onboardingNoticeHealth, [:]))
+				Text(model.phrasebook.say(Catalog.onboardingNoticeHealth, [:]))
 					.multilineTextAlignment(.center)
 				Button("Continue") {
 					model.continueNotice()

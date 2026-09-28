@@ -47,6 +47,9 @@ enum TutorialHarness {
 	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
+	static let freshSession =
+		"Started a fresh session - earlier conversation is archived, and I still have your key details in memory."
+	static let closedAfterBreak = "Closed after a break"
 	static let draft = "Is Thursday still on?"
 	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
@@ -54,11 +57,12 @@ enum TutorialHarness {
 	static let coalescingArgument = "-EnduragentFixtureCoalescing"
 	static let recoveryArgument = "-EnduragentFixtureRecovery"
 	static let hostArgument = "-EnduragentFixtureHost"
+	static let clockArgument = "-EnduragentFixtureClock"
 
 	static func launch(
 		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
 		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
-		locale: String = "en_US"
+		locale: String = "en_US", clock: String? = nil
 	) {
 		app.launchArguments = [
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
@@ -75,6 +79,9 @@ enum TutorialHarness {
 		}
 		if let host {
 			app.launchArguments += [hostArgument, host]
+		}
+		if let clock {
+			app.launchArguments += [clockArgument, clock]
 		}
 		app.launch()
 	}
@@ -99,7 +106,9 @@ enum TutorialHarness {
 	private static let v1StoreMissing =
 		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
-	static func relaunchKeepingStore(_ app: XCUIApplication, recovery: String = "readable") {
+	static func relaunchKeepingStore(
+		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil
+	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
 		guard let index = app.launchArguments.firstIndex(of: storeArgument),
@@ -113,6 +122,12 @@ enum TutorialHarness {
 			app.launchArguments.removeSubrange(flag...(flag + 1))
 		}
 		app.launchArguments += [recoveryArgument, recovery]
+		if let clock {
+			if let flag = app.launchArguments.firstIndex(of: clockArgument) {
+				app.launchArguments.removeSubrange(flag...(flag + 1))
+			}
+			app.launchArguments += [clockArgument, clock]
+		}
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 	}
@@ -181,6 +196,17 @@ enum TutorialHarness {
 		wait(named(app, "chat.welcome"))
 	}
 
+	static func startUnconnected(_ app: XCUIApplication) {
+		waitForLabel(app, notice)
+		named(app, "notice.continue").tap()
+		let skip = named(app, "connect.skip")
+		wait(skip)
+		skip.tap()
+		let start = named(app, "starter.start")
+		wait(start)
+		start.tap()
+	}
+
 	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
@@ -214,7 +240,10 @@ enum TutorialHarness {
 		send.tap()
 	}
 
-	static func exchange(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30) {
+	static func exchange(
+		_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30,
+		opensFreshSession: Bool = false
+	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
 		let value = progress.value as? String ?? ""
@@ -226,7 +255,11 @@ enum TutorialHarness {
 			return
 		}
 		send(app, text)
-		let expected = "turns \(count + 1) settled \(count + 1)"
+		if opensFreshSession {
+			wait(named(app, "chat.automaticReset.notice"), timeout: timeout)
+		}
+		let turns = opensFreshSession ? 1 : count + 1
+		let expected = "turns \(turns) settled \(turns)"
 		let settled = XCTNSPredicateExpectation(
 			predicate: NSPredicate(format: "value == %@", expected), object: progress)
 		XCTAssertEqual(

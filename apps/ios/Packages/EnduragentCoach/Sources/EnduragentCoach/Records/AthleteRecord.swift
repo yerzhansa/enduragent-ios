@@ -17,6 +17,8 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 	case provenance
 	case coachReplyLanguage
 	case planningDevice
+	case sessionSettings
+	case languagePreference
 }
 
 public enum DeviceLocalKind: String, Sendable, CaseIterable {
@@ -51,6 +53,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 	case provenance(ProvenanceBody)
 	case coachReplyLanguage(CoachReplyLanguageBody)
 	case planningDevice(PlanningDeviceBody)
+	case sessionSettings(SessionSettingsBody)
+	case languagePreference(LanguagePreferenceBody)
 
 	public var kind: SyncedKind {
 		switch self {
@@ -65,6 +69,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .provenance: .provenance
 		case .coachReplyLanguage: .coachReplyLanguage
 		case .planningDevice: .planningDevice
+		case .sessionSettings: .sessionSettings
+		case .languagePreference: .languagePreference
 		}
 	}
 
@@ -75,7 +81,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .windowStart(let body): body.chatId
 		case .compactionSummary(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-			.coachReplyLanguage, .planningDevice:
+			.coachReplyLanguage, .planningDevice, .sessionSettings, .languagePreference:
 			nil
 		}
 	}
@@ -85,7 +91,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .userMessage(let body): body.turn
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
-			.journal, .provenance, .coachReplyLanguage, .planningDevice:
+			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
+			.languagePreference:
 			nil
 		}
 	}

@@ -53,11 +53,11 @@ struct ArchivedConversationView: View {
 	}
 
 	private func notice(_ notice: AthleteNotice) -> some View {
-		Text(notice.sentence(in: model.builder.phrasebook))
+		Text(notice.sentence(in: model.phrasebook))
 			.foregroundStyle(.secondary)
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

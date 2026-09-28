@@ -171,7 +171,8 @@ import Testing
 		let third = try #require(try await coach.send(draft("three"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: third, in: .main))
 		#expect(
-			await host.ended(1)?.ending == .finished(CompletionNotice(reply: "Three.", turn: third))
+			await host.ended(1)?.ending
+				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))
 		)
 		#expect(host.leases.count == 2)
 	}

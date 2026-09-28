@@ -23,15 +23,15 @@ extension FixtureLaunchTests {
 		#expect(model.errorLine == nil)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(
-			model.status?.notice?.sentence(in: model.builder.phrasebook)
+			model.status?.notice?.sentence(in: model.phrasebook)
 				== "Couldn't reach intervals.icu right now — try again shortly.")
 		#expect(model.connected?.athleteName == nil)
 	}
 
-	@Test func unreadableRecordStoreShowsTheStorageNoticeInsteadOfCrashing() throws {
+	@Test func unreadableRecordStoreShowsTheStorageNoticeInsteadOfCrashing() async throws {
 		var unreadable = launch
 		unreadable.store = .unreadable
-		let launched = AppLaunch.open(language: .en) {
+		let launched = await AppLaunch.open(language: .en) {
 			let defaults = try unreadable.prepare()
 			return (try AppServices.fixture(unreadable, defaults: defaults), defaults)
 		}
@@ -43,7 +43,7 @@ extension FixtureLaunchTests {
 			AthleteNotice.recordStoreUnavailable.map { $0.sentence(in: phrasebook) } == [
 				"Conversation history is temporarily unavailable.", "Quit and reopen Enduragent.",
 			])
-		let live = AppLaunch.open(language: .en) { throw CocoaError(.fileReadNoPermission) }
+		let live = await AppLaunch.open(language: .en) { throw CocoaError(.fileReadNoPermission) }
 		guard case .storageUnavailable = live else {
 			Issue.record("expected the storage notice for a live store failure")
 			return
@@ -106,7 +106,7 @@ extension FixtureLaunchTests {
 		#expect(reopened.chat?.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(reopened.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(
-			reopened.status?.notice?.sentence(in: reopened.builder.phrasebook)
+			reopened.status?.notice?.sentence(in: reopened.phrasebook)
 				== "Unlock your iPhone to continue. Your message is saved.")
 	}
 

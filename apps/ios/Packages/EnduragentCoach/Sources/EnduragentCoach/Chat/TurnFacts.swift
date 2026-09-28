@@ -44,6 +44,10 @@ package struct TurnFacts: Sendable, Equatable {
 		return claims.first { $0.attempt == latest }
 	}
 
+	package var firstFragment: ULID? {
+		fragments.map(\.ulid).min()
+	}
+
 	var lastUlid: ULID {
 		(fragments.map(\.ulid) + settlements.map(\.ulid)).max() ?? turn.ulid
 	}

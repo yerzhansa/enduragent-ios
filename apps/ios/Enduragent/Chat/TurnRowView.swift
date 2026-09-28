@@ -61,7 +61,7 @@ struct TurnRowView: View {
 
 	private func notice(_ notice: AthleteNotice) -> some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(notice.sentence(in: model.builder.phrasebook))
+			Text(notice.sentence(in: model.phrasebook))
 				.accessibilityIdentifier("chat.turn.notice")
 			if let action = notice.action {
 				actionButton(action)
@@ -93,6 +93,6 @@ struct TurnRowView: View {
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

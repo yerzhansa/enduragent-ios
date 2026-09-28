@@ -51,6 +51,6 @@ struct HistoryView: View {
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

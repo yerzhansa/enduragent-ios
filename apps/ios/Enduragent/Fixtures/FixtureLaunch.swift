@@ -50,6 +50,9 @@ struct FixtureLaunch {
 	static let coalescingArgumentKey = "EnduragentFixtureCoalescing"
 	static let recoveryArgumentKey = "EnduragentFixtureRecovery"
 	static let hostArgumentKey = "EnduragentFixtureHost"
+	static let clockArgumentKey = "EnduragentFixtureClock"
+	static let defaultClock = "1998-06-15T08:00:00Z"
+	static let timeZone = "Europe/Ljubljana"
 	static let firstWeekName = "first-week"
 	static let defaultsSuiteName = "icu.enduragent.fixture"
 	static let directoryName = "fixture"
@@ -62,6 +65,7 @@ struct FixtureLaunch {
 	var coalescing = CoalescingPolicy.npm
 	var recovery = FixtureRecoveryPolicy.readable
 	var host = FixtureHostPolicy.immediate
+	var clock = FixtureLaunch.defaultClock
 
 	static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 		guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -74,7 +78,8 @@ struct FixtureLaunch {
 			coalescing: try coalescing(arguments) ?? .npm,
 			recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
 			host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
-				?? .immediate
+				?? .immediate,
+			clock: try clock(arguments) ?? defaultClock
 		)
 	}
 
@@ -124,6 +129,16 @@ struct FixtureLaunch {
 			throw FixtureLaunchError.unknownArgument(key: coalescingArgumentKey, value: raw)
 		}
 		return CoalescingPolicy(window: .milliseconds(milliseconds))
+	}
+
+	private static func clock(_ arguments: UserDefaults) throws -> String? {
+		guard let raw = arguments.string(forKey: clockArgumentKey) else { return nil }
+		let formatter = ISO8601DateFormatter()
+		formatter.formatOptions = [.withInternetDateTime, .withColonSeparatorInTimeZone]
+		guard formatter.date(from: raw) != nil else {
+			throw FixtureLaunchError.unknownArgument(key: clockArgumentKey, value: raw)
+		}
+		return raw
 	}
 
 	private static func applicationSupportDirectory() throws -> URL {

@@ -41,6 +41,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
 	case secureStorageFailed(CredentialSlot, detail: String)
+	case automaticResetUnsaved(ChatID, LedgerFailure)
+	case preferencesUnavailable(LedgerFailure)
 	case trainingUnavailable(AttemptID, TrainingFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
@@ -55,7 +57,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .secureStorageFailed(let slot, let detail):
 			return .secureStorageFailed(slot, detail: Redaction.clean(detail, secrets))
-		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable, .trainingUnavailable:
+		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved,
+			.preferencesUnavailable, .trainingUnavailable:
 			return self
 		}
 	}

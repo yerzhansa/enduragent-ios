@@ -11,6 +11,8 @@
 				.accessibilityIdentifier("fixture.modelRequestCount")
 			Text(services.fixtureTransport?.lastChatHistoryHead ?? "—")
 				.accessibilityIdentifier("fixture.historyHead")
+			Text(services.fixtureTransport?.lastReplyLanguage ?? "—")
+				.accessibilityIdentifier("fixture.replyLanguage")
 		}
 	}
 #endif

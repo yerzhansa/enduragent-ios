@@ -179,7 +179,8 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
 		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
 		return detail.count
-	case .skippedRecord, .recoveryUnavailable, .trainingUnavailable:
+	case .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved, .preferencesUnavailable,
+		.trainingUnavailable:
 		return nil
 	}
 }

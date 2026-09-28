@@ -13,6 +13,10 @@ package actor ChatMailbox {
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
+	private lazy var start = AttemptStart(
+		chat: chatId, records: records, environment: environment,
+		freshness: AutomaticReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock),
+		process: process)
 	private var work = MailboxQueue()
 	private var window = JoinWindow()
 	private var live: LiveAttempt?
@@ -47,7 +51,7 @@ package actor ChatMailbox {
 		self.coalescing = coalescing
 		self.environment = environment
 		self.process = process
-		self.leases = LeaseSlot(host: host, chat: chatId)
+		self.leases = LeaseSlot(host: host, chat: chatId) { await environment.appLanguage() }
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock)
 	}
 
@@ -259,11 +263,12 @@ package actor ChatMailbox {
 			case .turn(let turn):
 				await self.runTurn(turn, under: lease)
 			case .flush(let job):
-				await self.flushes.drain(
-					job, in: self.records.conversation, access: self.environment.access)
+				let access = await self.environment.flushAccess()
+				await self.flushes.drain(job, in: self.records.conversation, access: access)
 				_ = await self.records.refreshJobs(from: self.flushes)
 			case .reset(let reset):
-				await self.resets.run(reset, on: self.records, access: self.environment.access) {
+				let access = await self.environment.flushAccess()
+				await self.resets.run(reset, on: self.records, access: access) {
 					self.publish()
 				}
 			}
@@ -300,30 +305,14 @@ package actor ChatMailbox {
 		lease.add(turn)
 		let resolution = await environment.resolve()
 		let stamp = await stamp(for: turn).bound(to: resolution.account)
+		guard
+			let request = await start.begin(
+				facts, resolution: resolution, stamp: stamp, lease: await lease.kind)
+		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
-		let claiming = records.writes(
-			.claim(attempt, process: process, lease: await lease.kind), for: turn)
-		guard case .success(let claim) = claiming else { return finish(turn, under: lease) }
-		do {
-			try await records.commit(claim, stamp: stamp)
-		} catch {
-			await records.settleUnsaved(
-				turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))
-			return finish(turn, under: lease)
-		}
-		let resolved: AttemptEnvironment
-		do {
-			resolved = try resolution.get()
-		} catch {
-			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
-			await records.settle(turn, .settle(attempt, unavailable), stamp: stamp)
-			return finish(turn, under: lease)
-		}
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		let request = await environment.attempt(
-			of: facts, attempt: attempt, chat: chatId, process: process, in: resolved)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in
