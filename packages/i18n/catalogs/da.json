@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Vælg dit sprog",
-    "continue": "Fortsæt"
+    "continue": "Fortsæt",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Angiv en plads til historik på over 0 % og højst 100 %.",
         "idleMinutes": "Indtast et sikkert helt antal minutter, 0 eller mere.",
         "resetArchiveRetentionDays": "Indtast et sikkert helt antal dage, 0 eller mere.",
-        "timezone": "Indtast en gyldig IANA-tidszone, f.eks. {{timezone}}."
+        "timezone": "Indtast en gyldig IANA-tidszone, f.eks. {{timezone}}.",
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
       }
     },
     "credentials": {
@@ -536,7 +539,8 @@
     "readOnly": "Tidligere samtaler kan kun læses.",
     "reason": {
       "explicit": "Du startede en ny samtale",
-      "stale": "Lukket efter en pause"
+      "stale": "Lukket efter en pause",
+      "earlierChat": "Earlier chat"
     },
     "retry": "Prøv igen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -949,7 +953,8 @@
       "send": "Send besked",
       "stop": "Stop svaret",
       "messageField": "Besked",
-      "sendButton": "Send"
+      "sendButton": "Send",
+      "notSent": "Not sent. Your draft is still here."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1020,7 +1025,8 @@
       "retryMessage": "Prøv beskeden igen",
       "savedChoice": "Gemt valg",
       "working": "Træneren arbejder…",
-      "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret."
+      "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -1454,7 +1460,17 @@
     },
     "addToCalendar": "Føj til kalender",
     "menu": "Menu",
-    "title": "Træner"
+    "title": "Træner",
+    "turn": {
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
+    }
   },
   "plan": {
     "details": {
@@ -2917,7 +2933,12 @@
     "packPrice_one": "{{formattedCount}} kredit · {{price}}",
     "balance_other": "{{formattedCount}} kreditter",
     "pack_other": "{{formattedCount}} kreditter",
-    "packPrice_other": "{{formattedCount}} kreditter · {{price}}"
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2934,6 +2955,21 @@
       "alreadyGranted": "Denne enhed har allerede brugt sine startkreditter.",
       "added_one": "Tilføjede {{formattedCount}} kredit",
       "added_other": "Tilføjede {{formattedCount}} kreditter"
+    },
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
     }
   }
 }

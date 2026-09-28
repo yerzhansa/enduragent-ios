@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Wähle deine Sprache",
-    "continue": "Weiter"
+    "continue": "Weiter",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Gib ein Verlaufsbudget über 0 % und höchstens 100 % ein.",
         "idleMinutes": "Gib eine sicher darstellbare ganze Zahl von Minuten ab 0 ein.",
         "resetArchiveRetentionDays": "Gib eine sicher darstellbare ganze Zahl von Tagen ab 0 ein.",
-        "timezone": "Gib eine gültige IANA-Zeitzone ein, zum Beispiel {{timezone}}."
+        "timezone": "Gib eine gültige IANA-Zeitzone ein, zum Beispiel {{timezone}}.",
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
       }
     },
     "credentials": {
@@ -536,7 +539,8 @@
     "readOnly": "Frühere Gespräche können nur gelesen werden.",
     "reason": {
       "explicit": "Du hast ein neues Gespräch begonnen",
-      "stale": "Nach einer Pause geschlossen"
+      "stale": "Nach einer Pause geschlossen",
+      "earlierChat": "Earlier chat"
     },
     "retry": "Erneut versuchen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -949,7 +953,8 @@
       "send": "Nachricht senden",
       "stop": "Antwort stoppen",
       "messageField": "Nachricht",
-      "sendButton": "Senden"
+      "sendButton": "Senden",
+      "notSent": "Not sent. Your draft is still here."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1020,7 +1025,8 @@
       "retryMessage": "Nachricht erneut senden",
       "savedChoice": "Gespeicherte Auswahl",
       "working": "Der Coach arbeitet…",
-      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten."
+      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
     },
     "planChange": {
       "activePlan": "Aktiver Plan",
@@ -1454,7 +1460,17 @@
     },
     "addToCalendar": "Zum Kalender hinzufügen",
     "menu": "Menü",
-    "title": "Coach"
+    "title": "Coach",
+    "turn": {
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
+    }
   },
   "plan": {
     "details": {
@@ -2917,7 +2933,12 @@
     "packPrice_one": "{{formattedCount}} Guthabenpunkt · {{price}}",
     "balance_other": "{{formattedCount}} Guthabenpunkte",
     "pack_other": "{{formattedCount}} Guthabenpunkte",
-    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}"
+    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}",
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2934,6 +2955,21 @@
       "alreadyGranted": "Dieses Gerät hat sein Startguthaben bereits verwendet.",
       "added_one": "{{formattedCount}} Guthabenpunkt hinzugefügt",
       "added_other": "{{formattedCount}} Guthabenpunkte hinzugefügt"
+    },
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
     }
   }
 }

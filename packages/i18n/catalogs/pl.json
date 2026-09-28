@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Wybierz swój język",
-    "continue": "Kontynuuj"
+    "continue": "Kontynuuj",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "settings": {
     "appearance": {
@@ -193,7 +195,8 @@
         "historyTokenBudgetRatio": "Wpisz limit historii większy niż 0% i nie większy niż 100%.",
         "idleMinutes": "Wpisz bezpieczną całkowitą liczbę minut, co najmniej 0.",
         "resetArchiveRetentionDays": "Wpisz bezpieczną całkowitą liczbę dni, co najmniej 0.",
-        "timezone": "Wpisz prawidłową strefę czasową IANA, np. {{timezone}}."
+        "timezone": "Wpisz prawidłową strefę czasową IANA, np. {{timezone}}.",
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
       }
     },
     "credentials": {
@@ -538,7 +541,8 @@
     "readOnly": "Wcześniejsze rozmowy są tylko do odczytu.",
     "reason": {
       "explicit": "Rozpoczęcie nowej rozmowy",
-      "stale": "Zamknięta po przerwie"
+      "stale": "Zamknięta po przerwie",
+      "earlierChat": "Earlier chat"
     },
     "retry": "Spróbuj ponownie",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -965,7 +969,8 @@
       "send": "Wyślij wiadomość",
       "stop": "Zatrzymaj odpowiedź",
       "messageField": "Wiadomość",
-      "sendButton": "Wyślij"
+      "sendButton": "Wyślij",
+      "notSent": "Not sent. Your draft is still here."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1036,7 +1041,8 @@
       "retryMessage": "Ponów wiadomość",
       "savedChoice": "Zapisany wybór",
       "working": "Trener pracuje…",
-      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
+      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
     },
     "planChange": {
       "activePlan": "Aktywny plan",
@@ -1480,7 +1486,17 @@
     },
     "addToCalendar": "Dodaj do kalendarza",
     "menu": "Menu",
-    "title": "Trener"
+    "title": "Trener",
+    "turn": {
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
+    }
   },
   "plan": {
     "details": {
@@ -2995,7 +3011,12 @@
     "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
     "balance_many": "{{formattedCount}} kredytów",
     "pack_many": "{{formattedCount}} kredytów",
-    "packPrice_many": "{{formattedCount}} kredytów · {{price}}"
+    "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
+    }
   },
   "onboarding": {
     "connect": {
@@ -3014,6 +3035,21 @@
       "added_other": "Dodano {{formattedCount}} kredytu",
       "added_few": "Dodano {{formattedCount}} kredyty",
       "added_many": "Dodano {{formattedCount}} kredytów"
+    },
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
     }
   }
 }

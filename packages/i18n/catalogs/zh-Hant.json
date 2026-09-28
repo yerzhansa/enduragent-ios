@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "選擇語言",
-    "continue": "繼續"
+    "continue": "繼續",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "settings": {
     "appearance": {
@@ -83,7 +85,8 @@
         "cause": "由於 {{strava}} API 的限制，{{intervalsLower}} 無法與 {{product}} 分享來自 {{strava}} 的活動。API 金鑰沒有問題。",
         "future": "將記錄來源直接連結至 {{intervalsLower}}，並保留 {{strava}} 連線。此方式免費，適用於日後的騎乘。",
         "past": "在 {{intervalsLower}} 設定中使用「匯入所有 {{strava}} 資料」。此方式適用於過往的騎乘，需要訂閱 {{intervalsLower}} 支持者方案。",
-        "title_other": "{{total}} 筆活動中有 {{restricted}} 筆被 {{strava}} 隱藏"
+        "title_other": "{{total}} 筆活動中有 {{restricted}} 筆被 {{strava}} 隱藏",
+        "title_one": "{{total}} 筆活動中有 {{restricted}} 筆被 {{strava}} 隱藏"
       },
       "reviewSetup": "檢查初始設定",
       "save": "儲存運動員 ID",
@@ -190,7 +193,8 @@
         "historyTokenBudgetRatio": "請輸入大於 0% 且不超過 100% 的對話記錄配額。",
         "idleMinutes": "請輸入安全範圍內大於或等於 0 的整數分鐘數。",
         "resetArchiveRetentionDays": "請輸入安全範圍內大於或等於 0 的整數天數。",
-        "timezone": "請輸入有效的 IANA 時區，例如 {{timezone}}。"
+        "timezone": "請輸入有效的 IANA 時區，例如 {{timezone}}。",
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
       }
     },
     "credentials": {
@@ -535,7 +539,8 @@
     "readOnly": "過往對話僅供唯讀。",
     "reason": {
       "explicit": "您已開始新對話",
-      "stale": "閒置一段時間後關閉"
+      "stale": "閒置一段時間後關閉",
+      "earlierChat": "Earlier chat"
     },
     "retry": "重試",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -543,7 +548,8 @@
     "truncated": "僅列出最近的過往對話。",
     "turnCount_other": "{{formattedCount}} 則訊息",
     "unavailable": "此對話已無法使用。",
-    "history": "歷史紀錄"
+    "history": "歷史紀錄",
+    "turnCount_one": "{{formattedCount}} 則訊息"
   },
   "setup": {
     "ai": {
@@ -713,7 +719,8 @@
       "fileCount_other": "{{formattedCount}} 個騎乘檔案",
       "importing": "正在匯入騎乘檔案…",
       "unavailable": "本機資料庫匯入：已匯入 {{imported}} 個，已隔離 {{quarantined}} 個。教練暫時無法存取活動與資料串流；請重試匯入。",
-      "unconfirmed": "本機資料庫匯入失敗。無法確認結果；請先檢查資料庫再重試。"
+      "unconfirmed": "本機資料庫匯入失敗。無法確認結果；請先檢查資料庫再重試。",
+      "fileCount_one": "{{formattedCount}} 個騎乘檔案"
     },
     "intake": {
       "managing": "目前有傷",
@@ -828,7 +835,9 @@
         "published": "訓練資料檢查完成。",
         "publishedRestricted_other": "訓練資料檢查完成。由於 {{source}} API 的限制，{{provider}} 無法分享 {{formattedCount}} 筆活動，因此未納入這些活動。",
         "queued": "同步已排入佇列。",
-        "running": "正在同步訓練資料…"
+        "running": "正在同步訓練資料…",
+        "noChangeRestricted_one": "本機訓練資料處理完成。由於 {{source}} API 的限制，{{provider}} 無法分享 {{formattedCount}} 筆活動，因此未納入這些活動。",
+        "publishedRestricted_one": "訓練資料檢查完成。由於 {{source}} API 的限制，{{provider}} 無法分享 {{formattedCount}} 筆活動，因此未納入這些活動。"
       },
       "restriction": {
         "fixAction": "· 解決方式",
@@ -836,7 +845,9 @@
         "label_other": "{{formattedCount}} 筆被 {{source}} 隱藏",
         "tooltipBody": "由於 {{source}} API 的限制，{{provider}} 無法與 {{product}} 分享這些活動。",
         "tooltipLabel": "為什麼活動被隱藏？",
-        "tooltipLead_other": "{{formattedCount}} 筆活動被 {{source}} 隱藏"
+        "tooltipLead_other": "{{formattedCount}} 筆活動被 {{source}} 隱藏",
+        "label_one": "{{formattedCount}} 筆被 {{source}} 隱藏",
+        "tooltipLead_one": "{{formattedCount}} 筆活動被 {{source}} 隱藏"
       },
       "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}:{{second}} {{timezone}}",
       "unknownTimestamp": "同步時間未知"
@@ -855,7 +866,8 @@
       "settings": "設定",
       "training": "訓練"
     },
-    "menu": "選單"
+    "menu": "選單",
+    "planAttention_one": "計畫，{{formattedCount}} 個項目需要處理"
   },
   "chat": {
     "attachment": {
@@ -941,7 +953,8 @@
       "send": "傳送訊息",
       "stop": "停止回覆",
       "messageField": "訊息",
-      "sendButton": "傳送"
+      "sendButton": "傳送",
+      "notSent": "Not sent. Your draft is still here."
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -1012,7 +1025,8 @@
       "retryMessage": "重試傳送訊息",
       "savedChoice": "已儲存的選擇",
       "working": "教練正在處理…",
-      "responseStopped": "已停止回覆。已產生的部分回覆已保留。"
+      "responseStopped": "已停止回覆。已產生的部分回覆已保留。",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
     },
     "planChange": {
       "activePlan": "目前啟用的計畫",
@@ -1145,7 +1159,8 @@
       "workout": "訓練課表",
       "workoutOption": "{{name}} · {{minutes}} 分鐘",
       "workoutPower": "{{date}} · {{minutes}} 分鐘 · {{watts}} W",
-      "workoutValue": "{{date}} · {{minutes}} 分鐘"
+      "workoutValue": "{{date}} · {{minutes}} 分鐘",
+      "weeklyHours_one": "每週 {{hours}} 小時"
     },
     "planCreation": {
       "activate": "啟用計畫",
@@ -1296,7 +1311,9 @@
       "didIReadThis": "我理解得對嗎？",
       "iUnderstood": "我的理解",
       "skipForNow": "暫時略過",
-      "youWrote": "你寫的是"
+      "youWrote": "你寫的是",
+      "outlineSummary_one": "{{weeks}} 週 · {{workouts}} 次訓練課表 · {{minutes}} 分鐘",
+      "span_one": "{{start}} 至 {{end}} · {{weeks}} 週 · {{kind}}"
     },
     "planReference": {
       "active": "已啟用",
@@ -1327,7 +1344,8 @@
       "removeLabel": "移除第 {{number}} 則佇列訊息",
       "retry": "重試中斷的訊息",
       "run": "執行指令",
-      "title": "佇列訊息"
+      "title": "佇列訊息",
+      "count_one": "{{number}} 則佇列訊息"
     },
     "slashPopup": {
       "choose": "選擇",
@@ -1389,7 +1407,8 @@
       "waiting": "正在等待訓練資料",
       "week": "第 {{week}} 週，共 {{total}} 週",
       "weekPhase": "第 {{week}} 週，共 {{total}} 週 · {{phase}}",
-      "workoutDetail": "{{minutes}} 分鐘 · {{sport}}"
+      "workoutDetail": "{{minutes}} 分鐘 · {{sport}}",
+      "activities_one": "{{formattedCount}} 次騎乘活動 · {{days}} 天"
     },
     "transcript": {
       "athleteLabel": "您的訊息",
@@ -1441,7 +1460,17 @@
     },
     "addToCalendar": "加入行事曆",
     "menu": "選單",
-    "title": "教練"
+    "title": "教練",
+    "turn": {
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
+    }
   },
   "plan": {
     "details": {
@@ -1505,7 +1534,9 @@
       },
       "stopped": "已停止",
       "unknownReason": "原因不明",
-      "weekCount_other": "{{weeks}} 週"
+      "weekCount_other": "{{weeks}} 週",
+      "span_one": "{{start}} 至 {{end}} · {{weeks}} 週",
+      "weekCount_one": "{{weeks}} 週"
     },
     "view": {
       "active": {
@@ -1581,7 +1612,8 @@
       },
       "attention": {
         "decisionCount_other": "有 {{formattedCount}} 個項目需要決定。",
-        "planAttention": "計畫待處理事項"
+        "planAttention": "計畫待處理事項",
+        "decisionCount_one": "有 {{formattedCount}} 個項目需要決定。"
       },
       "chatOriginatedPlanResult": {
         "addedToPlan": "已加入計畫",
@@ -1620,7 +1652,8 @@
         "previousMonth": "上個月",
         "recalculatePlan": "重新計算計畫",
         "useShortBlock": "使用短期訓練週期",
-        "useThisDate": "使用此日期"
+        "useThisDate": "使用此日期",
+        "dateSummary_one": "{{start}} 至 {{end}} · {{weeks}} 週 · 含首尾共 {{days}} 天"
       },
       "decimalHours": {
         "hours": "{{value1}} 小時"
@@ -1663,7 +1696,8 @@
         "summary": "{{value1}} 份訓練課表 · {{value2}} · {{value3}}",
         "updatedDescription": "教練已套用要求的變更。",
         "updateDraft": "更新草稿",
-        "weeks_other": "{{weeks}} 週"
+        "weeks_other": "{{weeks}} 週",
+        "weeks_one": "{{weeks}} 週"
       },
       "draftFormation": {
         "buildingTheReplacementDraft": "正在建立替換草稿",
@@ -2139,7 +2173,8 @@
       "unavailableMetric": "無法取得",
       "unchanged": "無變化",
       "watts": "{{value}} W",
-      "windowComparison": "{{start}}–{{end}} · 與前 28 天比較"
+      "windowComparison": "{{start}}–{{end}} · 與前 28 天比較",
+      "heartRateSummary_one": "心率反應 · {{value}} 次表現"
     },
     "response": {
       "cadence": "踏頻",
@@ -2200,7 +2235,8 @@
       "segment": "區段",
       "strongCoverage": "資料涵蓋充足",
       "unavailable": "無法取得",
-      "warmupExcluded": "已排除暖身"
+      "warmupExcluded": "已排除暖身",
+      "distributionSummary_one": "實測騎乘時間 {{duration}} · {{value}} 個記錄分組"
     },
     "ride": {
       "analysisFailed": "目前無法分析此騎乘。",
@@ -2344,7 +2380,10 @@
       "unknownDate": "日期不明",
       "wholeRide": "{{provenance}} · 整次騎乘",
       "zone": "區間",
-      "zoneValue": "第 {{value}} 區間"
+      "zoneValue": "第 {{value}} 區間",
+      "groupSegments_one": "區段 {{values}}",
+      "groupsSuffix_one": " · {{value}} 組",
+      "halfMeta_one": "{{duration}} · {{value}} 筆取樣"
     },
     "view": {
       "announcement": "{{period}}。{{notice}}",
@@ -2416,7 +2455,8 @@
       "unavailable": "無法取得",
       "week": "週",
       "weeklySummary": "每週摘要",
-      "weekRange": "{{start}}–{{end}}"
+      "weekRange": "{{start}}–{{end}}",
+      "rideCount_one": "{{number}} 次騎乘"
     }
   },
   "cli": {
@@ -2521,7 +2561,10 @@
       "whereToStoreSecrets": "將金鑰儲存在哪裡？",
       "wizardFailedAfterCreatingNewBackend_other": "精靈在建立 {{formattedCount}} 個新的儲存後端項目後失敗，這些項目尚未寫入 {{configFile}}。",
       "wizardOrphanedBackendItemsCreatedThis": "[wizard] 本次執行建立了以下未被參照的儲存後端項目，可依需要手動刪除：",
-      "yourCurrentProviderIsNotOffered": "設定精靈未提供目前的服務供應商 `{{prevProvider}}`；重新執行設定會取代它。"
+      "yourCurrentProviderIsNotOffered": "設定精靈未提供目前的服務供應商 `{{prevProvider}}`；重新執行設定會取代它。",
+      "deleteTheOrphanItemSNow_one": "現在刪除這 {{formattedCount}} 個未被參照的項目？",
+      "operatorAlreadyConfiguredIdAllowfromHas_one": "已設定操作員（ID：{{operator}}；allowFrom 有 {{formattedCount}} 個項目）。重新擷取帳號資訊？所有現有項目都會保留。",
+      "wizardFailedAfterCreatingNewBackend_one": "精靈在建立 {{formattedCount}} 個新的儲存後端項目後失敗，這些項目尚未寫入 {{configFile}}。"
     },
     "startup": {
       "allowedSenders_other": "允許的傳送者（{{formattedCount}}）：",
@@ -2564,7 +2607,10 @@
       "unknownCommand": "未知指令：{{command}}\n",
       "usageCommandCommandsSetupInteractiveWizard": "用法：{{binaryName}} [command]\n\n指令：\n  {{setup}}                     透過互動式精靈建立設定檔\n  {{version}}                   顯示目前版本\n  {{addSender}}       授權 {{telegram}} 使用者 ID 與機器人互動\n  {{removeSender}}    撤銷先前授權的 {{telegram}} 使用者 ID\n  {{listSenders}}              顯示目前允許清單及已知候選對話\n  （無）                    啟動教練代理程式（{{telegram}} 或 CLI 模式）\n\n選項：\n  {{help}}                    顯示此說明訊息",
       "usageUserid": "用法：{{binaryName}} {{command}} <userId>",
-      "userId": "  使用者 ID：      {{capturedId}}"
+      "userId": "  使用者 ID：      {{capturedId}}",
+      "allowedSenders_one": "允許的傳送者（{{formattedCount}}）：",
+      "linesLastModified_one": "  {{chatId}}  {{formattedCount}} 行  最後修改於 {{lastModified}}",
+      "sessionCandidates_one": "候選對話（{{formattedCount}}）："
     },
     "update": {
       "installing": "正在安裝 {{package}}…",
@@ -2589,7 +2635,9 @@
       "rateLimitSeconds_other": "請求過於頻繁，請約 {{seconds}} 秒後重試。",
       "reauth": "{{provider}} 登入已失效，請重新登入以繼續。",
       "reauthSetup": "{{provider}} 登入已失效，請開啟初始設定並重新登入。",
-      "unknown": "抱歉，出了點問題。請重試。"
+      "unknown": "抱歉，出了點問題。請重試。",
+      "rateLimitMinutes_one": "請求過於頻繁，請約 {{minutes}} 分鐘後重試。",
+      "rateLimitSeconds_one": "請求過於頻繁，請約 {{seconds}} 秒後重試。"
     },
     "fallback": {
       "stepLimit": "收集資料時已達到步驟上限。告訴我繼續，我就會接著處理。",
@@ -2613,7 +2661,8 @@
       "unnamed": "未命名訓練課表",
       "update": "更新 {{date}} 的訓練課表「{{name}}」：{{detail}}",
       "deleteFallback": "刪除訓練課表",
-      "updateFallback": "更新訓練課表：{{detail}}"
+      "updateFallback": "更新訓練課表：{{detail}}",
+      "duration_one": "時長改為 {{seconds}} 秒"
     },
     "history": {
       "diskFull": "\n\n（提醒一下：磁碟已滿，無法將這次交流儲存到歷史記錄中，但訊息已收到。方便時請清出一些空間。）",
@@ -2720,7 +2769,9 @@
       "permissions": "[security] 已將 {{path}} 的權限從 {{previous}} 縮限為 {{next}}。",
       "recoveryRequired": "需要復原 {{service}} 傳送者授權。",
       "recoveryRequiredAt": "需要復原 {{path}} 的 {{service}} 傳送者授權。",
-      "serving": "[security] 開放私訊政策：正在回應允許清單之外的傳送者 {{senderId}}。"
+      "serving": "[security] 開放私訊政策：正在回應允許清單之外的傳送者 {{senderId}}。",
+      "allowlist_one": "[security] {{service}} 允許清單：{{policy}} 模式（{{formattedCount}} 個允許的傳送者，主要操作員：{{primary}}）。來源：{{source}}。",
+      "open_one": "[security] 警告：私訊政策為 OPEN，此機器人會回覆任何找到它的 {{service}} 使用者。\n[security] 警告：請取消設定 {{variable}}，恢復允許清單/配對模式。\n[security] 已記錄的允許清單：{{formattedCount}} 個傳送者（主要操作員：{{primary}}）。來源：{{source}}。"
     },
     "session": {
       "resetCaveat": "提醒一下：未能完全重設先前的對話，部分先前內容可能仍會影響回覆。",
@@ -2755,7 +2806,8 @@
       "secondsAgo": "{{seconds}} 秒前",
       "unchanged": "已是最新，自上次同步以來沒有變更。",
       "unreachable": "暫時無法連線至 {{service}}。",
-      "working": "正在從 {{service}} 同步訓練資料…"
+      "working": "正在從 {{service}} 同步訓練資料…",
+      "restricted_one": "共 {{total}} 項活動，其中 {{number}} 項被 {{source}} 隱藏，因此未納入。由於 {{source}} 的 API 限制，{{service}} 無法分享來自 {{source}} 的活動。對於後續騎乘，請將記錄活動的資料來源直接連線至 {{service}}，同時保持 {{source}} 連線。對於過往騎乘，請在 {{service}} 設定中使用 {{importAction}}；此操作需要訂閱 {{service}} 支持者方案。"
     },
     "update": {
       "available": "有可用更新：{{current}} → {{latest}}\n{{updateInstruction}}\n\n{{platform}} 桌面應用程式已可下載：{{desktopUrl}}\n\n希望機器人 {{availability}} 執行，又不想讓電腦一直開著？可部署 {{provider}} 範本：{{railwayUrl}}",
@@ -2881,7 +2933,12 @@
     "packPrice_one": "{{formattedCount}} 點數 · {{price}}",
     "balance_other": "{{formattedCount}} 點數",
     "pack_other": "{{formattedCount}} 點數",
-    "packPrice_other": "{{formattedCount}} 點數 · {{price}}"
+    "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2898,6 +2955,21 @@
       "alreadyGranted": "此裝置已使用過初始點數。",
       "added_one": "已新增 {{formattedCount}} 點數",
       "added_other": "已新增 {{formattedCount}} 點數"
+    },
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
     }
   }
 }

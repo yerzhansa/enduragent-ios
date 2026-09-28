@@ -8,6 +8,102 @@
             "state": "translated",
             "value": "Unlock your iPhone to continue. Your message is saved."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to continue. Your message is saved."
+          }
         }
       }
     },
@@ -18,12 +114,204 @@
             "state": "translated",
             "value": "Choose how the coach reaches a model to continue."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how the coach reaches a model to continue."
+          }
         }
       }
     },
     "access.error.openRouterFunds": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
@@ -2354,6 +2642,102 @@
             "state": "translated",
             "value": "Earlier chat"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
         }
       }
     },
@@ -3764,6 +4148,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "메시지 %#@formattedCount@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -3782,6 +4172,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@件のメッセージ"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -3800,6 +4196,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 条消息"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -3818,6 +4220,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 則訊息"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -13288,6 +13696,102 @@
             "state": "translated",
             "value": "Not sent. Your draft is still here."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not sent. Your draft is still here."
+          }
         }
       }
     },
@@ -20618,6 +21122,102 @@
     "chat.notice.savedUnverified": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "I saved your information, but couldn't verify my response. Please try again."
@@ -35826,6 +36426,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "매주 %#@hours@시간"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -35844,6 +36450,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "毎週%#@hours@時間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -35862,6 +36474,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "每周 %#@hours@ 小时"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -35880,6 +36498,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "每週 %#@hours@ 小時"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -48604,6 +49228,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@주 · 워크아웃 %#@workouts@개 · %#@minutes@분"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -48630,6 +49260,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@週間 · ワークアウト%#@workouts@件 · %#@minutes@分"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -48656,6 +49292,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 周 · %#@workouts@ 次训练课程 · %#@minutes@ 分钟"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -48682,6 +49324,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 週 · %#@workouts@ 次訓練課表 · %#@minutes@ 分鐘"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -51054,6 +51702,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@~%#@end@ · %#@weeks@주 · %#@kind@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -51084,6 +51738,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@〜%#@end@ · %#@weeks@週間 · %#@kind@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -51114,6 +51774,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 周 · %#@kind@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -51144,6 +51810,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 週 · %#@kind@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -59050,6 +59722,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "대기 중인 메시지 %#@number@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -59068,6 +59746,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "送信待ちのメッセージ%#@number@件"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -59086,6 +59770,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@number@ 条排队消息"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -59104,6 +59794,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@number@ 則佇列訊息"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -63366,6 +64062,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@days@일간 사이클링 활동 %#@formattedCount@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -63388,6 +64090,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "サイクリングアクティビティ%#@formattedCount@件 · %#@days@日間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -63410,6 +64118,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 次骑行活动 · %#@days@ 天"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -63432,6 +64146,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 次騎乘活動 · %#@days@ 天"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -69822,12 +70542,204 @@
             "state": "translated",
             "value": "Buy Credits"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buy Credits"
+          }
         }
       }
     },
     "chat.turn.chooseAccessMethod": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose access method"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Choose access method"
@@ -69842,12 +70754,204 @@
             "state": "translated",
             "value": "Finished while the phone was locked."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
         }
       }
     },
     "chat.turn.interruptedNothingChanged": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "This reply stopped before it finished. Nothing was changed."
@@ -69862,12 +70966,204 @@
             "state": "translated",
             "value": "This reply stopped before it finished. Some information was saved first."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply stopped before it finished. Some information was saved first."
+          }
         }
       }
     },
     "chat.turn.receivedBeforeClose": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Received before the app closed. Tap Try again to send it."
@@ -69882,12 +71178,204 @@
             "state": "translated",
             "value": "Restore purchases"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
         }
       }
     },
     "chat.turn.signInAgain": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in again"
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Sign in again"
@@ -74048,6 +75536,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "연결되지 않은 항목 %#@formattedCount@개를 지금 삭제할까요?"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -74066,6 +75560,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "未参照の項目%#@formattedCount@件を今すぐ削除しますか？"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -74084,6 +75584,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "现在删除这 %#@formattedCount@ 个未被引用的项目？"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -74102,6 +75608,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "現在刪除這 %#@formattedCount@ 個未被參照的項目？"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -81566,6 +83078,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "운영자가 이미 설정되어 있습니다(ID: %#@operator@, allowFrom 항목 %#@formattedCount@개). 다시 확인할까요? 기존 항목은 모두 유지됩니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -81588,6 +83106,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "オペレーターは設定済みです（ID: %#@operator@、allowFromに%#@formattedCount@件）。再確認しますか？既存の項目はすべて保持されます。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -81610,6 +83134,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已配置操作员（ID：%#@operator@；allowFrom 有 %#@formattedCount@ 个条目）。重新获取账号信息？所有现有条目都会保留。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -81632,6 +83162,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已設定操作員（ID：%#@operator@；allowFrom 有 %#@formattedCount@ 個項目）。重新擷取帳號資訊？所有現有項目都會保留。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -90962,6 +92498,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "새 저장소 항목 %#@formattedCount@개를 만든 후 초기 설정에 실패했습니다. 이 항목들은 아직 %#@configFile@에 등록되지 않았습니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -90984,6 +92526,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "保存先に新しい項目を%#@formattedCount@件作成した後、セットアップに失敗しました。これらの項目はまだ%#@configFile@に登録されていません。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91006,6 +92554,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "向导在创建 %#@formattedCount@ 个新的存储后端项目后失败，这些项目尚未写入 %#@configFile@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91028,6 +92582,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "精靈在建立 %#@formattedCount@ 個新的儲存後端項目後失敗，這些項目尚未寫入 %#@configFile@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91692,6 +93252,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "허용된 발신자 (%#@formattedCount@명):"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91710,6 +93276,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "許可された送信者（%#@formattedCount@人）:"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91728,6 +93300,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "允许的发送者（%#@formattedCount@）："
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -91746,6 +93324,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "允許的傳送者（%#@formattedCount@）："
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -95584,6 +97168,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "  %#@chatId@  %#@formattedCount@줄  마지막 수정 %#@lastModified@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -95610,6 +97200,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "  %#@chatId@  %#@formattedCount@行  最終更新%#@lastModified@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -95636,6 +97232,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "  %#@chatId@  %#@formattedCount@ 行  最后修改于 %#@lastModified@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -95662,6 +97264,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "  %#@chatId@  %#@formattedCount@ 行  最後修改於 %#@lastModified@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -99294,6 +100902,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "세션 후보 (%#@formattedCount@개):"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -99312,6 +100926,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "セッション候補（%#@formattedCount@件）:"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -99330,6 +100950,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "候选对话（%#@formattedCount@）："
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -99348,6 +100974,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "候選對話（%#@formattedCount@）："
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -104958,6 +106590,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "요청 한도에 도달했습니다. 약 %#@minutes@분 후 다시 시도해 주세요."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -104976,6 +106614,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "リクエストの上限に達しました。約%#@minutes@分後に、もう一度お試しください。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -104994,6 +106638,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "请求过于频繁，请约 %#@minutes@ 分钟后重试。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -105012,6 +106662,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "請求過於頻繁，請約 %#@minutes@ 分鐘後重試。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -105358,6 +107014,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "요청 한도에 도달했습니다. 약 %#@seconds@초 후 다시 시도해 주세요."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -105376,6 +107038,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "リクエストの上限に達しました。約%#@seconds@秒後に、もう一度お試しください。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -105394,6 +107062,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "请求过于频繁，请约 %#@seconds@ 秒后重试。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -105412,6 +107086,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "請求過於頻繁，請約 %#@seconds@ 秒後重試。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -109106,6 +110786,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "시간을 %#@seconds@초로"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -109124,6 +110810,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "時間を%#@seconds@秒に"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -109142,6 +110834,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "时长改为 %#@seconds@ 秒"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -109160,6 +110858,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "時長改為 %#@seconds@ 秒"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -111314,6 +113018,102 @@
             "state": "translated",
             "value": "intervals.icu did not accept that key."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not accept that key."
+          }
         }
       }
     },
@@ -111854,6 +113654,102 @@
             "state": "translated",
             "value": "Your Credits couldn't be used. Restore purchases to continue."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits couldn't be used. Restore purchases to continue."
+          }
         }
       }
     },
@@ -111864,12 +113760,204 @@
             "state": "translated",
             "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+          }
         }
       }
     },
     "credits.error.unavailable": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Credits are unavailable right now. Try again later."
@@ -123948,12 +126036,460 @@
               "formatSpecifier": "@"
             }
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
         }
       }
     },
     "language.saveFailedAutomatic": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
@@ -124912,6 +127448,102 @@
     "onboarding.notice.health": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
@@ -132030,6 +134662,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@~%#@end@ · %#@weeks@주"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -132056,6 +134694,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@〜%#@end@ · %#@weeks@週間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -132082,6 +134726,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 周"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -132108,6 +134758,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 週"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -133310,6 +135966,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@주"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -133328,6 +135990,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@週間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -133346,6 +136014,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 周"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -133364,6 +136038,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 週"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -142444,6 +145124,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@개 항목에 결정이 필요합니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -142462,6 +145148,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@件の項目で判断が必要です。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -142480,6 +145172,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "有 %#@formattedCount@ 项需要决定。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -142498,6 +145196,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "有 %#@formattedCount@ 個項目需要決定。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -146242,6 +148946,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@~%#@end@ · %#@weeks@주 · 시작일과 종료일 포함 %#@days@일"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -146272,6 +148982,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@〜%#@end@ · %#@weeks@週間 · 開始日と終了日を含む%#@days@日間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -146302,6 +149018,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 周 · 含首尾共 %#@days@ 天"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -146332,6 +149054,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@start@ 至 %#@end@ · %#@weeks@ 週 · 含首尾共 %#@days@ 天"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -151792,6 +154520,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@주"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -151810,6 +154544,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@週間"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -151828,6 +154568,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 周"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -151846,6 +154592,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@weeks@ 週"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -204660,6 +207412,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "전체 활동 %#@total@개 중 %#@restricted@개가 %#@strava@에 의해 숨겨져 있습니다"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -204686,6 +207444,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@total@件中%#@restricted@件のアクティビティが%#@strava@により非表示になっています"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -204712,6 +207476,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "共 %#@total@ 项活动，其中 %#@restricted@ 项被 %#@strava@ 隐藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -204738,6 +207508,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@total@ 筆活動中有 %#@restricted@ 筆被 %#@strava@ 隱藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -213698,6 +216474,102 @@
     "settings.conversation.validation.contextWindowTokens": {
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
+          }
+        },
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "Enter a safe whole number of tokens, 1 or more."
@@ -279528,6 +282400,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "라이딩 파일 %#@formattedCount@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -279546,6 +282424,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@件のライドファイル"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -279564,6 +282448,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 个骑行文件"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -279582,6 +282472,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 個騎乘檔案"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -290078,6 +292974,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "계획, 항목 %#@formattedCount@개 확인 필요"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -290096,6 +292998,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "プラン、%#@formattedCount@項目の確認が必要です"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -290114,6 +293022,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "计划，%#@formattedCount@ 项需要处理"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -290132,6 +293046,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "計畫，%#@formattedCount@ 個項目需要處理"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -292784,6 +295704,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "로컬 훈련 데이터 처리가 완료되었습니다. %#@source@ API 제한으로 인해 %#@provider@에서 활동 %#@formattedCount@개를 공유할 수 없어 해당 활동은 포함되지 않았습니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -292810,6 +295736,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "このコンピュータでのトレーニングデータの処理が完了しました。%#@source@のAPI制限により、%#@provider@は%#@formattedCount@件のアクティビティを共有できないため、これらは含まれていません。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -292836,6 +295768,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "本地训练数据处理已完成。由于 %#@source@ 的 API 限制，%#@provider@ 无法分享 %#@formattedCount@ 项活动，因此这些活动未包含在内。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -292862,6 +295800,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "本機訓練資料處理完成。由於 %#@source@ API 的限制，%#@provider@ 無法分享 %#@formattedCount@ 筆活動，因此未納入這些活動。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -293846,6 +296790,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "훈련 데이터 확인이 완료되었습니다. %#@source@ API 제한으로 인해 %#@provider@에서 활동 %#@formattedCount@개를 공유할 수 없어 해당 활동은 포함되지 않았습니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -293872,6 +296822,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "トレーニングデータの確認が完了しました。%#@source@のAPI制限により、%#@provider@は%#@formattedCount@件のアクティビティを共有できないため、これらは含まれていません。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -293898,6 +296854,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "训练数据检查已完成。由于 %#@source@ 的 API 限制，%#@provider@ 无法分享 %#@formattedCount@ 项活动，因此这些活动未包含在内。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -293924,6 +296886,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "訓練資料檢查完成。由於 %#@source@ API 的限制，%#@provider@ 無法分享 %#@formattedCount@ 筆活動，因此未納入這些活動。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -294856,6 +297824,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@source@에 의해 %#@formattedCount@개 숨겨짐"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -294878,6 +297852,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@source@により%#@formattedCount@件が非表示"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -294900,6 +297880,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 项被 %#@source@ 隐藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -294922,6 +297908,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 筆被 %#@source@ 隱藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -295774,6 +298766,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@source@에 의해 활동 %#@formattedCount@개 숨겨짐"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -295796,6 +298794,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@source@により%#@formattedCount@件のアクティビティが非表示"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -295818,6 +298822,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 项活动被 %#@source@ 隐藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -295840,6 +298850,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@formattedCount@ 筆活動被 %#@source@ 隱藏"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -305962,6 +308978,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] %#@service@ 허용 목록: %#@policy@ 모드 (허용된 발신자 %#@formattedCount@명, 주 운영자: %#@primary@). 출처: %#@source@."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -305996,6 +309018,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] %#@service@の許可リスト: %#@policy@モード（許可された送信者%#@formattedCount@人、メイン: %#@primary@）。参照元: %#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -306030,6 +309058,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] %#@service@ 允许名单：%#@policy@ 模式（%#@formattedCount@ 个允许的发送者，主要操作员：%#@primary@）。来源：%#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -306064,6 +309098,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] %#@service@ 允許清單：%#@policy@ 模式（%#@formattedCount@ 個允許的傳送者，主要操作員：%#@primary@）。來源：%#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -310850,6 +313890,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] 경고: DM 정책이 OPEN입니다. 이 봇을 찾은 모든 %#@service@ 사용자에게 답변합니다.\n[security] 경고: 허용 목록/페어링을 복원하려면 %#@variable@ 설정을 해제하세요.\n[security] 저장된 허용 목록: 발신자 %#@formattedCount@명 (주 운영자: %#@primary@). 출처: %#@source@."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -310884,6 +313930,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] 警告: DMポリシーがOPENです。このボットを見つけたすべての%#@service@ユーザーに返信します。\n[security] 警告: 許可リスト/ペアリングに戻すには、%#@variable@の設定を解除してください。\n[security] 保存済みの許可リスト: 送信者%#@formattedCount@人（メイン: %#@primary@）。参照元: %#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -310918,6 +313970,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] 警告：私信策略为 OPEN，此机器人会回复任何找到它的 %#@service@ 用户。\n[security] 警告：请取消设置 %#@variable@，恢复允许名单/配对模式。\n[security] 已记录的允许名单：%#@formattedCount@ 个发送者（主要操作员：%#@primary@）。来源：%#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -310952,6 +314010,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "[security] 警告：私訊政策為 OPEN，此機器人會回覆任何找到它的 %#@service@ 使用者。\n[security] 警告：請取消設定 %#@variable@，恢復允許清單/配對模式。\n[security] 已記錄的允許清單：%#@formattedCount@ 個傳送者（主要操作員：%#@primary@）。來源：%#@source@。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -316722,6 +319786,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "전체 활동 %#@total@개 중 %#@number@개가 %#@source@에 의해 숨겨져 있어 포함되지 않았습니다. %#@source@ API 제한으로 인해 %#@service@에서 %#@source@의 활동을 공유할 수 없습니다. 향후 라이딩을 위해 기록 기기를 %#@service@에 직접 연결하고 %#@source@ 연결도 유지하세요. 지난 라이딩은 %#@service@ 설정에서 %#@importAction@ 기능을 사용하세요. %#@service@ 후원자 구독이 필요합니다."
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -316756,6 +319826,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "全%#@total@件のアクティビティのうち%#@number@件は%#@source@によって非表示になっているため、含まれていません。%#@source@のAPI制限により、%#@service@は%#@source@由来のアクティビティを共有できません。今後のライドには、記録元を%#@service@に直接接続し、%#@source@との接続も維持してください。過去のライドには、%#@service@の設定にある%#@importAction@を使ってください。%#@service@のサポーター登録が必要です。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -316790,6 +319866,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "共 %#@total@ 项活动，其中 %#@number@ 项被 %#@source@ 隐藏，因此未纳入。由于 %#@source@ 的 API 限制，%#@service@ 无法分享来自 %#@source@ 的活动。对于后续骑行，请将记录活动的数据源直接连接至 %#@service@，同时保持 %#@source@ 连接。对于以往骑行，请在 %#@service@ 设置中使用 %#@importAction@；此操作需要订阅 %#@service@ 支持者方案。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -316824,6 +319906,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "共 %#@total@ 項活動，其中 %#@number@ 項被 %#@source@ 隱藏，因此未納入。由於 %#@source@ 的 API 限制，%#@service@ 無法分享來自 %#@source@ 的活動。對於後續騎乘，請將記錄活動的資料來源直接連線至 %#@service@，同時保持 %#@source@ 連線。對於過往騎乘，請在 %#@service@ 設定中使用 %#@importAction@；此操作需要訂閱 %#@service@ 支持者方案。"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -325572,6 +328660,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "심박수 반응 · 기록 %#@value@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -325590,6 +328684,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "心拍反応 · %#@value@件の記録"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -325608,6 +328708,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "心率反应 · %#@value@ 次记录"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -325626,6 +328732,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "心率反應 · %#@value@ 次表現"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -331572,6 +334684,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "측정된 라이딩 시간 %#@duration@ · 기록된 범위 %#@value@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -331594,6 +334712,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "測定ライド時間%#@duration@ · 記録のある階級%#@value@個"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -331616,6 +334740,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "实测骑行时间 %#@duration@ · %#@value@ 个记录分组"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -331638,6 +334768,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "實測騎乘時間 %#@duration@ · %#@value@ 個記錄分組"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -343744,6 +346880,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "구간 %#@values@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -343762,6 +346904,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "区間%#@values@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -343780,6 +346928,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "片段 %#@values@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -343798,6 +346952,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "區段 %#@values@"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344356,6 +347516,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " · 그룹 %#@value@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344374,6 +347540,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " · %#@value@グループ"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344392,6 +347564,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " · %#@value@ 组"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344410,6 +347588,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": " · %#@value@ 組"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344914,6 +348098,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@duration@ · 표본 %#@value@개"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344936,6 +348126,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@duration@ · %#@value@サンプル"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344958,6 +348154,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@duration@ · %#@value@ 个采样点"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -344980,6 +348182,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@duration@ · %#@value@ 筆取樣"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -364546,6 +367754,12 @@
         "ko": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "라이딩 %#@number@회"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -364564,6 +367778,12 @@
         "ja": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "ライド%#@number@件"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -364582,6 +367802,12 @@
         "zh-Hans": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@number@ 次骑行"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -364600,6 +367826,12 @@
         "zh-Hant": {
           "variations": {
             "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%#@number@ 次騎乘"
+                }
+              },
               "other": {
                 "stringUnit": {
                   "state": "translated",

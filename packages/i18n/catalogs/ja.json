@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "言語を選んでください",
-    "continue": "続ける"
+    "continue": "続ける",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "settings": {
     "appearance": {
@@ -83,7 +85,8 @@
         "cause": "{{strava}}のAPI制限により、{{intervalsLower}}は{{strava}}由来のアクティビティを{{product}}と共有できません。APIキーに問題はありません。",
         "future": "記録元を{{intervalsLower}}に直接接続し、{{strava}}との接続も維持してください。無料で利用でき、今後のライドに適用されます。",
         "past": "{{intervalsLower}}の設定で「{{strava}}の全データをインポート」を使用してください。過去のライドに適用され、{{intervalsLower}}のサポーター登録が必要です。",
-        "title_other": "{{total}}件中{{restricted}}件のアクティビティが{{strava}}により非表示になっています"
+        "title_other": "{{total}}件中{{restricted}}件のアクティビティが{{strava}}により非表示になっています",
+        "title_one": "{{total}}件中{{restricted}}件のアクティビティが{{strava}}により非表示になっています"
       },
       "reviewSetup": "セットアップを確認",
       "save": "アスリートIDを保存",
@@ -190,7 +193,8 @@
         "historyTokenBudgetRatio": "履歴の割り当てを0%より大きく、100%以下で入力してください。",
         "idleMinutes": "分数を0以上の安全に扱える整数で入力してください。",
         "resetArchiveRetentionDays": "日数を0以上の安全に扱える整数で入力してください。",
-        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。"
+        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。",
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more."
       }
     },
     "credentials": {
@@ -535,7 +539,8 @@
     "readOnly": "過去の会話は閲覧専用です。",
     "reason": {
       "explicit": "新しい会話を開始しました",
-      "stale": "しばらく利用がなかったため終了しました"
+      "stale": "しばらく利用がなかったため終了しました",
+      "earlierChat": "Earlier chat"
     },
     "retry": "再試行",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -543,7 +548,8 @@
     "truncated": "最近の過去の会話のみを表示しています。",
     "turnCount_other": "{{formattedCount}}件のメッセージ",
     "unavailable": "この会話は利用できなくなりました。",
-    "history": "履歴"
+    "history": "履歴",
+    "turnCount_one": "{{formattedCount}}件のメッセージ"
   },
   "setup": {
     "ai": {
@@ -713,7 +719,8 @@
       "fileCount_other": "{{formattedCount}}件のライドファイル",
       "importing": "ライドファイルをインポート中…",
       "unavailable": "ローカルライブラリへのインポート: {{imported}}件をインポート、{{quarantined}}件を隔離しました。コーチはアクティビティと時系列データを一時的に利用できません。インポートを再試行してください。",
-      "unconfirmed": "ローカルライブラリへのインポートに失敗しました。結果を確認できませんでした。再試行する前にライブラリを確認してください。"
+      "unconfirmed": "ローカルライブラリへのインポートに失敗しました。結果を確認できませんでした。再試行する前にライブラリを確認してください。",
+      "fileCount_one": "{{formattedCount}}件のライドファイル"
     },
     "intake": {
       "managing": "けがに対処中",
@@ -828,7 +835,9 @@
         "published": "トレーニングデータの確認が完了しました。",
         "publishedRestricted_other": "トレーニングデータの確認が完了しました。{{source}}のAPI制限により、{{provider}}は{{formattedCount}}件のアクティビティを共有できないため、これらは含まれていません。",
         "queued": "同期待ちです。",
-        "running": "トレーニングデータを同期中…"
+        "running": "トレーニングデータを同期中…",
+        "noChangeRestricted_one": "このコンピュータでのトレーニングデータの処理が完了しました。{{source}}のAPI制限により、{{provider}}は{{formattedCount}}件のアクティビティを共有できないため、これらは含まれていません。",
+        "publishedRestricted_one": "トレーニングデータの確認が完了しました。{{source}}のAPI制限により、{{provider}}は{{formattedCount}}件のアクティビティを共有できないため、これらは含まれていません。"
       },
       "restriction": {
         "fixAction": "· 対処方法",
@@ -836,7 +845,9 @@
         "label_other": "{{source}}により{{formattedCount}}件が非表示",
         "tooltipBody": "{{source}}のAPI制限により、{{provider}}はこれらのアクティビティを{{product}}と共有できません。",
         "tooltipLabel": "アクティビティが非表示になる理由",
-        "tooltipLead_other": "{{source}}により{{formattedCount}}件のアクティビティが非表示"
+        "tooltipLead_other": "{{source}}により{{formattedCount}}件のアクティビティが非表示",
+        "label_one": "{{source}}により{{formattedCount}}件が非表示",
+        "tooltipLead_one": "{{source}}により{{formattedCount}}件のアクティビティが非表示"
       },
       "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}:{{second}} {{timezone}}",
       "unknownTimestamp": "同期時刻は不明"
@@ -855,7 +866,8 @@
       "settings": "設定",
       "training": "トレーニング"
     },
-    "menu": "メニュー"
+    "menu": "メニュー",
+    "planAttention_one": "プラン、{{formattedCount}}項目の確認が必要です"
   },
   "chat": {
     "attachment": {
@@ -941,7 +953,8 @@
       "send": "メッセージを送信",
       "stop": "回答を停止",
       "messageField": "メッセージ",
-      "sendButton": "送信"
+      "sendButton": "送信",
+      "notSent": "Not sent. Your draft is still here."
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -1012,7 +1025,8 @@
       "retryMessage": "メッセージを再試行",
       "savedChoice": "保存済みの選択",
       "working": "コーチが処理中…",
-      "responseStopped": "回答を停止しました。途中までの回答は残っています。"
+      "responseStopped": "回答を停止しました。途中までの回答は残っています。",
+      "savedUnverified": "I saved your information, but couldn't verify my response. Please try again."
     },
     "planChange": {
       "activePlan": "有効なプラン",
@@ -1145,7 +1159,8 @@
       "workout": "ワークアウト",
       "workoutOption": "{{name}} · {{minutes}}分",
       "workoutPower": "{{date}} · {{minutes}}分 · {{watts}} W",
-      "workoutValue": "{{date}} · {{minutes}}分"
+      "workoutValue": "{{date}} · {{minutes}}分",
+      "weeklyHours_one": "毎週{{hours}}時間"
     },
     "planCreation": {
       "activate": "プランを有効にする",
@@ -1296,7 +1311,9 @@
       "didIReadThis": "正しく理解できましたか？",
       "iUnderstood": "こう理解しました",
       "skipForNow": "今はスキップ",
-      "youWrote": "入力内容"
+      "youWrote": "入力内容",
+      "outlineSummary_one": "{{weeks}}週間 · ワークアウト{{workouts}}件 · {{minutes}}分",
+      "span_one": "{{start}}〜{{end}} · {{weeks}}週間 · {{kind}}"
     },
     "planReference": {
       "active": "有効",
@@ -1327,7 +1344,8 @@
       "removeLabel": "送信待ちのメッセージ{{number}}を削除",
       "retry": "中断されたメッセージを再試行",
       "run": "コマンドを実行",
-      "title": "送信待ちのメッセージ"
+      "title": "送信待ちのメッセージ",
+      "count_one": "送信待ちのメッセージ{{number}}件"
     },
     "slashPopup": {
       "choose": "選択",
@@ -1389,7 +1407,8 @@
       "waiting": "トレーニングデータを待っています",
       "week": "全{{total}}週中{{week}}週目",
       "weekPhase": "全{{total}}週中{{week}}週目 · {{phase}}",
-      "workoutDetail": "{{minutes}}分 · {{sport}}"
+      "workoutDetail": "{{minutes}}分 · {{sport}}",
+      "activities_one": "サイクリングアクティビティ{{formattedCount}}件 · {{days}}日間"
     },
     "transcript": {
       "athleteLabel": "あなたのメッセージ",
@@ -1441,7 +1460,17 @@
     },
     "addToCalendar": "カレンダーに追加",
     "menu": "メニュー",
-    "title": "コーチ"
+    "title": "コーチ",
+    "turn": {
+      "buyCredits": "Buy Credits",
+      "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
+      "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
+      "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
+      "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
+      "restorePurchases": "Restore purchases",
+      "signInAgain": "Sign in again"
+    }
   },
   "plan": {
     "details": {
@@ -1505,7 +1534,9 @@
       },
       "stopped": "中止",
       "unknownReason": "理由不明",
-      "weekCount_other": "{{weeks}}週間"
+      "weekCount_other": "{{weeks}}週間",
+      "span_one": "{{start}}〜{{end}} · {{weeks}}週間",
+      "weekCount_one": "{{weeks}}週間"
     },
     "view": {
       "active": {
@@ -1581,7 +1612,8 @@
       },
       "attention": {
         "decisionCount_other": "{{formattedCount}}件の項目で判断が必要です。",
-        "planAttention": "プランの確認事項"
+        "planAttention": "プランの確認事項",
+        "decisionCount_one": "{{formattedCount}}件の項目で判断が必要です。"
       },
       "chatOriginatedPlanResult": {
         "addedToPlan": "プランに追加済み",
@@ -1620,7 +1652,8 @@
         "previousMonth": "前月",
         "recalculatePlan": "プランを再計算",
         "useShortBlock": "短期ブロックを使用",
-        "useThisDate": "この日付を使用"
+        "useThisDate": "この日付を使用",
+        "dateSummary_one": "{{start}}〜{{end}} · {{weeks}}週間 · 開始日と終了日を含む{{days}}日間"
       },
       "decimalHours": {
         "hours": "{{value1}}時間"
@@ -1663,7 +1696,8 @@
         "summary": "ワークアウト{{value1}}件 · {{value2}} · {{value3}}",
         "updateDraft": "下書きを更新",
         "updatedDescription": "コーチが希望する変更を適用しました。",
-        "weeks_other": "{{weeks}}週間"
+        "weeks_other": "{{weeks}}週間",
+        "weeks_one": "{{weeks}}週間"
       },
       "draftFormation": {
         "buildingTheReplacementDraft": "置き換え用の下書きを作成中",
@@ -2139,7 +2173,8 @@
       "unavailableMetric": "利用できません",
       "unchanged": "変化なし",
       "watts": "{{value}} W",
-      "windowComparison": "{{start}}〜{{end}} · その前の28日間との比較"
+      "windowComparison": "{{start}}〜{{end}} · その前の28日間との比較",
+      "heartRateSummary_one": "心拍反応 · {{value}}件の記録"
     },
     "response": {
       "cadence": "ケイデンス",
@@ -2200,7 +2235,8 @@
       "segment": "区間",
       "strongCoverage": "データの範囲が十分",
       "unavailable": "利用できません",
-      "warmupExcluded": "ウォームアップを除外"
+      "warmupExcluded": "ウォームアップを除外",
+      "distributionSummary_one": "測定ライド時間{{duration}} · 記録のある階級{{value}}個"
     },
     "ride": {
       "analysisFailed": "現在、このライドを分析できませんでした。",
@@ -2344,7 +2380,10 @@
       "unknownDate": "日付不明",
       "wholeRide": "{{provenance}} · ライド全体",
       "zone": "ゾーン",
-      "zoneValue": "ゾーン{{value}}"
+      "zoneValue": "ゾーン{{value}}",
+      "groupSegments_one": "区間{{values}}",
+      "groupsSuffix_one": " · {{value}}グループ",
+      "halfMeta_one": "{{duration}} · {{value}}サンプル"
     },
     "view": {
       "announcement": "{{period}}。{{notice}}",
@@ -2416,7 +2455,8 @@
       "unavailable": "利用できません",
       "week": "週",
       "weekRange": "{{start}}〜{{end}}",
-      "weeklySummary": "週の概要"
+      "weeklySummary": "週の概要",
+      "rideCount_one": "ライド{{number}}件"
     }
   },
   "cli": {
@@ -2521,7 +2561,10 @@
       "whereToStoreSecrets": "シークレットの保存先を選んでください",
       "wizardFailedAfterCreatingNewBackend_other": "保存先に新しい項目を{{formattedCount}}件作成した後、セットアップに失敗しました。これらの項目はまだ{{configFile}}に登録されていません。",
       "wizardOrphanedBackendItemsCreatedThis": "[wizard] 今回作成した未参照の保存先項目です。必要に応じて手動で削除してください:",
-      "yourCurrentProviderIsNotOffered": "現在のプロバイダー `{{prevProvider}}` はセットアップでは選択できません。セットアップを再実行すると置き換えられます。"
+      "yourCurrentProviderIsNotOffered": "現在のプロバイダー `{{prevProvider}}` はセットアップでは選択できません。セットアップを再実行すると置き換えられます。",
+      "deleteTheOrphanItemSNow_one": "未参照の項目{{formattedCount}}件を今すぐ削除しますか？",
+      "operatorAlreadyConfiguredIdAllowfromHas_one": "オペレーターは設定済みです（ID: {{operator}}、allowFromに{{formattedCount}}件）。再確認しますか？既存の項目はすべて保持されます。",
+      "wizardFailedAfterCreatingNewBackend_one": "保存先に新しい項目を{{formattedCount}}件作成した後、セットアップに失敗しました。これらの項目はまだ{{configFile}}に登録されていません。"
     },
     "startup": {
       "allowedSenders_other": "許可された送信者（{{formattedCount}}人）:",
@@ -2564,7 +2607,10 @@
       "unknownCommand": "不明なコマンド: {{command}}\n",
       "usageCommandCommandsSetupInteractiveWizard": "使い方: {{binaryName}} [command]\n\nコマンド:\n  {{setup}}                     対話型セットアップで設定ファイルを作成\n  {{version}}                   現在のバージョンを表示\n  {{addSender}}       {{telegram}}のユーザーIDにボットの利用を許可\n  {{removeSender}}    許可済みの{{telegram}}ユーザーIDの権限を取り消し\n  {{listSenders}}              現在の許可リストと既知のセッション候補を表示\n  （なし）                    コーチングエージェントを起動（{{telegram}}またはCLIモード）\n\nオプション:\n  {{help}}                    このヘルプを表示",
       "usageUserid": "使い方: {{binaryName}} {{command}} <userId>",
-      "userId": "  ユーザーID:      {{capturedId}}"
+      "userId": "  ユーザーID:      {{capturedId}}",
+      "allowedSenders_one": "許可された送信者（{{formattedCount}}人）:",
+      "linesLastModified_one": "  {{chatId}}  {{formattedCount}}行  最終更新{{lastModified}}",
+      "sessionCandidates_one": "セッション候補（{{formattedCount}}件）:"
     },
     "update": {
       "installing": "{{package}}をインストール中...",
@@ -2589,7 +2635,9 @@
       "rateLimitSeconds_other": "リクエストの上限に達しました。約{{seconds}}秒後に、もう一度お試しください。",
       "reauth": "{{provider}}へのログインが無効になりました。続けるには再ログインしてください。",
       "reauthSetup": "{{provider}}へのログインが無効になりました。セットアップを開いて再ログインしてください。",
-      "unknown": "すみません、問題が発生しました。もう一度お試しください。"
+      "unknown": "すみません、問題が発生しました。もう一度お試しください。",
+      "rateLimitMinutes_one": "リクエストの上限に達しました。約{{minutes}}分後に、もう一度お試しください。",
+      "rateLimitSeconds_one": "リクエストの上限に達しました。約{{seconds}}秒後に、もう一度お試しください。"
     },
     "fallback": {
       "stepLimit": "データを集めている途中で処理ステップの上限に達しました。続けてほしいと伝えてもらえれば、中断したところから再開します。",
@@ -2623,7 +2671,8 @@
       "unnamed": "名前のないワークアウト",
       "update": "{{date}}のワークアウト「{{name}}」を更新: {{detail}}",
       "deleteFallback": "ワークアウトを削除",
-      "updateFallback": "ワークアウトを更新: {{detail}}"
+      "updateFallback": "ワークアウトを更新: {{detail}}",
+      "duration_one": "時間を{{seconds}}秒に"
     }
   },
   "telegram": {
@@ -2720,7 +2769,9 @@
       "permissions": "[security] {{path}}の権限を{{previous}}から{{next}}に制限しました。",
       "recoveryRequired": "{{service}}の送信者の許可を復旧する必要があります。",
       "recoveryRequiredAt": "{{path}}の{{service}}の送信者の許可を復旧する必要があります。",
-      "serving": "[security] 公開DMポリシー: 許可リストにない送信者{{senderId}}に応答しています。"
+      "serving": "[security] 公開DMポリシー: 許可リストにない送信者{{senderId}}に応答しています。",
+      "allowlist_one": "[security] {{service}}の許可リスト: {{policy}}モード（許可された送信者{{formattedCount}}人、メイン: {{primary}}）。参照元: {{source}}。",
+      "open_one": "[security] 警告: DMポリシーがOPENです。このボットを見つけたすべての{{service}}ユーザーに返信します。\n[security] 警告: 許可リスト/ペアリングに戻すには、{{variable}}の設定を解除してください。\n[security] 保存済みの許可リスト: 送信者{{formattedCount}}人（メイン: {{primary}}）。参照元: {{source}}。"
     },
     "session": {
       "resetCaveat": "以前の会話を完全にはリセットできなかったため、その内容が一部引き継がれる場合があります。",
@@ -2755,7 +2806,8 @@
       "secondsAgo": "{{seconds}}秒前",
       "unchanged": "すでに最新の状態です。前回の同期から変更はありません。",
       "unreachable": "今は{{service}}に接続できません。",
-      "working": "{{service}}からトレーニングデータを同期しています..."
+      "working": "{{service}}からトレーニングデータを同期しています...",
+      "restricted_one": "全{{total}}件のアクティビティのうち{{number}}件は{{source}}によって非表示になっているため、含まれていません。{{source}}のAPI制限により、{{service}}は{{source}}由来のアクティビティを共有できません。今後のライドには、記録元を{{service}}に直接接続し、{{source}}との接続も維持してください。過去のライドには、{{service}}の設定にある{{importAction}}を使ってください。{{service}}のサポーター登録が必要です。"
     },
     "update": {
       "available": "更新があります: {{current}} → {{latest}}\n{{updateInstruction}}\n\n{{platform}}用のデスクトップアプリ: {{desktopUrl}}\n\nコンピュータをつけたままにせず、ボットを{{availability}}稼働させるには、{{provider}}のテンプレートをデプロイしてください: {{railwayUrl}}",
@@ -2881,7 +2933,12 @@
     "packPrice_one": "{{formattedCount}}クレジット · {{price}}",
     "balance_other": "{{formattedCount}}クレジット",
     "pack_other": "{{formattedCount}}クレジット",
-    "packPrice_other": "{{formattedCount}}クレジット · {{price}}"
+    "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
+    "error": {
+      "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
+      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "unavailable": "Credits are unavailable right now. Try again later."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2898,6 +2955,21 @@
       "alreadyGranted": "このデバイスはすでに初回クレジットを使用しています。",
       "added_one": "{{formattedCount}}クレジットを追加しました",
       "added_other": "{{formattedCount}}クレジットを追加しました"
+    },
+    "notice": {
+      "health": "Training suggestions, not medical advice. Check with a doctor before big changes."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Unlock your iPhone to continue. Your message is saved.",
+      "notConfigured": "Choose how the coach reaches a model to continue.",
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu did not accept that key."
     }
   }
 }
