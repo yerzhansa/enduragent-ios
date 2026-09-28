@@ -77,6 +77,7 @@
 			"public extension Coach { nonisolated func probe() -> Int { 0 } }",
 			"public private(set) var probe: Int",
 			"public lazy var probe = 0",
+			#"public macro probe() = #externalMacro(module: "Macros", type: "Probe")"#,
 			"public indirect enum Probe { case next(Probe) }",
 			"public nonisolated(unsafe) var probe = 0",
 			"public prefix func + (value: Probe) -> Probe { value }",
@@ -138,7 +139,7 @@
 		private func publicDeclarations(in source: String) throws -> [PublicSourceDeclaration] {
 			let declaration = try NSRegularExpression(
 				pattern:
-					#"\b(?:public|open)\s+(?:[A-Za-z_]\w*(?:\s*\([^)]*\))?\s+)*?(actor|class|struct|enum|protocol|typealias|extension|func|var|let|init|subscript)\b(?:\s+([^\s(:{=<]+))?"#
+					#"\b(?:public|open)\s+(?:[A-Za-z_]\w*(?:\s*\([^)]*\))?\s+)*?(actor|class|struct|enum|protocol|typealias|extension|func|macro|var|let|init|subscript)\b(?:\s+([^\s(:{=<]+))?"#
 			)
 			return try declaration.matches(
 				in: source, range: NSRange(source.startIndex..., in: source)

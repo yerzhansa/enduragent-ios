@@ -12,6 +12,8 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result.
 - `preview-language` localizes the title, buttons, notices, and saved Done line.
 - `preview-dark` keeps the review legible in dark appearance.
+- `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
+- `preview-expired` omits an expired review after relaunch without writing a review outcome or clearing record.
 
 ## How to get to it (user POV)
 
@@ -34,13 +36,16 @@ Preconditions:
 | `sim.mjs test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
 | `sim.mjs test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
 | `sim.mjs test <run id> ReviewLanguageProof` | French title, controls, and durable outcome before and after relaunch, `review-french`, `review-french-relaunch`. |
+| `sim.mjs test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
+| `sim.mjs test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
+| `sim.mjs test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | A seeded v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
 | `sim.mjs test <run id> ConfirmedPreviewDarkProof` | Dark review capture with an asserted luminance bound, `07-confirmed-preview-dark`. |
 | `sim.mjs test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete`, `switch-confirmed`. |
 | `sim.mjs test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-rotation-added`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
 | `sim.mjs test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
 
-For the v1 notice, preserve an earlier fixture store with an unexpired review and install the current build over it. Launch with `sim.mjs launch <run id> --keep`, keeping the fixture clock within that review's lifetime. Capture `chat.preview.notice` and the absence of `chat.preview.add` and `chat.preview.cancel` with `sim.mjs shot <run id> review-v1-connected`. Repeat with the disconnected store for `review-v1-disconnected`. Repeat the checks for create, update, and delete review data. There is no current XCUITest class or fixture directive that seeds these states. If the required stores are unavailable, record these paths as unverified. The package test `v1PendingReviewHasNoControls` covers the connected and disconnected data cases, but does not replace those screen captures.
+For the v1 notice, follow the second recipe under [Upgrade proofs](../SKILL.md#upgrade-proofs). Seed a v1 add, edit, and deletion in turn, and run `LegacyReviewNoticeProof` after each. Keep the fixture clock within the review's lifetime. If the required stores are unavailable, record those cases as unverified.
 
 ## Gotchas
 
@@ -51,3 +56,5 @@ For the v1 notice, preserve an earlier fixture store with an unexpired review an
 - A restored v1 review must be unexpired to exercise the earlier-version notice. Connected and disconnected are distinct cases.
 - The compact phone can truncate a long workout description. Inspect the visible cards and controls, and preserve the screenshot rather than assuming every step fits.
 - The helper selects dark appearance for the dark proof. Interactive captures must restore light appearance afterwards.
+- The keyboard proof requires the software keyboard. Also inspect the opaque composer in light and dark appearance after manually scrolling rows under it.
+- The fixture clock is fixed for each launch. `ExpiredReviewProof` verifies expiry on relaunch; `SingleProposalReviewsTests.approveWithStaleTokenIsStaleControl` covers a decision on an expired review without a write.

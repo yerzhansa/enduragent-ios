@@ -49,4 +49,4 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 
 Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim.mjs and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
 
-Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. The M1-14b audit command is `python3 tools/check-feature-proofs.py`; its output belongs in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
+Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `pnpm check:source` for the Node cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.

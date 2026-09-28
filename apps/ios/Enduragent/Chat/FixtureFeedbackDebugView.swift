@@ -3,13 +3,15 @@
 
 	struct FixtureFeedbackDebugView: View {
 		let model: ShellModel
+		let scrollToTail: () -> Void
 
 		var body: some View {
 			if let feedback = model.fixtureFeedback {
 				Text(feedback)
 					.accessibilityIdentifier("chat.error")
-					.padding(.horizontal)
-					.padding(.vertical, 8)
+					.onChange(of: feedback, initial: true) {
+						scrollToTail()
+					}
 			}
 		}
 	}

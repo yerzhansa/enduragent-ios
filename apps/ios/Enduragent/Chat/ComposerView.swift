@@ -45,6 +45,9 @@ struct ComposerView: View {
 				.font(.footnote)
 		}
 		.padding()
+		.background(.background)
+		.accessibilityElement(children: .contain)
+		.accessibilityIdentifier("chat.composer.container")
 	}
 
 	private func say(_ key: CatalogKey) -> String {
