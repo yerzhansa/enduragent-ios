@@ -213,7 +213,7 @@ package struct TurnRunner: Sendable {
 		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
-		let transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
+		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 
 		let memory = Memory(ledger: ledger, clock: clock)
 		let context = (try? await memory.context()) ?? ""
@@ -594,21 +594,6 @@ package struct TurnRunner: Sendable {
 			return nil
 		}
 		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
-	}
-
-	private func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
-		let page = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let conversation = ConversationFold.fold(
-			chat: chatId, synced: page.records, device: ledger.deviceId)
-		let jobs = try await ledger.flushJobs(in: chatId)
-		return Transcript(
-			history: conversation.current.promptHistory(excluding: turn),
-			pending: conversation.outstandingRows(jobs),
-			unflushed: conversation.current.messagesSinceLastFlush(jobs, excluding: turn),
-			flushPending: jobs.contains { !$0.settled },
-			current: conversation.turn(turn)?.userRow
-		)
 	}
 }
 

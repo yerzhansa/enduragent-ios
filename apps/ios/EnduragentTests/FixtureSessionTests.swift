@@ -104,7 +104,7 @@ extension FixtureLaunchTests {
 		await second.send()
 		try await until(within: .seconds(20)) {
 			second.chat?.opening == .afterAutomaticReset(.daily)
-				&& second.chat?.turns.first.map { isSettled($0.state) } == true
+				&& second.chat?.turns.first?.state.isSettled == true
 		}
 		let reset = try #require(second.chat?.turns.first)
 		#expect(reset.id != earlier.id)

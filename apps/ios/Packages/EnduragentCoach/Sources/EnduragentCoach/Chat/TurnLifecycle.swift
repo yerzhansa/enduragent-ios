@@ -265,7 +265,6 @@ public struct CoalescingPolicy: Sendable, Equatable {
 	}
 
 	public static let npm = CoalescingPolicy(window: .milliseconds(1_500))
-
 }
 
 package enum MailboxWork: Sendable, Equatable {

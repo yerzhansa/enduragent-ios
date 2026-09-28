@@ -36,7 +36,7 @@ final class ChatRecords {
 		do {
 			let folded = try await ledger.conversation(chat)
 			pendingProposal = try await ProposalPolicy.pending(chat, from: ledger, at: clock.now)
-			jobs = try await ledger.flushJobs(in: chat)
+			jobs = try await ledger.flushJobs(in: folded)
 			conversation = folded
 			loaded = true
 			return .success(())
@@ -56,8 +56,8 @@ final class ChatRecords {
 	func refreshJobs(
 		from flushes: FlushWork, isolation: isolated (any Actor)? = #isolation
 	) async -> [FlushJobID] {
-		jobs = await flushes.jobs()
-		return FlushJob.outstanding(jobs).map(\.id)
+		jobs = await flushes.jobs(in: conversation)
+		return FlushJob.outstanding(jobs, in: conversation).map(\.id)
 	}
 
 	func apply(_ committed: [AthleteRecord]) {

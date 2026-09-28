@@ -165,7 +165,7 @@ package enum ConversationFold {
 				continue
 			}
 		}
-		return Conversation(chat: chat, segments: segments)
+		return Conversation(chat: chat, segments: segments, legacyMessageUlids: legacyMessages)
 	}
 
 	package static func applying(
@@ -232,6 +232,7 @@ extension Ledger {
 package struct Conversation: Sendable, Equatable {
 	package let chat: ChatID
 	package var segments: [Segment]
+	package var legacyMessageUlids: Set<ULID> = []
 
 	package var current: Segment {
 		guard let last = segments.last else {

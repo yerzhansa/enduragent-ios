@@ -20,7 +20,7 @@ extension FixtureLaunchTests {
 		#expect(!model.notSent)
 		let turn = try await firstTurn(model)
 		#expect(turn.athleteText == "fixture:slow")
-		#expect(!isSettled(turn.state))
+		#expect(!turn.state.isSettled)
 		#expect(model.isWorking)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		let settled = try await settledTurn(model)

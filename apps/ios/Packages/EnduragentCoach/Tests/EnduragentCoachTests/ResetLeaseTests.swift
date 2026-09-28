@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -19,20 +18,6 @@ import Testing
 
 	func count(_ scope: RecordQuery.Scope) async throws -> Int {
 		try await store.fetch(RecordQuery(scope: scope)).records.count
-	}
-
-	func startNewConversation(on coach: Coach) -> PendingOutcome {
-		let pending = PendingOutcome()
-		Task { pending.land(await coach.startNewConversation(in: .main)) }
-		return pending
-	}
-
-	func outcome(_ pending: PendingOutcome) async throws -> ResetOutcome? {
-		let deadline = ContinuousClock.now + .seconds(10)
-		while pending.landed == nil, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		return pending.landed
 	}
 
 	@Test func aNewConversationDuringRecoveryBeginsAnAthleteLeaseAtTheTap() async throws {
@@ -168,17 +153,5 @@ import Testing
 		#expect(snapshot.turns.isEmpty)
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
 		#expect(await host.ended(1)?.ending == .interrupted)
-	}
-}
-
-final class PendingOutcome: Sendable {
-	private let outcome = Mutex<ResetOutcome?>(nil)
-
-	var landed: ResetOutcome? {
-		outcome.withLock { $0 }
-	}
-
-	func land(_ value: ResetOutcome) {
-		outcome.withLock { $0 = value }
 	}
 }
