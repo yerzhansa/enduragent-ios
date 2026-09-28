@@ -119,38 +119,21 @@ import Testing
 	}
 
 	@Test func racingApprovalsWriteOnce() async throws {
-		let ledger = Ledger(log: records, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let gate = Gate()
-		let ada = ada
-		let reviews = SingleProposalReviews(
-			ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-			training: { () async throws(AccessUnavailable) in
-				await gate.pass()
-				return TrainingConnection(account: .unconnected, client: ada)
-			})
-		_ = try await ProposalPolicy.propose(
-			chatId: .main, tool: .intervalsDeleteWorkout,
-			input: .deleteWorkout(eventId: EventID(rawValue: 42)),
-			summary: "Delete a workout", description: "", now: clock.now, ledger: ledger,
-			stamp: testStamp())
-		await gate.open()
-		let ref = try #require(try await reviews.snapshot(chat: .main)?.ref)
-		#expect(await reviews.decide(.presented(ref), chat: .main) == .presentationRecorded)
-		let token = try #require(try await reviews.snapshot(chat: .main)?.token)
-		await gate.close()
+		let claim = ReviewGate()
+		let coach = gatedCoach(log: GatedReviewLog(inner: records, gate: claim), client: ada)
+		let token = try await presentedToken(on: coach)
+		await claim.arm()
 
-		let first = Task { await reviews.decide(.approve(token), chat: .main) }
-		await gate.waitForHolders(1)
-		let second = Task { await reviews.decide(.approve(token), chat: .main) }
-		let secondHeld = await gate.waitForHolders(2, within: .seconds(1))
-		await gate.open()
+		let first = Task { await coach.decide(.approve(token), in: .main) }
+		#expect(await claim.waitUntilEntered())
+		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
+		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
+		await claim.release()
 
-		#expect(!secondHeld)
-		#expect(await second.value == .staleControl)
 		#expect(
 			await first.value
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "42"))]))
-		#expect(ada.calls.filter(\.isWrite) == [.deleteEvent(EventID(rawValue: 42))])
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		#expect(ada.calls.filter(\.isWrite).count == 1)
 	}
 
 	@Test func accountChangedBlocksApproval() async throws {
@@ -344,55 +327,5 @@ extension FakeIntervalsCall {
 		case .createEvent, .updateEvent, .deleteEvent: true
 		default: false
 		}
-	}
-}
-
-private actor Gate {
-	private var isOpen = true
-	private var holders: [CheckedContinuation<Void, Never>] = []
-	private var arrivals: [CheckedContinuation<Void, Never>] = []
-
-	func open() {
-		isOpen = true
-		let waiting = holders
-		holders = []
-		for holder in waiting {
-			holder.resume()
-		}
-	}
-
-	func close() {
-		isOpen = false
-	}
-
-	func pass() async {
-		guard !isOpen else { return }
-		let arrived = arrivals
-		arrivals = []
-		for arrival in arrived {
-			arrival.resume()
-		}
-		await withCheckedContinuation { holders.append($0) }
-	}
-
-	func waitForHolders(_ count: Int) async {
-		while holders.count < count {
-			await withCheckedContinuation { arrivals.append($0) }
-		}
-	}
-
-	func waitForHolders(_ count: Int, within limit: Duration) async -> Bool {
-		let deadline = ContinuousClock.now + limit
-		while holders.count < count, ContinuousClock.now < deadline {
-			do {
-				try await Task.sleep(for: .milliseconds(5))
-			} catch is CancellationError {
-				return false
-			} catch {
-				Issue.record(error)
-				return false
-			}
-		}
-		return holders.count >= count
 	}
 }

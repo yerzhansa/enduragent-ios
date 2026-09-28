@@ -21,12 +21,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
-		guard let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now)
-		else {
+		let previous = deliveries[chat]?.ref
+		let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now)
+		let current: TrainingAccount? = if live != nil { await currentAccount() } else { nil }
+		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
+		guard let live else {
 			deliveries[chat] = nil
 			return nil
 		}
-		let current = await currentAccount()
 		guard !closed.contains(ChangeSetID(ulid: live.ulid)) else {
 			deliveries[chat] = nil
 			return nil
@@ -157,7 +159,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 		case .applied, .partiallyApplied, .uncertain, .canceled, .changedSinceReview, .staleControl,
 			.presentationRecorded:
 			closed.insert(ref.set)
-			deliveries[ref.chat] = nil
+			if deliveries[ref.chat]?.ref == ref {
+				deliveries[ref.chat] = nil
+			}
 		}
 	}
 
