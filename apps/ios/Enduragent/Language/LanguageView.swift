@@ -19,7 +19,7 @@ struct LanguageView: View {
 					} label: {
 						HStack {
 							Text(choice.title(in: model.phrasebook))
-								.foregroundStyle(.primary)
+								.foregroundStyle(Color.primary)
 							Spacer()
 							if choice == current {
 								Image(systemName: "checkmark")
