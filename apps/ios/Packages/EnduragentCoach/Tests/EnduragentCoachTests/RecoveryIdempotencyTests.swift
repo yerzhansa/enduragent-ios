@@ -28,7 +28,9 @@ import Testing
 	func claim(_ attempt: AttemptID, at wall: Int64, by process: ProcessID?) -> ClaimedAttempt {
 		ClaimedAttempt(
 			hlc: clockAt(wall),
-			body: TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, process: process))
+			body: TurnClaimBody(
+				chatId: .main, turn: turn, attempt: attempt, process: process,
+				lease: .continuedProcessing))
 	}
 
 	func settled(_ attempt: AttemptID, at wall: Int64, _ settlement: Settlement) -> SettledAttempt {
@@ -121,7 +123,8 @@ import Testing
 			TurnLifecycle.claimRefusal(of: dead, device: device, process: current) == .unrecovered)
 		#expect(
 			TurnLifecycle.writes(
-				for: .claim(second, process: current), on: dead, chat: .main, device: device,
+				for: .claim(second, process: current, lease: .continuedProcessing), on: dead,
+				chat: .main, device: device,
 				mint: { turn }) == .failure(.unrecovered))
 	}
 
@@ -177,7 +180,9 @@ import Testing
 	}
 
 	@Test func aClaimKeepsItsProcessAndAnOlderClaimDecodesWithoutOne() throws {
-		let claim = TurnClaimBody(chatId: .main, turn: turn, attempt: first, process: current)
+		let claim = TurnClaimBody(
+			chatId: .main, turn: turn, attempt: first, process: current, lease: .continuedProcessing
+		)
 		let encoded = try RecordCodec.encode(.deviceLocal(.turnClaim(claim)))
 		#expect(
 			RecordCodec.decode(
@@ -194,7 +199,9 @@ import Testing
 				== .success(
 					.deviceLocal(
 						.turnClaim(
-							TurnClaimBody(chatId: .main, turn: turn, attempt: first, process: nil)))
+							TurnClaimBody(
+								chatId: .main, turn: turn, attempt: first, process: nil,
+								lease: .gracePeriodOnly)))
 				))
 	}
 

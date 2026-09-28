@@ -32,4 +32,5 @@ package struct TrainingConnection: Sendable {
 
 	package static let unconnected = TrainingConnection(
 		account: .unconnected, client: UnconnectedIntervalsClient())
+
 }

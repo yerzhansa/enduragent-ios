@@ -33,6 +33,11 @@ public enum CredentialSlot: String, Hashable, Sendable {
 	case accessSelection
 }
 
+public enum CredentialReplacement: Sendable, Equatable {
+	case intervals(IntervalsConnection)
+	case credits(previousKey: String?, previousAppAccountToken: UUID)
+}
+
 public enum IntervalsCredential: Sendable, Equatable {
 	case apiKey(String)
 	case oauth(access: String, refresh: String)

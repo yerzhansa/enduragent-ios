@@ -21,12 +21,14 @@ import Testing
 			Issue.record("expected the reply, got \(settled)")
 			return
 		}
-		let system = try #require(transport.requests.first?.messages.first?.content)
+		let request = try #require(transport.requests.first)
+		let system = try #require(request.messages.first?.content)
 		#expect(system.contains(PromptStaticBlocks.snapshotFallback))
 		#expect(!system.contains(" · Fatigue "))
 		#expect(
 			coach.diagnostics.entries.map(\.event).contains(
-				.evidenceUnavailable(detail: String(describing: failure))))
+				.evidenceUnavailable(
+					request.attempt, .temporarilyUnavailable, detail: String(describing: failure))))
 	}
 
 	@Test func wellnessLineCarriesTheLatestDay() async throws {

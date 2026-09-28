@@ -27,6 +27,7 @@
     "pageFailure": "This conversation is temporarily unavailable.",
     "readOnly": "Past conversations are read-only.",
     "reason": {
+      "earlierChat": "Earlier chat",
       "explicit": "You started a new conversation",
       "stale": "Closed after a break"
     },
@@ -616,6 +617,7 @@
     "turn": {
       "buyCredits": "Buy Credits",
       "chooseAccessMethod": "Choose access method",
+      "finishedWhileLocked": "Finished while the phone was locked.",
       "interruptedNothingChanged": "This reply stopped before it finished. Nothing was changed.",
       "interruptedSomeSaved": "This reply stopped before it finished. Some information was saved first.",
       "receivedBeforeClose": "Received before the app closed. Tap Try again to send it.",
@@ -954,7 +956,9 @@
   },
   "language": {
     "chooseTitle": "Choose your language",
-    "continue": "Continue"
+    "continue": "Continue",
+    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
+    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
   },
   "onboarding": {
     "notice": {
@@ -1748,6 +1752,7 @@
       "title": "Conversation & time",
       "unavailable": "Conversation settings aren’t available. Reconnect and reload.",
       "validation": {
+        "contextWindowTokens": "Enter a safe whole number of tokens, 1 or more.",
         "dailyResetHour": "Enter a whole hour from 0 to 23.",
         "historyTokenBudgetRatio": "Enter a history budget above 0% and no more than 100%.",
         "idleMinutes": "Enter a safe whole number of minutes, 0 or more.",

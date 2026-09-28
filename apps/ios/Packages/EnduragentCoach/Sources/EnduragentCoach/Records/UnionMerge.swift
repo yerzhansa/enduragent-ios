@@ -39,15 +39,6 @@ package enum UnionMerge {
 		}.first
 	}
 
-	package static func coachReplyLanguage(_ records: [AthleteRecord]) -> LanguageTag? {
-		for record in inHLCOrder(records).reversed() {
-			if case .synced(.coachReplyLanguage(let body)) = record.body {
-				return body.tag
-			}
-		}
-		return nil
-	}
-
 	package static func pendingProposal(
 		_ records: [AthleteRecord],
 		chatId: ChatID,

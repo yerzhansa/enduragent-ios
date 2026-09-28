@@ -71,7 +71,7 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 
 	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let fails = faults.withLock { current in
-			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.claimScope)
+			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.localScope)
 		}
 		if fails {
 			throw RecordStorageFault(operation: .fetch)

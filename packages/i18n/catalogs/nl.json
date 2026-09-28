@@ -2883,5 +2883,12 @@
         "transferRequired": "Botoverdracht vereist"
       }
     }
+  },
+  "review": {
+    "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
+    "add": "Toevoegen aan kalender",
+    "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
+    "title": "Training controleren",
+    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt."
   }
 }

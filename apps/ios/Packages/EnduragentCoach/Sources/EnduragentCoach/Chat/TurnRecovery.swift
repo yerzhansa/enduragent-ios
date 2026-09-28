@@ -2,6 +2,11 @@ import Foundation
 
 package struct RecoveryPlan: Sendable, Equatable {
 	package var interrupt: [DeadClaim]
+	package var drain: [FlushJobID] = []
+
+	package var isEmpty: Bool {
+		interrupt.isEmpty && drain.isEmpty
+	}
 }
 
 package struct DeadClaim: Sendable, Equatable {
@@ -11,15 +16,16 @@ package struct DeadClaim: Sendable, Equatable {
 }
 
 package enum TurnRecovery {
-	package static let turnScope: RecordQuery.Scope = .synced([.userMessage, .turnSettled])
-	package static let claimScope: RecordQuery.Scope = .deviceLocal([.turnClaim])
+	package static let localScope: RecordQuery.Scope = .deviceLocal([
+		.turnClaim, .replyObserved, .flushPending, .flushSettled,
+	])
 	package static let stampedWrites: RecordQuery.Scope = .synced([
 		.memorySection, .dailyNote, .ledgerEvent,
 	])
 
 	package static func plan(
-		turns: [TurnFacts], writes: [AttemptID: WriteSummary], device: DeviceID,
-		process: ProcessID
+		turns: [TurnFacts], drain: [FlushJobID] = [], writes: [AttemptID: WriteSummary],
+		device: DeviceID, process: ProcessID
 	) -> RecoveryPlan {
 		RecoveryPlan(
 			interrupt: turns.filter { $0.origin == device }.compactMap { facts in
@@ -27,7 +33,8 @@ package enum TurnRecovery {
 				return DeadClaim(
 					turn: facts.turn, attempt: open.attempt,
 					saved: writes[open.attempt, default: .none])
-			})
+			},
+			drain: drain)
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])

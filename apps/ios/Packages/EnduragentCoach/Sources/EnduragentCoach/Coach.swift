@@ -11,7 +11,11 @@ public actor Coach {
 	private let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
-	private var language: LanguagePreference
+	private let host: any ExecutionHost
+	private let deviceLanguage: LanguageTag
+	private var preferenceRecords: [AthleteRecord] = []
+	private var preferencesLoaded = false
+	private var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
 	private let builtInModel: ModelID
 	private let vault: CredentialVault
 	private let runner: TurnRunner
@@ -24,7 +28,7 @@ public actor Coach {
 		sport: SportID,
 		ports: CoachPorts,
 		builtInModel: ModelID,
-		language: LanguagePreference,
+		deviceLanguage: LanguageTag,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
@@ -42,7 +46,8 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
-		self.language = language
+		self.host = ports.host
+		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
 		let planning = Planning(store: ports.records, clock: clock)
 		self.planning = planning
@@ -76,7 +81,20 @@ public actor Coach {
 	}
 
 	public func stop(_ chat: ChatID) async {
-		await mailbox(for: chat).stop()
+		await mailbox(for: chat).interrupt(.athleteStopped)
+	}
+
+	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
+		await mailbox(for: chat).reset()
+	}
+
+	public func history() async throws(HistoryUnavailable) -> [ArchivedConversation] {
+		do {
+			return try await ledger.archivedConversations(
+				process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
+		} catch {
+			throw .storageUnavailable
+		}
 	}
 
 	public func lifecycle(_ event: AppLifecycleEvent) async {
@@ -86,9 +104,10 @@ public actor Coach {
 		case .willResignActive:
 			return
 		case .enteredBackground, .willTerminate:
-			for mailbox in mailboxes.values {
-				await mailbox.lifecycle(event)
-			}
+			break
+		}
+		for mailbox in mailboxes.values {
+			await mailbox.lifecycle(event)
 		}
 	}
 
@@ -101,7 +120,17 @@ public actor Coach {
 	public func status() async -> CoachStatus {
 		CoachStatus(
 			setup: await vault.setup(builtInModel: builtInModel),
-			training: await vault.trainingStatus())
+			training: await vault.trainingStatus(), preferences: await loadedPreferences())
+	}
+
+	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
+		guard await loadedPreferences().language != preference else { return }
+		try await commitPreference(
+			.languagePreference(LanguagePreferenceBody(preference: preference)))
+	}
+
+	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await commitPreference(.sessionSettings(SessionSettingsBody(settings: settings)))
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async
@@ -143,17 +172,6 @@ public actor Coach {
 		return false
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: binding
-		)
-		_ = try await ledger.commit(
-			synced: [.coachReplyLanguage(CoachReplyLanguageBody(tag: tag))], stamp: stamp)
-		language.coachReply = tag
-	}
-
 	#if DEBUG
 		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
 			RecordSyncProbe(ledger: ledger, clock: clock)
@@ -164,9 +182,51 @@ public actor Coach {
 		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 	}
 
-	public func waitForMemoryFlush() async {
-		for box in mailboxes.values {
-			await box.flushAndDrain()
+	private func commitPreference(_ body: SyncedRecordBody) async throws(PreferenceWriteFailure) {
+		_ = await loadedPreferences()
+		let stamp = OperationStamp(
+			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
+			attempt: AttemptID(ulid: await ledger.nextULID()),
+			binding: binding
+		)
+		let committed: [AthleteRecord]
+		do {
+			committed = try await ledger.commit(synced: [body], stamp: stamp)
+		} catch {
+			throw .notSaved
+		}
+		preferenceRecords += committed
+	}
+
+	private func loadedPreferences() async -> Preferences {
+		guard !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
+		let reading = preferencesRead ?? Task { await self.readPreferences() }
+		preferencesRead = reading
+		let result = await reading.value
+		if preferencesRead == reading {
+			preferencesRead = nil
+		}
+		switch result {
+		case .success(let stored) where !preferencesLoaded:
+			preferenceRecords =
+				stored
+				+ preferenceRecords.filter { written in
+					!stored.contains { $0.ulid == written.ulid }
+				}
+			preferencesLoaded = true
+		case .success:
+			break
+		case .failure(let error):
+			diagnostics.record(.preferencesUnavailable(error))
+		}
+		return Preferences.fold(preferenceRecords)
+	}
+
+	private func readPreferences() async -> Result<[AthleteRecord], LedgerFailure> {
+		do {
+			return .success(try await ledger.read(RecordQuery(scope: Preferences.scope)).records)
+		} catch {
+			return .failure(error)
 		}
 	}
 
@@ -192,33 +252,45 @@ public actor Coach {
 
 	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
 		let device = ledger.deviceId
-		let claims = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
+		let local = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.localScope, writtenBy: device)
 		).records
-		let chats = Set(claims.compactMap(\.chatId))
+		let chats = Set(local.compactMap(\.chatId))
 		guard !chats.isEmpty else { return [:] }
-		let synced = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
-		).records
-		var turns: [ChatID: [TurnFacts]] = [:]
-		for chat in chats {
-			turns[chat] = ConversationFold.fold(
-				chat: chat, synced: synced, local: claims, device: device
-			).segments.flatMap(\.turns)
-		}
+		let synced = try await ledger.read(RecordQuery(scope: ConversationFold.syncedScope)).records
+		let conversations = Dictionary(
+			uniqueKeysWithValues: chats.map { chat in
+				(
+					chat,
+					ConversationFold.fold(chat: chat, synced: synced, local: local, device: device)
+				)
+			})
+		let flushQueue = try await ledger.flushJobsByChat(in: conversations, local: local)
+		let turns = conversations.mapValues { $0.segments.flatMap(\.turns) }
 		let dead = Set(
 			turns.values.flatMap {
 				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
 					.interrupt.map(\.attempt)
 			})
-		guard !dead.isEmpty else { return [:] }
-		let stamped = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
-		).records
-		let writes = TurnRecovery.writes(of: dead, in: stamped)
-		return turns.mapValues {
-			TurnRecovery.plan(turns: $0, writes: writes, device: device, process: process)
-		}.filter { !$0.value.interrupt.isEmpty }
+		var writes: [AttemptID: WriteSummary] = [:]
+		if !dead.isEmpty {
+			let stamped = try await ledger.read(
+				RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+			).records
+			writes = TurnRecovery.writes(of: dead, in: stamped)
+		}
+		var plans: [ChatID: RecoveryPlan] = [:]
+		for (chat, conversation) in conversations {
+			let drain = FlushJob.outstanding(
+				flushQueue[chat] ?? [], in: conversation)
+			let plan = TurnRecovery.plan(
+				turns: turns[chat] ?? [], drain: drain.map(\.id), writes: writes,
+				device: device, process: process)
+			if !plan.isEmpty {
+				plans[chat] = plan
+			}
+		}
+		return plans
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
@@ -240,17 +312,20 @@ public actor Coach {
 			chatId: chatId,
 			ledger: ledger,
 			runner: runner,
-			flushes: FlushDrain(
-				memory: memory, transport: transport, access: access, diagnostics: diagnostics),
+			flushes: FlushWork(
+				chat: chatId, process: process, ledger: ledger, memory: memory,
+				transport: transport, clock: clock,
+				diagnostics: diagnostics),
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(
-				language: { await self.language }, access: access,
+				preferences: { await self.loadedPreferences() }, access: access,
 				training: { () async throws(AccessUnavailable) in
 					try await vault.trainingConnection()
-				}),
+				}, deviceLanguage: deviceLanguage),
 			reviews: reviews,
-			process: process
+			process: process,
+			host: host
 		)
 		mailboxes[chatId] = created
 		return created

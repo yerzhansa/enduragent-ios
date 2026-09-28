@@ -26,31 +26,6 @@ import Testing
 		#expect(transport.requests.count == 10)
 	}
 
-	@Test func overflowLengthCompactsAndRetries() async throws {
-		transport.finishUsage = Usage(
-			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
-		transport.script = [
-			.text("truncated"),
-			.finish(reason: .length),
-			.text("after compact"),
-			.finish(reason: .stop),
-		]
-		transport.maintenanceScript = [
-			.text(
-				"## Athlete Profile\n## Training Status\n## Coach Stance\n## Discussion Context\n## Pending Questions"
-			),
-			.finish(reason: .stop),
-		]
-		let coach = makeCoach()
-		let settled = try await coach.sendAndSettle("Long history")
-		#expect(replyText(settled) == "after compact")
-		#expect(transport.requests.map(\.charge) == [.chatAttempt, .compaction, .chatAttempt])
-		let records = try await store.fetch(
-			RecordQuery(scope: .synced([.compactionSummary, .windowStart]), chatId: "main")
-		).records
-		#expect(!records.isEmpty)
-	}
-
 	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		let recording = BatchRecordingLog(inner: store)
@@ -111,6 +86,37 @@ import Testing
 		let toolMessage = try #require(
 			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(toolMessage.content.contains("intervals.icu is unavailable."))
+	}
+
+	@Test func failedWellnessReadKeepsTheReplyAndReportsTheTrainingFailure() async throws {
+		intervals.loadFailure = IntervalsError(
+			code: "down", details: "private upstream detail", status: 503)
+		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		let settled = try await coach.sendAndSettle("How am I recovering?")
+		#expect(replyText(settled) == "Easy spin today.")
+		let request = try #require(transport.requests.only)
+		#expect(
+			request.messages.first?.content.contains(PromptStaticBlocks.snapshotFallback) == true)
+		#expect(request.messages.first?.content.contains("private upstream detail") == false)
+		#expect(
+			coach.diagnostics.entries.contains {
+				if case .evidenceUnavailable(request.attempt, .temporarilyUnavailable, _) = $0.event
+				{
+					return true
+				}
+				return false
+			})
+	}
+
+	@Test func unconnectedTurnDoesNotReportATrainingOutage() async throws {
+		let secrets = keyedSecrets()
+		try secrets.delete(.intervalsConnection)
+		transport.script = [.text("Let's start with your goals."), .finish(reason: .stop)]
+		let coach = makeCoach(secrets: secrets)
+		let settled = try await coach.sendAndSettle("Hello")
+		#expect(replyText(settled) == "Let's start with your goals.")
+		#expect(coach.diagnostics.entries.isEmpty)
 	}
 
 	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
@@ -258,127 +264,130 @@ import Testing
 		#expect(request.charge == .chatAttempt)
 	}
 
-	@Test func outcomeLineSurvivesRelaunch() async throws {
+	@Test func trimSummarizesDroppedMessagesWithCompactionModel() async throws {
+		let history = try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
+		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		let settled = try await makeCoach().sendAndSettle("Is Thursday on?")
+		#expect(replyText(settled) == "Thursday is on.")
+		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
+		let summary = try #require(sent(.droppedSummary, by: transport).first)
+		#expect(summary.model == testModel)
+		#expect(summary.tools.isEmpty)
+		let asked = try #require(summary.messages.last?.content)
+		#expect(asked.contains("Messages to incorporate:\nuser: Question 0\nassistant: Answer 0"))
+		#expect(!asked.contains("Question 1"))
+		let chat = try #require(sent(.chatAttempt, by: transport).first)
+		#expect(
+			chat.messages.dropFirst().prefix(2).map(\.content) == [
+				"[Previous conversation summary]\n" + earlierSummary, "Question 1",
+			])
+		let written = try await store.fetch(
+			RecordQuery(scope: .synced([.windowStart, .compactionSummary]), chatId: .main)
+		).records.map(\.body)
+		#expect(
+			written == [
+				.synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: history[1].user, reason: .trim))),
+				.synced(
+					.compactionSummary(
+						CompactionSummaryBody(chatId: .main, markdown: earlierSummary))),
+			])
+	}
+
+	@Test func failedSummaryKeepsDroppedMessagesInPrompt() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = [.fail(.http(status: 500))]
+		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		let settled = try await coach.sendAndSettle("Is Thursday on?")
+		#expect(replyText(settled) == "Thursday is on.")
+		let chat = try #require(sent(.chatAttempt, by: transport).first)
+		let history = chat.messages.dropFirst().map(\.content)
+		#expect(history.first == "Question 0")
+		#expect(history.filter { $0.hasPrefix("Question") }.count == 3)
+		#expect(!history.contains { $0.hasPrefix("[Previous conversation summary]") })
+		#expect(
+			try await store.fetch(
+				RecordQuery(scope: .synced([.windowStart, .compactionSummary]), chatId: .main)
+			).records.isEmpty)
+		#expect(
+			coach.diagnostics.entries.contains { entry in
+				if case .compactionFailed(.main, _) = entry.event { return true }
+				return false
+			})
+	}
+
+	@Test func latestSummaryIsSentFirstOnNextTurn() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
 		transport.script = [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
+			.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
 			.finish(reason: .stop),
 		]
 		let coach = makeCoach()
-		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
-		let proposing = try #require(await coach.currentSnapshot(.main)?.turns.only?.id)
-		let review = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
-		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
+		_ = try await coach.sendAndSettle("Is Thursday on?")
+		let settled = try await coach.sendAndSettle("And Saturday?")
+		#expect(replyText(settled) == "Saturday too.")
+		#expect(sent(.droppedSummary, by: transport).count == 1)
+		let next = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(
-			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		let done = "Done — Create workout \"Endurance\" on 1998-06-14."
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: LanguageTag.en.defaultLocale)
-		let shown = try #require(await coach.currentSnapshot(.main))
-		#expect(shown.notes.map { $0.notice.sentence(in: phrasebook) } == [done])
-		#expect(shown.notes.only?.after == proposing)
-
-		let reopened = makeCoach()
-		let relaunched = try #require(await reopened.currentSnapshot(.main))
-		#expect(relaunched.review == nil)
-		#expect(relaunched.notes.map { $0.notice.sentence(in: phrasebook) } == [done])
-		#expect(relaunched.notes.only?.after == proposing)
-		let synced = try await store.fetch(
-			RecordQuery(scope: .synced([.reviewApplied]), chatId: "main")
-		).records
-		#expect(synced.count == 1)
-
-		transport.script = [.text("Saturday went well."), .finish(reason: .stop)]
-		_ = try await reopened.sendAndSettle("How did Saturday go")
-		let later = try #require(await reopened.currentSnapshot(.main))
-		#expect(later.turns.count == 2)
-		#expect(later.notes.only?.after == proposing)
+			next.messages.dropFirst().prefix(2).map(\.content) == [
+				"[Previous conversation summary]\n" + earlierSummary, "Question 1",
+			])
+		#expect(next.messages.dropFirst().map(\.content).contains("Thursday is on."))
 	}
 
-	private func makeCoach(secrets: any SecretStore = keyedSecrets()) -> Coach {
-		EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock, secrets: secrets
-		)
+	@Test func compactionAndFlushUseTheirOwnModelSelections() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
+		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		let coach = makeCoach()
+		try await coach.setSession(
+			SessionSettings.npmDefaults.replacing(.compactionModel, with: "test/compact")
+				.replacing(.flushModel, with: "test/flush"))
+		_ = try await coach.sendAndSettle("Is Thursday on?")
+		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
+		#expect(
+			transport.requests.map(\.model.rawValue) == [
+				"test/flush", "test/compact", testModel.rawValue,
+			])
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(
+			sent(.memoryFlush, by: transport).map(\.model.rawValue) == ["test/flush", "test/flush"])
 	}
+
+	@Test func historyBudgetUsesTheStoredRatio() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) / 2)
+		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
+		transport.script = [
+			.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach()
+		_ = try await coach.sendAndSettle("Is Thursday on?")
+		#expect(sent(.droppedSummary, by: transport).isEmpty)
+		try await coach.setSession(
+			SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05"))
+		_ = try await coach.sendAndSettle("And Saturday?")
+		#expect(sent(.droppedSummary, by: transport).count == 1)
+		let next = try #require(sent(.chatAttempt, by: transport).last)
+		#expect(
+			next.messages.dropFirst().first?.content.hasPrefix("[Previous conversation summary]")
+				== true)
+	}
+
 }
 
 private let english = CatalogPhrasebook(tag: .en, locale: "en")
-
-struct FailureRow: Sendable, CustomTestStringConvertible {
-	let scripted: ScriptedFailure
-	let failure: ModelFailure
-	let key: CatalogKey
-	let button: String?
-	let english: String
-
-	var calls: Int {
-		switch failure {
-		case .rateLimited, .contextOverflow: 4
-		case .providerDown(.timeout): 2
-		case .providerDown: 3
-		default: 1
-		}
-	}
-
-	var testDescription: String { "\(failure)" }
-
-	static let all: [FailureRow] = [
-		FailureRow(
-			scripted: .http(status: 401), failure: .credentialRejected(.credits),
-			key: Catalog.creditsErrorAccessRejected, button: "Restore purchases",
-			english: "Your Credits couldn't be used. Restore purchases to continue."),
-		FailureRow(
-			scripted: .http(status: 402), failure: .accessExhausted(.credits),
-			key: Catalog.creditsErrorExhausted, button: "Buy Credits",
-			english: "You're out of Credits. Buy more, or switch to your OpenRouter account."),
-		FailureRow(
-			scripted: .http(status: 429, headers: ["retry-after": "7"]),
-			failure: .rateLimited(retryAfter: .seconds(7)),
-			key: Catalog.coachErrorRateLimitSeconds, button: "Try again",
-			english: "Rate limited — please try again in ~7 seconds."),
-		FailureRow(
-			scripted: .http(status: 429, headers: ["retry-after": "90"]),
-			failure: .rateLimited(retryAfter: .seconds(90)),
-			key: Catalog.coachErrorRateLimitMinutes, button: "Try again",
-			english: "Rate limited — please try again in ~2 minutes."),
-		FailureRow(
-			scripted: .http(status: 429), failure: .rateLimited(retryAfter: nil),
-			key: Catalog.coachErrorRateLimitDefault, button: "Try again",
-			english: "Rate limited — please try again in about a minute."),
-		FailureRow(
-			scripted: .http(status: 500), failure: .providerDown(.outage),
-			key: Catalog.coachErrorProviderDown, button: "Try again",
-			english: "The model provider is having trouble — try again in a few minutes."),
-		FailureRow(
-			scripted: .connection(.notConnectedToInternet), failure: .providerDown(.network),
-			key: Catalog.coachErrorProviderDown, button: "Try again",
-			english: "The model provider is having trouble — try again in a few minutes."),
-		FailureRow(
-			scripted: .connection(.timedOut), failure: .providerDown(.timeout),
-			key: Catalog.coachErrorProviderDown, button: "Try again",
-			english: "The model provider is having trouble — try again in a few minutes."),
-		FailureRow(
-			scripted: .http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#),
-			failure: .contextOverflow,
-			key: Catalog.coachErrorUnknown, button: "Try again",
-			english: "Sorry, something went wrong. Please try again."),
-		FailureRow(
-			scripted: .http(status: 400), failure: .invalidRequest,
-			key: Catalog.coachErrorUnknown, button: "Try again",
-			english: "Sorry, something went wrong. Please try again."),
-		FailureRow(
-			scripted: ScriptedFailure(.malformedStream),
-			failure: .generationFailed(.malformedStream),
-			key: Catalog.chatNoticeResponseFailure, button: "Try again",
-			english: "The coach couldn't respond. Please try again."),
-	]
-}
+private let earlierSummary = "## Athlete Profile\n- Rides Saturdays with a group"
 
 extension Array {
 	fileprivate var only: Element? {

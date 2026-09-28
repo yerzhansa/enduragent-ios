@@ -28,6 +28,7 @@ public struct TurnClaimBody: Sendable, Equatable {
 	public var turn: TurnID
 	public var attempt: AttemptID
 	public var process: ProcessID?
+	public var lease: LeaseKind
 }
 
 public struct ReplyObservedBody: Sendable, Equatable {
@@ -129,10 +130,31 @@ public struct FlushPendingBody: Sendable, Equatable {
 	public var chatId: ChatID
 	public var trigger: FlushTrigger
 	public var messageUlids: [ULID]
+	public var process: ProcessID?
+}
+
+public struct FlushSettledBody: Sendable, Equatable {
+	public var chatId: ChatID
+	public var job: FlushJobID
+	public var settlement: FlushSettlement
+}
+
+public enum FlushSettlement: Sendable, Equatable {
+	case saved(sections: Int, events: Int)
+	case nothingToSave
+	case abandoned
 }
 
 public struct CoachReplyLanguageBody: Sendable, Equatable {
 	public var tag: LanguageTag?
+}
+
+public struct SessionSettingsBody: Sendable, Equatable {
+	public var settings: SessionSettings
+}
+
+public struct LanguagePreferenceBody: Sendable, Equatable {
+	public var preference: LanguagePreference
 }
 
 public struct PlanningDeviceBody: Sendable, Equatable {

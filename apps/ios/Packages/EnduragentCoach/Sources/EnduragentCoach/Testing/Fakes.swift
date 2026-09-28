@@ -30,7 +30,8 @@ public struct ScriptedFailure: Sendable, Equatable {
 
 public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var script: [ScriptedEvent]
-	public var maintenanceScript: [ScriptedEvent]
+	public var summaryScript: [ScriptedEvent]
+	public var flushScript: [ScriptedEvent]
 	package private(set) var requests: [CompletionRequest]
 	public var hangUntilCancelled = false
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
@@ -40,12 +41,32 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 
 	public init() {
 		self.script = []
-		self.maintenanceScript = []
+		self.summaryScript = []
+		self.flushScript = []
 		self.requests = []
 	}
 
 	public var requestCount: Int {
 		requests.count
+	}
+
+	public var lastReplyLanguage: String? {
+		lock.withLock {
+			let system = requests.last { $0.charge == .chatAttempt }?.messages.first?.content ?? ""
+			guard let section = system.components(separatedBy: "# Reply language\n\n").last,
+				section != system
+			else { return nil }
+			return section.split(separator: "\n", omittingEmptySubsequences: false).first
+				.map(String.init)
+		}
+	}
+
+	public var lastChatHistoryHead: String? {
+		lock.withLock {
+			let chat = requests.last { $0.charge == .chatAttempt }
+			return chat?.messages.dropFirst().first?.content
+				.split(separator: "\n", omittingEmptySubsequences: false).first.map(String.init)
+		}
 	}
 
 	package func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
@@ -154,8 +175,10 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		switch charge {
 		case .chatAttempt, .stepRecovery:
 			return script.isEmpty ? nil : script.removeFirst()
-		case .compaction, .memoryFlush:
-			return maintenanceScript.isEmpty ? nil : maintenanceScript.removeFirst()
+		case .compaction, .droppedSummary:
+			return summaryScript.isEmpty ? nil : summaryScript.removeFirst()
+		case .memoryFlush:
+			return flushScript.isEmpty ? nil : flushScript.removeFirst()
 		}
 	}
 }
@@ -192,7 +215,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var athleteId: String
 	public var athleteName: String
 	public var ftp: Int
-	public var loadFailure: IntervalsError?
+	public var loadFailure: (any Error)?
 	public var writeFailure: (any Error)?
 
 	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {

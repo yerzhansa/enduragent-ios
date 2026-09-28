@@ -48,6 +48,8 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         CreditsWorkerBase: $(CREDITS_WORKER_BASE)
         OpenRouterModel: $(OPENROUTER_MODEL)
+        BGTaskSchedulerPermittedIdentifiers:
+          - $(PRODUCT_BUNDLE_IDENTIFIER).coach.*
     entitlements:
       path: Enduragent/Enduragent.entitlements
       properties:

@@ -2883,5 +2883,12 @@
         "transferRequired": "Boten behöver överföras"
       }
     }
+  },
+  "review": {
+    "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
+    "add": "Lägg till i kalendern",
+    "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
+    "title": "Granskning av träningspass",
+    "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen."
   }
 }

@@ -160,8 +160,8 @@ import Testing
 			ulid: ulid(4),
 			body: .synced(.coachReplyLanguage(CoachReplyLanguageBody(tag: nil)))
 		)
-		#expect(UnionMerge.coachReplyLanguage([italian]) == .it)
-		#expect(UnionMerge.coachReplyLanguage([italian, automatic]) == nil)
+		#expect(Preferences.fold([italian]).language == .fixed(.it))
+		#expect(Preferences.fold([automatic, italian]).language == .automatic)
 	}
 
 	@Test func ledgerDigestMatchesDesktop() throws {

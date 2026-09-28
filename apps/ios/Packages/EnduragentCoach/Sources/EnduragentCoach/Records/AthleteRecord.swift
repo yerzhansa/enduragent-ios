@@ -18,6 +18,8 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 	case coachReplyLanguage
 	case planningDevice
 	case reviewApplied
+	case sessionSettings
+	case languagePreference
 }
 
 public enum DeviceLocalKind: String, Sendable, CaseIterable {
@@ -26,6 +28,7 @@ public enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case pendingProposal
 	case proposalCleared
 	case flushPending
+	case flushSettled
 	case planningCommand
 	case planRevision
 	case mirrorJob
@@ -52,6 +55,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 	case coachReplyLanguage(CoachReplyLanguageBody)
 	case planningDevice(PlanningDeviceBody)
 	case reviewApplied(ReviewAppliedBody)
+	case sessionSettings(SessionSettingsBody)
+	case languagePreference(LanguagePreferenceBody)
 
 	public var kind: SyncedKind {
 		switch self {
@@ -67,6 +72,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .coachReplyLanguage: .coachReplyLanguage
 		case .planningDevice: .planningDevice
 		case .reviewApplied: .reviewApplied
+		case .sessionSettings: .sessionSettings
+		case .languagePreference: .languagePreference
 		}
 	}
 
@@ -78,7 +85,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .compactionSummary(let body): body.chatId
 		case .reviewApplied(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
-			.coachReplyLanguage, .planningDevice:
+			.coachReplyLanguage, .planningDevice, .sessionSettings, .languagePreference:
 			nil
 		}
 	}
@@ -88,7 +95,8 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .userMessage(let body): body.turn
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
-			.journal, .provenance, .coachReplyLanguage, .planningDevice, .reviewApplied:
+			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
+			.languagePreference, .reviewApplied:
 			nil
 		}
 	}
@@ -100,6 +108,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	case pendingProposal(ProposalBody)
 	case proposalCleared(ProposalClearedBody)
 	case flushPending(FlushPendingBody)
+	case flushSettled(FlushSettledBody)
 	case planningCommand(PlanningCommandBody)
 	case planRevision(PlanRevisionBody)
 	case mirrorJob(MirrorJobBody)
@@ -113,6 +122,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .pendingProposal: .pendingProposal
 		case .proposalCleared: .proposalCleared
 		case .flushPending: .flushPending
+		case .flushSettled: .flushSettled
 		case .planningCommand: .planningCommand
 		case .planRevision: .planRevision
 		case .mirrorJob: .mirrorJob
@@ -128,6 +138,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .pendingProposal(let body): body.chatId
 		case .proposalCleared(let body): body.chatId
 		case .flushPending(let body): body.chatId
+		case .flushSettled(let body): body.chatId
 		case .planningCommand, .planRevision, .mirrorJob, .workoutMatch, .workoutDrift: nil
 		}
 	}
@@ -136,8 +147,8 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 		switch self {
 		case .turnClaim(let body): body.turn
 		case .replyObserved(let body): body.turn
-		case .pendingProposal, .proposalCleared, .flushPending, .planningCommand, .planRevision,
-			.mirrorJob, .workoutMatch, .workoutDrift:
+		case .pendingProposal, .proposalCleared, .flushPending, .flushSettled, .planningCommand,
+			.planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
 			nil
 		}
 	}

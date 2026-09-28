@@ -17,16 +17,6 @@ public struct ChatMessage: Sendable, Equatable {
 	}
 }
 
-public struct LanguagePreference: Sendable, Equatable {
-	public var ui: LanguageTag
-	public var coachReply: LanguageTag?
-
-	public init(ui: LanguageTag, coachReply: LanguageTag?) {
-		self.ui = ui
-		self.coachReply = coachReply
-	}
-}
-
 public enum ToolName: String, Sendable {
 	case calculateZones = "calculate_zones"
 	case buildPlanSkeleton = "build_plan_skeleton"

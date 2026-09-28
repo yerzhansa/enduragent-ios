@@ -33,13 +33,19 @@ struct AppServices: Sendable {
 		}
 		return ModelID(rawValue: raw)
 	}
+	static var bundleIdentifier: String {
+		guard let identifier = Bundle.main.bundleIdentifier else {
+			preconditionFailure("The app bundle has no identifier")
+		}
+		return identifier
+	}
 	static let deviceDefaultsKey = "enduragent.deviceId"
 
 	var coach: Coach
 	var deviceCheck: any DeviceCheckTokenProviding
-	var phrasebook: any Phrasebook
 	var clock: any Clock
 	var fixtureDirector: FixtureDirector?
+	var leases: @Sendable () async -> [LeaseRecord]
 
 	var isFixture: Bool {
 		fixtureDirector != nil
@@ -58,10 +64,8 @@ struct AppServices: Sendable {
 			throw FixtureLaunchError.unknownFixture(launch.name)
 		}
 		FixtureBlockingURLProtocol.register()
-		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let clock = FixtureClock(
-			calendar: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana"))
+			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()
@@ -84,6 +88,7 @@ struct AppServices: Sendable {
 		secrets.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
+		let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
@@ -92,23 +97,25 @@ struct AppServices: Sendable {
 				models: .scripted(transport),
 				training: FirstWeekFixture.training(intervals),
 				credits: .fake(credits),
+				host: host,
 				clock: clock
 			),
 			builtInModel: builtInModel,
-			language: LanguagePreference(ui: language, coachReply: nil),
+			deviceLanguage: Language.uiTag(systemLanguages: Locale.preferredLanguages),
 			coalescing: launch.coalescing
 		)
 		return AppServices(
 			coach: coach,
 			deviceCheck: FakeDeviceCheckTokenProvider(),
-			phrasebook: phrasebook,
 			clock: clock,
 			fixtureDirector: FixtureDirector(
-				transport: transport, records: records, secrets: secrets, intervals: intervals,
-				credits: credits)
+				transport: transport, records: records, host: host, secrets: secrets,
+				intervals: intervals, credits: credits),
+			leases: { host.leases }
 		)
 	}
 
+	@MainActor
 	static func live(language: LanguageTag) throws -> AppServices {
 		let clock = SystemClock()
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
@@ -117,6 +124,8 @@ struct AppServices: Sendable {
 			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
+		let host = ContinuedProcessingHost(
+			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
@@ -125,17 +134,18 @@ struct AppServices: Sendable {
 				models: .openRouter(baseURL: ModelService.openRouterAPI),
 				training: .intervalsREST,
 				credits: .worker(creditsWorkerBase),
+				host: host,
 				clock: clock
 			),
 			builtInModel: builtInModel,
-			language: LanguagePreference(ui: language, coachReply: nil)
+			deviceLanguage: language
 		)
 		return AppServices(
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
-			phrasebook: CatalogPhrasebook(tag: language, locale: language.defaultLocale),
 			clock: clock,
-			fixtureDirector: nil
+			fixtureDirector: nil,
+			leases: { await host.leases }
 		)
 	}
 
@@ -154,10 +164,6 @@ final class ServicesBuilder {
 	let language: LanguageTag
 	let defaults: UserDefaults
 	let services: AppServices
-
-	var phrasebook: any Phrasebook {
-		services.phrasebook
-	}
 
 	var deviceCheck: any DeviceCheckTokenProviding {
 		services.deviceCheck

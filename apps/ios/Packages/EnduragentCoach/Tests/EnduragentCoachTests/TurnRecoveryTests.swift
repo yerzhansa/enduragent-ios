@@ -204,7 +204,8 @@ import Testing
 		facts.claims.append(
 			ClaimedAttempt(
 				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: device),
-				body: TurnClaimBody(chatId: .main, turn: turn, attempt: attempt)))
+				body: TurnClaimBody(
+					chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing)))
 		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
 		let current = ProcessID(ulid: fixedUlid(60))
 		let plan = TurnRecovery.plan(

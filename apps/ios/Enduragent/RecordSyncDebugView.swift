@@ -73,9 +73,6 @@
 						Button("Append one device-local record") {
 							Task { await appendLocal() }
 						}
-						Button("Refresh") {
-							Task { await refresh() }
-						}
 					}
 					if let loadError {
 						Section("Error") {
@@ -88,6 +85,14 @@
 					}
 				}
 				.navigationTitle("Record Sync")
+				.toolbar {
+					ToolbarItem(placement: .topBarTrailing) {
+						Button("Refresh") {
+							Task { await refresh() }
+						}
+						.accessibilityIdentifier("records.refresh")
+					}
+				}
 				.task { await refresh() }
 			}
 		}

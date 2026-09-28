@@ -1,7 +1,8 @@
 import Foundation
 
 package protocol TurnEvidence: Sendable {
-	func block(for training: TrainingConnection, now: Date) async -> EvidenceBlock
+	func block(for training: TrainingConnection, attempt: AttemptID, now: Date)
+		async throws(CancellationError) -> EvidenceBlock
 }
 
 package struct EvidenceBlock: Sendable, Equatable {
@@ -23,7 +24,9 @@ package struct WellnessEvidence: TurnEvidence {
 		self.diagnostics = diagnostics
 	}
 
-	package func block(for training: TrainingConnection, now: Date) async -> EvidenceBlock {
+	package func block(for training: TrainingConnection, attempt: AttemptID, now: Date)
+		async throws(CancellationError) -> EvidenceBlock
+	{
 		guard training.account != .unconnected else { return EvidenceBlock(wellnessLine: nil) }
 		let today = IntervalsPolicy.today(now: now, timeZone: clock.timeZone)
 		let days: [WellnessDay]
@@ -31,9 +34,11 @@ package struct WellnessEvidence: TurnEvidence {
 			days = try await training.client.fetchWellness(
 				oldest: today.adding(days: -(Self.days - 1)), newest: today)
 		} catch is CancellationError {
-			return EvidenceBlock(wellnessLine: nil)
+			throw CancellationError()
 		} catch {
-			diagnostics.record(.evidenceUnavailable(detail: String(describing: error)))
+			diagnostics.record(
+				.evidenceUnavailable(
+					attempt, TrainingFailure(error), detail: String(describing: error)))
 			return EvidenceBlock(wellnessLine: nil)
 		}
 		return EvidenceBlock(wellnessLine: days.last.flatMap(Self.line))

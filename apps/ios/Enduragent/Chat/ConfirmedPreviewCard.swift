@@ -13,7 +13,7 @@ struct ConfirmedPreviewCard: View {
 						.frame(maxWidth: .infinity, alignment: .leading)
 				}
 				if let notice = review.notice {
-					Text(model.builder.phrasebook.say(notice.key, notice.vars))
+					Text(model.phrasebook.say(notice.key, notice.vars))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
 				if review.notice?.kind != .accountChanged {
@@ -55,6 +55,6 @@ struct ConfirmedPreviewCard: View {
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

@@ -74,10 +74,12 @@ final class OverflowExhaustedProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "overflow-exhausted", app: app)
 		TutorialHarness.openRecords(app)
-		TutorialHarness.waitForRecordCount(app, "compactionSummary", "compactionSummary 3")
+		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
+		XCTAssertNil(TutorialHarness.recordCount(app, "compactionSummary"))
+		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
 		TutorialHarness.attach(self, name: "overflow-exhausted-records", app: app)
 		TutorialHarness.closeMenu(app)
-		assertModelRequests(app, 4 + 3, test: self, name: "overflow-requests")
+		assertModelRequests(app, 4 + 1, test: self, name: "overflow-requests")
 	}
 }
 

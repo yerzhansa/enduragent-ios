@@ -26,10 +26,10 @@ The feature map in [features/README.md](features/README.md) is the recipe for ea
 
 ## Launch
 
-1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. A clean build took 36 seconds on 2026-09-25. If XcodeGen changes `apps/ios/Enduragent.xcodeproj`, the change belongs in your commit, because `project.yml` changed.
+1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. Before it builds, it records the SHA-256 of every source under `apps/ios`, and after a successful build it writes them to `DerivedData/verify-ios-sources.json`. A clean build took 36 seconds on 2026-09-25. If XcodeGen changes `apps/ios/Enduragent.xcodeproj`, the change belongs in your commit, because `project.yml` changed.
 2. Create the run with `sim.mjs create <kebab-slug>`. It creates and boots the simulator, waits for `simctl bootstatus`, sets the status bar to 9:41 with full signal and battery like the prototype captures, sets light appearance, and writes `run.json` into the evidence folder. The first boot takes about a minute.
 3. Install with `sim.mjs install <run id>`. Install again after every build.
-4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would, `-EnduragentFixtureKeychain empty`, which leaves the fixture keychain without a Credits key, `-EnduragentFixtureStore unreadable`, which wipes the fixture and makes the record store fail to open so the app shows `launch.storageUnavailable` instead of the notice, `-EnduragentFixtureCoalescing <milliseconds>`, which replaces the 1.5 second window in which a second message joins the first, and `-EnduragentFixtureRecovery unreadable`, which makes the launch recovery's read of earlier claims fail so a reply cut off by a kill stays unsettled. XCUITest needs about two seconds between two Send taps, so proofs that need a joined turn, a shot before the reply, or a kill before the claim pass `TutorialHarness.launch(app, coalescingMilliseconds:)`.
+4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would, `-EnduragentFixtureKeychain empty`, which leaves the fixture keychain without a Credits key, `-EnduragentFixtureStore unreadable`, which wipes the fixture and makes the record store fail to open so the app shows `launch.storageUnavailable` instead of the notice, `-EnduragentFixtureCoalescing <milliseconds>`, which replaces the 1.5 second window in which a second message joins the first, `-EnduragentFixtureRecovery unreadable`, which makes the launch recovery's read of earlier claims fail so a reply cut off by a kill stays unsettled, `-EnduragentFixtureHost "expire-after 3"`, which makes the fixture's execution host expire every lease three seconds after it begins, as iOS would when it stops the app's background work, and `-EnduragentFixtureClock 1998-06-16T04:20:00Z`, which starts the fixed clock at that ISO 8601 instant instead of `1998-06-15T08:00:00Z`. XCUITest needs about two seconds between two Send taps, so proofs that need a joined turn, a shot before the reply, or a kill before the claim pass `TutorialHarness.launch(app, coalescingMilliseconds:)`.
 
 The first launch on a new simulator can block for minutes while first-boot services run and the home screen still shows blank icons. On 2026-09-25, with the Mac at a load average near 250, it took about six minutes and then succeeded. Check `uptime` before you suspect the app, and let the command finish. Launching again terminates the app and opens it again. Teardown is **Cleanup**.
 
@@ -37,9 +37,9 @@ Two runs can drive side by side, because each has its own simulator and run id. 
 
 ## Doctor
 
-Run `sim.mjs doctor [<run id>]` first, and again whenever a screen or command looks wrong. It is read-only. It checks Xcode 26, an iOS 26 runtime, the device type, XcodeGen, the app build and its bundle id `icu.enduragent.app`, that no source under `apps/ios` is newer than the build, the UI test runner, and the prototype captures. With a run id it also checks the evidence folder, that the simulator is booted, that the app is installed, and whether it is running. Exit 0 means the run is worth driving.
+Run `sim.mjs doctor [<run id>]` first, and again whenever a screen or command looks wrong. It is read-only. It checks Xcode 26, an iOS 26 runtime, the device type, XcodeGen, the app build and its bundle id `icu.enduragent.app`, that every source under `apps/ios` has the content the last `sim.mjs build` built, the UI test runner, and the prototype captures. With a run id it also checks the evidence folder, that the simulator is booted, that the app is installed, and whether it is running. Exit 0 means the run is worth driving.
 
-- `FAIL stale build` means a source changed after the last build. Run `build`, then `install`.
+- `FAIL stale build` names the first source whose content differs from the last build, or says the build wrote no source manifest. Run `build`, then `install`. Touching a file without changing it does not fail the check, because Xcode skips unchanged content and does not relink the app. A failing doctor stops the run: fix the cause and rerun doctor before any proof.
 - `note verify simulator ...` lists every `enduragent-verify-*` simulator. Report the ones your run did not create. Delete only your own.
 
 ## Drive
@@ -56,14 +56,18 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Record store unavailable | `launch.storageUnavailable` with `Conversation history is temporarily unavailable.` and `Quit and reopen Enduragent.` |
 | Connect | `connect.apiKey`, `connect.connect`, `connect.skip`, `connect.error`, `connect.athleteName`, `connect.fitness`, `connect.fatigue`, `connect.form`, `connect.continue` |
 | Starter | `starter.progress`, `starter.credits`, `starter.start` |
-| Chat | `chat.sidebar` labeled `Menu`, the `New chat` button with no identifier, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.note` for a transcript note such as the `Done —` line after `Add to calendar`, `chat.review.notice` for the result of a workout review action, `chat.error` for an unknown fixture directive, `chat.slash.<command>` |
-| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` labeled `<kind> <device> <HLC> <account>`, where a `turnSettled` row also names its outcome after the kind, such as `interrupted processEnded`, and the `Refresh` button with no identifier |
-| Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Workout review` group, both disabled until the card reports it is on screen, and `chat.preview.notice` for the account-changed notice, which replaces both buttons |
+| Chat | `chat.sidebar` labeled `Menu`, `chat.newConversation` labeled `Start new conversation`, `chat.welcome`, `chat.newConversation.notice`, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.turn.finishedWhileLocked`, `chat.note` for a durable review outcome, `chat.review.notice` for a review action result, `chat.error` for unknown fixture directives, `chat.slash.<command>`, `chat.automaticReset.notice` |
+| Chat turn probe | Debug builds expose the invisible `chat.turnProgress` element with accessibility value `turns <count> settled <settled count>`. `TutorialHarness.exchange` reads it before sending and waits for one more turn with every turn settled. |
+| Language sheet | `language.choice.<automatic or tag>` with the selected trait on the current choice, `language.close`, `language.saveFailed` |
+| Records | `debug.records` in Debug, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded` or a `turnClaim` row's lease kind, `continuedProcessing` or `gracePeriodOnly`, and ends with the row's training account, `unconnected` or `intervals:<connection id>:<athlete id>`, and the toolbar `Refresh` button identified by `records.refresh` |
+| Leases | `debug.leases` in Debug, `leases.row.<n>` whose label reads like `athlete continuedProcessing settledTurns 1 of 1 step 1 of 10 finished with notice`, and the `Refresh` button with no identifier |
+| Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Workout review` group, disabled until presentation is acknowledged; `chat.preview.notice` replaces both controls when the training account changes |
 | Menu sheet | `sidebar.credits`, `sidebar.history`, `sidebar.debug` |
 | Credits | `credits.balance`, `credits.pack.<product id>`, `credits.note`, `credits.notice` |
 | Credentials | `debug.credentials` in Debug, `credentials.outcome`, `credentials.athlete`, `credentials.connection`, `credentials.keySuffix`, `credentials.lock`, `credentials.failNextWrite`, `credentials.apiKey`, `credentials.replace`, `credentials.replaceBlank`, `credentials.cancel`, `credentials.switchAthlete`, `credentials.disconnect` |
-| History | `history.row.<chat id>` |
-| Debug | `fixture.requestCount`, `fixture.modelRequestCount` |
+| History | `history.row.<boundary or chat id>`, then `archive.readOnly` in the pushed conversation |
+| Debug | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead` (the first line of the history the last reply was sent with), `fixture.replyLanguage` (the first line of the reply-language section the last reply was sent with), `debug.language`, `debug.session` |
+| Conversation & time (Debug) | `session.<field>.stored`, `session.<field>.input`, `session.<field>.save`, `session.<field>.outcome`, where `<field>` is `historyBudgetRatio`, `idleReset`, `dailyResetHour`, `archiveRetention`, `timeZone`, `contextWindowOverride`, `compactionModel`, or `flushModel` |
 
 The fixture athlete is Ada Kovač, athlete `i1001`. The key `other-athlete` resolves to Bo Lind, athlete `i2002`; every other non-empty key resolves to Ada. The fixture keychain starts with a Credits key and no intervals.icu connection, so the chat is unconnected until the connect step or Debug, Credentials stores a key. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
@@ -72,11 +76,16 @@ A message that starts with `fixture:` is a directive to the fakes, typed into `c
 | Message | Effect |
 | --- | --- |
 | `fixture:slow` | Waits 2 seconds, then streams the week summary one word every 250 ms, so `chat.working` shows for 2 seconds and the growing reply for about eight more. |
+| `fixture:slow-flush` | Every model request, the reply to this message and the next memory save included, waits 6 seconds before it answers, until the next message. `New conversation` right after it shows `chat.working` under the old conversation for about 6 seconds. |
 | `fixture:hang` | The model never answers. The 30 second watchdog fires, the coach retries once, the watchdog fires again, and the turn fails with `coach.error.providerDown` after about 60 seconds. |
 | `fixture:fail 500`, `fixture:fail 401`, `fixture:fail 402`, `fixture:fail 429 7`, `fixture:fail network`, `fixture:fail timeout`, `fixture:fail overflow`, `fixture:fail finish` | The next model request fails before any reply text with the HTTP status, connection error, or stream end the directive names, parsed by the same rules as the real transport. `429 7` carries a `retry-after` of 7 seconds; `finish` is an unknown finish reason. A trailing `xN`, as in `fixture:fail 429 7 x4`, fails the next N requests. The coach retries retryable failures with real waits, so the notice needs `x3` for `500` and `network`, `x2` for `timeout`, and `x4` for `429` and `overflow`. |
 | `fixture:memory-then-fail` | The model saves a `schedule` memory section, then the next request fails with a 500. The turn ends with a notice and no `Try again`, because information was saved. |
 | `fixture:memory-then-hang` | The model saves a `schedule` memory section, then the next request never answers. Tapping Stop settles the turn with `This reply stopped before it finished. Some information was saved first.` and no `Try again`; left alone, the watchdog ends it after 30 seconds with the saved-work notice. Killing the app instead reopens it with the same sentence and Records lists `turnSettled` as `interrupted processEnded`. |
 | `fixture:text-then-hang` | The model streams `This week has Tuesday sweet spot` and then stops answering. Records lists `replyObserved 1` while the text is on screen. After 30 seconds the watchdog ends the turn with `coach.error.providerDown` and no retry, because reply text was already shown. Killing the app while the text shows reopens the turn with `This reply stopped before it finished. Nothing was changed.` and `Try again`, no reply text, and no model request. |
+| `fixture:teach` | The model saves a `schedule` memory section, then replies `Noted. I'll remember you ride with a group on Saturdays.` |
+| `fixture:long` | The reply is the week summary written out for 100 days, about 5,200 tokens, so a few messages reach the soft flush gate and the trim. |
+| `fixture:flush-partial` | Replies with the week summary and arms the next memory flush to save a `schedule` section and a `ledgerEvent`, then fail, so its job stays pending until the next launch. `fixture:fail overflow` right after it triggers that flush inside the overflow turn. |
+| `fixture:expire` | Expires every open lease of the fixture's execution host before the directive is sent, as iOS does when it stops the app's background work. The running turn settles `interrupted systemExpired` with its streamed text, queued turns settle as stopped before start with the same nothing-changed notice and `Try again`, and the directive itself then runs as a new message and gets the week summary. |
 | `fixture:storage fail-next-append` | Arms the record store before this message is saved, so the directive itself is the message that fails. The composer keeps the text, `chat.composer.notSent` reads `Not sent. Your draft is still here.`, and the transcript does not change. |
 
 Every directive keeps `fixture.requestCount` at `0 requests`. Any other message gets the normal scripted reply and clears the slow, hang, and queued-failure settings. A `fixture:` message the director does not recognize, such as `fixture:fail bogus`, sends nothing and puts `Unknown fixture directive: <message>` in `chat.error`.
@@ -97,6 +106,30 @@ The helper first terminates a running copy of the app, because XCUITest cannot t
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
+**Every proof in one run.** Pass every proof class at once:
+
+```sh
+.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*Proof\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
+```
+
+The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
+
+The run passes with zero failures and exactly one skip, `UpgradeHistoryProof`. It opens the kept store, and it skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the upgrade steps below. On 2026-09-26 the run took 41 minutes.
+
+**Upgrade proofs.** `UpgradeHistoryProof` proves that the app opens a store the last v1 build wrote with two chats: the chat opens on the welcome, and History lists both chats as `Earlier chat`. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. No v1 proof creates two chats, so copy `helpers/V1TwoChatsSeedProof.swift` into the v1 checkout's UI tests before its build. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so the trunk proof leaves its state for the head proof that follows:
+
+```sh
+git worktree add --detach .worktrees/v1-trunk 82254bb
+cp .claude/skills/verify-ios/helpers/V1TwoChatsSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
+TRUNK=.worktrees/v1-trunk/.claude/skills/verify-ios/helpers/sim.mjs
+SIM=.claude/skills/verify-ios/helpers/sim.mjs
+$TRUNK build
+$TRUNK test <run id> V1TwoChatsSeedProof
+$SIM test <run id> UpgradeHistoryProof
+```
+
+Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator. Remove the worktree with `git worktree remove --force .worktrees/v1-trunk` when the run is done; `--force` drops the copied seed proof.
+
 ## Compare with the prototype
 
 The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs named `native-<prototype>-<state>-<theme>.png` in `~/projects/enduragent/desktop/docs/prototypes/ios/captures-2026-09-25/`. Set `ENDURAGENT_PROTOTYPE_CAPTURES` to use another folder. Parity is by state and copy, not pixels, because SwiftUI system rendering differs from the HTML. Do not add a pixel-diff tool.
@@ -113,16 +146,18 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 | Prototype state | App state today |
 | --- | --- |
-| `chat-welcome` | Chat right after onboarding, with `Hello, Ada.` or `Hello.` after a skip |
+| `chat-welcome` | Chat right after onboarding: `chat.welcome`, without the `/sync` line after a skip |
 | `chat-menu`, `chat-menu-nosync` | The slash list after typing `/` in `chat.composer`. The nosync state is the same list after `Skip for now`. |
-| `chat-new-conversation` | The greeting after `New chat` |
+| `chat-new-conversation` | A reply with `chat.newConversation` in the top bar; after the tap, the welcome with `New conversation started.` |
 | `review-ready` | The `Workout review` card after a workout request |
 | `review-canceled-first` | The chat after `chat.preview.cancel` |
 | `chat-working` | Within one second of sending `fixture:slow`: `chat.working` reads `Coach is working…` and no reply text yet |
 | `chat-streaming` | About three seconds after sending `fixture:slow`: part of the week summary with the working row still under it |
 | `chat-failed` | After `fixture:fail network x3`: `chat.turn.notice` under the message reads `The model provider is having trouble — try again in a few minutes.` with `Try again` in `chat.turn.tryAgain` |
-| `interruption-accepted` | After `fixture:hang`, a kill, and `sim.mjs launch <run id> --keep`: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
+| `interruption-accepted` | After `sim.mjs launch <run id> -EnduragentFixtureCoalescing 60000`, onboarding, `fixture:hang`, and `sim.mjs launch <run id> --keep` before the minute ends: the message once with `Received before the app closed. Tap Try again to send it.` and `Try again`. `AcceptSurvivesKillProof` attachment `accept-kill-reopen` shows it |
 | `interruption-draft` | After `fixture:storage fail-next-append`: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
+| `interruption-completed` | A reply that landed while the app was in the background: the whole reply with `Finished while the phone was locked.` under it, after `FinishedWhileAwayProof` |
+| `interruption-interrupted` | The dimmed partial reply with `This reply stopped before it finished. Nothing was changed.` and `Try again`, after `StopProof` or `ExpiryProof` |
 | `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
 
 ## Evidence

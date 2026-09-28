@@ -5,11 +5,12 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2437)
-		#expect(Catalog.keyCount == 2473)
+		#expect(Catalog.englishLeafCount == 2442)
+		#expect(Catalog.keyCount == 2478)
 	}
 
 	@Test(arguments: [
+		(Catalog.archiveReasonEarlierChat, "Earlier chat"),
 		(
 			Catalog.creditsErrorAccessRejected,
 			"Your Credits couldn't be used. Restore purchases to continue."
@@ -42,6 +43,7 @@ import Testing
 		(Catalog.chatTurnRestorePurchases, "Restore purchases"),
 		(Catalog.chatTurnChooseAccessMethod, "Choose access method"),
 		(Catalog.chatTurnSignInAgain, "Sign in again"),
+		(Catalog.chatTurnFinishedWhileLocked, "Finished while the phone was locked."),
 	])
 	func newKeysRenderInEnglishAndFallBackForOtherTags(key: CatalogKey, english: String) {
 		#expect(CatalogPhrasebook(tag: .en, locale: "en-US").say(key) == english)
@@ -50,9 +52,33 @@ import Testing
 		}
 	}
 
+	@Test(arguments: LanguageTag.allCases.filter { $0 != .en })
+	func reviewCopyUsesEverySelectedLanguage(_ tag: LanguageTag) {
+		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
+		let english = CatalogPhrasebook(tag: .en, locale: "en-US")
+		for key in [
+			Catalog.reviewTitle, Catalog.reviewAdd, Catalog.reviewAccountChanged,
+			Catalog.reviewCannotVerify, Catalog.reviewUncertain,
+		] {
+			let copy = book.say(key, ["service": "intervals.icu"])
+			#expect(copy != english.say(key, ["service": "intervals.icu"]))
+			#expect(!copy.contains("{{"))
+		}
+	}
+
 	@Test func italianCancelUsesTheItalianCatalog() {
 		let book = CatalogPhrasebook(tag: .it, locale: "it-IT")
 		#expect(book.say(Catalog.commonCancel) == "Annulla")
+	}
+
+	@Test func frenchConfirmationUsesTheFrenchCatalog() {
+		let book = CatalogPhrasebook(tag: .fr, locale: "fr-FR")
+		#expect(
+			book.say(Catalog.coachConfirmationExpired)
+				== "Cette proposition a expiré — redemande-moi et je te la proposerai à nouveau.")
+		#expect(
+			book.say(Catalog.coachConfirmationExecuted, ["summary": "Endurance"])
+				== "C’est fait — Endurance.")
 	}
 
 	@Test func polishCountThreeSelectsTheFewForm() {

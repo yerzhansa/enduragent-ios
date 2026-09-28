@@ -36,7 +36,7 @@ struct ComposerView: View {
 					.accessibilityIdentifier("chat.composer.notSent")
 			}
 			if let notice = model.status?.notice {
-				Text(notice.sentence(in: model.builder.phrasebook))
+				Text(notice.sentence(in: model.phrasebook))
 					.font(.footnote)
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notice")
@@ -48,6 +48,6 @@ struct ComposerView: View {
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

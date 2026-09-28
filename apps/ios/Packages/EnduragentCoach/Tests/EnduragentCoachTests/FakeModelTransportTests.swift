@@ -135,25 +135,30 @@ import Testing
 		#expect(textDeltas(in: received) == ["Thursday is "])
 	}
 
-	@Test func compactionAndFlushReadTheMaintenanceScript() async throws {
+	@Test func summariesAndFlushesReadTheirOwnScripts() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.fail(.http(status: 429)), .text("reply"), .finish(reason: .stop)]
-		transport.maintenanceScript = [.text("summary"), .finish(reason: .stop)]
-		let compaction = CompletionRequest(
-			access: testAccess, attempt: AttemptID(ulid: fixedUlid(901)), charge: .compaction,
-			messages: [], tools: [], deadline: .seconds(30))
-		let summary = try await collect(transport.stream(compaction))
+		transport.summaryScript = [
+			.text("summary"), .finish(reason: .stop), .text("dropped"), .finish(reason: .stop),
+		]
+		transport.flushScript = [.text("flush"), .finish(reason: .stop)]
+		let summary = try await collect(transport.stream(maintenance(.compaction)))
 		#expect(textDeltas(in: summary) == ["summary"])
 		await #expect(throws: ProviderFailure.rateLimited(retryAfter: nil)) {
 			_ = try await collect(transport.stream(request("Chat")))
 		}
-		let flush = try await collect(
-			transport.stream(
-				CompletionRequest(
-					access: testAccess, attempt: AttemptID(ulid: fixedUlid(902)),
-					charge: .memoryFlush, messages: [], tools: [], deadline: .seconds(30))))
-		#expect(flush.isEmpty)
+		let flush = try await collect(transport.stream(maintenance(.memoryFlush)))
+		#expect(textDeltas(in: flush) == ["flush"])
+		let dropped = try await collect(transport.stream(maintenance(.droppedSummary)))
+		#expect(textDeltas(in: dropped) == ["dropped"])
+		#expect(try await collect(transport.stream(maintenance(.memoryFlush))).isEmpty)
 		#expect(textDeltas(in: try await collect(transport.stream(request("Chat")))) == ["reply"])
+	}
+
+	private func maintenance(_ charge: GenerateCharge) -> CompletionRequest {
+		CompletionRequest(
+			access: testAccess, attempt: AttemptID(ulid: fixedUlid(901)), charge: charge,
+			messages: [], tools: [], deadline: .seconds(30))
 	}
 
 	@Test func scriptedHangStreamsThenWaitsForCancellation() async throws {

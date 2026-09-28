@@ -23,7 +23,7 @@ extension FixtureLaunchTests {
 		#expect(model.errorLine == nil)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(
-			model.status?.notice?.sentence(in: model.builder.phrasebook)
+			model.status?.notice?.sentence(in: model.phrasebook)
 				== "Couldn't reach intervals.icu right now — try again shortly.")
 		#expect(model.connected?.athleteName == nil)
 	}
@@ -106,8 +106,23 @@ extension FixtureLaunchTests {
 		#expect(reopened.chat?.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(reopened.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(
-			reopened.status?.notice?.sentence(in: reopened.builder.phrasebook)
+			reopened.status?.notice?.sentence(in: reopened.phrasebook)
 				== "Unlock your iPhone to continue. Your message is saved.")
+	}
+
+	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let services = try services(keychain: .locked)
+		let fixture = try #require(services.fixtureDirector)
+		let model = model(services)
+		await model.appear()
+		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		fixture.secrets.locked = false
+		await model.sceneChanged(.enteredBackground)
+		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		await model.sceneChanged(.becameActive)
+		#expect(model.status?.setup == .ready)
+		#expect(model.status?.notice == nil)
 	}
 
 	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {

@@ -2883,5 +2883,12 @@
         "transferRequired": "Transfert du bot nécessaire"
       }
     }
+  },
+  "review": {
+    "accountChanged": "Cette séance a été préparée pour un autre athlète sur {{service}}. Demande-moi à nouveau de la préparer pour l'athlète connecté.",
+    "add": "Ajouter au calendrier",
+    "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
+    "title": "Vérification de la séance",
+    "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander."
   }
 }

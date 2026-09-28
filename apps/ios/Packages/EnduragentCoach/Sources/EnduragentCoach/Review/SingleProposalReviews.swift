@@ -32,7 +32,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			return nil
 		}
 		let delivery = delivery(for: live, in: chat)
-		let changed = current.map { live.account.authority(under: $0) == .changed } ?? false
+		let changed = current.map { !Self.permits(live.account.authority(under: $0)) } ?? false
 		let card = ReviewCard(live.body)
 		return ReviewSnapshot(
 			ref: delivery.ref,
@@ -93,7 +93,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 		} catch {
 			return .blocked(.cannotVerify)
 		}
-		guard live.account.authority(under: connection.account) != .changed else {
+		guard Self.permits(live.account.authority(under: connection.account)) else {
 			return .blocked(.accountChanged)
 		}
 		let stamp = await stamp(token.ref, account: connection.account)
@@ -171,6 +171,13 @@ package actor SingleProposalReviews: WorkoutReviews {
 				chat: chat, set: set, revision: ChangeSetRevision(rawValue: 1), delivery: UUID()))
 		deliveries[chat] = minted
 		return minted
+	}
+
+	private static func permits(_ authority: AccountAuthority) -> Bool {
+		switch authority {
+		case .same, .sameAthlete: true
+		case .changed, .unverifiable: false
+		}
 	}
 
 	private func currentAccount() async -> TrainingAccount? {

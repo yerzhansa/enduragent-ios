@@ -2847,5 +2847,12 @@
         "transferRequired": "需要移轉機器人"
       }
     }
+  },
+  "review": {
+    "accountChanged": "這項訓練是為 {{service}} 上的另一位運動員準備的。請再次提出請求，讓我為目前連線的運動員準備訓練。",
+    "add": "加入行事曆",
+    "cannotVerify": "無法檢查你的 {{service}} 連線，因此未做任何變更。請稍後重試。",
+    "title": "訓練審核",
+    "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。"
   }
 }

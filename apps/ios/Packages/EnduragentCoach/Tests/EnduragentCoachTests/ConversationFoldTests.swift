@@ -56,7 +56,7 @@ import Testing
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(
 			conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
-		#expect(conversation.lastExchange == .at(Date(timeIntervalSince1970: 0.004)))
+		#expect(conversation.lastExchange(before: turn) == .at(Date(timeIntervalSince1970: 0.002)))
 	}
 
 	@Test func resetBoundaryFromAnyDeviceSplitsSegments() throws {
@@ -92,6 +92,36 @@ import Testing
 		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
 		#expect(conversation.current.messages.map(\.text) == ["after", "after reply"])
 		#expect(conversation.current.promptHistory(excluding: after).messages.isEmpty)
+	}
+
+	@Test func appliedResetMovesTurnsFromItsBoundaryOnIntoTheNewSegment() throws {
+		let before = TurnID(ulid: ulid(1))
+		let after = TurnID(ulid: ulid(4))
+		let resetId = ResetID(ulid: ulid(3))
+		let folded = ConversationFold.fold(
+			chat: .main,
+			synced: [
+				storedRecord(
+					device: phoneA, wall: 1, ulid: ulid(1),
+					body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+				storedRecord(
+					device: phoneA, wall: 2, ulid: ulid(4),
+					body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			], device: phoneA)
+		#expect(folded.segments.count == 1)
+		let boundary = storedRecord(
+			device: phoneA, wall: 3, ulid: ulid(5),
+			body: .synced(
+				.windowStart(
+					WindowStartBody(
+						chatId: .main, firstIncludedUlid: ulid(3),
+						reason: .reset(.explicit(resetId))))))
+		let applied = ConversationFold.applying([boundary], to: folded, device: phoneA)
+		#expect(applied.segments.map(\.turns.count) == [1, 1])
+		#expect(applied.segments[0].turns.map(\.turn) == [before])
+		#expect(applied.current.openedBy == .reset(.explicit(resetId)))
+		#expect(applied.current.id == SegmentID(boundary: ulid(3)))
+		#expect(applied.current.turns.map(\.turn) == [after])
 	}
 
 	@Test func trimWindowFromAnotherDeviceIsIgnored() throws {
@@ -264,6 +294,97 @@ import Testing
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.messages(for: [ulid(2), ulid(1), ulid(9)]).map(\.text) == ["a", "q"])
+	}
+
+	@Test func latestSummaryAtOrAfterThisDevicesWindowOpensPromptHistory() throws {
+		let turn = TurnID(ulid: ulid(1))
+		let kept = TurnID(ulid: ulid(3))
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: .synced(sampleUser(chatId: .main, text: "dropped", turn: turn))),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: .synced(sampleReply(chatId: .main, turn: turn, text: "dropped reply"))),
+			storedRecord(
+				device: phoneA, wall: 3, ulid: ulid(3),
+				body: .synced(sampleUser(chatId: .main, text: "kept", turn: kept))),
+			storedRecord(
+				device: phoneA, wall: 4, ulid: ulid(4),
+				body: .synced(summary("stale, before the window"))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(5),
+				body: .synced(
+					.windowStart(
+						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(3), reason: .trim)))),
+			storedRecord(
+				device: phoneA, wall: 6, ulid: ulid(6), body: .synced(summary("first"))),
+			storedRecord(
+				device: phoneA, wall: 7, ulid: ulid(7), body: .synced(summary("latest"))),
+			storedRecord(
+				device: phoneB, wall: 8, ulid: ulid(8), body: .synced(summary("phone b"))),
+			storedRecord(
+				device: phoneA, wall: 9, ulid: ulid(9),
+				body: .synced(sampleReply(chatId: .main, turn: kept, text: "kept reply"))),
+		]
+		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		let history = onA.current.promptHistory(excluding: nil)
+		#expect(history.summary == "latest")
+		#expect(history.messages.map(\.text) == ["kept", "kept reply"])
+		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
+		#expect(onB.current.promptHistory(excluding: nil).summary == "phone b")
+	}
+
+	@Test func aWindowWithoutASummaryAfterItDropsTheOlderSummary() throws {
+		let records = [
+			storedRecord(device: phoneA, wall: 1, ulid: ulid(1), body: .synced(summary("old"))),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: .synced(
+					.windowStart(
+						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(2), reason: .trim)))),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		#expect(conversation.current.promptHistory(excluding: nil).summary == nil)
+	}
+
+	@Test func aLegacyJobWithNoMessagesCoversItsSegmentBeforeIt() throws {
+		let archived = TurnID(ulid: ulid(1))
+		let current = TurnID(ulid: ulid(5))
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: ulid(1),
+				body: .synced(sampleUser(chatId: .main, text: "archived", turn: archived))),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: ulid(2),
+				body: .synced(sampleReply(chatId: .main, turn: archived, text: "archived reply"))),
+			storedRecord(
+				device: phoneA, wall: 4, ulid: ulid(4),
+				body: .synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: ulid(4),
+							reason: .reset(.explicit(ResetID(ulid: ulid(4)))))))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: ulid(5),
+				body: .synced(sampleUser(chatId: .main, text: "new", turn: current))),
+			storedRecord(
+				device: phoneA, wall: 6, ulid: ulid(6),
+				body: .synced(sampleReply(chatId: .main, turn: current, text: "new reply"))),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		let legacy = FlushJob(
+			id: FlushJobID(ulid: ulid(3)), trigger: .explicitReset, messages: [], settled: false)
+		#expect(
+			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
+		#expect(
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
+				ulid(5), ulid(6),
+			])
+	}
+
+	private func summary(_ markdown: String) -> SyncedRecordBody {
+		.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: markdown))
 	}
 
 	private func ulid(_ offset: Int) -> ULID {

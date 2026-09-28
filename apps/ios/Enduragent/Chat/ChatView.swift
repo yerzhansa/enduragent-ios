@@ -17,7 +17,7 @@ struct ChatView: View {
 						.padding(.bottom, 8)
 				}
 				if let notice = model.reviewNotice {
-					Text(notice.sentence(in: model.builder.phrasebook))
+					Text(notice.sentence(in: model.phrasebook))
 						.accessibilityIdentifier("chat.review.notice")
 						.padding(.horizontal)
 						.padding(.vertical, 8)
@@ -30,7 +30,14 @@ struct ChatView: View {
 				}
 				ComposerView(model: model)
 			}
-			.navigationTitle("Coach")
+			#if DEBUG
+				.overlay(alignment: .topLeading) {
+					if let snapshot = model.chat {
+						TurnProgressDebugView(snapshot: snapshot)
+					}
+				}
+			#endif
+			.navigationTitle(model.phrasebook.say(Catalog.chatViewTitle, [:]))
 			.toolbar {
 				ToolbarItem(placement: .topBarLeading) {
 					Button("Menu") {
@@ -39,9 +46,10 @@ struct ChatView: View {
 					.accessibilityIdentifier("chat.sidebar")
 				}
 				ToolbarItem(placement: .topBarTrailing) {
-					Button("New chat") {
-						model.newChat()
+					Button(model.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
+						Task { await model.newConversation() }
 					}
+					.accessibilityIdentifier("chat.newConversation")
 				}
 			}
 			.navigationDestination(isPresented: $model.showCredits) {
@@ -50,6 +58,24 @@ struct ChatView: View {
 			.sheet(isPresented: $model.showSidebar) {
 				NavigationStack {
 					SidebarView(model: model)
+				}
+			}
+			.sheet(isPresented: $model.showLanguage) {
+				NavigationStack {
+					LanguageView(model: model)
+						.toolbar {
+							ToolbarItem(placement: .topBarTrailing) {
+								Button {
+									model.showLanguage = false
+								} label: {
+									Image(systemName: "xmark")
+								}
+								.accessibilityLabel(
+									model.phrasebook.say(Catalog.chatViewCloseContext, [:])
+								)
+								.accessibilityIdentifier("language.close")
+							}
+						}
 				}
 			}
 		}

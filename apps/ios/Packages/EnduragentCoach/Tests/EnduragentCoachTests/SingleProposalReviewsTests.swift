@@ -296,9 +296,9 @@ import Testing
 				records: records, secrets: secrets, models: .scripted(transport),
 				training: .fake { credential, _ in credential == .apiKey("other-athlete") ? bo : ada
 				},
-				credits: .fake(FakeCreditsClient()), clock: clock),
+				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel,
-			language: .init(ui: .en, coachReply: nil),
+			deviceLanguage: .en,
 			coalescing: quickWindow
 		)
 	}

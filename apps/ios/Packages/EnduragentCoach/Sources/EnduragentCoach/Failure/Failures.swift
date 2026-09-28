@@ -314,7 +314,8 @@ package enum AthleteNotices {
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {
 		switch interruption {
-		case .athleteStopped, .appTerminating, .processEnded, .stoppedBeforeStart:
+		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded,
+			.stoppedBeforeStart:
 			return AthleteNotice(
 				key: saved.isEmpty
 					? Catalog.chatTurnInterruptedNothingChanged

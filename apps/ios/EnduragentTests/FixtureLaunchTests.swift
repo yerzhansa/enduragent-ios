@@ -65,19 +65,19 @@ final class FixtureLaunchTests {
 	) async throws -> TurnView {
 		let deadline = ContinuousClock.now + limit
 		while ContinuousClock.now < deadline {
-			if let turn = model.chat?.turns.last, isSettled(turn.state), turn.state != previous {
+			if let turn = model.chat?.turns.last, turn.state.isSettled, turn.state != previous {
 				return turn
 			}
 			try await Task.sleep(for: .milliseconds(20))
 		}
-		return try #require(model.chat?.turns.last(where: { isSettled($0.state) }))
+		return try #require(model.chat?.turns.last(where: { $0.state.isSettled }))
 	}
 
 	func settledTurn(_ model: ShellModel, at index: Int) async throws -> TurnView {
 		let deadline = ContinuousClock.now + .seconds(20)
 		while ContinuousClock.now < deadline {
 			if let turns = model.chat?.turns, turns.indices.contains(index),
-				isSettled(turns[index].state)
+				turns[index].state.isSettled
 			{
 				return turns[index]
 			}
@@ -185,26 +185,18 @@ final class FixtureLaunchTests {
 		#expect(model.route == .onboarding(.notice))
 	}
 
-	@Test func coldStartRestoresChatAfterOnboarding() async throws {
+	@Test func coldStartAfterAV1ChatOpensTheOneConversation() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
+		defaults.set("restored-chat", forKey: "enduragent.lastChatId")
 		let model = model(try services())
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.chatId.rawValue == "restored-chat")
-	}
-
-	@Test func coldStartWithCompletedOnboardingAndNoChatUsesMain() async throws {
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let model = model(try services())
-		try await observed(model)
-		#expect(model.route == .chat)
-		#expect(model.chatId == .main)
+		#expect(model.chat?.chat == .main)
+		#expect(model.chat?.opening == .welcome)
 	}
 
 	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		defaults.set("restored-chat", forKey: ShellModel.lastChatIdKey)
 		let first = model(try services())
 		first.draft.text = "Is Thursday still on?"
 		first.draftChanged(from: "")
@@ -224,8 +216,62 @@ final class FixtureLaunchTests {
 		try await observed(first)
 		try await observed(second)
 		#expect(second.route == .chat)
-		#expect(second.chatId == first.chatId)
-		#expect(second.chatIndex.all().map(\.id) == [first.chatId.rawValue])
+		#expect(second.chat?.chat == .main)
+	}
+
+	@Test func chooseAccessMethodThenStartChattingKeepsTheConversation() async throws {
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let settled = try await settledTurn(model)
+		await model.perform(.chooseAccessMethod)
+		#expect(model.route == .onboarding(.connect))
+		model.skipConnect()
+		model.startChatting()
+		#expect(model.route == .chat)
+		try await observed(model)
+		#expect(model.chat?.turns.map(\.id) == [settled.id])
+		#expect(model.chat?.opening == .continuing)
+	}
+
+	@Test func newConversationArchivesTheExchangeAndOpensOnTheWelcome() async throws {
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let settled = try await settledTurn(model)
+		await model.newConversation()
+		let deadline = ContinuousClock.now + .seconds(5)
+		while model.chat?.opening == .continuing, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		#expect(model.chat?.turns.isEmpty == true)
+		#expect(model.chat?.opening == .afterNewConversation(memorySaved: true))
+		#expect(model.newConversationUncertain == false)
+		await model.loadHistory()
+		guard case .loaded(let archived) = model.history else {
+			Issue.record("History did not load: \(model.history)")
+			return
+		}
+		#expect(archived.map(\.reason) == [.newConversation])
+		#expect(archived.first?.turns.map(\.id) == [settled.id])
+	}
+
+	@Test func typedStartClearsTheDraftAndAFailedBoundaryKeepsTheConversation() async throws {
+		let services = try services()
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let settled = try await settledTurn(model)
+		services.fixtureRecordLog?.failAppends(ofKind: SyncedKind.windowStart)
+		model.draft.text = "/start"
+		await model.send()
+		#expect(model.draft.text.isEmpty)
+		#expect(model.newConversationUncertain)
+		#expect(model.chat?.turns.map(\.id) == [settled.id])
+		#expect(model.chat?.opening == .continuing)
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
@@ -236,7 +282,7 @@ final class FixtureLaunchTests {
 		let settled = try await settledTurn(first)
 		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
 		let (second, kept) = try relaunch(.keep)
-		let restored = try #require(await firstSnapshot(second, chat: first.chatId))
+		let restored = try #require(await firstSnapshot(second, chat: .main))
 		#expect(restored.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
@@ -245,7 +291,7 @@ final class FixtureLaunchTests {
 			builder: ServicesBuilder(services: second, language: language, defaults: kept))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
-		#expect(reopened.chatId == first.chatId)
+		#expect(reopened.chat?.chat == .main)
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
@@ -255,7 +301,7 @@ final class FixtureLaunchTests {
 		await first.send()
 		_ = try await settledTurn(first)
 		let (second, wiped) = try relaunch(.fresh)
-		#expect(await firstSnapshot(second, chat: first.chatId)?.turns.isEmpty == true)
+		#expect(await firstSnapshot(second, chat: .main)?.turns.isEmpty == true)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
 
@@ -277,11 +323,4 @@ func replyText(_ state: TurnState) -> String? {
 		return nil
 	}
 	return text
-}
-
-func isSettled(_ state: TurnState) -> Bool {
-	switch state {
-	case .completed, .savedWork, .failed, .interrupted: true
-	case .accepted, .processing, .unrecovered: false
-	}
 }

@@ -13,6 +13,8 @@ enum SyncedPayload: Encodable {
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
 	case reviewApplied(ReviewAppliedPayload)
+	case sessionSettings(SessionSettingsPayload)
+	case languagePreference(LanguagePreferencePayload)
 
 	init(_ body: SyncedRecordBody) {
 		switch body {
@@ -86,6 +88,10 @@ enum SyncedPayload: Encodable {
 		case .reviewApplied(let value):
 			self = .reviewApplied(
 				ReviewAppliedPayload(chatId: value.chatId.rawValue, summary: value.summary))
+		case .sessionSettings(let value):
+			self = .sessionSettings(SessionSettingsPayload(value))
+		case .languagePreference(let value):
+			self = .languagePreference(LanguagePreferencePayload(value))
 		}
 	}
 
@@ -103,6 +109,8 @@ enum SyncedPayload: Encodable {
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
 		case .reviewApplied(let payload): try payload.encode(to: encoder)
+		case .sessionSettings(let payload): try payload.encode(to: encoder)
+		case .languagePreference(let payload): try payload.encode(to: encoder)
 		}
 	}
 }
@@ -113,6 +121,7 @@ enum DeviceLocalPayload: Encodable {
 	case pendingProposal(ProposalPayload)
 	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
+	case flushSettled(FlushSettledPayload)
 	case planningCommand(PlanningCommandPayload)
 	case planRevision(PlanRevisionPayload)
 	case mirrorJob(MirrorJobPayload)
@@ -127,7 +136,8 @@ enum DeviceLocalPayload: Encodable {
 					chatId: value.chatId.rawValue,
 					turn: value.turn.ulid.rawValue,
 					attempt: value.attempt.ulid.rawValue,
-					process: value.process?.ulid.rawValue
+					process: value.process?.ulid.rawValue,
+					lease: value.lease.rawValue
 				)
 			)
 		case .replyObserved(let value):
@@ -163,9 +173,12 @@ enum DeviceLocalPayload: Encodable {
 				FlushPendingPayload(
 					chatId: value.chatId.rawValue,
 					trigger: value.trigger.rawValue,
-					messageUlids: value.messageUlids.map(\.rawValue)
+					messageUlids: value.messageUlids.map(\.rawValue),
+					process: value.process?.ulid.rawValue
 				)
 			)
+		case .flushSettled(let value):
+			self = .flushSettled(FlushSettledPayload(value))
 		case .planningCommand(let value):
 			self = .planningCommand(
 				PlanningCommandPayload(
@@ -220,6 +233,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let payload): try payload.encode(to: encoder)
 		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)
+		case .flushSettled(let payload): try payload.encode(to: encoder)
 		case .planningCommand(let payload): try payload.encode(to: encoder)
 		case .planRevision(let payload): try payload.encode(to: encoder)
 		case .mirrorJob(let payload): try payload.encode(to: encoder)

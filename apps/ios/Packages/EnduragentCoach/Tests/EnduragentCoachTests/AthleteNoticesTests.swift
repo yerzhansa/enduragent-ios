@@ -149,7 +149,9 @@ private func claimedFacts(by process: ProcessID) -> TurnFacts {
 	facts.claims.append(
 		ClaimedAttempt(
 			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
-			body: TurnClaimBody(chatId: .main, turn: turn, attempt: attempt, process: process)))
+			body: TurnClaimBody(
+				chatId: .main, turn: turn, attempt: attempt, process: process,
+				lease: .continuedProcessing)))
 	return facts
 }
 
@@ -352,9 +354,11 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
 			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
-			training: .unavailable(.secureStorageLocked))
+			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults)
 		#expect(locked.notice?.sentence(in: english) == lockedSentence)
-		let offline = CoachStatus(setup: .ready, training: .connected(summary, account: account))
+		let offline = CoachStatus(
+			setup: .ready, training: .connected(summary, account: account),
+			preferences: .npmDefaults)
 		#expect(
 			offline.notice?.sentence(in: english)
 				== "Couldn't reach intervals.icu right now — try again shortly.")
@@ -364,9 +368,16 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 				IntervalsSummary(
 					keySuffix: "-key", athleteName: nil, today: nil,
 					displayUnavailable: .credentialRejected),
-				account: account))
+				account: account),
+			preferences: .npmDefaults)
 		#expect(rejected.notice?.sentence(in: english) == intervalsRejected)
-		#expect(CoachStatus(setup: .needsAccessMethod, training: .unconnected).notice == nil)
-		#expect(CoachStatus(setup: .ready, training: .unconnected).notice == nil)
+		#expect(
+			CoachStatus(
+				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults
+			)
+			.notice == nil)
+		#expect(
+			CoachStatus(setup: .ready, training: .unconnected, preferences: .npmDefaults).notice
+				== nil)
 	}
 }

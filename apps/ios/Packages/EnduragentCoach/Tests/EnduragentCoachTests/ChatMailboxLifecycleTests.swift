@@ -1,9 +1,35 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
 
 extension ChatMailboxTests {
+	@Test func aTurnThatStartedNeverShowsAsWaitingAgain() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let states = Mutex<[TurnState]>([])
+		let stream = await coach.observe(.main)
+		let watching = Task {
+			for await snapshot in stream {
+				if let state = snapshot.turns.first?.state {
+					states.withLock { $0.append(state) }
+				}
+			}
+		}
+		let turn = try #require(
+			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Still on.")
+		watching.cancel()
+		let seen = states.withLock { $0 }
+		let started = try #require(
+			seen.firstIndex { if case .processing = $0 { true } else { false } })
+		let after = seen[started...].filter { if case .accepted = $0 { true } else { false } }
+		#expect(after.isEmpty, "a started turn went back to waiting: \(seen)")
+	}
+
 	@Test func relaunchAfterExpiryMidReplyDoesNotRerunTheModel() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Yes, keep Thursday."), .hang]

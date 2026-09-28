@@ -122,28 +122,6 @@ import Testing
 				== "Sunday long ride, 2 h, load 120.")
 	}
 
-	@Test func memoryIsWrittenAfterTheReplyAndQueryable() async throws {
-		transport.script = [.text("Noted: group ride on Saturdays."), .finish(reason: .stop)]
-		transport.maintenanceScript = [
-			.toolCall(
-				name: "ledger_append",
-				arguments:
-					#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
-			),
-			.finish(reason: .toolCalls), .finish(reason: .stop),
-		]
-		let coach = makeCoach()
-		_ = try await coach.sendAndSettle("Remember that I ride with a group on Saturdays")
-		await coach.waitForMemoryFlush()
-
-		let hits = try await coach.memory.query(
-			from: "1998-06-01", to: "1998-06-30", contains: "Saturdays")
-		let hit = try #require(hits.first)
-		#expect(hits.count == 1)
-		#expect(hit.date == "1998-06-13")
-		#expect(hit.kind == .ledger(.decision))
-	}
-
 	@Test func calendarWriteBecomesAReview() async throws {
 		transport.script = [
 			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),

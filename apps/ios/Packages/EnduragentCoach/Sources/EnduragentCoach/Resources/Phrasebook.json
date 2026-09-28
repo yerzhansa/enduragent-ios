@@ -2241,6 +2241,16 @@
         }
       }
     },
+    "archive.reason.earlierChat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earlier chat"
+          }
+        }
+      }
+    },
     "archive.reason.explicit": {
       "localizations": {
         "en": {
@@ -69083,6 +69093,16 @@
         }
       }
     },
+    "chat.turn.finishedWhileLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finished while the phone was locked."
+          }
+        }
+      }
+    },
     "chat.turn.interruptedNothingChanged": {
       "localizations": {
         "en": {
@@ -121193,6 +121213,42 @@
           "stringUnit": {
             "state": "translated",
             "value": "繼續"
+          }
+        }
+      }
+    },
+    "language.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "language.saveFailedAutomatic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
           }
         }
       }
@@ -191840,6 +191896,198 @@
               "formatSpecifier": "@"
             }
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este entrenamiento se preparó para otro atleta de %#@service@. Pídeme de nuevo que lo prepare para el atleta conectado."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette séance a été préparée pour un autre athlète sur %#@service@. Demande-moi à nouveau de la préparer pour l'athlète connecté."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo allenamento è stato preparato per un altro atleta su %#@service@. Chiedimi di nuovo di prepararlo per l'atleta collegato."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Training wurde für einen anderen Athleten bei %#@service@ vorbereitet. Bitte mich erneut, es für den verbundenen Athleten vorzubereiten."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze training is voorbereid voor een andere atleet op %#@service@. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette træningspas blev forberedt til en anden atlet på %#@service@. Bed mig igen om at forberede det til den tilsluttede atlet."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här träningspasset förbereddes för en annan idrottare på %#@service@. Be mig igen att förbereda det för den anslutna idrottaren."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne treningsøkten ble klargjort for en annen utøver på %#@service@. Be meg på nytt om å klargjøre den for den tilkoblede utøveren."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa %#@service@. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino foi preparado para outro atleta no %#@service@. Pede-me novamente para o preparar para o atleta ligado."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino foi preparado para outro atleta no %#@service@. Peça de novo para eu prepará-lo para o atleta conectado."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten trening przygotowano dla innego sportowca w %#@service@. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 운동은 %#@service@의 다른 선수 계정에 맞춰 준비되었습니다. 연결된 선수 계정에 맞춰 준비하도록 다시 요청해 주세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このワークアウトは、%#@service@の別のアスリート向けに準備されました。接続中のアスリート向けに準備するよう、もう一度依頼してください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这项训练是为 %#@service@ 上的另一位运动员准备的。请再次提出请求，让我为当前连接的运动员准备训练。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這項訓練是為 %#@service@ 上的另一位運動員準備的。請再次提出請求，讓我為目前連線的運動員準備訓練。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
         }
       }
     },
@@ -191849,6 +192097,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Add to calendar"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir al calendario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter au calendrier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi al calendario"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Kalender hinzufügen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toevoegen aan kalender"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Føj til kalender"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lägg till i kalendern"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legg til i kalender"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lisää kalenteriin"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar ao calendário"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionar ao calendário"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dodaj do kalendarza"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더에 추가"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーに追加"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到日历"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入行事曆"
           }
         }
       }
@@ -191866,6 +192210,198 @@
               "formatSpecifier": "@"
             }
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido comprobar tu conexión con %#@service@, así que no se ha cambiado nada. Inténtalo de nuevo en un momento."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je n'ai pas pu vérifier ta connexion à %#@service@, donc rien n'a été modifié. Réessaie dans un instant."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ho potuto verificare la connessione a %#@service@, quindi non è cambiato nulla. Riprova tra poco."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich konnte deine Verbindung zu %#@service@ nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik kon je verbinding met %#@service@ niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg kunne ikke kontrollere din forbindelse til %#@service@, så intet blev ændret. Prøv igen om lidt."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jag kunde inte kontrollera din anslutning till %#@service@, så inget ändrades. Försök igen om en liten stund."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg kunne ikke kontrollere tilkoblingen din til %#@service@, så ingenting ble endret. Prøv igjen om litt."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En voinut tarkistaa yhteyttäsi palveluun %#@service@, joten mitään ei muutettu. Yritä pian uudelleen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não consegui verificar a tua ligação a %#@service@, por isso nada foi alterado. Tenta novamente daqui a pouco."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não consegui verificar sua conexão com %#@service@, então nada foi alterado. Tente novamente daqui a pouco."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie mogę sprawdzić Twojego połączenia z %#@service@, więc nic się nie zmieniło. Spróbuj ponownie za chwilę."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@ 연결을 확인할 수 없어 아무것도 변경하지 않았습니다. 잠시 후 다시 시도해 주세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@service@への接続を確認できなかったため、何も変更していません。少し待ってから、もう一度お試しください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查你的 %#@service@ 连接，因此未作任何更改。请稍后重试。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法檢查你的 %#@service@ 連線，因此未做任何變更。請稍後重試。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
         }
       }
     },
@@ -191876,6 +192412,102 @@
             "state": "translated",
             "value": "Workout review"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión del entrenamiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification de la séance"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisione dell'allenamento"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training prüfen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training controleren"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gennemgang af træningspas"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granskning av träningspass"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gjennomgang av treningsøkt"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harjoituksen tarkistus"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisão do treino"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisão do treino"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przegląd treningu"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "운동 검토"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワークアウトの確認"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练审核"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訓練審核"
+          }
         }
       }
     },
@@ -191885,6 +192517,198 @@
           "stringUnit": {
             "state": "translated",
             "value": "Couldn't confirm whether this reached your %#@service@ calendar. Check your calendar before asking again."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido confirmar si esto llegó a tu calendario de %#@service@. Revisa tu calendario antes de pedírmelo otra vez."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier %#@service@. Vérifie ton calendrier avant de me le redemander."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su %#@service@. Controlla il calendario prima di chiedermelo di nuovo."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei %#@service@ angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik kon niet bevestigen of dit in je kalender op %#@service@ is aangekomen. Controleer je kalender voordat je het opnieuw vraagt."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på %#@service@. Tjek din kalender, før du spørger igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jag kunde inte bekräfta om detta nådde din kalender på %#@service@. Kontrollera kalendern innan du frågar igen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på %#@service@. Sjekk kalenderen før du spør igjen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa %#@service@. Tarkista kalenterisi ennen kuin pyydät uudelleen."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não consegui confirmar se isto chegou ao teu calendário no %#@service@. Verifica o calendário antes de pedires novamente."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não consegui confirmar se isso chegou ao seu calendário no %#@service@. Verifique o calendário antes de pedir novamente."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w %#@service@. Sprawdź kalendarz, zanim poprosisz ponownie."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 변경 사항이 %#@service@ 캘린더에 반영되었는지 확인하지 못했습니다. 다시 요청하기 전에 캘린더를 확인해 주세요."
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この変更が%#@service@のカレンダーに反映されたか確認できませんでした。再度依頼する前に、カレンダーを確認してください。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法确认此更改是否已同步到你的 %#@service@ 日历。再次提出请求前，请先检查日历。"
+          },
+          "substitutions": {
+            "service": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法確認此變更是否已同步至你的 %#@service@ 行事曆。再次提出請求前，請先檢查行事曆。"
           },
           "substitutions": {
             "service": {
@@ -207939,6 +208763,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法使用對話設定。請重新連線並重新載入。"
+          }
+        }
+      }
+    },
+    "settings.conversation.validation.contextWindowTokens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
           }
         }
       }

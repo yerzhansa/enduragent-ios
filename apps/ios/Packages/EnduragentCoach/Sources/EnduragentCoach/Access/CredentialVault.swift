@@ -66,8 +66,12 @@ package actor CredentialVault {
 	package func change(
 		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
-		await changes.enter()
-		defer { changes.leave() }
+		await changes.pass { _ in await applying(change, boundWork: boundWork) }
+	}
+
+	private func applying(
+		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
+	) async -> CredentialOutcome<IntervalsSummary> {
 		recoverStaging()
 		let current: ActiveConnection?
 		do {
@@ -122,18 +126,35 @@ package actor CredentialVault {
 	}
 
 	package func storeCreditsKey(_ key: NonEmptySecret) throws(AccessUnavailable) {
+		try prepareStaging()
 		try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
 	}
 
 	package func storeRecovery(key: NonEmptySecret, appAccountToken: UUID)
-		throws(AccessUnavailable)
+		async throws(AccessUnavailable)
 	{
-		try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
-		try keychain(.appAccountToken) { try store.storeAppAccountToken(appAccountToken) }
+		try await changes.pass { _ throws(AccessUnavailable) in
+			try prepareStaging()
+			let previous = CredentialReplacement.credits(
+				previousKey: try keychain(.creditsKey) { try store.openRouterKey() },
+				previousAppAccountToken: try self.appAccountToken())
+			try keychain(.intervalsConnectionStaging) { try store.stageReplacement(previous) }
+			do throws(AccessUnavailable) {
+				try keychain(.creditsKey) { try store.storeOpenRouterKey(key.value) }
+				try keychain(.appAccountToken) { try store.storeAppAccountToken(appAccountToken) }
+				try keychain(.intervalsConnectionStaging) {
+					try store.delete(.intervalsConnectionStaging)
+				}
+			} catch {
+				discardStaging()
+				throw error
+			}
+		}
 	}
 
 	package func creditsKey() throws(AccessUnavailable) -> NonEmptySecret? {
-		try keychain(.creditsKey) { try store.openRouterKey() }.flatMap(NonEmptySecret.init)
+		recoverStaging()
+		return try keychain(.creditsKey) { try store.openRouterKey() }.flatMap(NonEmptySecret.init)
 	}
 
 	package func creditsIdentity() throws(AccessUnavailable) -> CreditsIdentity {
@@ -142,11 +163,13 @@ package actor CredentialVault {
 	}
 
 	package func appAccountToken() throws(AccessUnavailable) -> UUID {
-		try keychain(.appAccountToken) { try store.appAccountToken() }
+		recoverStaging()
+		return try keychain(.appAccountToken) { try store.appAccountToken() }
 	}
 
 	#if DEBUG
 		package func replaceAppAccountToken() throws(AccessUnavailable) {
+			try prepareStaging()
 			try keychain(.appAccountToken) { try store.storeAppAccountToken(UUID()) }
 		}
 	#endif
@@ -163,7 +186,10 @@ package actor CredentialVault {
 		let staged = IntervalsConnection(
 			id: id, credential: credential, selection: athlete, resolvedAthlete: nil)
 		do {
-			try keychain(.intervalsConnectionStaging) { try store.stageIntervalsConnection(staged) }
+			try prepareStaging()
+			try keychain(.intervalsConnectionStaging) {
+				try store.stageReplacement(.intervals(staged))
+			}
 		} catch {
 			return .failedPreviousKept(
 				.secureStorage(error), previous: await summary(ofCurrent: current))
@@ -278,20 +304,36 @@ package actor CredentialVault {
 			credential: ProviderCredential(secret: secret.value, method: method), model: model)
 	}
 
-	private func recoverStaging() {
+	private func prepareStaging() throws(AccessUnavailable) {
+		do {
+			_ = try keychain(.intervalsConnectionStaging) { try store.stagedReplacement() }
+		} catch .malformedStoredCredential(.intervalsConnectionStaging) {
+			diagnostics.record(
+				.secureStorageFailed(
+					.intervalsConnectionStaging, detail: "Staged replacement could not be decoded.")
+			)
+			try keychain(.intervalsConnectionStaging) {
+				try store.delete(.intervalsConnectionStaging)
+			}
+		}
 		guard !stagingRecovered else { return }
+		try keychain(.intervalsConnectionStaging) { try store.rollbackStagedReplacement() }
 		stagingRecovered = true
-		discardStaging()
 	}
 
-	private func discardStaging() {
+	private func recoverStaging() {
 		do {
-			try store.delete(.intervalsConnectionStaging)
+			try prepareStaging()
 		} catch {
 			diagnostics.record(
 				.secureStorageFailed(.intervalsConnectionStaging, detail: String(describing: error))
 			)
 		}
+	}
+
+	private func discardStaging() {
+		stagingRecovered = false
+		recoverStaging()
 	}
 
 	private func keychain<Value>(_ slot: CredentialSlot, _ body: () throws -> Value)

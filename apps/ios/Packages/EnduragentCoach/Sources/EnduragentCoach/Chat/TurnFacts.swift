@@ -34,9 +34,18 @@ package struct TurnFacts: Sendable, Equatable {
 		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
 	}
 
+	package var reply: ReplyText? {
+		guard case .replied(let text, _)? = latestSettlement?.settlement else { return nil }
+		return text
+	}
+
 	package var openClaim: ClaimedAttempt? {
 		guard let latest = latestAttempt, latestSettlement == nil else { return nil }
 		return claims.first { $0.attempt == latest }
+	}
+
+	package var firstFragment: ULID? {
+		fragments.map(\.ulid).min()
 	}
 
 	var lastUlid: ULID {
@@ -44,13 +53,20 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
-		guard let first = fragments.min(by: { $0.index < $1.index }) else { return [] }
-		let question = (
-			first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate)
-		)
-		guard let settled = latestSettlement else {
-			return legacy ? [question] : []
+		guard let userRow else { return [] }
+		if let replyRow {
+			return [userRow, replyRow]
 		}
+		return legacy && latestSettlement == nil ? [userRow] : []
+	}
+
+	var userRow: (ulid: ULID, message: ChatMessage)? {
+		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
+		return (first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate))
+	}
+
+	var replyRow: (ulid: ULID, message: ChatMessage)? {
+		guard let settled = latestSettlement else { return nil }
 		let replyText: String
 		switch settled.settlement {
 		case .replied(.model(let text), _):
@@ -60,15 +76,12 @@ package struct TurnFacts: Sendable, Equatable {
 		case .savedWork(let outcome, _):
 			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
 		case .interrupted, .failed:
-			return []
+			return nil
 		}
-		return [
-			question,
-			(
-				settled.ulid,
-				ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
-			),
-		]
+		return (
+			settled.ulid,
+			ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
+		)
 	}
 }
 

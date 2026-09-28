@@ -2,16 +2,11 @@ import Foundation
 
 public struct ChatSnapshot: Sendable, Equatable {
 	public let chat: ChatID
+	public let opening: ConversationOpening
 	public let turns: [TurnView]
-	public let notes: [TranscriptNote]
 	public let activity: ChatActivity
 	public let review: ReviewSnapshot?
-}
-
-public struct TranscriptNote: Sendable, Equatable, Identifiable {
-	public let id: ULID
-	public let after: TurnID?
-	public let notice: AthleteNotice
+	public let notes: [TranscriptNote]
 }
 
 public struct TurnView: Sendable, Equatable, Identifiable {
@@ -19,16 +14,77 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let athleteText: String?
 	public let sentOn: CivilDate
 	public let state: TurnState
+	public let completedInBackground: Bool
 }
 
 public enum ChatActivity: Sendable, Equatable {
 	case idle
 	case working(label: CatalogKey)
+	case startingNewConversation(label: CatalogKey)
 	case stopping
+}
+
+public enum ConversationOpening: Sendable, Equatable {
+	case welcome
+	case afterNewConversation(memorySaved: Bool)
+	case afterAutomaticReset(ResetKind)
+	case continuing
+
+	public var showsWelcome: Bool {
+		switch self {
+		case .welcome, .afterNewConversation: true
+		case .afterAutomaticReset, .continuing: false
+		}
+	}
+
+	public var notice: CatalogKey? {
+		switch self {
+		case .afterNewConversation(memorySaved: true): Catalog.chatNoticeNewConversationSuccess
+		case .afterNewConversation(memorySaved: false):
+			Catalog.chatNoticeNewConversationMemoryWarning
+		case .afterAutomaticReset: Catalog.coachHistoryReset
+		case .welcome, .continuing: nil
+		}
+	}
+
+	package init(_ segment: Segment, jobs: [FlushJob]) {
+		switch (segment.openedBy, segment.turns.isEmpty) {
+		case (.reset(.explicit(let reset)), true):
+			self = .afterNewConversation(
+				memorySaved: jobs.first { $0.reset == reset }.map(\.saved) ?? true)
+		case (.reset(let kind), false) where kind == .daily || kind == .idle:
+			self = .afterAutomaticReset(kind)
+		case (_, true):
+			self = .welcome
+		case (_, false):
+			self = .continuing
+		}
+	}
+}
+
+public enum Welcome {
+	package static let syncCommand = "/sync"
+
+	public static func text(in phrasebook: any Phrasebook, showsSyncLine: Bool) -> String {
+		let text = phrasebook.say(
+			Catalog.telegramWelcome,
+			[
+				"product": "Cycling Coach", "service": "intervals.icu", "plan": "/plan",
+				"workout": SlashCommand.workout.rawValue, "status": SlashCommand.status.rawValue,
+				"review": SlashCommand.review.rawValue, "sync": syncCommand,
+				"version": "/version", "whatsnew": "/whatsnew", "update": "/update",
+				"updateDescription": phrasebook.say(Catalog.telegramMenuUpdate, [:]),
+			])
+		guard !showsSyncLine else { return text }
+		return text.split(separator: "\n", omittingEmptySubsequences: false)
+			.filter { !$0.hasPrefix(syncCommand) }
+			.joined(separator: "\n")
+	}
 }
 
 public enum SendOutcome: Sendable, Equatable {
 	case accepted(TurnID)
+	case newConversation(ResetOutcome)
 	case showLanguagePicker
 	case ignoredBlank
 }
@@ -40,6 +96,17 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 public struct CoachStatus: Sendable, Equatable {
 	public let setup: SetupState
 	public let training: TrainingStatus
+	public let language: LanguagePreference
+	public let session: SessionSettings
+
+	package init(
+		setup: SetupState, training: TrainingStatus, preferences: Preferences
+	) {
+		self.setup = setup
+		self.training = training
+		self.language = preferences.language
+		self.session = preferences.session
+	}
 
 	public var notice: AthleteNotice? {
 		AthleteNotices.notice(for: self)
@@ -79,11 +146,14 @@ extension ChatSnapshot {
 	package init(
 		chat: ChatID,
 		conversation: Conversation,
+		jobs: [FlushJob],
 		live: LiveAttempt?,
 		window: OpenWindow?,
 		queued: [TurnID],
 		waiting: Set<TurnID>,
 		stopping: Bool,
+		resetting: Bool,
+		finishedAway: Set<TurnID>,
 		review: ReviewSnapshot?,
 		device: DeviceID,
 		process: ProcessID,
@@ -92,35 +162,51 @@ extension ChatSnapshot {
 	) {
 		self.chat = chat
 		let current = conversation.current
-		let shown = current.turns.filter { !current.hidesWholly($0) }
+		self.opening = ConversationOpening(current, jobs: jobs)
+		self.turns = current.turnViews(
+			live: live, window: window, queued: queued, waiting: waiting,
+			finishedAway: finishedAway, device: device, process: process,
+			today: CivilDate(date: now, timeZone: zone))
+		if stopping {
+			self.activity = .stopping
+		} else if live != nil || window != nil || !queued.isEmpty {
+			self.activity = .working(label: Catalog.chatNoticeWorking)
+		} else if resetting, opening == .continuing {
+			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
+		} else {
+			self.activity = .idle
+		}
+		self.review = review
+		let shown = turns
 		self.notes = current.notes.map { note in
 			TranscriptNote(
 				id: note.ulid,
-				after: shown.last { $0.turn.ulid < note.ulid }?.turn,
+				after: shown.last { $0.id.ulid < note.ulid }?.id,
 				notice: AthleteNotices.notice(forApplied: note.summary))
 		}
-		self.turns = current.turns.compactMap { facts -> TurnView? in
-			if current.hidesWholly(facts) {
+	}
+}
+
+extension Segment {
+	package func turnViews(
+		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
+		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
+	) -> [TurnView] {
+		turns.compactMap { facts -> TurnView? in
+			if hidesWholly(facts) {
 				return nil
 			}
 			let overlay = TurnOverlay(
 				of: facts.turn, window: window, queued: queued, waiting: waiting)
 			return TurnView(
 				id: facts.turn,
-				athleteText: current.hidesQuestion(of: facts) ? nil : facts.requestText,
-				sentOn: facts.fragments.first?.civilDate ?? CivilDate(date: now, timeZone: zone),
+				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
+				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process)
+					of: facts, live: live, overlay: overlay, device: device, process: process),
+				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
-		if stopping {
-			self.activity = .stopping
-		} else if live != nil || window != nil || !queued.isEmpty {
-			self.activity = .working(label: Catalog.chatNoticeWorking)
-		} else {
-			self.activity = .idle
-		}
-		self.review = review
 	}
 }
 
@@ -135,4 +221,10 @@ extension RetryRefusal {
 		case .unrecovered: self = .unrecovered
 		}
 	}
+}
+
+public struct TranscriptNote: Sendable, Equatable, Identifiable {
+	public let id: ULID
+	public let after: TurnID?
+	public let notice: AthleteNotice
 }

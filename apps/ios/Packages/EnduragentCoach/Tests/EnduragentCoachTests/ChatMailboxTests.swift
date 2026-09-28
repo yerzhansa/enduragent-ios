@@ -160,19 +160,12 @@ import Testing
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
 		let sent = draft("Is Thursday on?")
-		let first: SendOutcome?
-		do {
-			first = try await coach.send(sent, to: .main)
-		} catch {
-			#expect(error == .storageUnavailable)
-			first = nil
+		await #expect(throws: AcceptFailure.storageUnavailable) {
+			try await coach.send(sent, to: .main)
 		}
 		_ = await observed
 		let outcome = try await coach.send(sent, to: .main)
 		let turn = try #require(outcome.acceptedTurn)
-		if let first {
-			#expect(first == outcome)
-		}
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
 		#expect(replyText(settled) == "Still on.")
@@ -293,7 +286,7 @@ import Testing
 		}
 		let refusals = await [first, second]
 		#expect(refusals.compactMap { $0 } == [.alreadyRunning])
-		await coach.waitForMemoryFlush()
+		try await waitForRecords(.synced([.turnSettled]), count: 2, in: store)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		)
@@ -330,7 +323,6 @@ import Testing
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(failedTurn, in: .main)
 		}
-		await coach.waitForMemoryFlush()
 		#expect(transport.requestCount == 0)
 		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
 		#expect(!failed.retryable)
@@ -365,7 +357,6 @@ import Testing
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(stoppedTurn, in: .main)
 		}
-		await coach.waitForMemoryFlush()
 		#expect(transport.requestCount == requests)
 	}
 

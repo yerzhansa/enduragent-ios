@@ -83,6 +83,9 @@
 			if case .deviceLocal(.proposalCleared(let cleared)) = body {
 				return cleared.reason.rawValue
 			}
+			if case .deviceLocal(.turnClaim(let claim)) = body {
+				return claim.lease.rawValue
+			}
 			guard case .synced(.turnSettled(let settled)) = body else { return "" }
 			switch settled.settlement {
 			case .replied:

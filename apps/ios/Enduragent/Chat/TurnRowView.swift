@@ -29,6 +29,12 @@ struct TurnRowView: View {
 				case .model(let text):
 					Text(text)
 				}
+				if turn.completedInBackground {
+					Text(say(Catalog.chatTurnFinishedWhileLocked))
+						.font(.footnote)
+						.foregroundStyle(.secondary)
+						.accessibilityIdentifier("chat.turn.finishedWhileLocked")
+				}
 			case .savedWork(let savedWork):
 				notice(savedWork.notice)
 			case .failed(let failed):
@@ -43,6 +49,7 @@ struct TurnRowView: View {
 				notice(unrecovered.notice)
 			}
 		}
+		.fixedSize(horizontal: false, vertical: true)
 		.frame(maxWidth: .infinity, alignment: .leading)
 	}
 
@@ -54,7 +61,7 @@ struct TurnRowView: View {
 
 	private func notice(_ notice: AthleteNotice) -> some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(notice.sentence(in: model.builder.phrasebook))
+			Text(notice.sentence(in: model.phrasebook))
 				.accessibilityIdentifier("chat.turn.notice")
 			if let action = notice.action {
 				actionButton(action)
@@ -86,6 +93,6 @@ struct TurnRowView: View {
 	}
 
 	private func say(_ key: CatalogKey) -> String {
-		model.builder.phrasebook.say(key, [:])
+		model.phrasebook.say(key, [:])
 	}
 }

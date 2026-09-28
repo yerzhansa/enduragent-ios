@@ -6,11 +6,9 @@ public enum TurnPolicy {
 	public static let toolResultTokenCap = 24_000
 	public static let athleteContextChars = 20_000
 	public static let historyBudgetFloor = 8_000
-	public static let historyTokenBudgetRatio = 0.3
 	public static let contextWindowCap = 200_000
 	public static let reserveTokens = 20_000
-	public static let dailyResetHour = 4
-	public static let dailyResetGrace: Duration = .seconds(30 * 60)
+	public static let proposalTTL: Duration = .seconds(10 * 60)
 	public static let ungatedPrefixTokenCeiling = 13_200
 	public static let gatedPrefixTokenCeiling = 13_600
 }
@@ -21,9 +19,16 @@ package struct TurnAttempt: Sendable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguagePreference
+	package let language: LanguageResolution
+	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
+	package let process: ProcessID
+	package let autoReset: ResetKind?
+
+	package var models: ModelRoles {
+		ModelRoles(response: access.model, session: session)
+	}
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -37,11 +42,6 @@ package enum AttemptResult: Sendable, Equatable {
 	case replied(ReplyText, lineage: ReplyLineage)
 	case savedWork(SavedWorkOutcome, saved: WriteSummary)
 	case failed(CoachFailure, saved: WriteSummary)
-}
-
-package struct AttemptReport: Sendable, Equatable {
-	package let result: AttemptResult
-	package let softFlushDue: Bool
 }
 
 extension Settlement {
@@ -90,18 +90,14 @@ package struct TurnRunner: Sendable {
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws(CancellationError) -> AttemptReport {
+	) async throws(CancellationError) -> AttemptResult {
 		let prompt: TurnPrompt
 		do {
 			prompt = try await assemble(attempt, scope: scope, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
-			return AttemptReport(
-				result: .failed(
-					failure.coachFailure(for: attempt.access.method),
-					saved: await scope.summary),
-				softFlushDue: false
-			)
+			return .failed(
+				failure.coachFailure(for: attempt.access.method), saved: await scope.summary)
 		}
 		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 	}
@@ -111,7 +107,7 @@ package struct TurnRunner: Sendable {
 		prompt initial: TurnPrompt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws(CancellationError) -> AttemptReport {
+	) async throws(CancellationError) -> AttemptResult {
 		var prompt = initial
 		var counters = RetryCounters.zero
 		var pending: RetryPlan?
@@ -132,7 +128,7 @@ package struct TurnRunner: Sendable {
 					committed: await scope.written,
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
-					effectiveWindow: TurnPolicy.contextWindowCap,
+					effectiveWindow: prompt.window,
 					flushLatchFree: await scope.flushLatchFree,
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
@@ -140,11 +136,9 @@ package struct TurnRunner: Sendable {
 				let saved = await scope.summary
 				switch ladder.decide(failure, situation: situation, counters: counters) {
 				case .terminal(let coachFailure):
-					return AttemptReport(
-						result: .failed(coachFailure, saved: saved), softFlushDue: false)
+					return .failed(coachFailure, saved: saved)
 				case .settleSavedWork(let outcome):
-					return AttemptReport(
-						result: .savedWork(outcome, saved: saved), softFlushDue: false)
+					return .savedWork(outcome, saved: saved)
 				case .retry(let next, let preparations):
 					counters = next
 					pending = RetryPlan(failure: failure, preparations: preparations)
@@ -164,16 +158,15 @@ package struct TurnRunner: Sendable {
 		for preparation in retry.preparations {
 			switch preparation {
 			case .flushMemory(let trigger):
-				try await flushOnce(trigger, attempt: attempt, scope: scope, progress: progress)
+				try await flushOnce(
+					trigger, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+					progress: progress)
 			case .compactInTurn:
 				do {
 					try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
 				} catch is CancellationError {
 					throw CancellationError()
 				} catch {
-					diagnostics.record(
-						.compactionFailed(attempt.chat, detail: String(describing: error)),
-						redacting: [attempt.access.credential.secret])
 					throw AttemptFailure.rescueFailed(retry.failure)
 				}
 			case .wait(let duration, let reason):
@@ -187,23 +180,32 @@ package struct TurnRunner: Sendable {
 
 	private func flushOnce(
 		_ trigger: FlushTrigger,
+		covering rows: [(ulid: ULID, message: ChatMessage)],
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws {
-		guard await scope.takeFlushLatch() else { return }
+	) async throws(CancellationError) {
+		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
+		let flushes = flushWork(attempt)
+		let job: FlushJob
 		do {
-			try await Memory(ledger: ledger, clock: clock).flush(
-				trigger: trigger, chatId: attempt.chat, transport: transport, access: attempt.access
-			)
-		} catch is CancellationError {
-			throw CancellationError()
+			job = try await flushes.open(trigger, covering: rows.map(\.ulid), stamp: scope.stamp)
 		} catch {
-			diagnostics.record(
-				.memoryFlushFailed(attempt.chat, detail: String(describing: error)),
-				redacting: [attempt.access.credential.secret])
+			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
+			return
 		}
+		_ = try await flushes.run(
+			job, messages: rows.map(\.message),
+			access: attempt.access.using(model: attempt.models.flush),
+			scope: scope)
+	}
+
+	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
+		FlushWork(
+			chat: attempt.chat, process: attempt.process, ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock),
+			transport: transport, clock: clock, diagnostics: diagnostics)
 	}
 
 	private func assemble(
@@ -214,27 +216,7 @@ package struct TurnRunner: Sendable {
 		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
-		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
-		if shouldDailyReset(last: transcript.lastDate) {
-			_ = try await ledger.commit(
-				local: [
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
-				],
-				stamp: stamp
-			)
-			let marker = await ledger.nextULID()
-			_ = try await ledger.commit(
-				synced: [
-					.windowStart(
-						WindowStartBody(
-							chatId: chatId, firstIncludedUlid: marker, reason: .reset(.daily)))
-				],
-				stamp: stamp
-			)
-			transcript = Transcript(messages: [], ulids: [], lastDate: nil)
-		}
+		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 
 		let memory = Memory(ledger: ledger, clock: clock)
 		let context = (try? await memory.context()) ?? ""
@@ -248,14 +230,9 @@ package struct TurnRunner: Sendable {
 			)
 		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let block = await evidence.block(for: attempt.training, now: clock.now)
-		let language = attempt.language
-		let resolution = LanguageResolution(
-			language: language.coachReply ?? language.ui,
-			source: language.coachReply == nil ? .surface : .preference,
-			locale: language.ui.rawValue
-		)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: resolution)
+		let block = try await evidence.block(
+			for: attempt.training, attempt: attempt.attempt, now: clock.now)
+		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			evidence: block,
@@ -263,28 +240,41 @@ package struct TurnRunner: Sendable {
 			replyLanguage: replyLanguage
 		)
 		let system = prefix + "\n\n" + volatile
-		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: transcript.messages, systemTokens: systemTokens)
+		let history = transcript.history
+		let trim = HistoryWindow.trim(
+			messages: history.messages, systemTokens: estimateTokens(system),
+			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
+		var summary = history.summary
+		var kept = trim.kept
 		if !trim.dropped.isEmpty {
-			var bodies: [SyncedRecordBody] = []
-			if let first = trim.kept.first, let ulid = transcript.ulid(for: first) {
-				bodies.append(
-					.windowStart(
-						WindowStartBody(chatId: chatId, firstIncludedUlid: ulid, reason: .trim)))
+			try await flushOnce(
+				.trim, covering: transcript.window, attempt: attempt, scope: scope,
+				progress: progress)
+			do {
+				let firstKept =
+					trim.kept.isEmpty
+					? transcript.current?.ulid ?? attempt.turn.ulid
+					: history.ulids[trim.dropped.count]
+				summary = try await summarizeDropped(
+					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					scope: scope, progress: progress)
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(chatId, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+				kept = history.messages
 			}
-			bodies.append(
-				.compactionSummary(
-					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped))))
-			_ = try await ledger.commit(synced: bodies, stamp: stamp)
-			try await flushOnce(.trim, attempt: attempt, scope: scope, progress: progress)
+		} else if !transcript.flushPending,
+			FlushGate.shouldQueueSoftFlush(
+				estimatedHistoryTokens: history.estimatedTokens, historyBudget: trim.budget,
+				messagesSinceLastFlush: transcript.unflushed.count),
+			await scope.takeFlushLatch()
+		{
+			_ = try await flushWork(attempt).open(
+				.softThreshold, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
 		}
-		let kept = trim.kept
-		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
-		let softFlushDue = HistoryWindow.shouldSoftFlush(
-			historyTokens: historyTokens,
-			budget: trim.budget,
-			messagesSinceFlush: kept.count
-		)
 
 		let timed = PromptAssembly.appendCurrentTime(
 			athleteText: attempt.request,
@@ -293,9 +283,54 @@ package struct TurnRunner: Sendable {
 		)
 		var wire = kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
+		let archived = attempt.autoReset.map { _ in PromptAssembly.archiveMarker(at: clock.now) }
 		return TurnPrompt(
-			prefix: prefix, system: system, schemas: schemas, timed: timed,
-			softFlushDue: softFlushDue, wire: wire)
+			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
+			archiveMarker: archived, wire: wire,
+			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
+			window: attempt.models.chatWindow)
+	}
+
+	private func summarizeDropped(
+		_ dropped: [ChatMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
+		scope: TurnScope, progress: @escaping AttemptProgressSink
+	) async throws -> String {
+		await progress(.activity(.compacting))
+		try await scope.chargeCall()
+		let summary = try await summarize(
+			PromptAssembly.droppedSummaryRequest(
+				previous: previous, transcript: PromptAssembly.transcript(dropped)),
+			charge: .droppedSummary, attempt: attempt)
+		_ = try await ledger.commit(
+			synced: [
+				.windowStart(
+					WindowStartBody(
+						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim)),
+				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
+			],
+			stamp: scope.stamp)
+		return summary
+	}
+
+	private func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
+		async throws -> String
+	{
+		try await generateStep(
+			request: CompletionRequest(
+				access: attempt.access.using(model: attempt.models.compaction),
+				attempt: attempt.attempt,
+				charge: charge,
+				messages: [
+					WireMessage(
+						role: .system, content: PromptAssembly.compactionSystem, toolCalls: [],
+						toolCallId: nil),
+					WireMessage(role: .user, content: request, toolCalls: [], toolCallId: nil),
+				],
+				tools: [],
+				deadline: TurnPolicy.compactionTimeout
+			),
+			progress: { _ in }
+		).text
 	}
 
 	private func generate(
@@ -303,12 +338,14 @@ package struct TurnRunner: Sendable {
 		prompt: inout TurnPrompt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws -> AttemptReport {
+	) async throws -> AttemptResult {
 		try Task.checkCancellation()
 		try await scope.chargeAttempt()
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
-			try await flushOnce(.preCompaction, attempt: attempt, scope: scope, progress: progress)
+			try await flushOnce(
+				.preCompaction, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+				progress: progress)
 			try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
 		}
 		try await scope.chargeCall()
@@ -323,7 +360,7 @@ package struct TurnRunner: Sendable {
 				access: attempt.access,
 				attempt: attempt.attempt,
 				charge: .chatAttempt,
-				messages: [prompt.systemMessage] + wire,
+				messages: [prompt.systemMessage] + prompt.summaryMessages + wire,
 				tools: prompt.schemas,
 				deadline: await scope.callDeadline(uptime: clock.uptime)
 			)
@@ -331,7 +368,7 @@ package struct TurnRunner: Sendable {
 			steps += 1
 			lastText = step.text
 			lastReason = step.reason
-			if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
+			if step.reason == .length, step.usage.inputTokens >= prompt.window {
 				throw AttemptFailure.windowExceededFinish
 			}
 			if step.toolCalls.isEmpty {
@@ -375,7 +412,7 @@ package struct TurnRunner: Sendable {
 					access: attempt.access,
 					attempt: attempt.attempt,
 					charge: .stepRecovery,
-					messages: [prompt.systemMessage] + wire + [
+					messages: [prompt.systemMessage] + prompt.summaryMessages + wire + [
 						WireMessage(
 							role: .user,
 							content: PromptStaticBlocks.recoveryPrompt,
@@ -399,12 +436,9 @@ package struct TurnRunner: Sendable {
 			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
 		let assembledHash = sha256Hex(prompt.system + prompt.timed + assistantText)
-		return AttemptReport(
-			result: .replied(
-				.model(assistantText),
-				lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
-			),
-			softFlushDue: prompt.softFlushDue
+		return .replied(
+			.model(assistantText),
+			lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
 		)
 	}
 
@@ -531,92 +565,27 @@ package struct TurnRunner: Sendable {
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws {
-		await progress(.activity(.compacting))
-		try await scope.chargeCall()
-		let chatId = attempt.chat
-		let keep = Array(prompt.wire.suffix(4))
 		let dropped = Array(prompt.wire.dropLast(min(4, prompt.wire.count)))
-		let request = CompletionRequest(
-			access: attempt.access,
-			attempt: attempt.attempt,
-			charge: .compaction,
-			messages: [
-				WireMessage(
-					role: .system,
-					content:
-						"Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions.",
-					toolCalls: [],
-					toolCallId: nil
-				),
-				WireMessage(
-					role: .user,
-					content: dropped.map(\.content).joined(separator: "\n"),
-					toolCalls: [],
-					toolCallId: nil
-				),
-			],
-			tools: [],
-			deadline: TurnPolicy.compactionTimeout
-		)
-		let summary: String
-		do {
-			summary = try await generateStep(request: request, progress: { _ in }).text
-		} catch is CancellationError {
-			throw CancellationError()
-		} catch {
-			summary = compactionStub(
-				dropped.map { ChatMessage(role: .user, text: $0.content, civilDate: nil) })
+		if !dropped.isEmpty {
+			await progress(.activity(.compacting))
+			try await scope.chargeCall()
+			do {
+				prompt.summary = try await summarize(
+					PromptAssembly.compactionRequest(
+						previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
+					charge: .compaction, attempt: attempt)
+				prompt.wire = Array(prompt.wire.suffix(4))
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(attempt.chat, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+			}
 		}
-		var bodies: [SyncedRecordBody] = []
-		if !keep.isEmpty {
-			bodies.append(
-				.windowStart(
-					WindowStartBody(
-						chatId: chatId,
-						firstIncludedUlid: await ledger.nextULID(),
-						reason: .compaction
-					)
-				)
-			)
+		if prompt.overBudget {
+			throw AttemptFailure.rescueFailed(.windowExceededFinish)
 		}
-		bodies.append(.compactionSummary(CompactionSummaryBody(chatId: chatId, markdown: summary)))
-		_ = try await ledger.commit(synced: bodies, stamp: scope.stamp)
-		var next: [WireMessage] = [
-			WireMessage(
-				role: .system,
-				content: "[Previous conversation summary]\n\(summary)",
-				toolCalls: [],
-				toolCallId: nil
-			)
-		]
-		next.append(contentsOf: keep)
-		prompt.wire = next
-	}
-
-	private func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
-		let page = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let conversation = ConversationFold.fold(
-			chat: chatId, synced: page.records, device: ledger.deviceId)
-		let history = conversation.current.promptHistory(excluding: turn)
-		let lastDate: Date?
-		switch conversation.lastExchange {
-		case .none: lastDate = nil
-		case .at(let date): lastDate = date
-		}
-		return Transcript(messages: history.messages, ulids: history.ulids, lastDate: lastDate)
-	}
-
-	private func shouldDailyReset(last: Date?) -> Bool {
-		guard let last else { return false }
-		let resetAt = dailyResetDate(
-			now: clock.now, timeZone: clock.timeZone, hour: TurnPolicy.dailyResetHour)
-		guard last < resetAt else { return false }
-		let grace = TurnPolicy.dailyResetGrace.timeInterval
-		if clock.now.timeIntervalSince(last) < grace {
-			return false
-		}
-		return true
 	}
 }
 
@@ -625,19 +594,30 @@ private struct TurnPrompt: Sendable {
 	let system: String
 	let schemas: [ToolSchema]
 	let timed: String
-	let softFlushDue: Bool
+	var summary: String?
+	let archiveMarker: String?
 	var wire: [WireMessage]
+	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let window: Int
 
 	var systemMessage: WireMessage {
 		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
 	}
 
+	var summaryMessages: [WireMessage] {
+		let summaries = [summary.map(PromptAssembly.summaryMessage), archiveMarker]
+		return summaries.compactMap { $0 }.map { content in
+			WireMessage(role: .system, content: content, toolCalls: [], toolCallId: nil)
+		}
+	}
+
 	var estimatedTokens: Int {
-		wire.reduce(0) { $0 + estimateTokens($1.content) } + estimateTokens(system)
+		(summaryMessages + wire).reduce(0) { $0 + estimateTokens($1.content) }
+			+ estimateTokens(system)
 	}
 
 	var overBudget: Bool {
-		estimatedTokens > TurnPolicy.contextWindowCap - TurnPolicy.reserveTokens
+		estimatedTokens > window - TurnPolicy.reserveTokens
 	}
 }
 
@@ -670,17 +650,6 @@ private struct GenerateStep: Sendable {
 	var usage: Usage
 }
 
-private struct Transcript: Sendable {
-	var messages: [ChatMessage]
-	var ulids: [ULID]
-	var lastDate: Date?
-
-	func ulid(for message: ChatMessage) -> ULID? {
-		guard let index = messages.firstIndex(of: message) else { return nil }
-		return ulids[index]
-	}
-}
-
 private func wireMessage(from message: ChatMessage) -> WireMessage {
 	WireMessage(
 		role: message.role == .user ? .user : .assistant,
@@ -707,29 +676,4 @@ private func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 			"estimatedTokens": .number(Double(tokens)),
 		]).canonicalDigestInput()
 	}
-}
-
-private func compactionStub(_ dropped: [ChatMessage]) -> String {
-	"""
-	## Athlete Profile
-	## Training Status
-	## Coach Stance
-	## Discussion Context
-	\(dropped.map(\.text).joined(separator: "\n"))
-	## Pending Questions
-	"""
-}
-
-private func dailyResetDate(now: Date, timeZone: TimeZone, hour: Int) -> Date {
-	var calendar = Calendar(identifier: .gregorian)
-	calendar.timeZone = timeZone
-	var parts = calendar.dateComponents([.year, .month, .day], from: now)
-	parts.hour = hour
-	parts.minute = 0
-	parts.second = 0
-	let todayReset = calendar.date(from: parts) ?? now
-	if now < todayReset {
-		return calendar.date(byAdding: .day, value: -1, to: todayReset) ?? todayReset
-	}
-	return todayReset
 }

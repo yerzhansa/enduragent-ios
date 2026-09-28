@@ -6,6 +6,7 @@ public struct CoachPorts: Sendable {
 	public let models: ModelService
 	public let training: TrainingService
 	public let credits: CreditsService
+	public let host: any ExecutionHost
 	public let clock: any Clock
 
 	public init(
@@ -14,6 +15,7 @@ public struct CoachPorts: Sendable {
 		models: ModelService,
 		training: TrainingService,
 		credits: CreditsService,
+		host: any ExecutionHost,
 		clock: any Clock
 	) {
 		self.records = records
@@ -21,6 +23,7 @@ public struct CoachPorts: Sendable {
 		self.models = models
 		self.training = training
 		self.credits = credits
+		self.host = host
 		self.clock = clock
 	}
 }
