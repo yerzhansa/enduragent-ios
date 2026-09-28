@@ -188,7 +188,10 @@ function test(id, ...proofs) {
   const dark = proofs.filter(proof => /DarkProof(\/|$)/.test(proof));
   const light = proofs.filter(proof => !dark.includes(proof));
   const failures = [];
-  if (light.length > 0) failures.push(...runProofs(dir, udid, light));
+  if (light.length > 0) {
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+    failures.push(...runProofs(dir, udid, light));
+  }
   if (dark.length > 0) {
     capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'dark']);
     try {
