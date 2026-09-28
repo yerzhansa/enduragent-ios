@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -8,22 +9,28 @@ extension SwiftDataSuites {
 		@Test func settledReadFitsAttemptBudget() async throws {
 			let fixture = try await RecordReadBenchmark(settled: true)
 			let conversation = try await fixture.ledger.conversation(.main)
-			var samples: [Duration] = []
-			for _ in 0..<3 {
-				let started = ContinuousClock.now
-				let read = try await fixture.ledger.flushJobs(in: conversation)
-				samples.append(ContinuousClock.now - started)
-				#expect(read.count == fixture.jobs.count)
-				#expect(Set(read.map(\.id)) == Set(fixture.jobs))
-				#expect(read.allSatisfy { $0.settled })
+			var samples = PerformanceSamples()
+			for _ in 0..<PerformanceSamples.batchCount {
+				let formatters = Mutex(0)
+				var before = (fixture.log.reads.count, fixture.log.fetchedRecordCount)
+				try await CivilDate.$didCreateFormatter.withValue({
+					formatters.withLock { $0 += 1 }
+				}) {
+					try await samples.measure(count: 1) {
+						try await fixture.ledger.flushJobs(in: conversation)
+					} validate: { read in
+						#expect(formatters.withLock { $0 } == 0)
+						#expect(fixture.log.reads.count - before.0 == 1)
+						#expect(fixture.log.fetchedRecordCount - before.1 == 400)
+						#expect(read.count == fixture.jobs.count)
+						#expect(Set(read.map(\.id)) == Set(fixture.jobs))
+						#expect(read.allSatisfy { $0.settled })
+						before = (fixture.log.reads.count, fixture.log.fetchedRecordCount)
+						formatters.withLock { $0 = 0 }
+					}
+				}
 			}
-			let median = try #require(samples.sorted().dropFirst().first)
-			RecordReadBenchmark.record(median, name: "settled-read-median")
-			Attachment.record(
-				samples.map { String(format: "%.3f", $0 / .milliseconds(1)) }.joined(
-					separator: " "),
-				named: "settled-read-samples-ms.txt")
-			#expect(median < .milliseconds(50), "400 local records: \(samples)")
+			try samples.check(budget: .milliseconds(50), name: "settled-read")
 		}
 
 		@Test func measureUnsettledRead() async throws {

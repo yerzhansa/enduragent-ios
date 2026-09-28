@@ -1,4 +1,5 @@
 struct ConversationRows {
+	@TaskLocal static var didResolveRow: (@Sendable () -> Void)?
 	private let byUlid: [ULID: ChatMessage]
 	private let segments: [(id: SegmentID, ulids: [ULID])]
 
@@ -12,6 +13,7 @@ struct ConversationRows {
 				let indexed =
 					messages.isEmpty ? [turn.userRow, turn.replyRow].compactMap({ $0 }) : messages
 				for (ulid, message) in indexed {
+					Self.didResolveRow?()
 					byUlid[ulid] = message
 				}
 				ulids.append(contentsOf: messages.map(\.ulid))
