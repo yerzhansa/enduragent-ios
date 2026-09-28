@@ -158,16 +158,29 @@ import Testing
 		}
 		try await store.append(pending + settled, locality: .deviceLocal)
 		try await store.append(provenance, locality: .synced)
-		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
-		let started = ContinuousClock.now
-		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		let elapsed = ContinuousClock.now - started
-		Attachment.record(
-			String(format: "%.3f", elapsed / .milliseconds(1)), named: "consumed-marker-read-ms.txt"
-		)
-		#expect(Set(read.map(\.id)) == Set(jobs))
-		#expect(read.allSatisfy { $0.saved && $0.process == nil })
-		#expect(elapsed < .milliseconds(50), "200 jobs, 5,000 provenance records: \(elapsed)")
+		var samples = PerformanceSamples()
+		for _ in 0..<PerformanceSamples.batchCount {
+			let recording = BatchRecordingLog(inner: store)
+			let ledger = Ledger(
+				log: recording, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+			_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
+			let before = recording.reads.count
+			let recordsBefore = recording.fetchedRecordCount
+			try await samples.measure(count: 1) {
+				try await ledger.flushJobs(in: try await ledger.conversation(.main))
+			} validate: { read in
+				#expect(Set(read.map(\.id)) == Set(jobs))
+				#expect(read.allSatisfy { $0.saved && $0.process == nil })
+				let reads = recording.reads.dropFirst(before)
+				#expect(reads.count == (oneUnsettled ? 4 : 3))
+				#expect(
+					reads.filter { $0 == ConversationFold.consumedMarkerScope }.count
+						== (oneUnsettled ? 1 : 0))
+				#expect(
+					recording.fetchedRecordCount - recordsBefore == (oneUnsettled ? 5_399 : 400))
+			}
+		}
+		try samples.check(
+			budget: .milliseconds(50), name: "consumed-marker-unsettled-\(oneUnsettled)")
 	}
 }
