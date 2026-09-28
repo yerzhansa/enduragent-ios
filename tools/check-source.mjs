@@ -12,6 +12,8 @@ const forbiddenPath = /(?:^|\/)(?:docs|node_modules|\.build|build|dist|out|Deriv
 const language = /\b(?:CTL|ATL|TSB|TSS|IF|NP|Normalized\s+Power|[Nn]orm\s+[Pp]ower)\b/;
 const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
 const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
+const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
+const featureFile = /^\.claude\/skills\/verify-ios\/features\/[^/]+\.md$/;
 let violations = 0;
 let count = 0;
 function report(file, rule) {
@@ -30,8 +32,46 @@ function publicText(file, text) {
   }
   return [];
 }
+function checkFeatureProofs(sources) {
+  const classes = new Map();
+  const mapped = new Set();
+  const expectedSections = [
+    'Sub-features',
+    'How to get to it (user POV)',
+    'Driving it with sim.mjs and XCUITest',
+    'Gotchas',
+  ];
+  for (const [file, text] of sources) {
+    if (!proofFile.test(file)) continue;
+    const declarations = [...text.matchAll(/\bclass\s+(\w+)\s*:\s*XCTestCase\b/g)];
+    for (const [index, declaration] of declarations.entries()) {
+      const name = declaration[1];
+      if (classes.has(name)) report(file, 'feature-proof-duplicate');
+      const body = text.slice(declaration.index + declaration[0].length, declarations[index + 1]?.index ?? text.length);
+      const methods = new Set([...body.matchAll(/\bfunc\s+(test\w+)\s*\(/g)].map(match => match[1]));
+      classes.set(name, { file, methods });
+    }
+  }
+  for (const [file, text] of sources) {
+    if (!featureFile.test(file)) continue;
+    const references = [...text.matchAll(/\b[A-Z][A-Za-z0-9]*(?:Proof|Probe)\b/g)].map(match => match[0]);
+    if (references.some(name => !classes.has(name))) report(file, 'feature-proof-reference');
+    if (basename(file) !== 'README.md') {
+      for (const name of references) mapped.add(name);
+      const sections = [...text.matchAll(/^## ([^\r\n]+)\r?$/gm)].map(match => match[1]);
+      if (JSON.stringify(sections) !== JSON.stringify(expectedSections)) report(file, 'feature-proof-sections');
+    }
+    for (const [, name, method] of text.matchAll(/\b([A-Z][A-Za-z0-9]*(?:Proof|Probe))\/(test\w+)\b/g)) {
+      if (!classes.get(name)?.methods.has(method)) report(file, 'feature-proof-method');
+    }
+  }
+  for (const [name, { file }] of classes) {
+    if (!mapped.has(name)) report(file, 'feature-proof-unmapped');
+  }
+}
 try {
   const files = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean);
+  const featureProofSources = new Map();
   for (const file of files) {
     count++;
     if (forbiddenPath.test(file)) {
@@ -51,6 +91,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
@@ -68,6 +109,7 @@ try {
     if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b/.test(text)) report(file, 'secret-shape');
     if (publicText(file, text).some(value => language.test(value))) report(file, 'public-language');
   }
+  checkFeatureProofs(featureProofSources);
   console.log(`check-source: ${count} tracked files; ${violations} violations.`);
   process.exitCode = violations ? 1 : 0;
 } catch {

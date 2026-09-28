@@ -113,3 +113,80 @@ test('accepts private mailbox declarations with attributes and modifiers', () =>
   });
   assert.equal(result.status, 0, result.output);
 });
+
+const proofFile = 'apps/ios/EnduragentUITests/ChatProofs.swift';
+const featureDirectory = '.claude/skills/verify-ios/features';
+const featureFile = `${featureDirectory}/chat.md`;
+const featureSections = [
+  'Sub-features',
+  'How to get to it (user POV)',
+  'Driving it with sim.mjs and XCUITest',
+  'Gotchas',
+];
+function feature(references, sections = featureSections) {
+  return `# Chat\n${references}\n${sections.map(section => `## ${section}\n`).join('\n')}`;
+}
+const chatProof = 'final class ChatProof: XCTestCase { func testReply() {} }';
+
+for (const [name, files, rule] of [
+  ['unmapped proof', {
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-unmapped'],
+  ['README-only mapping', {
+    [proofFile]: chatProof,
+    [`${featureDirectory}/README.md`]: 'ChatProof/testReply',
+    [featureFile]: feature('The conversation.'),
+  }, 'feature-proof-unmapped'],
+  ['unknown proof reference', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof/testReply MissingProof'),
+  }, 'feature-proof-reference'],
+  ['unknown README probe reference', {
+    [proofFile]: chatProof,
+    [`${featureDirectory}/README.md`]: 'MissingProbe',
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-reference'],
+  ['missing selected method', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof/testMissing'),
+  }, 'feature-proof-method'],
+  ['method in another proof class', {
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    [featureFile]: feature('ChatProof/testStop StopProof'),
+  }, 'feature-proof-method'],
+  ['duplicate proof class', {
+    [proofFile]: chatProof,
+    'apps/ios/EnduragentUITests/OtherProofs.swift': chatProof,
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-duplicate'],
+  ['missing feature section', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', featureSections.slice(0, -1)),
+  }, 'feature-proof-sections'],
+  ['reordered feature sections', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', featureSections.toReversed()),
+  }, 'feature-proof-sections'],
+  ['extra feature section', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', [...featureSections, 'Other']),
+  }, 'feature-proof-sections'],
+]) {
+  test(`rejects ${name}`, () => {
+    const result = run(files);
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, new RegExp(`\\[${rule}\\]`));
+  });
+}
+
+test('accepts proofs and probes mapped across feature files with valid selectors', () => {
+  const result = run({
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    'apps/ios/EnduragentUITests/LaunchProbes.swift': 'final class LaunchProbe: XCTestCase { func testLaunch() {} }',
+    [featureFile]: feature('ChatProof/testReply StopProof').replaceAll('\n', '\r\n'),
+    [`${featureDirectory}/launch.md`]: feature('LaunchProbe/testLaunch'),
+    [`${featureDirectory}/README.md`]: '# Proof map\nChatProof StopProof/testStop LaunchProbe',
+  });
+  assert.equal(result.status, 0, result.output);
+});
