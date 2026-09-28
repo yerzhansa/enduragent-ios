@@ -94,6 +94,10 @@ package struct WireToolCall: Sendable, Equatable {
 	package var id: String
 	package var name: ToolName
 	package var arguments: String
+
+	package func parseArguments() throws(DecodingError) -> JSONValue {
+		try JSONValue.parse(arguments.isEmpty ? "{}" : arguments)
+	}
 }
 
 package enum TransportEvent: Sendable, Equatable {

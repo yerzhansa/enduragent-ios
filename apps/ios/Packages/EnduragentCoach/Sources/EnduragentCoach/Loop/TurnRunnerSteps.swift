@@ -195,7 +195,7 @@ extension TurnRunner {
 				group.addTask {
 					let arguments: JSONValue
 					do {
-						arguments = try JSONValue.parse(call.arguments)
+						arguments = try call.parseArguments()
 					} catch is DecodingError {
 						return (
 							index, call,

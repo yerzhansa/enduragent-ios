@@ -49,10 +49,33 @@ import Testing
 		#expect(memoryRecords.records.isEmpty)
 	}
 
-	@Test func invalidToolArgumentsReturnAToolError() async throws {
+	@Test(arguments: ["memory_read", "intervals_fetch_athlete"])
+	func blankToolArgumentsRunTheParameterlessTool(name: String) async throws {
+		var results: [String] = []
+		for arguments in ["{}", ""] {
+			let transport = FakeModelTransport()
+			transport.script = [
+				.toolCall(name: name, arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("ok"),
+				.finish(reason: .stop),
+			]
+			let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+			let settled = try await coach.sendAndSettle("Read my information")
+			#expect(replyText(settled) == "ok")
+			let followUp = try #require(transport.requests.dropFirst().first)
+			let message = try #require(followUp.messages.last(where: { $0.role == .tool }))
+			#expect(!message.content.contains("\"error\""))
+			results.append(message.content)
+		}
+		#expect(results.first == results.last)
+	}
+
+	@Test(arguments: ["not-json", " ", "{", "undefined"])
+	func invalidToolArgumentsReturnAToolError(arguments: String) async throws {
 		let transport = FakeModelTransport()
 		transport.script = [
-			.toolCall(name: "memory_read", arguments: "not-json"),
+			.toolCall(name: "memory_read", arguments: arguments),
 			.finish(reason: .toolCalls),
 			.text("ok"),
 			.finish(reason: .stop),
