@@ -10,7 +10,6 @@ import Testing
 	}
 
 	@Test(arguments: [
-		(Catalog.chatViewMenu, "Menu"),
 		(Catalog.archiveReasonEarlierChat, "Earlier chat"),
 		(
 			Catalog.creditsErrorAccessRejected,
@@ -51,6 +50,32 @@ import Testing
 		for tag in LanguageTag.allCases where tag != .en {
 			#expect(CatalogPhrasebook(tag: tag, locale: tag.defaultLocale).say(key) == english)
 		}
+	}
+
+	@Test(arguments: LanguageTag.allCases)
+	func menuUsesEverySelectedLanguage(_ tag: LanguageTag) throws {
+		let translations: [LanguageTag: String] = [
+			.en: "Menu",
+			.es: "Menú",
+			.fr: "Menu",
+			.it: "Menu",
+			.de: "Menü",
+			.nl: "Menu",
+			.da: "Menu",
+			.sv: "Meny",
+			.nb: "Meny",
+			.fi: "Valikko",
+			.ptPT: "Menu",
+			.ptBR: "Menu",
+			.pl: "Menu",
+			.ko: "메뉴",
+			.ja: "メニュー",
+			.zhHans: "菜单",
+			.zhHant: "選單",
+		]
+		let expected = try #require(translations[tag])
+		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
+		#expect(book.say(Catalog.chatMenu) == expected)
 	}
 
 	@Test(arguments: LanguageTag.allCases.filter { $0 != .en })

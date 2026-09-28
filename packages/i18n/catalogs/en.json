@@ -632,10 +632,10 @@
       "conversation": "Coaching conversation",
       "disclaimer": "Not medical advice, and not a substitute for a doctor or a certified coach.",
       "hideContext": "Hide training context",
-      "menu": "Menu",
       "showContext": "Show training context",
       "title": "Chat"
-    }
+    },
+    "menu": "Menu"
   },
   "cli": {
     "language": {

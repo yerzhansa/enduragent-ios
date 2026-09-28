@@ -1446,7 +1446,8 @@
       "hideContext": "Skjul treningskontekst",
       "showContext": "Vis treningskontekst",
       "title": "Chat"
-    }
+    },
+    "menu": "Meny"
   },
   "plan": {
     "details": {

@@ -1433,7 +1433,8 @@
       "hideContext": "훈련 맥락 숨기기",
       "showContext": "훈련 맥락 보기",
       "title": "채팅"
-    }
+    },
+    "menu": "메뉴"
   },
   "plan": {
     "details": {

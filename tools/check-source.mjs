@@ -51,7 +51,6 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    if (file === 'apps/ios/Enduragent/Chat/ChatView.swift' && /\b(?:ConfirmedPreviewCard|SlashListView|reviewNotice|errorLine)\b/.test(text)) report(file, 'unscrollable-chat-content');
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');

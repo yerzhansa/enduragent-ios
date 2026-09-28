@@ -1446,7 +1446,8 @@
       "hideContext": "Ocultar contexto de treino",
       "showContext": "Mostrar contexto de treino",
       "title": "Conversa"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {

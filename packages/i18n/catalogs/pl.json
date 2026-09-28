@@ -1472,7 +1472,8 @@
       "hideContext": "Ukryj kontekst treningowy",
       "showContext": "Pokaż kontekst treningowy",
       "title": "Czat"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {

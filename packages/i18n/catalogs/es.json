@@ -1446,7 +1446,8 @@
       "hideContext": "Ocultar contexto de entrenamiento",
       "showContext": "Mostrar contexto de entrenamiento",
       "title": "Chat"
-    }
+    },
+    "menu": "Menú"
   },
   "plan": {
     "details": {

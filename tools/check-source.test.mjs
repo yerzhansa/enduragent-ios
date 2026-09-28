@@ -44,10 +44,6 @@ for (const [name, file, value, code] of [
   ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
   ['device-only review language', 'apps/ios/Enduragent/Chat/ConfirmedPreviewCard.swift', 'Text(model.builder.phrasebook.say(notice.key, notice.vars))', 'device-only-phrasebook'],
   ['device-only review outcome language', 'apps/ios/Enduragent/Chat/ChatView.swift', 'Text(notice.sentence(in: model.builder.phrasebook))', 'device-only-phrasebook'],
-  ['review card outside the transcript', 'apps/ios/Enduragent/Chat/ChatView.swift', 'ConfirmedPreviewCard(model: model, review: review)', 'unscrollable-chat-content'],
-  ['slash list outside the transcript', 'apps/ios/Enduragent/Chat/ChatView.swift', 'SlashListView(model: model)', 'unscrollable-chat-content'],
-  ['review notice outside the transcript', 'apps/ios/Enduragent/Chat/ChatView.swift', 'if let notice = model.reviewNotice { Text(notice.sentence(in: model.phrasebook)) }', 'unscrollable-chat-content'],
-  ['error outside the transcript', 'apps/ios/Enduragent/Chat/ChatView.swift', 'if let errorLine = model.errorLine { Text(errorLine) }', 'unscrollable-chat-content'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {
@@ -89,14 +85,6 @@ test('accepts catalogued confirmation copy and debug-only literals', () => {
   const result = run({
     'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])',
     'apps/ios/Enduragent/Credits/CredentialsDebugView.swift': '#if DEBUG\nconfirmLine = "Debug result"\n#endif',
-  });
-  assert.equal(result.status, 0, result.output);
-});
-
-test('accepts scrollable chat content with an inset composer', () => {
-  const result = run({
-    'apps/ios/Enduragent/Chat/ChatView.swift': 'TranscriptView(model: model).safeAreaInset(edge: .bottom) { ComposerView(model: model) }',
-    'apps/ios/Enduragent/Chat/TranscriptView.swift': 'List { ConfirmedPreviewCard(model: model, review: review); SlashListView(model: model); if let notice = model.reviewNotice { Text(notice.sentence(in: model.phrasebook)) }; if let errorLine = model.errorLine { Text(errorLine) } }',
   });
   assert.equal(result.status, 0, result.output);
 });

@@ -1446,7 +1446,8 @@
       "hideContext": "Piilota harjoittelun taustatiedot",
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
-    }
+    },
+    "menu": "Valikko"
   },
   "plan": {
     "details": {

@@ -1433,7 +1433,8 @@
       "hideContext": "トレーニング情報を非表示",
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
-    }
+    },
+    "menu": "メニュー"
   },
   "plan": {
     "details": {

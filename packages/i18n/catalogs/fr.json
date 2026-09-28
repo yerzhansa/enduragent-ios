@@ -1446,7 +1446,8 @@
       "hideContext": "Masquer le contexte d’entraînement",
       "showContext": "Afficher le contexte d’entraînement",
       "title": "Conversation"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {

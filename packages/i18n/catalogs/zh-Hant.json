@@ -1433,7 +1433,8 @@
       "hideContext": "隱藏訓練背景",
       "showContext": "顯示訓練背景",
       "title": "聊天"
-    }
+    },
+    "menu": "選單"
   },
   "plan": {
     "details": {

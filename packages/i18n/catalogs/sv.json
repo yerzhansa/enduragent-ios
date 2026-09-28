@@ -1446,7 +1446,8 @@
       "hideContext": "Dölj träningsunderlag",
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
-    }
+    },
+    "menu": "Meny"
   },
   "training": {
     "export": {
