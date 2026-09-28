@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	@Test func probeBlockedOlderApprovalCannotUnlockNewerApproval() async throws {
+	@Test func blockedOlderApprovalCannotUnlockNewerApproval() async throws {
 		let staleRead = ReviewGate()
 		let laterClaim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: laterClaim, readGate: staleRead)

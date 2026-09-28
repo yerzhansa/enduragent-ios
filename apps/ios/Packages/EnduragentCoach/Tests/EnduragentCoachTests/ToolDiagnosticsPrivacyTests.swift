@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	@Test func probeApprovalDiagnosticsExcludePrivateURL() async throws {
+	@Test func approvalDiagnosticsExcludePrivateURL() async throws {
 		let coach = coach()
 		let token = try await presentedToken(on: coach)
 		let url = try #require(

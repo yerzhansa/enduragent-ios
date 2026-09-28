@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	@Test func probeStaleRefreshKeepsTheReviewVisible() async throws {
+	@Test func staleRefreshKeepsTheReviewVisible() async throws {
 		let staleRead = ReviewGate()
 		let claim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: claim, readGate: staleRead)

@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	@Test func probeStaleReadCannotResurrectFinishedReview() async throws {
+	@Test func staleReadCannotResurrectFinishedReview() async throws {
 		let proposal = try await propose(on: coach())
 		let staleRead = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: ReviewGate(), readGate: staleRead)
