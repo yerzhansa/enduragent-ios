@@ -134,6 +134,27 @@ import Testing
 		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
 	}
 
+	@Test func terminationDuringInitialRecoveryPreventsLaterLeaseAndClaim() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Ran."), .finish(reason: .stop)]
+		let store = HeldFirstReadLog(inner: InMemoryRecordLog())
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		async let sent = coach.send(draft("first send"), to: .main)
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		await coach.lifecycle(.willTerminate)
+		store.release()
+		let turn = try #require(try await sent.acceptedTurn)
+		_ = await coach.settledState(of: turn, in: .main, within: .seconds(1))
+		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
+		#expect(try await claims(of: turn, in: store).isEmpty)
+		#expect(transport.requests.isEmpty)
+		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		await reopened.lifecycle(.becameActive)
+		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
+	}
+
 	@Test func willTerminateDoesNotWaitOnTheFlushQueueAfterTheStoppedTurn() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
