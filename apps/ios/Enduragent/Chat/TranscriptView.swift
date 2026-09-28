@@ -67,6 +67,7 @@ struct TranscriptView: View {
 					.id("transcript.tail")
 			}
 			.listStyle(.plain)
+			.accessibilityIdentifier("chat.transcript")
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat, initial: true) {
@@ -79,6 +80,11 @@ struct TranscriptView: View {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 			.onChange(of: model.errorLine) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onReceive(
+				NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)
+			) { _ in
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 		}
