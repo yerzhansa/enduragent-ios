@@ -37,10 +37,28 @@ struct TranscriptView: View {
 					if model.newConversationUncertain {
 						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}
+					if let review = model.chat?.review {
+						ConfirmedPreviewCard(model: model, review: review)
+							.fixedSize(horizontal: false, vertical: true)
+					}
+					if let notice = model.reviewNotice {
+						Text(notice.sentence(in: model.phrasebook))
+							.accessibilityIdentifier("chat.review.notice")
+					}
+					if let errorLine = model.errorLine {
+						Text(errorLine)
+							.accessibilityIdentifier("chat.error")
+					}
 				}
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 				.listRowSeparator(.hidden)
 				.listRowBackground(Color.clear)
+				if model.slashListVisible {
+					SlashListView(model: model)
+						.listRowInsets(EdgeInsets())
+						.listRowSeparator(.hidden)
+						.listRowBackground(Color.clear)
+				}
 				Color.clear
 					.frame(height: 1)
 					.listRowInsets(EdgeInsets())
@@ -51,7 +69,16 @@ struct TranscriptView: View {
 			.listStyle(.plain)
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
-			.onChange(of: model.chat) {
+			.onChange(of: model.chat, initial: true) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.slashListVisible) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.reviewNotice) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.errorLine) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 		}

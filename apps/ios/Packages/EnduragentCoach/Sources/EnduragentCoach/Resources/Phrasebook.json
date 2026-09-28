@@ -69895,6 +69895,16 @@
         }
       }
     },
+    "chat.view.menu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu"
+          }
+        }
+      }
+    },
     "chat.view.showContext": {
       "localizations": {
         "en": {
