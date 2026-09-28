@@ -162,8 +162,8 @@ package enum PromptAssembly {
 	}
 }
 
-public struct HistoryWindow {
-	public static func trim(
+package struct HistoryWindow {
+	package static func trim(
 		messages conversation: [ChatMessage],
 		systemTokens: Int,
 		window: Int = TurnPolicy.contextWindowCap,
@@ -189,7 +189,7 @@ public struct HistoryWindow {
 		)
 	}
 
-	public static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
+	package static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
 		let effective = min(window, TurnPolicy.contextWindowCap)
 		let raw = Int((Double(effective) * ratio).rounded(.down)) - systemTokens - 20_000
 		return max(raw, TurnPolicy.historyBudgetFloor)

@@ -2,8 +2,8 @@ import Foundation
 import Synchronization
 
 public actor Coach {
-	public let memory: Memory
-	public let planning: Planning
+	package let memory: Memory
+	package let planning: Planning
 	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
 

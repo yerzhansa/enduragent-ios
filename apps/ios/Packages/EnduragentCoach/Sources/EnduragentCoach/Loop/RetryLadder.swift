@@ -16,16 +16,6 @@ package struct TurnBudgetPolicy: Sendable, Equatable {
 	)
 }
 
-public struct TurnBudgetExceeded: Error, Equatable, Sendable {
-	public var kind: Kind
-
-	public enum Kind: String, Sendable, Equatable {
-		case generateCalls
-		case generateAttempts
-		case wallClock
-	}
-}
-
 package enum LadderClass: Hashable, Sendable {
 	case overflow
 	case timeout

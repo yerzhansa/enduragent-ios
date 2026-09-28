@@ -1,17 +1,17 @@
 import Foundation
 
-public struct ChatMessage: Sendable, Equatable {
-	public var role: Role
-	public var text: String
-	public var civilDate: CivilDate?
+package struct ChatMessage: Sendable, Equatable {
+	package var role: Role
+	package var text: String
+	package var civilDate: CivilDate?
 
-	public init(role: Role, text: String, civilDate: CivilDate? = nil) {
+	package init(role: Role, text: String, civilDate: CivilDate? = nil) {
 		self.role = role
 		self.text = text
 		self.civilDate = civilDate
 	}
 
-	public enum Role: String, Sendable {
+	package enum Role: String, Sendable {
 		case user
 		case assistant
 	}
@@ -66,7 +66,7 @@ public enum GatedToolName: String, Sendable {
 	]
 }
 
-public enum ReplayUnsafeToolName: String, Sendable {
+package enum ReplayUnsafeToolName: String, Sendable {
 	case intervalsCreateWorkout = "intervals_create_workout"
 	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
 	case intervalsDeleteWorkout = "intervals_delete_workout"

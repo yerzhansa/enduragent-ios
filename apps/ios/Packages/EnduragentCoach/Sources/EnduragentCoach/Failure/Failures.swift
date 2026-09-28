@@ -321,3 +321,13 @@ package enum AthleteNotices {
 		}
 	}
 }
+
+public struct TurnBudgetExceeded: Error, Equatable, Sendable {
+	public var kind: Kind
+
+	public enum Kind: String, Sendable, Equatable {
+		case generateCalls
+		case generateAttempts
+		case wallClock
+	}
+}

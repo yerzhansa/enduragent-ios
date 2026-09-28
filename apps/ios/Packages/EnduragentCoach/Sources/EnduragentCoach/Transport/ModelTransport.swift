@@ -1,18 +1,5 @@
 import Foundation
 
-public struct ModelID: Hashable, Sendable {
-	public let rawValue: String
-
-	public init(rawValue: String) {
-		self.rawValue = rawValue
-	}
-}
-
-public enum AccessMethod: String, Hashable, Sendable {
-	case credits
-	case openRouterAccount
-}
-
 package struct ProviderCredential: Sendable, Equatable, CustomStringConvertible,
 	CustomDebugStringConvertible, CustomReflectable
 {
@@ -107,14 +94,6 @@ package enum TransportEvent: Sendable, Equatable {
 	case finished(reason: FinishReason, usage: Usage)
 }
 
-public enum FinishReason: String, Sendable {
-	case stop
-	case toolCalls = "tool-calls"
-	case length
-	case contentFilter = "content_filter"
-	case error
-}
-
 package struct Usage: Sendable, Equatable {
 	package var inputTokens: Int
 	package var outputTokens: Int
@@ -123,27 +102,6 @@ package struct Usage: Sendable, Equatable {
 
 package protocol ModelTransport: Sendable {
 	func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
-}
-
-public struct ModelService: Sendable {
-	public static let openRouterAPI: URL = {
-		guard let url = URL(string: "https://openrouter.ai/api/v1") else {
-			fatalError("https://openrouter.ai/api/v1 is invalid")
-		}
-		return url
-	}()
-
-	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
-
-	public static func openRouter(baseURL: URL) -> ModelService {
-		ModelService { diagnostics in
-			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
-		}
-	}
-
-	public static func scripted(_ fake: FakeModelTransport) -> ModelService {
-		ModelService { _ in fake }
-	}
 }
 
 package struct OpenRouterTransport: ModelTransport {

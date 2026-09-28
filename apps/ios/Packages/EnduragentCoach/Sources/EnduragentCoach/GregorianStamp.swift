@@ -1,11 +1,11 @@
 import Foundation
 
-public enum GregorianStamp {
-	public static func day(_ date: Date, timeZone: TimeZone) -> String {
+package enum GregorianStamp {
+	package static func day(_ date: Date, timeZone: TimeZone) -> String {
 		date.formatted(dayStyle(timeZone: timeZone))
 	}
 
-	public static func minuteUTC(_ date: Date) -> String {
+	package static func minuteUTC(_ date: Date) -> String {
 		let body = date.formatted(
 			Date.VerbatimFormatStyle(
 				format:
@@ -18,7 +18,7 @@ public enum GregorianStamp {
 		return body + " UTC"
 	}
 
-	public static func isoMillis(_ date: Date) -> String {
+	package static func isoMillis(_ date: Date) -> String {
 		date.formatted(
 			Date.VerbatimFormatStyle(
 				format:

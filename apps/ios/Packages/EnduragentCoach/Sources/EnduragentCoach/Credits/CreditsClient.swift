@@ -1,17 +1,18 @@
 import Foundation
 
-public struct AthleteKey: Sendable, Equatable, CustomStringConvertible, CustomDebugStringConvertible
+package struct AthleteKey: Sendable, Equatable, CustomStringConvertible,
+	CustomDebugStringConvertible
 {
-	public var secret: String
-	public init(secret: String) {
+	package var secret: String
+	package init(secret: String) {
 		self.secret = secret
 	}
 
-	public var description: String {
+	package var description: String {
 		"AthleteKey(redacted)"
 	}
 
-	public var debugDescription: String {
+	package var debugDescription: String {
 		description
 	}
 }
@@ -128,7 +129,7 @@ public enum ClaimSettlement: Sendable, Equatable {
 	}
 }
 
-public struct PhoneCreditsClient: CreditsClient {
+package struct PhoneCreditsClient: CreditsClient {
 	private static let failures: [String: CreditsFailure] = [
 		"banned": .banned,
 		"not_our_bundle": .notOurBundle,
@@ -159,7 +160,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		self.session = session
 	}
 
-	public func grant(deviceCheck: Data) async throws -> GrantOutcome {
+	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
 		let athleteId = try await vault.appAccountToken()
 		let (status, data) = try await worker(
 			path: "grant",
@@ -184,7 +185,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		}
 	}
 
-	public func claim(signedTransaction: String) async throws -> ClaimOutcome {
+	package func claim(signedTransaction: String) async throws -> ClaimOutcome {
 		let (status, data) = try await worker(
 			path: "claim",
 			method: "POST",
@@ -205,7 +206,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		}
 	}
 
-	public func recover(signedTransaction: String) async throws -> Recovery {
+	package func recover(signedTransaction: String) async throws -> Recovery {
 		let (status, data) = try await worker(
 			path: "recover",
 			method: "POST",
@@ -220,7 +221,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		return Recovery(athleteId: wire.athleteId, credits: Credits(units: wire.credits))
 	}
 
-	public func catalog() async throws -> PackCatalog {
+	package func catalog() async throws -> PackCatalog {
 		let (status, data) = try await send(
 			url: workerBase.appending(path: "catalog"),
 			method: "GET",
@@ -237,7 +238,7 @@ public struct PhoneCreditsClient: CreditsClient {
 		)
 	}
 
-	public func balance(scale: CreditScale) async throws -> CreditBalance {
+	package func balance(scale: CreditScale) async throws -> CreditBalance {
 		guard let key = try await vault.creditsKey()?.value else {
 			throw CreditsFailure.noAthleteKey
 		}

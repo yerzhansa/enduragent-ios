@@ -28,31 +28,31 @@ public enum FlushTrigger: String, Sendable {
 	case softThreshold
 }
 
-public struct MemoryHit: Sendable, Equatable {
-	public var date: CivilDate
-	public var kind: Kind
-	public var text: String
+package struct MemoryHit: Sendable, Equatable {
+	package var date: CivilDate
+	package var kind: Kind
+	package var text: String
 
-	public init(date: CivilDate, kind: Kind, text: String) {
+	package init(date: CivilDate, kind: Kind, text: String) {
 		self.date = date
 		self.kind = kind
 		self.text = text
 	}
 
-	public enum Kind: Sendable, Equatable {
+	package enum Kind: Sendable, Equatable {
 		case dailyNote
 		case ledger(LedgerKind)
 		case journal
 	}
 }
 
-public struct MemoryView: Sendable, Equatable {
-	public var sections: [String: String]
-	public var todayNotes: String?
-	public var planHeadline: PlanHeadline?
-	public var orphanNames: [String]
+package struct MemoryView: Sendable, Equatable {
+	package var sections: [String: String]
+	package var todayNotes: String?
+	package var planHeadline: PlanHeadline?
+	package var orphanNames: [String]
 
-	public init(
+	package init(
 		sections: [String: String], todayNotes: String?, planHeadline: PlanHeadline?,
 		orphanNames: [String]
 	) {
@@ -77,25 +77,25 @@ public struct PlanHeadline: Sendable, Equatable {
 	}
 }
 
-public struct MemoryQueryFailure: Error, Equatable, Sendable {
-	public var message: String
+package struct MemoryQueryFailure: Error, Equatable, Sendable {
+	package var message: String
 
-	public init(message: String) {
+	package init(message: String) {
 		self.message = message
 	}
 }
 
-public enum MemoryFlushPolicy {
-	public static let maxSteps = 5
-	public static let maxAttempts = 2
-	public static let sectionSoftWarnChars = 4000
-	public static let flushShrinkMinChars = 200
-	public static let flushShrinkRatio = 0.7
-	public static let flushZeroWriteMinMessages = 4
-	public static let memorySectionBudgetChars = 1500
-	public static let compactionStart = "### Compaction summary"
-	public static let compactionEnd = "### End of compaction summary"
-	public static let stampPrefix = "_updated: "
-	public static let consumedFlushKeyPrefix = "flush-consumed:"
-	public static let historyPreviewChars = 200
+package enum MemoryFlushPolicy {
+	package static let maxSteps = 5
+	package static let maxAttempts = 2
+	package static let sectionSoftWarnChars = 4000
+	package static let flushShrinkMinChars = 200
+	package static let flushShrinkRatio = 0.7
+	package static let flushZeroWriteMinMessages = 4
+	package static let memorySectionBudgetChars = 1500
+	package static let compactionStart = "### Compaction summary"
+	package static let compactionEnd = "### End of compaction summary"
+	package static let stampPrefix = "_updated: "
+	package static let consumedFlushKeyPrefix = "flush-consumed:"
+	package static let historyPreviewChars = 200
 }

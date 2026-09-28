@@ -100,17 +100,17 @@ public enum JSONValue: Sendable, Equatable {
 	}
 }
 
-public func canonicalJSON(_ value: JSONValue) -> String {
+package func canonicalJSON(_ value: JSONValue) -> String {
 	JSONValue.render(value, pretty: true, depth: 0)
 }
 
-public func sha256Hex(_ utf8: String) -> String {
+package func sha256Hex(_ utf8: String) -> String {
 	SHA256.hash(data: Data(utf8.utf8)).map { byte in
 		String(byte, radix: 16).leftPadHex
 	}.joined()
 }
 
-public func estimateTokens(_ text: String) -> Int {
+package func estimateTokens(_ text: String) -> Int {
 	Int((Double(text.utf16.count) / 4.0 * 1.2).rounded(.up))
 }
 

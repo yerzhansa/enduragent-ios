@@ -27,3 +27,24 @@ public struct CoachPorts: Sendable {
 		self.clock = clock
 	}
 }
+
+public struct ModelService: Sendable {
+	public static let openRouterAPI: URL = {
+		guard let url = URL(string: "https://openrouter.ai/api/v1") else {
+			fatalError("https://openrouter.ai/api/v1 is invalid")
+		}
+		return url
+	}()
+
+	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
+
+	public static func openRouter(baseURL: URL) -> ModelService {
+		ModelService { diagnostics in
+			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
+		}
+	}
+
+	public static func scripted(_ fake: FakeModelTransport) -> ModelService {
+		ModelService { _ in fake }
+	}
+}

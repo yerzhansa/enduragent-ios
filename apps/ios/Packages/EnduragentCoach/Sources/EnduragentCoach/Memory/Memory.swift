@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Memory: Sendable {
+package struct Memory: Sendable {
 	private let ledger: Ledger
 	let clock: any Clock
 
@@ -9,7 +9,8 @@ public struct Memory: Sendable {
 		self.clock = clock
 	}
 
-	public func query(from: CivilDate, to: CivilDate, contains: String?) async throws -> [MemoryHit]
+	package func query(from: CivilDate, to: CivilDate, contains: String?) async throws
+		-> [MemoryHit]
 	{
 		if from > to {
 			throw MemoryQueryFailure(
@@ -103,7 +104,7 @@ public struct Memory: Sendable {
 		}.map(\.hit)
 	}
 
-	public func context() async throws -> String {
+	package func context() async throws -> String {
 		try await renderContext(
 			excluding: SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue))
 	}
@@ -117,7 +118,7 @@ public struct Memory: Sendable {
 		return try await renderContext(excluding: injected)
 	}
 
-	public func writeSection(
+	package func writeSection(
 		_ name: SectionName, content: String, source: LedgerSource, stamp: OperationStamp
 	) async throws {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
@@ -151,7 +152,7 @@ public struct Memory: Sendable {
 	}
 
 	@discardableResult
-	public func appendDailyNote(_ note: String, stamp: OperationStamp) async throws -> Bool {
+	package func appendDailyNote(_ note: String, stamp: OperationStamp) async throws -> Bool {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		let snapshot = try await loadSnapshot()
 		let existing = snapshot.dailyNotesOnly(on: today)
@@ -162,7 +163,7 @@ public struct Memory: Sendable {
 		return true
 	}
 
-	public func appendEvent(
+	package func appendEvent(
 		date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource,
 		stamp: OperationStamp
 	) async throws -> Bool {
@@ -196,7 +197,7 @@ public struct Memory: Sendable {
 		return true
 	}
 
-	public func view() async throws -> MemoryView {
+	package func view() async throws -> MemoryView {
 		let snapshot = try await loadSnapshot()
 		var sections: [String: String] = [:]
 		for name in SectionName.cyclingEffective {

@@ -137,3 +137,16 @@ package struct NonEmptySecret: Sendable, Equatable {
 		self.value = trimmed
 	}
 }
+
+public struct ModelID: Hashable, Sendable {
+	public let rawValue: String
+
+	public init(rawValue: String) {
+		self.rawValue = rawValue
+	}
+}
+
+public enum AccessMethod: String, Hashable, Sendable {
+	case credits
+	case openRouterAccount
+}
