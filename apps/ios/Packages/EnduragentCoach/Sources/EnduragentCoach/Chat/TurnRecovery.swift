@@ -16,14 +16,15 @@ package struct DeadClaim: Sendable, Equatable {
 }
 
 package enum TurnRecovery {
-	package static let turnScope: RecordQuery.Scope = .synced([.userMessage, .turnSettled])
-	package static let claimScope: RecordQuery.Scope = .deviceLocal([.turnClaim])
+	package static let localScope: RecordQuery.Scope = .deviceLocal([
+		.turnClaim, .replyObserved, .flushPending, .flushSettled,
+	])
 	package static let stampedWrites: RecordQuery.Scope = .synced([
 		.memorySection, .dailyNote, .ledgerEvent,
 	])
 
 	package static func plan(
-		turns: [TurnFacts], flushQueue: [FlushJob] = [], writes: [AttemptID: WriteSummary],
+		turns: [TurnFacts], drain: [FlushJobID] = [], writes: [AttemptID: WriteSummary],
 		device: DeviceID, process: ProcessID
 	) -> RecoveryPlan {
 		RecoveryPlan(
@@ -33,7 +34,7 @@ package enum TurnRecovery {
 					turn: facts.turn, attempt: open.attempt,
 					saved: writes[open.attempt, default: .none])
 			},
-			drain: FlushJob.outstanding(flushQueue).map(\.id))
+			drain: drain)
 	}
 
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])

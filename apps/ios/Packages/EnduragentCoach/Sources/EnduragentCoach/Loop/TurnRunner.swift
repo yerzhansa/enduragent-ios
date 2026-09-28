@@ -213,7 +213,7 @@ package struct TurnRunner: Sendable {
 		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
-		var transcript = try await loadTranscript(chatId: chatId, excluding: attempt.turn)
+		var transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 		if shouldDailyReset(last: transcript.lastDate) {
 			if !transcript.window.isEmpty {
 				_ = try await flushWork(attempt).open(
@@ -607,27 +607,6 @@ package struct TurnRunner: Sendable {
 			return nil
 		}
 		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
-	}
-
-	private func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
-		let page = try await ledger.read(
-			RecordQuery(scope: ConversationFold.syncedScope, chatId: chatId))
-		let conversation = ConversationFold.fold(
-			chat: chatId, synced: page.records, device: ledger.deviceId)
-		let jobs = try await ledger.flushJobs(in: chatId)
-		let lastDate: Date?
-		switch conversation.lastExchange {
-		case .none: lastDate = nil
-		case .at(let date): lastDate = date
-		}
-		return Transcript(
-			history: conversation.current.promptHistory(excluding: turn),
-			pending: conversation.outstandingRows(jobs),
-			unflushed: conversation.messagesSinceLastFlush(jobs, excluding: turn),
-			flushPending: jobs.contains { !$0.settled },
-			current: conversation.turn(turn)?.userRow,
-			lastDate: lastDate
-		)
 	}
 
 	private func shouldDailyReset(last: Date?) -> Bool {

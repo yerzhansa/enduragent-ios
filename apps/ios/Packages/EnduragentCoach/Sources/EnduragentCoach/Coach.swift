@@ -219,11 +219,21 @@ public actor Coach {
 
 	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
 		let device = ledger.deviceId
-		let claims = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.claimScope, writtenBy: device)
+		let local = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.localScope, writtenBy: device)
 		).records
-		let flushQueue = try await ledger.flushJobsByChat()
-		let turns = try await claimedTurns(claims, device: device)
+		let chats = Set(local.compactMap(\.chatId))
+		guard !chats.isEmpty else { return [:] }
+		let synced = try await ledger.read(RecordQuery(scope: ConversationFold.syncedScope)).records
+		let conversations = Dictionary(
+			uniqueKeysWithValues: chats.map { chat in
+				(
+					chat,
+					ConversationFold.fold(chat: chat, synced: synced, local: local, device: device)
+				)
+			})
+		let flushQueue = try await ledger.flushJobsByChat(in: conversations, local: local)
+		let turns = conversations.mapValues { $0.segments.flatMap(\.turns) }
 		let dead = Set(
 			turns.values.flatMap {
 				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
@@ -237,32 +247,17 @@ public actor Coach {
 			writes = TurnRecovery.writes(of: dead, in: stamped)
 		}
 		var plans: [ChatID: RecoveryPlan] = [:]
-		for chat in Set(turns.keys).union(flushQueue.keys) {
+		for (chat, conversation) in conversations {
+			let drain = FlushJob.outstanding(
+				flushQueue[chat] ?? [], in: conversation)
 			let plan = TurnRecovery.plan(
-				turns: turns[chat] ?? [], flushQueue: flushQueue[chat] ?? [], writes: writes,
+				turns: turns[chat] ?? [], drain: drain.map(\.id), writes: writes,
 				device: device, process: process)
 			if !plan.isEmpty {
 				plans[chat] = plan
 			}
 		}
 		return plans
-	}
-
-	private func claimedTurns(_ claims: [AthleteRecord], device: DeviceID)
-		async throws(LedgerFailure) -> [ChatID: [TurnFacts]]
-	{
-		let chats = Set(claims.compactMap(\.chatId))
-		guard !chats.isEmpty else { return [:] }
-		let synced = try await ledger.read(
-			RecordQuery(scope: TurnRecovery.turnScope, writtenBy: device)
-		).records
-		var turns: [ChatID: [TurnFacts]] = [:]
-		for chat in chats {
-			turns[chat] = ConversationFold.fold(
-				chat: chat, synced: synced, local: claims, device: device
-			).segments.flatMap(\.turns)
-		}
-		return turns
 	}
 
 	private func mailbox(for chatId: ChatID) async -> ChatMailbox {

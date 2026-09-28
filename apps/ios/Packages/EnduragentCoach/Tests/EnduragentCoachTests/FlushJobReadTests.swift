@@ -39,20 +39,27 @@ import Testing
 							contentSha256: "consumed"))
 				], stamp: testStamp())
 		}
+		let conversation = try await ledger.conversation(.main)
+		let local = try await ledger.read(
+			RecordQuery(scope: ConversationFold.flushScope, writtenBy: ledger.deviceId)
+		).records
 		let before = store.reads.count
 		let jobs =
 			if allChats {
-				try await ledger.flushJobsByChat()[.main] ?? []
+				try await ledger.flushJobsByChat(in: [.main: conversation], local: local)[.main]
+					?? []
 			} else {
-				try await ledger.flushJobs(in: .main)
+				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == (hasUnsettledV1Jobs ? 2 : 1))
 		#expect(jobs.allSatisfy { $0.saved })
 		#expect(
 			Array(store.reads.dropFirst(before))
 				== (hasUnsettledV1Jobs
-					? [ConversationFold.flushScope, ConversationFold.consumedMarkerScope]
-					: [ConversationFold.flushScope]))
+					? (allChats ? [] : [ConversationFold.flushScope]) + [
+						ConversationFold.consumedMarkerScope
+					]
+					: (allChats ? [] : [ConversationFold.flushScope])))
 	}
 
 	@Test(arguments: [false, true])
@@ -75,16 +82,22 @@ import Testing
 							chatId: .main, job: job, settlement: .saved(sections: 1, events: 0)))
 				], stamp: testStamp())
 		}
+		let conversation = try await ledger.conversation(.main)
+		let local = try await ledger.read(
+			RecordQuery(scope: ConversationFold.flushScope, writtenBy: ledger.deviceId)
+		).records
 		let before = store.reads.count
 		let jobs =
 			if allChats {
-				try await ledger.flushJobsByChat()[.main] ?? []
+				try await ledger.flushJobsByChat(in: [.main: conversation], local: local)[.main]
+					?? []
 			} else {
-				try await ledger.flushJobs(in: .main)
+				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == 2)
 		#expect(jobs.allSatisfy { $0.process == nil && $0.saved && !$0.consumedInV1 })
-		#expect(Array(store.reads.dropFirst(before)) == [ConversationFold.flushScope])
+		#expect(
+			Array(store.reads.dropFirst(before)) == (allChats ? [] : [ConversationFold.flushScope]))
 	}
 
 	@Test(arguments: [false, true])
@@ -106,18 +119,25 @@ import Testing
 						garmin: false, nonGarmin: false, unknown: false,
 						contentSha256: "consumed"))
 			], stamp: testStamp())
+		let conversation = try await ledger.conversation(.main)
+		let local = try await ledger.read(
+			RecordQuery(scope: ConversationFold.flushScope, writtenBy: ledger.deviceId)
+		).records
 		let before = store.reads.count
 		let jobs =
 			if allChats {
-				try await ledger.flushJobsByChat()[.main] ?? []
+				try await ledger.flushJobsByChat(in: [.main: conversation], local: local)[.main]
+					?? []
 			} else {
-				try await ledger.flushJobs(in: .main)
+				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == 1)
 		#expect(jobs.allSatisfy { $0.saved })
 		#expect(
 			Array(store.reads.dropFirst(before))
-				== [ConversationFold.flushScope, ConversationFold.consumedMarkerScope])
+				== (allChats ? [] : [ConversationFold.flushScope]) + [
+					ConversationFold.consumedMarkerScope
+				])
 	}
 
 	@Test(arguments: [false, true])
@@ -132,16 +152,23 @@ import Testing
 						chatId: .main, trigger: .softThreshold, messageUlids: [fixedUlid(1)],
 						process: ProcessID(ulid: fixedUlid(60))))
 			], stamp: testStamp())
+		let conversation = try await ledger.conversation(.main)
+		let local = try await ledger.read(
+			RecordQuery(scope: ConversationFold.flushScope, writtenBy: ledger.deviceId)
+		).records
 		let before = store.reads.count
 		let jobs =
 			if allChats {
-				try await ledger.flushJobsByChat()[.main] ?? []
+				try await ledger.flushJobsByChat(in: [.main: conversation], local: local)[.main]
+					?? []
 			} else {
-				try await ledger.flushJobs(in: .main)
+				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == 1)
 		#expect(jobs.allSatisfy { !$0.settled })
-		#expect(Array(store.reads.dropFirst(before)) == [ConversationFold.flushScope])
+		#expect(
+			Array(store.reads.dropFirst(before))
+				== (allChats ? [] : [ConversationFold.flushScope]))
 	}
 
 	@Test func aConsumedMarkerCannotSettleAModernJob() async throws {
@@ -167,7 +194,7 @@ import Testing
 						garmin: false, nonGarmin: false, unknown: false,
 						contentSha256: "consumed"))
 			], stamp: testStamp())
-		let jobs = try await ledger.flushJobs(in: .main)
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.count == 2)
 		#expect(jobs.allSatisfy { !$0.settled })
 	}

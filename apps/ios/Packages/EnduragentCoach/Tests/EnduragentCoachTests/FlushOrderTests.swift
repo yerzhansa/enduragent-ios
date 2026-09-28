@@ -10,15 +10,21 @@ import Testing
 
 	@Test func aJobIsDoneWhenASettledJobCoversAllItsMessages() {
 		let jobs = [
-			job(8, messages: [1]), job(9, messages: []), job(10, messages: [1, 2]),
+			job(8, messages: [1]), job(9, messages: [1, 2]), job(10, messages: [1, 2]),
 			job(11, messages: [1, 2, 3], settled: true), job(12, messages: [4]),
 		]
+		let conversation = coverageConversation()
 		let local = jobs.enumerated().flatMap { records(for: $1, at: $0) }
-		let folded = ConversationFold.flushJobs(
-			chat: .main, local: local, markers: [], device: store.deviceId)
+		let folded = FlushJob.settling(
+			ConversationFold.flushJobs(
+				chat: .main, local: local, markers: [], device: store.deviceId),
+			resolved: FlushRows(jobs, in: conversation).byJob)
 		#expect(folded.map(\.settled) == [true, true, true, true, false])
-		#expect(!job(13, messages: [1, 2]).covers(job(14, messages: [1])))
-		#expect(!job(15, messages: [1]).covers(job(14, messages: [1, 2])))
+		let older = job(13, messages: [1, 2])
+		let newer = job(14, messages: [1])
+		let rows = FlushRows([older, newer], in: conversation)
+		#expect(!older.covers(newer, resolved: rows.byJob))
+		#expect(!newer.covers(older, resolved: rows.byJob))
 	}
 
 	@Test func aJobKeepsItsProcessAndAnAbandonedSettlementRoundTrips() throws {
@@ -53,7 +59,8 @@ import Testing
 		let newer = job(11, messages: [1, 2, 3])
 		let separate = job(12, messages: [4])
 		#expect(
-			FlushJob.outstanding([older, newer, separate]).map(\.id) == [newer.id, separate.id])
+			FlushJob.outstanding([older, newer, separate], in: coverageConversation()).map(\.id)
+				== [newer.id, separate.id])
 	}
 
 	@Test func anOlderJobNeverRunsAfterANewerWindowThatCoversIt() async throws {
@@ -82,7 +89,7 @@ import Testing
 		let context = try await memory.fullContext()
 		#expect(context.contains("Sundays now."))
 		#expect(!context.contains("Saturdays."))
-		let jobs = try await ledger().flushJobs(in: .main)
+		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
 		#expect(jobs.map(\.trigger) == [.softThreshold, .trim])
 		#expect(jobs.map(\.settled) == [true, true])
 		#expect(jobs.first?.messages == history.flatMap { [$0.user, $0.reply] })
@@ -110,7 +117,7 @@ import Testing
 		transport.script = [.text("Reply 3."), .finish(reason: .stop)]
 		_ = try await relaunched.sendAndSettle("Ask 3?")
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 10 }
-		let jobs = try await ledger().flushJobs(in: .main)
+		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
 		#expect(jobs.count == 2)
 		let seeded = Set(history.flatMap { [$0.user, $0.reply] })
 		let fresh = try #require(jobs.last)
@@ -213,6 +220,21 @@ import Testing
 		}
 		#expect(sent(.chatAttempt, by: transport).count == 2)
 		#expect(sent(.droppedSummary, by: transport).count == 1)
+	}
+
+	private func coverageConversation() -> Conversation {
+		let records = [1, 3].flatMap { first in
+			let turn = TurnID(ulid: fixedUlid(first))
+			return [
+				storedRecord(
+					device: store.deviceId, wall: Int64(first), ulid: fixedUlid(first),
+					body: .synced(sampleUser(chatId: .main, text: "Question", turn: turn))),
+				storedRecord(
+					device: store.deviceId, wall: Int64(first + 1), ulid: fixedUlid(first + 1),
+					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Reply"))),
+			]
+		}
+		return ConversationFold.fold(chat: .main, synced: records, device: store.deviceId)
 	}
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
