@@ -1,6 +1,6 @@
 import Foundation
 
-enum ToolFault: String {
+package enum ToolFault: String, Sendable {
 	case saveFailed = "save_failed"
 	case toolFailed = "tool_failed"
 

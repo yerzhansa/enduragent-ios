@@ -1446,7 +1446,8 @@
       "hideContext": "Nascondi contesto di allenamento",
       "showContext": "Mostra contesto di allenamento",
       "title": "Chat"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {
@@ -2646,7 +2647,9 @@
       "structure": "struttura dell’allenamento",
       "trainingLoad": "carico di allenamento a {{load}}",
       "unnamed": "Allenamento senza nome",
-      "update": "Aggiorna l’allenamento \"{{name}}\" del {{date}}: {{detail}}"
+      "update": "Aggiorna l’allenamento \"{{name}}\" del {{date}}: {{detail}}",
+      "deleteFallback": "Elimina un allenamento",
+      "updateFallback": "Aggiorna un allenamento: {{detail}}"
     }
   },
   "telegram": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Token di Telegram rifiutato",
         "transferRequired": "È necessario trasferire il bot"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Questo allenamento è stato preparato per un altro atleta su {{service}}. Chiedimi di nuovo di prepararlo per l'atleta collegato.",
+    "add": "Aggiungi al calendario",
+    "cannotVerify": "Non ho potuto verificare la connessione a {{service}}, quindi non è cambiato nulla. Riprova tra poco.",
+    "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
+    "title": "Revisione dell'allenamento",
+    "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
+    "workout": {
+      "warmup": "Riscaldamento",
+      "mainSet": "Blocco principale",
+      "cooldown": "Defaticamento",
+      "ramp": "rampa"
     }
   }
 }

@@ -216,6 +216,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var athleteName: String
 	public var ftp: Int
 	public var loadFailure: (any Error)?
+	public var writeFailure: (any Error)?
 
 	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
 		self.athleteId = athleteId
@@ -231,6 +232,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		self.events = []
 		self.calls = []
 		self.loadFailure = nil
+		self.writeFailure = nil
 	}
 
 	public func fetchAthlete() async throws -> AthleteProfile {
@@ -277,6 +279,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	}
 
 	public func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
+		if let writeFailure {
+			throw writeFailure
+		}
 		calls.append(.createEvent(date: draft.date, externalId: draft.externalId.rawValue))
 		return CalendarEvent(
 			id: EventID(rawValue: 1),
@@ -299,6 +304,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{
+		if let writeFailure {
+			throw writeFailure
+		}
 		calls.append(.updateEvent(id))
 		return CalendarEvent(
 			id: id,
@@ -313,6 +321,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	}
 
 	public func deleteEvent(id: EventID) async throws {
+		if let writeFailure {
+			throw writeFailure
+		}
 		calls.append(.deleteEvent(id))
 	}
 }

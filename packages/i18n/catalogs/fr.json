@@ -1446,7 +1446,8 @@
       "hideContext": "Masquer le contexte d’entraînement",
       "showContext": "Afficher le contexte d’entraînement",
       "title": "Conversation"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {
@@ -2796,7 +2797,9 @@
       "structure": "structure de l’entraînement",
       "trainingLoad": "charge d’entraînement fixée à {{load}}",
       "unnamed": "Entraînement sans nom",
-      "update": "Mettre à jour l’entraînement « {{name}} » le {{date}} — {{detail}}"
+      "update": "Mettre à jour l’entraînement « {{name}} » le {{date}} — {{detail}}",
+      "deleteFallback": "Supprimer un entraînement",
+      "updateFallback": "Mettre à jour un entraînement — {{detail}}"
     }
   },
   "desktop": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Jeton Telegram refusé",
         "transferRequired": "Transfert du bot nécessaire"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Cette séance a été préparée pour un autre athlète sur {{service}}. Demande-moi à nouveau de la préparer pour l'athlète connecté.",
+    "add": "Ajouter au calendrier",
+    "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
+    "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
+    "title": "Vérification de la séance",
+    "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
+    "workout": {
+      "warmup": "Échauffement",
+      "mainSet": "Bloc principal",
+      "cooldown": "Retour au calme",
+      "ramp": "progressif"
     }
   }
 }

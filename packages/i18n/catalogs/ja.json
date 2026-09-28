@@ -1433,7 +1433,8 @@
       "hideContext": "トレーニング情報を非表示",
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
-    }
+    },
+    "menu": "メニュー"
   },
   "plan": {
     "details": {
@@ -2613,7 +2614,9 @@
       "structure": "ワークアウトの構成",
       "trainingLoad": "トレーニング負荷を{{load}}に",
       "unnamed": "名前のないワークアウト",
-      "update": "{{date}}のワークアウト「{{name}}」を更新: {{detail}}"
+      "update": "{{date}}のワークアウト「{{name}}」を更新: {{detail}}",
+      "deleteFallback": "ワークアウトを削除",
+      "updateFallback": "ワークアウトを更新: {{detail}}"
     }
   },
   "telegram": {
@@ -2846,6 +2849,20 @@
         "tokenRejected": "Telegramのトークンが拒否されました",
         "transferRequired": "ボットの移行が必要です"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "このワークアウトは、{{service}}の別のアスリート向けに準備されました。接続中のアスリート向けに準備するよう、もう一度依頼してください。",
+    "add": "カレンダーに追加",
+    "cannotVerify": "{{service}}への接続を確認できなかったため、何も変更していません。少し待ってから、もう一度お試しください。",
+    "earlierVersion": "このワークアウトの確認内容は以前のバージョンのアプリで作成されたため、適用できなくなりました。",
+    "title": "ワークアウトの確認",
+    "uncertain": "この変更が{{service}}のカレンダーに反映されたか確認できませんでした。再度依頼する前に、カレンダーを確認してください。",
+    "workout": {
+      "warmup": "ウォームアップ",
+      "mainSet": "メインセット",
+      "cooldown": "クールダウン",
+      "ramp": "ランプ"
     }
   }
 }

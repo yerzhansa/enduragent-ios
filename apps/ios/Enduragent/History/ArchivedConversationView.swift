@@ -7,15 +7,19 @@ struct ArchivedConversationView: View {
 
 	var body: some View {
 		VStack(spacing: 0) {
-			List(conversation.turns) { turn in
-				VStack(alignment: .leading, spacing: 8) {
-					if let athleteText = turn.athleteText {
-						Text(athleteText)
+			List {
+				notes(after: nil)
+				ForEach(conversation.turns) { turn in
+					VStack(alignment: .leading, spacing: 8) {
+						if let athleteText = turn.athleteText {
+							Text(athleteText)
+						}
+						reply(turn.state)
+						notes(after: turn.id)
 					}
-					reply(turn.state)
+					.frame(maxWidth: .infinity, alignment: .leading)
+					.listRowSeparator(.hidden)
 				}
-				.frame(maxWidth: .infinity, alignment: .leading)
-				.listRowSeparator(.hidden)
 			}
 			.listStyle(.plain)
 			Text(say(Catalog.archiveReadOnly))
@@ -25,6 +29,13 @@ struct ArchivedConversationView: View {
 				.accessibilityIdentifier("archive.readOnly")
 		}
 		.navigationTitle(say(Catalog.archiveConversation))
+	}
+
+	private func notes(after turn: TurnID?) -> some View {
+		ForEach(conversation.notes.filter { $0.after == turn }) { note in
+			Text(note.sentence(in: model.phrasebook))
+				.accessibilityIdentifier("archive.note")
+		}
 	}
 
 	@ViewBuilder

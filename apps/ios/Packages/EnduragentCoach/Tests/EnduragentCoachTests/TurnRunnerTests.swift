@@ -101,7 +101,10 @@ import Testing
 		#expect(request.messages.first?.content.contains("private upstream detail") == false)
 		#expect(
 			coach.diagnostics.entries.contains {
-				$0.event == .trainingUnavailable(request.attempt, .temporarilyUnavailable)
+				if case .evidenceUnavailable(request.attempt, .temporarilyUnavailable) = $0.event {
+					return true
+				}
+				return false
 			})
 	}
 
@@ -140,7 +143,7 @@ import Testing
 				]).canonicalDigestInput())
 	}
 
-	@Test func toolFailureDetailGoesOnlyToDiagnostics() async throws {
+	@Test func toolFailureDiagnosticsKeepOnlyTheTypedFailure() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
 		failing.failAppends(ofKind: SyncedKind.ledgerEvent)
 		transport.script = [
@@ -158,14 +161,14 @@ import Testing
 			transport.requests[1].messages.last(where: { $0.role == .tool }))
 		#expect(!toolMessage.content.contains("LedgerFailure"))
 		#expect(transport.requests[1].attempt == transport.requests[0].attempt)
-		let failures = coach.diagnostics.entries.compactMap { entry -> String? in
+		let failures = coach.diagnostics.entries.compactMap { entry -> ToolFault? in
 			guard
-				case .toolFailed(transport.requests[0].attempt, .ledgerAppend, let detail) = entry
+				case .toolFailed(transport.requests[0].attempt, .ledgerAppend, let failure) = entry
 					.event
 			else { return nil }
-			return detail
+			return failure
 		}
-		#expect(failures == ["rejectedBatch"])
+		#expect(failures == [.saveFailed])
 	}
 
 	@Test func providerErrorsSettleAsTypedFailures() async throws {
@@ -380,11 +383,6 @@ import Testing
 				== true)
 	}
 
-	private func makeCoach(secrets: any SecretStore = keyedSecrets()) -> Coach {
-		EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock, secrets: secrets
-		)
-	}
 }
 
 private let english = CatalogPhrasebook(tag: .en, locale: "en")

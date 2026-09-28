@@ -64,7 +64,7 @@ import Testing
 		return try #require(claims.records.last?.account)
 	}
 
-	func proposeRide(on coach: Coach) async throws -> PendingProposal {
+	func proposeRide(on coach: Coach) async throws -> ReviewSnapshot {
 		transport.script = [
 			.toolCall(
 				name: "intervals_create_workout",
@@ -76,7 +76,7 @@ import Testing
 			.finish(reason: .stop),
 		]
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
-		return try #require(await coach.currentSnapshot(.main)?.pendingProposal)
+		return try #require(await coach.currentSnapshot(.main)?.review)
 	}
 
 	@Test func blankReplacementKeepsTheWorkingKey() async throws {
@@ -159,7 +159,7 @@ import Testing
 				== .refused(.differentAthlete(current: current, new: new)))
 		#expect(try secrets.stagedReplacement() == nil)
 		#expect(try secrets.intervalsConnection() == testConnection)
-		#expect(await coach.currentSnapshot(.main)?.pendingProposal != nil)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
 	}
@@ -205,8 +205,7 @@ import Testing
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
-		#expect(pending.account == (try account(testConnection)))
-		#expect(pending.confirmable(under: await coach.status()))
+		#expect(pending.notice == nil)
 		let outcome = await coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
 		#expect(
@@ -225,13 +224,17 @@ import Testing
 		}
 		#expect(summary.athleteName == "Bo Lind")
 		#expect(switched == (try account(active)))
-		#expect(!pending.confirmable(under: status))
-		#expect(await coach.currentSnapshot(.main)?.pendingProposal?.nonce == pending.nonce)
-		let reopened = try #require(
-			await self.coach(secrets).currentSnapshot(.main)?.pendingProposal)
-		#expect(reopened.nonce == pending.nonce)
-		#expect(reopened.account == (try account(testConnection)))
-		#expect(!reopened.confirmable(under: status))
+		let switchedReview = try #require(await coach.currentSnapshot(.main)?.review)
+		#expect(switchedReview.ref.set == pending.ref.set)
+		#expect(switchedReview.notice?.kind == .accountChanged)
+		#expect(switchedReview.controls == .none)
+		let reopened = try #require(await self.coach(secrets).currentSnapshot(.main)?.review)
+		#expect(reopened.ref.set == pending.ref.set)
+		#expect(reopened.notice?.kind == .accountChanged)
+		let proposals = try await records.fetch(
+			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main")
+		).records
+		#expect(proposals.map(\.account) == [try account(testConnection)])
 	}
 
 	@Test func disconnectLeavesTheNextTurnUnconnected() async throws {

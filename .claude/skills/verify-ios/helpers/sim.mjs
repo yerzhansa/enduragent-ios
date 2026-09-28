@@ -185,6 +185,25 @@ function shot(id, label) {
 function test(id, ...proofs) {
   if (proofs.length === 0) throw new Error('test needs at least one proof, for example: test <run> FirstConversationProof');
   const { dir, udid } = activeRun(id);
+  const dark = proofs.filter(proof => /DarkProof(\/|$)/.test(proof));
+  const light = proofs.filter(proof => !dark.includes(proof));
+  const failures = [];
+  if (light.length > 0) {
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+    failures.push(...runProofs(dir, udid, light));
+  }
+  if (dark.length > 0) {
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'dark']);
+    try {
+      failures.push(...runProofs(dir, udid, dark));
+    } finally {
+      capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+    }
+  }
+  if (failures.length > 0) throw new Error(failures.join('\n'));
+}
+
+function runProofs(dir, udid, proofs) {
   spawnSync('xcrun', ['simctl', 'terminate', udid, bundleId], { stdio: 'ignore' });
   const name = `uitest-${stamp()}`;
   const bundle = join(dir, `${name}.xcresult`);
@@ -203,7 +222,7 @@ function test(id, ...proofs) {
     }
   }
   console.log(`result bundle ${bundle}\nlog ${log}`);
-  if (status !== 0) throw new Error(`test-without-building exited ${status}\n${tail(log)}`);
+  return status === 0 ? [] : [`test-without-building exited ${status}\n${tail(log)}`];
 }
 
 function parity(id, state, theme, flag, source) {

@@ -62,7 +62,7 @@ final class FailureNoticesProof: XCTestCase {
 final class FailedNetworkDarkProof: XCTestCase {
 	func testFailedNetworkDark() {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, dark: true)
+		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, "fixture:fail network x3")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))

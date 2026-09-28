@@ -17,6 +17,7 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 	case provenance
 	case coachReplyLanguage
 	case planningDevice
+	case reviewApplied
 	case sessionSettings
 	case languagePreference
 }
@@ -53,6 +54,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 	case provenance(ProvenanceBody)
 	case coachReplyLanguage(CoachReplyLanguageBody)
 	case planningDevice(PlanningDeviceBody)
+	case reviewApplied(ReviewAppliedBody)
 	case sessionSettings(SessionSettingsBody)
 	case languagePreference(LanguagePreferenceBody)
 
@@ -69,6 +71,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .provenance: .provenance
 		case .coachReplyLanguage: .coachReplyLanguage
 		case .planningDevice: .planningDevice
+		case .reviewApplied: .reviewApplied
 		case .sessionSettings: .sessionSettings
 		case .languagePreference: .languagePreference
 		}
@@ -80,6 +83,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .turnSettled(let body): body.chatId
 		case .windowStart(let body): body.chatId
 		case .compactionSummary(let body): body.chatId
+		case .reviewApplied(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
 			.coachReplyLanguage, .planningDevice, .sessionSettings, .languagePreference:
 			nil
@@ -92,7 +96,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
 			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
-			.languagePreference:
+			.languagePreference, .reviewApplied:
 			nil
 		}
 	}

@@ -9,10 +9,13 @@ extension CredentialVaultTests {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
+		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
+		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
 		_ = await coach.changeTraining(.replace(apiKey: "icu-offline", athlete: .keyOwner))
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
-		#expect(!pending.confirmable(under: await coach.status()))
-		#expect(try await coach.confirm(chatId: .main, nonce: pending.nonce) == .expired)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
+		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
 		#expect(
 			!offline.calls.contains {
 				if case .createEvent = $0 { return true }

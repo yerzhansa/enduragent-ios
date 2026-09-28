@@ -86,7 +86,11 @@ import Testing
 			], stamp: testStamp())
 		let older = FlushJobID(ulid: try #require(pending.first?.ulid))
 		let newer = FlushJobID(ulid: try #require(pending.last?.ulid))
-		let records = ChatRecords(chat: .main, ledger: ledger, clock: clock)
+		let records = ChatRecords(
+			chat: .main, ledger: ledger, clock: clock,
+			reviews: SingleProposalReviews(
+				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
+				training: { .unconnected }))
 		try await records.load()
 		_ = try await ledger.commit(
 			local: [

@@ -66,6 +66,7 @@ package struct TurnRunner: Sendable {
 	private let planning: Planning
 	private let diagnostics: DiagnosticsLog
 	private let ladder: RetryLadder
+	private let evidence: any TurnEvidence
 
 	package init(
 		transport: any ModelTransport,
@@ -73,7 +74,8 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		planning: Planning,
 		diagnostics: DiagnosticsLog,
-		ladder: RetryLadder
+		ladder: RetryLadder,
+		evidence: any TurnEvidence
 	) {
 		self.transport = transport
 		self.ledger = ledger
@@ -81,6 +83,7 @@ package struct TurnRunner: Sendable {
 		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
+		self.evidence = evidence
 	}
 
 	package func run(
@@ -227,12 +230,12 @@ package struct TurnRunner: Sendable {
 			)
 		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = try await attempt.training.loadSnapshot(
-			clock: clock, attempt: attempt.attempt, diagnostics: diagnostics)
+		let block = try await evidence.block(
+			for: attempt.training, attempt: attempt.attempt, now: clock.now)
 		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
-			snapshot: snapshot,
+			evidence: block,
 			timeZoneName: clock.timeZone.identifier,
 			replyLanguage: replyLanguage
 		)
@@ -542,7 +545,7 @@ package struct TurnRunner: Sendable {
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								scope.stamp.attempt, call.name, detail: String(describing: error)))
+								scope.stamp.attempt, call.name, failure: ToolFault(error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)

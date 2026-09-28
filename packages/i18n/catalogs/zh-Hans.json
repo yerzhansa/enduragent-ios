@@ -1433,7 +1433,8 @@
       "hideContext": "隐藏训练背景",
       "showContext": "显示训练背景",
       "title": "聊天"
-    }
+    },
+    "menu": "菜单"
   },
   "plan": {
     "details": {
@@ -2603,7 +2604,9 @@
       "structure": "训练课程结构",
       "trainingLoad": "训练负荷改为 {{load}}",
       "unnamed": "未命名训练课程",
-      "update": "更新 {{date}} 的训练课程“{{name}}”：{{detail}}"
+      "update": "更新 {{date}} 的训练课程“{{name}}”：{{detail}}",
+      "deleteFallback": "删除训练课程",
+      "updateFallback": "更新训练课程：{{detail}}"
     },
     "history": {
       "diskFull": "\n\n（提醒一下：磁盘已满，无法将这次交流保存到历史记录中，但消息已收到。方便时请清理一些空间。）",
@@ -2846,6 +2849,20 @@
         "tokenRejected": "Telegram 令牌被拒绝",
         "transferRequired": "需要转移机器人"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "这项训练是为 {{service}} 上的另一位运动员准备的。请再次提出请求，让我为当前连接的运动员准备训练。",
+    "add": "添加到日历",
+    "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
+    "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
+    "title": "训练审核",
+    "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
+    "workout": {
+      "warmup": "热身",
+      "mainSet": "主训练",
+      "cooldown": "放松",
+      "ramp": "渐增"
     }
   }
 }

@@ -1446,7 +1446,8 @@
       "hideContext": "Trainingscontext verbergen",
       "showContext": "Trainingscontext tonen",
       "title": "Chat"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {
@@ -2796,7 +2797,9 @@
       "structure": "trainingsopbouw",
       "trainingLoad": "trainingsbelasting naar {{load}}",
       "unnamed": "Naamloze training",
-      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}"
+      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}",
+      "deleteFallback": "Een training verwijderen",
+      "updateFallback": "Een training bijwerken: {{detail}}"
     }
   },
   "desktop": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Telegram-token geweigerd",
         "transferRequired": "Botoverdracht vereist"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
+    "add": "Toevoegen aan kalender",
+    "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
+    "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
+    "title": "Training controleren",
+    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
+    "workout": {
+      "warmup": "Warming-up",
+      "mainSet": "Hoofdblok",
+      "cooldown": "Cooling-down",
+      "ramp": "oplopend"
     }
   }
 }

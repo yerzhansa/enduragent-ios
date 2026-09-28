@@ -42,6 +42,8 @@ for (const [name, file, value, code] of [
   ['interpolated confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "Done — \\(summary)."', 'uncatalogued-confirmation'],
   ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
   ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
+  ['device-only review language', 'apps/ios/Enduragent/Chat/ConfirmedPreviewCard.swift', 'Text(model.builder.phrasebook.say(notice.key, notice.vars))', 'device-only-phrasebook'],
+  ['device-only review outcome language', 'apps/ios/Enduragent/Chat/ChatView.swift', 'Text(notice.sentence(in: model.builder.phrasebook))', 'device-only-phrasebook'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {

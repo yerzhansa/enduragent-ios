@@ -100,6 +100,32 @@ import Testing
 		#expect(UnionMerge.pendingProposal([expired], chatId: .main, now: now) == nil)
 	}
 
+	@Test func canceledClearHidesTheProposalAndTheLiveRecordKeepsItsIdentity() {
+		let nonce = Nonce()
+		let now = Date(timeIntervalSince1970: 899_164_800)
+		let live = record(
+			device: phoneA,
+			wall: 1,
+			ulid: ulid(1),
+			body: .deviceLocal(
+				.pendingProposal(
+					sampleProposal(
+						chatId: .main, nonce: nonce, expiresAt: now.addingTimeInterval(600))))
+		)
+		let found = UnionMerge.pendingProposalRecord([live], chatId: .main, now: now)
+		#expect(found?.ulid == live.ulid)
+		#expect(found?.account == live.account)
+		let canceled = record(
+			device: phoneA,
+			wall: 2,
+			ulid: ulid(2),
+			body: .deviceLocal(
+				.proposalCleared(
+					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .canceled)))
+		)
+		#expect(UnionMerge.pendingProposalRecord([live, canceled], chatId: .main, now: now) == nil)
+	}
+
 	@Test func planningDeviceAndReplyLanguageHighestHLC() {
 		let firstDevice = record(
 			device: phoneA,

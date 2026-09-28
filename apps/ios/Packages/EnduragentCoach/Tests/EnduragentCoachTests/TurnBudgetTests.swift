@@ -152,7 +152,8 @@ import Testing
 			clock: clock,
 			planning: planning,
 			diagnostics: diagnostics,
-			ladder: .npm
+			ladder: .npm,
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
 		)
 	}
 

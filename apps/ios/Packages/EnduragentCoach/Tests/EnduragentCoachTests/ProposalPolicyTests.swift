@@ -14,69 +14,56 @@ struct ProposalPolicyTests {
 	}
 
 	@Test func expiredProposalAfterElevenMinutes() async throws {
-		let proposal = try await propose()
-		clock.advance(by: 11 * 60)
-		let lookup = try await take(proposal.nonce)
-		#expect(lookup == .expired)
-	}
-
-	@Test func wrongNonceIsMismatch() async throws {
 		_ = try await propose()
-		let lookup = try await take(Nonce())
-		#expect(lookup == .mismatch)
+		clock.advance(by: 11 * 60)
+		#expect(try await live() == nil)
 	}
 
 	@Test func replacementClearsPreviousNonce() async throws {
 		let first = try await propose(name: "One")
 		let second = try await propose(name: "Two")
-		let firstLookup = try await take(first.nonce)
-		#expect(firstLookup == .mismatch)
-		let secondLookup = try await take(second.nonce)
-		guard case .found(let body) = secondLookup else {
-			Issue.record("expected found")
-			return
-		}
-		#expect(body.summary.contains("Two"))
+		let current = try #require(try await live())
+		#expect(current.body.nonce == second.nonce)
+		#expect(current.body.summary.contains("Two"))
+		let cleared = try await store.fetch(RecordQuery(scope: .deviceLocal([.proposalCleared])))
+			.records
+		#expect(
+			cleared.map(\.body) == [
+				.deviceLocal(
+					.proposalCleared(
+						ProposalClearedBody(chatId: .main, nonce: first.nonce, reason: .replaced)))
+			])
 	}
 
-	@Test func secondTakeIsNone() async throws {
-		let proposal = try await propose()
-		_ = try await take(proposal.nonce)
-		let again = try await take(proposal.nonce)
-		#expect(again == .none)
+	@Test func canceledClearHidesTheProposal() async throws {
+		_ = try await propose()
+		let current = try #require(try await live())
+		try await ProposalPolicy.clear(
+			current, reason: .canceled, ledger: ledger, stamp: testStamp())
+		#expect(try await live() == nil)
 	}
 
-	@Test func proposalRowsCarryTheTurnStampAndTheTakeCarriesAChangeSet() async throws {
+	@Test func proposalRowsCarryTheTurnStampAndTheClearCarriesItsOwn() async throws {
 		let stamp = testStamp()
 		_ = try await propose(stamp: stamp)
 		let proposed = try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal])))
 			.records
 		#expect(proposed.map(\.cause) == [.operation(stamp.operation, stamp.attempt)])
-		let proposal = try #require(
-			proposed.first.flatMap { record -> ProposalBody? in
-				if case .deviceLocal(.pendingProposal(let body)) = record.body { return body }
-				return nil
-			})
-		_ = try await take(proposal.nonce)
+		let current = try #require(try await live())
+		#expect(current.ulid == proposed.first?.ulid)
+		let clear = OperationStamp(
+			operation: .workoutChangeSet(
+				ChangeSetID(ulid: current.ulid), ChangeSetRevision(rawValue: 1)),
+			attempt: AttemptID(ulid: fixedUlid(77)),
+			binding: ActionBinding(account: .unconnected, zone: amsterdamZone))
+		try await ProposalPolicy.clear(current, reason: .executed, ledger: ledger, stamp: clear)
 		let cleared = try await store.fetch(RecordQuery(scope: .deviceLocal([.proposalCleared])))
 			.records
-		guard case .operation(.workoutChangeSet, _)? = cleared.first?.cause else {
-			Issue.record(
-				"expected a change-set stamp on the clear, got \(String(describing: cleared.first?.cause))"
-			)
-			return
-		}
+		#expect(cleared.map(\.cause) == [.operation(clear.operation, clear.attempt)])
 	}
 
-	private func take(_ nonce: Nonce) async throws -> ProposalLookup {
-		try await ProposalPolicy.take(
-			chatId: .main,
-			nonce: nonce,
-			ledger: ledger,
-			binding: ActionBinding(account: .unconnected, zone: amsterdamZone),
-			now: clock.now,
-			run: { _ in .object([:]) }
-		)
+	private func live() async throws -> LiveProposal? {
+		try await ProposalPolicy.live(chatId: .main, ledger: ledger, now: clock.now)
 	}
 
 	private func propose(name: String = "Endurance", stamp: OperationStamp = testStamp())

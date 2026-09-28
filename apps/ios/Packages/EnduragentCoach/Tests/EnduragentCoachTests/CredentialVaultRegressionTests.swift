@@ -39,13 +39,16 @@ extension CredentialVaultTests {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
-		let displayedStatus = await coach.status()
-		#expect(pending.confirmable(under: displayedStatus))
+		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
+		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
+		_ = await coach.status()
+		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		_ = await coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
-		#expect(!pending.confirmable(under: await coach.status()))
-		let outcome = try await coach.confirm(chatId: .main, nonce: pending.nonce)
-		#expect(outcome == .expired)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
+		let outcome = await coach.decide(.approve(token), in: .main)
+		#expect(outcome == .blocked(.accountChanged))
 		#expect(
 			!bo.calls.contains { call in
 				if case .createEvent = call { return true }
@@ -57,15 +60,18 @@ extension CredentialVaultTests {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
+		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
+		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
+		let original = try #require(try secrets.intervalsConnection())
 		_ = await coach.changeTraining(.replace(apiKey: "same-athlete-new-key", athlete: .keyOwner))
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
 		#expect(current.id != testConnection.id)
-		#expect(pending.account.authority(under: try account(current)) == .sameAthlete)
-		#expect(pending.confirmable(under: await coach.status()))
+		#expect(try account(original).authority(under: account(current)) == .sameAthlete)
+		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
-			try await coach.confirm(chatId: .main, nonce: pending.nonce)
-				== .executed(summary: pending.summary))
+			await coach.decide(.approve(token), in: .main)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		#expect(
 			ada.calls.contains {
 				if case .createEvent = $0 { return true }
@@ -81,15 +87,18 @@ extension CredentialVaultTests {
 				selection: .keyOwner, resolvedAthlete: nil))
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
-		let status = await coach.status()
+		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
+		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
+		let original = try #require(try secrets.intervalsConnection())
+		_ = await coach.status()
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id == testConnection.id)
 		#expect(current.resolvedAthlete != nil)
-		#expect(pending.account.authority(under: try account(current)) == .same)
-		#expect(pending.confirmable(under: status))
+		#expect(try account(original).authority(under: account(current)) == .same)
+		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
-			try await coach.confirm(chatId: .main, nonce: pending.nonce)
-				== .executed(summary: pending.summary))
+			await coach.decide(.approve(token), in: .main)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		#expect(
 			ada.calls.contains {
 				if case .createEvent = $0 { return true }
@@ -105,14 +114,18 @@ extension CredentialVaultTests {
 				selection: .keyOwner, resolvedAthlete: nil))
 		let coach = coach(secrets)
 		let pending = try await proposeRide(on: coach)
+		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
+		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
+		let original = try #require(try secrets.intervalsConnection())
 		_ = await coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "same-athlete-new-key", athlete: .keyOwner))
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id != testConnection.id)
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
-		#expect(pending.account.authority(under: try account(current)) == .unverifiable)
-		#expect(!pending.confirmable(under: await coach.status()))
-		#expect(try await coach.confirm(chatId: .main, nonce: pending.nonce) == .expired)
+		#expect(try account(original).authority(under: account(current)) == .unverifiable)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
+		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
 		#expect(
 			!ada.calls.contains {
 				if case .createEvent = $0 { return true }

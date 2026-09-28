@@ -5,7 +5,8 @@ public struct ChatSnapshot: Sendable, Equatable {
 	public let opening: ConversationOpening
 	public let turns: [TurnView]
 	public let activity: ChatActivity
-	public let pendingProposal: PendingProposal?
+	public let review: ReviewSnapshot?
+	public let notes: [TranscriptNote]
 }
 
 public struct TurnView: Sendable, Equatable, Identifiable {
@@ -153,7 +154,7 @@ extension ChatSnapshot {
 		stopping: Bool,
 		resetting: Bool,
 		finishedAway: Set<TurnID>,
-		pendingProposal: PendingProposal?,
+		review: ReviewSnapshot?,
 		device: DeviceID,
 		process: ProcessID,
 		now: Date,
@@ -175,11 +176,20 @@ extension ChatSnapshot {
 		} else {
 			self.activity = .idle
 		}
-		self.pendingProposal = pendingProposal
+		self.review = review
+		self.notes = current.transcriptNotes(among: turns)
 	}
 }
 
 extension Segment {
+	package func transcriptNotes(among turns: [TurnView]) -> [TranscriptNote] {
+		notes.map { note in
+			TranscriptNote(
+				id: note.ulid, after: turns.last { $0.id.ulid < note.ulid }?.id,
+				summary: note.summary)
+		}
+	}
+
 	package func turnViews(
 		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
 		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
@@ -215,23 +225,13 @@ extension RetryRefusal {
 	}
 }
 
-extension PendingProposal {
-	public func confirmable(under status: CoachStatus?) -> Bool {
-		guard let current = status?.trainingAccount else { return true }
-		return switch account.authority(under: current) {
-		case .same, .sameAthlete: true
-		case .changed, .unverifiable: false
-		}
-	}
+public struct TranscriptNote: Sendable, Equatable, Identifiable {
+	public let id: ULID
+	public let after: TurnID?
+	public let summary: ReviewSummary
 
-	package init(_ body: ProposalBody, account: TrainingAccount) {
-		self.init(
-			chatId: body.chatId,
-			nonce: body.nonce,
-			summary: body.summary,
-			description: body.description,
-			expiresAt: body.expiresAt,
-			account: account
-		)
+	public func sentence(in phrasebook: any Phrasebook) -> String {
+		phrasebook.say(
+			Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
 	}
 }

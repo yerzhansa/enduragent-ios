@@ -39,6 +39,7 @@ package actor ChatMailbox {
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
 		environment: EnvironmentResolver,
+		reviews: any WorkoutReviews,
 		process: ProcessID,
 		host: any ExecutionHost, lifetime: Coach.Lifetime
 	) {
@@ -52,7 +53,7 @@ package actor ChatMailbox {
 		self.process = process
 		self.lifetime = lifetime
 		self.leases = LeaseSlot(host: host, chat: chatId) { await environment.appLanguage() }
-		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock)
+		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
@@ -227,8 +228,8 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package func refreshProposal() async {
-		await records.refreshProposal()
+	package func reviewChanged() async {
+		await records.refreshReview()
 		publish()
 	}
 
@@ -350,9 +351,12 @@ package actor ChatMailbox {
 		if case .textDelta(let delta) = progress, !delta.isEmpty {
 			await records.observeReply(turn, stamp: stamp)
 		}
-		guard var current = live, current.attempt == stamp.attempt else { return }
-		if case .proposalPending(let proposal) = progress {
-			records.pendingProposal = proposal
+		if case .proposalPending = progress {
+			await records.refreshReview()
+		}
+		guard var current = live, current.attempt == stamp.attempt else {
+			publish()
+			return
 		}
 		current.apply(progress)
 		live = current
@@ -375,7 +379,7 @@ package actor ChatMailbox {
 			stopping: interruption.cause != nil,
 			resetting: work.resetting,
 			finishedAway: finishedAway,
-			pendingProposal: records.pendingProposal,
+			review: records.review,
 			device: ledger.deviceId,
 			process: process,
 			now: clock.now,

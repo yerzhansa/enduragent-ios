@@ -45,16 +45,17 @@ package enum PromptAssembly {
 
 	package static func volatile(
 		context: String,
-		snapshot: AthleteSnapshot?,
+		evidence: EvidenceBlock,
 		timeZoneName: String,
 		replyLanguage: String
 	) -> String {
 		var parts: [String] = [
 			"# Athlete Context\n\n" + wrapAthleteContext(context)
 		]
-		if let snapshot, snapshot.fitness != nil || snapshot.fatigue != nil || snapshot.form != nil
-		{
-			parts.append(renderSnapshot(snapshot))
+		if let wellness = evidence.wellnessLine {
+			parts.append(
+				PromptStaticBlocks.snapshotHeading + "\n\n" + wellness + "\n"
+					+ PromptStaticBlocks.snapshotGuidance)
 		} else {
 			parts.append(PromptStaticBlocks.snapshotFallback)
 		}
@@ -158,18 +159,6 @@ package enum PromptAssembly {
 		}
 		parts.append(label + "\n" + transcript)
 		return parts.joined(separator: "\n\n")
-	}
-}
-
-public struct AthleteSnapshot: Sendable, Equatable {
-	public var fitness: Double?
-	public var fatigue: Double?
-	public var form: Double?
-
-	public init(fitness: Double?, fatigue: Double?, form: Double?) {
-		self.fitness = fitness
-		self.fatigue = fatigue
-		self.form = form
 	}
 }
 
@@ -344,34 +333,4 @@ private func isoFallback(_ date: Date) -> String {
 	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 	formatter.timeZone = TimeZone(secondsFromGMT: 0)
 	return formatter.string(from: date)
-}
-
-private func renderSnapshot(_ snapshot: AthleteSnapshot) -> String {
-	var parts: [String] = []
-	if let fitness = snapshot.fitness {
-		parts.append("Fitness \(formatSnapshotNumber(fitness))")
-	}
-	if let fatigue = snapshot.fatigue {
-		parts.append("Fatigue \(formatSnapshotNumber(fatigue))")
-	}
-	if let form = snapshot.form {
-		parts.append("Form \(formatSignedSnapshotNumber(form))")
-	}
-	if parts.isEmpty {
-		return PromptStaticBlocks.snapshotFallback
-	}
-	return PromptStaticBlocks.snapshotHeading
-		+ "\n\n"
-		+ parts.joined(separator: " · ")
-		+ "\n"
-		+ PromptStaticBlocks.snapshotGuidance
-}
-
-private func formatSnapshotNumber(_ value: Double) -> String {
-	value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value)
-}
-
-private func formatSignedSnapshotNumber(_ value: Double) -> String {
-	let body = formatSnapshotNumber((value * 10).rounded() / 10)
-	return value > 0 ? "+\(body)" : body
 }

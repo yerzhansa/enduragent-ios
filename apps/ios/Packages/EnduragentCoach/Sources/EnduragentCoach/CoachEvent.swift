@@ -17,15 +17,6 @@ public struct ChatMessage: Sendable, Equatable {
 	}
 }
 
-public enum ConfirmOutcome: Sendable, Equatable {
-	case executed(summary: String)
-	case refused(message: String)
-	case failed(message: String)
-	case expired
-	case mismatch
-	case none
-}
-
 public enum ToolName: String, Sendable {
 	case calculateZones = "calculate_zones"
 	case buildPlanSkeleton = "build_plan_skeleton"

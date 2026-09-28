@@ -13,7 +13,6 @@ final class ShellModel {
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
-	var dismissedProposal: Nonce?
 	var slashListVisible = false
 	private(set) var status: CoachStatus?
 	var starterLine: String?
@@ -27,7 +26,7 @@ final class ShellModel {
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
-	private var confirmation: (key: CatalogKey, vars: [String: String])?
+	private(set) var reviewNotice: AthleteNotice?
 	var showSidebar = false
 	var showCredits = false
 	var packPrices: [String: String] = [:]
@@ -69,10 +68,6 @@ final class ShellModel {
 		languagePreference.phrasebook(device: builder.language)
 	}
 
-	var confirmLine: String? {
-		confirmation.map { phrasebook.say($0.key, $0.vars) }
-	}
-
 	var languageNotSavedLine: String? {
 		languageNotSaved.map {
 			$0.notSaved(keeping: languagePreference, in: phrasebook)
@@ -91,13 +86,6 @@ final class ShellModel {
 			return ""
 		}
 		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
-	}
-
-	var visibleProposal: PendingProposal? {
-		guard let pending = chat?.pendingProposal, pending.nonce != dismissedProposal else {
-			return nil
-		}
-		return pending
 	}
 
 	var isWorking: Bool {
@@ -189,7 +177,7 @@ final class ShellModel {
 	}
 
 	func newConversation() async {
-		confirmation = nil
+		reviewNotice = nil
 		errorLine = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
@@ -251,7 +239,7 @@ final class ShellModel {
 		notSent = false
 		newConversationUncertain = false
 		errorLine = nil
-		confirmation = nil
+		reviewNotice = nil
 		slashListVisible = false
 		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
@@ -307,29 +295,14 @@ final class ShellModel {
 		await refreshStatus()
 	}
 
-	func confirmPending() async {
-		guard let pending = visibleProposal, pending.confirmable(under: status) else { return }
-		do {
-			let outcome = try await services.coach.confirm(chatId: .main, nonce: pending.nonce)
-			switch outcome {
-			case .executed(let summary):
-				errorLine = nil
-				confirmation = (Catalog.coachConfirmationExecuted, ["summary": summary])
-			case .expired:
-				errorLine = nil
-				confirmation = (Catalog.coachConfirmationExpired, [:])
-			case .refused(let message), .failed(let message):
-				errorLine = message
-			case .mismatch, .none:
-				errorLine = String(describing: outcome)
-			}
-		} catch {
-			errorLine = String(describing: error)
+	func decide(_ decision: ReviewDecision) async {
+		let outcome = await services.coach.decide(decision, in: .main)
+		switch decision {
+		case .approve, .cancel, .retryRemaining, .checkAgain:
+			reviewNotice = outcome.notice
+		case .presented, .presentationFailed, .showAgain:
+			break
 		}
-	}
-
-	func cancelPending() {
-		dismissedProposal = visibleProposal?.nonce
 	}
 
 	private func showNewConversation(_ outcome: ResetOutcome) {

@@ -194,7 +194,7 @@ func failure(_ state: TurnState) -> CoachFailure? {
 func systemTokens(clock: any Clock) -> Int {
 	let volatile = PromptAssembly.volatile(
 		context: "",
-		snapshot: nil,
+		evidence: EvidenceBlock(wellnessLine: nil),
 		timeZoneName: clock.timeZone.identifier,
 		replyLanguage: PromptAssembly.replyLanguageSection(
 			resolution: LanguageResolution(language: .en, source: .surface, locale: "en"))

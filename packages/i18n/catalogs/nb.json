@@ -1446,7 +1446,8 @@
       "hideContext": "Skjul treningskontekst",
       "showContext": "Vis treningskontekst",
       "title": "Chat"
-    }
+    },
+    "menu": "Meny"
   },
   "plan": {
     "details": {
@@ -2638,7 +2639,9 @@
       "structure": "treningsøktens oppbygging",
       "trainingLoad": "treningsbelastning til {{load}}",
       "unnamed": "Treningsøkt uten navn",
-      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}"
+      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}",
+      "deleteFallback": "Slett en treningsøkt",
+      "updateFallback": "Oppdater en treningsøkt — {{detail}}"
     }
   },
   "cli": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Telegram-token avvist",
         "transferRequired": "Boten må overføres"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
+    "add": "Legg til i kalender",
+    "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
+    "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
+    "title": "Gjennomgang av treningsøkt",
+    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
+    "workout": {
+      "warmup": "Oppvarming",
+      "mainSet": "Hoveddel",
+      "cooldown": "Nedtrapping",
+      "ramp": "gradvis økning"
     }
   }
 }

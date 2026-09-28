@@ -175,12 +175,13 @@ private struct UnreadableLog: RecordLog {
 
 private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
-	case .providerFailure(_, _, let detail), .toolFailed(_, _, let detail),
+	case .providerFailure(_, _, let detail),
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
 		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
 		return detail.count
-	case .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved, .preferencesUnavailable,
-		.trainingUnavailable:
+	case .toolFailed, .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved,
+		.preferencesUnavailable,
+		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil
 	}
 }

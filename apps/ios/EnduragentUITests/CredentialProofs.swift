@@ -1,7 +1,7 @@
 import XCTest
 
 final class DifferentAthleteProof: XCTestCase {
-	func testDifferentAthleteIsRefusedThenSwitchHidesAdd() {
+	func testDifferentAthleteIsRefusedThenSwitchHidesControls() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -26,8 +26,13 @@ final class DifferentAthleteProof: XCTestCase {
 		TutorialHarness.named(app, "credentials.switchAthlete").tap()
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Bo Lind")
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.cancel"))
+		TutorialHarness.waitForIdentifier(
+			app, "chat.preview.notice",
+			reading:
+				"This workout was prepared for a different intervals.icu athlete. Ask me again to prepare it for the connected athlete."
+		)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
 		TutorialHarness.attach(self, name: "switch-confirmed", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}

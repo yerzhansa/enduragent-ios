@@ -70,7 +70,7 @@ final class ShellLanguageTests {
 	}
 
 	@Test(arguments: [true, false])
-	func visibleConfirmationChangesWithTheLanguagePreference(expires: Bool) async throws {
+	func visibleReviewOutcomeChangesWithTheLanguagePreference(expires: Bool) async throws {
 		transport.script = [
 			.toolCall(
 				name: "intervals_create_strength_workout",
@@ -86,21 +86,44 @@ final class ShellLanguageTests {
 		model.draft.text = "Add a core workout tomorrow."
 		await model.send()
 		let deadline = ContinuousClock.now + .seconds(5)
-		while model.visibleProposal == nil || model.isWorking, ContinuousClock.now < deadline {
+		while model.chat?.review == nil || model.isWorking, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
-		let pending = try #require(model.visibleProposal)
+		let review = try #require(model.chat?.review)
 		try #require(!model.isWorking)
+		await model.decide(.presented(review.ref))
+		while model.chat?.review?.controls == ReviewControls.none, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
+			Issue.record("The presented review has no approval control")
+			return
+		}
 		if expires {
 			clock.advance(by: 11 * 60)
 		}
-		await model.confirmPending()
-		let key = expires ? Catalog.coachConfirmationExpired : Catalog.coachConfirmationExecuted
-		let variables = expires ? [:] : ["summary": pending.summary]
-		#expect(model.confirmLine == LanguageTag.en.phrasebook.say(key, variables))
+		await model.decide(.approve(token))
+		if !expires {
+			while model.chat?.notes.isEmpty != false, ContinuousClock.now < deadline {
+				try await Task.sleep(for: .milliseconds(10))
+			}
+			try #require(model.chat?.notes.count == 1)
+		}
+		let visible = {
+			expires
+				? model.reviewNotice?.sentence(in: model.phrasebook)
+				: model.chat?.notes.first?.sentence(in: model.phrasebook)
+		}
+		let expected = { (tag: LanguageTag) in
+			let key = expires ? Catalog.coachConfirmationExpired : Catalog.coachConfirmationExecuted
+			let summary = ReviewSummary.createStrengthWorkout(name: "Core", date: "1998-06-14")
+			return tag.phrasebook.say(
+				key, expires ? [:] : ["summary": summary.sentence(in: tag.phrasebook)])
+		}
+		#expect(visible() == expected(.en))
 		await model.chooseLanguage(.fixed(.es))
 		#expect(model.status?.language == .fixed(.es))
-		#expect(model.confirmLine == LanguageTag.es.phrasebook.say(key, variables))
+		#expect(visible() == expected(.es))
 	}
 
 	private func services(

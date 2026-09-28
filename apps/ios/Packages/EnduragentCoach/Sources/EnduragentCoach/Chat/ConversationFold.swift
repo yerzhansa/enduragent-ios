@@ -2,7 +2,7 @@ import Foundation
 
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
-		[.userMessage, .turnSettled, .windowStart, .compactionSummary],
+		[.userMessage, .turnSettled, .windowStart, .compactionSummary, .reviewApplied],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
@@ -145,6 +145,13 @@ package enum ConversationFold {
 			guard let facts = turns[turn], let first = facts.fragments.first else { continue }
 			segments[segmentIndex(for: first.ulid)].turns.append(facts)
 		}
+		for record in ordered {
+			guard case .synced(.reviewApplied(let body)) = record.body else { continue }
+			segments[segmentIndex(for: record.ulid)].notes.append(
+				ReviewNote(
+					ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
+					summary: body.summary))
+		}
 		for firstIncluded in legacyTrims {
 			segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
 		}
@@ -208,6 +215,11 @@ package enum ConversationFold {
 			case .deviceLocal(.replyObserved(let body)):
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
+			case .synced(.reviewApplied(let body)):
+				next.appendNote(
+					ReviewNote(
+						ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
+						summary: body.summary))
 			case .synced(.windowStart(let body)):
 				guard case .reset(let kind) = body.reason else { continue }
 				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
@@ -297,6 +309,16 @@ package struct Conversation: Sendable, Equatable {
 		segments[segments.count - 1].turns.append(facts)
 	}
 
+	fileprivate mutating func appendNote(_ note: ReviewNote) {
+		guard !segments.contains(where: { $0.notes.contains(note) }) else { return }
+		if segments.isEmpty {
+			segments.append(Segment(id: SegmentID(boundary: nil), openedBy: .chatStart))
+		}
+		let index = segments.lastIndex { $0.id.boundary.map { $0 <= note.ulid } ?? true } ?? 0
+		segments[index].notes.append(note)
+		segments[index].notes.sort { $0.hlc < $1.hlc }
+	}
+
 	package func lastExchange(before turn: TurnID) -> LastExchange {
 		let segment = current
 		guard let running = segment.turns.first(where: { $0.turn == turn })?.firstFragment
@@ -306,82 +328,5 @@ package struct Conversation: Sendable, Equatable {
 		}.flatMap { $0.fragments.map(\.hlc) + $0.settlements.map(\.hlc) }
 		guard let latest = stamps.max() else { return .none }
 		return latest.wallMs > 0 ? .at(latest.wallTime) : .malformed
-	}
-}
-
-package struct SegmentID: Hashable, Sendable {
-	package let boundary: ULID?
-}
-
-package enum SegmentOpening: Sendable, Equatable {
-	case chatStart
-	case reset(ResetKind)
-}
-
-package struct PromptWindow: Sendable, Equatable {
-	package var firstIncluded: ULID?
-	package var opened: ULID?
-	package var summary: CompactionSummaryBody?
-
-	mutating func summarize(_ body: CompactionSummaryBody, at ulid: ULID) {
-		if let opened, ulid < opened {
-			return
-		}
-		summary = body
-	}
-}
-
-package struct PromptHistory: Sendable, Equatable {
-	package var summary: String?
-	package var messages: [ChatMessage]
-	package var ulids: [ULID]
-
-	package func ulid(for message: ChatMessage) -> ULID? {
-		guard let index = messages.firstIndex(of: message) else { return nil }
-		return ulids[index]
-	}
-}
-
-package struct Segment: Sendable, Equatable {
-	package let id: SegmentID
-	package let openedBy: SegmentOpening
-	package var turns: [TurnFacts] = []
-	package var promptWindow = PromptWindow()
-	package var legacyTrim: ULID?
-
-	package var messages: [ChatMessage] {
-		turns.flatMap { visibleRows(of: $0).map(\.message) }
-	}
-
-	package func promptHistory(excluding turn: TurnID?) -> PromptHistory {
-		var history = PromptHistory(
-			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
-		for facts in turns where facts.turn != turn {
-			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
-				continue
-			}
-			for (ulid, message) in visibleRows(of: facts) {
-				history.messages.append(message)
-				history.ulids.append(ulid)
-			}
-		}
-		return history
-	}
-
-	package func hidesQuestion(of facts: TurnFacts) -> Bool {
-		facts.fragments.min { $0.index < $1.index }.map { isTrimmed($0.ulid) } ?? false
-	}
-
-	package func hidesWholly(_ facts: TurnFacts) -> Bool {
-		hidesQuestion(of: facts) && (facts.latestSettlement.map { isTrimmed($0.ulid) } ?? true)
-	}
-
-	private func visibleRows(of facts: TurnFacts) -> [(ulid: ULID, message: ChatMessage)] {
-		facts.messageRows.filter { !isTrimmed($0.ulid) }
-	}
-
-	private func isTrimmed(_ ulid: ULID) -> Bool {
-		guard let legacyTrim else { return false }
-		return ulid < legacyTrim
 	}
 }

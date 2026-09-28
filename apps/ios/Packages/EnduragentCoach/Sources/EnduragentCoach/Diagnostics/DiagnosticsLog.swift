@@ -34,7 +34,7 @@ package struct DiagnosticsEntry: Sendable, Equatable {
 
 package enum DiagnosticsEvent: Sendable, Equatable {
 	case providerFailure(AttemptID, ProviderFailure, detail: String)
-	case toolFailed(AttemptID, ToolName, detail: String)
+	case toolFailed(AttemptID, ToolName, failure: ToolFault)
 	case memoryFlushFailed(ChatID, detail: String)
 	case compactionFailed(ChatID, detail: String)
 	case replyObservedUnsaved(AttemptID, detail: String)
@@ -43,22 +43,22 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case secureStorageFailed(CredentialSlot, detail: String)
 	case automaticResetUnsaved(ChatID, LedgerFailure)
 	case preferencesUnavailable(LedgerFailure)
-	case trainingUnavailable(AttemptID, TrainingFailure)
+	case evidenceUnavailable(AttemptID, TrainingFailure)
+	case reviewOutcomeUnsaved(LedgerFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
 		switch self {
 		case .providerFailure(let attempt, let failure, let detail):
 			return .providerFailure(attempt, failure, detail: Redaction.clean(detail, secrets))
-		case .toolFailed(let attempt, let tool, let detail):
-			return .toolFailed(attempt, tool, detail: Redaction.clean(detail, secrets))
 		case .memoryFlushFailed(let chat, let detail):
 			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .compactionFailed(let chat, let detail):
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .secureStorageFailed(let slot, let detail):
 			return .secureStorageFailed(slot, detail: Redaction.clean(detail, secrets))
-		case .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved,
-			.preferencesUnavailable, .trainingUnavailable:
+		case .toolFailed, .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable,
+			.automaticResetUnsaved,
+			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved:
 			return self
 		}
 	}

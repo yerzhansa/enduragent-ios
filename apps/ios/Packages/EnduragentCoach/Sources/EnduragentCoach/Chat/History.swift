@@ -5,6 +5,7 @@ public struct ArchivedConversation: Sendable, Equatable, Identifiable {
 	public let startedOn: CivilDate
 	public let reason: ArchiveReason
 	public let turns: [TurnView]
+	public let notes: [TranscriptNote]
 }
 
 public struct ArchivedConversationRef: Hashable, Sendable {
@@ -64,14 +65,18 @@ extension Ledger {
 				let views = segment.turnViews(
 					live: nil, window: nil, queued: [], waiting: [], finishedAway: [],
 					device: deviceId, process: process, today: today)
-				guard let first = segment.turns.first?.fragments.first, let opened = views.first
+				let first = segment.turns.first?.fragments.first
+				let note = segment.notes.first
+				guard let started = [first?.hlc, note?.hlc].compactMap({ $0 }).min(),
+					let date = views.first?.sentOn ?? note?.date
 				else { continue }
 				archived.append(
 					(
-						first.hlc,
+						started,
 						ArchivedConversation(
 							id: ArchivedConversationRef(chat: chat, segment: segment.id),
-							startedOn: opened.sentOn, reason: reason, turns: views)
+							startedOn: date, reason: reason, turns: views,
+							notes: segment.transcriptNotes(among: views))
 					))
 			}
 		}
@@ -83,6 +88,6 @@ extension Conversation {
 	fileprivate var earlierChat: Segment {
 		Segment(
 			id: SegmentID(boundary: nil), openedBy: .chatStart,
-			turns: segments.flatMap(\.turns))
+			turns: segments.flatMap(\.turns), notes: segments.flatMap(\.notes))
 	}
 }

@@ -3,16 +3,18 @@ import Foundation
 final class ChatRecords {
 	private let chat: ChatID
 	private let ledger: Ledger
+	private let reviews: any WorkoutReviews
 	private let clock: any Clock
 	private(set) var conversation: Conversation
-	var pendingProposal: PendingProposal?
+	private(set) var review: ReviewSnapshot?
 	private(set) var jobs: [FlushJob] = []
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 
-	init(chat: ChatID, ledger: Ledger, clock: any Clock) {
+	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
 		self.chat = chat
 		self.ledger = ledger
+		self.reviews = reviews
 		self.clock = clock
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
@@ -35,7 +37,7 @@ final class ChatRecords {
 		defer { loading = nil }
 		do {
 			let folded = try await ledger.conversation(chat)
-			pendingProposal = try await ProposalPolicy.pending(chat, from: ledger, at: clock.now)
+			review = try await reviews.snapshot(chat: chat)
 			jobs = try await ledger.flushJobs(in: folded)
 			conversation = folded
 			loaded = true
@@ -45,11 +47,14 @@ final class ChatRecords {
 		}
 	}
 
-	func refreshProposal(isolation: isolated (any Actor)? = #isolation) async {
+	func refreshReview(isolation: isolated (any Actor)? = #isolation) async {
 		do {
-			pendingProposal = try await ProposalPolicy.pending(chat, from: ledger, at: clock.now)
+			try await refreshNotes()
+			review = try await reviews.snapshot(chat: chat)
 		} catch {
-			pendingProposal = nil
+			switch error {
+			case .unavailable, .rejectedBatch: review = nil
+			}
 		}
 	}
 
@@ -63,6 +68,13 @@ final class ChatRecords {
 	func apply(_ committed: [AthleteRecord]) {
 		conversation = ConversationFold.applying(
 			committed, to: conversation, device: ledger.deviceId)
+	}
+
+	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		let notes = try await ledger.read(
+			RecordQuery(scope: .synced([.reviewApplied]), chatId: chat))
+		conversation = ConversationFold.applying(
+			notes.records, to: conversation, device: ledger.deviceId)
 	}
 
 	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {

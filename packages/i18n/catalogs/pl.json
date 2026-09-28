@@ -1472,7 +1472,8 @@
       "hideContext": "Ukryj kontekst treningowy",
       "showContext": "Pokaż kontekst treningowy",
       "title": "Czat"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {
@@ -2712,7 +2713,9 @@
       "structure": "strukturę treningu",
       "trainingLoad": "obciążenie treningowe na {{load}}",
       "unnamed": "Trening bez nazwy",
-      "update": "Zaktualizuj trening „{{name}}” z {{date}} — {{detail}}"
+      "update": "Zaktualizuj trening „{{name}}” z {{date}} — {{detail}}",
+      "deleteFallback": "Usuń trening",
+      "updateFallback": "Zaktualizuj trening — {{detail}}"
     }
   },
   "telegram": {
@@ -2954,6 +2957,20 @@
         "tokenRejected": "Token usługi Telegram został odrzucony",
         "transferRequired": "Wymagane przeniesienie bota"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Ten trening przygotowano dla innego sportowca w {{service}}. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca.",
+    "add": "Dodaj do kalendarza",
+    "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
+    "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
+    "title": "Przegląd treningu",
+    "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
+    "workout": {
+      "warmup": "Rozgrzewka",
+      "mainSet": "Seria główna",
+      "cooldown": "Schłodzenie",
+      "ramp": "narastająco"
     }
   }
 }

@@ -12,6 +12,7 @@ enum SyncedPayload: Encodable {
 	case provenance(ProvenancePayload)
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
+	case reviewApplied(ReviewAppliedPayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
 
@@ -84,6 +85,9 @@ enum SyncedPayload: Encodable {
 					activatedAt: value.activatedAt.timeIntervalSince1970
 				)
 			)
+		case .reviewApplied(let value):
+			self = .reviewApplied(
+				ReviewAppliedPayload(value))
 		case .sessionSettings(let value):
 			self = .sessionSettings(SessionSettingsPayload(value))
 		case .languagePreference(let value):
@@ -104,6 +108,7 @@ enum SyncedPayload: Encodable {
 		case .provenance(let payload): try payload.encode(to: encoder)
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
+		case .reviewApplied(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
 		}

@@ -80,6 +80,9 @@
 		}
 
 		private func detail(_ body: RecordBody) -> String {
+			if case .deviceLocal(.proposalCleared(let cleared)) = body {
+				return cleared.reason.rawValue
+			}
 			if case .deviceLocal(.turnClaim(let claim)) = body {
 				return claim.lease.rawValue
 			}

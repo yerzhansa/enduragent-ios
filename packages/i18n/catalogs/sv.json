@@ -1446,7 +1446,8 @@
       "hideContext": "Dölj träningsunderlag",
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
-    }
+    },
+    "menu": "Meny"
   },
   "training": {
     "export": {
@@ -2646,7 +2647,9 @@
       "structure": "träningspassets upplägg",
       "trainingLoad": "träningsbelastning till {{load}}",
       "unnamed": "Namnlöst träningspass",
-      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}"
+      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}",
+      "deleteFallback": "Ta bort ett träningspass",
+      "updateFallback": "Uppdatera ett träningspass. {{detail}}"
     }
   },
   "telegram": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Telegram-token avvisad",
         "transferRequired": "Boten behöver överföras"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
+    "add": "Lägg till i kalendern",
+    "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
+    "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
+    "title": "Granskning av träningspass",
+    "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
+    "workout": {
+      "warmup": "Uppvärmning",
+      "mainSet": "Huvuddel",
+      "cooldown": "Nedvarvning",
+      "ramp": "gradvis ökning"
     }
   }
 }

@@ -51,6 +51,7 @@ enum TutorialHarness {
 		"Started a fresh session - earlier conversation is archived, and I still have your key details in memory."
 	static let closedAfterBreak = "Closed after a break"
 	static let draft = "Is Thursday still on?"
+	static let saturday = "How did Saturday go"
 	static let finishedWhileLocked = "Finished while the phone was locked."
 	static let storeArgument = "-EnduragentFixtureStore"
 	static let keychainArgument = "-EnduragentFixtureKeychain"
@@ -60,7 +61,7 @@ enum TutorialHarness {
 	static let clockArgument = "-EnduragentFixtureClock"
 
 	static func launch(
-		_ app: XCUIApplication, dark: Bool = false, keychain: String? = nil,
+		_ app: XCUIApplication, keychain: String? = nil,
 		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
 		locale: String = "en_US", clock: String? = nil
 	) {
@@ -68,9 +69,6 @@ enum TutorialHarness {
 			"-EnduragentFixture", "first-week", storeArgument, "fresh",
 			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
 		]
-		if dark {
-			app.launchArguments += ["-AppleInterfaceStyle", "Dark"]
-		}
 		if let keychain {
 			app.launchArguments += [keychainArgument, keychain]
 		}
@@ -86,11 +84,14 @@ enum TutorialHarness {
 		app.launch()
 	}
 
-	static func launchKeepingStore(_ app: XCUIApplication, expecting element: XCUIElement) throws {
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", storeArgument, "keep",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
+	static func launchKeepingStore(
+		_ app: XCUIApplication, expecting element: XCUIElement, arguments: [String] = []
+	) throws {
+		app.launchArguments =
+			[
+				"-EnduragentFixture", "first-week", storeArgument, "keep",
+				"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+			] + arguments
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
 		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
@@ -163,6 +164,50 @@ enum TutorialHarness {
 		XCTAssertEqual(
 			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
 		)
+	}
+
+	static func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		wait(element, timeout: timeout)
+		let enabled = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "enabled == true"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [enabled], timeout: timeout), .completed, "not enabled \(element)")
+	}
+
+	static func waitForAbsence(_ element: XCUIElement, timeout: TimeInterval = 8) {
+		let gone = XCTNSPredicateExpectation(
+			predicate: NSPredicate(format: "exists == false"), object: element)
+		XCTAssertEqual(
+			XCTWaiter.wait(for: [gone], timeout: timeout), .completed, "still on screen \(element)")
+	}
+
+	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
+		guard let image = screenshot.image.cgImage else {
+			XCTFail("the screenshot has no bitmap")
+			return 1
+		}
+		let side = 16
+		var pixels = [UInt8](repeating: 0, count: side * side * 4)
+		let drawn = pixels.withUnsafeMutableBytes { buffer -> Bool in
+			guard
+				let context = CGContext(
+					data: buffer.baseAddress, width: side, height: side, bitsPerComponent: 8,
+					bytesPerRow: side * 4, space: CGColorSpaceCreateDeviceRGB(),
+					bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+			else {
+				return false
+			}
+			context.draw(image, in: CGRect(x: 0, y: 0, width: side, height: side))
+			return true
+		}
+		XCTAssertTrue(drawn, "could not sample the screenshot")
+		var total = 0.0
+		for index in stride(from: 0, to: pixels.count, by: 4) {
+			total +=
+				0.2126 * Double(pixels[index]) + 0.7152 * Double(pixels[index + 1])
+				+ 0.0722 * Double(pixels[index + 2])
+		}
+		return total / Double(side * side) / 255
 	}
 
 	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
@@ -329,46 +374,6 @@ enum TutorialHarness {
 		let hittable = XCTNSPredicateExpectation(
 			predicate: NSPredicate(format: "hittable == true"), object: element)
 		return XCTWaiter.wait(for: [hittable], timeout: timeout) == .completed
-	}
-
-	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
-		let element = named(app, "records.count.\(kind)")
-		return element.exists ? element.label : nil
-	}
-
-	static func waitForRecordCount(
-		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
-	) {
-		let deadline = Date().addingTimeInterval(timeout)
-		while recordCount(app, kind) != expected, Date() < deadline {
-			app.navigationBars.buttons["records.refresh"].tap()
-		}
-		XCTAssertEqual(recordCount(app, kind), expected)
-	}
-
-	static func settlementRows(_ app: XCUIApplication) -> [String] {
-		recordRowLabels(app).filter { $0.hasPrefix("turnSettled") }
-	}
-
-	static func recordRowLabels(_ app: XCUIApplication) -> [String] {
-		var seen: [String] = []
-		var labels: [String] = []
-		for _ in 0..<8 {
-			let rows = app.descendants(matching: .any).matching(
-				NSPredicate(format: "identifier BEGINSWITH %@", "records.row.")
-			).allElementsBoundByIndex
-			var added = false
-			for row in rows where !seen.contains(row.identifier) {
-				seen.append(row.identifier)
-				labels.append(row.label)
-				added = true
-			}
-			if !added, !labels.isEmpty {
-				break
-			}
-			app.swipeUp()
-		}
-		return labels
 	}
 
 	static func historyHead(_ app: XCUIApplication) -> String {

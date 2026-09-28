@@ -1446,7 +1446,8 @@
       "hideContext": "Ocultar contexto de treino",
       "showContext": "Mostrar contexto de treino",
       "title": "Conversa"
-    }
+    },
+    "menu": "Menu"
   },
   "plan": {
     "details": {
@@ -2646,7 +2647,9 @@
       "structure": "estrutura do treino",
       "trainingLoad": "carga de treino para {{load}}",
       "unnamed": "Treino sem nome",
-      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}"
+      "update": "Atualizar o treino \"{{name}}\" em {{date}}. {{detail}}",
+      "deleteFallback": "Eliminar um treino",
+      "updateFallback": "Atualizar um treino. {{detail}}"
     }
   },
   "telegram": {
@@ -2882,6 +2885,20 @@
         "tokenRejected": "Token do Telegram rejeitado",
         "transferRequired": "É necessário transferir o bot"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Pede-me novamente para o preparar para o atleta ligado.",
+    "add": "Adicionar ao calendário",
+    "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
+    "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
+    "title": "Revisão do treino",
+    "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
+    "workout": {
+      "warmup": "Aquecimento",
+      "mainSet": "Série principal",
+      "cooldown": "Arrefecimento",
+      "ramp": "rampa"
     }
   }
 }

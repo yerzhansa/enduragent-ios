@@ -11,8 +11,8 @@ import Testing
 		client.loadFailure = CancellationError()
 		let diagnostics = DiagnosticsLog(clock: clock)
 		await #expect(throws: CancellationError.self) {
-			try await connection().loadSnapshot(
-				clock: clock, attempt: AttemptID(ulid: fixedUlid(1)), diagnostics: diagnostics)
+			try await WellnessEvidence(clock: clock, diagnostics: diagnostics).block(
+				for: try connection(), attempt: AttemptID(ulid: fixedUlid(1)), now: clock.now)
 		}
 		#expect(diagnostics.entries.isEmpty)
 	}
@@ -24,14 +24,19 @@ import Testing
 	func wellnessDiagnosticPreservesTheFailureClassification(
 		status: Int, failure: TrainingFailure
 	) async throws {
-		client.loadFailure = IntervalsError(
+		let error = IntervalsError(
 			code: "failed", details: "private upstream detail", status: status)
+		client.loadFailure = error
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let attempt = AttemptID(ulid: fixedUlid(1))
 		#expect(
-			try await connection().loadSnapshot(
-				clock: clock, attempt: attempt, diagnostics: diagnostics) == nil)
-		#expect(diagnostics.entries.map(\.event) == [.trainingUnavailable(attempt, failure)])
+			try await WellnessEvidence(clock: clock, diagnostics: diagnostics).block(
+				for: try connection(), attempt: AttemptID(ulid: fixedUlid(1)), now: clock.now
+			).wellnessLine == nil)
+		#expect(
+			diagnostics.entries.map(\.event) == [
+				.evidenceUnavailable(attempt, failure)
+			])
 	}
 
 	private func connection() throws -> TrainingConnection {
