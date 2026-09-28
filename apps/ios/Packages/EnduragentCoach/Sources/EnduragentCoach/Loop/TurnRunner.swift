@@ -6,11 +6,8 @@ public enum TurnPolicy {
 	public static let toolResultTokenCap = 24_000
 	public static let athleteContextChars = 20_000
 	public static let historyBudgetFloor = 8_000
-	public static let historyTokenBudgetRatio = 0.3
 	public static let contextWindowCap = 200_000
 	public static let reserveTokens = 20_000
-	public static let dailyResetHour = 4
-	public static let dailyResetGrace: Duration = .seconds(30 * 60)
 	public static let proposalTTL: Duration = .seconds(10 * 60)
 	public static let ungatedPrefixTokenCeiling = 13_200
 	public static let gatedPrefixTokenCeiling = 13_600
@@ -22,10 +19,16 @@ package struct TurnAttempt: Sendable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguagePreference
+	package let language: LanguageResolution
+	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
 	package let process: ProcessID
+	package let autoReset: ResetKind?
+
+	package var models: ModelRoles {
+		ModelRoles(response: access.model, session: session)
+	}
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -122,7 +125,7 @@ package struct TurnRunner: Sendable {
 					committed: await scope.written,
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
-					effectiveWindow: TurnPolicy.contextWindowCap,
+					effectiveWindow: prompt.window,
 					flushLatchFree: await scope.flushLatchFree,
 					accessMethod: attempt.access.method,
 					jitter: Double.random(in: 0..<1)
@@ -190,7 +193,9 @@ package struct TurnRunner: Sendable {
 			return
 		}
 		_ = try await flushes.run(
-			job, messages: rows.map(\.message), access: attempt.access, scope: scope)
+			job, messages: rows.map(\.message),
+			access: attempt.access.using(model: attempt.models.flush),
+			scope: scope)
 	}
 
 	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
@@ -208,23 +213,7 @@ package struct TurnRunner: Sendable {
 		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
-		var transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
-		if shouldDailyReset(last: transcript.lastDate) {
-			if !transcript.window.isEmpty {
-				_ = try await flushWork(attempt).open(
-					.staleReset, covering: transcript.window.map(\.ulid), stamp: stamp)
-			}
-			let marker = await ledger.nextULID()
-			_ = try await ledger.commit(
-				synced: [
-					.windowStart(
-						WindowStartBody(
-							chatId: chatId, firstIncludedUlid: marker, reason: .reset(.daily)))
-				],
-				stamp: stamp
-			)
-			transcript = transcript.afterReset()
-		}
+		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 
 		let memory = Memory(ledger: ledger, clock: clock)
 		let context = (try? await memory.context()) ?? ""
@@ -240,13 +229,7 @@ package struct TurnRunner: Sendable {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let snapshot = try await attempt.training.loadSnapshot(
 			clock: clock, attempt: attempt.attempt, diagnostics: diagnostics)
-		let language = attempt.language
-		let resolution = LanguageResolution(
-			language: language.coachReply ?? language.ui,
-			source: language.coachReply == nil ? .surface : .preference,
-			locale: language.ui.rawValue
-		)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: resolution)
+		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			snapshot: snapshot,
@@ -257,7 +240,7 @@ package struct TurnRunner: Sendable {
 		let history = transcript.history
 		let trim = HistoryWindow.trim(
 			messages: history.messages, systemTokens: estimateTokens(system),
-			ratio: TurnPolicy.historyTokenBudgetRatio)
+			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
 		var summary = history.summary
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
@@ -297,9 +280,12 @@ package struct TurnRunner: Sendable {
 		)
 		var wire = kept.map(wireMessage(from:))
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
+		let archived = attempt.autoReset.map { _ in PromptAssembly.archiveMarker(at: clock.now) }
 		return TurnPrompt(
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
-			wire: wire, inTurnRows: transcript.window + [transcript.current].compactMap { $0 })
+			archiveMarker: archived, wire: wire,
+			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
+			window: attempt.models.chatWindow)
 	}
 
 	private func summarizeDropped(
@@ -328,7 +314,7 @@ package struct TurnRunner: Sendable {
 	{
 		try await generateStep(
 			request: CompletionRequest(
-				access: attempt.access,
+				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,
 				charge: charge,
 				messages: [
@@ -379,7 +365,7 @@ package struct TurnRunner: Sendable {
 			steps += 1
 			lastText = step.text
 			lastReason = step.reason
-			if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
+			if step.reason == .length, step.usage.inputTokens >= prompt.window {
 				throw AttemptFailure.windowExceededFinish
 			}
 			if step.toolCalls.isEmpty {
@@ -598,18 +584,6 @@ package struct TurnRunner: Sendable {
 			throw AttemptFailure.rescueFailed(.windowExceededFinish)
 		}
 	}
-
-	private func shouldDailyReset(last: Date?) -> Bool {
-		guard let last else { return false }
-		let resetAt = dailyResetDate(
-			now: clock.now, timeZone: clock.timeZone, hour: TurnPolicy.dailyResetHour)
-		guard last < resetAt else { return false }
-		let grace = TurnPolicy.dailyResetGrace.timeInterval
-		if clock.now.timeIntervalSince(last) < grace {
-			return false
-		}
-		return true
-	}
 }
 
 private struct TurnPrompt: Sendable {
@@ -618,20 +592,20 @@ private struct TurnPrompt: Sendable {
 	let schemas: [ToolSchema]
 	let timed: String
 	var summary: String?
+	let archiveMarker: String?
 	var wire: [WireMessage]
 	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let window: Int
 
 	var systemMessage: WireMessage {
 		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
 	}
 
 	var summaryMessages: [WireMessage] {
-		guard let summary else { return [] }
-		return [
-			WireMessage(
-				role: .system, content: PromptAssembly.summaryMessage(summary), toolCalls: [],
-				toolCallId: nil)
-		]
+		let summaries = [summary.map(PromptAssembly.summaryMessage), archiveMarker]
+		return summaries.compactMap { $0 }.map { content in
+			WireMessage(role: .system, content: content, toolCalls: [], toolCallId: nil)
+		}
 	}
 
 	var estimatedTokens: Int {
@@ -640,7 +614,7 @@ private struct TurnPrompt: Sendable {
 	}
 
 	var overBudget: Bool {
-		estimatedTokens > TurnPolicy.contextWindowCap - TurnPolicy.reserveTokens
+		estimatedTokens > window - TurnPolicy.reserveTokens
 	}
 }
 
@@ -699,18 +673,4 @@ private func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 			"estimatedTokens": .number(Double(tokens)),
 		]).canonicalDigestInput()
 	}
-}
-
-private func dailyResetDate(now: Date, timeZone: TimeZone, hour: Int) -> Date {
-	var calendar = Calendar(identifier: .gregorian)
-	calendar.timeZone = timeZone
-	var parts = calendar.dateComponents([.year, .month, .day], from: now)
-	parts.hour = hour
-	parts.minute = 0
-	parts.second = 0
-	let todayReset = calendar.date(from: parts) ?? now
-	if now < todayReset {
-		return calendar.date(byAdding: .day, value: -1, to: todayReset) ?? todayReset
-	}
-	return todayReset
 }

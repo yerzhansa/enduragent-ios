@@ -56,7 +56,7 @@ import Testing
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(
 			conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
-		#expect(conversation.lastExchange == .at(Date(timeIntervalSince1970: 0.004)))
+		#expect(conversation.lastExchange(before: turn) == .at(Date(timeIntervalSince1970: 0.002)))
 	}
 
 	@Test func resetBoundaryFromAnyDeviceSplitsSegments() throws {

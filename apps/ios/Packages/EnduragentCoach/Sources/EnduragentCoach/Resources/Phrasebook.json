@@ -121217,6 +121217,42 @@
         }
       }
     },
+    "language.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in %#@current@. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "language.saveFailedAutomatic": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
     "onboarding.notice.health": {
       "localizations": {
         "en": {
@@ -207891,6 +207927,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法使用對話設定。請重新連線並重新載入。"
+          }
+        }
+      }
+    },
+    "settings.conversation.validation.contextWindowTokens": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a safe whole number of tokens, 1 or more."
           }
         }
       }

@@ -36,7 +36,7 @@ import Testing
 		#expect(claims.count == 2)
 		#expect(
 			await host.ended(1)?.ending
-				== .finished(CompletionNotice(reply: "Still on.", turn: turn)))
+				== .finished(CompletionNotice(reply: "Still on.", turn: turn, language: .en)))
 	}
 
 	@Test func aStoppedReplyNeverShowsAsQueuedAfterItStops() async throws {
@@ -143,7 +143,8 @@ import Testing
 		#expect(transport.requests.count == 1)
 		#expect(await host.ended(0)?.ending == .interrupted)
 		#expect(
-			await host.ended(1)?.ending == .finished(CompletionNotice(reply: "Three.", turn: third))
+			await host.ended(1)?.ending
+				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))
 		)
 	}
 }

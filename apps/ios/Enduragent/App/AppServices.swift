@@ -43,7 +43,6 @@ struct AppServices: Sendable {
 
 	var coach: Coach
 	var deviceCheck: any DeviceCheckTokenProviding
-	var phrasebook: any Phrasebook
 	var clock: any Clock
 	var fixtureDirector: FixtureDirector?
 	var leases: @Sendable () async -> [LeaseRecord]
@@ -65,10 +64,8 @@ struct AppServices: Sendable {
 			throw FixtureLaunchError.unknownFixture(launch.name)
 		}
 		FixtureBlockingURLProtocol.register()
-		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let clock = FixtureClock(
-			calendar: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana"))
+			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()
@@ -104,13 +101,12 @@ struct AppServices: Sendable {
 				clock: clock
 			),
 			builtInModel: builtInModel,
-			language: LanguagePreference(ui: language, coachReply: nil),
+			deviceLanguage: Language.uiTag(systemLanguages: Locale.preferredLanguages),
 			coalescing: launch.coalescing
 		)
 		return AppServices(
 			coach: coach,
 			deviceCheck: FakeDeviceCheckTokenProvider(),
-			phrasebook: phrasebook,
 			clock: clock,
 			fixtureDirector: FixtureDirector(
 				transport: transport, records: records, host: host, secrets: secrets,
@@ -128,10 +124,8 @@ struct AppServices: Sendable {
 			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 			local: try ModelContainerHandle.deviceLocal(directory: directory)
 		)
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
 		let host = ContinuedProcessingHost(
-			phrasebook: phrasebook, bundleIdentifier: bundleIdentifier,
-			system: LiveBackgroundSystem())
+			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
@@ -144,12 +138,11 @@ struct AppServices: Sendable {
 				clock: clock
 			),
 			builtInModel: builtInModel,
-			language: LanguagePreference(ui: language, coachReply: nil)
+			deviceLanguage: language
 		)
 		return AppServices(
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
-			phrasebook: phrasebook,
 			clock: clock,
 			fixtureDirector: nil,
 			leases: { await host.leases }
@@ -171,10 +164,6 @@ final class ServicesBuilder {
 	let language: LanguageTag
 	let defaults: UserDefaults
 	let services: AppServices
-
-	var phrasebook: any Phrasebook {
-		services.phrasebook
-	}
 
 	var deviceCheck: any DeviceCheckTokenProviding {
 		services.deviceCheck

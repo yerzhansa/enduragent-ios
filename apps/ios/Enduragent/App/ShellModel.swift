@@ -8,6 +8,8 @@ import StoreKit
 final class ShellModel {
 	var route: ShellRoute = .onboarding(.notice)
 	private(set) var chat: ChatSnapshot?
+	private(set) var languageNotSaved: LanguagePreference?
+	var showLanguage = false
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
@@ -25,7 +27,7 @@ final class ShellModel {
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
-	var confirmLine: String?
+	private var confirmation: (key: CatalogKey, vars: [String: String])?
 	var showSidebar = false
 	var showCredits = false
 	var packPrices: [String: String] = [:]
@@ -34,10 +36,12 @@ final class ShellModel {
 	let lifecycle: AppLifecycle
 	let drafts: DraftStore
 	private let defaults: UserDefaults
+	private let initialLanguage: LanguagePreference
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
 
-	init(builder: ServicesBuilder) {
+	init(builder: ServicesBuilder, initialLanguage: LanguagePreference = .automatic) {
+		self.initialLanguage = initialLanguage
 		self.builder = builder
 		self.lifecycle = AppLifecycle(builder: builder)
 		self.defaults = builder.defaults
@@ -55,6 +59,24 @@ final class ShellModel {
 
 	var services: AppServices {
 		builder.services
+	}
+
+	var languagePreference: LanguagePreference {
+		status?.language ?? initialLanguage
+	}
+
+	var phrasebook: any Phrasebook {
+		languagePreference.phrasebook(device: builder.language)
+	}
+
+	var confirmLine: String? {
+		confirmation.map { phrasebook.say($0.key, $0.vars) }
+	}
+
+	var languageNotSavedLine: String? {
+		languageNotSaved.map {
+			$0.notSaved(keeping: languagePreference, in: phrasebook)
+		}
 	}
 
 	var connected: IntervalsSummary? {
@@ -95,7 +117,7 @@ final class ShellModel {
 			didConnect = true
 			await refreshStatus()
 		case .kept, .disconnected, .refused, .failedPreviousKept:
-			connectError = builder.phrasebook.say(Catalog.connectErrorRejected, [:])
+			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
 		}
 	}
@@ -128,7 +150,7 @@ final class ShellModel {
 					?? "This device already used its starter credits."
 			}
 		} catch {
-			starterLine = AthleteNotice.credits(failure: error).sentence(in: builder.phrasebook)
+			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
 		}
 		starterResolved = true
 	}
@@ -141,13 +163,17 @@ final class ShellModel {
 	}
 
 	func appear() async {
-		guard route == .chat else { return }
-		observeChat()
+		if route == .chat {
+			observeChat()
+		}
 		await refreshStatus()
 	}
 
-	func refreshStatus() async {
-		status = await services.coach.status()
+	@discardableResult
+	func refreshStatus() async -> CoachStatus {
+		let current = await services.coach.status()
+		status = current
+		return current
 	}
 
 	func sceneChanged(_ event: AppLifecycleEvent) async {
@@ -163,7 +189,7 @@ final class ShellModel {
 	}
 
 	func newConversation() async {
-		confirmLine = nil
+		confirmation = nil
 		errorLine = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
@@ -225,7 +251,7 @@ final class ShellModel {
 		notSent = false
 		newConversationUncertain = false
 		errorLine = nil
-		confirmLine = nil
+		confirmation = nil
 		slashListVisible = false
 		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
 			errorLine = message
@@ -233,8 +259,12 @@ final class ShellModel {
 		}
 		do {
 			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
-			case .accepted, .showLanguagePicker:
+			case .accepted:
 				clear(sent)
+			case .showLanguagePicker:
+				clear(sent)
+				languageNotSaved = nil
+				showLanguage = true
 			case .newConversation(let outcome):
 				clear(sent)
 				showNewConversation(outcome)
@@ -259,6 +289,24 @@ final class ShellModel {
 		await services.coach.stop(.main)
 	}
 
+	func chooseLanguage(_ preference: LanguagePreference) async {
+		do {
+			try await services.coach.setLanguage(preference)
+			languageNotSaved = nil
+		} catch {
+			switch error {
+			case .notSaved:
+				languageNotSaved = preference
+			}
+		}
+		await refreshStatus()
+	}
+
+	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await services.coach.setSession(settings)
+		await refreshStatus()
+	}
+
 	func confirmPending() async {
 		guard let pending = visibleProposal, pending.confirmable(under: status) else { return }
 		do {
@@ -266,11 +314,10 @@ final class ShellModel {
 			switch outcome {
 			case .executed(let summary):
 				errorLine = nil
-				confirmLine = builder.phrasebook.say(
-					Catalog.coachConfirmationExecuted, ["summary": summary])
+				confirmation = (Catalog.coachConfirmationExecuted, ["summary": summary])
 			case .expired:
 				errorLine = nil
-				confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])
+				confirmation = (Catalog.coachConfirmationExpired, [:])
 			case .refused(let message), .failed(let message):
 				errorLine = message
 			case .mismatch, .none:

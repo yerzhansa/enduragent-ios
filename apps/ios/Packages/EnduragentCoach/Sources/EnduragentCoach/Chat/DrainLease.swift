@@ -10,18 +10,24 @@ package final class DrainLease: Sendable {
 
 	private enum Command: Sendable {
 		case report(LeaseProgress)
-		case end(LeaseEnding)
+		case finish(LastReply?)
+		case interrupt
 	}
 
 	package init(
 		_ generation: Int, host: any ExecutionHost, chat: ChatID, initiator: LeaseInitiator,
+		language: @escaping @Sendable () async -> LanguageTag,
 		onExpiry: @escaping @Sendable (ExpiryCause) async -> Void
 	) {
 		self.generation = generation
 		self.initiator = initiator
-		let request = LeaseRequest(
-			chat: chat, initiatedBy: initiator, title: Catalog.chatNoticeWorking)
-		let begun = Task { await host.beginLease(request, onExpiry: onExpiry) }
+		let begun = Task {
+			let spoken = await language()
+			let request = LeaseRequest(
+				chat: chat, initiatedBy: initiator, title: Catalog.chatNoticeWorking,
+				language: spoken)
+			return await host.beginLease(request, onExpiry: onExpiry)
+		}
 		let (stream, commands) = AsyncStream<Command>.makeStream(bufferingPolicy: .unbounded)
 		self.begun = begun
 		self.commands = commands
@@ -31,8 +37,15 @@ package final class DrainLease: Sendable {
 				switch command {
 				case .report(let progress):
 					await lease.report(progress)
-				case .end(let ending):
-					await lease.end(ending)
+				case .finish(let reply):
+					let spoken = await language()
+					let notice = reply.map {
+						CompletionNotice(reply: $0.text, turn: $0.turn, language: spoken)
+					}
+					await lease.end(.finished(notice))
+					return
+				case .interrupt:
+					await lease.end(.interrupted)
 					return
 				}
 			}
@@ -61,19 +74,19 @@ package final class DrainLease: Sendable {
 	}
 
 	package func finish() {
-		end(.finished(tally.withLock { $0.notice }))
+		end(.finish(tally.withLock { $0.reply }))
 	}
 
 	package func interrupt() {
-		end(.interrupted)
+		end(.interrupt)
 	}
 
 	private func report(_ progress: LeaseProgress) {
 		commands.yield(.report(progress))
 	}
 
-	private func end(_ ending: LeaseEnding) {
-		commands.yield(.end(ending))
+	private func end(_ command: Command) {
+		commands.yield(command)
 		commands.finish()
 	}
 }
@@ -81,12 +94,17 @@ package final class DrainLease: Sendable {
 package struct LeaseSlot: Sendable {
 	private let host: any ExecutionHost
 	private let chat: ChatID
+	private let language: @Sendable () async -> LanguageTag
 	private(set) var current: DrainLease?
 	private var generation = 0
 
-	package init(host: any ExecutionHost, chat: ChatID) {
+	package init(
+		host: any ExecutionHost, chat: ChatID,
+		language: @escaping @Sendable () async -> LanguageTag
+	) {
 		self.host = host
 		self.chat = chat
+		self.language = language
 	}
 
 	mutating func hold(
@@ -98,8 +116,9 @@ package struct LeaseSlot: Sendable {
 		}
 		current?.finish()
 		generation += 1
-		let begun = DrainLease(generation, host: host, chat: chat, initiator: initiator) {
-			[generation] cause in
+		let begun = DrainLease(
+			generation, host: host, chat: chat, initiator: initiator, language: language
+		) { [generation] cause in
 			await onExpiry(generation, cause)
 		}
 		current = begun
@@ -121,7 +140,7 @@ private struct LeaseTally: Sendable {
 	private var turns: Set<TurnID> = []
 	private var settled: Set<TurnID> = []
 	private var currentStep = 0
-	private(set) var notice: CompletionNotice?
+	private(set) var reply: LastReply?
 
 	mutating func add(_ turn: TurnID) -> LeaseProgress {
 		turns.insert(turn)
@@ -139,7 +158,7 @@ private struct LeaseTally: Sendable {
 		settled.insert(turn)
 		switch reply {
 		case .model(let text)?:
-			notice = CompletionNotice(reply: text, turn: turn)
+			self.reply = LastReply(text: text, turn: turn)
 		case nil:
 			break
 		}
@@ -151,4 +170,9 @@ private struct LeaseTally: Sendable {
 			settledTurns: settled.count, totalTurns: turns.count, step: currentStep,
 			stepLimit: TurnBudgetPolicy.npm.maxStepsPerInvocation)
 	}
+}
+
+private struct LastReply: Sendable {
+	let text: String
+	let turn: TurnID
 }

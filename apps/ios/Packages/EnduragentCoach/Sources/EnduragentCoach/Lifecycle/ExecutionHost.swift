@@ -17,11 +17,19 @@ public struct LeaseRequest: Sendable, Equatable {
 	public let chat: ChatID
 	public let initiatedBy: LeaseInitiator
 	public let title: CatalogKey
+	public let language: LanguageTag
 
-	public init(chat: ChatID, initiatedBy: LeaseInitiator, title: CatalogKey) {
+	public init(
+		chat: ChatID, initiatedBy: LeaseInitiator, title: CatalogKey, language: LanguageTag
+	) {
 		self.chat = chat
 		self.initiatedBy = initiatedBy
 		self.title = title
+		self.language = language
+	}
+
+	public var titleText: String {
+		language.phrasebook.say(title)
 	}
 }
 
@@ -65,12 +73,18 @@ public struct CompletionNotice: Sendable, Equatable {
 	public let title: CatalogKey
 	public let excerpt: String
 	public let turn: TurnID
+	public let language: LanguageTag
 
-	package init(reply: String, turn: TurnID) {
+	package init(reply: String, turn: TurnID, language: LanguageTag) {
 		self.title = Catalog.archiveCoach
 		self.excerpt = String(
 			reply.trimmingCharacters(in: .whitespacesAndNewlines).prefix(Self.excerptLimit))
 		self.turn = turn
+		self.language = language
+	}
+
+	public var titleText: String {
+		language.phrasebook.say(title)
 	}
 }
 

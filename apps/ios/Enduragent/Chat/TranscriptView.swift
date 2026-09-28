@@ -8,13 +8,19 @@ struct TranscriptView: View {
 		ScrollViewReader { proxy in
 			List {
 				Group {
-					if let opening = model.chat?.opening, opening != .continuing {
-						Text(
-							Welcome.text(
-								in: model.builder.phrasebook, showsSyncLine: model.connected != nil)
-						)
-						.accessibilityIdentifier("chat.welcome")
-						if let notice = opening.notice {
+					if let opening = model.chat?.opening {
+						if opening.showsWelcome {
+							Text(
+								Welcome.text(
+									in: model.phrasebook, showsSyncLine: model.connected != nil)
+							)
+							.accessibilityIdentifier("chat.welcome")
+						}
+						if case .afterAutomaticReset = opening, let notice = opening.notice {
+							Text(model.phrasebook.say(notice, [:]))
+								.foregroundStyle(.secondary)
+								.accessibilityIdentifier("chat.automaticReset.notice")
+						} else if let notice = opening.notice {
 							newConversationNotice(notice)
 						}
 					}
@@ -22,7 +28,7 @@ struct TranscriptView: View {
 						TurnRowView(model: model, turn: turn)
 					}
 					if case .startingNewConversation(let label)? = model.chat?.activity {
-						Text(model.builder.phrasebook.say(label, [:]))
+						Text(model.phrasebook.say(label, [:]))
 							.foregroundStyle(.secondary)
 							.accessibilityIdentifier("chat.working")
 					}
@@ -53,7 +59,7 @@ struct TranscriptView: View {
 	}
 
 	private func newConversationNotice(_ key: CatalogKey) -> some View {
-		Text(model.builder.phrasebook.say(key, [:]))
+		Text(model.phrasebook.say(key, [:]))
 			.foregroundStyle(.secondary)
 			.accessibilityIdentifier("chat.newConversation.notice")
 	}

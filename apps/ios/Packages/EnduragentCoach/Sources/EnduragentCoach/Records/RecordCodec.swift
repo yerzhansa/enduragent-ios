@@ -228,6 +228,16 @@ enum RecordCodec {
 					activatedAt: Date(timeIntervalSince1970: payload.activatedAt)
 				)
 			)
+		case .sessionSettings:
+			return .sessionSettings(
+				try payload(SessionSettingsPayload.self, version: version, kind: name, data: data)
+					.body())
+		case .languagePreference:
+			return .languagePreference(
+				try payload(
+					LanguagePreferencePayload.self, version: version, kind: name, data: data
+				)
+				.body())
 		}
 	}
 

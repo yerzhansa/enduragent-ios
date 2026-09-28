@@ -50,7 +50,8 @@ func makeCoach(
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
-	host: any ExecutionHost = ImmediateExecutionHost()
+	host: any ExecutionHost = ImmediateExecutionHost(),
+	deviceLanguage: LanguageTag = .en
 ) -> Coach {
 	Coach(
 		sport: .cycling,
@@ -60,7 +61,7 @@ func makeCoach(
 			host: host, clock: clock
 		),
 		builtInModel: testModel,
-		language: .init(ui: .en, coachReply: nil),
+		deviceLanguage: deviceLanguage,
 		coalescing: coalescing
 	)
 }
@@ -190,7 +191,7 @@ func failure(_ state: TurnState) -> CoachFailure? {
 	return failed.failure
 }
 
-func historyBudget(clock: any Clock) -> Int {
+func systemTokens(clock: any Clock) -> Int {
 	let volatile = PromptAssembly.volatile(
 		context: "",
 		snapshot: nil,
@@ -198,10 +199,13 @@ func historyBudget(clock: any Clock) -> Int {
 		replyLanguage: PromptAssembly.replyLanguageSection(
 			resolution: LanguageResolution(language: .en, source: .surface, locale: "en"))
 	)
-	let system = PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile
-	return HistoryWindow.historyTokenBudget(
-		systemTokens: estimateTokens(system), window: TurnPolicy.contextWindowCap,
-		ratio: TurnPolicy.historyTokenBudgetRatio)
+	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
+}
+
+func historyBudget(clock: any Clock) -> Int {
+	HistoryWindow.historyTokenBudget(
+		systemTokens: systemTokens(clock: clock), window: TurnPolicy.contextWindowCap,
+		ratio: SessionSettings.npmDefaults.historyBudgetRatio.value)
 }
 
 struct SeededTurn {

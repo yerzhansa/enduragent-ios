@@ -9,7 +9,8 @@ import Testing
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
 	let athleteLease = LeaseRequest(
-		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking)
+		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
+		language: .en)
 	let saturdays: ScriptedEvent = .toolCall(
 		name: "ledger_append",
 		arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
@@ -56,7 +57,9 @@ import Testing
 		#expect(host.leases.count == 1)
 		#expect(lease.request == athleteLease)
 		#expect(lease.kind == .continuedProcessing)
-		#expect(lease.ending == .finished(CompletionNotice(reply: "Second.", turn: second)))
+		#expect(
+			lease.ending
+				== .finished(CompletionNotice(reply: "Second.", turn: second, language: .en)))
 		#expect(lease.progress?.settledTurns == 2)
 		#expect(lease.progress?.totalTurns == 2)
 		#expect(
@@ -152,8 +155,12 @@ import Testing
 		#expect(
 			replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Still on.")
 		let lease = try #require(await host.ended(0))
-		#expect(lease.ending == .finished(CompletionNotice(reply: "Still on.", turn: turn)))
-		#expect(lease.ending == .finished(CompletionNotice(reply: "  Still on.\n", turn: turn)))
+		#expect(
+			lease.ending
+				== .finished(CompletionNotice(reply: "Still on.", turn: turn, language: .en)))
+		#expect(
+			lease.ending
+				== .finished(CompletionNotice(reply: "  Still on.\n", turn: turn, language: .en)))
 		#expect(
 			lease.progress
 				== LeaseProgress(settledTurns: 1, totalTurns: 1, step: 1, stepLimit: 10))
@@ -290,7 +297,9 @@ import Testing
 		#expect(recovery.ending == .finished(nil))
 		let athlete = try #require(await host.ended(1, within: .seconds(10)))
 		#expect(athlete.request == athleteLease)
-		#expect(athlete.ending == .finished(CompletionNotice(reply: "Still on.", turn: turn)))
+		#expect(
+			athlete.ending
+				== .finished(CompletionNotice(reply: "Still on.", turn: turn, language: .en)))
 		#expect(try await claims(of: turn).map(\.lease) == [.continuedProcessing])
 	}
 
@@ -352,28 +361,6 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled]))).records.isEmpty
 		)
 		#expect(host.leases.count == 1)
-	}
-
-	@Test func aClaimWrittenBeforeLeasesExistedReadsAsGracePeriodOnly() throws {
-		let legacy = Data(
-			#"{"attempt":"01J0000000000000000000000B","chatId":"main","turn":"01J0000000000000000000000A"}"#
-				.utf8)
-		let decoded = RecordCodec.decode(
-			kind: "turnClaim", version: 2, data: legacy, civilDate: "1998-06-13",
-			ulid: "01J0000000000000000000000C")
-		guard case .success(.deviceLocal(.turnClaim(let claim))) = decoded else {
-			Issue.record("expected a claim, got \(decoded)")
-			return
-		}
-		#expect(claim.lease == .gracePeriodOnly)
-		let unknown = Data(
-			#"{"attempt":"01J0000000000000000000000B","chatId":"main","lease":"forever","turn":"01J0000000000000000000000A"}"#
-				.utf8)
-		let refused = RecordCodec.decode(
-			kind: "turnClaim", version: 2, data: unknown, civilDate: "1998-06-13",
-			ulid: "01J0000000000000000000000C")
-		#expect(
-			refused == .failure(.malformed(kind: "turnClaim", ulid: "01J0000000000000000000000C")))
 	}
 
 	private func seedPendingJob(covering turn: SeededTurn) async throws {

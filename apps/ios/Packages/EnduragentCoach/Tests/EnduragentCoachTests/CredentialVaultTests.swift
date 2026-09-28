@@ -43,7 +43,7 @@ import Testing
 				training: training, credits: .fake(FakeCreditsClient()),
 				host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel,
-			language: .init(ui: .en, coachReply: nil),
+			deviceLanguage: .en,
 			coalescing: quickWindow
 		)
 	}

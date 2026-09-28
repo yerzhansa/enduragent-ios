@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -41,6 +41,7 @@ for (const [name, file, value, code] of [
   ['literal confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "That proposal expired."', 'uncatalogued-confirmation'],
   ['interpolated confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "Done — \\(summary)."', 'uncatalogued-confirmation'],
   ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
+  ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {
@@ -80,17 +81,8 @@ test('does not inspect untracked credentials', () => {
 
 test('accepts catalogued confirmation copy and debug-only literals', () => {
   const result = run({
-    'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])',
+    'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])',
     'apps/ios/Enduragent/Credits/CredentialsDebugView.swift': '#if DEBUG\nconfirmLine = "Debug result"\n#endif',
   });
   assert.equal(result.status, 0, result.output);
-});
-
-test('account mismatch expiration uses the catalog in release chat', () => {
-  const model = readFileSync(new URL('../apps/ios/Enduragent/App/ShellModel.swift', import.meta.url), 'utf8');
-  const transcript = readFileSync(new URL('../apps/ios/Enduragent/Chat/TranscriptView.swift', import.meta.url), 'utf8');
-  const branch = model.split('case .expired:')[1]?.split('case .refused')[0];
-  assert.match(transcript, /Text\(confirmLine\)/);
-  assert.ok(branch);
-  assert.match(branch, /phrasebook\.say\(Catalog\.coachConfirmationExpired\b/);
 });
