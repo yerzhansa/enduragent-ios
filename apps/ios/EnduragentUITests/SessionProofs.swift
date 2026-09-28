@@ -86,6 +86,32 @@ final class LanguagePickerProof: XCTestCase {
 	}
 }
 
+final class AutomaticFrenchPhoneProof: XCTestCase {
+	func testEnglishMessageOnAFrenchPhoneGetsAnEnglishReply() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.wait(app.navigationBars["Conversation"])
+		XCTAssertEqual(
+			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.attach(self, name: "m1-12-automatic-fr-phone", app: app)
+		TutorialHarness.openSidebar(app)
+		TutorialHarness.named(app, "sidebar.debug").tap()
+		let replyLanguage = TutorialHarness.named(app, "fixture.replyLanguage")
+		TutorialHarness.wait(replyLanguage)
+		XCTAssertTrue(
+			replyLanguage.label.hasPrefix(
+				"No language is saved. Reply in the language of the athlete's latest message"),
+			"reply language reads \(replyLanguage.label)")
+		XCTAssertTrue(
+			replyLanguage.label.hasSuffix("reply in English (English)."),
+			"reply language reads \(replyLanguage.label)")
+		TutorialHarness.closeMenu(app)
+	}
+}
+
 @MainActor
 final class SavedLanguageFirstFrameProof: XCTestCase {
 	private let englishChrome: Set<String> = [
