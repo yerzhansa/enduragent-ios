@@ -58,7 +58,7 @@ import Testing
 		let english = CatalogPhrasebook(tag: .en, locale: "en-US")
 		for key in [
 			Catalog.reviewTitle, Catalog.reviewAdd, Catalog.reviewAccountChanged,
-			Catalog.reviewCannotVerify, Catalog.reviewUncertain,
+			Catalog.reviewCannotVerify, Catalog.reviewUncertain, Catalog.reviewEarlierVersion,
 		] {
 			let copy = book.say(key, ["service": "intervals.icu"])
 			#expect(copy != english.say(key, ["service": "intervals.icu"]))

@@ -2890,6 +2890,7 @@
     "accountChanged": "Dette træningspas blev forberedt til en anden atlet på {{service}}. Bed mig igen om at forberede det til den tilsluttede atlet.",
     "add": "Føj til kalender",
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
+    "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere tilføjes.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
     "workout": {

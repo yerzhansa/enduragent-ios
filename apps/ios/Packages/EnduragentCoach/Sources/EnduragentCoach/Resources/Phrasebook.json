@@ -192726,6 +192726,102 @@
             "state": "translated",
             "value": "This workout review is from an earlier version of the app and can no longer be added."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta revisión del entrenamiento es de una versión anterior de la app y ya no se puede añadir."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette révision de séance provient d’une ancienne version de l’app et ne peut plus être ajoutée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere aggiunta."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr hinzugefügt werden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegevoegd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere tilføjes."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre läggas till."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger legges til."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sitä voi enää lisätä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta revisão de treino é de uma versão anterior da app e já não pode ser adicionada."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser adicionada."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już dodać."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 운동 검토는 이전 버전의 앱에서 생성되어 더 이상 추가할 수 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このワークアウトの確認内容は以前のバージョンのアプリで作成されたため、追加できなくなりました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此训练审核来自旧版应用，已无法添加。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此訓練審核來自舊版 App，已無法新增。"
+          }
         }
       }
     },
