@@ -27,8 +27,14 @@ extension SingleProposalReviewsTests {
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
 		_ = await coach.decide(.presented(review.ref), in: .main)
 		let presented = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(presented.authority != .thisDevice)
+		#expect(presented.authority == .readOnly)
 		#expect(presented.controls == .none)
+		let notice = try #require(presented.notice)
+		#expect(notice.key.rawValue == "review.earlierVersion")
+		#expect(
+			phrasebook.say(notice.key, notice.vars)
+				== "This workout review is from an earlier version of the app and can no longer be added."
+		)
 		if let token = presented.token {
 			#expect(await coach.decide(.cancel(token), in: .main) != .canceled(kept: []))
 		}
@@ -36,6 +42,7 @@ extension SingleProposalReviewsTests {
 		let redisplayed = try #require(await coach.currentSnapshot(.main)?.review)
 		_ = await coach.decide(.presented(redisplayed.ref), in: .main)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice == notice)
 		#expect(
 			try await records.fetch(
 				RecordQuery(scope: .deviceLocal([.proposalCleared]), chatId: .main)

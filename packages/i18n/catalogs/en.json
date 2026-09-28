@@ -1591,6 +1591,7 @@
     "accountChanged": "This workout was prepared for a different {{service}} athlete. Ask me again to prepare it for the connected athlete.",
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
+    "earlierVersion": "This workout review is from an earlier version of the app and can no longer be added.",
     "title": "Workout review",
     "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {

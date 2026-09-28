@@ -192719,6 +192719,16 @@
         }
       }
     },
+    "review.earlierVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout review is from an earlier version of the app and can no longer be added."
+          }
+        }
+      }
+    },
     "review.title": {
       "localizations": {
         "en": {

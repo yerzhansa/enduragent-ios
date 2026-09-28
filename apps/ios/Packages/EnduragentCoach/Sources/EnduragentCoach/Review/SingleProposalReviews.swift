@@ -35,6 +35,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 		}
 		let delivery = delivery(for: live, in: chat)
 		let changed = current.map { !Self.permits(live.account.authority(under: $0)) } ?? false
+		let notice: ReviewNotice? =
+			if delivery.authority == .readOnly {
+				AthleteNotices.earlierVersion
+			} else if changed {
+				AthleteNotices.accountChanged
+			} else {
+				nil
+			}
 		let card = ReviewCard(live.body)
 		return ReviewSnapshot(
 			ref: delivery.ref,
@@ -42,7 +50,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			kept: [],
 			totals: ReviewTotals([card]),
 			receipts: [],
-			notice: changed ? AthleteNotices.accountChanged : nil,
+			notice: notice,
 			controls: changed ? .none : delivery.controls,
 			authority: delivery.authority
 		)
