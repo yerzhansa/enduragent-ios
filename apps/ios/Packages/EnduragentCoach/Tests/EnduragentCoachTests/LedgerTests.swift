@@ -161,7 +161,7 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
 		let started = ContinuousClock.now
-		let read = try await ledger.flushJobs(in: .main)
+		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		let elapsed = ContinuousClock.now - started
 		Attachment.record(
 			String(format: "%.3f", elapsed / .milliseconds(1)), named: "consumed-marker-read-ms.txt"
