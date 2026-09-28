@@ -17,13 +17,14 @@ import Testing
 	}
 
 	@Test func recurringSlowAttemptsRemainInTheCredentialTail() throws {
-		let batch =
-			Array(repeating: Duration.milliseconds(1), count: 180)
-			+ Array(repeating: Duration.milliseconds(60), count: 20)
-		let samples = PerformanceSamples(
-			batches: Array(repeating: batch, count: PerformanceSamples.batchCount))
+		let batches = (0..<PerformanceSamples.batchCount).map { index in
+			let slow = index.isMultiple(of: 2) ? 30 : 0
+			return Array(repeating: Duration.milliseconds(1), count: 200 - slow)
+				+ Array(repeating: Duration.milliseconds(60), count: slow)
+		}
+		let samples = PerformanceSamples(batches: batches)
 		#expect(try samples.minimum() == .milliseconds(1))
-		#expect(try samples.minimum(.p95) == .milliseconds(60))
+		#expect(try samples.pooled(.p95) == .milliseconds(60))
 	}
 
 	@Test func aStalledReferenceCannotHideARegression() throws {

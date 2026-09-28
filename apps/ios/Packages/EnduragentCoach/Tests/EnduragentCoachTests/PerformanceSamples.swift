@@ -8,8 +8,14 @@ struct PerformanceSamples {
 		case p95 = 95
 	}
 
+	enum Scope {
+		case bestBatch
+		case allAttempts
+	}
+
 	static let batchCount = 32
 	private static let outputLock = Mutex(())
+	var expectedBatchCount = Self.batchCount
 	var batches: [[Duration]] = []
 
 	mutating func measure<Value>(
@@ -26,16 +32,26 @@ struct PerformanceSamples {
 	}
 
 	func minimum(_ quantile: Quantile = .median) throws -> Duration {
-		try #require(batches.count == Self.batchCount)
+		try #require(batches.count == expectedBatchCount)
 		try #require(batches.allSatisfy { !$0.isEmpty })
 		return try #require(
 			batches.map { $0.sorted()[$0.count * quantile.rawValue / 100] }.min())
 	}
 
-	func check(budget: Duration, quantile: Quantile = .median, name: String) throws {
-		let elapsed = try minimum(quantile)
+	func pooled(_ quantile: Quantile) throws -> Duration {
+		try #require(batches.count == expectedBatchCount)
+		try #require(batches.allSatisfy { !$0.isEmpty })
+		let samples = batches.joined().sorted()
+		return samples[samples.count * quantile.rawValue / 100]
+	}
+
+	func check(
+		budget: Duration, quantile: Quantile = .median, across scope: Scope = .bestBatch,
+		name: String
+	) throws {
+		let elapsed = try scope == .bestBatch ? minimum(quantile) : pooled(quantile)
 		let result =
-			"\(name) quantile=\(quantile) minimum_ms=\(Self.milliseconds(elapsed))"
+			"\(name) quantile=\(quantile) scope=\(scope) elapsed_ms=\(Self.milliseconds(elapsed))"
 			+ " budget_ms=\(Self.milliseconds(budget)) samples_ms=\(description)\n"
 		try Self.record(result, name: name)
 		#expect(elapsed < budget, "\(result)")

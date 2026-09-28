@@ -142,23 +142,29 @@ extension CredentialVaultTests {
 	}
 
 	@Test func perAttemptResolutionStaysUnderFiftyMilliseconds() async throws {
-		let keychain = ICloudKeychainStore(backing: MemorySecretStoreBacking())
+		let backing = MemorySecretStoreBacking()
+		let keychain = ICloudKeychainStore(backing: backing)
 		try keychain.storeOpenRouterKey(testKey)
 		try keychain.storeIntervalsConnection(testConnection)
 		let vault = vault(keychain)
 		let expectedAccount = try account(testConnection)
 		var samples = PerformanceSamples()
+		var expectedReads = 7
 		for _ in 0..<PerformanceSamples.batchCount {
 			try await samples.measure(count: 200) {
+				let before = backing.readCount
 				let access = try await vault.modelAccess(builtInModel: testModel)
 				let connection = try await vault.trainingConnection()
-				return (access, connection)
-			} validate: { access, connection in
+				return (access, connection, backing.readCount - before)
+			} validate: { access, connection, reads in
+				#expect(reads == expectedReads)
+				expectedReads = 6
 				#expect(access == testAccess(secret: testKey))
 				#expect(connection.account == expectedAccount)
 			}
 		}
 		try samples.check(budget: .milliseconds(50), name: "credential-median")
-		try samples.check(budget: .milliseconds(50), quantile: .p95, name: "credential-p95")
+		try samples.check(
+			budget: .milliseconds(50), quantile: .p95, across: .allAttempts, name: "credential-p95")
 	}
 }

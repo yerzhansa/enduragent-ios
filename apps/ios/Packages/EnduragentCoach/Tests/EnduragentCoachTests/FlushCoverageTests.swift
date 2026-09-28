@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -275,10 +276,14 @@ import Testing
 		let jobs = (1...200).map { job($0, messages: [], settled: true) }
 		var samples = PerformanceSamples()
 		for _ in 0..<PerformanceSamples.batchCount {
+			let resolved = Mutex(0)
 			await samples.measure(count: 1) {
-				conversation.messagesSinceLastFlush(jobs, excluding: nil)
+				ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
+					conversation.messagesSinceLastFlush(jobs, excluding: nil)
+				}
 			} validate: { rows in
 				#expect(rows.count == 2_000)
+				#expect(resolved.withLock { $0 } == 2_000)
 			}
 		}
 		try samples.check(budget: .milliseconds(50), name: "legacy-coverage")

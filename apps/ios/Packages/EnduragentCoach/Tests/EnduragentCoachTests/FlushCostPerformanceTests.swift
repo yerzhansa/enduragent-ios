@@ -10,12 +10,13 @@ extension SwiftDataSuites {
 			for oldest in [false, true] {
 				let ledger = try await fixture.ledger(oldest: oldest)
 				let conversation = try await ledger.conversation(.main)
-				var localRead = PerformanceSamples()
-				var flush = PerformanceSamples()
-				var fold = PerformanceSamples()
-				var transcript = PerformanceSamples()
-				for _ in 0..<PerformanceSamples.batchCount {
-					try await localRead.measure {
+				let batchCount = 3
+				var localRead = PerformanceSamples(expectedBatchCount: batchCount)
+				var flush = PerformanceSamples(expectedBatchCount: batchCount)
+				var fold = PerformanceSamples(expectedBatchCount: batchCount)
+				var transcript = PerformanceSamples(expectedBatchCount: batchCount)
+				for _ in 0..<batchCount {
+					try await localRead.measure(count: 1) {
 						try await ledger.read(
 							RecordQuery(
 								scope: ConversationFold.flushScope, chatId: .main,
@@ -26,18 +27,18 @@ extension SwiftDataSuites {
 								+ fixture.pendingJobCount
 						)
 					}
-					try await flush.measure {
+					try await flush.measure(count: 1) {
 						try await ledger.flushJobs(in: conversation)
 					} validate: { jobs in
 						#expect(jobs.count == fixture.settledJobCount + fixture.pendingJobCount)
 						#expect(jobs.filter { $0.settled }.count == fixture.settledJobCount)
 					}
-					try await fold.measure {
+					try await fold.measure(count: 1) {
 						try await ledger.conversation(.main)
 					} validate: { folded in
 						#expect(folded == conversation)
 					}
-					try await transcript.measure {
+					try await transcript.measure(count: 1) {
 						try await ledger.loadTranscript(
 							chatId: .main, excluding: TurnID(ulid: fixedUlid(99_000)))
 					} validate: { loaded in
