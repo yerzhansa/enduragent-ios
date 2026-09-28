@@ -46,6 +46,8 @@ for (const [name, file, value, code] of [
   ['device-only review outcome language', 'apps/ios/Enduragent/Chat/ChatView.swift', 'Text(notice.sentence(in: model.builder.phrasebook))', 'device-only-phrasebook'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
+  ['optional try in production', 'apps/ios/Enduragent/App/State.swift', 'let value = try? load()', 'optional-try'],
+  ['optional try with a fallback', 'apps/ios/Packages/Coach/State.swift', 'let value = (try? load()) ?? []', 'optional-try'],
 ]) {
   test(`rejects ${name} without printing matched data`, () => {
     const result = run({ [file]: value });
@@ -59,6 +61,15 @@ for (const [name, file, value, code] of [
 test('accepts the App Store 1024 icon', () => {
   const result = run({
     'apps/ios/Enduragent/Assets.xcassets/AppIcon.appiconset/AppIcon.png': Buffer.from([137, 80, 78, 71, 0, 1, 2, 3]),
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('accepts optional try only in test support or probing container decodes', () => {
+  const result = run({
+    'apps/ios/Packages/Coach/Tests/Tests.swift': 'let value = try? load()',
+    'apps/ios/Packages/Coach/Testing/Fakes.swift': 'let value = try? load()',
+    'apps/ios/Packages/Coach/Record.swift': 'if let value = try? container.decode(String.self) {}',
   });
   assert.equal(result.status, 0, result.output);
 });

@@ -219,15 +219,8 @@ package struct TurnRunner: Sendable {
 		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 
 		let memory = Memory(ledger: ledger, clock: clock)
-		let context = (try? await memory.context()) ?? ""
-		let view =
-			(try? await memory.view())
-			?? MemoryView(
-				sections: [:],
-				todayNotes: nil,
-				planHeadline: nil,
-				orphanNames: []
-			)
+		let context = try await memory.context()
+		let view = try await memory.view()
 		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
@@ -530,8 +523,20 @@ package struct TurnRunner: Sendable {
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
 				group.addTask {
-					let arguments =
-						(try? JSONValue.parse(call.arguments)) ?? .string(call.arguments)
+					let arguments: JSONValue
+					do {
+						arguments = try JSONValue.parse(call.arguments)
+					} catch is DecodingError {
+						return (
+							index, call,
+							.result(
+								.object([
+									"details": .string("Tool arguments were not valid JSON."),
+									"error": .string("invalid_arguments"),
+								])
+							)
+						)
+					}
 					let outcome: ToolOutcome
 					do {
 						outcome = try await runtime.execute(

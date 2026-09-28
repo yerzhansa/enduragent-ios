@@ -815,15 +815,17 @@ private struct JournalPreview {
 }
 
 private func parseJournalPreview(_ preview: String) -> JournalPreview {
-	guard let parsed = try? JSONValue.parse(preview) else {
+	do {
+		let parsed = try JSONValue.parse(preview)
+		let fields = parsed.objectFields
+		return JournalPreview(
+			section: fields["section"]?.stringValue,
+			oldBody: fields["oldBody"]?.stringValue,
+			newBody: fields["newBody"]?.stringValue
+		)
+	} catch is DecodingError {
 		return JournalPreview(section: nil, oldBody: nil, newBody: preview)
 	}
-	let fields = parsed.objectFields
-	return JournalPreview(
-		section: fields["section"]?.stringValue,
-		oldBody: fields["oldBody"]?.stringValue,
-		newBody: fields["newBody"]?.stringValue
-	)
 }
 
 private func demoteEmbeddedH2(_ content: String) -> String {

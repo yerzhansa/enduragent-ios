@@ -486,9 +486,8 @@ package struct ToolRuntime: Sendable {
 					])
 				)
 			}
-			let allowed = Set(
-				SectionName.cyclingEffective.map(\.rawValue)
-					+ ((try? await memory().view())?.orphanNames ?? []))
+			let view = try await memory().view()
+			let allowed = Set(SectionName.cyclingEffective.map(\.rawValue) + view.orphanNames)
 			if !allowed.contains(section) {
 				return .result(
 					.object([

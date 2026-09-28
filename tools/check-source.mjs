@@ -53,6 +53,7 @@ try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
+    if (file.endsWith('.swift') && !/\/(?:Testing|Tests)\//.test(file) && /\btry\?(?!\s*container\.decode\b)/.test(text)) report(file, 'optional-try');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bbuilder\s*\.\s*phrasebook\b/.test(text)) report(file, 'device-only-phrasebook');
     if (/(?:["'](?:id|activity_?id)["']\s*:\s*["']?\d{9,}\b|\/activit(?:y|ies)\/\d{9,}\b|\bactivity_?[Ii][Dd]\s*[:=]\s*["']?\d{9,}\b)/.test(text)) report(file, 'activity-id');
