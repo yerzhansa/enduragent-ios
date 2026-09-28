@@ -26,8 +26,6 @@ CI runs these focused checks on every pull request and every push to main.
 
 Swift live API tests are opt-in and skipped by `pnpm test:swift`. Optional REST test evidence is written only when `ENDURAGENT_TEST_EVIDENCE_DIRECTORY` names an existing test-owned directory.
 
-`pnpm test:swift` also runs the shell language regressions on macOS. The runner copies the production launch and shell model sources into a temporary Swift package, supplies app host adapters, and runs the same tests included in the iOS test bundle. It does not launch a simulator.
-
 ## Source ownership
 
 The baseline is [Enduragent commit 1a257829](https://github.com/yerzhansa/enduragent/commit/1a257829c6c041e8342a33374077fc244d3f2647).
