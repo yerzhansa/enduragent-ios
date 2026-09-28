@@ -1,15 +1,15 @@
 import Foundation
 import Synchronization
 
-public struct RecordStorageFault: Error, Sendable, Equatable {
-	public enum Operation: Sendable, Equatable {
+package struct RecordStorageFault: Error, Sendable, Equatable {
+	package enum Operation: Sendable, Equatable {
 		case append(kinds: [String])
 		case fetch
 	}
 
-	public var operation: Operation
+	package var operation: Operation
 
-	public init(operation: Operation) {
+	package init(operation: Operation) {
 		self.operation = operation
 	}
 }

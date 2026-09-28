@@ -2,31 +2,31 @@ import Foundation
 
 package actor ChatMailbox {
 	package let chatId: ChatID
-	let ledger: Ledger
+	private let ledger: Ledger
 	private let runner: TurnRunner
 	private let flushes: FlushWork
-	let clock: any Clock
+	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
-	let process: ProcessID
+	private let process: ProcessID
 
-	let records: ChatRecords
+	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
 		chat: chatId, records: records, environment: environment,
 		freshness: AutomaticReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock),
 		process: process)
-	let work = MailboxQueue()
+	private let work = MailboxQueue()
 	private let door = Turnstile()
-	private(set) var live: LiveAttempt?
+	private var live: LiveAttempt?
 	private var running: Task<Void, Never>?
-	let interruption = Interruption()
+	private let interruption = Interruption()
 	private let lifetime: Coach.Lifetime
 	private var foreground = true
-	private(set) var finishedAway: Set<TurnID> = []
+	private var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
-	private(set) lazy var waits = RetryWaits(clock: clock) { [weak self] in
+	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
 	private let feed = SnapshotFeed()
@@ -361,6 +361,26 @@ package actor ChatMailbox {
 		current.apply(progress)
 		live = current
 		publish()
+	}
+
+	private func snapshot() -> ChatSnapshot {
+		ChatSnapshot(
+			chat: chatId,
+			conversation: records.conversation,
+			jobs: records.jobs,
+			live: live,
+			window: work.window,
+			queued: work.turns(includingActive: true),
+			waiting: waits.waiting(among: records.conversation.current.turns),
+			stopping: interruption.cause != nil,
+			resetting: work.resetting,
+			finishedAway: finishedAway,
+			review: records.review,
+			device: ledger.deviceId,
+			process: process,
+			now: clock.now,
+			zone: clock.timeZone
+		)
 	}
 
 	private func publish() {

@@ -20,7 +20,7 @@ extension FixtureLaunchTests {
 		await model.appear()
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(
 			model.status?.notice?.sentence(in: model.phrasebook)
@@ -60,7 +60,7 @@ extension FixtureLaunchTests {
 		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")
 		await model.loadCredits()
 		#expect(model.creditsNotice?.key == Catalog.creditsErrorUnavailable)
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func connectStoresTheKeyAndShowsTheAthleteAndToday() async throws {
@@ -99,7 +99,7 @@ extension FixtureLaunchTests {
 		_ = try await settledTurn(first)
 		let (locked, kept) = try relaunch(.keep, keychain: .locked)
 		let reopened = ShellModel(
-			builder: ServicesBuilder(services: locked, language: language, defaults: kept))
+			environment: AppEnvironment(services: locked, language: language, defaults: kept))
 		await reopened.appear()
 		try await observed(reopened)
 		#expect(reopened.route == .chat)

@@ -137,7 +137,7 @@ extension Memory {
 	) {
 		let arguments: JSONValue
 		do {
-			arguments = try JSONValue.parse(call.arguments)
+			arguments = try call.parseArguments()
 		} catch {
 			return (
 				JSONValue.object(["error": .string("invalid_arguments")]).canonicalDigestInput(),

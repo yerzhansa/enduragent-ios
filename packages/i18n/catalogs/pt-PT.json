@@ -21,7 +21,8 @@
     "readOnly": "As conversas anteriores são apenas de leitura.",
     "reason": {
       "explicit": "Iniciaste uma nova conversa",
-      "stale": "Fechada após uma pausa"
+      "stale": "Fechada após uma pausa",
+      "earlierChat": "Conversa anterior"
     },
     "retry": "Tentar novamente",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -41,7 +42,9 @@
   },
   "language": {
     "chooseTitle": "Escolhe o teu idioma",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "saveFailed": "Não foi possível guardar {{language}}. As respostas continuam em {{current}}. Tenta novamente.",
+    "saveFailedAutomatic": "Não foi possível guardar {{language}}. As respostas continuam no idioma de cada mensagem. Tenta novamente."
   },
   "settings": {
     "appearance": {
@@ -207,7 +210,8 @@
         "historyTokenBudgetRatio": "Introduz um limite de histórico superior a 0% e não superior a 100%.",
         "idleMinutes": "Introduz um número inteiro de minutos dentro do intervalo seguro, igual ou superior a 0.",
         "resetArchiveRetentionDays": "Introduz um número inteiro de dias dentro do intervalo seguro, igual ou superior a 0.",
-        "timezone": "Introduz um fuso horário IANA válido, como {{timezone}}."
+        "timezone": "Introduz um fuso horário IANA válido, como {{timezone}}.",
+        "contextWindowTokens": "Introduz um número inteiro de tokens dentro do intervalo válido, no mínimo 1."
       }
     },
     "credentials": {
@@ -862,8 +866,7 @@
       "plan": "Plano",
       "settings": "Definições",
       "training": "Treino"
-    },
-    "menu": "Menu"
+    }
   },
   "chat": {
     "attachment": {
@@ -948,8 +951,7 @@
       "responding": "O treinador está a responder…",
       "send": "Enviar mensagem",
       "stop": "Parar resposta",
-      "messageField": "Mensagem",
-      "sendButton": "Enviar"
+      "notSent": "Não enviada. O teu rascunho continua aqui."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1020,7 +1022,8 @@
       "retryMessage": "Tentar enviar a mensagem novamente",
       "savedChoice": "Escolha guardada",
       "working": "O treinador está a trabalhar…",
-      "responseStopped": "Resposta interrompida. A resposta parcial mantém-se."
+      "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
+      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente."
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -1452,9 +1455,17 @@
       "showContext": "Mostrar contexto de treino",
       "title": "Conversa"
     },
-    "addToCalendar": "Adicionar ao calendário",
     "menu": "Menu",
-    "title": "Treinador"
+    "turn": {
+      "buyCredits": "Comprar créditos",
+      "chooseAccessMethod": "Escolher método de acesso",
+      "finishedWhileLocked": "Concluído enquanto o telemóvel estava bloqueado.",
+      "interruptedNothingChanged": "Esta resposta foi interrompida antes de terminar. Nada foi alterado.",
+      "interruptedSomeSaved": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido guardadas.",
+      "receivedBeforeClose": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar.",
+      "restorePurchases": "Restaurar compras",
+      "signInAgain": "Iniciar sessão novamente"
+    }
   },
   "plan": {
     "details": {
@@ -2917,7 +2928,12 @@
     "packPrice_one": "{{formattedCount}} crédito · {{price}}",
     "balance_other": "{{formattedCount}} créditos",
     "pack_other": "{{formattedCount}} créditos",
-    "packPrice_other": "{{formattedCount}} créditos · {{price}}"
+    "packPrice_other": "{{formattedCount}} créditos · {{price}}",
+    "error": {
+      "accessRejected": "Não foi possível usar os teus créditos. Restaura as compras para continuar.",
+      "exhausted": "Os teus créditos acabaram. Compra mais ou muda para a tua conta OpenRouter.",
+      "unavailable": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2934,6 +2950,21 @@
       "alreadyGranted": "Este dispositivo já utilizou os seus créditos iniciais.",
       "added_one": "{{formattedCount}} crédito adicionado",
       "added_other": "{{formattedCount}} créditos adicionados"
+    },
+    "notice": {
+      "health": "Sugestões de treino, não aconselhamento médico. Consulta um médico antes de fazer grandes alterações."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
+      "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
+      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "O intervals.icu não aceitou essa chave."
     }
   }
 }

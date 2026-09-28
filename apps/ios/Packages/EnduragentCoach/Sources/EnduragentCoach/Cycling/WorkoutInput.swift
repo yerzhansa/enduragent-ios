@@ -65,11 +65,11 @@ public struct IntervalsWorkoutInput: Sendable, Equatable {
 	public var steps: [WorkoutStep]
 }
 
-public struct SerializedWorkout: Sendable, Equatable {
-	public var description: String
-	public var movingTime: Int
+package struct SerializedWorkout: Sendable, Equatable {
+	package var description: String
+	package var movingTime: Int
 }
 
-public struct InvalidWorkout: Error, Sendable, Equatable {
-	public var message: String
+package struct InvalidWorkout: Error, Sendable, Equatable {
+	package var message: String
 }

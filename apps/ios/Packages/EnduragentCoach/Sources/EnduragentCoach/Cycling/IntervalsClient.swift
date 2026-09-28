@@ -226,24 +226,24 @@ public struct IntervalsError: Error, Sendable, Equatable {
 	}
 }
 
-public enum IntervalsPolicy {
-	public static let listMaxRangeDays = 366
-	public static let reviewWindowDays = 7
-	public static let athletePath = "0"
-	public static let baseURL: URL = {
+package enum IntervalsPolicy {
+	package static let listMaxRangeDays = 366
+	package static let reviewWindowDays = 7
+	package static let athletePath = "0"
+	package static let baseURL: URL = {
 		guard let url = URL(string: "https://intervals.icu/api/v1") else {
 			fatalError("https://intervals.icu/api/v1 is invalid")
 		}
 		return url
 	}()
-	public static let coachTag = "cycling-coach"
-	public static let formRecoveryThreshold = -30.0
-	public static let ftpRange = 50...600
-	public static let requestTimeout: TimeInterval = 30
-	public static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
-	public static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
+	package static let coachTag = "cycling-coach"
+	package static let formRecoveryThreshold = -30.0
+	package static let ftpRange = 50...600
+	package static let requestTimeout: TimeInterval = 30
+	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
+	package static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
 
-	public static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
+	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
 		.object([
 			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
 			"category": .string("WORKOUT"),

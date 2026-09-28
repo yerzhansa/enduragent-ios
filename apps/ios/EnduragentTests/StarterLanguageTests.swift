@@ -15,7 +15,8 @@ extension FixtureLaunchTests {
 		fixture.credits.grantResult = .success(outcome)
 		try await services.coach.setLanguage(.fixed(.es))
 		let model = ShellModel(
-			builder: builder(services), initialLanguage: await services.coach.languagePreference())
+			environment: environment(services),
+			initialLanguage: await services.coach.languagePreference())
 		await model.loadStarter()
 		#expect(model.starterResolved)
 		#expect(model.starterLine == expected)
@@ -27,7 +28,8 @@ extension FixtureLaunchTests {
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		try await services.coach.setLanguage(.fixed(.es))
 		let model = ShellModel(
-			builder: builder(services), initialLanguage: await services.coach.languagePreference())
+			environment: environment(services),
+			initialLanguage: await services.coach.languagePreference())
 		await model.loadStarter()
 		#expect(model.starterResolved)
 		#expect(model.starterLine == "Este dispositivo ya utilizó sus créditos iniciales.")

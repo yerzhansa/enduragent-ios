@@ -1,7 +1,7 @@
 import Foundation
 
-public enum DisplayZones {
-	public static func calculate(ftpWatts: Int) throws -> [String] {
+package enum DisplayZones {
+	package static func calculate(ftpWatts: Int) throws -> [String] {
 		try table(ftpWatts: ftpWatts).map(\.value)
 	}
 

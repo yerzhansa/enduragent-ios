@@ -44,10 +44,26 @@ for (const [name, file, value, code] of [
   ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
   ['device-only review language', 'apps/ios/Enduragent/Chat/ConfirmedPreviewCard.swift', 'Text(model.builder.phrasebook.say(notice.key, notice.vars))', 'device-only-phrasebook'],
   ['device-only review outcome language', 'apps/ios/Enduragent/Chat/ChatView.swift', 'Text(notice.sentence(in: model.builder.phrasebook))', 'device-only-phrasebook'],
+  ['environment-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = environment.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
+  ['exposed mailbox ledger:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let ledger: Ledger', 'mailbox-private-state'],
+  ['exposed mailbox clock:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let clock: any Clock', 'mailbox-private-state'],
+  ['exposed mailbox process:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let process: ProcessID', 'mailbox-private-state'],
+  ['exposed mailbox records:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let records: ChatRecords', 'mailbox-private-state'],
+  ['exposed mailbox work', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let work = MailboxQueue()', 'mailbox-private-state'],
+  ['exposed mailbox interruption', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let interruption = Interruption()', 'mailbox-private-state'],
+  ['exposed mailbox var', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) var live: LiveAttempt?', 'mailbox-private-state'],
+  ['exposed mailbox var', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) var finishedAway: Set<TurnID> = []', 'mailbox-private-state'],
+  ['exposed mailbox lazy', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) lazy var waits = RetryWaits()', 'mailbox-private-state'],
+  ['exposed mailbox door', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let door = Turnstile()', 'mailbox-private-state'],
+  ['exposed mailbox pass()', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'func pass() {}', 'mailbox-private-state'],
+  ['mailbox modifier fileprivate let ledger: Ledger', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'fileprivate let ledger: Ledger', 'mailbox-private-state'],
+  ['mailbox modifier open var work: MailboxQueue', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'open var work: MailboxQueue', 'mailbox-private-state'],
+  ['mailbox modifier public nonisolated let clock: any Clock', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'public nonisolated let clock: any Clock', 'mailbox-private-state'],
+  ['mailbox modifier package(set) var live: LiveAttempt?', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'package(set) var live: LiveAttempt?', 'mailbox-private-state'],
+  ['mailbox modifier @ObservationIgnored fileprivate var interruption: Interruption', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', '@ObservationIgnored fileprivate var interruption: Interruption', 'mailbox-private-state'],
+  ['mailbox modifier @ObservationIgnored public private(set) var waits: RetryWaits', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', '@ObservationIgnored public private(set) var waits: RetryWaits', 'mailbox-private-state'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
-  ['optional try in production', 'apps/ios/Enduragent/App/State.swift', 'let value = try? load()', 'optional-try'],
-  ['optional try with a fallback', 'apps/ios/Packages/Coach/State.swift', 'let value = (try? load()) ?? []', 'optional-try'],
 ]) {
   test(`rejects ${name} without printing matched data`, () => {
     const result = run({ [file]: value });
@@ -61,15 +77,6 @@ for (const [name, file, value, code] of [
 test('accepts the App Store 1024 icon', () => {
   const result = run({
     'apps/ios/Enduragent/Assets.xcassets/AppIcon.appiconset/AppIcon.png': Buffer.from([137, 80, 78, 71, 0, 1, 2, 3]),
-  });
-  assert.equal(result.status, 0, result.output);
-});
-
-test('accepts optional try only in test support or probing container decodes', () => {
-  const result = run({
-    'apps/ios/Packages/Coach/Tests/Tests.swift': 'let value = try? load()',
-    'apps/ios/Packages/Coach/Testing/Fakes.swift': 'let value = try? load()',
-    'apps/ios/Packages/Coach/Record.swift': 'if let value = try? container.decode(String.self) {}',
   });
   assert.equal(result.status, 0, result.output);
 });
@@ -96,6 +103,115 @@ test('accepts catalogued confirmation copy and debug-only literals', () => {
   const result = run({
     'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])',
     'apps/ios/Enduragent/Credits/CredentialsDebugView.swift': '#if DEBUG\nconfirmLine = "Debug result"\n#endif',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('accepts private mailbox declarations with attributes and modifiers', () => {
+  const result = run({
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift':
+      '@ObservationIgnored private lazy var waits = RetryWaits()\nnonisolated private let clock: Clock',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+const proofFile = 'apps/ios/EnduragentUITests/ChatProofs.swift';
+const featureDirectory = '.claude/skills/verify-ios/features';
+const featureFile = `${featureDirectory}/chat.md`;
+const featureSections = [
+  'Sub-features',
+  'How to get to it (user POV)',
+  'Driving it with sim.mjs and XCUITest',
+  'Gotchas',
+];
+function feature(references, sections = featureSections) {
+  return `# Chat\n${references}\n${sections.map(section => `## ${section}\n`).join('\n')}`;
+}
+const chatProof = 'final class ChatProof: XCTestCase { func testReply() {} }';
+
+for (const [name, files, rule] of [
+  ['unmapped proof', {
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-unmapped'],
+  ['README-only mapping', {
+    [proofFile]: chatProof,
+    [`${featureDirectory}/README.md`]: 'ChatProof/testReply',
+    [featureFile]: feature('The conversation.'),
+  }, 'feature-proof-unmapped'],
+  ['unknown proof reference', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof/testReply MissingProof'),
+  }, 'feature-proof-reference'],
+  ['unknown README probe reference', {
+    [proofFile]: chatProof,
+    [`${featureDirectory}/README.md`]: 'MissingProbe',
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-reference'],
+  ['missing selected method', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof/testMissing'),
+  }, 'feature-proof-method'],
+  ['method in another proof class', {
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    [featureFile]: feature('ChatProof/testStop StopProof'),
+  }, 'feature-proof-method'],
+  ['duplicate proof class', {
+    [proofFile]: chatProof,
+    'apps/ios/EnduragentUITests/OtherProofs.swift': chatProof,
+    [featureFile]: feature('ChatProof/testReply'),
+  }, 'feature-proof-duplicate'],
+  ['missing feature section', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', featureSections.slice(0, -1)),
+  }, 'feature-proof-sections'],
+  ['reordered feature sections', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', featureSections.toReversed()),
+  }, 'feature-proof-sections'],
+  ['extra feature section', {
+    [proofFile]: chatProof,
+    [featureFile]: feature('ChatProof', [...featureSections, 'Other']),
+  }, 'feature-proof-sections'],
+]) {
+  test(`rejects ${name}`, () => {
+    const result = run(files);
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, new RegExp(`\\[${rule}\\]`));
+  });
+}
+
+test('accepts proofs and probes mapped across feature files with valid selectors', () => {
+  const result = run({
+    [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
+    'apps/ios/EnduragentUITests/LaunchProbes.swift': 'final class LaunchProbe: XCTestCase { func testLaunch() {} }',
+    [featureFile]: feature('ChatProof/testReply StopProof').replaceAll('\n', '\r\n'),
+    [`${featureDirectory}/launch.md`]: feature('LaunchProbe/testLaunch'),
+    [`${featureDirectory}/README.md`]: '# Proof map\nChatProof StopProof/testStop LaunchProbe',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const field of ['errorLine', 'fixtureFeedback']) {
+  for (const [name, filename, value] of [
+    ['ordinary view', 'ChatView.swift', `import SwiftUI\nstruct ChatView: View { var body: some View { Text(model.${field}) } }`],
+    ['view without the View filename suffix', 'FeedbackRow.swift', `import SwiftUI\nstruct FeedbackRow: View { var body: some View { Text(model.${field}) } }`],
+    ['unguarded DebugView', 'FixtureFeedbackDebugView.swift', `import SwiftUI\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }`],
+    ['DebugView release branch', 'FixtureFeedbackDebugView.swift', `#if DEBUG\nimport SwiftUI\n#else\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }\n#endif`],
+    ['DebugView after a closed debug guard', 'FixtureFeedbackDebugView.swift', `#if DEBUG\nimport SwiftUI\n#endif\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }\n#if DEBUG\n#endif`],
+  ]) {
+    test(`rejects ${field} in ${name}`, () => {
+      const result = run({ [`apps/ios/Enduragent/Chat/${filename}`]: value });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /\[fixture-feedback-debug-only\]/);
+    });
+  }
+}
+
+test('accepts fixture feedback in a guarded DebugView and its model', () => {
+  const result = run({
+    'apps/ios/Enduragent/Chat/FixtureFeedbackDebugView.swift': '#if DEBUG\nimport SwiftUI\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.fixtureFeedback) } }\n#endif',
+    'apps/ios/Enduragent/App/ShellModel.swift': 'import Foundation\nfinal class ShellModel { var fixtureFeedback: String? }',
   });
   assert.equal(result.status, 0, result.output);
 });

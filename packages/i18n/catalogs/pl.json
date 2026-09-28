@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Wybierz swój język",
-    "continue": "Kontynuuj"
+    "continue": "Kontynuuj",
+    "saveFailed": "Nie udało się zapisać ustawienia języka „{{language}}”. Język odpowiedzi nadal będzie ustawiony na „{{current}}”. Spróbuj ponownie.",
+    "saveFailedAutomatic": "Nie udało się zapisać ustawienia języka „{{language}}”. Odpowiedzi nadal będą w języku każdej wiadomości. Spróbuj ponownie."
   },
   "settings": {
     "appearance": {
@@ -193,7 +195,8 @@
         "historyTokenBudgetRatio": "Wpisz limit historii większy niż 0% i nie większy niż 100%.",
         "idleMinutes": "Wpisz bezpieczną całkowitą liczbę minut, co najmniej 0.",
         "resetArchiveRetentionDays": "Wpisz bezpieczną całkowitą liczbę dni, co najmniej 0.",
-        "timezone": "Wpisz prawidłową strefę czasową IANA, np. {{timezone}}."
+        "timezone": "Wpisz prawidłową strefę czasową IANA, np. {{timezone}}.",
+        "contextWindowTokens": "Wpisz całkowitą liczbę tokenów z dozwolonego zakresu, co najmniej 1."
       }
     },
     "credentials": {
@@ -538,7 +541,8 @@
     "readOnly": "Wcześniejsze rozmowy są tylko do odczytu.",
     "reason": {
       "explicit": "Rozpoczęcie nowej rozmowy",
-      "stale": "Zamknięta po przerwie"
+      "stale": "Zamknięta po przerwie",
+      "earlierChat": "Wcześniejsza rozmowa"
     },
     "retry": "Spróbuj ponownie",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -878,8 +882,7 @@
       "training": "Trening"
     },
     "planAttention_few": "Plan, {{formattedCount}} elementy wymagają uwagi",
-    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi",
-    "menu": "Menu"
+    "planAttention_many": "Plan, {{formattedCount}} elementów wymaga uwagi"
   },
   "chat": {
     "attachment": {
@@ -964,8 +967,7 @@
       "responding": "Trener odpowiada…",
       "send": "Wyślij wiadomość",
       "stop": "Zatrzymaj odpowiedź",
-      "messageField": "Wiadomość",
-      "sendButton": "Wyślij"
+      "notSent": "Nie wysłano. Twój szkic nadal tu jest."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -1036,7 +1038,8 @@
       "retryMessage": "Ponów wiadomość",
       "savedChoice": "Zapisany wybór",
       "working": "Trener pracuje…",
-      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana."
+      "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
+      "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
     },
     "planChange": {
       "activePlan": "Aktywny plan",
@@ -1478,9 +1481,17 @@
       "showContext": "Pokaż kontekst treningowy",
       "title": "Czat"
     },
-    "addToCalendar": "Dodaj do kalendarza",
     "menu": "Menu",
-    "title": "Trener"
+    "turn": {
+      "buyCredits": "Kup kredyty",
+      "chooseAccessMethod": "Wybierz sposób dostępu",
+      "finishedWhileLocked": "Zakończono, gdy telefon był zablokowany.",
+      "interruptedNothingChanged": "Ta odpowiedź została przerwana przed zakończeniem. Nic nie zostało zmienione.",
+      "interruptedSomeSaved": "Ta odpowiedź została przerwana przed zakończeniem. Część informacji zapisano wcześniej.",
+      "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość.",
+      "restorePurchases": "Przywróć zakupy",
+      "signInAgain": "Zaloguj się ponownie"
+    }
   },
   "plan": {
     "details": {
@@ -2995,7 +3006,12 @@
     "packPrice_few": "{{formattedCount}} kredyty · {{price}}",
     "balance_many": "{{formattedCount}} kredytów",
     "pack_many": "{{formattedCount}} kredytów",
-    "packPrice_many": "{{formattedCount}} kredytów · {{price}}"
+    "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
+    "error": {
+      "accessRejected": "Nie udało się użyć twoich kredytów. Przywróć zakupy, aby kontynuować.",
+      "exhausted": "Skończyły ci się kredyty. Kup więcej lub przełącz się na swoje konto OpenRouter.",
+      "unavailable": "Kredyty są teraz niedostępne. Spróbuj ponownie później."
+    }
   },
   "onboarding": {
     "connect": {
@@ -3014,6 +3030,21 @@
       "added_other": "Dodano {{formattedCount}} kredytu",
       "added_few": "Dodano {{formattedCount}} kredyty",
       "added_many": "Dodano {{formattedCount}} kredytów"
+    },
+    "notice": {
+      "health": "To sugestie treningowe, nie porady medyczne. Przed dużymi zmianami skonsultuj się z lekarzem."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Odblokuj iPhone’a, aby kontynuować. Twoja wiadomość jest zapisana.",
+      "notConfigured": "Wybierz sposób dostępu trenera do modelu, aby kontynuować.",
+      "openRouterFunds": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu nie zaakceptował tego klucza."
     }
   }
 }

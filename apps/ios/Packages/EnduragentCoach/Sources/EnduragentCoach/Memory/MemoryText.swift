@@ -1,12 +1,12 @@
 import Foundation
 
-public enum MemoryQuery {
-	public static let maxRangeDays = 366
-	public static let maxResultChars = 20_000
-	public static let truncationNotice = "[truncated — narrow the date range or add a query term]"
-	public static let emptySuffix = ": no daily notes, events, or history found."
+package enum MemoryQuery {
+	package static let maxRangeDays = 366
+	package static let maxResultChars = 20_000
+	package static let truncationNotice = "[truncated — narrow the date range or add a query term]"
+	package static let emptySuffix = ": no daily notes, events, or history found."
 
-	public static func render(
+	package static func render(
 		_ hits: [MemoryHit], from: CivilDate, to: CivilDate, query: String? = nil
 	) -> String {
 		let header =

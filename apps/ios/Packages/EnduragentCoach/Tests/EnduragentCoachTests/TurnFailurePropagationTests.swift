@@ -49,10 +49,57 @@ import Testing
 		#expect(memoryRecords.records.isEmpty)
 	}
 
-	@Test func invalidToolArgumentsReturnAToolError() async throws {
+	@Test(arguments: ["memory_read", "intervals_fetch_athlete"])
+	func blankToolArgumentsRunTheParameterlessTool(name: String) async throws {
+		var results: [String] = []
+		for arguments in ["{}", ""] {
+			let transport = FakeModelTransport()
+			transport.script = [
+				.toolCall(name: name, arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("ok"),
+				.finish(reason: .stop),
+			]
+			let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+			let settled = try await coach.sendAndSettle("Read my information")
+			#expect(replyText(settled) == "ok")
+			let followUp = try #require(transport.requests.dropFirst().first)
+			let message = try #require(followUp.messages.last(where: { $0.role == .tool }))
+			#expect(!message.content.contains("\"error\""))
+			results.append(message.content)
+		}
+		#expect(results.first == results.last)
+	}
+
+	@Test(arguments: ["", "{}"])
+	func blankToolArgumentsValidateRequiredParameters(arguments: String) async throws {
 		let transport = FakeModelTransport()
 		transport.script = [
-			.toolCall(name: "memory_read", arguments: "not-json"),
+			.toolCall(name: "calculate_zones", arguments: arguments),
+			.finish(reason: .toolCalls),
+			.text("What is your FTP?"),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let settled = try await coach.sendAndSettle("Calculate my zones")
+		#expect(replyText(settled) == "What is your FTP?")
+		#expect(transport.requests.count == 2)
+		let followUp = try #require(transport.requests.last)
+		let message = try #require(followUp.messages.last(where: { $0.role == .tool }))
+		let result = try JSONValue.parse(message.content)
+		#expect(
+			result.objectFields["data"]
+				== .object([
+					"error": .string("invalid_ftp"),
+					"details": .string("ftpWatts is required."),
+				]))
+	}
+
+	@Test(arguments: ["not-json", " ", "{", "undefined"])
+	func invalidToolArgumentsReturnAToolError(arguments: String) async throws {
+		let transport = FakeModelTransport()
+		transport.script = [
+			.toolCall(name: "memory_read", arguments: arguments),
 			.finish(reason: .toolCalls),
 			.text("ok"),
 			.finish(reason: .stop),

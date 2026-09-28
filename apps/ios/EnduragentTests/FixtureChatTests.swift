@@ -105,7 +105,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
 		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.errorLine == nil)
+		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
@@ -157,10 +157,11 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 0)
 		#expect(model.chat?.turns.isEmpty ?? true)
 		#expect(model.draft.text == "fixture:fail bogus")
-		#expect(model.errorLine == "Unknown fixture directive: fixture:fail bogus")
+		#expect(model.fixtureFeedback == "Unknown fixture directive: fixture:fail bogus")
 		model.draft.text = "fixture:storage fail-everything"
 		await model.send()
-		#expect(model.errorLine == "Unknown fixture directive: fixture:storage fail-everything")
+		#expect(
+			model.fixtureFeedback == "Unknown fixture directive: fixture:storage fail-everything")
 		#expect(transport.requestCount == 0)
 		#expect(await firstSnapshot(services, chat: .main)?.turns.isEmpty == true)
 	}

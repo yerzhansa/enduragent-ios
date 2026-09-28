@@ -23,7 +23,7 @@ public enum PlanStatus: String, Sendable {
 	case closed
 }
 
-public enum CreationStatus: String, Sendable {
+package enum CreationStatus: String, Sendable {
 	case inProgress = "in-progress"
 	case review
 	case activated
@@ -42,46 +42,46 @@ public enum MatchDecision: String, Sendable {
 	case unpaired
 }
 
-public struct PlanningCommandRequest: Sendable, Equatable {
-	public var name: PlanningCommandName
-	public var commandId: String
-	public var payload: JSONValue
-	public var expectedVersion: Int?
+package struct PlanningCommandRequest: Sendable, Equatable {
+	package var name: PlanningCommandName
+	package var commandId: String
+	package var payload: JSONValue
+	package var expectedVersion: Int?
 }
 
-public enum PlanningCommandResult: Sendable, Equatable {
+package enum PlanningCommandResult: Sendable, Equatable {
 	case applied(PlanningView)
 	case replayed(PlanningView)
 	case commandConflict
 	case refused(String)
 }
 
-public struct PlanningView: Sendable, Equatable {
-	public var access: Access
-	public var unfinishedCreation: CreationSummary?
-	public var activePlan: PlanHeadline?
-	public var previewChange: PlanChangePreview?
-	public var cards: [PlanCard]
+package struct PlanningView: Sendable, Equatable {
+	package var access: Access
+	package var unfinishedCreation: CreationSummary?
+	package var activePlan: PlanHeadline?
+	package var previewChange: PlanChangePreview?
+	package var cards: [PlanCard]
 
-	public enum Access: Sendable, Equatable {
+	package enum Access: Sendable, Equatable {
 		case owner
 		case readOnly(planningDeviceId: DeviceID)
 		case none
 	}
 }
 
-public struct CreationSummary: Sendable, Equatable {
-	public var id: ULID
-	public var status: CreationStatus
-	public var version: Int
+package struct CreationSummary: Sendable, Equatable {
+	package var id: ULID
+	package var status: CreationStatus
+	package var version: Int
 }
 
-public struct PlanChangePreview: Sendable, Equatable {
-	public var changeId: ULID
-	public var confidence: String
+package struct PlanChangePreview: Sendable, Equatable {
+	package var changeId: ULID
+	package var confidence: String
 }
 
-public enum PlanCard: Sendable, Equatable {
+package enum PlanCard: Sendable, Equatable {
 	case creation(CreationSummary)
 	case activationConfirm(name: String, closesIncumbent: String?)
 	case changePreview(PlanChangePreview)
@@ -96,23 +96,23 @@ package struct PlanningAggregate: Sendable, Equatable {
 	package var mirrorJobs: [MirrorJobBody]
 }
 
-public enum PlanningPolicy {
-	public static let mirrorDays = 7
-	public static let staleAfterHours = 24
-	public static let raceWindowDays = 7
-	public static let maxMirrorFailures = 5
-	public static let drainLease: Duration = .seconds(300)
-	public static let uidPrefix = "cycling-coach:plan:"
-	public static let builderId = "cycling-creation-draft"
-	public static let builderVersion = "1"
-	public static let confidenceCopy =
+package enum PlanningPolicy {
+	package static let mirrorDays = 7
+	package static let staleAfterHours = 24
+	package static let raceWindowDays = 7
+	package static let maxMirrorFailures = 5
+	package static let drainLease: Duration = .seconds(300)
+	package static let uidPrefix = "cycling-coach:plan:"
+	package static let builderId = "cycling-creation-draft"
+	package static let builderVersion = "1"
+	package static let confidenceCopy =
 		"Moderate confidence. Based on your confirmed limits and the available training record."
 
-	public static func mirrorUID(plan: ULID, workout: ULID) -> PlanMirrorUID {
+	package static func mirrorUID(plan: ULID, workout: ULID) -> PlanMirrorUID {
 		PlanMirrorUID(planId: plan, workoutId: workout)
 	}
 
-	public static func mirrorWindow(today: DateKey) -> (DateKey, DateKey) {
+	package static func mirrorWindow(today: DateKey) -> (DateKey, DateKey) {
 		fatalError("not implemented")
 	}
 
@@ -121,34 +121,34 @@ public enum PlanningPolicy {
 	}
 }
 
-public actor Planning {
+package actor Planning {
 	private let store: any RecordLog
 	private let clock: any Clock
 
-	public init(store: any RecordLog, clock: any Clock) {
+	package init(store: any RecordLog, clock: any Clock) {
 		self.store = store
 		self.clock = clock
 	}
 
-	public func dispatch(_ request: PlanningCommandRequest) async throws -> PlanningCommandResult {
+	package func dispatch(_ request: PlanningCommandRequest) async throws -> PlanningCommandResult {
 		fatalError("not implemented")
 	}
 
-	public func read() async throws -> PlanningView {
+	package func read() async throws -> PlanningView {
 		fatalError("not implemented")
 	}
 
-	public func drainMirror(plan: ULID) async throws {
+	package func drainMirror(plan: ULID) async throws {
 		fatalError("not implemented")
 	}
 
-	public func isPlanningDevice() async throws -> Bool {
+	package func isPlanningDevice() async throws -> Bool {
 		fatalError("not implemented")
 	}
 }
 
-public enum CreationDraftBuilder {
-	public static func build(answers: JSONValue, today: DateKey) throws -> JSONValue {
+package enum CreationDraftBuilder {
+	package static func build(answers: JSONValue, today: DateKey) throws -> JSONValue {
 		fatalError("not implemented")
 	}
 }

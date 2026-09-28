@@ -160,17 +160,13 @@ struct AppServices: Sendable {
 }
 
 @MainActor
-final class ServicesBuilder {
+final class AppEnvironment {
 	let language: LanguageTag
 	let defaults: UserDefaults
 	let services: AppServices
 
 	var deviceCheck: any DeviceCheckTokenProviding {
 		services.deviceCheck
-	}
-
-	var clock: any Clock {
-		services.clock
 	}
 
 	var isFixture: Bool {

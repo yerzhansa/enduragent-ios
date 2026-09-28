@@ -32,7 +32,7 @@ custom_rules:
     message: 'This catch discards every error. Handle it, surface it to the user, or let it propagate. Catch a specific error type to ignore it on purpose.'
     severity: error
   optional_try:
-    regex: 'try\?(?!\s*container\.decode\b)'
+    regex: '(?m)^(?![ \t]*if let [A-Za-z_][A-Za-z_0-9]*[ \t]*=[ \t]*try\?[ \t]+container\.decode\([A-Za-z_0-9\[\]: ]+\.self\)[ \t]*\{[ \t]*$)[^\n]*\btry\?'
     excluded: '/Tests/'
     message: 'try? turns a failure into nil. Use try and handle or propagate the error. Only probing decodes on a Decoder container may use try?.'
     severity: error

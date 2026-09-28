@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Valitse kielesi",
-    "continue": "Jatka"
+    "continue": "Jatka",
+    "saveFailed": "Kielivalintaa {{language}} ei voitu tallentaa. Vastausten kieli on edelleen {{current}}. Yritä uudelleen.",
+    "saveFailedAutomatic": "Kielivalintaa {{language}} ei voitu tallentaa. Vastaukset pysyvät kunkin viestin kielellä. Yritä uudelleen."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Anna historian osuudeksi yli 0 % ja enintään 100 %.",
         "idleMinutes": "Anna minuuttimääräksi sallittu kokonaisluku, vähintään 0.",
         "resetArchiveRetentionDays": "Anna päivien määräksi sallittu kokonaisluku, vähintään 0.",
-        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}."
+        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}.",
+        "contextWindowTokens": "Anna tokenien määräksi kokonaisluku sallitulta väliltä, vähintään 1."
       }
     },
     "credentials": {
@@ -536,7 +539,8 @@
     "readOnly": "Aiempia keskusteluja voi vain lukea.",
     "reason": {
       "explicit": "Aloitit uuden keskustelun",
-      "stale": "Suljettu tauon jälkeen"
+      "stale": "Suljettu tauon jälkeen",
+      "earlierChat": "Aiempi keskustelu"
     },
     "retry": "Yritä uudelleen",
     "timestamp": "{{day}}.{{month}}.{{year}} {{hour}}:{{minute}} {{timezone}}",
@@ -862,8 +866,7 @@
       "plan": "Suunnitelma",
       "settings": "Asetukset",
       "training": "Harjoittelu"
-    },
-    "menu": "Valikko"
+    }
   },
   "chat": {
     "attachment": {
@@ -948,8 +951,7 @@
       "responding": "Valmentaja vastaa…",
       "send": "Lähetä viesti",
       "stop": "Pysäytä vastaus",
-      "messageField": "Viesti",
-      "sendButton": "Lähetä"
+      "notSent": "Ei lähetetty. Luonnoksesi on yhä täällä."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -1020,7 +1022,8 @@
       "retryMessage": "Yritä viestiä uudelleen",
       "savedChoice": "Tallennettu valinta",
       "working": "Valmentaja työskentelee…",
-      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy."
+      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -1452,9 +1455,17 @@
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
     },
-    "addToCalendar": "Lisää kalenteriin",
     "menu": "Valikko",
-    "title": "Valmentaja"
+    "turn": {
+      "buyCredits": "Osta krediittejä",
+      "chooseAccessMethod": "Valitse yhteystapa",
+      "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
+      "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
+      "interruptedSomeSaved": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa.",
+      "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
+      "restorePurchases": "Palauta ostokset",
+      "signInAgain": "Kirjaudu uudelleen"
+    }
   },
   "plan": {
     "details": {
@@ -2917,7 +2928,12 @@
     "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
     "balance_other": "{{formattedCount}} krediittiä",
     "pack_other": "{{formattedCount}} krediittiä",
-    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}"
+    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
+    "error": {
+      "accessRejected": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi.",
+      "exhausted": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi.",
+      "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen."
+    }
   },
   "onboarding": {
     "connect": {
@@ -2934,6 +2950,21 @@
       "alreadyGranted": "Tämä laite on jo käyttänyt aloituskrediittinsä.",
       "added_one": "Lisätty {{formattedCount}} krediitti",
       "added_other": "Lisätty {{formattedCount}} krediittiä"
+    },
+    "notice": {
+      "health": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
+      "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu ei hyväksynyt avainta."
     }
   }
 }

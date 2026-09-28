@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2477)
-		#expect(Catalog.keyCount == 2517)
+		#expect(Catalog.englishLeafCount == 2472)
+		#expect(Catalog.keyCount == 2512)
 	}
 
 	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {
@@ -55,11 +55,21 @@ import Testing
 		(Catalog.chatTurnSignInAgain, "Sign in again"),
 		(Catalog.chatTurnFinishedWhileLocked, "Finished while the phone was locked."),
 	])
-	func newKeysRenderInEnglishAndFallBackForOtherTags(key: CatalogKey, english: String) {
+	func newKeysRenderInEnglishAndEverySelectedLanguage(key: CatalogKey, english: String) {
 		#expect(CatalogPhrasebook(tag: .en, locale: "en-US").say(key) == english)
 		for tag in LanguageTag.allCases where tag != .en {
-			#expect(CatalogPhrasebook(tag: tag, locale: tag.defaultLocale).say(key) == english)
+			let localized = CatalogPhrasebook(tag: tag, locale: tag.defaultLocale).say(key)
+			#expect(!localized.isEmpty)
+			#expect(localized != english)
 		}
+	}
+
+	@Test func germanRecoveryCopyUsesTranslatedCatalog() {
+		let book = LanguageTag.de.phrasebook
+		#expect(book.say(Catalog.chatTurnBuyCredits) == "Guthaben kaufen")
+		#expect(
+			book.say(Catalog.accessErrorLocked)
+				== "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.")
 	}
 
 	@Test(arguments: LanguageTag.allCases)

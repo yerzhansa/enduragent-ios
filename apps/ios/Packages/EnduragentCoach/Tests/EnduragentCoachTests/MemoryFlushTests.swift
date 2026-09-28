@@ -181,6 +181,26 @@ import Testing
 		#expect(hits.count == 1)
 	}
 
+	@Test func blankFlushArgumentsReturnTheMissingSectionToTheModel() async throws {
+		_ = try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.flushScript = [
+			.toolCall(name: "memory_write", arguments: ""),
+			.finish(reason: .toolCalls),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let settled = try await coach.sendAndSettle("Remember Saturdays")
+		#expect(replyText(settled) == "Noted.")
+		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
+		let flushRequests = transport.requests.filter { $0.charge == .memoryFlush }
+		#expect(flushRequests.count == 2)
+		let followUp = try #require(flushRequests.last)
+		let result = try #require(followUp.messages.last(where: { $0.role == .tool }))
+		#expect(result.content == #"{"error":"section_required"}"#)
+	}
+
 	private func budget(calls: Int) -> TurnBudgetPolicy {
 		TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: calls, wallClock: .seconds(600),

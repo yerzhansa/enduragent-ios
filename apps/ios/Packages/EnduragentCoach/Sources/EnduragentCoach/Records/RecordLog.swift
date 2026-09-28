@@ -104,10 +104,10 @@ public enum SkippedRow: Error, Sendable, Hashable {
 	case malformed(kind: String, ulid: String)
 }
 
-public struct RecordDecodeFailure: Error, Sendable, Equatable {
-	public var reason: String
+package struct RecordDecodeFailure: Error, Sendable, Equatable {
+	package var reason: String
 
-	public init(reason: String) {
+	package init(reason: String) {
 		self.reason = reason
 	}
 }

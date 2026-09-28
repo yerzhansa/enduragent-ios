@@ -24,7 +24,8 @@ enum AppLaunch {
 			let (built, defaults) = try services()
 			let preference = await built.coach.languagePreference()
 			let model = ShellModel(
-				builder: ServicesBuilder(services: built, language: language, defaults: defaults),
+				environment: AppEnvironment(
+					services: built, language: language, defaults: defaults),
 				initialLanguage: preference)
 			return .ready(model)
 		} catch let error as FixtureLaunchError {
@@ -39,6 +40,6 @@ enum AppLaunch {
 		if let launch = try FixtureLaunch.fromArguments() {
 			return launch
 		}
-		return ServicesBuilder.isHostedByTests ? try FixtureLaunch.firstWeek() : nil
+		return AppEnvironment.isHostedByTests ? try FixtureLaunch.firstWeek() : nil
 	}
 }

@@ -1,38 +1,69 @@
-# Language
+# Language preference
 
-The athlete chooses one language for the app text and the coach's replies. `/language` opens `Choose your language` with `Automatic` and the 17 languages, each in its own name, and a checkmark on the current choice. `Automatic` follows the iPhone language for the app, and the coach replies in the language the athlete writes in. A fixed language sets both. The choice is saved and survives a relaunch.
+One language preference controls both app text and coach replies. Automatic follows the iPhone language for app text and the athlete's latest message for the reply language. A fixed language controls both and survives a relaunch. Choosing a language does not create a turn.
 
 ## Sub-features
 
-- `language-picker` opens as a sheet from `/language`, titled `Choose your language`, with `Automatic`, `English`, `Español`, `Français`, `Italiano`, `Deutsch`, `Nederlands`, `Dansk`, `Svenska`, `Norsk bokmål`, `Suomi`, `Português (Portugal)`, `Português (Brasil)`, `Polski`, `한국어`, `日本語`, `简体中文`, and `繁體中文` in that order. The checkmark marks the current choice, and `/language` sends no message and starts no model call.
-- `language-choose` saves the tapped language at once. The sheet stays open and re-renders in that language, so `Français` turns the title into `Choisis ta langue` and `Automatic` into `Automatique`. After `language.close`, the chat title reads `Conversation`, the composer reads `Écris à ton coach`, and the next reply's request carries `The athlete chose French (Français).`, read in Debug as `fixture.replyLanguage`.
-- `language-automatic` is the default. The reply-language section reads `No language is saved.` and falls back to the language of the athlete's message, then the iPhone language.
-- `language-same` writes nothing when the athlete taps the language that is already selected.
-- `language-survives` reopens in the chosen language after a relaunch with the kept store, and Records lists `languagePreference 1`.
-- `language-save-failed` keeps the checkmark on the current choice when the choice cannot be saved and shows `Couldn't save Deutsch. Replies stay in Français. Try again.` in `language.saveFailed`, or `Couldn't save Deutsch. Replies stay in the language of each message. Try again.` while `Automatic` is current.
+- `language-picker` opens Choose your language, marks the current row selected, and lists Automatic plus all 17 supported languages in the order below.
+- `language-choose` saves a different choice immediately and keeps the picker open in the selected language. The next reply receives that preference.
+- `language-automatic` has no saved fixed language. The reply follows the message language, then the iPhone language when the message gives no language evidence.
+- `language-same` keeps the selection without adding another preference record when the current row is tapped again.
+- `language-survives` uses the saved language on the first frame after relaunch, including the welcome and composer.
+- `language-save-failed` preserves the current choice and shows `language.saveFailed` if the preference cannot be stored.
+- `language-notices` renders notices and review outcomes through the chosen phrasebook. A notice without a translation uses its English catalog value.
+
+| Order | Choice | Identifier |
+| --- | --- | --- |
+| 1 | Automatic | `language.choice.automatic` |
+| 2 | English | `language.choice.en` |
+| 3 | Español | `language.choice.es` |
+| 4 | Français | `language.choice.fr` |
+| 5 | Italiano | `language.choice.it` |
+| 6 | Deutsch | `language.choice.de` |
+| 7 | Nederlands | `language.choice.nl` |
+| 8 | Dansk | `language.choice.da` |
+| 9 | Svenska | `language.choice.sv` |
+| 10 | Norsk bokmål | `language.choice.nb` |
+| 11 | Suomi | `language.choice.fi` |
+| 12 | Português (Portugal) | `language.choice.pt-PT` |
+| 13 | Português (Brasil) | `language.choice.pt-BR` |
+| 14 | Polski | `language.choice.pl` |
+| 15 | 한국어 | `language.choice.ko` |
+| 16 | 日本語 | `language.choice.ja` |
+| 17 | 简体中文 | `language.choice.zh-Hans` |
+| 18 | 繁體中文 | `language.choice.zh-Hant` |
 
 ## How to get to it (user POV)
 
-- In the chat, send `/language`.
-- Choose `Menu`, then `Debug`, then `Language`.
+- Type `/language` and send, or choose it from the slash list and send the filled command.
+- Choose Menu, Debug, Language through `debug.language`.
+- Select a row. Close the command sheet with `language.close`; use Back when the picker was pushed from Debug.
 
 ## Driving it with sim.mjs and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
-- For interactive steps, the app is on the chat after onboarding.
+- Follow the [index](./README.md) setup. The proofs launch fresh unless they explicitly relaunch their saved state.
 
-- **Choose French.** Run `sim.mjs test <run id> LanguagePickerProof`. It sends `/language`, finds `language.choice.automatic` selected and the 18 rows in order, taps `language.choice.fr`, waits for `Choisis ta langue`, closes the sheet, and checks the French chat title and composer placeholder. It sends the week question and reads `fixture.replyLanguage`, then relaunches with the kept store and reads `languagePreference 1` in Records. Attachments `language-picker-auto`, `language-picker-fr`, `m1-12-language-fr`, and `m1-12-language-survives` show each state, and `language-switch-seconds` holds the time from the tap on `Français` to the French title beside the time of a second tap on `Français`, which is already selected and changes nothing. XCUITest's tap waits for the app to settle, so judge the switch against that second tap, not on its own.
-- **Automatic on a French phone.** Run `sim.mjs test <run id> AutomaticFrenchPhoneProof`. It onboards on a French phone with no saved language, checks the French title `Conversation` and placeholder `Écris à ton coach`, and sends the English week question. Debug, `fixture.replyLanguage`, reads `No language is saved. Reply in the language of the athlete's latest message` and ends `reply in English (English).` The fixture replies are scripted, so that line, the instruction the model receives, is the proof. Attachment `m1-12-automatic-fr-phone` shows the French chat.
-- **Saved language on the first frame.** Run `sim.mjs test <run id> SavedLanguageFirstFrameProof`. It onboards on an English phone, chooses `language.choice.es`, and relaunches with the kept store. From launch until `chat.composer` first appears it reads every label, title, value, and placeholder on screen. `Escribe a tu entrenador` is there, no English catalog chrome is, and the welcome opens `¡Te doy la bienvenida a`. Attachment `m1-12-saved-spanish-first-frame` shows the screen and `saved-spanish-first-frame-strings` lists every string read.
-- **Parity.** Run `sim.mjs parity <run id> language-picker-auto light --from <language-picker-auto attachment>` and `sim.mjs parity <run id> language-picker-fr light --from <language-picker-fr attachment>`. Compare the choices, their order, and the checkmark row.
-- **Save failed.** The hosted test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` makes the next `languagePreference` write fail and checks the sentence. No directive reaches this state on the simulator.
+| Action and command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> LanguagePickerProof` | Checks all 18 rows in order, selects French, and checks `Choisis ta langue`, `Automatique`, the Conversation title, and `Écris à ton coach`. Attachments are `language-picker-auto`, `language-picker-fr`, `m1-12-language-fr`, and `m1-12-language-survives`. |
+| The same `LanguagePickerProof` run sends the week question and taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
+| `sim.mjs test <run id> AutomaticFrenchPhoneProof` | A French phone with Automatic shows French app text. Its English week question produces a reply instruction ending `reply in English (English).`; `m1-12-automatic-fr-phone` shows the conversation. |
+| `sim.mjs test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
+| `sim.mjs test <run id> FrenchFallbackProof` | A new notice without French copy uses the English sentence and expected action, `fallback-french`. |
+| `sim.mjs test <run id> ReviewLanguageProof` | French review title, controls, and saved Done line, before and after relaunch, `review-french`, `review-french-relaunch`. |
+
+For the Debug entry point, open `chat.sidebar`, `sidebar.debug`, and `debug.language`, then select a row and go Back. Capture `sim.mjs shot <run id> language-debug-entry`. No dedicated XCUITest class proves this alternate entry. The hosted app test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` covers a failed save; there is no fixture directive for that write failure.
+
+Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and the corresponding `language-picker-fr` command when visual parity is in scope. Compare the ordered choices and selected row.
 
 ## Gotchas
 
-- Language rows are buttons named `language.choice.<id>`, where `<id>` is `automatic` or the language tag such as `fr`, `pt-BR`, or `zh-Hant`. The checkmark is hidden from accessibility; the current row carries the selected trait, so check `isSelected`.
-- The sheet is a list, so the last rows exist for XCUITest only after scrolling. Scroll the sheet up, never down from the top, because a downward swipe at the top dismisses the sheet.
-- Endonyms never translate. Only `Automatic` and the title change with the language.
-- The menu, `Menu`, `Debug`, `Credits`, and `History` labels are not translated yet, so they stay English in French.
-- `-AppleLanguages` sets the iPhone language that `Automatic` follows. A fixed choice overrides it.
+- The row's selected accessibility trait identifies the choice. Its checkmark is hidden from accessibility.
+- Scroll upward through the list to find the final rows. A downward swipe at the top can dismiss the sheet.
+- Language names stay in their own languages. The title and Automatic translate.
+- Product Menu, Credits, History, and other chrome now use catalog values. Debug-only labels can remain English.
+- Fixture replies are scripted. `fixture.replyLanguage`, the instruction supplied to the model, proves reply-language selection more reliably than the fixture reply text.
+- `-AppleLanguages` changes the phone language for Automatic. A saved fixed preference overrides it.
+- The language switch timing includes XCUITest settling time. Compare it with the already-selected row tap from the same run.

@@ -6,11 +6,11 @@ import UIKit
 final class AppLifecycle {
 	private static let terminationBudget: DispatchTimeInterval = .seconds(4)
 
-	private let builder: ServicesBuilder
+	private let environment: AppEnvironment
 	private var termination: (any NSObjectProtocol)?
 
-	init(builder: ServicesBuilder) {
-		self.builder = builder
+	init(environment: AppEnvironment) {
+		self.environment = environment
 		termination = NotificationCenter.default.addObserver(
 			forName: UIApplication.willTerminateNotification, object: nil, queue: nil
 		) { [weak self] _ in
@@ -25,11 +25,11 @@ final class AppLifecycle {
 	}
 
 	func forward(_ event: AppLifecycleEvent) async {
-		await builder.services.coach.lifecycle(event)
+		await environment.services.coach.lifecycle(event)
 	}
 
 	private func terminate() {
-		let coach = builder.services.coach
+		let coach = environment.services.coach
 		let interrupted = DispatchSemaphore(value: 0)
 		Task.detached(priority: Task.currentPriority) {
 			await coach.lifecycle(.willTerminate)

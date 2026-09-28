@@ -8,6 +8,102 @@
             "state": "translated",
             "value": "Unlock your iPhone to continue. Your message is saved."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquea tu iPhone para continuar. Tu mensaje está guardado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouille ton iPhone pour continuer. Ton message est enregistré."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca il tuo iPhone per continuare. Il tuo messaggio è salvato."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås din iPhone op for at fortsætte. Din besked er gemt."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås opp iPhonen for å fortsette. Meldingen din er lagret."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueie seu iPhone para continuar. Sua mensagem está salva."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odblokuj iPhone’a, aby kontynuować. Twoja wiadomość jest zapisana."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속하려면 iPhone의 잠금을 해제하세요. 메시지는 저장되어 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请解锁 iPhone 以继续。你的消息已保存。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解鎖 iPhone 以繼續。你的訊息已儲存。"
+          }
         }
       }
     },
@@ -18,6 +114,102 @@
             "state": "translated",
             "value": "Choose how the coach reaches a model to continue."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige cómo accede el entrenador a un modelo para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisis comment le coach accède à un modèle pour continuer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli come il coach accede a un modello per continuare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kies hoe de coach een model bereikt om door te gaan."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vælg, hvordan træneren får adgang til en model, for at fortsætte."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj hur tränaren får tillgång till en modell för att fortsätta."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velg hvordan treneren får tilgang til en modell for å fortsette."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolhe como o treinador acede a um modelo para continuar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha como o treinador acessa um modelo para continuar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz sposób dostępu trenera do modelu, aby kontynuować."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続けるには、コーチがモデルに接続する方法を選んでください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择教练连接模型的方式以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇教練連接模型的方式以繼續。"
+          }
         }
       }
     },
@@ -27,6 +219,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua conta OpenRouter está sem saldo. Adicione saldo no OpenRouter ou mude para Créditos."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。"
           }
         }
       }
@@ -2354,6 +2642,102 @@
             "state": "translated",
             "value": "Earlier chat"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat anterior"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancienne discussion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chat precedente"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Früherer Chat"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eerdere chat"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidligere chat"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidigare chatt"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidligere chat"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aiempi keskustelu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversa anterior"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversa anterior"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wcześniejsza rozmowa"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이전 채팅"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以前のチャット"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之前的聊天"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先前的聊天"
+          }
         }
       }
     },
@@ -3937,112 +4321,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "此對話已無法使用。"
-          }
-        }
-      }
-    },
-    "chat.addToCalendar": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add to calendar"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Añadir al calendario"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajouter au calendrier"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aggiungi al calendario"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zum Kalender hinzufügen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toevoegen aan agenda"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Føj til kalender"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lägg till i kalendern"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Legg til i kalenderen"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lisää kalenteriin"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adicionar ao calendário"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adicionar ao calendário"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dodaj do kalendarza"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "캘린더에 추가"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "カレンダーに追加"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "添加到日历"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加入行事曆"
           }
         }
       }
@@ -13069,112 +13347,6 @@
         }
       }
     },
-    "chat.composer.messageField": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mensaje"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Message"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Messaggio"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nachricht"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bericht"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Besked"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meddelande"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Melding"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Viesti"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mensagem"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mensagem"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wiadomość"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "메시지"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メッセージ"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "消息"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "訊息"
-          }
-        }
-      }
-    },
     "chat.composer.messagePlaceholder": {
       "localizations": {
         "en": {
@@ -13287,6 +13459,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Not sent. Your draft is still here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha enviado. Tu borrador sigue aquí."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non envoyé. Ton brouillon est toujours là."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non inviato. La tua bozza è ancora qui."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gesendet. Dein Entwurf ist noch da."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet verzonden. Je concept staat hier nog."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke sendt. Din kladde er stadig her."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte skickat. Ditt utkast finns kvar här."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke sendt. Utkastet ditt er fortsatt her."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ei lähetetty. Luonnoksesi on yhä täällä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não enviada. O teu rascunho continua aqui."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não enviada. Seu rascunho continua aqui."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wysłano. Twój szkic nadal tu jest."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전송되지 않았습니다. 작성 중인 메시지는 그대로 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信されていません。下書きは残っています。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发送。你的草稿仍然保留。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未傳送。你的草稿仍然保留。"
           }
         }
       }
@@ -13499,112 +13767,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "傳送訊息"
-          }
-        }
-      }
-    },
-    "chat.composer.sendButton": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enviar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Envoyer"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invia"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Senden"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Versturen"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skicka"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Send"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lähetä"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enviar"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Enviar"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wyślij"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "보내기"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "送信"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "发送"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "傳送"
           }
         }
       }
@@ -20621,6 +20783,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "I saved your information, but couldn't verify my response. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardé tu información, pero no pude verificar mi respuesta. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "J’ai enregistré tes informations, mais je n’ai pas pu vérifier ma réponse. Réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ho salvato le tue informazioni, ma non ho potuto verificare la mia risposta. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeg lagret opplysningene dine, men kunne ikke kontrollere svaret mitt. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvei suas informações, mas não consegui verificar minha resposta. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "정보는 저장했지만 답변을 확인하지 못했습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已保存你的信息，但未能验证我的回复。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已儲存你的資訊，但無法驗證我的回覆。請重試。"
           }
         }
       }
@@ -62879,112 +63137,6 @@
         }
       }
     },
-    "chat.title": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coach"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entrenador"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coach"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coach"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coach"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coach"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Træner"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tränare"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trener"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valmentaja"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Treinador"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Treinador"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Trener"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "코치"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "コーチ"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "教练"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "教練"
-          }
-        }
-      }
-    },
     "chat.trainingContext.activities": {
       "localizations": {
         "en": {
@@ -63846,13 +63998,13 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "fit"
+            "value": "ajuste"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "fit"
+            "value": "ajustement"
           }
         },
         "it": {
@@ -63870,13 +64022,13 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "fit"
+            "value": "aanpassing"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "fit"
+            "value": "tilpasning"
           }
         },
         "sv": {
@@ -69822,6 +69974,102 @@
             "state": "translated",
             "value": "Buy Credits"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acheter des crédits"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acquista crediti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guthaben kaufen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegoed kopen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Køb kreditter"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Köp krediter"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kjøp kreditter"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osta krediittejä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprar créditos"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kup kredyty"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크레딧 구매"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クレジットを購入"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买积分"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購買點數"
+          }
         }
       }
     },
@@ -69831,6 +70079,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choose access method"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir método de acceso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisir le mode d’accès"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scegli il metodo di accesso"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriffsmethode wählen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegangsmethode kiezen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vælg adgangsmetode"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välj åtkomstmetod"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velg tilgangsmåte"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valitse yhteystapa"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher método de acesso"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolher método de acesso"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wybierz sposób dostępu"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 방법 선택"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続方法を選択"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择接入方式"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇存取方式"
           }
         }
       }
@@ -69842,6 +70186,102 @@
             "state": "translated",
             "value": "Finished while the phone was locked."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminó mientras el teléfono estaba bloqueado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé pendant que le téléphone était verrouillé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminato mentre il telefono era bloccato."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgeschlossen, während das Telefon gesperrt war."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voltooid terwijl de telefoon vergrendeld was."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blev færdig, mens telefonen var låst."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blev klart medan telefonen var låst."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ble ferdig mens telefonen var låst."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valmistui puhelimen ollessa lukittuna."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluído enquanto o telemóvel estava bloqueado."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concluído enquanto o telefone estava bloqueado."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zakończono, gdy telefon był zablokowany."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "휴대폰이 잠긴 동안 완료되었습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "端末がロックされている間に完了しました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在手机锁定期间完成。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在手機鎖定期間完成。"
+          }
         }
       }
     },
@@ -69851,6 +70291,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "This reply stopped before it finished. Nothing was changed."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta respuesta se interrumpió antes de terminar. No se cambió nada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette réponse s’est interrompue avant la fin. Rien n’a été modifié."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa risposta si è interrotta prima di finire. Non è stato modificato nulla."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Antwort wurde vorzeitig beendet. Es wurde nichts geändert."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret blev afbrudt, før det var færdigt. Intet blev ændret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret avbröts innan det var klart. Inget ändrades."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta foi interrompida antes de terminar. Nada foi alterado."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta foi interrompida antes de terminar. Nada foi alterado."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta odpowiedź została przerwana przed zakończeniem. Nic nie zostało zmienione."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 답변은 완료되기 전에 중단되었습니다. 변경된 내용은 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答が完了する前に中断されました。変更はありません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次回复在完成前中断。未做任何更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次回覆在完成前中斷。未做任何變更。"
           }
         }
       }
@@ -69862,6 +70398,102 @@
             "state": "translated",
             "value": "This reply stopped before it finished. Some information was saved first."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta respuesta se interrumpió antes de terminar. Parte de la información se guardó antes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette réponse s’est interrompue avant la fin. Certaines informations avaient déjà été enregistrées."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa risposta si è interrotta prima di finire. Alcune informazioni erano già state salvate."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Antwort wurde vorzeitig beendet. Einige Angaben wurden zuvor gespeichert."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit antwoord werd onderbroken voordat het klaar was. Een deel van de informatie was al opgeslagen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret blev afbrudt, før det var færdigt. Nogle oplysninger blev gemt inden da."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret avbröts innan det var klart. Viss information sparades först."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svaret ble avbrutt før det var ferdig. Noen opplysninger ble lagret først."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido guardadas."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta foi interrompida antes de terminar. Algumas informações já tinham sido salvas."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta odpowiedź została przerwana przed zakończeniem. Część informacji zapisano wcześniej."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 답변은 완료되기 전에 중단되었습니다. 일부 정보는 그전에 저장되었습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答が完了する前に中断されました。一部の情報はその前に保存されました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次回复在完成前中断。部分信息已在中断前保存。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次回覆在完成前中斷。部分資訊已在中斷前儲存。"
+          }
         }
       }
     },
@@ -69871,6 +70503,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Received before the app closed. Tap Try again to send it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se recibió antes de cerrar la app. Toca Reintentar para enviarlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reçu avant la fermeture de l’app. Appuie sur Réessayer pour l’envoyer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricevuto prima della chiusura dell’app. Tocca Riprova per inviarlo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modtaget, før appen lukkede. Tryk på Prøv igen for at sende beskeden."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recebida antes de a aplicação fechar. Toca em Tentar novamente para a enviar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recebida antes de o app fechar. Toque em Tentar novamente para enviá-la."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "앱이 닫히기 전에 수신되었습니다. 전송하려면 다시 시도를 누르세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在应用关闭前收到。点按“重试”以发送。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在應用程式關閉前收到。點一下「重試」即可傳送。"
           }
         }
       }
@@ -69882,6 +70610,102 @@
             "state": "translated",
             "value": "Restore purchases"
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compras"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer les achats"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ripristina acquisti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Käufe wiederherstellen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aankopen herstellen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gendan køb"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Återställ köp"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gjenopprett kjøp"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Palauta ostokset"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compras"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compras"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Przywróć zakupy"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "구매 복원"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "購入を復元"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复购买"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回復購買項目"
+          }
         }
       }
     },
@@ -69891,6 +70715,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sign in again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se reconnecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi di nuovo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut anmelden"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw inloggen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log ind igen"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logga in igen"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logg inn igjen"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kirjaudu uudelleen"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sessão novamente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrar novamente"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaloguj się ponownie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 로그인"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再度サインイン"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新登录"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新登入"
           }
         }
       }
@@ -111314,6 +112234,102 @@
             "state": "translated",
             "value": "intervals.icu did not accept that key."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu no aceptó esa clave."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu n’a pas accepté cette clé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu non ha accettato quella chiave."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu hat diesen Schlüssel nicht akzeptiert."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu heeft die sleutel niet geaccepteerd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu accepterede ikke den nøgle."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu accepterade inte den nyckeln."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu godtok ikke den nøkkelen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu ei hyväksynyt avainta."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O intervals.icu não aceitou essa chave."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O intervals.icu não aceitou essa chave."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu nie zaakceptował tego klucza."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu에서 해당 키를 거부했습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuにキーが拒否されました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 未接受该密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 未接受這組金鑰。"
+          }
         }
       }
     },
@@ -111646,12 +112662,6 @@
         "ko": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 크레딧"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -111670,12 +112680,6 @@
         "ja": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@クレジット"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -111694,12 +112698,6 @@
         "zh-Hans": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 积分"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -111718,12 +112716,6 @@
         "zh-Hant": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 點數"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -111854,6 +112846,102 @@
             "state": "translated",
             "value": "Your Credits couldn't be used. Restore purchases to continue."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron usar tus créditos. Restaura las compras para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes crédits n’ont pas pu être utilisés. Restaure tes achats pour continuer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile usare i tuoi crediti. Ripristina gli acquisti per continuare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Guthabenpunkte konnten nicht verwendet werden. Stelle deine Käufe wieder her, um fortzufahren."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dine kreditter kunne ikke bruges. Gendan køb for at fortsætte."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina krediter kunde inte användas. Återställ köp för att fortsätta."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kredittene dine kunne ikke brukes. Gjenopprett kjøp for å fortsette."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível usar os teus créditos. Restaura as compras para continuar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível usar seus créditos. Restaure as compras para continuar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się użyć twoich kredytów. Przywróć zakupy, aby kontynuować."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크레딧을 사용할 수 없었습니다. 계속하려면 구매를 복원하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クレジットを使用できませんでした。購入を復元して続けてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法使用你的积分。请恢复购买以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法使用你的點數。請回復購買項目以繼續。"
+          }
         }
       }
     },
@@ -111864,6 +112952,102 @@
             "state": "translated",
             "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te has quedado sin créditos. Compra más o cambia a tu cuenta de OpenRouter."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu n’as plus de crédits. Achètes-en d’autres ou passe à ton compte OpenRouter."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai esaurito i crediti. Acquistane altri oppure passa al tuo conto OpenRouter."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du hast keine Guthabenpunkte mehr. Kaufe weitere oder wechsle zu deinem OpenRouter-Konto."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du er løbet tør for kreditter. Køb flere, eller skift til din OpenRouter-konto."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dina krediter är slut. Köp fler eller byt till ditt OpenRouter-konto."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du er tom for kreditter. Kjøp flere, eller bytt til OpenRouter-kontoen din."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os teus créditos acabaram. Compra mais ou muda para a tua conta OpenRouter."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seus créditos acabaram. Compre mais ou mude para sua conta OpenRouter."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skończyły ci się kredyty. Kup więcej lub przełącz się na swoje konto OpenRouter."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "크레딧을 모두 사용했습니다. 추가로 구매하거나 OpenRouter 계정으로 전환하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クレジットがなくなりました。追加購入するか、OpenRouterアカウントに切り替えてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的积分已用完。请购买更多积分，或切换到你的 OpenRouter 账户。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的點數已用完。請購買更多點數，或切換到你的 OpenRouter 帳戶。"
+          }
         }
       }
     },
@@ -111873,6 +113057,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "Credits are unavailable right now. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los créditos no están disponibles ahora. Inténtalo más tarde."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les crédits sont indisponibles pour le moment. Réessaie plus tard."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I crediti non sono disponibili al momento. Riprova più tardi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter er ikke tilgængelige lige nu. Prøv igen senere."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediter är inte tillgängliga just nu. Försök igen senare."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os créditos estão indisponíveis de momento. Tenta novamente mais tarde."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os créditos estão indisponíveis no momento. Tente novamente mais tarde."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kredyty są teraz niedostępne. Spróbuj ponownie później."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지금은 크레딧을 이용할 수 없습니다. 나중에 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分暂时不可用。请稍后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "點數目前無法使用。請稍後重試。"
           }
         }
       }
@@ -112206,12 +113486,6 @@
         "ko": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 크레딧"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112230,12 +113504,6 @@
         "ja": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@クレジット"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112254,12 +113522,6 @@
         "zh-Hans": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 积分"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112278,12 +113540,6 @@
         "zh-Hant": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 點數"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112682,12 +113938,6 @@
         "ko": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 크레딧 · %#@price@"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112710,12 +113960,6 @@
         "ja": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@クレジット · %#@price@"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112738,12 +113982,6 @@
         "zh-Hans": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 积分 · %#@price@"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -112766,12 +114004,6 @@
         "zh-Hant": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 點數 · %#@price@"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -123948,6 +125180,262 @@
               "formatSpecifier": "@"
             }
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar %#@language@. Las respuestas seguirán en %#@current@. Inténtalo de nuevo."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’enregistrer %#@language@. Les réponses restent en %#@current@. Réessaie."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare %#@language@. Le risposte rimangono in %#@current@. Riprova."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ konnte nicht gespeichert werden. Die Antworten bleiben auf %#@current@. Versuche es erneut."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ kon niet worden opgeslagen. Antwoorden blijven in het %#@current@. Probeer het opnieuw."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke gemme %#@language@. Svarene bliver på %#@current@. Prøv igen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att spara %#@language@. Svaren fortsätter på %#@current@. Försök igen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke lagre %#@language@. Svarene fortsetter på %#@current@. Prøv igjen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kielivalintaa %#@language@ ei voitu tallentaa. Vastausten kieli on edelleen %#@current@. Yritä uudelleen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível guardar %#@language@. As respostas continuam em %#@current@. Tenta novamente."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar %#@language@. As respostas continuam em %#@current@. Tente novamente."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać ustawienia języka „%#@language@”. Język odpowiedzi nadal będzie ustawiony na „%#@current@”. Spróbuj ponownie."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ 설정을 저장하지 못했습니다. 답변 언어는 %#@current@로 유지됩니다. 다시 시도하세요."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@を保存できませんでした。回答の言語は%#@current@のままです。もう一度お試しください。"
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存%#@language@设置。回复语言仍为%#@current@。请重试。"
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存%#@language@設定。回覆語言仍為%#@current@。請重試。"
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
         }
       }
     },
@@ -123957,6 +125445,198 @@
           "stringUnit": {
             "state": "translated",
             "value": "Couldn't save %#@language@. Replies stay in the language of each message. Try again."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar %#@language@. Las respuestas seguirán en el idioma de cada mensaje. Inténtalo de nuevo."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’enregistrer %#@language@. Les réponses restent dans la langue de chaque message. Réessaie."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare %#@language@. Le risposte rimangono nella lingua di ciascun messaggio. Riprova."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ konnte nicht gespeichert werden. Die Antworten bleiben in der Sprache der jeweiligen Nachricht. Versuche es erneut."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ kon niet worden opgeslagen. Antwoorden blijven in de taal van elk bericht. Probeer het opnieuw."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke gemme %#@language@. Svarene bliver på sproget i hver besked. Prøv igen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att spara %#@language@. Svaren fortsätter på språket i varje meddelande. Försök igen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke lagre %#@language@. Svarene fortsetter på språket i hver melding. Prøv igjen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kielivalintaa %#@language@ ei voitu tallentaa. Vastaukset pysyvät kunkin viestin kielellä. Yritä uudelleen."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível guardar %#@language@. As respostas continuam no idioma de cada mensagem. Tenta novamente."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar %#@language@. As respostas continuam no idioma de cada mensagem. Tente novamente."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać ustawienia języka „%#@language@”. Odpowiedzi nadal będą w języku każdej wiadomości. Spróbuj ponownie."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@ 설정을 저장하지 못했습니다. 답변은 계속 각 메시지의 언어로 제공됩니다. 다시 시도하세요."
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@language@を保存できませんでした。引き続き各メッセージの言語で回答します。もう一度お試しください。"
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存%#@language@设置。回复仍会使用每条消息的语言。请重试。"
+          },
+          "substitutions": {
+            "language": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存%#@language@設定。回覆仍會使用每則訊息的語言。請重試。"
           },
           "substitutions": {
             "language": {
@@ -124916,6 +126596,102 @@
             "state": "translated",
             "value": "Training suggestions, not medical advice. Check with a doctor before big changes."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugerencias de entrenamiento, no asesoramiento médico. Consulta con un médico antes de hacer grandes cambios."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Des suggestions d’entraînement, pas des conseils médicaux. Consulte un médecin avant tout changement important."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggerimenti per l’allenamento, non consigli medici. Consulta un medico prima di apportare grandi cambiamenti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trainingsempfehlungen, keine medizinische Beratung. Sprich vor größeren Änderungen mit einem Arzt."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trainingssuggesties, geen medisch advies. Overleg met een arts voordat je grote veranderingen aanbrengt."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsforslag, ikke lægelig rådgivning. Tal med en læge før større ændringer."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Träningsförslag, inte medicinska råd. Rådgör med en läkare före stora förändringar."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treningsforslag, ikke medisinske råd. Snakk med en lege før store endringer."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestões de treino, não aconselhamento médico. Consulta um médico antes de fazer grandes alterações."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sugestões de treino, não orientações médicas. Consulte um médico antes de fazer grandes mudanças."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To sugestie treningowe, nie porady medyczne. Przed dużymi zmianami skonsultuj się z lekarzem."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "훈련 제안이며 의학적 조언이 아닙니다. 큰 변화를 주기 전에 의사와 상담하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トレーニングの提案であり、医療上の助言ではありません。大きな変更を行う前に医師に相談してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅提供训练建议，不构成医疗建议。进行重大调整前，请咨询医生。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅提供訓練建議，不構成醫療建議。進行重大調整前，請諮詢醫師。"
+          }
         }
       }
     },
@@ -125248,12 +127024,6 @@
         "ko": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@ 크레딧 추가됨"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -125272,12 +127042,6 @@
         "ja": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%#@formattedCount@クレジットを追加しました"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -125296,12 +127060,6 @@
         "zh-Hans": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "已添加 %#@formattedCount@ 积分"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -125320,12 +127078,6 @@
         "zh-Hant": {
           "variations": {
             "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "已新增 %#@formattedCount@ 點數"
-                }
-              },
               "other": {
                 "stringUnit": {
                   "state": "translated",
@@ -213702,6 +215454,102 @@
             "state": "translated",
             "value": "Enter a safe whole number of tokens, 1 or more."
           }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce un número entero de tokens dentro del rango válido, como mínimo 1."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisis un nombre entier de jetons dans la plage autorisée, au moins 1."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci un numero intero di token nell’intervallo consentito, almeno 1."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib eine ganze Zahl im gültigen Bereich an, mindestens 1 Token."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een geheel aantal tokens in binnen het geldige bereik, minimaal 1."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indtast et helt antal tokens inden for det gyldige interval, mindst 1."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ange ett helt antal token inom det giltiga intervallet, minst 1."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skriv inn et helt antall tokener innenfor det gyldige området, minst 1."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anna tokenien määräksi kokonaisluku sallitulta väliltä, vähintään 1."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduz um número inteiro de tokens dentro do intervalo válido, no mínimo 1."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insira um número inteiro de tokens dentro do intervalo válido, no mínimo 1."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz całkowitą liczbę tokenów z dozwolonego zakresu, co najmniej 1."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "유효한 범위 내에서 1 이상의 정수로 토큰 수를 입력하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トークン数は有効な範囲内の1以上の整数で入力してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入有效范围内且不小于 1 的整数作为词元数。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請輸入有效範圍內且不小於 1 的整數作為詞元數。"
+          }
         }
       }
     },
@@ -242850,7 +244698,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "%#@telegram@ is online."
+            "value": "%#@telegram@ is beschikbaar."
           },
           "substitutions": {
             "telegram": {
@@ -281464,7 +283312,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start coaching"
+            "value": "Start med din træner"
           }
         },
         "sv": {
@@ -289427,112 +291275,6 @@
               "argNum": 2,
               "formatSpecifier": "@"
             }
-          }
-        }
-      }
-    },
-    "sidebar.menu": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menú"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menü"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meny"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Meny"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valikko"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "메뉴"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メニュー"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "菜单"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選單"
           }
         }
       }

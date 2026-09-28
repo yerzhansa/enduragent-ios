@@ -131,10 +131,10 @@ package struct ToolRuntime: Sendable {
 
 }
 
-public struct ToolSchema: Sendable, Equatable {
-	public var name: ToolName
-	public var description: String
-	public var parameters: JSONValue
+package struct ToolSchema: Sendable, Equatable {
+	package var name: ToolName
+	package var description: String
+	package var parameters: JSONValue
 }
 
 package enum UntrustedEnvelope {

@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "言語を選んでください",
-    "continue": "続ける"
+    "continue": "続ける",
+    "saveFailed": "{{language}}を保存できませんでした。回答の言語は{{current}}のままです。もう一度お試しください。",
+    "saveFailedAutomatic": "{{language}}を保存できませんでした。引き続き各メッセージの言語で回答します。もう一度お試しください。"
   },
   "settings": {
     "appearance": {
@@ -190,7 +192,8 @@
         "historyTokenBudgetRatio": "履歴の割り当てを0%より大きく、100%以下で入力してください。",
         "idleMinutes": "分数を0以上の安全に扱える整数で入力してください。",
         "resetArchiveRetentionDays": "日数を0以上の安全に扱える整数で入力してください。",
-        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。"
+        "timezone": "{{timezone}}などの有効なIANAタイムゾーンを入力してください。",
+        "contextWindowTokens": "トークン数は有効な範囲内の1以上の整数で入力してください。"
       }
     },
     "credentials": {
@@ -535,7 +538,8 @@
     "readOnly": "過去の会話は閲覧専用です。",
     "reason": {
       "explicit": "新しい会話を開始しました",
-      "stale": "しばらく利用がなかったため終了しました"
+      "stale": "しばらく利用がなかったため終了しました",
+      "earlierChat": "以前のチャット"
     },
     "retry": "再試行",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -854,8 +858,7 @@
       "plan": "プラン",
       "settings": "設定",
       "training": "トレーニング"
-    },
-    "menu": "メニュー"
+    }
   },
   "chat": {
     "attachment": {
@@ -940,8 +943,7 @@
       "responding": "コーチが回答中…",
       "send": "メッセージを送信",
       "stop": "回答を停止",
-      "messageField": "メッセージ",
-      "sendButton": "送信"
+      "notSent": "送信されていません。下書きは残っています。"
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -1012,7 +1014,8 @@
       "retryMessage": "メッセージを再試行",
       "savedChoice": "保存済みの選択",
       "working": "コーチが処理中…",
-      "responseStopped": "回答を停止しました。途中までの回答は残っています。"
+      "responseStopped": "回答を停止しました。途中までの回答は残っています。",
+      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。"
     },
     "planChange": {
       "activePlan": "有効なプラン",
@@ -1439,9 +1442,17 @@
       "showContext": "トレーニング情報を表示",
       "title": "チャット"
     },
-    "addToCalendar": "カレンダーに追加",
     "menu": "メニュー",
-    "title": "コーチ"
+    "turn": {
+      "buyCredits": "クレジットを購入",
+      "chooseAccessMethod": "接続方法を選択",
+      "finishedWhileLocked": "端末がロックされている間に完了しました。",
+      "interruptedNothingChanged": "回答が完了する前に中断されました。変更はありません。",
+      "interruptedSomeSaved": "回答が完了する前に中断されました。一部の情報はその前に保存されました。",
+      "receivedBeforeClose": "アプリが閉じる前に受信しました。「再試行」をタップして送信してください。",
+      "restorePurchases": "購入を復元",
+      "signInAgain": "再度サインイン"
+    }
   },
   "plan": {
     "details": {
@@ -2876,12 +2887,14 @@
     "buy": "購入",
     "testers": "テスターはまだパックを購入できません。",
     "title": "クレジット",
-    "balance_one": "{{formattedCount}}クレジット",
-    "pack_one": "{{formattedCount}}クレジット",
-    "packPrice_one": "{{formattedCount}}クレジット · {{price}}",
     "balance_other": "{{formattedCount}}クレジット",
     "pack_other": "{{formattedCount}}クレジット",
-    "packPrice_other": "{{formattedCount}}クレジット · {{price}}"
+    "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
+    "error": {
+      "accessRejected": "クレジットを使用できませんでした。購入を復元して続けてください。",
+      "exhausted": "クレジットがなくなりました。追加購入するか、OpenRouterアカウントに切り替えてください。",
+      "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。"
+    }
   },
   "onboarding": {
     "connect": {
@@ -2896,8 +2909,22 @@
       "start": "チャットを始める",
       "progress": "初回クレジットをリクエスト中",
       "alreadyGranted": "このデバイスはすでに初回クレジットを使用しています。",
-      "added_one": "{{formattedCount}}クレジットを追加しました",
       "added_other": "{{formattedCount}}クレジットを追加しました"
+    },
+    "notice": {
+      "health": "トレーニングの提案であり、医療上の助言ではありません。大きな変更を行う前に医師に相談してください。"
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
+      "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
+      "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。"
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icuにキーが拒否されました。"
     }
   }
 }

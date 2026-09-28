@@ -1,21 +1,21 @@
 import Foundation
 
-public enum ZoneMidpoints {
-	public static let values: [Int: Double] = [
+package enum ZoneMidpoints {
+	package static let values: [Int: Double] = [
 		1: 0.45, 2: 0.65, 3: 0.83, 4: 0.98, 5: 1.13, 6: 1.355, 7: 1.6,
 	]
 }
 
-public enum IntervalsSerializer {
-	public static let maxWatts = 1500
-	public static let maxPercentFtp = 200
-	public static let maxSteps = 40
-	public static let maxRepeat = 20
+package enum IntervalsSerializer {
+	package static let maxWatts = 1500
+	package static let maxPercentFtp = 200
+	package static let maxSteps = 40
+	package static let maxRepeat = 20
 	private static let maxZone = 7
 	private static let minZone = 1
 	private static let maxName = 120
 
-	public static func serialize(_ workout: IntervalsWorkoutInput) throws -> SerializedWorkout {
+	package static func serialize(_ workout: IntervalsWorkoutInput) throws -> SerializedWorkout {
 		try validate(workout)
 		return SerializedWorkout(
 			description: description(workout).joined(separator: "\n"),
@@ -30,7 +30,7 @@ public enum IntervalsSerializer {
 		}
 	}
 
-	public static func formatDuration(_ duration: DurationInput) -> String {
+	package static func formatDuration(_ duration: DurationInput) -> String {
 		let total = Int(toSeconds(duration).rounded())
 		if total < 60 {
 			return "\(total)s"
@@ -40,12 +40,12 @@ public enum IntervalsSerializer {
 		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(seconds)"
 	}
 
-	public static func slug(date: CivilDate, name: String) -> String {
+	package static func slug(date: CivilDate, name: String) -> String {
 		_ = date
 		return ChatExternalID.slugify(name: name)
 	}
 
-	public static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
+	package static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
 		ChatExternalID(date: date, slug: slug(date: date, name: name))
 	}
 
