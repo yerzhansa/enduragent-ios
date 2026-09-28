@@ -86,6 +86,66 @@ final class LanguagePickerProof: XCTestCase {
 	}
 }
 
+@MainActor
+final class SavedLanguageFirstFrameProof: XCTestCase {
+	private let englishChrome: Set<String> = [
+		"Message your coach", "Send message", "Start new conversation", "Choose your language",
+		"Not medical advice, and not a substitute for a doctor or a certified coach.",
+	]
+
+	func testSavedSpanishOpensInSpanishOnAnEnglishPhone() throws {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, "/language")
+		let spanish = TutorialHarness.named(app, "language.choice.es")
+		TutorialHarness.wait(spanish)
+		spanish.tap()
+		TutorialHarness.wait(app.navigationBars["Elige tu idioma"])
+		TutorialHarness.named(app, "language.close").tap()
+		TutorialHarness.relaunchKeepingStore(app)
+		let seen = try stringsUntilTheComposer(app)
+		TutorialHarness.attach(self, name: "m1-12-saved-spanish-first-frame", app: app)
+		let listing = XCTAttachment(string: seen.sorted().joined(separator: "\n"))
+		listing.name = "saved-spanish-first-frame-strings"
+		listing.lifetime = .keepAlways
+		add(listing)
+		XCTAssertTrue(seen.contains("Escribe a tu entrenador"), "first frame read \(seen.sorted())")
+		let english = seen.filter { englishChrome.contains($0) || $0.hasPrefix("Welcome to") }
+		XCTAssertTrue(english.isEmpty, "English on the first frame: \(english.sorted())")
+		let welcome = TutorialHarness.named(app, "chat.welcome")
+		TutorialHarness.wait(welcome)
+		XCTAssertTrue(welcome.label.hasPrefix("¡Te doy la bienvenida a"), welcome.label)
+	}
+
+	private func stringsUntilTheComposer(_ app: XCUIApplication) throws -> Set<String> {
+		var seen = Set<String>()
+		let deadline = Date().addingTimeInterval(10)
+		while Date() < deadline {
+			let snapshot = try app.snapshot()
+			seen.formUnion(strings(in: snapshot))
+			if contains(snapshot, identifier: "chat.composer") {
+				return seen
+			}
+		}
+		XCTFail("the chat composer never appeared after the relaunch")
+		return seen
+	}
+
+	private func strings(in element: any XCUIElementSnapshot) -> [String] {
+		let own = [
+			element.label, element.title, element.value as? String, element.placeholderValue,
+		]
+		.compactMap { $0 }.filter { !$0.isEmpty }
+		return own + element.children.flatMap { strings(in: $0) }
+	}
+
+	private func contains(_ element: any XCUIElementSnapshot, identifier: String) -> Bool {
+		element.identifier == identifier
+			|| element.children.contains { contains($0, identifier: identifier) }
+	}
+}
+
 final class DailyResetProof: XCTestCase {
 	func testFortyMinutesOpensAFreshSession() {
 		let app = XCUIApplication()
@@ -130,6 +190,39 @@ final class DailyResetProof: XCTestCase {
 	}
 }
 
+final class DaylightSavingResetProof: XCTestCase {
+	func testSpringForwardResetsAtFourLocal() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app, clock: "1998-03-29T01:10:00Z")
+		TutorialHarness.startUnconnected(app)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.relaunchKeepingStore(app, clock: "1998-03-29T02:10:00Z")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.exchange(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.automaticReset.notice"))
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "m1-12-dst-spring", app: app)
+	}
+
+	func testFallBackKeepsTheConversationBeforeFourLocal() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app, clock: "1998-10-25T01:20:00Z")
+		TutorialHarness.startUnconnected(app)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.relaunchKeepingStore(app, clock: "1998-10-25T02:20:00Z")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		TutorialHarness.exchange(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+		XCTAssertFalse(TutorialHarness.named(app, "chat.automaticReset.notice").exists)
+		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "m1-12-dst-autumn", app: app)
+		TutorialHarness.openRecords(app)
+		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
+		TutorialHarness.closeMenu(app)
+	}
+}
+
 final class IdleResetProof: XCTestCase {
 	func testIdleReset() {
 		let app = XCUIApplication()
@@ -166,7 +259,7 @@ final class SessionRejectionProof: XCTestCase {
 				"0.3"
 			),
 			("idleReset", "-1", "Enter a safe whole number of minutes, 0 or more.", "0"),
-			("dailyResetHour", "25", "Enter a whole hour from 0 to 23.", "4"),
+			("dailyResetHour", "24", "Enter a whole hour from 0 to 23.", "4"),
 			("archiveRetention", "-1", "Enter a safe whole number of days, 0 or more.", "0"),
 			(
 				"timeZone", "Mars/Olympus", "Enter a valid IANA timezone, such as Europe/London.",

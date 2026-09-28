@@ -196,6 +196,17 @@ enum TutorialHarness {
 		wait(named(app, "chat.welcome"))
 	}
 
+	static func startUnconnected(_ app: XCUIApplication) {
+		waitForLabel(app, notice)
+		named(app, "notice.continue").tap()
+		let skip = named(app, "connect.skip")
+		wait(skip)
+		skip.tap()
+		let start = named(app, "starter.start")
+		wait(start)
+		start.tap()
+	}
+
 	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
