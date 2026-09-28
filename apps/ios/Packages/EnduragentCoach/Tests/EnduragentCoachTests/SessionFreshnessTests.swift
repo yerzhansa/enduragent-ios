@@ -88,4 +88,16 @@ import Testing
 				last: last, now: try at("1998-06-15T21:20:00Z"), zone: amsterdam, settings: tokyo)
 				== .fresh)
 	}
+
+	@Test(arguments: [
+		("1998-03-29T03:30:00+02:00", "1998-03-28T04:00:00+01:00"),
+		("1998-10-26T03:00:00+01:00", "1998-10-25T04:00:00+01:00"),
+		("1998-10-25T03:20:00+01:00", "1998-10-24T04:00:00+02:00"),
+	])
+	func previousDayResetIsFourLocalAcrossDST(now: String, expected: String) throws {
+		let reset = SessionFreshness.mostRecentReset(
+			at: .npmDefault, before: try at(now), in: amsterdam)
+		#expect(reset == (try at(expected)))
+	}
+
 }
