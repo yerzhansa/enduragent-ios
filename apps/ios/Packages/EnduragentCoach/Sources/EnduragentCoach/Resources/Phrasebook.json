@@ -193186,7 +193186,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此训练审核来自旧版应用，已无法应用。"
+            "value": "此训练审核来自旧版应用，其中的变更已无法执行。"
           }
         },
         "zh-Hant": {

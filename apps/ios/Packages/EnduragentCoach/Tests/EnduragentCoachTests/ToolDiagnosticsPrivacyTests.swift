@@ -46,6 +46,11 @@ extension TurnRunnerTests {
 			transport: transport, intervals: intervals, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("How am I recovering?")
 		#expect(replyText(settled) == "I could not read your wellness data.")
+		try #require(
+			coach.diagnostics.entries.contains {
+				if case .toolFailed(_, .intervalsFetchWellness, _) = $0.event { return true }
+				return false
+			})
 		let text = coach.diagnostics.entries.map { String(describing: $0.event) }
 			.joined(separator: "\n")
 		#expect(!text.contains("i1001"), "\(text)")
