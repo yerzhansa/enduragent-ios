@@ -102,6 +102,13 @@
 				for file in try swiftFiles(in: sources.appendingPathComponent(folder)) {
 					let declarations = try publicDeclarations(
 						in: String(contentsOf: file, encoding: .utf8))
+					if file == sources.appendingPathComponent("Transport/FinishReason.swift") {
+						#expect(
+							declarations.map(\.description) == ["enum FinishReason"],
+							"FinishReason belongs to production transport and is exposed by app fixture ScriptedEvent."
+						)
+						continue
+					}
 					#expect(
 						declarations.isEmpty,
 						"Public declarations in \(folder)/\(file.lastPathComponent): \(declarations)"
