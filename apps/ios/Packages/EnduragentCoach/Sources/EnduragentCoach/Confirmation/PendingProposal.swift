@@ -84,9 +84,14 @@ package enum ProposalPolicy {
 		run: @Sendable (GatedToolInput) async throws -> JSONValue
 	) async throws -> ProposalLookup {
 		let records = try await ledger.read(proposalQuery(chatId)).records
-		if let live = UnionMerge.pendingProposal(records, chatId: chatId, now: now) {
+		if let record = UnionMerge.pendingProposalRecord(records, chatId: chatId, now: now) {
+			let live = record.body
 			if live.nonce != nonce {
 				return .mismatch
+			}
+			switch record.account.authority(under: binding.account) {
+			case .same, .sameAthlete: break
+			case .changed, .unverifiable: return .expired
 			}
 			let stamp = OperationStamp(
 				operation: .workoutChangeSet(

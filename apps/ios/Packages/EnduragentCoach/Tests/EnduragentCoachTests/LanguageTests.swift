@@ -134,6 +134,12 @@ import Testing
 		let french = chosen.phrasebook(device: .en)
 		#expect(french.say(Catalog.chatViewTitle) == "Conversation")
 		#expect(french.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
+		#expect(
+			french.say(Catalog.coachConfirmationExpired)
+				== "Cette proposition a expiré — redemande-moi et je te la proposerai à nouveau.")
+		#expect(
+			french.say(Catalog.coachConfirmationExecuted, ["summary": "Endurance"])
+				== "C’est fait — Endurance.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		let systems = sent(.chatAttempt, by: transport).compactMap { $0.messages.first?.content }
 		try #require(systems.count == 2)

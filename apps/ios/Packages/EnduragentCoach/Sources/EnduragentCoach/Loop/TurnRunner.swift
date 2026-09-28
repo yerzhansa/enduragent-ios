@@ -227,7 +227,8 @@ package struct TurnRunner: Sendable {
 			)
 		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = await loadSnapshot(from: attempt.training.client)
+		let snapshot = try await attempt.training.loadSnapshot(
+			clock: clock, attempt: attempt.attempt, diagnostics: diagnostics)
 		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
 		let volatile = PromptAssembly.volatile(
 			context: context,
@@ -582,18 +583,6 @@ package struct TurnRunner: Sendable {
 		if prompt.overBudget {
 			throw AttemptFailure.rescueFailed(.windowExceededFinish)
 		}
-	}
-
-	private func loadSnapshot(from intervals: any IntervalsClient) async -> AthleteSnapshot? {
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let oldest = today.adding(days: -(7 - 1))
-		guard let days = try? await intervals.fetchWellness(oldest: oldest, newest: today) else {
-			return nil
-		}
-		guard let latest = days.last else {
-			return nil
-		}
-		return AthleteSnapshot(fitness: latest.fitness, fatigue: latest.fatigue, form: latest.form)
 	}
 }
 

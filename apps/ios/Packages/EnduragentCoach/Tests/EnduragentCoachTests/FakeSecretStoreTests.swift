@@ -18,6 +18,26 @@ import Testing
 		}
 	}
 
+	@Test func failedStagingDeletionKeepsThePreviousCreditsPair() throws {
+		try withTemporaryDirectory { directory in
+			let store = try FakeSecretStore(directory: directory)
+			let oldToken = try store.appAccountToken()
+			try store.storeOpenRouterKey("test-old-credits-key")
+			let previous = CredentialReplacement.credits(
+				previousKey: "test-old-credits-key", previousAppAccountToken: oldToken)
+			try store.stageReplacement(previous)
+			try store.storeOpenRouterKey("test-new-credits-key")
+			try store.storeAppAccountToken(UUID())
+			let file = directory.appending(path: FakeSecretStore.fileName)
+			try FileManager.default.removeItem(at: file)
+			try FileManager.default.createDirectory(at: file, withIntermediateDirectories: false)
+			#expect(throws: CocoaError.self) { try store.delete(.intervalsConnectionStaging) }
+			#expect(try store.stagedReplacement() == previous)
+			#expect(try store.openRouterKey() == "test-old-credits-key")
+			#expect(try store.appAccountToken() == oldToken)
+		}
+	}
+
 	@Test func lockedStoreThrowsInteractionNotAllowedFromEveryRead() throws {
 		let store = FakeSecretStore()
 		try store.storeOpenRouterKey("sk-or-test-0000")

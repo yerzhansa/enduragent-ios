@@ -30,8 +30,8 @@ import Testing
 			id: ConnectionID(), credential: .oauth(access: "a", refresh: "r"),
 			selection: .athlete(try #require(IntervalsAthleteID(rawValue: "i2002"))),
 			resolvedAthlete: nil)
-		try store.stageIntervalsConnection(oauth)
-		#expect(try store.stagedIntervalsConnection() == oauth)
+		try store.stageReplacement(.intervals(oauth))
+		#expect(try store.stagedReplacement() == .intervals(oauth))
 		#expect(try store.intervalsConnection() == testConnection)
 		let selection = AccessSelection.openRouterAccount(
 			model: ModelID(rawValue: "test/account-model"),
@@ -45,10 +45,10 @@ import Testing
 	@Test func deleteRemovesOnlyItsSlotAndRepeatsSafely() throws {
 		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
 		try store.storeOpenRouterKey("test-or-key")
-		try store.stageIntervalsConnection(testConnection)
+		try store.stageReplacement(.intervals(testConnection))
 		try store.delete(.intervalsConnectionStaging)
 		try store.delete(.intervalsConnectionStaging)
-		#expect(try store.stagedIntervalsConnection() == nil)
+		#expect(try store.stagedReplacement() == nil)
 		#expect(try store.openRouterKey() == "test-or-key")
 	}
 
@@ -117,7 +117,7 @@ final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 		lock.withLock { failures[account] = status }
 	}
 
-	func failWrites(_ account: String, with status: OSStatus) {
+	func failWrites(_ account: String, with status: OSStatus?) {
 		lock.withLock { writeFailures[account] = status }
 	}
 

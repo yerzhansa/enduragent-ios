@@ -7,7 +7,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		var openRouterKey: String?
 		var openRouterAccountKey: String?
 		var intervals: StoredIntervalsConnection?
-		var stagedIntervals: StoredIntervalsConnection?
+		var stagedIntervals: StoredCredentialReplacement?
 		var accessSelection: StoredAccessSelection?
 		var intervalsApiKey: String?
 		var intervalsOAuthAccess: String?
@@ -85,12 +85,15 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 			self.contents = try JSONDecoder().decode(Contents.self, from: Data(contentsOf: file))
 		} else {
 			self.contents = Contents(appAccountToken: UUID())
-			try persist()
+			try persist(contents)
 		}
 	}
 
 	public func appAccountToken() throws -> UUID {
-		try read(.appAccountToken) { $0.appAccountToken }
+		try read(.appAccountToken) {
+			if case .credits(_, let token)? = $0.stagedIntervals { return token }
+			return $0.appAccountToken
+		}
 	}
 
 	public func storeAppAccountToken(_ token: UUID) throws {
@@ -98,7 +101,10 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	}
 
 	public func openRouterKey() throws -> String? {
-		try read(.creditsKey) { $0.openRouterKey }
+		try read(.creditsKey) {
+			if case .credits(let key, _)? = $0.stagedIntervals { return key }
+			return $0.openRouterKey
+		}
 	}
 
 	public func storeOpenRouterKey(_ key: String) throws {
@@ -124,12 +130,32 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		try write { $0.replaceIntervals(with: StoredIntervalsConnection(connection)) }
 	}
 
-	public func stagedIntervalsConnection() throws -> IntervalsConnection? {
-		try read(.intervalsConnectionStaging) { $0.stagedIntervals }?.connection()
+	public func stagedReplacement() throws -> CredentialReplacement? {
+		try read(.intervalsConnectionStaging) {
+			$0.stagedIntervals
+		}?.replacement()
 	}
 
-	public func stageIntervalsConnection(_ connection: IntervalsConnection) throws {
-		try write { $0.stagedIntervals = StoredIntervalsConnection(connection) }
+	public func stageReplacement(_ replacement: CredentialReplacement) throws {
+		try write {
+			$0.stagedIntervals = StoredCredentialReplacement(replacement)
+		}
+	}
+
+	public func rollbackStagedReplacement() throws {
+		guard
+			try withLock({
+				try checkUnlocked()
+				return contents.holds(.intervalsConnectionStaging)
+			})
+		else { return }
+		try write {
+			if case .credits(let key, let token)? = $0.stagedIntervals {
+				$0.openRouterKey = key
+				$0.appAccountToken = token
+			}
+			$0.stagedIntervals = nil
+		}
 	}
 
 	public func accessSelection() throws -> AccessSelection? {
@@ -179,8 +205,10 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 				failsNextWrite = false
 				throw KeychainStoreError(status: errSecNotAvailable)
 			}
-			body(&contents)
-			try persist()
+			var replacement = contents
+			body(&replacement)
+			try persist(replacement)
+			contents = replacement
 		}
 	}
 
@@ -196,7 +224,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		}
 	}
 
-	private func persist() throws {
+	private func persist(_ contents: Contents) throws {
 		guard let file else { return }
 		try JSONEncoder().encode(contents).write(to: file, options: .atomic)
 	}

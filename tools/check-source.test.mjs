@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +38,10 @@ for (const [name, file, value, code] of [
   ['private key', 'key.txt', '-----BEGIN ' + 'PRIVATE KEY-----', 'secret-shape'],
   ['app TypeScript public wording', 'packages/i18n/scripts/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
   ['Swift label', 'apps/ios/Enduragent/Screen.swift', 'Text("Normalized Power")', 'public-language'],
+  ['literal confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "That proposal expired."', 'uncatalogued-confirmation'],
+  ['interpolated confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "Done — \\(summary)."', 'uncatalogued-confirmation'],
+  ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
+  ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {
@@ -73,4 +77,24 @@ test('accepts historical fixtures and technical identifiers', () => {
 test('does not inspect untracked credentials', () => {
   const result = run({ '.dev.vars': 'secret' }, false);
   assert.equal(result.status, 0, result.output);
+});
+
+test('accepts catalogued confirmation copy and debug-only literals', () => {
+  const result = run({
+    'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])',
+    'apps/ios/Enduragent/Credits/CredentialsDebugView.swift': '#if DEBUG\nconfirmLine = "Debug result"\n#endif',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('confirmation outcomes use the selected-language phrasebook in release chat', () => {
+  const model = readFileSync(new URL('../apps/ios/Enduragent/App/ShellModel.swift', import.meta.url), 'utf8');
+  const transcript = readFileSync(new URL('../apps/ios/Enduragent/Chat/TranscriptView.swift', import.meta.url), 'utf8');
+  assert.match(transcript, /Text\(confirmLine\)/);
+  const executed = model.split('case .executed(let summary):')[1]?.split('case .expired:')[0];
+  const expired = model.split('case .expired:')[1]?.split('case .refused')[0];
+  assert.ok(executed);
+  assert.ok(expired);
+  assert.match(executed, /confirmLine\s*=\s*phrasebook\.say\(\s*Catalog\.coachConfirmationExecuted\b/);
+  assert.match(expired, /confirmLine\s*=\s*phrasebook\.say\(Catalog\.coachConfirmationExpired\b/);
 });

@@ -86,7 +86,7 @@ import Testing
 			await coach.changeTraining(.replace(apiKey: " \n ", athlete: .keyOwner))
 				== .refused(.blankReplacementKeepsCurrent))
 		#expect(try secrets.intervalsConnection() == testConnection)
-		#expect(try secrets.stagedIntervalsConnection() == nil)
+		#expect(try secrets.stagedReplacement() == nil)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
 		#expect(built.credentials == [.apiKey("icu-test-key")])
@@ -125,7 +125,7 @@ import Testing
 				== .failedPreviousKept(
 					.secureStorage(.secureStorageUnavailable), previous: adaSummary))
 		#expect(try keychain.intervalsConnection() == testConnection)
-		#expect(try keychain.stagedIntervalsConnection() == nil)
+		#expect(try keychain.stagedReplacement() == nil)
 	}
 
 	@Test func profileReadFailureFlipsWithUnverifiableAuthority() async throws {
@@ -157,7 +157,7 @@ import Testing
 		#expect(
 			await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
 				== .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.stagedIntervalsConnection() == nil)
+		#expect(try secrets.stagedReplacement() == nil)
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(await coach.currentSnapshot(.main)?.pendingProposal != nil)
 		#expect(

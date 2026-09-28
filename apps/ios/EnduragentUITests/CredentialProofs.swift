@@ -33,6 +33,34 @@ final class DifferentAthleteProof: XCTestCase {
 	}
 }
 
+final class SameAthleteRotationProof: XCTestCase {
+	func testRotatingTheKeyForTheSameAthleteKeepsTheCard() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
+		TutorialHarness.openCredentials(app)
+		let before = TutorialHarness.connectedAccount(app)
+		TutorialHarness.type(app, "fixture-rotated", into: "credentials.apiKey")
+		TutorialHarness.named(app, "credentials.replace").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "credentials.outcome", reading: TutorialHarness.rotatedForAda)
+		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
+		let after = TutorialHarness.connectedAccount(app)
+		XCTAssertNotEqual(after, before)
+		XCTAssertTrue(after.hasSuffix(":i1001"), "the rotated connection reads \(after)")
+		TutorialHarness.closeMenu(app)
+		let add = TutorialHarness.named(app, "chat.preview.add")
+		TutorialHarness.wait(add)
+		TutorialHarness.attach(self, name: "same-athlete-rotation", app: app)
+		add.tap()
+		TutorialHarness.waitForLabel(app, TutorialHarness.done)
+		TutorialHarness.attach(self, name: "same-athlete-rotation-added", app: app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+}
+
 final class DisconnectProof: XCTestCase {
 	func testDisconnectLeavesTheNextTurnUnconnected() {
 		let app = XCUIApplication()
@@ -101,14 +129,36 @@ final class FailedWriteRecordsProof: XCTestCase {
 }
 
 final class UpgradeConnectionProof: XCTestCase {
-	func testV1ConnectionShowsAFreshIdAndTheAthlete() throws {
+	func testConnectionFromBeforeTheVaultReachesTheNextTurn() throws {
 		let app = XCUIApplication()
-		try TutorialHarness.launchKeepingStore(
-			app, expecting: TutorialHarness.named(app, "chat.composer"))
+		app.launchArguments = [
+			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
+			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+		]
+		app.launch()
+		guard TutorialHarness.named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
+		TutorialHarness.openRecords(app)
+		let claims = TutorialHarness.recordRowLabels(app).filter { $0.hasPrefix("turnClaim ") }
+		TutorialHarness.closeMenu(app)
+		guard !claims.isEmpty, claims.allSatisfy({ $0.hasSuffix(" unconnected") }) else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
 		TutorialHarness.openCredentials(app)
+		let connection = TutorialHarness.named(app, "credentials.connection")
+		TutorialHarness.wait(connection)
+		guard connection.label != "unconnected" else {
+			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
+		}
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
-		XCTAssertTrue(TutorialHarness.connectedAccount(app).hasSuffix(":i1001"))
+		let account = TutorialHarness.connectedAccount(app)
+		XCTAssertTrue(account.hasSuffix(":i1001"), "the upgraded connection reads \(account)")
 		TutorialHarness.attach(self, name: "upgrade-item", app: app)
+		TutorialHarness.closeMenu(app)
+		TutorialHarness.send(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
+		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 	}
 }
 
@@ -183,8 +233,11 @@ final class StorageUnavailableProof: XCTestCase {
 }
 
 extension TutorialHarness {
+	static let connectionBeforeVaultMissing =
+		"needs a store and keychain that a build before M1-11 left after connecting intervals.icu"
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."
+	static let rotatedForAda = "Replaced. Ada Kovač, authority sameAthlete."
 
 	static func type(_ app: XCUIApplication, _ text: String, into identifier: String) {
 		let field = named(app, identifier)

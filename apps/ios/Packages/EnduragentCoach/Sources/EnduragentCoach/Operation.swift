@@ -85,6 +85,9 @@ public enum TrainingAccount: Hashable, Sendable {
 		case (.unconnected, .intervals), (.intervals, .unconnected):
 			return .changed
 		case (.intervals(let bound, let boundAthlete), .intervals(let now, let nowAthlete)):
+			if let boundAthlete, let nowAthlete, boundAthlete != nowAthlete {
+				return .changed
+			}
 			if bound == now {
 				return .same
 			}
