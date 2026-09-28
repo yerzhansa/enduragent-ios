@@ -2890,7 +2890,7 @@
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Peça de novo para eu prepará-lo para o atleta conectado.",
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar sua conexão com {{service}}, então nada foi alterado. Tente novamente daqui a pouco.",
-    "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser adicionada.",
+    "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser aplicada.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isso chegou ao seu calendário no {{service}}. Verifique o calendário antes de pedir novamente.",
     "workout": {

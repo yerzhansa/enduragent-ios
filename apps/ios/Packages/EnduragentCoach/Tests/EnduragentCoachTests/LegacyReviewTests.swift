@@ -4,12 +4,28 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	@Test(arguments: [true, false])
-	func v1PendingReviewHasNoControls(connected: Bool) async throws {
-		let body = RecordBody.deviceLocal(
-			.pendingProposal(
-				sampleProposal(
-					chatId: .main, nonce: Nonce(), expiresAt: clock.now.addingTimeInterval(300))))
+	@Test(
+		arguments: [true, false],
+		[
+			(
+				GatedToolName.intervalsCreateStrengthWorkout,
+				GatedToolInput.createStrengthWorkout(
+					date: "1998-06-13", name: "Core", description: "20 min")
+			),
+			(
+				.intervalsUpdateWorkout,
+				.updateWorkout(UpdateWorkoutInput(eventId: EventID(rawValue: 42), name: "Recovery"))
+			),
+			(.intervalsDeleteWorkout, .deleteWorkout(eventId: EventID(rawValue: 42))),
+		])
+	func v1PendingReviewHasNoControls(
+		connected: Bool, action: (GatedToolName, GatedToolInput)
+	) async throws {
+		var proposal = sampleProposal(
+			chatId: .main, nonce: Nonce(), expiresAt: clock.now.addingTimeInterval(300))
+		proposal.tool = action.0
+		proposal.toolInput = action.1
+		let body = RecordBody.deviceLocal(.pendingProposal(proposal))
 		let encoded = try RecordCodec.encode(body)
 		let payload = try JSONSerialization.jsonObject(with: encoded.data)
 		let v1 = try JSONSerialization.data(withJSONObject: ["pendingProposal": ["_0": payload]])
@@ -33,7 +49,7 @@ extension SingleProposalReviewsTests {
 		#expect(notice.key.rawValue == "review.earlierVersion")
 		#expect(
 			phrasebook.say(notice.key, notice.vars)
-				== "This workout review is from an earlier version of the app and can no longer be added."
+				== "This workout review is from an earlier version of the app and can no longer be applied."
 		)
 		if let token = presented.token {
 			#expect(await coach.decide(.cancel(token), in: .main) != .canceled(kept: []))

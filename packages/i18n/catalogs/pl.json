@@ -2962,7 +2962,7 @@
     "accountChanged": "Ten trening przygotowano dla innego sportowca w {{service}}. Poproś mnie ponownie o przygotowanie go dla połączonego sportowca.",
     "add": "Dodaj do kalendarza",
     "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
-    "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już dodać.",
+    "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
     "title": "Przegląd treningu",
     "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
     "workout": {
