@@ -44,7 +44,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			receipts: [],
 			notice: changed ? AthleteNotices.accountChanged : nil,
 			controls: changed ? .none : delivery.controls,
-			authority: .thisDevice
+			authority: delivery.authority
 		)
 	}
 
@@ -56,7 +56,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 		}
 		switch decision {
 		case .presented:
-			delivery.secret = delivery.secret ?? UUID()
+			if delivery.authority == .thisDevice {
+				delivery.secret = delivery.secret ?? UUID()
+			}
 		case .presentationFailed:
 			delivery.secret = nil
 		case .showAgain:
@@ -171,6 +173,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			return existing
 		}
 		let minted = Delivery(
+			authority: live.cause == .legacy ? .readOnly : .thisDevice,
 			ref: ReviewRef(
 				chat: chat, set: set, revision: ChangeSetRevision(rawValue: 1), delivery: UUID()))
 		deliveries[chat] = minted
@@ -279,6 +282,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 }
 
 private struct Delivery {
+	let authority: ReviewAuthority
 	var ref: ReviewRef
 	var secret: UUID?
 	var busy = false

@@ -24,6 +24,7 @@ public struct ReviewSnapshot: Sendable, Equatable {
 }
 
 public enum ReviewAuthority: Sendable, Equatable {
+	case readOnly
 	case thisDevice
 	case otherDevice
 }

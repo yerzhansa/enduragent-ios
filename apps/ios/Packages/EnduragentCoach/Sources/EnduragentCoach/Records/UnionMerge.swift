@@ -66,7 +66,8 @@ package enum UnionMerge {
 			}
 			if body.expiresAt <= now { continue }
 			if let cleared = clearedAt[body.nonce], record.hlc < cleared { continue }
-			return LiveProposal(body: body, account: record.account, ulid: record.ulid)
+			return LiveProposal(
+				cause: record.cause, body: body, account: record.account, ulid: record.ulid)
 		}
 		return nil
 	}

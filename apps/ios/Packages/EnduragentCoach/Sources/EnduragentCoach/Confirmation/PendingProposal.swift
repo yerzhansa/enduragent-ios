@@ -25,6 +25,7 @@ public struct UpdateWorkoutInput: Sendable, Equatable {
 }
 
 package struct LiveProposal: Sendable, Equatable {
+	package let cause: RecordCause
 	package let body: ProposalBody
 	package let account: TrainingAccount
 	package let ulid: ULID

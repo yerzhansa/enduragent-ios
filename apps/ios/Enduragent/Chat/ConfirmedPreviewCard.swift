@@ -20,7 +20,7 @@ struct ConfirmedPreviewCard: View {
 					Text(model.phrasebook.say(notice.key, notice.vars))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
-				if review.notice?.kind != .accountChanged {
+				if review.authority == .thisDevice, review.notice?.kind != .accountChanged {
 					HStack {
 						Button(say(Catalog.commonCancel)) {
 							decide(ReviewDecision.cancel)
