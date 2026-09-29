@@ -2933,7 +2933,7 @@
       "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Stelle deine Käufe wieder her, um fortzufahren.",
       "exhausted": "Du hast keine Guthabenpunkte mehr. Kaufe weitere oder wechsle zu deinem OpenRouter-Konto.",
       "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
-      "accountChanged": "Dein Guthabenkonto hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
+      "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
     }
   },
   "onboarding": {

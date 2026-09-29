@@ -68,7 +68,8 @@ extension CredentialVaultTests {
 		await gate.waitUntilEntered()
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
 		await gate.release()
-		#expect(await status.value.training == .connected(adaSummary, account: try account(unresolved)))
+		#expect(
+			await status.value.training == .connected(adaSummary, account: try account(unresolved)))
 		#expect(
 			coach.diagnostics.entries.map(\.event) == [
 				.secureStorageFailed(

@@ -233,24 +233,28 @@ package actor CredentialVault {
 		}
 		do {
 			return .connected(summary, account: try resolve(athlete, for: active).account)
+		} catch let keychain as KeychainStoreError
+			where keychain.status == errSecInteractionNotAllowed
+		{
+			return .connected(summary, account: active.account)
 		} catch {
+			diagnostics.record(
+				.secureStorageFailed(.intervalsConnection, detail: String(describing: error)))
 			return .connected(summary, account: active.account)
 		}
 	}
 
 	private func resolve(_ athlete: IntervalsAthleteID, for active: ActiveConnection)
-		throws(AccessUnavailable) -> ActiveConnection
+		throws -> ActiveConnection
 	{
 		let resolved = IntervalsConnection(
 			id: active.id, credential: active.connection.credential,
 			selection: active.connection.selection, resolvedAthlete: athlete)
-		return try keychain(.intervalsConnection) {
-			guard let stored = try store.intervalsConnection(), stored == active.connection else {
-				return active
-			}
-			try store.storeIntervalsConnection(resolved)
-			return ActiveConnection(id: active.id, connection: resolved)
+		guard let stored = try store.intervalsConnection(), stored == active.connection else {
+			return active
 		}
+		try store.storeIntervalsConnection(resolved)
+		return ActiveConnection(id: active.id, connection: resolved)
 	}
 
 	private func client(for connection: IntervalsConnection) -> any IntervalsClient {
