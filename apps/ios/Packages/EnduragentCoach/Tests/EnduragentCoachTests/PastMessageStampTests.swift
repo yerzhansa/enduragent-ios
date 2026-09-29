@@ -59,6 +59,7 @@ import Testing
 				"[Tue 1998-06-16 00:10 Europe/Amsterdam] My legs are sore.",
 				"Expected after yesterday's intervals.",
 			])
+		#expect(flush.messages.last?.content.contains("start with a bracketed send time") == true)
 	}
 
 	@Test func stampsUseTheCurrentZoneNotTheZoneTheMessageWasSentIn() async throws {
