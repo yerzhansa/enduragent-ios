@@ -24,13 +24,12 @@ import Testing
 			]
 		}
 		let local: [(Int, DeviceLocalRecordBody)] = [
-			(6, .flushPending(FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: []))),
+			(6, .flushPending(FlushPendingBody(chatId: .main, messageUlids: []))),
 			(
 				9,
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .trim,
-						messageUlids: [4, 5, 7, 8].map(fixedUlid),
+						chatId: .main, messageUlids: [4, 5, 7, 8].map(fixedUlid),
 						process: ProcessID(ulid: fixedUlid(60))))
 			),
 			(

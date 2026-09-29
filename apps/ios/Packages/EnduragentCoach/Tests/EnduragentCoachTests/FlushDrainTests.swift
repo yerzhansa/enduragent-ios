@@ -22,7 +22,7 @@ import Testing
 	}
 
 	@discardableResult
-	func seedJob(_ trigger: FlushTrigger = .softThreshold, covering turn: SeededTurn, settled: Bool)
+	func seedJob(covering turn: SeededTurn, settled: Bool)
 		async throws -> FlushJobID
 	{
 		let at = clock.now.addingTimeInterval(-5)
@@ -35,7 +35,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: trigger,
+								chatId: .main,
 								messageUlids: [turn.user, turn.reply]))))
 			])
 		if settled {
@@ -125,7 +125,7 @@ import Testing
 	@Test func drainAtLaunchStartsNoNewExtraction() async throws {
 		let history = try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		try await seedJob(.trim, covering: history[0], settled: false)
+		try await seedJob(covering: history[0], settled: false)
 		_ = await relaunched()
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)

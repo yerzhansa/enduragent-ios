@@ -227,7 +227,7 @@ import Testing
 			Issue.record("expected the window-exceeded finish to retry")
 			return
 		}
-		#expect(preparations == [.flushMemory(.overflow), .compactInTurn])
+		#expect(preparations == [.flushMemory, .compactInTurn])
 	}
 
 	@Test func waitShowsTheWorkingStateWithItsReason() async throws {

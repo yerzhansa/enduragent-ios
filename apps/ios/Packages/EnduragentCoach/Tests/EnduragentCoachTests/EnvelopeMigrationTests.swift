@@ -94,6 +94,8 @@ extension SwiftDataSuites {
 				await coach.transcript(.main) == [
 					"How was Tuesday?", "Tuesday was hard.",
 				])
+			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
+			#expect(try await coach.history().map(\.reason) == [.earlierChat])
 		}
 
 		@Test func v1ChatShowsTheRowsTrunkShowedBehindATrimWindow() async throws {

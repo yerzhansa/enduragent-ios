@@ -23,17 +23,15 @@ import Testing
 		]
 	}
 
-	func job(_ trigger: FlushTrigger = .softThreshold) -> FlushJob {
-		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(40)), trigger: trigger, messages: [fixedUlid(41)],
-			settled: false)
+	func job() -> FlushJob {
+		FlushJob(id: FlushJobID(ulid: fixedUlid(40)), messages: [fixedUlid(41)], settled: false)
 	}
 
 	func run(
 		_ job: FlushJob, messages: [ChatMessage]? = nil, scope: TurnScope? = nil
 	) async throws -> FlushOutcome {
 		try await memory.runFlush(
-			job, messages: messages ?? conversation, access: testAccess, transport: transport,
+			messages: messages ?? conversation, access: testAccess, transport: transport,
 			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope)
 	}
 
@@ -97,17 +95,6 @@ import Testing
 		#expect(try await run(job()) == .failed(.model(.providerDown(.outage))))
 	}
 
-	@Test func staleResetRetriesAZeroWriteFlushOnce() async throws {
-		let four = conversation + conversation
-		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
-		#expect(try await run(job(.staleReset), messages: four) == .nothingToSave)
-		#expect(transport.requests.count == 2)
-		#expect(try await run(job(.softThreshold), messages: four) == .nothingToSave)
-		#expect(transport.requests.count == 3)
-		#expect(try await run(job(.staleReset), messages: conversation) == .nothingToSave)
-		#expect(transport.requests.count == 4)
-	}
-
 	@Test func flushCapsAtFiveSteps() async throws {
 		var script: [ScriptedEvent] = []
 		for _ in 0..<6 {
@@ -121,7 +108,7 @@ import Testing
 		}
 		script.append(.finish(reason: .stop))
 		transport.flushScript = script
-		#expect(try await run(job(.trim)) == .saved(sections: 0, events: 1))
+		#expect(try await run(job()) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
 		#expect(
 			transport.requests.allSatisfy { $0.tools.map(\.name) == [.memoryWrite, .ledgerAppend] })
@@ -137,7 +124,7 @@ import Testing
 		]
 		let roomForOne = TurnScope(
 			stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
-		#expect(try await run(job(.overflow), scope: roomForOne) == .saved(sections: 0, events: 1))
+		#expect(try await run(job(), scope: roomForOne) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == 2)
 		await #expect(throws: TurnBudgetExceeded(kind: .generateCalls)) {
 			try await roomForOne.chargeCall()
@@ -149,7 +136,7 @@ import Testing
 		let spent = TurnScope(stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
 		try await spent.chargeCall()
 		#expect(
-			try await run(job(.preCompaction), scope: spent)
+			try await run(job(), scope: spent)
 				== .failed(.model(.budgetExhausted(.generateCalls))))
 		#expect(transport.requests.isEmpty)
 	}
@@ -177,7 +164,6 @@ import Testing
 			return
 		}
 		#expect(pending.count == 1)
-		#expect(body.trigger == .softThreshold)
 		#expect(body.messageUlids == history.flatMap { [$0.user, $0.reply] })
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .memoryFlush, .memoryFlush])
 		let hits = try await coach.memory.query(

@@ -27,7 +27,7 @@ struct RecordReadBenchmark {
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold, messageUlids: [job.ulid]))))
+							chatId: .main, messageUlids: [job.ulid]))))
 		}
 		let settlements = jobs.enumerated().map { index, job in
 			storedRecord(

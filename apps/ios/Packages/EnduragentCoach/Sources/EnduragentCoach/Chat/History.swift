@@ -19,21 +19,20 @@ public struct ArchivedConversationRef: Hashable, Sendable {
 
 public enum ArchiveReason: Sendable, Equatable {
 	case newConversation
-	case closedAfterBreak
 	case earlierChat
 
 	public var title: CatalogKey {
 		switch self {
 		case .newConversation: Catalog.archiveReasonExplicit
-		case .closedAfterBreak: Catalog.archiveReasonStale
 		case .earlierChat: Catalog.archiveReasonEarlierChat
 		}
 	}
 
-	init(closedBy reset: ResetKind) {
-		switch reset {
-		case .explicit: self = .newConversation
-		case .daily, .idle: self = .closedAfterBreak
+	init?(closedBy opening: SegmentOpening) {
+		switch opening {
+		case .chatStart: return nil
+		case .reset: self = .newConversation
+		case .legacyBoundary: self = .earlierChat
 		}
 	}
 }
@@ -55,8 +54,7 @@ extension Ledger {
 			let closed: [(segment: Segment, reason: ArchiveReason)]
 			if chat == .main {
 				closed = zip(conversation.segments, conversation.segments.dropFirst()).compactMap {
-					guard case .reset(let kind) = $1.openedBy else { return nil }
-					return ($0, ArchiveReason(closedBy: kind))
+					segment, next in ArchiveReason(closedBy: next.openedBy).map { (segment, $0) }
 				}
 			} else {
 				closed = [(conversation.earlierChat, .earlierChat)]

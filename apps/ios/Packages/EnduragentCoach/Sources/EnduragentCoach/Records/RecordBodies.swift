@@ -55,13 +55,7 @@ public struct WindowStartBody: Sendable, Equatable {
 public enum WindowReason: Sendable, Equatable {
 	case trim
 	case compaction
-	case reset(ResetKind)
-}
-
-public enum ResetKind: Sendable, Equatable {
-	case explicit(ResetID)
-	case daily
-	case idle
+	case reset(ResetID)
 }
 
 public struct CompactionSummaryBody: Sendable, Equatable {
@@ -128,7 +122,6 @@ public struct ReviewAppliedBody: Sendable, Equatable {
 
 public struct FlushPendingBody: Sendable, Equatable {
 	public var chatId: ChatID
-	public var trigger: FlushTrigger
 	public var messageUlids: [ULID]
 	public var process: ProcessID?
 }

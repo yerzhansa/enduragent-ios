@@ -202,7 +202,6 @@ struct ProposalClearedPayload: Codable {
 
 struct FlushPendingPayload: Codable {
 	var chatId: String
-	var trigger: String
 	var messageUlids: [String]
 	var process: String?
 }

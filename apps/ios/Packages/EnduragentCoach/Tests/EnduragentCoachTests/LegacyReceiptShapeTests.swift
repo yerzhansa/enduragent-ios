@@ -21,8 +21,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
@@ -45,8 +44,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 				record(
 					1, device: DeviceID(rawValue: "other-phone"),
 					body: legacyUser(chatId: .main, text: "Imported Saturday")),

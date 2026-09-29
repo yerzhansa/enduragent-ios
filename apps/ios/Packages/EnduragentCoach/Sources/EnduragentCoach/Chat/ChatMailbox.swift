@@ -14,9 +14,7 @@ package actor ChatMailbox {
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
-		chat: chatId, records: records, environment: environment,
-		freshness: AutomaticReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock),
-		process: process)
+		chat: chatId, records: records, environment: environment, process: process)
 	private let work = MailboxQueue()
 	private let door = Turnstile()
 	private var live: LiveAttempt?

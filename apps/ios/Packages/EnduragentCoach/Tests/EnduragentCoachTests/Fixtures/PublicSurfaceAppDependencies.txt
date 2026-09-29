@@ -2803,7 +2803,6 @@ FlushPendingBody
 FlushPendingBody.chatId
 FlushPendingBody.messageUlids
 FlushPendingBody.process
-FlushPendingBody.trigger
 FlushSettledBody
 FlushSettledBody.chatId
 FlushSettledBody.job
@@ -2812,13 +2811,6 @@ FlushSettlement
 FlushSettlement.abandoned
 FlushSettlement.nothingToSave
 FlushSettlement.saved
-FlushTrigger
-FlushTrigger.explicitReset
-FlushTrigger.overflow
-FlushTrigger.preCompaction
-FlushTrigger.softThreshold
-FlushTrigger.staleReset
-FlushTrigger.trim
 GatedToolInput
 GatedToolInput.createStrengthWorkout
 GatedToolInput.createWorkout
