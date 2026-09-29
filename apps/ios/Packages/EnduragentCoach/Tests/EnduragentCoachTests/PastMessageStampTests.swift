@@ -49,7 +49,7 @@ import Testing
 			])
 		#expect(chat.messages.dropFirst().map(\.role) == [.user, .assistant, .user])
 		transport.flushScript = [.finish(reason: .stop)]
-		_ = await coach.startNewConversation(in: .main)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flush = try #require(sent(.memoryFlush, by: transport).last)
 		#expect(
 			flush.messages.dropFirst().dropLast().map(\.content) == [
