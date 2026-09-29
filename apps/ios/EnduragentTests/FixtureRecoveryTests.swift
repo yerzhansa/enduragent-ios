@@ -69,7 +69,7 @@ extension FixtureLaunchTests {
 	@Test(.timeLimit(.minutes(1)))
 	func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "fixture:slow"
@@ -79,7 +79,11 @@ extension FixtureLaunchTests {
 			return !processing.liveText.isEmpty
 		}
 		NotificationCenter.default.post(name: UIApplication.willTerminateNotification, object: nil)
-		for kind in SyncedKind.allCases {
+		for kind in [
+			"userMessage", "turnSettled", "windowStart", "compactionSummary", "memorySection",
+			"dailyNote", "ledgerEvent", "journal", "provenance", "coachReplyLanguage",
+			"planningDevice", "reviewApplied", "sessionSettings", "languagePreference",
+		] {
 			records.failAppends(ofKind: kind)
 		}
 		let reopened = try #require(
@@ -97,7 +101,7 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let killed = model(services)
 		killed.startChatting()
 		killed.draft.text = "fixture:memory-then-hang"

@@ -55,7 +55,7 @@ struct AppServices: Sendable {
 		fixtureDirector?.transport
 	}
 
-	var fixtureRecordLog: FaultInjectingRecordLog? {
+	var fixtureRecordFaults: RecordFaults? {
 		fixtureDirector?.records
 	}
 

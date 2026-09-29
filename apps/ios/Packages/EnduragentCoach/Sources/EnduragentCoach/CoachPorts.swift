@@ -46,20 +46,14 @@ public struct RecordStore: Sendable {
 
 	public static func fixture(
 		directory: URL, deviceId: DeviceID, unreadable: Bool = false
-	) throws -> (store: RecordStore, faults: FaultInjectingRecordLog) {
+	) throws -> (store: RecordStore, faults: RecordFaults) {
 		if unreadable {
 			try FileManager.default.createDirectory(
 				at: directory.appending(path: ModelContainerHandle.syncedStoreFileName),
 				withIntermediateDirectories: true)
 		}
-		let faults = FaultInjectingRecordLog(
-			wrapping: SwiftDataRecordLog(
-				deviceId: deviceId,
-				synced: try ModelContainerHandle.withoutCloudKit(
-					storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName)),
-				local: try ModelContainerHandle.withoutCloudKit(
-					storeURL: directory.appending(path: ModelContainerHandle.localStoreFileName))))
-		return (RecordStore(log: faults), faults)
+		let faults = try RecordFaults(directory: directory, deviceId: deviceId)
+		return (RecordStore(log: faults.log), faults)
 	}
 }
 

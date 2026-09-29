@@ -319,7 +319,7 @@ import Testing
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = makeCoach(transport: FakeModelTransport(), store: log)
 		try await coach.setLanguage(.fixed(.de))
-		log.failAppends(ofKind: SyncedKind.languagePreference)
+		log.failAppends(ofKind: "languagePreference")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setLanguage(.fixed(.fr))
 		}

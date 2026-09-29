@@ -7,7 +7,7 @@ import Testing
 extension FixtureLaunchTests {
 	@Test func teachSavesTheScheduleThenReplies() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "fixture:teach"
@@ -19,7 +19,7 @@ extension FixtureLaunchTests {
 
 	@Test func flushPartialLeavesTheJobPendingUntilTheNextLaunchDrainsIt() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
 		model.startChatting()
@@ -31,7 +31,7 @@ extension FixtureLaunchTests {
 		#expect(try await count(.synced([.ledgerEvent]), in: records) == 1)
 
 		let relaunched = self.model(try relaunch(.keep).0)
-		let drained = try #require(relaunched.services.fixtureRecordLog)
+		let drained = try #require(relaunched.services.fixtureRecordFaults)
 		await relaunched.lifecycle.forward(.becameActive)
 		try await waitUntil { try await count(.deviceLocal([.flushSettled]), in: drained) == 1 }
 		#expect(try await count(.deviceLocal([.flushPending]), in: drained) == 1)
@@ -40,7 +40,7 @@ extension FixtureLaunchTests {
 
 	@Test func longRepliesTrimIntoTheFixtureSummary() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
 		model.startChatting()
@@ -76,7 +76,7 @@ extension FixtureLaunchTests {
 		}
 	}
 
-	private func count(_ scope: RecordQuery.Scope, in records: FaultInjectingRecordLog)
+	private func count(_ scope: RecordQuery.Scope, in records: RecordFaults)
 		async throws -> Int
 	{
 		try await records.fetch(RecordQuery(scope: scope)).records.count

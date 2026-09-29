@@ -101,7 +101,7 @@ import Testing
 	@Test func failedSessionWriteKeepsTheStoredSettings() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = makeCoach(transport: FakeModelTransport(), store: log)
-		log.failAppends(ofKind: SyncedKind.sessionSettings)
+		log.failAppends(ofKind: "sessionSettings")
 		let chosen = try SessionSettings.npmDefaults.replacing(.idleReset, with: "30")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setSession(chosen)

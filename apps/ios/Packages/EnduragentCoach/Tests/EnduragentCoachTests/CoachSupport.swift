@@ -119,10 +119,10 @@ extension Coach {
 
 	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
 		for kind in SyncedKind.allCases {
-			log.failAppends(ofKind: kind)
+			log.failAppends(ofKind: kind.rawValue)
 		}
 		for kind in DeviceLocalKind.allCases {
-			log.failAppends(ofKind: kind)
+			log.failAppends(ofKind: kind.rawValue)
 		}
 		await lifecycle(.willTerminate)
 	}

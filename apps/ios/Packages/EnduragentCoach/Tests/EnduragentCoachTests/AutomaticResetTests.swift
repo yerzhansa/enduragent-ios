@@ -335,7 +335,7 @@ import Testing
 		let coach = coach(at: clock, over: log)
 		answer("Two rides.", "Rest today.")
 		_ = try await coach.sendAndSettle("How was my week?")
-		log.failAppends(ofKind: SyncedKind.windowStart)
+		log.failAppends(ofKind: "windowStart")
 		clock.advance(by: 13 * 3_600)
 		_ = try await coach.sendAndSettle("What now?")
 		#expect(

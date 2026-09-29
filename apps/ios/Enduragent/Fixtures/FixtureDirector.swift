@@ -13,7 +13,7 @@ struct FixtureDirector: Sendable {
 	static let slowFlushDelay: Duration = .seconds(6)
 
 	let transport: FakeModelTransport
-	let records: FaultInjectingRecordLog
+	let records: RecordFaults
 	let host: ImmediateExecutionHost
 	let secrets: FakeSecretStore
 	let intervals: FakeIntervalsClient

@@ -134,7 +134,7 @@ extension FixtureLaunchTests {
 		let running = try await leaseTurn(in: model) { state in
 			if case .processing = state { true } else { false }
 		}
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		try await waitUntil {
 			try await !records.fetch(RecordQuery(scope: .synced([.memorySection]))).records.isEmpty
 		}

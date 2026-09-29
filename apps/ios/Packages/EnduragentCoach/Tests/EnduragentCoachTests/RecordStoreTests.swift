@@ -33,14 +33,33 @@ extension SwiftDataSuites {
 			}
 		}
 
+		@Test func faultingFixtureRejectsTheNamedKindAndStillSavesOtherKinds() async throws {
+			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			let coach = coach(fixture.store)
+			fixture.faults.failAppends(ofKind: "languagePreference")
+			await #expect(throws: PreferenceWriteFailure.notSaved) {
+				try await coach.setLanguage(.fixed(.fr))
+			}
+			#expect(await coach.languagePreference() == .automatic)
+			let session = try SessionSettings.npmDefaults.replacing(.dailyResetHour, with: "6")
+			try await coach.setSession(session)
+			let status = await coach.status()
+			#expect(status.session == session)
+			let snapshot = try await coach.recordSyncProbe().snapshot()
+			#expect(snapshot.counts.contains { $0.kind == "sessionSettings" && $0.count == 1 })
+			#expect(!snapshot.counts.contains { $0.kind == "languagePreference" })
+		}
+
 		private func coach(_ store: RecordStore) -> Coach {
 			Coach(
 				sport: .cycling,
 				ports: CoachPorts(
-					records: store, secrets: keyedSecrets(), models: .scripted(FakeModelTransport()),
+					records: store, secrets: keyedSecrets(),
+					models: .scripted(FakeModelTransport()),
 					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
+					clock: FixedClock(
+						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
 				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)
 		}
 	}
