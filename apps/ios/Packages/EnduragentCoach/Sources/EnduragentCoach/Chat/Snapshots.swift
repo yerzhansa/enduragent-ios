@@ -235,3 +235,9 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 			Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
 	}
 }
+
+public enum ResetKind: Sendable, Equatable {
+	case explicit(ResetID)
+	case daily
+	case idle
+}

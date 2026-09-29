@@ -3,18 +3,18 @@ import Foundation
 import SwiftData
 import Synchronization
 
-public struct RecordQuery: Sendable, Equatable {
-	public enum Scope: Sendable, Equatable {
+package struct RecordQuery: Sendable, Equatable {
+	package enum Scope: Sendable, Equatable {
 		case synced(Set<SyncedKind>, includeLegacy: Set<LegacyKind>)
 		case deviceLocal(Set<DeviceLocalKind>)
 
-		public static func synced(_ kinds: Set<SyncedKind>) -> Scope {
+		package static func synced(_ kinds: Set<SyncedKind>) -> Scope {
 			.synced(kinds, includeLegacy: [])
 		}
 
-		public static let everySynced: Scope = .synced(
+		package static let everySynced: Scope = .synced(
 			Set(SyncedKind.allCases), includeLegacy: Set(LegacyKind.allCases))
-		public static let everyDeviceLocal: Scope = .deviceLocal(Set(DeviceLocalKind.allCases))
+		package static let everyDeviceLocal: Scope = .deviceLocal(Set(DeviceLocalKind.allCases))
 
 		var locality: RecordLocality {
 			switch self {
@@ -56,14 +56,14 @@ public struct RecordQuery: Sendable, Equatable {
 		}
 	}
 
-	public var scope: Scope
-	public var chatId: ChatID?
-	public var turn: TurnID?
-	public var from: CivilDate?
-	public var to: CivilDate?
-	public var writtenBy: DeviceID?
+	package var scope: Scope
+	package var chatId: ChatID?
+	package var turn: TurnID?
+	package var from: CivilDate?
+	package var to: CivilDate?
+	package var writtenBy: DeviceID?
 
-	public init(
+	package init(
 		scope: Scope,
 		chatId: ChatID? = nil,
 		turn: TurnID? = nil,
@@ -80,7 +80,7 @@ public struct RecordQuery: Sendable, Equatable {
 	}
 }
 
-public protocol RecordLog: Sendable {
+package protocol RecordLog: Sendable {
 	var deviceId: DeviceID { get }
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
@@ -88,17 +88,17 @@ public protocol RecordLog: Sendable {
 	var imports: AsyncStream<Void> { get }
 }
 
-public struct RecordPage: Sendable, Equatable {
-	public let records: [AthleteRecord]
-	public let skipped: [SkippedRow]
+package struct RecordPage: Sendable, Equatable {
+	package let records: [AthleteRecord]
+	package let skipped: [SkippedRow]
 
-	public init(records: [AthleteRecord], skipped: [SkippedRow]) {
+	package init(records: [AthleteRecord], skipped: [SkippedRow]) {
 		self.records = records
 		self.skipped = skipped
 	}
 }
 
-public enum SkippedRow: Error, Sendable, Hashable {
+package enum SkippedRow: Error, Sendable, Hashable {
 	case newerKind(kind: String, ulid: String)
 	case newerVersion(kind: String, version: Int, ulid: String)
 	case malformed(kind: String, ulid: String)
@@ -112,40 +112,40 @@ package struct RecordDecodeFailure: Error, Sendable, Equatable {
 	}
 }
 
-public final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
-	public let deviceId: DeviceID
+package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
+	package let deviceId: DeviceID
 	private let records = Mutex<[AthleteRecord]>([])
 
-	public init(deviceId: DeviceID = DeviceID()) {
+	package init(deviceId: DeviceID = DeviceID()) {
 		self.deviceId = deviceId
 	}
 
-	public func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		records.withLock { $0.append(contentsOf: batch) }
 	}
 
-	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
+	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let matching = records.withLock { $0.filter { recordMatches($0, query) } }
 		return RecordPage(records: matching.sorted { $0.hlc < $1.hlc }, skipped: [])
 	}
 
-	public var imports: AsyncStream<Void> {
+	package var imports: AsyncStream<Void> {
 		AsyncStream { _ in }
 	}
 }
 
-public struct SwiftDataRecordLog: RecordLog {
-	public let deviceId: DeviceID
+package struct SwiftDataRecordLog: RecordLog {
+	package let deviceId: DeviceID
 	private let synced: ModelContainer
 	private let local: ModelContainer
 
-	public init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
+	package init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
 		self.deviceId = deviceId
 		self.synced = synced.container
 		self.local = local.container
 	}
 
-	public func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		let context = ModelContext(container(for: locality))
 		context.autosaveEnabled = false
 		for record in batch {
@@ -154,7 +154,7 @@ public struct SwiftDataRecordLog: RecordLog {
 		try context.save()
 	}
 
-	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
+	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let kinds = query.scope.isExhaustive ? [] : Array(query.scope.kindNames)
 		if kinds.isEmpty, !query.scope.isExhaustive {
 			return RecordPage(records: [], skipped: [])
@@ -189,7 +189,7 @@ public struct SwiftDataRecordLog: RecordLog {
 		return RecordPage(records: records.sorted { $0.hlc < $1.hlc }, skipped: skipped)
 	}
 
-	public var imports: AsyncStream<Void> {
+	package var imports: AsyncStream<Void> {
 		AsyncStream { continuation in
 			let task = Task {
 				let changes = NotificationCenter.default.notifications(
@@ -213,7 +213,7 @@ public struct SwiftDataRecordLog: RecordLog {
 	}
 }
 
-public struct ModelContainerHandle: Sendable {
+package struct ModelContainerHandle: Sendable {
 	let container: ModelContainer
 }
 

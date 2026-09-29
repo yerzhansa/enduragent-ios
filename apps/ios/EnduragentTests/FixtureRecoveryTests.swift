@@ -101,15 +101,16 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordFaults)
+		let records = services.coach.recordSyncProbe()
 		let killed = model(services)
 		killed.startChatting()
 		killed.draft.text = "fixture:memory-then-hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
 		let deadline = ContinuousClock.now + .seconds(5)
-		while try await records.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-			.isEmpty,
+		while try await !records.snapshot().counts.contains(where: {
+			$0.kind == "memorySection" && $0.count > 0
+		}),
 			ContinuousClock.now < deadline
 		{
 			try await Task.sleep(for: .milliseconds(20))

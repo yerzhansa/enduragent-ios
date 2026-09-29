@@ -13,7 +13,7 @@ extension SwiftDataSuites {
 			let store = RecordStore.inMemory(deviceId: device)
 			try await coach(store).setLanguage(.fixed(.fr))
 			#expect(await coach(store).languagePreference() == .fixed(.fr))
-			#expect(await coach(store).recordSyncProbe().deviceId == device)
+			#expect(coach(store).recordSyncProbe().deviceId == device)
 		}
 
 		@Test func fixtureReopensTheExistingStoreFilesAndDevice() async throws {
@@ -21,7 +21,7 @@ extension SwiftDataSuites {
 			try await coach(first.store).setLanguage(.fixed(.fr))
 			let reopened = try RecordStore.fixture(directory: directory, deviceId: device)
 			#expect(await coach(reopened.store).languagePreference() == .fixed(.fr))
-			#expect(await coach(reopened.store).recordSyncProbe().deviceId == device)
+			#expect(coach(reopened.store).recordSyncProbe().deviceId == device)
 			let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
 			#expect(files.contains("synced-records.store"))
 			#expect(files.contains("local-records.store"))
