@@ -6,6 +6,62 @@ import Testing
 
 @Suite(.serialized)
 struct CreditsClientTests {
+	@Test(arguments: 0...4)
+	func crashDuringRecoveryThenPeerIntervalsReplaceLeavesAWholePair(_ writes: Int) async throws {
+		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
+		let oldKey = "test-old-credits-key"
+		let newKey = "test-new-credits-key"
+		let memory = MemorySecretStoreBacking()
+		let deviceB = ICloudKeychainStore(backing: memory)
+		try deviceB.storeAppAccountToken(oldToken)
+		try deviceB.storeOpenRouterKey(oldKey)
+		try deviceB.storeIntervalsConnection(testConnection)
+		let coachB = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceB)
+		#expect(await coachB.status().setup == .ready)
+		let interrupted = InterruptedSecretStoreBacking(base: memory)
+		let deviceA = ICloudKeychainStore(backing: interrupted)
+		let client = try makeClient(secrets: deviceA)
+		_ = try await CreditsURLStub.withHandler({ _ in
+			.json(200, #"{"data":{"limit_remaining":1}}"#)
+		}) {
+			try await client.balance(scale: CreditScale(creditsPerUsd: 100))
+		}
+		interrupted.stop(after: writes)
+		do {
+			_ = try await CreditsURLStub.withHandler({ _ in
+				.json(
+					200,
+					#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
+				)
+			}) {
+				try await client.recover(signedTransaction: "header.payload.signature")
+			}
+		} catch let error as AccessUnavailable {
+			#expect(error == .secureStorageUnavailable)
+		}
+		guard
+			case .replaced = await coachB.changeTraining(
+				.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
+		else {
+			Issue.record("expected the peer intervals replacement to succeed")
+			return
+		}
+		interrupted.resume()
+		let coachA = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceA)
+		for (coach, store) in [(coachA, deviceA), (coachB, deviceB)] {
+			let identity = try await coach.creditsIdentity()
+			let key = try store.openRouterKey()
+			#expect(identity.hasCreditsKey)
+			#expect(
+				(key == oldKey && identity.appAccountToken == oldToken)
+					|| (key == newKey && identity.appAccountToken == newToken),
+				"after \(writes) writes: key=\(key ?? "nil"), token=\(identity.appAccountToken)")
+		}
+	}
+
 	@Test("grant minted stores key before returning")
 	func grantMintedStoresKeyBeforeReturning() async throws {
 		let athleteId = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
@@ -240,7 +296,7 @@ struct CreditsClientTests {
 	}
 }
 
-private func makeClient(secrets: FakeSecretStore) throws -> PhoneCreditsClient {
+private func makeClient(secrets: any SecretStore) throws -> PhoneCreditsClient {
 	let configuration = URLSessionConfiguration.ephemeral
 	configuration.protocolClasses = [CreditsURLStub.self]
 	configuration.timeoutIntervalForRequest = 20
