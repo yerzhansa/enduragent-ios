@@ -54,7 +54,7 @@ extension Ledger {
 			let closed: [(segment: Segment, reason: ArchiveReason)]
 			if chat == .main {
 				closed = zip(conversation.segments, conversation.segments.dropFirst()).compactMap {
-					closed, next in ArchiveReason(closedBy: next.openedBy).map { (closed, $0) }
+					segment, next in ArchiveReason(closedBy: next.openedBy).map { (segment, $0) }
 				}
 			} else {
 				closed = [(conversation.earlierChat, .earlierChat)]
