@@ -100,7 +100,8 @@ import Testing
 			synced: [
 				.windowStart(
 					WindowStartBody(
-						chatId: .main, firstIncludedUlid: boundary, reason: .reset(.daily))),
+						chatId: .main, firstIncludedUlid: boundary,
+						reason: .reset(ResetID(ulid: boundary)))),
 				sampleUser(chatId: .main, text: "first in the new segment"),
 			],
 			stamp: testStamp())

@@ -2,7 +2,6 @@ import Foundation
 
 extension Memory {
 	package func runFlush(
-		_ job: FlushJob,
 		messages: [ChatMessage],
 		access: ResolvedAccess,
 		transport: any ModelTransport,
@@ -16,11 +15,6 @@ extension Memory {
 		var tally = FlushTally()
 		do {
 			try await flushRetryingFailures(run, scope: scope, tally: &tally)
-			if job.trigger == .staleReset, tally.isEmpty,
-				messages.count >= MemoryFlushPolicy.flushZeroWriteMinMessages
-			{
-				try await flushRetryingFailures(run, scope: scope, tally: &tally)
-			}
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {

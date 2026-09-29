@@ -253,7 +253,7 @@ import Testing
 						.windowStart(
 							WindowStartBody(
 								chatId: .main, firstIncludedUlid: fixedUlid(10),
-								reason: .reset(.explicit(ResetID(ulid: fixedUlid(10)))))))),
+								reason: .reset(ResetID(ulid: fixedUlid(10))))))),
 				record(
 					11,
 					body: legacyRows

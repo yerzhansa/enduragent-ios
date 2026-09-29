@@ -6,7 +6,8 @@ package struct SegmentID: Hashable, Sendable {
 
 package enum SegmentOpening: Sendable, Equatable {
 	case chatStart
-	case reset(ResetKind)
+	case reset(ResetID)
+	case legacyBoundary
 }
 
 package struct ReviewNote: Sendable, Equatable {

@@ -49,8 +49,7 @@ package struct ConversationReset: Sendable {
 				return (.notStarted(.local(.recordStorage)), [])
 			}
 			let flushStamp = await flushes.stamp(for: job)
-			let outcome = await extract(
-				job, rows.map(\.message), access: access, stamp: flushStamp)
+			let outcome = await extract(rows.map(\.message), access: access, stamp: flushStamp)
 			flushed = (job, outcome, flushStamp)
 		}
 		let boundary: [AthleteRecord]
@@ -60,7 +59,7 @@ package struct ConversationReset: Sendable {
 					.windowStart(
 						WindowStartBody(
 							chatId: chat, firstIncludedUlid: reset.ulid,
-							reason: .reset(.explicit(reset))))
+							reason: .reset(reset)))
 				],
 				stamp: stamp)
 		} catch {
@@ -73,7 +72,7 @@ package struct ConversationReset: Sendable {
 	}
 
 	private func extract(
-		_ job: FlushJob, _ messages: [ChatMessage],
+		_ messages: [ChatMessage],
 		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess,
 		stamp: OperationStamp
 	) async -> FlushOutcome? {
@@ -86,7 +85,7 @@ package struct ConversationReset: Sendable {
 		}
 		do {
 			return try await flushes.extract(
-				job, messages: messages, access: resolved, scope: nil, stamp: stamp)
+				messages: messages, access: resolved, scope: nil, stamp: stamp)
 		} catch {
 			flushes.diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return nil

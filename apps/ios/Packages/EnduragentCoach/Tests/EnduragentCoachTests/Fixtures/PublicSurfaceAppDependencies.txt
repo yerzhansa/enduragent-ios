@@ -2817,7 +2817,6 @@ FlushTrigger.explicitReset
 FlushTrigger.overflow
 FlushTrigger.preCompaction
 FlushTrigger.softThreshold
-FlushTrigger.staleReset
 FlushTrigger.trim
 GatedToolInput
 GatedToolInput.createStrengthWorkout

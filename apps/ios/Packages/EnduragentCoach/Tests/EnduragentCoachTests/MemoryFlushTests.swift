@@ -33,7 +33,7 @@ import Testing
 		_ job: FlushJob, messages: [ChatMessage]? = nil, scope: TurnScope? = nil
 	) async throws -> FlushOutcome {
 		try await memory.runFlush(
-			job, messages: messages ?? conversation, access: testAccess, transport: transport,
+			messages: messages ?? conversation, access: testAccess, transport: transport,
 			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope)
 	}
 
@@ -95,17 +95,6 @@ import Testing
 		#expect(try await run(job()) == .nothingToSave)
 		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
 		#expect(try await run(job()) == .failed(.model(.providerDown(.outage))))
-	}
-
-	@Test func staleResetRetriesAZeroWriteFlushOnce() async throws {
-		let four = conversation + conversation
-		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
-		#expect(try await run(job(.staleReset), messages: four) == .nothingToSave)
-		#expect(transport.requests.count == 2)
-		#expect(try await run(job(.softThreshold), messages: four) == .nothingToSave)
-		#expect(transport.requests.count == 3)
-		#expect(try await run(job(.staleReset), messages: conversation) == .nothingToSave)
-		#expect(transport.requests.count == 4)
 	}
 
 	@Test func flushCapsAtFiveSteps() async throws {

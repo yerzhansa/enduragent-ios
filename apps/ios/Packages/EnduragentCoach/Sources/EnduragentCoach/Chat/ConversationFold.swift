@@ -24,14 +24,14 @@ package enum ConversationFold {
 		for record in ordered {
 			switch record.body {
 			case .synced(.windowStart(let body)):
-				if case .reset(let kind) = body.reason {
-					boundaries.append((body.firstIncludedUlid, .reset(kind)))
+				if case .reset(let reset) = body.reason {
+					boundaries.append((body.firstIncludedUlid, .reset(reset)))
 				}
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessages.contains(firstIncluded) {
 					legacyTrims.append(firstIncluded)
 				} else {
-					boundaries.append((firstIncluded, .reset(.daily)))
+					boundaries.append((firstIncluded, .legacyBoundary))
 				}
 			default:
 				break
@@ -218,8 +218,8 @@ package enum ConversationFold {
 						ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
 						summary: body.summary))
 			case .synced(.windowStart(let body)):
-				guard case .reset(let kind) = body.reason else { continue }
-				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
+				guard case .reset(let reset) = body.reason else { continue }
+				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(reset))
 			default:
 				continue
 			}
@@ -313,16 +313,5 @@ package struct Conversation: Sendable, Equatable {
 		let index = segments.lastIndex { $0.id.boundary.map { $0 <= note.ulid } ?? true } ?? 0
 		segments[index].notes.append(note)
 		segments[index].notes.sort { $0.hlc < $1.hlc }
-	}
-
-	package func lastExchange(before turn: TurnID) -> LastExchange {
-		let segment = current
-		guard let running = segment.turns.first(where: { $0.turn == turn })?.firstFragment
-		else { return .none }
-		let stamps = segment.turns.filter { facts in
-			facts.firstFragment.map { $0 < running } ?? false
-		}.flatMap { $0.fragments.map(\.hlc) + $0.settlements.map(\.hlc) }
-		guard let latest = stamps.max() else { return .none }
-		return latest.wallMs > 0 ? .at(latest.wallTime) : .malformed
 	}
 }

@@ -123,13 +123,6 @@ package enum PromptAssembly {
 		summaryPrefix + "\n" + summary
 	}
 
-	package static func archiveMarker(at date: Date) -> String {
-		let stamp = ISO8601DateFormatter.string(
-			from: date, timeZone: .gmt,
-			formatOptions: [.withInternetDateTime, .withFractionalSeconds])
-		return "Previous session archived at \(stamp). Briefly disclose this before answering."
-	}
-
 	package static func droppedSummaryRequest(previous: String?, transcript: String) -> String {
 		summaryRequest(
 			"Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.",

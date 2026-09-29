@@ -24,7 +24,6 @@ public enum FlushTrigger: String, Sendable {
 	case preCompaction
 	case overflow
 	case explicitReset
-	case staleReset
 	case softThreshold
 }
 
@@ -91,7 +90,6 @@ package enum MemoryFlushPolicy {
 	package static let sectionSoftWarnChars = 4000
 	package static let flushShrinkMinChars = 200
 	package static let flushShrinkRatio = 0.7
-	package static let flushZeroWriteMinMessages = 4
 	package static let memorySectionBudgetChars = 1500
 	package static let compactionStart = "### Compaction summary"
 	package static let compactionEnd = "### End of compaction summary"

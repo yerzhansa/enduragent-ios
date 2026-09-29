@@ -249,7 +249,7 @@ package struct FlushWork: Sendable {
 	) async throws(CancellationError) -> FlushOutcome {
 		let stamp = await stamp(for: job)
 		let outcome = try await extract(
-			job, messages: messages, access: access, scope: scope, stamp: stamp)
+			messages: messages, access: access, scope: scope, stamp: stamp)
 		await settle(job, outcome, stamp: stamp)
 		return outcome
 	}
@@ -264,12 +264,10 @@ package struct FlushWork: Sendable {
 	}
 
 	package func extract(
-		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?,
-		stamp: OperationStamp
+		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
 	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
-			job, messages: messages, access: access, transport: transport, stamp: stamp,
-			scope: scope)
+			messages: messages, access: access, transport: transport, stamp: stamp, scope: scope)
 		if outcome.settlement == nil {
 			diagnostics.record(
 				.memoryFlushFailed(chat, detail: "\(outcome)"),

@@ -107,7 +107,7 @@ extension SwiftDataSuites {
 								.windowStart(
 									WindowStartBody(
 										chatId: .main, firstIncludedUlid: boundary,
-										reason: .reset(.explicit(ResetID(ulid: boundary))))))),
+										reason: .reset(ResetID(ulid: boundary)))))),
 					])
 			}
 			let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
