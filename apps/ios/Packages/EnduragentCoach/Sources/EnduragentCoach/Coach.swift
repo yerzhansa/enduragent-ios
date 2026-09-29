@@ -51,7 +51,7 @@ public actor Coach {
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
-		let planning = Planning(store: ports.records, clock: clock)
+		let planning = Planning(clock: clock)
 		self.planning = planning
 		self.runner = TurnRunner(
 			transport: transport,

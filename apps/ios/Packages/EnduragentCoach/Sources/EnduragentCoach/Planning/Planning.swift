@@ -122,11 +122,9 @@ package enum PlanningPolicy {
 }
 
 package actor Planning {
-	private let store: any RecordLog
 	private let clock: any Clock
 
-	package init(store: any RecordLog, clock: any Clock) {
-		self.store = store
+	package init(clock: any Clock) {
 		self.clock = clock
 	}
 
