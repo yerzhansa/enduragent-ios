@@ -198,6 +198,24 @@ final class FixtureLaunchTests {
 		#expect(model.chat?.opening == .welcome)
 	}
 
+	@Test func fixtureAppServicesOpensALegacySecretsFile() async throws {
+		let legacy = #"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#
+		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let (services, kept) = try relaunch(.keep)
+		let reopened = ShellModel(
+			environment: AppEnvironment(services: services, language: language, defaults: kept))
+		try await observed(reopened)
+		#expect(reopened.route == .chat)
+		#expect(reopened.chat?.chat == .main)
+		#expect(await services.coach.status().setup == .ready)
+		let identity = try await services.coach.creditsIdentity()
+		#expect(
+			identity.appAccountToken
+				== UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		#expect(identity.hasCreditsKey)
+	}
+
 	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let first = model(try services())
