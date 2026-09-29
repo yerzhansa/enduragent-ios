@@ -16,6 +16,9 @@ final class LanguagePickerProof: XCTestCase {
 		let automatic = TutorialHarness.named(app, "language.choice.automatic")
 		TutorialHarness.wait(automatic)
 		XCTAssertTrue(app.navigationBars["Choose your language"].exists)
+		XCTAssertGreaterThan(
+			app.navigationBars["Choose your language"].frame.minY,
+			app.windows.firstMatch.frame.height * 0.1)
 		XCTAssertTrue(automatic.isSelected)
 		let visible = choiceLabels(app)
 		XCTAssertGreaterThanOrEqual(visible.count, 10)

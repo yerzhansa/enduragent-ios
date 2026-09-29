@@ -57,6 +57,8 @@ struct ChatView: View {
 								}
 							}
 					}
+					.presentationDetents([.fraction(LanguageSheetLayout.heightFraction)])
+					.presentationDragIndicator(.visible)
 				}
 		}
 	}
