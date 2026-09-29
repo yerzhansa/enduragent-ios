@@ -2,7 +2,8 @@ import Foundation
 import Security
 
 public protocol SecretStore: Sendable {
-	func creditsAccount() throws -> CreditsAccount
+	func creditsAccount() throws -> CreditsAccount?
+	func prepareCreditsAccount() throws -> CreditsAccount
 	func storeCreditsAccount(_ account: CreditsAccount) throws
 	func openRouterAccountKey() throws -> String?
 	func storeOpenRouterAccountKey(_ key: String) throws
@@ -47,32 +48,47 @@ public struct ICloudKeychainStore: SecretStore {
 		case appAccountToken
 	}
 
-	public func creditsAccount() throws -> CreditsAccount {
+	public func creditsAccount() throws -> CreditsAccount? {
 		if let account = try readItem(CreditsAccount.self, .creditsAccount) { return account }
-		let migrated = try legacyCreditsAccount()
-		let account: CreditsAccount
+		guard let migrated = try legacyCreditsAccount() else { return nil }
+		let account = try addCreditsAccount(migrated)
+		try deleteLegacyCreditsItems()
+		return account
+	}
+
+	public func prepareCreditsAccount() throws -> CreditsAccount {
+		if let account = try creditsAccount() { return account }
+		let legacyKey = try readString(account: LegacyAccount.openRouterKey.rawValue)
+		let account = try addCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: legacyKey))
+		if legacyKey != nil { try deleteLegacyCreditsItems() }
+		return account
+	}
+
+	private func deleteLegacyCreditsItems() throws {
+		for legacy in LegacyAccount.allCases {
+			try backing.delete(account: legacy.rawValue)
+		}
+	}
+
+	private func addCreditsAccount(_ candidate: CreditsAccount) throws -> CreditsAccount {
 		do {
 			try backing.add(
 				account: CredentialSlot.creditsAccount.rawValue,
-				data: JSONEncoder().encode(migrated))
-			account = migrated
+				data: JSONEncoder().encode(candidate))
+			return candidate
 		} catch let error as KeychainStoreError where error.status == errSecDuplicateItem {
 			guard let existing = try readItem(CreditsAccount.self, .creditsAccount) else {
 				throw error
 			}
-			account = existing
+			return existing
 		}
-		for legacy in LegacyAccount.allCases {
-			try backing.delete(account: legacy.rawValue)
-		}
-		return account
 	}
 
 	public func storeCreditsAccount(_ account: CreditsAccount) throws {
 		try writeItem(account, .creditsAccount)
 	}
 
-	private func legacyCreditsAccount() throws -> CreditsAccount {
+	private func legacyCreditsAccount() throws -> CreditsAccount? {
 		if let staging = try backing.copy(
 			account: LegacyAccount.intervalsConnectionStaging.rawValue)
 		{
@@ -88,16 +104,13 @@ public struct ICloudKeychainStore: SecretStore {
 		return try legacyCreditsItems()
 	}
 
-	private func legacyCreditsItems() throws -> CreditsAccount {
+	private func legacyCreditsItems() throws -> CreditsAccount? {
 		let key = try readString(account: LegacyAccount.openRouterKey.rawValue)
-		let token: UUID
-		if let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) {
-			guard let stored = UUID(uuidString: raw) else {
-				throw KeychainStoreError(status: errSecDecode)
-			}
-			token = stored
-		} else {
-			token = UUID()
+		guard let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) else {
+			return nil
+		}
+		guard let token = UUID(uuidString: raw) else {
+			throw KeychainStoreError(status: errSecDecode)
 		}
 		return CreditsAccount(appAccountToken: token, key: key)
 	}

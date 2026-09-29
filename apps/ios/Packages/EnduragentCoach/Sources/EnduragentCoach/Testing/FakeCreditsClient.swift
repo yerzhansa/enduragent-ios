@@ -71,7 +71,9 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		return try result.get()
 	}
 
-	public func claim(signedTransaction: String) async throws -> ClaimOutcome {
+	public func claim(signedTransaction: String, appAccountToken _: UUID) async throws
+		-> ClaimOutcome
+	{
 		let result = state.withLock { current in
 			current.calls.append(.claim(transactionLength: signedTransaction.count))
 			return current.claimResult

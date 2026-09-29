@@ -9,24 +9,24 @@ import Testing
 		let memory = MemorySecretStoreBacking()
 		let first = ICloudKeychainStore(backing: memory)
 		let second = ICloudKeychainStore(backing: memory)
-		let token = try first.creditsAccount().appAccountToken
-		#expect(try first.creditsAccount().appAccountToken == token)
-		#expect(try second.creditsAccount().appAccountToken == token)
+		let token = try first.prepareCreditsAccount().appAccountToken
+		#expect(try first.creditsAccount()?.appAccountToken == token)
+		#expect(try second.creditsAccount()?.appAccountToken == token)
 	}
 
 	@Test func keysConnectionAndSelectionRoundTrip() throws {
 		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
-		#expect(try store.creditsAccount().key == nil)
+		#expect(try store.creditsAccount()?.key == nil)
 		#expect(try store.intervalsConnection() == nil)
 		#expect(try store.accessSelection() == nil)
 		try store.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: store.creditsAccount().appAccountToken, key: "test-or-key"))
+				appAccountToken: UUID(), key: "test-or-key"))
 		try store.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: store.creditsAccount().appAccountToken, key: "test-or-key-rotated")
+				appAccountToken: UUID(), key: "test-or-key-rotated")
 		)
-		#expect(try store.creditsAccount().key == "test-or-key-rotated")
+		#expect(try store.creditsAccount()?.key == "test-or-key-rotated")
 		try store.storeOpenRouterAccountKey("test-or-account-key")
 		#expect(try store.openRouterAccountKey() == "test-or-account-key")
 		try store.storeIntervalsConnection(testConnection)
@@ -50,12 +50,12 @@ import Testing
 		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
 		try store.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: store.creditsAccount().appAccountToken, key: "test-or-key"))
+				appAccountToken: UUID(), key: "test-or-key"))
 		try store.storeIntervalsConnection(testConnection)
 		try store.delete(.intervalsConnection)
 		try store.delete(.intervalsConnection)
 		#expect(try store.intervalsConnection() == nil)
-		#expect(try store.creditsAccount().key == "test-or-key")
+		#expect(try store.creditsAccount()?.key == "test-or-key")
 	}
 
 	@Test func v1IntervalsItemDecodesWithNilConnectionIdAndIsRewrittenOnce() async throws {
@@ -102,9 +102,9 @@ import Testing
 	func appAccountTokenIsStableOnSecItem() throws {
 		let first = ICloudKeychainStore()
 		let second = ICloudKeychainStore()
-		let token = try first.creditsAccount().appAccountToken
-		#expect(try first.creditsAccount().appAccountToken == token)
-		#expect(try second.creditsAccount().appAccountToken == token)
+		let token = try first.prepareCreditsAccount().appAccountToken
+		#expect(try first.creditsAccount()?.appAccountToken == token)
+		#expect(try second.creditsAccount()?.appAccountToken == token)
 	}
 }
 
@@ -117,6 +117,7 @@ final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 	private var deleted: [String] = []
 	var deletedAccounts: [String] { lock.withLock { deleted } }
 	private var written: [String: Int] = [:]
+	var writeCount: Int { lock.withLock { written.values.reduce(0, +) } }
 	private var failures: [String: OSStatus] = [:]
 	private var writeFailures: [String: OSStatus] = [:]
 

@@ -264,7 +264,7 @@ import Testing
 	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
 		let secrets = FakeSecretStore()
 		try secrets.storeCreditsAccount(
-			CreditsAccount(appAccountToken: secrets.creditsAccount().appAccountToken, key: testKey))
+			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = coach(secrets)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
 		guard

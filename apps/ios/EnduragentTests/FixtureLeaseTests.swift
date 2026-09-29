@@ -174,7 +174,7 @@ extension FixtureLaunchTests {
 		let secrets = FakeSecretStore()
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: secrets.creditsAccount().appAccountToken, key: "sk-or-test-lease"))
+				appAccountToken: UUID(), key: "sk-or-test-lease"))
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		return Coach(
 			sport: .cycling,

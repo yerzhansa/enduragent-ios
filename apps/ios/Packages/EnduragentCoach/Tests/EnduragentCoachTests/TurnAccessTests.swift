@@ -32,7 +32,7 @@ extension TurnRunnerTests {
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: secrets.creditsAccount().appAccountToken,
+				appAccountToken: UUID(),
 				key: "sk-or-stored-after-launch"))
 		transport.script = [.text("Hello, Ada."), .finish(reason: .stop)]
 		try await coach.retry(turn, in: .main)

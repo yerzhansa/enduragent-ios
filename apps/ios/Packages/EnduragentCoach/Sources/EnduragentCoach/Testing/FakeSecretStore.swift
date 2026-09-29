@@ -3,7 +3,7 @@ import Security
 
 public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private struct Contents: Codable {
-		var creditsAccount: CreditsAccount
+		var creditsAccount: CreditsAccount?
 		var openRouterAccountKey: String?
 		var intervals: StoredIntervalsConnection?
 		var accessSelection: StoredAccessSelection?
@@ -30,7 +30,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 		func holds(_ slot: CredentialSlot) -> Bool {
 			switch slot {
-			case .creditsAccount: true
+			case .creditsAccount: creditsAccount != nil
 			case .openRouterAccountKey: openRouterAccountKey != nil
 			case .intervalsConnection: intervalsItem != nil
 			case .accessSelection: accessSelection != nil
@@ -72,7 +72,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	public init(appAccountToken: UUID? = nil) {
 		self.file = nil
 		self.contents = Contents(
-			creditsAccount: CreditsAccount(appAccountToken: appAccountToken ?? UUID(), key: nil))
+			creditsAccount: appAccountToken.map { CreditsAccount(appAccountToken: $0, key: nil) })
 	}
 
 	public init(directory: URL) throws {
@@ -81,14 +81,23 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		if FileManager.default.fileExists(atPath: file.path) {
 			self.contents = try JSONDecoder().decode(Contents.self, from: Data(contentsOf: file))
 		} else {
-			self.contents = Contents(
-				creditsAccount: CreditsAccount(appAccountToken: UUID(), key: nil))
-			try persist(contents)
+			self.contents = Contents()
 		}
 	}
 
-	public func creditsAccount() throws -> CreditsAccount {
+	public func creditsAccount() throws -> CreditsAccount? {
 		try read(.creditsAccount) { $0.creditsAccount }
+	}
+
+	public func prepareCreditsAccount() throws -> CreditsAccount {
+		if let account = try creditsAccount() { return account }
+		return try write { contents in
+			if let account = contents.creditsAccount { return account }
+			let account = CreditsAccount(appAccountToken: UUID(), key: nil)
+			contents.creditsAccount = account
+			storedCreditsAccounts += 1
+			return account
+		}
 	}
 
 	public func storeCreditsAccount(_ account: CreditsAccount) throws {
@@ -131,7 +140,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		try write { contents in
 			switch slot {
 			case .creditsAccount:
-				contents.creditsAccount = CreditsAccount(appAccountToken: UUID(), key: nil)
+				contents.creditsAccount = nil
 			case .openRouterAccountKey:
 				contents.openRouterAccountKey = nil
 			case .intervalsConnection:
@@ -150,7 +159,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		}
 	}
 
-	private func write(_ body: (inout Contents) -> Void) throws {
+	private func write<Value>(_ body: (inout Contents) -> Value) throws -> Value {
 		try withLock {
 			try checkUnlocked()
 			if failsNextWrite {
@@ -158,9 +167,10 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 				throw KeychainStoreError(status: errSecNotAvailable)
 			}
 			var replacement = contents
-			body(&replacement)
+			let value = body(&replacement)
 			try persist(replacement)
 			contents = replacement
+			return value
 		}
 	}
 

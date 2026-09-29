@@ -169,7 +169,7 @@ extension CredentialVaultTests {
 		let backing = MemorySecretStoreBacking()
 		let keychain = ICloudKeychainStore(backing: backing)
 		try keychain.storeCreditsAccount(
-			CreditsAccount(appAccountToken: keychain.creditsAccount().appAccountToken, key: testKey)
+			CreditsAccount(appAccountToken: UUID(), key: testKey)
 		)
 		try keychain.storeIntervalsConnection(testConnection)
 		let vault = vault(keychain)

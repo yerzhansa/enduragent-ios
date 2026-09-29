@@ -6,14 +6,18 @@ import Testing
 
 extension CreditsClientTests {
 	@Test func reviewGrantDuringPeerRecoveryKeepsAWholePair() async throws {
-		try await mintedKeyDuringPeerRecovery(isClaim: false)
+		try await mintedKeyDuringPeerRecovery(isClaim: false, recoveredBeforeRequest: false)
 	}
 
-	@Test func claimDuringPeerRecoveryKeepsAWholePair() async throws {
-		try await mintedKeyDuringPeerRecovery(isClaim: true)
+	@Test(arguments: [false, true])
+	func claimDuringPeerRecoveryKeepsAWholePair(recoveredBeforeRequest: Bool) async throws {
+		try await mintedKeyDuringPeerRecovery(
+			isClaim: true, recoveredBeforeRequest: recoveredBeforeRequest)
 	}
 
-	private func mintedKeyDuringPeerRecovery(isClaim: Bool) async throws {
+	private func mintedKeyDuringPeerRecovery(
+		isClaim: Bool, recoveredBeforeRequest: Bool
+	) async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
 		let memory = MemorySecretStoreBacking()
@@ -22,12 +26,13 @@ extension CreditsClientTests {
 		let client = try makeClient(secrets: device)
 		let peer = ICloudKeychainStore(backing: memory)
 		let recovered = CreditsAccount(appAccountToken: newToken, key: "test-recovered-key")
+		if recoveredBeforeRequest { try peer.storeCreditsAccount(recovered) }
 		let captured = Mutex<String?>(nil)
-		await #expect(throws: (any Error).self) {
+		await #expect(throws: CreditsFailure.accountChanged) {
 			try await CreditsURLStub.withHandler({ request in
 				captured.withLock { $0 = request.url?.path }
 				do {
-					try peer.storeCreditsAccount(recovered)
+					if !recoveredBeforeRequest { try peer.storeCreditsAccount(recovered) }
 				} catch {
 					Issue.record(error)
 				}
@@ -37,7 +42,8 @@ extension CreditsClientTests {
 					: .json(200, #"{"kind":"grantMinted","key":"test-granted-key","credits":200}"#)
 			}) {
 				if isClaim {
-					_ = try await client.claim(signedTransaction: "header.payload.signature")
+					_ = try await client.claim(
+						signedTransaction: "header.payload.signature", appAccountToken: oldToken)
 				} else {
 					_ = try await client.grant(deviceCheck: Data([0x01]))
 				}
@@ -53,13 +59,24 @@ extension CreditsClientTests {
 		let memory = MemorySecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let client = try makeClient(secrets: store)
-		try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"kind":"grantAlreadyGranted"}"#)
+		let sentTokens = Mutex<[String]>([])
+		try await CreditsURLStub.withHandler({ request in
+			do {
+				let body = try jsonObject(from: request)
+				let token = try #require(body["athleteId"] as? String)
+				sentTokens.withLock { $0.append(token) }
+			} catch {
+				Issue.record(error)
+			}
+			return .json(200, #"{"kind":"grantAlreadyGranted"}"#)
 		}) {
 			_ = try await client.grant(deviceCheck: Data([0x01]))
-			let first = try store.creditsAccount()
+			let first = try #require(try store.creditsAccount())
 			_ = try await client.grant(deviceCheck: Data([0x01]))
 			#expect(try store.creditsAccount() == first)
+			#expect(
+				sentTokens.withLock { $0 }
+					== Array(repeating: first.appAccountToken.uuidString.lowercased(), count: 2))
 		}
 		#expect(memory.writes(to: "creditsAccount") == 1)
 		#expect(memory.writes(to: "appAccountToken") == 0)
@@ -72,7 +89,7 @@ extension CredentialVaultTests {
 		let coach = coach(ICloudKeychainStore(backing: memory))
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
-		#expect(memory.writes(to: "creditsAccount") == 0)
+		#expect(memory.writeCount == 0)
 		#expect(memory.deletedAccounts.isEmpty)
 		#expect(transport.requests.isEmpty)
 	}
@@ -84,7 +101,7 @@ extension CredentialVaultTests {
 		#expect(await coach.status().setup == .needsAccessMethod)
 		#expect(try await coach.creditsIdentity().hasCreditsKey == false)
 		#expect(try await vault(store).creditsKey() == nil)
-		#expect(memory.writes(to: "creditsAccount") == 0)
+		#expect(memory.writeCount == 0)
 		#expect(memory.deletedAccounts.isEmpty)
 	}
 }

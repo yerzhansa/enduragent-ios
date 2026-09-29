@@ -22,7 +22,7 @@ package actor CredentialVault {
 		switch try keychain(.accessSelection, { try store.accessSelection() }) {
 		case nil, .credits?:
 			return try resolve(.creditsAccount, .credits, builtInModel) {
-				try store.creditsAccount().key
+				try store.creditsAccount()?.key
 			}
 		case .openRouterAccount(let model, _)?:
 			return try resolve(.openRouterAccountKey, .openRouterAccount, model) {
@@ -121,46 +121,48 @@ package actor CredentialVault {
 		}
 	}
 
-	package func storeCreditsKey(_ key: NonEmptySecret) throws(AccessUnavailable) {
-		try keychain(.creditsAccount) {
-			var account = try store.creditsAccount()
+	package func storeCreditsKey(_ key: NonEmptySecret, mintedFor token: UUID) throws {
+		let stored = try keychain(.creditsAccount) {
+			guard var account = try store.creditsAccount(), account.appAccountToken == token else {
+				return false
+			}
 			account.key = key.value
 			try store.storeCreditsAccount(account)
+			return true
 		}
+		guard stored else { throw CreditsFailure.accountChanged }
 	}
 
 	package func storeRecovery(key: NonEmptySecret, appAccountToken: UUID)
-		async throws(AccessUnavailable)
+		throws(AccessUnavailable)
 	{
-		try await changes.pass { () throws(AccessUnavailable) in
-			try keychain(.creditsAccount) {
-				try store.storeCreditsAccount(
-					CreditsAccount(appAccountToken: appAccountToken, key: key.value))
-			}
+		try keychain(.creditsAccount) {
+			try store.storeCreditsAccount(
+				CreditsAccount(appAccountToken: appAccountToken, key: key.value))
 		}
 	}
 
 	package func creditsKey() throws(AccessUnavailable) -> NonEmptySecret? {
-		try keychain(.creditsAccount) { try store.creditsAccount().key }.flatMap(
+		try keychain(.creditsAccount) { try store.creditsAccount()?.key }.flatMap(
 			NonEmptySecret.init)
 	}
 
 	package func creditsIdentity() throws(AccessUnavailable) -> CreditsIdentity {
 		let account = try keychain(.creditsAccount) { try store.creditsAccount() }
 		return CreditsIdentity(
-			appAccountToken: account.appAccountToken,
-			hasCreditsKey: account.key.flatMap(NonEmptySecret.init) != nil)
+			appAccountToken: account?.appAccountToken,
+			hasCreditsKey: account?.key.flatMap(NonEmptySecret.init) != nil)
 	}
 
-	package func appAccountToken() throws(AccessUnavailable) -> UUID {
-		try keychain(.creditsAccount) { try store.creditsAccount().appAccountToken }
+	package func prepareCreditsAccount() throws(AccessUnavailable) -> UUID {
+		try keychain(.creditsAccount) { try store.prepareCreditsAccount().appAccountToken }
 	}
 
 	#if DEBUG
 		package func replaceAppAccountToken() throws(AccessUnavailable) {
 			try keychain(.creditsAccount) {
-				var account = try store.creditsAccount()
-				account.appAccountToken = UUID()
+				let account = CreditsAccount(
+					appAccountToken: UUID(), key: try store.creditsAccount()?.key)
 				try store.storeCreditsAccount(account)
 			}
 		}
@@ -232,7 +234,7 @@ package actor CredentialVault {
 		do {
 			return .connected(summary, account: try resolve(athlete, for: active).account)
 		} catch {
-			return .unavailable(error)
+			return .connected(summary, account: active.account)
 		}
 	}
 

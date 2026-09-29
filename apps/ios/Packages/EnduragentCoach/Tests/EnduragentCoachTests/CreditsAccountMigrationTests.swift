@@ -39,35 +39,50 @@ import Testing
 		#expect(memory.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 	}
 
-	@Test(arguments: [false, true])
-	func migrationMintsATokenWhenNoneExists(_ hasLegacyKey: Bool) async throws {
-		let key = hasLegacyKey ? "test-legacy-credits-key" : nil
-		let memory = MemorySecretStoreBacking(
-			items: key.map { ["openRouterKey": Data($0.utf8)] } ?? [:])
+	@Test func tokenlessLegacyKeyWaitsForAccountPreparation() async throws {
+		let memory = MemorySecretStoreBacking(items: ["openRouterKey": Data("test-legacy-key".utf8)]
+		)
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-
-		let identity = try await coach.creditsIdentity()
-
-		#expect(identity.hasCreditsKey == hasLegacyKey)
-		let account = try store.creditsAccount()
-		#expect(account == CreditsAccount(appAccountToken: identity.appAccountToken, key: key))
-		let peer = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(),
-			secrets: ICloudKeychainStore(backing: memory))
-		#expect(try await peer.creditsIdentity() == identity)
-		#expect(memory.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
-		#expect(memory.writes(to: "appAccountToken") == 0)
+		#expect(await coach.status().setup == .needsAccessMethod)
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(
+					appAccountToken: nil, hasCreditsKey: false))
+		#expect(memory.writeCount == 0)
+		#expect(memory.deletedAccounts.isEmpty)
+		#expect(try memory.copy(account: "openRouterKey") == Data("test-legacy-key".utf8))
+		let token = try await coach.prepareCreditsPurchase()
+		#expect(
+			try store.creditsAccount()
+				== CreditsAccount(
+					appAccountToken: token, key: "test-legacy-key"))
+		#expect(memory.writeCount == 1)
 		#expect(try memory.copy(account: "openRouterKey") == nil)
-		#expect(try memory.copy(account: "appAccountToken") == nil)
+		#expect(await coach.status().setup == .ready)
 	}
 
-	@Test func concurrentMigrationOnTwoDevicesConvergesOnOneAccount() async throws {
-		let memory = MemorySecretStoreBacking(items: [
-			"openRouterKey": Data("test-legacy-credits-key".utf8)
-		])
-		let interleaved = PeerMigrationBeforeAddBacking(base: memory)
+	@Test func purchasePreparationMintsOnlyWhenRequested() async throws {
+		let memory = MemorySecretStoreBacking()
+		let store = ICloudKeychainStore(backing: memory)
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(
+					appAccountToken: nil, hasCreditsKey: false))
+		#expect(memory.writeCount == 0)
+		let token = try await coach.prepareCreditsPurchase()
+		#expect(try await coach.prepareCreditsPurchase() == token)
+		#expect(try store.creditsAccount() == CreditsAccount(appAccountToken: token, key: nil))
+		#expect(memory.writeCount == 1)
+		#expect(memory.deletedAccounts.isEmpty)
+	}
+
+	@Test func concurrentInitializationOnTwoDevicesConvergesOnOneAccount() async throws {
+		let memory = MemorySecretStoreBacking()
+		let interleaved = PeerInitializationBeforeAddBacking(base: memory)
 		let firstStore = ICloudKeychainStore(backing: interleaved)
 		let secondStore = ICloudKeychainStore(backing: memory)
 		let first = makeCoach(
@@ -75,17 +90,16 @@ import Testing
 		let second = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: secondStore)
 
-		let firstIdentity = try await first.creditsIdentity()
-		let secondIdentity = try await second.creditsIdentity()
+		let firstToken = try await first.prepareCreditsPurchase()
+		let secondToken = try await second.prepareCreditsPurchase()
 
-		#expect(firstIdentity == secondIdentity)
-		#expect(firstIdentity.hasCreditsKey)
+		#expect(firstToken == secondToken)
 		let losingAccount = try #require(interleaved.attemptedAccount)
-		#expect(losingAccount.appAccountToken != firstIdentity.appAccountToken)
+		#expect(losingAccount.appAccountToken != firstToken)
 		#expect(interleaved.duplicateAdds == 1)
 		#expect(memory.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 		let expected = CreditsAccount(
-			appAccountToken: firstIdentity.appAccountToken, key: "test-legacy-credits-key")
+			appAccountToken: firstToken, key: nil)
 		#expect(try firstStore.creditsAccount() == expected)
 		#expect(try secondStore.creditsAccount() == expected)
 		#expect(try memory.copy(account: "openRouterKey") == nil)
@@ -127,7 +141,8 @@ import Testing
 			#expect(
 				try store.creditsAccount()
 					== CreditsAccount(
-						appAccountToken: identity.appAccountToken, key: "test-credits-key"))
+						appAccountToken: try #require(identity.appAccountToken),
+						key: "test-credits-key"))
 			#expect(memory.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 			#expect(memory.writes(to: "openRouterKey") == 0)
 			#expect(memory.writes(to: "appAccountToken") == 0)
@@ -135,7 +150,7 @@ import Testing
 	#endif
 }
 
-private final class PeerMigrationBeforeAddBacking: SecretStoreBacking, @unchecked Sendable {
+private final class PeerInitializationBeforeAddBacking: SecretStoreBacking, @unchecked Sendable {
 	private let base: MemorySecretStoreBacking
 	private let lock = NSLock()
 	private var attempted: CreditsAccount?
@@ -156,7 +171,7 @@ private final class PeerMigrationBeforeAddBacking: SecretStoreBacking, @unchecke
 				attempted = candidate
 				return true
 			}
-			if firstAttempt { _ = try ICloudKeychainStore(backing: base).creditsAccount() }
+			if firstAttempt { _ = try ICloudKeychainStore(backing: base).prepareCreditsAccount() }
 		}
 		do {
 			try base.add(account: account, data: data)

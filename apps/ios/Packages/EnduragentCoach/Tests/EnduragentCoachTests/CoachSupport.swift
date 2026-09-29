@@ -18,7 +18,7 @@ func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
 	let secrets = FakeSecretStore()
 	do {
 		try secrets.storeCreditsAccount(
-			CreditsAccount(appAccountToken: secrets.creditsAccount().appAccountToken, key: key))
+			CreditsAccount(appAccountToken: UUID(), key: key))
 		try secrets.storeIntervalsConnection(testConnection)
 	} catch {
 		Issue.record(error)

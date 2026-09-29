@@ -342,6 +342,12 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(
 			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(in: english)
 				== notConfigured)
+		let changed = AthleteNotice.credits(failure: CreditsFailure.accountChanged)
+		#expect(
+			changed.sentence(in: english)
+				== "Your Credits account changed while this request was finishing. Your current account was kept."
+		)
+		#expect(changed.action == nil)
 		let locked = AthleteNotice.credits(failure: AccessUnavailable.secureStorageLocked)
 		#expect(locked.sentence(in: english) == lockedSentence)
 		#expect(locked.action == nil)

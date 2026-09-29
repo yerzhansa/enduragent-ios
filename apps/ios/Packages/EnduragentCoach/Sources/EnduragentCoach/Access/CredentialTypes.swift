@@ -127,7 +127,7 @@ public struct AccessSummary: Sendable, Equatable {
 }
 
 public struct CreditsIdentity: Sendable, Equatable {
-	public let appAccountToken: UUID
+	public let appAccountToken: UUID?
 	public let hasCreditsKey: Bool
 }
 

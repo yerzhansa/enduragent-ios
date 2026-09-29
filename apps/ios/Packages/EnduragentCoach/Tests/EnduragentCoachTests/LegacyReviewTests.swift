@@ -39,7 +39,7 @@ extension SingleProposalReviewsTests {
 		if !connected {
 			try selectedSecrets.storeCreditsAccount(
 				CreditsAccount(
-					appAccountToken: selectedSecrets.creditsAccount().appAccountToken, key: testKey)
+					appAccountToken: UUID(), key: testKey)
 			)
 		}
 		let coach = makeCoach(

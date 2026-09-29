@@ -50,7 +50,7 @@ import Testing
 	@Test func unconnectedAthleteReadsNoWellnessAndLogsNothing() async throws {
 		let secrets = FakeSecretStore()
 		try secrets.storeCreditsAccount(
-			CreditsAccount(appAccountToken: secrets.creditsAccount().appAccountToken, key: testKey))
+			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
 		let coach = makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock,

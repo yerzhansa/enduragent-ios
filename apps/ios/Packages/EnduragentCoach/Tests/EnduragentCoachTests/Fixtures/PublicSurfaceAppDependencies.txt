@@ -821,6 +821,7 @@ Catalog.creditsBalanceOne
 Catalog.creditsBalanceOther
 Catalog.creditsBuy
 Catalog.creditsErrorAccessRejected
+Catalog.creditsErrorAccountChanged
 Catalog.creditsErrorExhausted
 Catalog.creditsErrorUnavailable
 Catalog.creditsPack
@@ -2620,10 +2621,11 @@ Credits.units
 CreditsClient
 CreditsClient.balance(scale:)
 CreditsClient.catalog()
-CreditsClient.claim(signedTransaction:)
+CreditsClient.claim(signedTransaction:appAccountToken:)
 CreditsClient.grant(deviceCheck:)
 CreditsClient.recover(signedTransaction:)
 CreditsFailure
+CreditsFailure.accountChanged
 CreditsFailure.banned
 CreditsFailure.identityMismatch
 CreditsFailure.noAthleteKey
@@ -2697,7 +2699,7 @@ FakeCreditsClient.balanceResult
 FakeCreditsClient.calls
 FakeCreditsClient.catalog()
 FakeCreditsClient.catalogResult
-FakeCreditsClient.claim(signedTransaction:)
+FakeCreditsClient.claim(signedTransaction:appAccountToken:)
 FakeCreditsClient.claimResult
 FakeCreditsClient.grant(deviceCheck:)
 FakeCreditsClient.grantResult
@@ -2758,6 +2760,7 @@ FakeSecretStore.init(directory:)
 FakeSecretStore.intervalsConnection()
 FakeSecretStore.locked
 FakeSecretStore.openRouterAccountKey()
+FakeSecretStore.prepareCreditsAccount()
 FakeSecretStore.reads
 FakeSecretStore.storeAccessSelection(_:)
 FakeSecretStore.storeCreditsAccount(_:)
@@ -2841,6 +2844,7 @@ ICloudKeychainStore.delete(_:)
 ICloudKeychainStore.init()
 ICloudKeychainStore.intervalsConnection()
 ICloudKeychainStore.openRouterAccountKey()
+ICloudKeychainStore.prepareCreditsAccount()
 ICloudKeychainStore.storeAccessSelection(_:)
 ICloudKeychainStore.storeCreditsAccount(_:)
 ICloudKeychainStore.storeIntervalsConnection(_:)

@@ -54,18 +54,18 @@ extension CredentialVaultTests {
 	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {
 		let memory = MemorySecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
-		let oldToken = try secrets.creditsAccount().appAccountToken
+		let oldToken = UUID()
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: secrets.creditsAccount().appAccountToken,
+				appAccountToken: oldToken,
 				key: "test-old-credits-key"))
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
 		let coach = try recoveryCoach(secrets)
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
 		}
-		#expect(try secrets.creditsAccount().appAccountToken == oldToken)
-		#expect(try secrets.creditsAccount().key == "test-old-credits-key")
+		#expect(try secrets.creditsAccount()?.appAccountToken == oldToken)
+		#expect(try secrets.creditsAccount()?.key == "test-old-credits-key")
 		_ = try await claimAccount(after: "Is Thursday on?", on: coach)
 		#expect(transport.requests.last?.credential.secret == "test-old-credits-key")
 	}
@@ -222,32 +222,6 @@ extension CredentialVaultTests {
 		_ = await status.value
 		#expect(try secrets.intervalsConnection() == replacement)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
-	}
-
-	@Test func recoveryWaitsForTheTrainingReplacementToFinish() async throws {
-		let secrets = keyedSecrets()
-		let gate = CredentialProfileGate()
-		let client = GatedProfileIntervals(base: ada, gate: gate)
-		let service = TrainingService { _, _, _ in client }
-		let coach = try recoveryCoach(secrets, training: service)
-		let replacement = Task {
-			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
-		}
-		await gate.waitUntilEntered()
-		let previous = try secrets.creditsAccount()
-		let recovery = Task {
-			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
-		}
-		try await Task.sleep(for: .milliseconds(150))
-		#expect(try secrets.creditsAccount() == previous)
-		await gate.release()
-		_ = await replacement.value
-		_ = try await recovery.value
-		#expect(try secrets.intervalsConnection()?.credential == .apiKey("test-delayed-key"))
-		#expect(try secrets.creditsAccount().key == "test-new-credits-key")
-		#expect(
-			try secrets.creditsAccount().appAccountToken.uuidString.lowercased()
-				== "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")
 	}
 
 	private func recoveryCoach(_ secrets: any SecretStore, training service: TrainingService? = nil)

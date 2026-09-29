@@ -112945,6 +112945,112 @@
         }
       }
     },
+    "credits.error.accountChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Credits account changed while this request was finishing. Your current account was kept."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu cuenta de créditos cambió mientras se completaba esta solicitud. Se conservó tu cuenta actual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton compte de crédits a changé pendant la finalisation de cette demande. Ton compte actuel a été conservé."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo conto crediti è cambiato mentre questa richiesta veniva completata. Il tuo conto attuale è stato mantenuto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Guthabenkonto hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din kreditkonto blev ændret, mens denne anmodning blev afsluttet. Din nuværende konto blev bevaret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua conta de créditos mudou enquanto este pedido estava a ser concluído. A tua conta atual foi mantida."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua conta de créditos mudou enquanto esta solicitação estava sendo concluída. Sua conta atual foi mantida."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje konto kredytów zmieniło się podczas kończenia tego żądania. Zachowano twoje obecne konto."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 요청을 마무리하는 동안 크레딧 계정이 변경되었습니다. 현재 계정은 그대로 유지되었습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成此请求期间，你的积分账户发生了变更。你当前的账户已保留。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"
+          }
+        }
+      }
+    },
     "credits.error.exhausted": {
       "localizations": {
         "en": {

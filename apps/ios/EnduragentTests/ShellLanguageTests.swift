@@ -133,7 +133,7 @@ final class ShellLanguageTests {
 		let secrets = FakeSecretStore()
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: secrets.creditsAccount().appAccountToken,
+				appAccountToken: UUID(),
 				key: "sk-or-test-shell-language"))
 		try secrets.storeIntervalsConnection(
 			IntervalsConnection(

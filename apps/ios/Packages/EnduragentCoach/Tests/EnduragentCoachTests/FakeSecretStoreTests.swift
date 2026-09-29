@@ -10,14 +10,14 @@ import Testing
 			let first = try FakeSecretStore(directory: directory)
 			try first.storeCreditsAccount(
 				CreditsAccount(
-					appAccountToken: first.creditsAccount().appAccountToken, key: "sk-or-test-0000")
+					appAccountToken: UUID(), key: "sk-or-test-0000")
 			)
 			try first.storeIntervalsConnection(testConnection)
-			let token = try first.creditsAccount().appAccountToken
+			let token = try first.creditsAccount()?.appAccountToken
 			let second = try FakeSecretStore(directory: directory)
-			#expect(try second.creditsAccount().key == "sk-or-test-0000")
+			#expect(try second.creditsAccount()?.key == "sk-or-test-0000")
 			#expect(try second.intervalsConnection() == testConnection)
-			#expect(try second.creditsAccount().appAccountToken == token)
+			#expect(try second.creditsAccount()?.appAccountToken == token)
 		}
 	}
 
@@ -41,7 +41,7 @@ import Testing
 		let store = FakeSecretStore()
 		try store.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: store.creditsAccount().appAccountToken, key: "sk-or-test-0000"))
+				appAccountToken: UUID(), key: "sk-or-test-0000"))
 		store.locked = true
 		let expected = KeychainStoreError(status: errSecInteractionNotAllowed)
 		#expect(throws: expected) { try store.creditsAccount() }
@@ -49,7 +49,7 @@ import Testing
 		#expect(throws: expected) { try store.openRouterAccountKey() }
 		#expect(throws: expected) { try store.accessSelection() }
 		store.locked = false
-		#expect(try store.creditsAccount().key == "sk-or-test-0000")
+		#expect(try store.creditsAccount()?.key == "sk-or-test-0000")
 	}
 }
 

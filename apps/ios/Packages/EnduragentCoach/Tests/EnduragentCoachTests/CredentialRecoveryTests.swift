@@ -98,7 +98,10 @@ import Testing
 		let encoded = try JSONEncoder().encode(StoredIntervalsConnection(testConnection))
 		let connection = try #require(String(data: encoded, encoding: .utf8))
 		let legacy = wrapped ? Data("{\"intervals\":{\"_0\":\(connection)}}".utf8) : encoded
-		let memory = MemorySecretStoreBacking(items: ["intervalsConnectionStaging": legacy])
+		let memory = MemorySecretStoreBacking(items: [
+			"intervalsConnectionStaging": legacy,
+			"appAccountToken": Data(UUID().uuidString.utf8),
+		])
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeIntervalsConnection(testConnection)
 		let coach = makeCoach(
@@ -107,7 +110,7 @@ import Testing
 		let identity = try await coach.creditsIdentity()
 
 		#expect(!identity.hasCreditsKey)
-		#expect(try store.creditsAccount().appAccountToken == identity.appAccountToken)
+		#expect(try store.creditsAccount()?.appAccountToken == identity.appAccountToken)
 		#expect(try store.intervalsConnection() == testConnection)
 		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
 	}
@@ -160,7 +163,7 @@ extension CreditsClientTests {
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceA)
 		for (coach, store) in [(coachA, deviceA), (coachB, deviceB)] {
 			let identity = try await coach.creditsIdentity()
-			let key = try store.creditsAccount().key
+			let key = try store.creditsAccount()?.key
 			#expect(identity.hasCreditsKey)
 			#expect(
 				(key == oldKey && identity.appAccountToken == oldToken)

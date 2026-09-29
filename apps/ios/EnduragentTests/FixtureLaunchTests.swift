@@ -176,7 +176,7 @@ final class FixtureLaunchTests {
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		try fixture.secrets.storeCreditsAccount(
 			CreditsAccount(
-				appAccountToken: fixture.secrets.creditsAccount().appAccountToken,
+				appAccountToken: UUID(),
 				key: "sk-or-test-0000"))
 		let model = model(services)
 		await model.loadStarter()
@@ -311,7 +311,7 @@ final class FixtureLaunchTests {
 	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
 		let services = try services(keychain: .locked)
 		#expect(throws: KeychainStoreError(status: errSecInteractionNotAllowed)) {
-			try #require(services.fixtureDirector).secrets.creditsAccount().key
+			try #require(services.fixtureDirector).secrets.creditsAccount()?.key
 		}
 	}
 
