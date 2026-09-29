@@ -43,8 +43,7 @@ package struct ConversationReset: Sendable {
 		if !rows.isEmpty {
 			let job: FlushJob
 			do {
-				job = try await flushes.open(
-					.explicitReset, covering: rows.map(\.ulid), stamp: stamp)
+				job = try await flushes.open(covering: rows.map(\.ulid), stamp: stamp)
 			} catch {
 				return (.notStarted(.local(.recordStorage)), [])
 			}

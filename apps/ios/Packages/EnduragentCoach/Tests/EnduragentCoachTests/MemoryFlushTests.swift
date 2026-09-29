@@ -164,7 +164,6 @@ import Testing
 			return
 		}
 		#expect(pending.count == 1)
-		#expect(body.trigger == .softThreshold)
 		#expect(body.messageUlids == history.flatMap { [$0.user, $0.reply] })
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .memoryFlush, .memoryFlush])
 		let hits = try await coach.memory.query(

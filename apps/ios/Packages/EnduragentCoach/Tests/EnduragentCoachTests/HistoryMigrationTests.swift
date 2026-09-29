@@ -66,8 +66,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [seeded[0].user, seeded[0].reply]))))
+								chatId: .main, messageUlids: [seeded[0].user, seeded[0].reply]))))
 			])
 		try await seedV1Chat(
 			firstChat, asking: "How was my week?", reply: "Two rides.", hoursAgo: 48)

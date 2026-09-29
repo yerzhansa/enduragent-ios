@@ -155,7 +155,6 @@ source RecordBodies.swift: var templateHash
 source RecordBodies.swift: var text
 source RecordBodies.swift: var tool
 source RecordBodies.swift: var toolInput
-source RecordBodies.swift: var trigger
 source RecordBodies.swift: var turn
 source RecordBodies.swift: var turn
 source RecordBodies.swift: var turn
@@ -272,7 +271,6 @@ symbol FlushPendingBody
 symbol FlushPendingBody.chatId
 symbol FlushPendingBody.messageUlids
 symbol FlushPendingBody.process
-symbol FlushPendingBody.trigger
 symbol FlushSettledBody
 symbol FlushSettledBody.chatId
 symbol FlushSettledBody.job

@@ -304,7 +304,7 @@ extension SwiftDataSuites {
 				.proposalCleared(
 					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .canceled)),
 				.flushPending(
-					FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: [ulid])),
+					FlushPendingBody(chatId: .main, messageUlids: [ulid])),
 				.flushSettled(
 					FlushSettledBody(
 						chatId: .main, job: FlushJobID(ulid: ulid),

@@ -19,14 +19,6 @@ public enum JournalOp: String, Sendable {
 	case renameSections = "rename-sections"
 }
 
-public enum FlushTrigger: String, Sendable {
-	case trim
-	case preCompaction
-	case overflow
-	case explicitReset
-	case softThreshold
-}
-
 package struct MemoryHit: Sendable, Equatable {
 	package var date: CivilDate
 	package var kind: Kind

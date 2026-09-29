@@ -73,8 +73,7 @@ extension ExecutionLeaseTests {
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [turn.user, turn.reply],
+								chatId: .main, messageUlids: [turn.user, turn.reply],
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(
 					store, at: openedAt.addingTimeInterval(1),

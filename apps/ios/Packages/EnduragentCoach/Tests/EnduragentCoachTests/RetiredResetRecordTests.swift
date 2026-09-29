@@ -55,16 +55,13 @@ import Testing
 				civilDate: "1998-06-13", ulid: "row-window") == .success(body))
 	}
 
-	@Test func staleResetJobsNoLongerDecode() {
+	@Test func staleResetJobsStillDecodeSoTheirCoverageHolds() {
 		#expect(
 			flushPending("staleReset")
-				== .failure(.malformed(kind: "flushPending", ulid: "row-flush")))
-		guard case .success(.deviceLocal(.flushPending(let body))) = flushPending("explicitReset")
-		else {
-			Issue.record("an explicitReset job still decodes")
-			return
-		}
-		#expect(body.trigger == .explicitReset)
+				== .success(
+					.deviceLocal(
+						.flushPending(
+							FlushPendingBody(chatId: .main, messageUlids: [], process: nil)))))
 	}
 }
 
@@ -118,20 +115,48 @@ extension SwiftDataSuites {
 				try ModelContainerHandle.withoutCloudKit(storeURL: synced).container)
 			for (record, reason) in rows {
 				let row = try StoredAthleteRecord(record: record)
-				if let reason {
+				if let reason, case .synced(.windowStart(let body)) = record.body {
 					row.body = Data(
-						#"{"chatId":"main","firstIncludedUlid":"\#(row.ulid)","reason":"\#(reason)"}"#
+						#"{"chatId":"main","firstIncludedUlid":"\#(body.firstIncludedUlid.rawValue)","reason":"\#(reason)"}"#
 							.utf8)
 				}
 				context.insert(row)
 			}
 			try context.save()
+			let staleJob = fixedUlid(35)
+			let local = ModelContext(
+				try ModelContainerHandle.withoutCloudKit(
+					storeURL: root.appending(path: "local.store")
+				).container)
+			let pending = try StoredAthleteRecord(
+				record: storedRecord(
+					device: phone, wall: 35, ulid: staleJob,
+					body: .deviceLocal(
+						.flushPending(
+							FlushPendingBody(
+								chatId: .main, messageUlids: [fixedUlid(30), fixedUlid(31)],
+								process: ProcessID(ulid: fixedUlid(60)))))))
+			pending.body = Data(
+				#"{"chatId":"main","trigger":"staleReset","messageUlids":["\#(fixedUlid(30).rawValue)","\#(fixedUlid(31).rawValue)"],"process":"\#(fixedUlid(60).rawValue)"}"#
+					.utf8)
+			local.insert(pending)
+			local.insert(
+				try StoredAthleteRecord(
+					record: storedRecord(
+						device: phone, wall: 36, ulid: fixedUlid(36),
+						body: .deviceLocal(
+							.flushSettled(
+								FlushSettledBody(
+									chatId: .main, job: FlushJobID(ulid: staleJob),
+									settlement: .nothingToSave))))))
+			try local.save()
 			let log = SwiftDataRecordLog(
 				deviceId: phone,
 				synced: try ModelContainerHandle.withoutCloudKit(storeURL: synced),
 				local: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "local.store")))
-			let coach = makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+			let transport = FakeModelTransport()
+			let coach = makeCoach(transport: transport, store: log, clock: clock)
 			#expect(await coach.transcript(.main) == ["C?", "C.", "D?", "D."])
 			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
 			let archived = try await coach.history()
@@ -143,6 +168,12 @@ extension SwiftDataSuites {
 				return ulid
 			}
 			#expect(Set(skipped) == [fixedUlid(19).rawValue, fixedUlid(39).rawValue])
+			transport.flushScript = [.finish(reason: .stop)]
+			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			let saved = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+				\.unstampedContent)
+			#expect(saved.contains("D?"))
+			#expect(!saved.contains("C?"))
 		}
 	}
 }

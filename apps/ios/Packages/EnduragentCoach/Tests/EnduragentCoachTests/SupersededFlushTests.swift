@@ -162,8 +162,7 @@ extension FlushCoverageTests {
 				.deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold,
-							messageUlids: pending.map { ulids[$0] },
+							chatId: .main, messageUlids: pending.map { ulids[$0] },
 							process: pending.isEmpty ? nil : process)))
 			),
 			(
@@ -171,7 +170,7 @@ extension FlushCoverageTests {
 				.deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .trim, messageUlids: newer.map { ulids[$0] },
+							chatId: .main, messageUlids: newer.map { ulids[$0] },
 							process: process)))
 			),
 		]

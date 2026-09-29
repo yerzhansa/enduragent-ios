@@ -227,14 +227,14 @@ package struct FlushWork: Sendable {
 	package let clock: any Clock
 	package let diagnostics: DiagnosticsLog
 
-	package func open(_ trigger: FlushTrigger, covering ulids: [ULID], stamp: OperationStamp)
+	package func open(covering ulids: [ULID], stamp: OperationStamp)
 		async throws(LedgerFailure) -> FlushJob
 	{
 		let records = try await ledger.commit(
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: chat, trigger: trigger, messageUlids: ulids, process: process))
+						chatId: chat, messageUlids: ulids, process: process))
 			],
 			stamp: stamp)
 		guard let record = records.first else { throw LedgerFailure.rejectedBatch }

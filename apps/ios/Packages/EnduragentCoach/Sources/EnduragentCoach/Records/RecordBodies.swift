@@ -122,7 +122,6 @@ public struct ReviewAppliedBody: Sendable, Equatable {
 
 public struct FlushPendingBody: Sendable, Equatable {
 	public var chatId: ChatID
-	public var trigger: FlushTrigger
 	public var messageUlids: [ULID]
 	public var process: ProcessID?
 }

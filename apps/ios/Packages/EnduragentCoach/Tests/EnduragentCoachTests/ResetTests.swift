@@ -143,8 +143,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply],
+								chatId: .main, messageUlids: [history[0].user, history[0].reply],
 								process: ProcessID(ulid: fixedUlid(70))))))
 			])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))

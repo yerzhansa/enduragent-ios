@@ -144,9 +144,9 @@ package struct TurnRunner: Sendable {
 	) async throws {
 		for preparation in retry.preparations {
 			switch preparation {
-			case .flushMemory(let trigger):
+			case .flushMemory:
 				try await flushOnce(
-					trigger, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+					covering: prompt.inTurnRows, attempt: attempt, scope: scope,
 					progress: progress)
 			case .compactInTurn:
 				do {
@@ -166,7 +166,6 @@ package struct TurnRunner: Sendable {
 	}
 
 	func flushOnce(
-		_ trigger: FlushTrigger,
 		covering rows: [(ulid: ULID, message: ChatMessage)],
 		attempt: TurnAttempt,
 		scope: TurnScope,
@@ -177,7 +176,7 @@ package struct TurnRunner: Sendable {
 		let flushes = flushWork(attempt)
 		let job: FlushJob
 		do {
-			job = try await flushes.open(trigger, covering: rows.map(\.ulid), stamp: scope.stamp)
+			job = try await flushes.open(covering: rows.map(\.ulid), stamp: scope.stamp)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
 			return
@@ -230,7 +229,7 @@ package struct TurnRunner: Sendable {
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
 			try await flushOnce(
-				.trim, covering: transcript.window, attempt: attempt, scope: scope,
+				covering: transcript.window, attempt: attempt, scope: scope,
 				progress: progress)
 			do {
 				let firstKept =
@@ -257,7 +256,7 @@ package struct TurnRunner: Sendable {
 			await scope.takeFlushLatch()
 		{
 			_ = try await flushWork(attempt).open(
-				.softThreshold, covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+				covering: transcript.unflushed.map(\.ulid), stamp: stamp)
 		}
 
 		let timed = PromptAssembly.appendCurrentTime(

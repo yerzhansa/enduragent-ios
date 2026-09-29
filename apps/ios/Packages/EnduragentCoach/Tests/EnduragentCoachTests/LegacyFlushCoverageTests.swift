@@ -27,8 +27,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [question, reply])))),
+								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -69,8 +68,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 			])
 		if consumedInV1 {
 			try await seed(store, [record(fixedUlid(8), logical: 4, body: consumed(job))])
@@ -117,8 +115,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [question, reply])))),
+								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -164,8 +161,7 @@ import Testing
 						body: .deviceLocal(
 							.flushPending(
 								FlushPendingBody(
-									chatId: .main, trigger: .softThreshold,
-									messageUlids: messages.map(fixedUlid))))),
+									chatId: .main, messageUlids: messages.map(fixedUlid))))),
 					record(fixedUlid(id + 10), logical: UInt32(id + 10), body: consumed(job)),
 				])
 		}
@@ -191,7 +187,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold, messageUlids: [],
+								chatId: .main, messageUlids: [],
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				record(
 					fixedUlid(8), logical: 4,

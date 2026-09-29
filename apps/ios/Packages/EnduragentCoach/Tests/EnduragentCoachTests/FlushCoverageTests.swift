@@ -32,7 +32,6 @@ import Testing
 		let question = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: queued))
 				.records.first?.ulid)
-		try #require(try await storedFlushTriggers(in: store).first == .softThreshold)
 		try #require(!soft.messages.contains(question))
 		try #require(question < (soft.messages.max() ?? question))
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -56,8 +55,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [local.user, local.reply],
+								chatId: .main, messageUlids: [local.user, local.reply],
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(
 					store, at: at.addingTimeInterval(1), ulid: job.ulid.incremented(),
@@ -119,8 +117,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 				record(
 					1, wall: 1, device: DeviceID(rawValue: "other-phone"),
 					body: legacyUser(chatId: .main, text: "Already saved Saturday")),
@@ -237,8 +234,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(1), fixedUlid(20)])))),
+								chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(20)])))),
 				record(
 					8,
 					body: .synced(

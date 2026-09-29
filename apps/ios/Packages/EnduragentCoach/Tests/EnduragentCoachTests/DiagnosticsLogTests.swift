@@ -107,8 +107,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply]))))
+								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		let transport = FakeModelTransport()
 		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]

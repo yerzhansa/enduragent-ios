@@ -30,7 +30,7 @@ import Testing
 	@Test func aJobKeepsItsProcessAndAnAbandonedSettlementRoundTrips() throws {
 		let process = ProcessID(ulid: fixedUlid(60))
 		let pending = FlushPendingBody(
-			chatId: .main, trigger: .trim, messageUlids: [fixedUlid(1)], process: process)
+			chatId: .main, messageUlids: [fixedUlid(1)], process: process)
 		let abandoned = FlushSettledBody(
 			chatId: .main, job: FlushJobID(ulid: fixedUlid(2)), settlement: .abandoned)
 		for body in [
@@ -90,7 +90,7 @@ import Testing
 		#expect(context.contains("Sundays now."))
 		#expect(!context.contains("Saturdays."))
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
-		#expect(try await storedFlushTriggers(in: store) == [.softThreshold, .trim])
+		#expect(jobs.count == 2)
 		#expect(jobs.map(\.settled) == [true, true])
 		#expect(jobs.first?.messages == history.flatMap { [$0.user, $0.reply] })
 	}
@@ -251,7 +251,7 @@ import Testing
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold, messageUlids: job.messages))))
+							chatId: .main, messageUlids: job.messages))))
 		]
 		if job.settled {
 			records.append(

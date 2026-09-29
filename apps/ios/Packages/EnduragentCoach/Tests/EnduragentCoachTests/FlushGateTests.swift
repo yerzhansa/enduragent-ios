@@ -33,7 +33,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
+								chatId: .main,
 								messageUlids: history.prefix(2).flatMap { [$0.user, $0.reply] },
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(

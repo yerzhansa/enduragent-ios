@@ -31,8 +31,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply]))))
+								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		transport.requestDelay = .seconds(2)
 		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]

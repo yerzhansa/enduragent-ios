@@ -29,8 +29,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [4, 6, 7, 8, 9, 10].map(receiptID))))),
+								chatId: .main, messageUlids: [4, 6, 7, 8, 9, 10].map(receiptID))))),
 				record(
 					23,
 					body: .synced(
@@ -117,8 +116,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [4, 6, 9, 10].map(receiptID))))),
+								chatId: .main, messageUlids: [4, 6, 9, 10].map(receiptID))))),
 				record(
 					23,
 					body: .synced(
