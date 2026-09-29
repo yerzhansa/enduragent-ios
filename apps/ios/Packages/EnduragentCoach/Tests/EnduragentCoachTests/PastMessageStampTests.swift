@@ -48,6 +48,7 @@ import Testing
 				"My legs are sore.\nCurrent time: Tuesday, June 16th, 1998 - 00:10 (Europe/Amsterdam) / 1998-06-15 22:10 UTC",
 			])
 		#expect(chat.messages.dropFirst().map(\.role) == [.user, .assistant, .user])
+		#expect(chat.messages.first?.content.contains("start with a bracketed send time") == true)
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flush = try #require(sent(.memoryFlush, by: transport).last)
