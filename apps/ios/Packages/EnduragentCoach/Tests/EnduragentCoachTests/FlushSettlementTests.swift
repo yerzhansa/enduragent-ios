@@ -14,8 +14,7 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold,
-						messageUlids: [turn.user, turn.reply],
+						chatId: .main, messageUlids: [turn.user, turn.reply],
 						process: ProcessID(ulid: fixedUlid(60))))
 			], stamp: testStamp())
 		try await store.append(pending, locality: .deviceLocal)
@@ -35,11 +34,11 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold, messageUlids: [turn.user],
+						chatId: .main, messageUlids: [turn.user],
 						process: ProcessID(ulid: fixedUlid(60)))),
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .trim, messageUlids: [turn.user, turn.reply])),
+						chatId: .main, messageUlids: [turn.user, turn.reply])),
 			], stamp: testStamp())
 		let older = FlushJobID(ulid: try #require(pending.first?.ulid))
 		let newer = FlushJobID(ulid: try #require(pending.last?.ulid))
@@ -75,13 +74,11 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold,
-						messageUlids: [first.user, first.reply],
+						chatId: .main, messageUlids: [first.user, first.reply],
 						process: ProcessID(ulid: fixedUlid(60)))),
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold,
-						messageUlids: [last.user, last.reply],
+						chatId: .main, messageUlids: [last.user, last.reply],
 						process: ProcessID(ulid: fixedUlid(60)))),
 			], stamp: testStamp())
 		let older = FlushJobID(ulid: try #require(pending.first?.ulid))

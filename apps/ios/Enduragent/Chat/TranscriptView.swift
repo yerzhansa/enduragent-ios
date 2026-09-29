@@ -16,11 +16,7 @@ struct TranscriptView: View {
 							)
 							.accessibilityIdentifier("chat.welcome")
 						}
-						if case .afterAutomaticReset = opening, let notice = opening.notice {
-							Text(model.phrasebook.say(notice, [:]))
-								.foregroundStyle(.secondary)
-								.accessibilityIdentifier("chat.automaticReset.notice")
-						} else if let notice = opening.notice {
+						if let notice = opening.notice {
 							newConversationNotice(notice)
 						}
 					}

@@ -31,8 +31,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply]))))
+								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		transport.requestDelay = .seconds(2)
 		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
@@ -108,8 +107,8 @@ import Testing
 		await stopped
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
-		#expect(flushed.messages.contains { $0.content == "Thursday?" })
-		#expect(flushed.messages.contains { $0.content == "Thursday is" })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday?" })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday is" })
 		let archived = try #require(try await coach.history().first)
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(

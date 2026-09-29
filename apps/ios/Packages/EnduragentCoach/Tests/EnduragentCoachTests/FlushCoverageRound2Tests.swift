@@ -53,7 +53,7 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int]) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(offset)),
 			messages: messages.map(fixedUlid),
 			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: false)
 	}
@@ -73,8 +73,7 @@ extension ExecutionLeaseTests {
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [turn.user, turn.reply],
+								chatId: .main, messageUlids: [turn.user, turn.reply],
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				seededRecord(
 					store, at: openedAt.addingTimeInterval(1),

@@ -41,7 +41,6 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
 	case secureStorageFailed(CredentialSlot, detail: String)
-	case automaticResetUnsaved(ChatID, LedgerFailure)
 	case preferencesUnavailable(LedgerFailure)
 	case evidenceUnavailable(AttemptID, TrainingFailure)
 	case reviewOutcomeUnsaved(LedgerFailure)
@@ -57,7 +56,6 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 		case .secureStorageFailed(let slot, let detail):
 			return .secureStorageFailed(slot, detail: Redaction.clean(detail, secrets))
 		case .toolFailed, .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable,
-			.automaticResetUnsaved,
 			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved:
 			return self
 		}

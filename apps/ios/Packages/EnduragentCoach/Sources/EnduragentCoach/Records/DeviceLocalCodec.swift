@@ -69,13 +69,9 @@ extension RecordCodec {
 		case .flushPending:
 			let payload = try payload(
 				FlushPendingPayload.self, version: version, kind: name, data: data)
-			guard let trigger = FlushTrigger(rawValue: payload.trigger) else {
-				throw RecordDecodeFailure(reason: "flush")
-			}
 			return .flushPending(
 				FlushPendingBody(
 					chatId: try decodeChatID(payload.chatId),
-					trigger: trigger,
 					messageUlids: try payload.messageUlids.map(decodeULID),
 					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) }
 				)

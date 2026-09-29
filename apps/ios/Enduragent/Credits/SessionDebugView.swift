@@ -69,10 +69,6 @@
 		fileprivate var name: String {
 			switch self {
 			case .historyBudgetRatio: "historyBudgetRatio"
-			case .idleReset: "idleReset"
-			case .dailyResetHour: "dailyResetHour"
-			case .archiveRetention: "archiveRetention"
-			case .timeZone: "timeZone"
 			case .contextWindowOverride: "contextWindowOverride"
 			case .compactionModel: "compactionModel"
 			case .flushModel: "flushModel"
@@ -82,10 +78,6 @@
 		fileprivate var label: String {
 			switch self {
 			case .historyBudgetRatio: "History budget ratio"
-			case .idleReset: "Idle reset minutes"
-			case .dailyResetHour: "Daily reset hour"
-			case .archiveRetention: "Archive retention days"
-			case .timeZone: "Time zone"
 			case .contextWindowOverride: "Context window tokens"
 			case .compactionModel: "Compaction model"
 			case .flushModel: "Flush model"

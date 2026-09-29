@@ -53,7 +53,6 @@ source ModelContainerFactory.swift: let syncedStoreFileName
 source RecordBodies.swift: enum FlushSettlement
 source RecordBodies.swift: enum ProposalClearReason
 source RecordBodies.swift: enum ReplyText
-source RecordBodies.swift: enum ResetKind
 source RecordBodies.swift: enum Settlement
 source RecordBodies.swift: enum WindowReason
 source RecordBodies.swift: struct CoachReplyLanguageBody
@@ -156,7 +155,6 @@ source RecordBodies.swift: var templateHash
 source RecordBodies.swift: var text
 source RecordBodies.swift: var tool
 source RecordBodies.swift: var toolInput
-source RecordBodies.swift: var trigger
 source RecordBodies.swift: var turn
 source RecordBodies.swift: var turn
 source RecordBodies.swift: var turn
@@ -273,7 +271,6 @@ symbol FlushPendingBody
 symbol FlushPendingBody.chatId
 symbol FlushPendingBody.messageUlids
 symbol FlushPendingBody.process
-symbol FlushPendingBody.trigger
 symbol FlushSettledBody
 symbol FlushSettledBody.chatId
 symbol FlushSettledBody.job
@@ -438,10 +435,6 @@ symbol ReplyObservedBody.chatId
 symbol ReplyObservedBody.turn
 symbol ReplyText
 symbol ReplyText.model
-symbol ResetKind
-symbol ResetKind.daily
-symbol ResetKind.explicit
-symbol ResetKind.idle
 symbol ReviewAppliedBody
 symbol ReviewAppliedBody.chatId
 symbol ReviewAppliedBody.summary

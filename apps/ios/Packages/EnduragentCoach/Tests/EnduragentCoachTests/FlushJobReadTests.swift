@@ -14,7 +14,7 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold, messageUlids: [fixedUlid(1)],
+						chatId: .main, messageUlids: [fixedUlid(1)],
 						process: ProcessID(ulid: fixedUlid(60))))
 			], stamp: testStamp())
 		let job = FlushJobID(ulid: try #require(records.first?.ulid))
@@ -27,7 +27,7 @@ import Testing
 				local: [
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .trim, messageUlids: [fixedUlid(2)]))
+							chatId: .main, messageUlids: [fixedUlid(2)]))
 				], stamp: testStamp())
 			let legacyID = try #require(legacy.first?.ulid)
 			_ = try await ledger.commit(
@@ -72,7 +72,7 @@ import Testing
 				local: [
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold, messageUlids: [message]))
+							chatId: .main, messageUlids: [message]))
 				], stamp: testStamp())
 			let job = FlushJobID(ulid: try #require(records.first?.ulid))
 			_ = try await ledger.commit(
@@ -108,7 +108,7 @@ import Testing
 		let records = try await ledger.commit(
 			local: [
 				.flushPending(
-					FlushPendingBody(chatId: .main, trigger: .softThreshold, messageUlids: []))
+					FlushPendingBody(chatId: .main, messageUlids: []))
 			], stamp: testStamp())
 		let id = try #require(records.first?.ulid)
 		_ = try await ledger.commit(
@@ -149,7 +149,7 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold, messageUlids: [fixedUlid(1)],
+						chatId: .main, messageUlids: [fixedUlid(1)],
 						process: ProcessID(ulid: fixedUlid(60))))
 			], stamp: testStamp())
 		let conversation = try await ledger.conversation(.main)
@@ -179,11 +179,11 @@ import Testing
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .softThreshold, messageUlids: [fixedUlid(1)],
+						chatId: .main, messageUlids: [fixedUlid(1)],
 						process: ProcessID(ulid: fixedUlid(60)))),
 				.flushPending(
 					FlushPendingBody(
-						chatId: .main, trigger: .trim, messageUlids: [fixedUlid(2)])),
+						chatId: .main, messageUlids: [fixedUlid(2)])),
 			], stamp: testStamp())
 		let modern = FlushJobID(ulid: try #require(records.first?.ulid))
 		_ = try await ledger.commit(

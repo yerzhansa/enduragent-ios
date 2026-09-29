@@ -292,3 +292,14 @@ final class PendingOutcome: Sendable {
 		outcome.withLock { $0 = value }
 	}
 }
+
+extension WireMessage {
+	var unstampedContent: String {
+		guard role == .user,
+			let stamp = content.range(
+				of: #"^\[[A-Z][a-z]{2} \d{4}-\d{2}-\d{2} \d{2}:\d{2} [^\]]+\] "#,
+				options: .regularExpression)
+		else { return content }
+		return String(content[stamp.upperBound...])
+	}
+}

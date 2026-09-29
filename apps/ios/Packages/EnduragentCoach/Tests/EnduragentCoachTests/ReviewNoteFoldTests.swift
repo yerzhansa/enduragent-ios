@@ -34,7 +34,8 @@ import Testing
 			body: .synced(
 				.windowStart(
 					WindowStartBody(
-						chatId: .main, firstIncludedUlid: fixedUlid(3), reason: .reset(.daily)))))
+						chatId: .main, firstIncludedUlid: fixedUlid(3),
+						reason: .reset(ResetID(ulid: fixedUlid(3)))))))
 	}
 
 	private func note(_ index: Int) -> AthleteRecord {

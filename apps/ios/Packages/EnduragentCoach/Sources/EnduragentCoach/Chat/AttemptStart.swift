@@ -4,7 +4,6 @@ struct AttemptStart {
 	let chat: ChatID
 	let records: ChatRecords
 	let environment: EnvironmentResolver
-	let freshness: AutomaticReset
 	let process: ProcessID
 
 	func begin(
@@ -29,13 +28,8 @@ struct AttemptStart {
 			await records.settle(facts.turn, .settle(attempt, unavailable), stamp: stamp)
 			return nil
 		case .success(let resolved):
-			let reset = await freshness.run(
-				before: facts.turn, in: records.conversation,
-				session: resolved.preferences.session, stamp: stamp)
-			records.apply(reset?.boundary ?? [])
 			return environment.attempt(
-				of: facts, attempt: attempt, chat: chat, process: process,
-				autoReset: reset?.kind, in: resolved)
+				of: facts, attempt: attempt, chat: chat, process: process, in: resolved)
 		}
 	}
 }

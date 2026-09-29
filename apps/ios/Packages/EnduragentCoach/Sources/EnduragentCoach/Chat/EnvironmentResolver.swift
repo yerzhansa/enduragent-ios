@@ -20,7 +20,7 @@ package struct EnvironmentResolver: Sendable {
 
 	package func attempt(
 		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, process: ProcessID,
-		autoReset: ResetKind?, in resolved: AttemptEnvironment
+		in resolved: AttemptEnvironment
 	) -> TurnAttempt {
 		TurnAttempt(
 			turn: facts.turn, attempt: attempt, chat: chat, request: facts.requestText,
@@ -28,7 +28,7 @@ package struct EnvironmentResolver: Sendable {
 			language: resolved.preferences.language.replyLanguage(
 				for: facts.requestText, device: deviceLanguage),
 			session: resolved.preferences.session, access: resolved.access,
-			training: resolved.training, process: process, autoReset: autoReset)
+			training: resolved.training, process: process)
 	}
 
 	package func resolve() async -> Result<AttemptEnvironment, AccessUnavailable> {

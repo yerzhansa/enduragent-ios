@@ -1,6 +1,6 @@
 # Enduragent iPhone verification map
 
-Enduragent has one ongoing conversation. New conversation closes it into History and opens the welcome; an automatic reset closes it after a break. History is read-only. A turn can be accepted, working, completed, failed, interrupted, or waiting for recovery. The feature files below describe the athlete's actions, the notices those states show, and the existing proofs that reach them.
+Enduragent has one ongoing conversation. New conversation closes it into History and opens the welcome. Nothing closes it automatically, however long the gap between messages. History is read-only. A turn can be accepted, working, completed, failed, interrupted, or waiting for recovery. The feature files below describe the athlete's actions, the notices those states show, and the existing proofs that reach them.
 
 ## Baseline preconditions
 
@@ -28,18 +28,18 @@ Open `chat.sidebar`, then `sidebar.debug`. These entry points exist in Debug bui
 | Credentials | `debug.credentials` | Connection, replacement, confirmed athlete switch, disconnect, fixture keychain lock and failed write. See [onboarding.md](./onboarding.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
-| Conversation & time | `debug.session` | Eight settings in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
+| Conversation & time | `debug.session` | Four settings in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 
-The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle. For a message that opens a fresh session, pass `opensFreshSession: true`; it waits for `chat.automaticReset.notice` and `turns 1 settled 1`. Daily, daylight-saving, and idle-reset proofs rely on this path.
+The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle.
 
 ## Feature files
 
 | Feature | Coverage |
 | --- | --- |
 | [Onboarding](./onboarding.md) | Health notice, intervals.icu connection, starter Credits, storage availability, and credential Debug actions. |
-| [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, automatic resets, and Debug settings. |
+| [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
 | [Workout review](./workout-preview.md) | Approve or cancel, durable outcomes, account changes, v1 notice connected and disconnected, and French review text. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |

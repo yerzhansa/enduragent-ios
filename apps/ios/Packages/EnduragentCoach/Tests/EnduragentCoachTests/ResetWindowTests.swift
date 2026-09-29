@@ -20,7 +20,7 @@ import Testing
 	}
 
 	func flushed() -> [[String]] {
-		sent(.memoryFlush, by: transport).map { $0.messages.map(\.content) }
+		sent(.memoryFlush, by: transport).map { $0.messages.map(\.unstampedContent) }
 	}
 
 	@Test func aReplyStreamingAtTheTapIsSavedWithItsQuestion() async throws {
@@ -85,8 +85,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply],
+								chatId: .main, messageUlids: [history[0].user, history[0].reply],
 								process: ProcessID(ulid: fixedUlid(80)))))),
 				seededRecord(
 					store, at: clock.now.addingTimeInterval(-5),
@@ -111,9 +110,10 @@ import Testing
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		try #require(requests.count == 2)
-		#expect(!requests[0].messages.contains { $0.content == "Remember Saturdays" })
-		#expect(requests[1].messages.filter { $0.content == "Remember Saturdays" }.count == 1)
-		#expect(requests[1].messages.filter { $0.content == "Noted." }.count == 1)
+		#expect(!requests[0].messages.contains { $0.unstampedContent == "Remember Saturdays" })
+		#expect(
+			requests[1].messages.filter { $0.unstampedContent == "Remember Saturdays" }.count == 1)
+		#expect(requests[1].messages.filter { $0.unstampedContent == "Noted." }.count == 1)
 		let jobs = try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending])))
 			.records.sorted { $0.hlc < $1.hlc }.compactMap { record -> FlushPendingBody? in
 				guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }
@@ -139,7 +139,7 @@ import Testing
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 2, in: store)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		#expect(jobs.map(\.trigger) == [.explicitReset, .softThreshold])
+		#expect(jobs.count == 2)
 		let job = try #require(jobs.last)
 		#expect(job.messages.filter { $0 == user }.count == 1)
 		let window = try #require(flushed().last)

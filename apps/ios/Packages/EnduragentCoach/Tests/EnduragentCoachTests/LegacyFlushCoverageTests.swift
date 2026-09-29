@@ -27,8 +27,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [question, reply])))),
+								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -45,7 +44,8 @@ import Testing
 		try #require(try #require(fresh.replyRow?.ulid) < reply)
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Fresh modern question" }.count == 1)
 		#expect(extracted.filter { $0 == "Fresh modern reply" }.count == 1)
 		#expect(!extracted.contains("Legacy question"))
@@ -68,8 +68,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 			])
 		if consumedInV1 {
 			try await seed(store, [record(fixedUlid(8), logical: 4, body: consumed(job))])
@@ -91,7 +90,8 @@ import Testing
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Imported modern question" }.count == 1)
 		#expect(extracted.filter { $0 == "Imported modern reply" }.count == 1)
 	}
@@ -115,8 +115,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [question, reply])))),
+								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
@@ -131,7 +130,8 @@ import Testing
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		clock.advance(by: 120)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(!extracted.contains("Legacy question"))
 		#expect(!extracted.contains("Legacy reply"))
 	}
@@ -161,8 +161,7 @@ import Testing
 						body: .deviceLocal(
 							.flushPending(
 								FlushPendingBody(
-									chatId: .main, trigger: .softThreshold,
-									messageUlids: messages.map(fixedUlid))))),
+									chatId: .main, messageUlids: messages.map(fixedUlid))))),
 					record(fixedUlid(id + 10), logical: UInt32(id + 10), body: consumed(job)),
 				])
 		}
@@ -188,7 +187,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold, messageUlids: [],
+								chatId: .main, messageUlids: [],
 								process: ProcessID(ulid: fixedUlid(60)))))),
 				record(
 					fixedUlid(8), logical: 4,
@@ -198,7 +197,8 @@ import Testing
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Unsaved legacy question" }.count == 1)
 		#expect(extracted.filter { $0 == "Unsaved legacy reply" }.count == 1)
 	}
@@ -224,7 +224,7 @@ import Testing
 				chat: .main, synced: [question, reply], device: store.deviceId)
 		}
 		let legacy = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(7)),
 			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true, consumedInV1: true)
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
@@ -247,7 +247,7 @@ import Testing
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: [question, reply], device: store.deviceId)
 		let receipt = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(7)),
 			messages: [], process: legacyReceipt ? nil : ProcessID(ulid: fixedUlid(60)),
 			settled: true)
 		#expect(

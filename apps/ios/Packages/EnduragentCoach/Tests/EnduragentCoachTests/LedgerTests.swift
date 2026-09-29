@@ -19,7 +19,7 @@ import Testing
 		async let local = ledger.commit(
 			local: [
 				.flushPending(
-					FlushPendingBody(chatId: .main, trigger: .softThreshold, messageUlids: []))
+					FlushPendingBody(chatId: .main, messageUlids: []))
 			],
 			stamp: testStamp())
 		let written = try await synced + local
@@ -64,7 +64,7 @@ import Testing
 					device: phoneA, wall: earlierProcessWall,
 					body: .deviceLocal(
 						.flushPending(
-							FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: []))))
+							FlushPendingBody(chatId: .main, messageUlids: []))))
 			]
 		)
 		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -100,7 +100,8 @@ import Testing
 			synced: [
 				.windowStart(
 					WindowStartBody(
-						chatId: .main, firstIncludedUlid: boundary, reason: .reset(.daily))),
+						chatId: .main, firstIncludedUlid: boundary,
+						reason: .reset(ResetID(ulid: boundary)))),
 				sampleUser(chatId: .main, text: "first in the new segment"),
 			],
 			stamp: testStamp())
@@ -134,7 +135,7 @@ import Testing
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold, messageUlids: [job.ulid]))))
+							chatId: .main, messageUlids: [job.ulid]))))
 		}
 		let settled = jobs.prefix(oneUnsettled ? 199 : 200).enumerated().map { index, job in
 			storedRecord(
