@@ -75,8 +75,8 @@ public struct AttemptID: Hashable, Sendable {
 	}
 }
 
-public struct ProcessID: Hashable, Sendable {
-	public let ulid: ULID
+package struct ProcessID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
@@ -105,8 +105,8 @@ public struct Draft: Sendable, Equatable {
 	}
 }
 
-public struct FlushJobID: Hashable, Sendable {
-	public let ulid: ULID
+package struct FlushJobID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
@@ -121,24 +121,24 @@ public struct ResetID: Hashable, Sendable {
 	}
 }
 
-public struct PreferenceChangeID: Hashable, Sendable {
-	public let ulid: ULID
+package struct PreferenceChangeID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
 	}
 }
 
-public struct CredentialChangeID: Hashable, Sendable {
-	public let ulid: ULID
+package struct CredentialChangeID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
 	}
 }
 
-public struct LaunchID: Hashable, Sendable {
-	public let ulid: ULID
+package struct LaunchID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
@@ -165,24 +165,24 @@ public struct ChangeSetRevision: Hashable, Sendable, Comparable {
 	}
 }
 
-public struct PlanningCommandID: Hashable, Sendable {
-	public let rawValue: String
+package struct PlanningCommandID: Hashable, Sendable {
+	package let rawValue: String
 
 	package init(rawValue: String) {
 		self.rawValue = rawValue
 	}
 }
 
-public struct RefreshID: Hashable, Sendable {
-	public let ulid: ULID
+package struct RefreshID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
 	}
 }
 
-public struct DebugSampleID: Hashable, Sendable {
-	public let ulid: ULID
+package struct DebugSampleID: Hashable, Sendable {
+	package let ulid: ULID
 
 	package init(ulid: ULID) {
 		self.ulid = ulid
@@ -221,14 +221,14 @@ public struct ChatID: Hashable, Sendable, ExpressibleByStringLiteral {
 	public static let main: ChatID = "main"
 }
 
-public struct Nonce: Hashable, Sendable, RawRepresentable {
-	public let rawValue: UUID
+package struct Nonce: Hashable, Sendable, RawRepresentable {
+	package let rawValue: UUID
 
-	public init(rawValue: UUID) {
+	package init(rawValue: UUID) {
 		self.rawValue = rawValue
 	}
 
-	public init() {
+	package init() {
 		self.rawValue = UUID()
 	}
 }

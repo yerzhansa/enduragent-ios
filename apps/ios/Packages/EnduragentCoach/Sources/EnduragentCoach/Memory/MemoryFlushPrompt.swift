@@ -117,7 +117,7 @@ package enum MemoryFlushPrompt {
 }
 
 extension LedgerKind: CaseIterable {
-	public static var allCases: [LedgerKind] {
+	package static var allCases: [LedgerKind] {
 		[.decision, .override, .illness, .experiment, .outcome]
 	}
 }

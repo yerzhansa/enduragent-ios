@@ -1,7 +1,7 @@
 import Foundation
 import Synchronization
 
-public enum FakeCreditsCall: Sendable, Equatable {
+package enum FakeCreditsCall: Sendable, Equatable {
 	case grant
 	case claim(transactionLength: Int)
 	case recover(transactionLength: Int)
@@ -46,7 +46,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		set { state.withLock { $0.balanceResult = newValue } }
 	}
 
-	public var calls: [FakeCreditsCall] {
+	package var calls: [FakeCreditsCall] {
 		state.withLock { $0.calls }
 	}
 

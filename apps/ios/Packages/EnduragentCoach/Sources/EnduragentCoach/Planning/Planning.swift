@@ -1,6 +1,6 @@
 import Foundation
 
-public enum PlanningCommandName: String, Sendable {
+package enum PlanningCommandName: String, Sendable {
 	case creationStart = "plan_creation.start"
 	case creationAnswer = "plan_creation.answer"
 	case creationPreview = "plan_creation.preview"
@@ -11,14 +11,14 @@ public enum PlanningCommandName: String, Sendable {
 	case planClose = "plan.close"
 }
 
-public enum PlanningCommandStatus: String, Sendable {
+package enum PlanningCommandStatus: String, Sendable {
 	case pending
 	case succeeded
 	case conflict
 	case failed
 }
 
-public enum PlanStatus: String, Sendable {
+package enum PlanStatus: String, Sendable {
 	case active
 	case closed
 }
@@ -30,12 +30,12 @@ package enum CreationStatus: String, Sendable {
 	case discarded
 }
 
-public enum MirrorJobKind: String, Sendable {
+package enum MirrorJobKind: String, Sendable {
 	case mirror
 	case cleanup
 }
 
-public enum MatchDecision: String, Sendable {
+package enum MatchDecision: String, Sendable {
 	case suggested
 	case confirmed
 	case rejected

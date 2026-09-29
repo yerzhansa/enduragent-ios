@@ -1,6 +1,6 @@
 import Foundation
 
-public enum OperationID: Hashable, Sendable {
+package enum OperationID: Hashable, Sendable {
 	case turn(TurnID)
 	case memoryFlush(FlushJobID)
 	case conversationReset(ResetID)
@@ -13,10 +13,10 @@ public enum OperationID: Hashable, Sendable {
 	case debugSample(DebugSampleID)
 }
 
-public struct OperationStamp: Hashable, Sendable {
-	public let operation: OperationID
-	public let attempt: AttemptID
-	public let binding: ActionBinding
+package struct OperationStamp: Hashable, Sendable {
+	package let operation: OperationID
+	package let attempt: AttemptID
+	package let binding: ActionBinding
 
 	package init(operation: OperationID, attempt: AttemptID, binding: ActionBinding) {
 		self.operation = operation
@@ -43,9 +43,9 @@ extension OperationStamp {
 	}
 }
 
-public struct ActionBinding: Hashable, Sendable {
-	public let account: TrainingAccount
-	public let zone: IANATimeZone
+package struct ActionBinding: Hashable, Sendable {
+	package let account: TrainingAccount
+	package let zone: IANATimeZone
 
 	package init(account: TrainingAccount, zone: IANATimeZone) {
 		self.account = account
@@ -106,16 +106,16 @@ public enum AccountAuthority: Sendable, Equatable {
 	case unverifiable
 }
 
-public struct AthleteTime: Hashable, Sendable {
-	public let instant: Date
-	public let zone: IANATimeZone
+package struct AthleteTime: Hashable, Sendable {
+	package let instant: Date
+	package let zone: IANATimeZone
 
 	package init(instant: Date, zone: IANATimeZone) {
 		self.instant = instant
 		self.zone = zone
 	}
 
-	public var civilDate: CivilDate {
+	package var civilDate: CivilDate {
 		CivilDate(date: instant, timeZone: zone.timeZone)
 	}
 }
