@@ -163,7 +163,7 @@ extension SwiftDataSuites {
 			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
 			.generationFailed(.malformedStream), .accessUnavailable(.notConfigured(.credits)),
 			.accessUnavailable(.secureStorageLocked), .accessUnavailable(.secureStorageUnavailable),
-			.accessUnavailable(.malformedStoredCredential(.creditsKey)),
+			.accessUnavailable(.malformedStoredCredential(.creditsAccount)),
 			.accessUnavailable(.malformedStoredCredential(.intervalsConnection)),
 		])
 		func everyModelFailureSurvivesTheStore(failure: ModelFailure) async throws {

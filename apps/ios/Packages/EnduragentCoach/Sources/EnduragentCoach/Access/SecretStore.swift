@@ -2,17 +2,12 @@ import Foundation
 import Security
 
 public protocol SecretStore: Sendable {
-	func appAccountToken() throws -> UUID
-	func storeAppAccountToken(_ token: UUID) throws
-	func openRouterKey() throws -> String?
-	func storeOpenRouterKey(_ key: String) throws
+	func creditsAccount() throws -> CreditsAccount
+	func storeCreditsAccount(_ account: CreditsAccount) throws
 	func openRouterAccountKey() throws -> String?
 	func storeOpenRouterAccountKey(_ key: String) throws
 	func intervalsConnection() throws -> IntervalsConnection?
 	func storeIntervalsConnection(_ connection: IntervalsConnection) throws
-	func stagedReplacement() throws -> CredentialReplacement?
-	func stageReplacement(_ replacement: CredentialReplacement) throws
-	func rollbackStagedReplacement() throws
 	func accessSelection() throws -> AccessSelection?
 	func storeAccessSelection(_ selection: AccessSelection) throws
 	func delete(_ slot: CredentialSlot) throws
@@ -46,39 +41,69 @@ public struct ICloudKeychainStore: SecretStore {
 		self.backing = backing
 	}
 
-	public func appAccountToken() throws -> UUID {
-		if case .credits(_, let token)? = try stagedReplacement() { return token }
-		if let token = try readToken() {
-			return token
-		}
-		let token = UUID()
+	private enum LegacyAccount: String, CaseIterable {
+		case intervalsConnectionStaging
+		case openRouterKey
+		case appAccountToken
+	}
+
+	public func creditsAccount() throws -> CreditsAccount {
+		if let account = try readItem(CreditsAccount.self, .creditsAccount) { return account }
+		let migrated = try legacyCreditsAccount()
+		let account: CreditsAccount
 		do {
 			try backing.add(
-				account: CredentialSlot.appAccountToken.rawValue, data: Data(token.uuidString.utf8))
-			return token
+				account: CredentialSlot.creditsAccount.rawValue,
+				data: JSONEncoder().encode(migrated))
+			account = migrated
 		} catch let error as KeychainStoreError where error.status == errSecDuplicateItem {
-			if let existing = try readToken() {
-				return existing
+			guard let existing = try readItem(CreditsAccount.self, .creditsAccount) else {
+				throw error
 			}
-			throw error
+			account = existing
 		}
+		for legacy in LegacyAccount.allCases {
+			try backing.delete(account: legacy.rawValue)
+		}
+		return account
 	}
 
-	public func storeAppAccountToken(_ token: UUID) throws {
-		try write(.appAccountToken, Data(token.uuidString.utf8))
+	public func storeCreditsAccount(_ account: CreditsAccount) throws {
+		try writeItem(account, .creditsAccount)
 	}
 
-	public func openRouterKey() throws -> String? {
-		if case .credits(let key, _)? = try stagedReplacement() { return key }
-		return try readString(.creditsKey)
+	private func legacyCreditsAccount() throws -> CreditsAccount {
+		if let staging = try backing.copy(
+			account: LegacyAccount.intervalsConnectionStaging.rawValue)
+		{
+			do {
+				let undo = try JSONDecoder().decode(LegacyCreditsUndo.self, from: staging)
+				return CreditsAccount(
+					appAccountToken: undo.credits.previousAppAccountToken,
+					key: undo.credits.previousKey)
+			} catch is DecodingError {
+				return try legacyCreditsItems()
+			}
+		}
+		return try legacyCreditsItems()
 	}
 
-	public func storeOpenRouterKey(_ key: String) throws {
-		try write(.creditsKey, Data(key.utf8))
+	private func legacyCreditsItems() throws -> CreditsAccount {
+		let key = try readString(account: LegacyAccount.openRouterKey.rawValue)
+		let token: UUID
+		if let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) {
+			guard let stored = UUID(uuidString: raw) else {
+				throw KeychainStoreError(status: errSecDecode)
+			}
+			token = stored
+		} else {
+			token = UUID()
+		}
+		return CreditsAccount(appAccountToken: token, key: key)
 	}
 
 	public func openRouterAccountKey() throws -> String? {
-		try readString(.openRouterAccountKey)
+		try readString(account: CredentialSlot.openRouterAccountKey.rawValue)
 	}
 
 	public func storeOpenRouterAccountKey(_ key: String) throws {
@@ -93,28 +118,6 @@ public struct ICloudKeychainStore: SecretStore {
 		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
 	}
 
-	public func stagedReplacement() throws -> CredentialReplacement? {
-		try readItem(StoredCredentialReplacement.self, .intervalsConnectionStaging)?.replacement()
-	}
-
-	public func stageReplacement(_ replacement: CredentialReplacement) throws {
-		try writeItem(StoredCredentialReplacement(replacement), .intervalsConnectionStaging)
-	}
-
-	public func rollbackStagedReplacement() throws {
-		if case .credits(let key, let token)? = try stagedReplacement() {
-			if try readString(.creditsKey) != key {
-				if let key {
-					try storeOpenRouterKey(key)
-				} else {
-					try delete(.creditsKey)
-				}
-			}
-			if try readToken() != token { try storeAppAccountToken(token) }
-		}
-		try delete(.intervalsConnectionStaging)
-	}
-
 	public func accessSelection() throws -> AccessSelection? {
 		try readItem(StoredAccessSelection.self, .accessSelection)?.selection()
 	}
@@ -127,20 +130,8 @@ public struct ICloudKeychainStore: SecretStore {
 		try backing.delete(account: slot.rawValue)
 	}
 
-	private func readToken() throws -> UUID? {
-		guard let raw = try readString(.appAccountToken) else {
-			return nil
-		}
-		guard let token = UUID(uuidString: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
-		}
-		return token
-	}
-
-	private func readString(_ slot: CredentialSlot) throws -> String? {
-		guard let data = try backing.copy(account: slot.rawValue) else {
-			return nil
-		}
+	private func readString(account: String) throws -> String? {
+		guard let data = try backing.copy(account: account) else { return nil }
 		guard let string = String(data: data, encoding: .utf8) else {
 			throw KeychainStoreError(status: errSecDecode)
 		}
@@ -171,6 +162,15 @@ public struct ICloudKeychainStore: SecretStore {
 			try backing.update(account: slot.rawValue, data: data)
 		}
 	}
+}
+
+private struct LegacyCreditsUndo: Decodable {
+	struct Credits: Decodable {
+		let previousKey: String?
+		let previousAppAccountToken: UUID
+	}
+
+	let credits: Credits
 }
 
 package enum KeychainQuery {

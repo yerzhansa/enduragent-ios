@@ -5,34 +5,56 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test func recoveryTokenWriteFailureKeepsPreviousCredential() async throws {
+	@Test(arguments: [false, true])
+	func lockDuringAthleteResolutionLogsNoDiagnostics(failingWrite: Bool) async throws {
 		let memory = MemorySecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
-		let oldToken = try secrets.appAccountToken()
-		try secrets.storeOpenRouterKey("test-old-credits-key")
-		memory.failWrites(CredentialSlot.appAccountToken.rawValue, with: errSecNotAvailable)
-		let coach = try recoveryCoach(secrets)
-		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
-			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
+		let unresolved = IntervalsConnection(
+			id: testConnection.id, credential: testConnection.credential,
+			selection: .keyOwner, resolvedAthlete: nil)
+		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
+		try secrets.storeIntervalsConnection(unresolved)
+		let gate = CredentialProfileGate()
+		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let coach = coachWithTraining(secrets, training: TrainingService { _, _, _ in client })
+		let status = Task { await coach.status() }
+		await gate.waitUntilEntered()
+		if failingWrite {
+			memory.failWrites("intervalsCredential", with: errSecInteractionNotAllowed)
+		} else {
+			memory.fail("intervalsCredential", with: errSecInteractionNotAllowed)
 		}
-		#expect(try secrets.appAccountToken() == oldToken)
-		#expect(try secrets.openRouterKey() == "test-old-credits-key")
-		_ = try await claimAccount(after: "Is Thursday on?", on: coach)
-		#expect(transport.requests.last?.credential.secret == "test-old-credits-key")
+		await gate.release()
+		#expect(await status.value.training == .unavailable(.secureStorageLocked))
+		#expect(coach.diagnostics.entries.isEmpty)
+		memory.fail("intervalsCredential", with: nil)
+		memory.failWrites("intervalsCredential", with: nil)
+		#expect(try secrets.intervalsConnection() == unresolved)
+		guard case .connected = await coach.status().training else {
+			Issue.record("expected the connection to resolve after unlock")
+			return
+		}
+		#expect(
+			try secrets.intervalsConnection()?.resolvedAthlete == testConnection.resolvedAthlete)
 	}
 
-	@Test func recoveryKeyWriteFailureKeepsPreviousCredential() async throws {
+	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {
 		let memory = MemorySecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
-		_ = try secrets.appAccountToken()
-		try secrets.storeOpenRouterKey("test-old-credits-key")
-		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: errSecNotAvailable)
+		let oldToken = try secrets.creditsAccount().appAccountToken
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: secrets.creditsAccount().appAccountToken,
+				key: "test-old-credits-key"))
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
 		let coach = try recoveryCoach(secrets)
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
 		}
-		#expect(try secrets.openRouterKey() == "test-old-credits-key")
-		#expect(await coach.status().setup == .ready)
+		#expect(try secrets.creditsAccount().appAccountToken == oldToken)
+		#expect(try secrets.creditsAccount().key == "test-old-credits-key")
+		_ = try await claimAccount(after: "Is Thursday on?", on: coach)
+		#expect(transport.requests.last?.credential.secret == "test-old-credits-key")
 	}
 
 	@Test func oldProposalCannotExecuteForTheNewAthlete() async throws {
@@ -133,16 +155,14 @@ extension CredentialVaultTests {
 			})
 	}
 
-	@Test func stagingRecoveryRetriesAfterUnlock() async throws {
+	@Test func credentialsRetryAfterUnlock() async throws {
 		let secrets = keyedSecrets()
-		try secrets.stageReplacement(.intervals(testConnection))
 		secrets.locked = true
 		let coach = coach(secrets)
 		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		secrets.locked = false
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.status().setup == .ready)
-		#expect(try secrets.stagedReplacement() == nil)
 	}
 
 	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
@@ -201,21 +221,20 @@ extension CredentialVaultTests {
 			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
 		}
 		await gate.waitUntilEntered()
-		let staged = try secrets.stagedReplacement()
+		let previous = try secrets.creditsAccount()
 		let recovery = Task {
 			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
 		}
 		try await Task.sleep(for: .milliseconds(150))
-		#expect(try secrets.stagedReplacement() == staged)
+		#expect(try secrets.creditsAccount() == previous)
 		await gate.release()
 		_ = await replacement.value
 		_ = try await recovery.value
 		#expect(try secrets.intervalsConnection()?.credential == .apiKey("test-delayed-key"))
-		#expect(try secrets.openRouterKey() == "test-new-credits-key")
+		#expect(try secrets.creditsAccount().key == "test-new-credits-key")
 		#expect(
-			try secrets.appAccountToken().uuidString.lowercased()
+			try secrets.creditsAccount().appAccountToken.uuidString.lowercased()
 				== "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee")
-		#expect(try secrets.stagedReplacement() == nil)
 	}
 
 	private func recoveryCoach(_ secrets: any SecretStore, training service: TrainingService? = nil)

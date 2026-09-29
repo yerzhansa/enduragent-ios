@@ -17,7 +17,8 @@ let testConnection = IntervalsConnection(
 func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
 	let secrets = FakeSecretStore()
 	do {
-		try secrets.storeOpenRouterKey(key)
+		try secrets.storeCreditsAccount(
+			CreditsAccount(appAccountToken: secrets.creditsAccount().appAccountToken, key: key))
 		try secrets.storeIntervalsConnection(testConnection)
 	} catch {
 		Issue.record(error)

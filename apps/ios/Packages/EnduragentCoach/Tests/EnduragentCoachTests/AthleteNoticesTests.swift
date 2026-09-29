@@ -99,7 +99,7 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			.model(.accessUnavailable(.secureStorageUnavailable)), notConfigured,
 			.chooseAccessMethod, "Choose access method"),
 		failed(
-			.model(.accessUnavailable(.malformedStoredCredential(.creditsKey))), notConfigured,
+			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))), notConfigured,
 			.chooseAccessMethod, "Choose access method"),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),

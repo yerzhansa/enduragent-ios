@@ -25,17 +25,20 @@ public struct ProviderConsent: Hashable, Sendable {
 }
 
 public enum CredentialSlot: String, Hashable, Sendable {
-	case appAccountToken
-	case creditsKey = "openRouterKey"
+	case creditsAccount
 	case openRouterAccountKey
 	case intervalsConnection = "intervalsCredential"
-	case intervalsConnectionStaging
 	case accessSelection
 }
 
-public enum CredentialReplacement: Sendable, Equatable {
-	case intervals(IntervalsConnection)
-	case credits(previousKey: String?, previousAppAccountToken: UUID)
+public struct CreditsAccount: Codable, Equatable, Sendable {
+	public var appAccountToken: UUID
+	public var key: String?
+
+	public init(appAccountToken: UUID, key: String?) {
+		self.appAccountToken = appAccountToken
+		self.key = key
+	}
 }
 
 public enum IntervalsCredential: Sendable, Equatable {

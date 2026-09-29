@@ -50,7 +50,9 @@ enum FirstWeekFixture {
 	}
 
 	static func install(on secrets: FakeSecretStore) throws {
-		try secrets.storeOpenRouterKey(creditsKey)
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: secrets.creditsAccount().appAccountToken, key: creditsKey))
 	}
 
 	static func install(on credits: FakeCreditsClient) {

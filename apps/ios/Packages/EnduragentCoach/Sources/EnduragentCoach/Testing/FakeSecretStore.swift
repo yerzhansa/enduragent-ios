@@ -3,11 +3,9 @@ import Security
 
 public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private struct Contents: Codable {
-		var appAccountToken: UUID
-		var openRouterKey: String?
+		var creditsAccount: CreditsAccount
 		var openRouterAccountKey: String?
 		var intervals: StoredIntervalsConnection?
-		var stagedIntervals: StoredCredentialReplacement?
 		var accessSelection: StoredAccessSelection?
 		var intervalsApiKey: String?
 		var intervalsOAuthAccess: String?
@@ -32,11 +30,9 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 		func holds(_ slot: CredentialSlot) -> Bool {
 			switch slot {
-			case .appAccountToken: true
-			case .creditsKey: openRouterKey != nil
+			case .creditsAccount: true
 			case .openRouterAccountKey: openRouterAccountKey != nil
 			case .intervalsConnection: intervalsItem != nil
-			case .intervalsConnectionStaging: stagedIntervals != nil
 			case .accessSelection: accessSelection != nil
 			}
 		}
@@ -57,7 +53,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private var isLocked = false
 	private var failsNextWrite = false
 	private var slotsRead: [CredentialSlot] = []
-	public private(set) var storedOpenRouterKeys = 0
+	public private(set) var storedCreditsAccounts = 0
 
 	public var locked: Bool {
 		get { withLock { isLocked } }
@@ -75,7 +71,8 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 	public init(appAccountToken: UUID? = nil) {
 		self.file = nil
-		self.contents = Contents(appAccountToken: appAccountToken ?? UUID())
+		self.contents = Contents(
+			creditsAccount: CreditsAccount(appAccountToken: appAccountToken ?? UUID(), key: nil))
 	}
 
 	public init(directory: URL) throws {
@@ -84,33 +81,20 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		if FileManager.default.fileExists(atPath: file.path) {
 			self.contents = try JSONDecoder().decode(Contents.self, from: Data(contentsOf: file))
 		} else {
-			self.contents = Contents(appAccountToken: UUID())
+			self.contents = Contents(
+				creditsAccount: CreditsAccount(appAccountToken: UUID(), key: nil))
 			try persist(contents)
 		}
 	}
 
-	public func appAccountToken() throws -> UUID {
-		try read(.appAccountToken) {
-			if case .credits(_, let token)? = $0.stagedIntervals { return token }
-			return $0.appAccountToken
-		}
+	public func creditsAccount() throws -> CreditsAccount {
+		try read(.creditsAccount) { $0.creditsAccount }
 	}
 
-	public func storeAppAccountToken(_ token: UUID) throws {
-		try write { $0.appAccountToken = token }
-	}
-
-	public func openRouterKey() throws -> String? {
-		try read(.creditsKey) {
-			if case .credits(let key, _)? = $0.stagedIntervals { return key }
-			return $0.openRouterKey
-		}
-	}
-
-	public func storeOpenRouterKey(_ key: String) throws {
+	public func storeCreditsAccount(_ account: CreditsAccount) throws {
 		try write {
-			$0.openRouterKey = key
-			storedOpenRouterKeys += 1
+			$0.creditsAccount = account
+			storedCreditsAccounts += 1
 		}
 	}
 
@@ -130,34 +114,6 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		try write { $0.replaceIntervals(with: StoredIntervalsConnection(connection)) }
 	}
 
-	public func stagedReplacement() throws -> CredentialReplacement? {
-		try read(.intervalsConnectionStaging) {
-			$0.stagedIntervals
-		}?.replacement()
-	}
-
-	public func stageReplacement(_ replacement: CredentialReplacement) throws {
-		try write {
-			$0.stagedIntervals = StoredCredentialReplacement(replacement)
-		}
-	}
-
-	public func rollbackStagedReplacement() throws {
-		guard
-			try withLock({
-				try checkUnlocked()
-				return contents.holds(.intervalsConnectionStaging)
-			})
-		else { return }
-		try write {
-			if case .credits(let key, let token)? = $0.stagedIntervals {
-				$0.openRouterKey = key
-				$0.appAccountToken = token
-			}
-			$0.stagedIntervals = nil
-		}
-	}
-
 	public func accessSelection() throws -> AccessSelection? {
 		try read(.accessSelection) { $0.accessSelection }?.selection()
 	}
@@ -174,16 +130,12 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		guard held else { return }
 		try write { contents in
 			switch slot {
-			case .appAccountToken:
-				contents.appAccountToken = UUID()
-			case .creditsKey:
-				contents.openRouterKey = nil
+			case .creditsAccount:
+				contents.creditsAccount = CreditsAccount(appAccountToken: UUID(), key: nil)
 			case .openRouterAccountKey:
 				contents.openRouterAccountKey = nil
 			case .intervalsConnection:
 				contents.replaceIntervals(with: nil)
-			case .intervalsConnectionStaging:
-				contents.stagedIntervals = nil
 			case .accessSelection:
 				contents.accessSelection = nil
 			}

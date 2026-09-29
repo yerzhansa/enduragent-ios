@@ -6,62 +6,6 @@ import Testing
 
 @Suite(.serialized)
 struct CreditsClientTests {
-	@Test(arguments: 0...4)
-	func crashDuringRecoveryThenPeerIntervalsReplaceLeavesAWholePair(_ writes: Int) async throws {
-		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let oldKey = "test-old-credits-key"
-		let newKey = "test-new-credits-key"
-		let memory = MemorySecretStoreBacking()
-		let deviceB = ICloudKeychainStore(backing: memory)
-		try deviceB.storeAppAccountToken(oldToken)
-		try deviceB.storeOpenRouterKey(oldKey)
-		try deviceB.storeIntervalsConnection(testConnection)
-		let coachB = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceB)
-		#expect(await coachB.status().setup == .ready)
-		let interrupted = InterruptedSecretStoreBacking(base: memory)
-		let deviceA = ICloudKeychainStore(backing: interrupted)
-		let client = try makeClient(secrets: deviceA)
-		_ = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"data":{"limit_remaining":1}}"#)
-		}) {
-			try await client.balance(scale: CreditScale(creditsPerUsd: 100))
-		}
-		interrupted.stop(after: writes)
-		do {
-			_ = try await CreditsURLStub.withHandler({ _ in
-				.json(
-					200,
-					#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
-				)
-			}) {
-				try await client.recover(signedTransaction: "header.payload.signature")
-			}
-		} catch let error as AccessUnavailable {
-			#expect(error == .secureStorageUnavailable)
-		}
-		guard
-			case .replaced = await coachB.changeTraining(
-				.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
-		else {
-			Issue.record("expected the peer intervals replacement to succeed")
-			return
-		}
-		interrupted.resume()
-		let coachA = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceA)
-		for (coach, store) in [(coachA, deviceA), (coachB, deviceB)] {
-			let identity = try await coach.creditsIdentity()
-			let key = try store.openRouterKey()
-			#expect(identity.hasCreditsKey)
-			#expect(
-				(key == oldKey && identity.appAccountToken == oldToken)
-					|| (key == newKey && identity.appAccountToken == newToken),
-				"after \(writes) writes: key=\(key ?? "nil"), token=\(identity.appAccountToken)")
-		}
-	}
-
 	@Test("grant minted stores key before returning")
 	func grantMintedStoresKeyBeforeReturning() async throws {
 		let athleteId = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
@@ -79,8 +23,9 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: deviceCheck)
 		}
 		#expect(outcome == .minted(Credits(units: 200)))
-		#expect(secrets.storedOpenRouterKeys == 1)
-		#expect(try secrets.openRouterKey() == "sk-or-test-0000")
+		#expect(secrets.storedCreditsAccounts == 1)
+		#expect(try secrets.creditsAccount().key == "sk-or-test-0000")
+		#expect(try secrets.creditsAccount().appAccountToken == athleteId)
 		let request = captured.withLock { $0 }
 		#expect(request?.url?.path == "/grant")
 		let body = try jsonObject(from: request)
@@ -98,15 +43,18 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: Data([0x01]))
 		}
 		#expect(outcome == .alreadyGranted)
-		#expect(secrets.storedOpenRouterKeys == 0)
-		#expect(try secrets.openRouterKey() == nil)
+		#expect(secrets.storedCreditsAccounts == 0)
+		#expect(try secrets.creditsAccount().key == nil)
 	}
 
 	@Test("grant toppedUp keeps existing key")
 	func grantToppedUpKeepsExistingKey() async throws {
 		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey("sk-or-test-existing")
-		let stored = secrets.storedOpenRouterKeys
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: secrets.creditsAccount().appAccountToken,
+				key: "sk-or-test-existing"))
+		let stored = secrets.storedCreditsAccounts
 		let client = try makeClient(secrets: secrets)
 		let outcome = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"kind":"grantToppedUp","added":200}"#)
@@ -114,8 +62,8 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: Data([0x01]))
 		}
 		#expect(outcome == .toppedUp(added: Credits(units: 200)))
-		#expect(secrets.storedOpenRouterKeys == stored)
-		#expect(try secrets.openRouterKey() == "sk-or-test-existing")
+		#expect(secrets.storedCreditsAccounts == stored)
+		#expect(try secrets.creditsAccount().key == "sk-or-test-existing")
 	}
 
 	@Test func grantWritesCreditsKeyOnlyAndNeverTheSelection() async throws {
@@ -138,7 +86,7 @@ struct CreditsClientTests {
 		}) {
 			try await client.claim(signedTransaction: "header.payload.signature")
 		}
-		#expect(try secrets.openRouterKey() == "sk-or-test-claimed")
+		#expect(try secrets.creditsAccount().key == "sk-or-test-claimed")
 		#expect(try secrets.accessSelection() == selection)
 		#expect(try secrets.openRouterAccountKey() == "sk-or-test-account")
 		#expect(
@@ -148,7 +96,7 @@ struct CreditsClientTests {
 
 	@Test func emptyMintedKeyIsRefusedAndNothingIsWritten() async throws {
 		let secrets = FakeSecretStore()
-		let token = try secrets.appAccountToken()
+		let token = try secrets.creditsAccount().appAccountToken
 		let client = try makeClient(secrets: secrets)
 		await #expect(throws: CreditsFailure.unexpectedResponse(status: 200)) {
 			try await CreditsURLStub.withHandler({ _ in
@@ -160,8 +108,8 @@ struct CreditsClientTests {
 				try await client.recover(signedTransaction: "header.payload.signature")
 			}
 		}
-		#expect(try secrets.openRouterKey() == nil)
-		#expect(try secrets.appAccountToken() == token)
+		#expect(try secrets.creditsAccount().key == nil)
+		#expect(try secrets.creditsAccount().appAccountToken == token)
 	}
 
 	@Test("banned maps from error code not status")
@@ -233,15 +181,17 @@ struct CreditsClientTests {
 			try await client.recover(signedTransaction: "header.payload.signature")
 		}
 		#expect(recovery == Recovery(athleteId: athleteId, credits: Credits(units: 150)))
-		#expect(try secrets.appAccountToken() == athleteId)
-		#expect(secrets.storedOpenRouterKeys == 1)
-		#expect(try secrets.openRouterKey() == "sk-or-test-0000")
+		#expect(try secrets.creditsAccount().appAccountToken == athleteId)
+		#expect(secrets.storedCreditsAccounts == 1)
+		#expect(try secrets.creditsAccount().key == "sk-or-test-0000")
 	}
 
 	@Test("balance floors 1.999 to 199 credits")
 	func balanceFloors1999To199Credits() async throws {
 		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey("sk-or-test-0000")
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: secrets.creditsAccount().appAccountToken, key: "sk-or-test-0000"))
 		let client = try makeClient(secrets: secrets)
 		let scale = CreditScale(creditsPerUsd: 100)
 		let floored = try await CreditsURLStub.withHandler({ _ in
@@ -296,7 +246,7 @@ struct CreditsClientTests {
 	}
 }
 
-private func makeClient(secrets: any SecretStore) throws -> PhoneCreditsClient {
+func makeClient(secrets: any SecretStore) throws -> PhoneCreditsClient {
 	let configuration = URLSessionConfiguration.ephemeral
 	configuration.protocolClasses = [CreditsURLStub.self]
 	configuration.timeoutIntervalForRequest = 20
@@ -343,7 +293,7 @@ private func httpBody(from request: URLRequest) -> Data? {
 	return data
 }
 
-private final class CreditsURLStub: URLProtocol, @unchecked Sendable {
+final class CreditsURLStub: URLProtocol, @unchecked Sendable {
 	struct Response: Sendable {
 		var statusCode: Int
 		var headers: [String: String]

@@ -36,7 +36,12 @@ extension SingleProposalReviewsTests {
 		try await seed(
 			records, [seededRecord(records, at: clock.now, ulid: fixedUlid(1), body: decoded)])
 		let selectedSecrets = connected ? secrets : FakeSecretStore()
-		if !connected { try selectedSecrets.storeOpenRouterKey(testKey) }
+		if !connected {
+			try selectedSecrets.storeCreditsAccount(
+				CreditsAccount(
+					appAccountToken: selectedSecrets.creditsAccount().appAccountToken, key: testKey)
+			)
+		}
 		let coach = makeCoach(
 			transport: transport, intervals: ada, store: records, clock: clock,
 			secrets: selectedSecrets)
