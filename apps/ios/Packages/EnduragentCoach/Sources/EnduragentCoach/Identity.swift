@@ -32,6 +32,17 @@ public struct ULID: Hashable, Sendable, RawRepresentable {
 		lhs.rawValue < rhs.rawValue
 	}
 
+	package var time: Date {
+		let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
+		let ms = rawValue.prefix(10).reduce(UInt64(0)) { total, character in
+			guard let digit = alphabet.firstIndex(of: character) else {
+				preconditionFailure("ULID init admits only Crockford base32 characters")
+			}
+			return total * 32 + UInt64(digit)
+		}
+		return Date(timeIntervalSince1970: Double(ms) / 1000)
+	}
+
 	package func incremented() -> ULID {
 		let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 		var chars = Array(rawValue)
