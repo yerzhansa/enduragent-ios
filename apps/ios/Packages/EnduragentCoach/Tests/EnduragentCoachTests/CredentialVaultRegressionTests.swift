@@ -5,8 +5,11 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test(arguments: [false, true])
-	func lockDuringAthleteResolutionLogsNoDiagnostics(failingWrite: Bool) async throws {
+	@Test(
+		arguments: [false, true], [errSecInteractionNotAllowed, errSecNotAvailable, errSecDecode])
+	func athleteResolutionFailureKeepsConnectedUnresolvedAccount(
+		failingWrite: Bool, statusCode: OSStatus
+	) async throws {
 		let memory = MemorySecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let unresolved = IntervalsConnection(
@@ -20,13 +23,23 @@ extension CredentialVaultTests {
 		let status = Task { await coach.status() }
 		await gate.waitUntilEntered()
 		if failingWrite {
-			memory.failWrites("intervalsCredential", with: errSecInteractionNotAllowed)
+			memory.failWrites("intervalsCredential", with: statusCode)
 		} else {
-			memory.fail("intervalsCredential", with: errSecInteractionNotAllowed)
+			memory.fail("intervalsCredential", with: statusCode)
 		}
 		await gate.release()
-		#expect(await status.value.training == .unavailable(.secureStorageLocked))
-		#expect(coach.diagnostics.entries.isEmpty)
+		let training = await status.value.training
+		#expect(training == .connected(adaSummary, account: try account(unresolved)))
+		if statusCode == errSecNotAvailable {
+			#expect(
+				coach.diagnostics.entries.map(\.event) == [
+					.secureStorageFailed(
+						.intervalsConnection,
+						detail: String(describing: KeychainStoreError(status: statusCode)))
+				])
+		} else {
+			#expect(coach.diagnostics.entries.isEmpty)
+		}
 		memory.fail("intervalsCredential", with: nil)
 		memory.failWrites("intervalsCredential", with: nil)
 		#expect(try secrets.intervalsConnection() == unresolved)
