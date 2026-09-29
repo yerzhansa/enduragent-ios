@@ -30,7 +30,7 @@ extension CredentialVaultTests {
 		await gate.release()
 		let training = await status.value.training
 		#expect(training == .connected(adaSummary, account: try account(unresolved)))
-		if statusCode == errSecNotAvailable {
+		if statusCode != errSecInteractionNotAllowed {
 			#expect(
 				coach.diagnostics.entries.map(\.event) == [
 					.secureStorageFailed(
@@ -49,6 +49,33 @@ extension CredentialVaultTests {
 		}
 		#expect(
 			try secrets.intervalsConnection()?.resolvedAthlete == testConnection.resolvedAthlete)
+	}
+
+	@Test func malformedItemDuringAthleteResolutionRecordsDiagnosticAndKeepsConnected()
+		async throws
+	{
+		let memory = MemorySecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: memory)
+		let unresolved = IntervalsConnection(
+			id: testConnection.id, credential: testConnection.credential,
+			selection: .keyOwner, resolvedAthlete: nil)
+		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
+		try secrets.storeIntervalsConnection(unresolved)
+		let gate = CredentialProfileGate()
+		let client = GatedProfileIntervals(base: ada, gate: gate)
+		let coach = coachWithTraining(secrets, training: TrainingService { _, _, _ in client })
+		let status = Task { await coach.status() }
+		await gate.waitUntilEntered()
+		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
+		await gate.release()
+		#expect(await status.value.training == .connected(adaSummary, account: try account(unresolved)))
+		#expect(
+			coach.diagnostics.entries.map(\.event) == [
+				.secureStorageFailed(
+					.intervalsConnection,
+					detail: String(describing: KeychainStoreError(status: errSecDecode)))
+			])
+		#expect(memory.writes(to: "intervalsCredential") == 2)
 	}
 
 	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {

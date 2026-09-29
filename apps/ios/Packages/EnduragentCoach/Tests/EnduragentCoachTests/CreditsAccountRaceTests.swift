@@ -5,6 +5,27 @@ import Testing
 @testable import EnduragentCoach
 
 extension CreditsClientTests {
+	@Test func accountDeletedDuringGrantWritesNothing() async throws {
+		let memory = MemorySecretStoreBacking()
+		let device = ICloudKeychainStore(backing: memory)
+		let client = try makeClient(secrets: device)
+		let peer = ICloudKeychainStore(backing: memory)
+		await #expect(throws: CreditsFailure.accountChanged) {
+			try await CreditsURLStub.withHandler({ _ in
+				do {
+					try peer.delete(.creditsAccount)
+				} catch {
+					Issue.record(error)
+				}
+				return .json(200, #"{"kind":"grantMinted","key":"test-granted-key","credits":200}"#)
+			}) {
+				_ = try await client.grant(deviceCheck: Data([0x01]))
+			}
+		}
+		#expect(try device.creditsAccount() == nil)
+		#expect(memory.writes(to: "creditsAccount") == 1)
+	}
+
 	@Test func reviewGrantDuringPeerRecoveryKeepsAWholePair() async throws {
 		try await mintedKeyDuringPeerRecovery(isClaim: false, recoveredBeforeRequest: false)
 	}
