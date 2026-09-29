@@ -210,7 +210,7 @@ import Testing
 				== .afterAutomaticReset(.daily))
 		let marker =
 			"Previous session archived at 1998-06-16T02:20:00.000Z. Briefly disclose this before answering."
-		let chats = sent(.chatAttempt, by: transport).map { $0.messages.map(\.content) }
+		let chats = sent(.chatAttempt, by: transport).map { $0.messages.map(\.unstampedContent) }
 		try #require(chats.count == 3)
 		#expect(chats.map { $0.filter { $0 == marker }.count } == [0, 1, 0])
 		#expect(chats[1].suffix(1).first?.hasPrefix("What now?") == true)
@@ -324,7 +324,9 @@ import Testing
 			jobs.filter { $0.trigger == .staleReset }.map(\.messageUlids) == [
 				[priorQuestion, priorReply]
 			])
-		let flushed = sent(.memoryFlush, by: transport).flatMap { $0.messages.map(\.content) }
+		let flushed = sent(.memoryFlush, by: transport).flatMap {
+			$0.messages.map(\.unstampedContent)
+		}
 		#expect(flushed.filter { $0 == "Saturday is a recovery ride" }.count == 1)
 		#expect(!flushed.contains("Queued before the reply"))
 	}

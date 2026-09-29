@@ -122,7 +122,8 @@ import Testing
 		try await coach.retry(turn, in: .main)
 		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Noted.")
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let window = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let window = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)
 		#expect(window.filter { $0 == "Noted." }.count == 1)
 		#expect(!window.contains("First question"))

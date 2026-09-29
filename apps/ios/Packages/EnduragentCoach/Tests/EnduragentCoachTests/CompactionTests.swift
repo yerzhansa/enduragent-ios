@@ -25,8 +25,8 @@ import Testing
 		#expect(try await chatWindowRecords().isEmpty)
 		_ = try await coach.sendAndSettle("And Tuesday?")
 		let last = try #require(sent(.chatAttempt, by: transport).last)
-		#expect(last.messages.contains { $0.content == "Rest day?" })
-		#expect(last.messages.contains { $0.content == "Yes, rest." })
+		#expect(last.messages.contains { $0.unstampedContent == "Rest day?" })
+		#expect(last.messages.contains { $0.unstampedContent == "Yes, rest." })
 	}
 
 	@Test func inTurnCompactionSummarizesForTheAttemptAndRewritesNoHistory() async throws {
@@ -37,16 +37,19 @@ import Testing
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
 		let asked = try #require(sent(.compaction, by: transport).only).messages.last?.content
-		#expect(asked?.contains("user: Question 0") == true)
+		#expect(
+			asked?.contains(
+				"user: [Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0\nassistant: Answer 0")
+				== true)
 		let retry = try #require(sent(.chatAttempt, by: transport).last).messages.dropFirst()
 		#expect(
 			retry.first?.content == "[Previous conversation summary]\nEarlier: three questions.")
-		#expect(!retry.contains { $0.content == "Question 0" })
+		#expect(!retry.contains { $0.unstampedContent == "Question 0" })
 		#expect(try await chatWindowRecords().isEmpty)
 		transport.script = [.text("Saturday too."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let next = try #require(sent(.chatAttempt, by: transport).last).messages.dropFirst()
-		#expect(next.first?.content == "Question 0")
+		#expect(next.first?.content == "[Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0")
 		#expect(!next.contains { $0.content.hasPrefix("[Previous conversation summary]") })
 	}
 
@@ -59,7 +62,7 @@ import Testing
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(sent(.compaction, by: transport).count == 1)
 		let retry = try #require(sent(.chatAttempt, by: transport).last).messages.dropFirst()
-		#expect(retry.first?.content == "Question 0")
+		#expect(retry.first?.content == "[Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0")
 		#expect(try await chatWindowRecords().isEmpty)
 		#expect(compactionFailed(coach))
 	}

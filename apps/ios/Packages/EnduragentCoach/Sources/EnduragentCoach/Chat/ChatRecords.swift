@@ -112,8 +112,7 @@ final class ChatRecords {
 	) async {
 		let ulid = await ledger.nextULID()
 		conversation.settleInMemory(
-			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, zone: clock.timeZone,
-			device: ledger.deviceId)
+			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, device: ledger.deviceId)
 	}
 
 	func observeReply(

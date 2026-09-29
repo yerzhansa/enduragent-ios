@@ -33,11 +33,6 @@ package struct PromptHistory: Sendable, Equatable {
 	package var summary: String?
 	package var messages: [ChatMessage]
 	package var ulids: [ULID]
-
-	package func ulid(for message: ChatMessage) -> ULID? {
-		guard let index = messages.firstIndex(of: message) else { return nil }
-		return ulids[index]
-	}
 }
 
 package struct Segment: Sendable, Equatable {

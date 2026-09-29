@@ -41,8 +41,8 @@ import Testing
 			try await written(["flushPending", "memorySection", "windowStart", "flushSettled"])
 				== ["flushPending", "memorySection", "windowStart", "flushSettled"])
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
-		#expect(flushed.messages.contains { $0.content == "How was my week?" })
-		#expect(flushed.messages.contains { $0.content == "Two rides." })
+		#expect(flushed.messages.contains { $0.unstampedContent == "How was my week?" })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Two rides." })
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
@@ -159,7 +159,7 @@ import Testing
 		).run(reset, archiving: try await ledger.conversation(.main), access: { testAccess })
 		#expect(result.outcome == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
-		let window = flushed.messages.map(\.content)
+		let window = flushed.messages.map(\.unstampedContent)
 		#expect(window.contains("Question 0"))
 		#expect(window.contains("Question 1"))
 		#expect(
@@ -187,7 +187,7 @@ import Testing
 		#expect(
 			try await written(["turnSettled", "windowStart"]) == ["turnSettled", "windowStart"])
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
-		#expect(flushed.messages.contains { $0.content == "Two rides." })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Two rides." })
 		let archived = try #require(try await coach.history().first)
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(archived.reason == .newConversation)

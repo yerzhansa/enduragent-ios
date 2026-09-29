@@ -82,7 +82,7 @@ import Testing
 		try await Task.sleep(for: .milliseconds(200))
 		let flushes = sent(.memoryFlush, by: transport)
 		#expect(flushes.count == 4)
-		let window = flushes[2].messages.map(\.content)
+		let window = flushes[2].messages.map(\.unstampedContent)
 		#expect(window.contains { $0.hasPrefix("Question 0") })
 		#expect(window.contains { $0 == "Rest day?" })
 		let memory = Memory(ledger: ledger(), clock: clock)
@@ -167,7 +167,7 @@ import Testing
 		#expect(seeded.map(\.user).contains(firstIncluded))
 		_ = try await coach.sendAndSettle("Short again?")
 		let lastChat = try #require(sent(.chatAttempt, by: transport).last)
-		#expect(!lastChat.messages.contains { $0.content.hasPrefix("Question 0") })
+		#expect(!lastChat.messages.contains { $0.unstampedContent.hasPrefix("Question 0") })
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 	}
 
@@ -207,7 +207,7 @@ import Testing
 		#expect(windows == [userMessage])
 		let summaries = sent(.droppedSummary, by: transport)
 		#expect(summaries.count == 1)
-		let summarized = try #require(summaries.first).messages.map(\.content).joined()
+		let summarized = try #require(summaries.first).messages.map(\.unstampedContent).joined()
 		#expect(summarized.contains("Question 0"))
 		#expect(summarized.contains("Answer 0"))
 		#expect(summarized.contains("Short question?"))
@@ -215,8 +215,8 @@ import Testing
 		#expect(history.count == 1)
 		_ = try await coach.sendAndSettle("And later?")
 		for request in sent(.chatAttempt, by: transport) {
-			#expect(!request.messages.contains { $0.content == hugeReply })
-			#expect(!request.messages.contains { $0.content == "Short question?" })
+			#expect(!request.messages.contains { $0.unstampedContent == hugeReply })
+			#expect(!request.messages.contains { $0.unstampedContent == "Short question?" })
 		}
 		#expect(sent(.chatAttempt, by: transport).count == 2)
 		#expect(sent(.droppedSummary, by: transport).count == 1)

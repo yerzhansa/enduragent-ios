@@ -20,7 +20,7 @@ import Testing
 	}
 
 	func flushed() -> [[String]] {
-		sent(.memoryFlush, by: transport).map { $0.messages.map(\.content) }
+		sent(.memoryFlush, by: transport).map { $0.messages.map(\.unstampedContent) }
 	}
 
 	@Test func aReplyStreamingAtTheTapIsSavedWithItsQuestion() async throws {
@@ -111,9 +111,10 @@ import Testing
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		try #require(requests.count == 2)
-		#expect(!requests[0].messages.contains { $0.content == "Remember Saturdays" })
-		#expect(requests[1].messages.filter { $0.content == "Remember Saturdays" }.count == 1)
-		#expect(requests[1].messages.filter { $0.content == "Noted." }.count == 1)
+		#expect(!requests[0].messages.contains { $0.unstampedContent == "Remember Saturdays" })
+		#expect(
+			requests[1].messages.filter { $0.unstampedContent == "Remember Saturdays" }.count == 1)
+		#expect(requests[1].messages.filter { $0.unstampedContent == "Noted." }.count == 1)
 		let jobs = try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending])))
 			.records.sorted { $0.hlc < $1.hlc }.compactMap { record -> FlushPendingBody? in
 				guard case .deviceLocal(.flushPending(let body)) = record.body else { return nil }

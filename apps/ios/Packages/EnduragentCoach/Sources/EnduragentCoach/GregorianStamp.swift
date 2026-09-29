@@ -18,6 +18,19 @@ package enum GregorianStamp {
 		return body + " UTC"
 	}
 
+	package static func weekdayMinute(_ date: Date, in zone: TimeZone) -> String {
+		let body = date.formatted(
+			Date.VerbatimFormatStyle(
+				format:
+					"\(weekday: .abbreviated) \(year: .padded(4))-\(month: .twoDigits)-\(day: .twoDigits) \(hour: .twoDigits(clock: .twentyFourHour, hourCycle: .zeroBased)):\(minute: .twoDigits)",
+				locale: Locale(identifier: "en_US_POSIX"),
+				timeZone: zone,
+				calendar: gregorian
+			)
+		)
+		return body + " " + zone.identifier
+	}
+
 	package static func isoMillis(_ date: Date) -> String {
 		date.formatted(
 			Date.VerbatimFormatStyle(
