@@ -130,7 +130,7 @@ import Testing
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(transport.requests.map(\.charge) == [.memoryFlush])
-		let flushed = try #require(transport.requests.first).messages.map(\.content)
+		let flushed = try #require(transport.requests.first).messages.map(\.unstampedContent)
 		#expect(flushed.contains("Question 0"))
 		#expect(!flushed.contains("Question 1"))
 	}

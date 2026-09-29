@@ -62,7 +62,9 @@ package struct TurnFacts: Sendable, Equatable {
 
 	var userRow: (ulid: ULID, message: ChatMessage)? {
 		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
-		return (first.ulid, ChatMessage(role: .user, text: requestText, civilDate: first.civilDate))
+		return (
+			first.ulid, ChatMessage(author: .athlete(sent: first.ulid.time), text: requestText)
+		)
 	}
 
 	var replyRow: (ulid: ULID, message: ChatMessage)? {
@@ -80,7 +82,7 @@ package struct TurnFacts: Sendable, Equatable {
 		}
 		return (
 			settled.ulid,
-			ChatMessage(role: .assistant, text: replyText, civilDate: settled.civilDate)
+			ChatMessage(author: .coach, text: replyText)
 		)
 	}
 }
@@ -106,7 +108,6 @@ package struct Fragment: Sendable, Equatable {
 package struct SettledAttempt: Sendable, Equatable {
 	package let ulid: ULID
 	package let hlc: HybridLogicalClock
-	package let civilDate: CivilDate
 	package let attempt: AttemptID
 	package let settlement: Settlement
 }

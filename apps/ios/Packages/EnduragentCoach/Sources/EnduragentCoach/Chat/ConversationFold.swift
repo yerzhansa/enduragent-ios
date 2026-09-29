@@ -100,7 +100,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: body.attempt,
 						settlement: body.settlement
 					)
@@ -117,7 +116,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: AttemptID(ulid: record.ulid),
 						settlement: .replied(
 							.model(body.text),
@@ -204,7 +202,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: body.attempt,
 						settlement: body.settlement
 					))
@@ -285,7 +282,7 @@ package struct Conversation: Sendable, Equatable {
 
 	package mutating func settleInMemory(
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID, now: Date,
-		zone: TimeZone, device: DeviceID
+		device: DeviceID
 	) {
 		guard let position = position(of: turn) else { return }
 		let facts = segments[position.segment].turns[position.turn]
@@ -296,7 +293,6 @@ package struct Conversation: Sendable, Equatable {
 			SettledAttempt(
 				ulid: ulid,
 				hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
-				civilDate: CivilDate(date: now, timeZone: zone),
 				attempt: attempt,
 				settlement: settlement
 			))

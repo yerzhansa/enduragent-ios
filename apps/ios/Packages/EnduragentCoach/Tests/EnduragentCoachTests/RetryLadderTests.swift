@@ -186,7 +186,7 @@ import Testing
 		let prompt = try #require(transport.requests.last(where: { $0.charge == .chatAttempt }))
 		let history = prompt.messages.filter { $0.role == .user || $0.role == .assistant }
 		#expect(
-			history.prefix(2).map(\.content) == [
+			history.prefix(2).map(\.unstampedContent) == [
 				"Remember my Saturday ride",
 				"I saved your information, but couldn't verify my response. Please try again.",
 			])

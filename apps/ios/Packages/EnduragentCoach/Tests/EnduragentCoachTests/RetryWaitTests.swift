@@ -58,7 +58,7 @@ private func facts(_ settlement: Settlement, wallMs: Int64) -> TurnFacts {
 		SettledAttempt(
 			ulid: fixedUlid(41),
 			hlc: HybridLogicalClock(wallMs: wallMs, logical: 0, deviceId: phone),
-			civilDate: "1998-06-13", attempt: failedAttempt, settlement: settlement))
+			attempt: failedAttempt, settlement: settlement))
 	return facts
 }
 
@@ -178,7 +178,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 				ulid: fixedUlid(43),
 				hlc: HybridLogicalClock(
 					wallMs: milliseconds(clock.now) + 1, logical: 0, deviceId: phone),
-				civilDate: "1998-06-13", attempt: newer, settlement: rateLimited(.seconds(3))))
+				attempt: newer, settlement: rateLimited(.seconds(3))))
 		#expect(waits.waiting(among: [second]) == [rateLimitedTurn])
 		try await clock.waitUntilHeld(.seconds(3))
 		#expect(clock.held == [.seconds(3)])

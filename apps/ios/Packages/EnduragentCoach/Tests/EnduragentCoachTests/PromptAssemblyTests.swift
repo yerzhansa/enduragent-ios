@@ -73,11 +73,14 @@ import Testing
 		#expect(once == twice)
 	}
 
-	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() {
+	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() throws {
+		let amsterdam = try #require(TimeZone(identifier: "Europe/Amsterdam"))
 		let dropped = [
-			ChatMessage(role: .user, text: "FTP 262W now"),
-			ChatMessage(role: .assistant, text: "Noted, 262W."),
-		]
+			ChatMessage(
+				author: .athlete(sent: Date(timeIntervalSince1970: 897_717_600)),
+				text: "FTP 262W now"),
+			ChatMessage(author: .coach, text: "Noted, 262W."),
+		].map { PromptAssembly.wireMessage(from: $0, in: amsterdam) }
 		#expect(
 			PromptAssembly.droppedSummaryRequest(
 				previous: "## Athlete Profile\n- FTP 255W",
@@ -90,7 +93,7 @@ import Testing
 					- FTP 255W
 
 					Messages to incorporate:
-					user: FTP 262W now
+					user: [Sat 1998-06-13 08:00 Europe/Amsterdam] FTP 262W now
 					assistant: Noted, 262W.
 					""")
 		#expect(
@@ -137,16 +140,17 @@ import Testing
 			encoding: .utf8
 		)
 		let messages = (0..<20).map { index in
-			ChatMessage(
+			WireMessage(
 				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: "1998-06-13 msg \(index) " + String(repeating: "x", count: 8_000)
+				content: "1998-06-13 msg \(index) " + String(repeating: "x", count: 8_000),
+				toolCalls: [], toolCallId: nil
 			)
 		}
 		let systemTokens = estimateTokens(system)
 		let trim = HistoryWindow.trim(
 			messages: messages, systemTokens: systemTokens,
 			ratio: SessionSettings.npmDefaults.historyBudgetRatio.value)
-		let historyTokens = messages.reduce(0) { $0 + estimateTokens($1.text) }
+		let historyTokens = HistoryWindow.estimatedTokens(summary: nil, messages: messages)
 		let payload: [String: Int] = [
 			"kept": trim.kept.count,
 			"dropped": trim.dropped.count,

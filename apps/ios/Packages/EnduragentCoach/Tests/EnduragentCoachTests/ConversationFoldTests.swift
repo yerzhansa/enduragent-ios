@@ -34,7 +34,9 @@ import Testing
 				"week?", "Two rides.", "again?", "Still two.",
 			])
 		#expect(
-			conversation.current.messages.map(\.role) == [.user, .assistant, .user, .assistant])
+			conversation.current.messages.map(\.author) == [
+				.athlete(sent: ulid(1).time), .coach, .athlete(sent: ulid(3).time), .coach,
+			])
 	}
 
 	@Test func settledTurnsInterleaveWithLegacyOnesByClock() throws {

@@ -108,8 +108,8 @@ import Testing
 		await stopped
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
-		#expect(flushed.messages.contains { $0.content == "Thursday?" })
-		#expect(flushed.messages.contains { $0.content == "Thursday is" })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday?" })
+		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday is" })
 		let archived = try #require(try await coach.history().first)
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(

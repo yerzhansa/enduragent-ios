@@ -39,7 +39,7 @@ import Testing
 			SettledAttempt(
 				ulid: fixedUlid(3),
 				hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: phoneA),
-				civilDate: "1998-06-13", attempt: attempt, settlement: settlement))
+				attempt: attempt, settlement: settlement))
 		return facts
 	}
 

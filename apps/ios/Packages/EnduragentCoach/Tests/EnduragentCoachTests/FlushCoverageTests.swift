@@ -36,7 +36,8 @@ import Testing
 		try #require(!soft.messages.contains(question))
 		try #require(question < (soft.messages.max() ?? question))
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(reset.filter { $0 == "Remember Saturdays" }.count == 1)
 		#expect(reset.filter { $0 == "Noted." }.count == 1)
 		#expect(!reset.contains("How was my week?"))
@@ -93,7 +94,8 @@ import Testing
 		]
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(\.content)
+		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
+			\.unstampedContent)
 		#expect(flushed.contains("Remember Saturdays"))
 		#expect(flushed.contains("Noted on my other phone."))
 		#expect(!flushed.contains("Question 0"))
@@ -142,7 +144,7 @@ import Testing
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
 		#expect(!repeated.contains("Already saved Saturday"))
 		#expect(!repeated.contains("Already saved reply"))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
@@ -168,15 +170,16 @@ import Testing
 		}
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let first = try #require(sent(.memoryFlush, by: transport).first)
-		try #require(first.messages.contains { $0.content == "Superseded partial" })
-		try #require(first.messages.contains { $0.content == "Remember Saturdays" })
+		try #require(first.messages.contains { $0.unstampedContent == "Superseded partial" })
+		try #require(first.messages.contains { $0.unstampedContent == "Remember Saturdays" })
 		transport.script = [.text("Replacement reply"), .finish(reason: .stop)]
 		try await coach.retry(turn, in: .main)
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement reply")
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(latest.filter { $0 == "Replacement reply" }.count == 1)
 		#expect(!latest.contains("Superseded partial"))
 		#expect(!latest.contains("Remember Saturdays"))
@@ -207,7 +210,8 @@ import Testing
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Recovered reply")
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(latest.filter { $0 == "Recover after trimming" }.count == 1)
 		#expect(latest.filter { $0 == "Recovered reply" }.count == 1)
 		#expect(!latest.contains("Force a trim"))
@@ -264,7 +268,8 @@ import Testing
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(\.content)
+		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
+			\.unstampedContent)
 		#expect(rows.filter { $0 == "Current question" }.count == 1)
 		#expect(rows.filter { $0 == "Current reply" }.count == 1)
 		#expect(!rows.contains("Archived question"))

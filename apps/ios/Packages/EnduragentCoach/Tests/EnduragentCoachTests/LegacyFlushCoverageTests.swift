@@ -45,7 +45,8 @@ import Testing
 		try #require(try #require(fresh.replyRow?.ulid) < reply)
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Fresh modern question" }.count == 1)
 		#expect(extracted.filter { $0 == "Fresh modern reply" }.count == 1)
 		#expect(!extracted.contains("Legacy question"))
@@ -91,7 +92,8 @@ import Testing
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Imported modern question" }.count == 1)
 		#expect(extracted.filter { $0 == "Imported modern reply" }.count == 1)
 	}
@@ -131,7 +133,8 @@ import Testing
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		clock.advance(by: 120)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(!extracted.contains("Legacy question"))
 		#expect(!extracted.contains("Legacy reply"))
 	}
@@ -198,7 +201,8 @@ import Testing
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Unsaved legacy question" }.count == 1)
 		#expect(extracted.filter { $0 == "Unsaved legacy reply" }.count == 1)
 	}

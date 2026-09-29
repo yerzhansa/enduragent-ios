@@ -14,10 +14,14 @@ import Testing
 			clock: clock)
 	}
 
-	let conversation = [
-		ChatMessage(role: .user, text: "Remember that I ride with a group on Saturdays"),
-		ChatMessage(role: .assistant, text: "Noted."),
-	]
+	var conversation: [ChatMessage] {
+		[
+			ChatMessage(
+				author: .athlete(sent: clock.now.addingTimeInterval(-120)),
+				text: "Remember that I ride with a group on Saturdays"),
+			ChatMessage(author: .coach, text: "Noted."),
+		]
+	}
 
 	func job(_ trigger: FlushTrigger = .softThreshold) -> FlushJob {
 		FlushJob(

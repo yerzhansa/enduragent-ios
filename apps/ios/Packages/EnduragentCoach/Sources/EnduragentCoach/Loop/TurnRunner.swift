@@ -214,16 +214,18 @@ package struct TurnRunner: Sendable {
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
 		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
+		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,
 			evidence: block,
-			timeZoneName: clock.timeZone.identifier,
+			timeZoneName: zone.identifier,
 			replyLanguage: replyLanguage
 		)
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
+		let past = history.messages.map { PromptAssembly.wireMessage(from: $0, in: zone) }
 		let trim = HistoryWindow.trim(
-			messages: history.messages, systemTokens: estimateTokens(system),
+			messages: past, systemTokens: estimateTokens(system),
 			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
 		var summary = history.summary
 		var kept = trim.kept
@@ -245,11 +247,13 @@ package struct TurnRunner: Sendable {
 				diagnostics.record(
 					.compactionFailed(chatId, detail: String(describing: error)),
 					redacting: [attempt.access.credential.secret])
-				kept = history.messages
+				kept = past
 			}
 		} else if !transcript.flushPending,
 			FlushGate.shouldQueueSoftFlush(
-				estimatedHistoryTokens: history.estimatedTokens, historyBudget: trim.budget,
+				estimatedHistoryTokens: HistoryWindow.estimatedTokens(
+					summary: history.summary, messages: past),
+				historyBudget: trim.budget,
 				messagesSinceLastFlush: transcript.unflushed.count),
 			await scope.takeFlushLatch()
 		{
@@ -260,9 +264,9 @@ package struct TurnRunner: Sendable {
 		let timed = PromptAssembly.appendCurrentTime(
 			athleteText: attempt.request,
 			now: clock.now,
-			timeZone: clock.timeZone
+			timeZone: zone
 		)
-		var wire = kept.map(wireMessage(from:))
+		var wire = kept
 		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
 		let archived = attempt.autoReset.map { _ in PromptAssembly.archiveMarker(at: clock.now) }
 		return TurnPrompt(
@@ -273,7 +277,7 @@ package struct TurnRunner: Sendable {
 	}
 
 	private func summarizeDropped(
-		_ dropped: [ChatMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
+		_ dropped: [WireMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
 		scope: TurnScope, progress: @escaping AttemptProgressSink
 	) async throws -> String {
 		await progress(.activity(.compacting))
@@ -373,13 +377,4 @@ private final class TextObservation: Sendable {
 			await progress(event)
 		}
 	}
-}
-
-private func wireMessage(from message: ChatMessage) -> WireMessage {
-	WireMessage(
-		role: message.role == .user ? .user : .assistant,
-		content: message.text,
-		toolCalls: [],
-		toolCallId: nil
-	)
 }

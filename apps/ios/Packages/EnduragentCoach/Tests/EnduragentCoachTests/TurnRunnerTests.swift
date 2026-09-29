@@ -275,12 +275,16 @@ import Testing
 		#expect(summary.model == testModel)
 		#expect(summary.tools.isEmpty)
 		let asked = try #require(summary.messages.last?.content)
-		#expect(asked.contains("Messages to incorporate:\nuser: Question 0\nassistant: Answer 0"))
+		#expect(
+			asked.contains(
+				"Messages to incorporate:\nuser: [Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0\nassistant: Answer 0"
+			))
 		#expect(!asked.contains("Question 1"))
 		let chat = try #require(sent(.chatAttempt, by: transport).first)
 		#expect(
 			chat.messages.dropFirst().prefix(2).map(\.content) == [
-				"[Previous conversation summary]\n" + earlierSummary, "Question 1",
+				"[Previous conversation summary]\n" + earlierSummary,
+				"[Sat 1998-06-13 07:58 Europe/Amsterdam] Question 1",
 			])
 		let written = try await store.fetch(
 			RecordQuery(scope: .synced([.windowStart, .compactionSummary]), chatId: .main)
@@ -307,8 +311,8 @@ import Testing
 		#expect(replyText(settled) == "Thursday is on.")
 		let chat = try #require(sent(.chatAttempt, by: transport).first)
 		let history = chat.messages.dropFirst().map(\.content)
-		#expect(history.first == "Question 0")
-		#expect(history.filter { $0.hasPrefix("Question") }.count == 3)
+		#expect(history.first == "[Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0")
+		#expect(history.filter { $0.contains("] Question") }.count == 3)
 		#expect(!history.contains { $0.hasPrefix("[Previous conversation summary]") })
 		#expect(
 			try await store.fetch(
@@ -337,7 +341,8 @@ import Testing
 		let next = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(
 			next.messages.dropFirst().prefix(2).map(\.content) == [
-				"[Previous conversation summary]\n" + earlierSummary, "Question 1",
+				"[Previous conversation summary]\n" + earlierSummary,
+				"[Sat 1998-06-13 07:58 Europe/Amsterdam] Question 1",
 			])
 		#expect(next.messages.dropFirst().map(\.content).contains("Thursday is on."))
 	}

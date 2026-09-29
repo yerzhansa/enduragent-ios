@@ -57,7 +57,9 @@ extension AutomaticResetTests {
 			])
 		let history = try await coach.history()
 		#expect(history.first?.turns.map(\.athleteText) == ["Earlier question"])
-		let flushed = sent(.memoryFlush, by: transport).flatMap { $0.messages.map(\.content) }
+		let flushed = sent(.memoryFlush, by: transport).flatMap {
+			$0.messages.map(\.unstampedContent)
+		}
 		#expect(!flushed.contains("Later question"))
 		#expect(!flushed.contains("Later reply"))
 	}
