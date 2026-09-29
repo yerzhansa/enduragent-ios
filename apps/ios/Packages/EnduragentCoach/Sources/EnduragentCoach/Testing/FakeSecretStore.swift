@@ -3,13 +3,72 @@ import Security
 
 public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private struct Contents: Codable {
+		private enum CodingKeys: String, CodingKey {
+			case creditsAccount, openRouterKey, openRouterAccountKey, intervals, accessSelection
+			case intervalsApiKey, intervalsOAuthAccess, intervalsOAuthRefresh
+		}
+
+		private enum LegacyKeys: String, CodingKey {
+			case appAccountToken, stagedIntervals
+		}
+
 		var creditsAccount: CreditsAccount?
+		var openRouterKey: String?
 		var openRouterAccountKey: String?
 		var intervals: StoredIntervalsConnection?
 		var accessSelection: StoredAccessSelection?
 		var intervalsApiKey: String?
 		var intervalsOAuthAccess: String?
 		var intervalsOAuthRefresh: String?
+		var needsCreditsRewrite = false
+
+		init(creditsAccount: CreditsAccount? = nil) {
+			self.creditsAccount = creditsAccount
+		}
+
+		init(from decoder: any Decoder) throws {
+			let container = try decoder.container(keyedBy: CodingKeys.self)
+			let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+			creditsAccount = try restoredCreditsAccount(
+				current: container.decodeIfPresent(CreditsAccount.self, forKey: .creditsAccount),
+				undo: Self.legacyUndo(legacy),
+				legacyKey: container.decodeIfPresent(String.self, forKey: .openRouterKey),
+				legacyToken: legacy.decodeIfPresent(UUID.self, forKey: .appAccountToken))
+			if creditsAccount == nil {
+				openRouterKey = try container.decodeIfPresent(String.self, forKey: .openRouterKey)
+			}
+			needsCreditsRewrite =
+				creditsAccount != nil
+				&& (legacy.contains(.appAccountToken) || legacy.contains(.stagedIntervals)
+					|| container.contains(.openRouterKey))
+			openRouterAccountKey = try container.decodeIfPresent(
+				String.self, forKey: .openRouterAccountKey)
+			intervals = try container.decodeIfPresent(
+				StoredIntervalsConnection.self, forKey: .intervals)
+			accessSelection = try container.decodeIfPresent(
+				StoredAccessSelection.self, forKey: .accessSelection)
+			intervalsApiKey = try container.decodeIfPresent(String.self, forKey: .intervalsApiKey)
+			intervalsOAuthAccess = try container.decodeIfPresent(
+				String.self, forKey: .intervalsOAuthAccess)
+			intervalsOAuthRefresh = try container.decodeIfPresent(
+				String.self, forKey: .intervalsOAuthRefresh)
+		}
+
+		private static func legacyUndo(_ container: KeyedDecodingContainer<LegacyKeys>) throws
+			-> LegacyCreditsUndo?
+		{
+			do {
+				return try container.decodeIfPresent(
+					LegacyCreditsUndo.self, forKey: .stagedIntervals)
+			} catch is DecodingError {
+				return nil
+			}
+		}
+
+		mutating func replaceCredits(with account: CreditsAccount) {
+			creditsAccount = account
+			openRouterKey = nil
+		}
 
 		var intervalsItem: StoredIntervalsConnection? {
 			if let intervals {
@@ -80,6 +139,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		self.file = file
 		if FileManager.default.fileExists(atPath: file.path) {
 			self.contents = try JSONDecoder().decode(Contents.self, from: Data(contentsOf: file))
+			if contents.needsCreditsRewrite { try persist(contents) }
 		} else {
 			self.contents = Contents()
 		}
@@ -93,8 +153,8 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		if let account = try creditsAccount() { return account }
 		return try write { contents in
 			if let account = contents.creditsAccount { return account }
-			let account = CreditsAccount(appAccountToken: UUID(), key: nil)
-			contents.creditsAccount = account
+			let account = CreditsAccount(appAccountToken: UUID(), key: contents.openRouterKey)
+			contents.replaceCredits(with: account)
 			storedCreditsAccounts += 1
 			return account
 		}
@@ -102,7 +162,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 	public func storeCreditsAccount(_ account: CreditsAccount) throws {
 		try write {
-			$0.creditsAccount = account
+			$0.replaceCredits(with: account)
 			storedCreditsAccounts += 1
 		}
 	}

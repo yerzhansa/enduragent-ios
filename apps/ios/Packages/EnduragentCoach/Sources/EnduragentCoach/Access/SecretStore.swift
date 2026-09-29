@@ -49,8 +49,15 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func creditsAccount() throws -> CreditsAccount? {
-		if let account = try readItem(CreditsAccount.self, .creditsAccount) { return account }
-		guard let migrated = try legacyCreditsAccount() else { return nil }
+		let current = try readItem(CreditsAccount.self, .creditsAccount)
+		guard
+			let migrated = try restoredCreditsAccount(
+				current: current,
+				undo: legacyCreditsUndo(),
+				legacyKey: readString(account: LegacyAccount.openRouterKey.rawValue),
+				legacyToken: legacyCreditsToken())
+		else { return nil }
+		if current != nil { return migrated }
 		let account = try addCreditsAccount(migrated)
 		try deleteLegacyCreditsItems()
 		return account
@@ -88,31 +95,26 @@ public struct ICloudKeychainStore: SecretStore {
 		try writeItem(account, .creditsAccount)
 	}
 
-	private func legacyCreditsAccount() throws -> CreditsAccount? {
-		if let staging = try backing.copy(
-			account: LegacyAccount.intervalsConnectionStaging.rawValue)
-		{
-			do {
-				let undo = try JSONDecoder().decode(LegacyCreditsUndo.self, from: staging)
-				return CreditsAccount(
-					appAccountToken: undo.credits.previousAppAccountToken,
-					key: undo.credits.previousKey)
-			} catch is DecodingError {
-				return try legacyCreditsItems()
-			}
+	private func legacyCreditsUndo() throws -> LegacyCreditsUndo? {
+		guard
+			let staging = try backing.copy(
+				account: LegacyAccount.intervalsConnectionStaging.rawValue)
+		else { return nil }
+		do {
+			return try JSONDecoder().decode(LegacyCreditsUndo.self, from: staging)
+		} catch is DecodingError {
+			return nil
 		}
-		return try legacyCreditsItems()
 	}
 
-	private func legacyCreditsItems() throws -> CreditsAccount? {
-		let key = try readString(account: LegacyAccount.openRouterKey.rawValue)
+	private func legacyCreditsToken() throws -> UUID? {
 		guard let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) else {
 			return nil
 		}
 		guard let token = UUID(uuidString: raw) else {
 			throw KeychainStoreError(status: errSecDecode)
 		}
-		return CreditsAccount(appAccountToken: token, key: key)
+		return token
 	}
 
 	public func openRouterAccountKey() throws -> String? {
@@ -175,15 +177,6 @@ public struct ICloudKeychainStore: SecretStore {
 			try backing.update(account: slot.rawValue, data: data)
 		}
 	}
-}
-
-private struct LegacyCreditsUndo: Decodable {
-	struct Credits: Decodable {
-		let previousKey: String?
-		let previousAppAccountToken: UUID
-	}
-
-	let credits: Credits
 }
 
 package enum KeychainQuery {
