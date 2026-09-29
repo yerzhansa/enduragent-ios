@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		01923B5B5D5B72D700FAD381 /* CreditsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94EF9C03C3B9907D8C04BA5D /* CreditsDebugView.swift */; };
+		03C7A729D15536097CBB27A0 /* AccentColorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCE3A975E2ECDEAB8942EB68 /* AccentColorTests.swift */; };
 		0504F1AEC2691DCEAF74A94B /* ContinuedProcessingHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7726CC74702827392E21AC7 /* ContinuedProcessingHost.swift */; };
 		07771411F8BAABE782AFEE03 /* FixtureReviewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B225A02F617E4975CE70633 /* FixtureReviewTests.swift */; };
 		0B6480D4419A1990AFFD6D8A /* TurnProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61EDBD2FC7981BF083B8C3E4 /* TurnProofs.swift */; };
@@ -176,6 +177,7 @@
 		D6932D7AAEE51A2B4AD64EA7 /* TurnRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurnRowView.swift; sourceTree = "<group>"; };
 		DBC3D69BF41EBC1391AE924D /* DraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftStore.swift; sourceTree = "<group>"; };
 		DBF9AE579F24B1C8065F903A /* TranscriptProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptProofs.swift; sourceTree = "<group>"; };
+		DCE3A975E2ECDEAB8942EB68 /* AccentColorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccentColorTests.swift; sourceTree = "<group>"; };
 		E4BE483F497AFE52971CFA38 /* DeviceCheckTokenProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceCheckTokenProvider.swift; sourceTree = "<group>"; };
 		E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsView.swift; sourceTree = "<group>"; };
 		E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureBlockingURLProtocol.swift; sourceTree = "<group>"; };
@@ -209,6 +211,7 @@
 		259BE4845D6A7C1D6F525B24 /* EnduragentTests */ = {
 			isa = PBXGroup;
 			children = (
+				DCE3A975E2ECDEAB8942EB68 /* AccentColorTests.swift */,
 				CA5D53376E7ADD5F2A653595 /* FixtureChatTests.swift */,
 				5D86E9F36A3D2CE298FDF615 /* FixtureCredentialTests.swift */,
 				F4ABCE2F18CBD408A1E72974 /* FixtureFailureTests.swift */,
@@ -547,6 +550,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				03C7A729D15536097CBB27A0 /* AccentColorTests.swift in Sources */,
 				2A2CDA75AEF898C2593A8DF7 /* FixtureChatTests.swift in Sources */,
 				FED1B95C0EBE3CA91C6A7AE9 /* FixtureCredentialTests.swift in Sources */,
 				CED72381387A7FA14EFCA529 /* FixtureFailureTests.swift in Sources */,
@@ -718,6 +722,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Enduragent/Enduragent.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
@@ -848,6 +853,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Enduragent/Enduragent.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
