@@ -9,7 +9,7 @@ import Testing
 final class ShellLanguageTests {
 	private let domain = "enduragent.shell.language.tests"
 	private let defaults: UserDefaults
-	private let records = InMemoryRecordLog()
+	private let records = RecordStore.inMemory(deviceId: DeviceID())
 	private let transport = FakeModelTransport()
 	private let clock = FixedClock(
 		now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")

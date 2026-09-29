@@ -177,7 +177,7 @@ extension FixtureLaunchTests {
 		return Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: InMemoryRecordLog(),
+				records: .inMemory(deviceId: DeviceID()),
 				secrets: secrets,
 				models: .scripted(transport),
 				training: .fake { _, _ in intervals },

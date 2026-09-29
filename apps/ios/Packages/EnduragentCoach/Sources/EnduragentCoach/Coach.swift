@@ -44,7 +44,7 @@ public actor Coach {
 		self.vault = vault
 		self.credits = ports.credits.makeClient(vault)
 		self.builtInModel = builtInModel
-		let ledger = Ledger(log: ports.records, clock: clock, diagnostics: diagnostics)
+		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing

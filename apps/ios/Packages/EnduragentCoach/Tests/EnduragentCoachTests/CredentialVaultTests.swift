@@ -39,7 +39,7 @@ import Testing
 		Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: records, secrets: secrets, models: .scripted(transport),
+				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
 				training: training, credits: .fake(FakeCreditsClient()),
 				host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel,

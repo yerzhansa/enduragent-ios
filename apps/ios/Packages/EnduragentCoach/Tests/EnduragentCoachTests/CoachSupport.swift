@@ -56,7 +56,7 @@ func makeCoach(
 	Coach(
 		sport: .cycling,
 		ports: CoachPorts(
-			records: store, secrets: secrets, models: .scripted(transport),
+			records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
 			training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 			host: host, clock: clock
 		),

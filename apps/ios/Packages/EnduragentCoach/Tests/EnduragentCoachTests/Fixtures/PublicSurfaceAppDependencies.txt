@@ -3159,6 +3159,10 @@ RecordQuery.scope
 RecordQuery.to
 RecordQuery.turn
 RecordQuery.writtenBy
+RecordStore
+RecordStore.fixture(directory:deviceId:unreadable:)
+RecordStore.inMemory(deviceId:)
+RecordStore.onDevice(deviceId:)
 RecordSyncCount
 RecordSyncCount.count
 RecordSyncCount.id
