@@ -1,7 +1,5 @@
 import Foundation
 
-extension ULID: Comparable {}
-
 public struct TurnID: Hashable, Sendable, Comparable {
 	public let ulid: ULID
 
