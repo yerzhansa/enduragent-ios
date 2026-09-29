@@ -35,8 +35,7 @@ import Testing
 			])
 		#expect(
 			conversation.current.messages.map(\.author) == [
-				.athlete(sent: Date(timeIntervalSince1970: 0.001)), .coach,
-				.athlete(sent: Date(timeIntervalSince1970: 0.003)), .coach,
+				.athlete(sent: ulid(1).time), .coach, .athlete(sent: ulid(3).time), .coach,
 			])
 	}
 

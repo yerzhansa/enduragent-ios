@@ -63,7 +63,7 @@ package struct TurnFacts: Sendable, Equatable {
 	var userRow: (ulid: ULID, message: ChatMessage)? {
 		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
 		return (
-			first.ulid, ChatMessage(author: .athlete(sent: first.hlc.wallTime), text: requestText)
+			first.ulid, ChatMessage(author: .athlete(sent: first.ulid.time), text: requestText)
 		)
 	}
 

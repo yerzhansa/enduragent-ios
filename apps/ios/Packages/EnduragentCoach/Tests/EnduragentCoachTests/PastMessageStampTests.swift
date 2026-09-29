@@ -76,4 +76,33 @@ import Testing
 			chat.messages.dropFirst().first?.content
 				== "[Tue 1998-06-16 03:00 Asia/Tokyo] I'm doing intervals today.")
 	}
+
+	@Test func aClockFromAnotherDeviceDoesNotMoveTheStamp() async throws {
+		let clock = FixedClock(now: "1998-06-15T20:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let ahead = clock.now.addingTimeInterval(3600)
+		let ipad = DeviceID(rawValue: "ipad")
+		let remote = TurnID(ulid: ULID.generate(at: ahead))
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: ipad, wall: Int64(ahead.timeIntervalSince1970 * 1000),
+					ulid: remote.ulid,
+					body: .synced(sampleUser(chatId: .main, text: "From my iPad", turn: remote))),
+				storedRecord(
+					device: ipad, wall: Int64(ahead.timeIntervalSince1970 * 1000) + 1,
+					ulid: ULID.generate(at: ahead.addingTimeInterval(1)),
+					body: .synced(sampleReply(chatId: .main, turn: remote, text: "Noted."))),
+			])
+		transport.script = [
+			.text("Good."), .finish(reason: .stop), .text("Rest."), .finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		_ = try await coach.sendAndSettle("Local question")
+		_ = try await coach.sendAndSettle("Legs sore?")
+		let chat = try #require(sent(.chatAttempt, by: transport).last)
+		#expect(
+			chat.messages.map(\.content).contains(
+				"[Mon 1998-06-15 20:00 Europe/Amsterdam] Local question"))
+	}
 }
