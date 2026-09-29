@@ -375,7 +375,7 @@ import Testing
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		let legacy = FlushJob(
-			id: FlushJobID(ulid: ulid(3)), trigger: .explicitReset, messages: [], settled: false)
+			id: FlushJobID(ulid: ulid(3)), messages: [], settled: false)
 		#expect(
 			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
 		#expect(

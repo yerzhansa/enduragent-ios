@@ -53,7 +53,7 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int]) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(offset)),
 			messages: messages.map(fixedUlid),
 			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: false)
 	}

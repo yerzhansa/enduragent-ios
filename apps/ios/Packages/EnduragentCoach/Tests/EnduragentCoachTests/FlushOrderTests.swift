@@ -90,7 +90,7 @@ import Testing
 		#expect(context.contains("Sundays now."))
 		#expect(!context.contains("Saturdays."))
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
-		#expect(jobs.map(\.trigger) == [.softThreshold, .trim])
+		#expect(try await storedFlushTriggers(in: store) == [.softThreshold, .trim])
 		#expect(jobs.map(\.settled) == [true, true])
 		#expect(jobs.first?.messages == history.flatMap { [$0.user, $0.reply] })
 	}
@@ -239,7 +239,7 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(offset)),
 			messages: messages.map(fixedUlid), settled: settled)
 	}
 
@@ -251,7 +251,7 @@ import Testing
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: job.trigger, messageUlids: job.messages))))
+							chatId: .main, trigger: .softThreshold, messageUlids: job.messages))))
 		]
 		if job.settled {
 			records.append(

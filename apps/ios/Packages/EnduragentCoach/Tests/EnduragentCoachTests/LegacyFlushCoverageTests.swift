@@ -228,7 +228,7 @@ import Testing
 				chat: .main, synced: [question, reply], device: store.deviceId)
 		}
 		let legacy = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(7)),
 			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true, consumedInV1: true)
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
@@ -251,7 +251,7 @@ import Testing
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: [question, reply], device: store.deviceId)
 		let receipt = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(7)),
 			messages: [], process: legacyReceipt ? nil : ProcessID(ulid: fixedUlid(60)),
 			settled: true)
 		#expect(

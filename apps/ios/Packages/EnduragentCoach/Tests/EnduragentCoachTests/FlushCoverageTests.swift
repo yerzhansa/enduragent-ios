@@ -32,7 +32,7 @@ import Testing
 		let question = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: queued))
 				.records.first?.ulid)
-		try #require(soft.trigger == .softThreshold)
+		try #require(try await storedFlushTriggers(in: store).first == .softThreshold)
 		try #require(!soft.messages.contains(question))
 		try #require(question < (soft.messages.max() ?? question))
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -356,7 +356,7 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(offset)),
 			messages: messages.map(fixedUlid),
 			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: settled)
 	}

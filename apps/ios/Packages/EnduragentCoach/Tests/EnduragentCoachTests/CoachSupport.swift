@@ -302,3 +302,10 @@ extension WireMessage {
 		return String(content[stamp.upperBound...])
 	}
 }
+
+func storedFlushTriggers(in store: any RecordLog) async throws -> [FlushTrigger] {
+	try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records.compactMap {
+		guard case .deviceLocal(.flushPending(let body)) = $0.body else { return nil }
+		return body.trigger
+	}
+}

@@ -2,7 +2,6 @@ import Foundation
 
 package struct FlushJob: Sendable, Equatable {
 	package let id: FlushJobID
-	package let trigger: FlushTrigger
 	package let messages: [ULID]
 	package var process: ProcessID?
 	package var settled: Bool
@@ -91,7 +90,7 @@ extension ConversationFold {
 			let id = FlushJobID(ulid: record.ulid)
 			let consumedInV1 = body.process == nil && consumed.contains(id)
 			return FlushJob(
-				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
+				id: id, messages: body.messageUlids, process: body.process,
 				settled: consumedInV1 || settled.contains(id), reset: resetOpened(by: record.cause),
 				abandoned: abandoned.contains(id), consumedInV1: consumedInV1)
 		}
@@ -240,7 +239,7 @@ package struct FlushWork: Sendable {
 			stamp: stamp)
 		guard let record = records.first else { throw LedgerFailure.rejectedBatch }
 		return FlushJob(
-			id: FlushJobID(ulid: record.ulid), trigger: trigger, messages: ulids, process: process,
+			id: FlushJobID(ulid: record.ulid), messages: ulids, process: process,
 			settled: false)
 	}
 

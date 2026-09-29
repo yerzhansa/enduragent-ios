@@ -140,7 +140,7 @@ import Testing
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 2, in: store)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		#expect(jobs.map(\.trigger) == [.explicitReset, .softThreshold])
+		#expect(try await storedFlushTriggers(in: store) == [.explicitReset, .softThreshold])
 		let job = try #require(jobs.last)
 		#expect(job.messages.filter { $0 == user }.count == 1)
 		let window = try #require(flushed().last)

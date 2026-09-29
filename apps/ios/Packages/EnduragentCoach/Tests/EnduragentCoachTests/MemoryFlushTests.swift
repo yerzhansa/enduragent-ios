@@ -23,10 +23,8 @@ import Testing
 		]
 	}
 
-	func job(_ trigger: FlushTrigger = .softThreshold) -> FlushJob {
-		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(40)), trigger: trigger, messages: [fixedUlid(41)],
-			settled: false)
+	func job() -> FlushJob {
+		FlushJob(id: FlushJobID(ulid: fixedUlid(40)), messages: [fixedUlid(41)], settled: false)
 	}
 
 	func run(
@@ -110,7 +108,7 @@ import Testing
 		}
 		script.append(.finish(reason: .stop))
 		transport.flushScript = script
-		#expect(try await run(job(.trim)) == .saved(sections: 0, events: 1))
+		#expect(try await run(job()) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
 		#expect(
 			transport.requests.allSatisfy { $0.tools.map(\.name) == [.memoryWrite, .ledgerAppend] })
@@ -126,7 +124,7 @@ import Testing
 		]
 		let roomForOne = TurnScope(
 			stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
-		#expect(try await run(job(.overflow), scope: roomForOne) == .saved(sections: 0, events: 1))
+		#expect(try await run(job(), scope: roomForOne) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == 2)
 		await #expect(throws: TurnBudgetExceeded(kind: .generateCalls)) {
 			try await roomForOne.chargeCall()
@@ -138,7 +136,7 @@ import Testing
 		let spent = TurnScope(stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
 		try await spent.chargeCall()
 		#expect(
-			try await run(job(.preCompaction), scope: spent)
+			try await run(job(), scope: spent)
 				== .failed(.model(.budgetExhausted(.generateCalls))))
 		#expect(transport.requests.isEmpty)
 	}
