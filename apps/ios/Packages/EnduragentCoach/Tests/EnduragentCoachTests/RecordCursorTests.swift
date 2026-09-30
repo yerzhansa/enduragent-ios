@@ -54,6 +54,27 @@ extension SwiftDataSuites {
 			#expect(next.ulid > synced.ulid)
 		}
 
+		@Test(arguments: RecordLogKind.allCases)
+		func openOrdersULIDsLexically(kind: RecordLogKind) async throws {
+			let log = try makeRecordLog(kind, deviceId: device)
+			let prefix = fixedUlid(0).rawValue.prefix(22)
+			let smaller = try #require(ULID(rawValue: prefix + "1A10"))
+			let collision = try #require(ULID(rawValue: prefix + "1A11"))
+			let highest = try #require(ULID(rawValue: prefix + "1A2Z"))
+			#expect(smaller < collision && collision < highest)
+			try await seed(
+				log,
+				[smaller, collision, highest].map {
+					storedRecord(
+						device: device, wall: 900_000_000_000, ulid: $0,
+						body: .synced(sampleUser(chatId: .main, text: "stored")))
+				})
+			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+			let written = try await ledger.commit(
+				synced: [sampleUser(chatId: .main, text: "new")], stamp: testStamp())
+			#expect(written.first?.ulid == highest.incremented())
+		}
+
 		@Test func openUsesEnvelopeWithoutDecodingTheBody() async throws {
 			let schema = Schema([StoredAthleteRecord.self])
 			let container = try ModelContainer(
