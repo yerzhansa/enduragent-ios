@@ -37,6 +37,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	public var deltaDelay: Duration?
+	package var clock: any Clock = SystemClock()
 	private let lock = NSLock()
 
 	public init() {
@@ -91,15 +92,16 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		let batch = nextBatch(for: request)
 		let delay = requestDelay
 		let pause = deltaDelay
+		let clock = clock
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
 					if let delay {
-						try await Task.sleep(for: delay)
+						try await clock.sleep(for: delay)
 					}
 					for event in batch.events {
 						if let pause {
-							try await Task.sleep(for: pause)
+							try await clock.sleep(for: pause)
 						}
 						continuation.yield(event)
 					}

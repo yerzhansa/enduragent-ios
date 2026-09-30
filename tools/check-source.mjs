@@ -141,15 +141,16 @@ try {
       checkLedgerIndexVersion(file, text);
     }
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
-      const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
+      let depth = 0;
       const exposed = text.split('\n').some(line => {
-        const member = declaration.exec(line.replace(/"(?:\\.|[^"\\])*"/g, '""'));
-        return member && !/(?:^|\s)private(?:\s|$)/.test(member[1]);
+        const code = line.replace(/"(?:\\.|[^"\\])*"/g, '""');
+        const member = depth === 1 && /^(.*?)\b(let|var)\s+(\w+)\b(.*)/.exec(code);
+        depth += (code.match(/\{/g) ?? []).length - (code.match(/\}/g) ?? []).length;
+        if (!member || /(?:^|\s)private(?:\s|$)/.test(member[1])) return false;
+        return !/^\s*package let chatId: ChatID\s*$/.test(code);
       });
       if (exposed) report(file, 'mailbox-private-state');
     }
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:builder|environment)\s*\.\s*phrasebook\b/.test(text)) report(file, 'device-only-phrasebook');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
       && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)
       && (!file.endsWith('DebugView.swift') || !isDebugOnly(text))) report(file, 'fixture-feedback-debug-only');

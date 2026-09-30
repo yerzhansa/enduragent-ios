@@ -61,8 +61,11 @@ jobs:
               exit
             }
           ' "$RUNNER_TEMP/enduragent-destinations.txt")"
-          test -n "$destination_id"
-          xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,id=$destination_id" -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
+          if [ -z "$destination_id" ]; then
+            cat "$RUNNER_TEMP/enduragent-destinations.txt"
+            exit 1
+          fi
+          xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$destination_id" -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
       - name: Build unsigned iPhone app in Release

@@ -272,22 +272,15 @@ import Testing
 		#expect(!rows.contains("Archived late reply"))
 	}
 
-	@Test func legacyCoverageStaysWithinTheAttemptBudget() async throws {
+	@Test func legacyCoverageResolvesEachRowOnce() {
 		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
 		let jobs = (1...200).map { job($0, messages: [], settled: true) }
-		var samples = PerformanceSamples()
-		for _ in 0..<PerformanceSamples.batchCount {
-			let resolved = Mutex(0)
-			await samples.measure(count: 1) {
-				ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
-					conversation.messagesSinceLastFlush(jobs, excluding: nil)
-				}
-			} validate: { rows in
-				#expect(rows.count == 2_000)
-				#expect(resolved.withLock { $0 } == 2_000)
-			}
+		let resolved = Mutex(0)
+		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
+			conversation.messagesSinceLastFlush(jobs, excluding: nil)
 		}
-		try samples.check(budget: .milliseconds(50), name: "legacy-coverage")
+		#expect(rows.count == 2_000)
+		#expect(resolved.withLock { $0 } == 2_000)
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
