@@ -133,7 +133,8 @@ extension FixtureLaunchTests {
 		#expect(retried.id == failed.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
 	}
-	private func failureCoach(_ transport: FakeModelTransport, fixture: FixtureServices) async throws
+	private func failureCoach(_ transport: FakeModelTransport, fixture: FixtureServices)
+		async throws
 		-> Coach
 	{
 		let clock = FixtureClock(

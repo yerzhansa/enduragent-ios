@@ -19,6 +19,7 @@ extension FixtureLaunchTests {
 			_ = try await turn(accepted.id, in: first, where: isProcessing)
 		}
 		let reopened = model(try relaunch(.keep).0)
+		await reopened.appear()
 		await reopened.lifecycle.forward(.becameActive)
 		let recovered = try await turn(accepted.id, in: reopened) { $0.retryable }
 		#expect(recovered.athleteText == "fixture:hang")
