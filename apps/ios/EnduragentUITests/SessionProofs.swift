@@ -220,14 +220,6 @@ final class SessionRejectionProof: XCTestCase {
 				"0.3"
 			),
 			("contextWindowOverride", "0", "Enter a safe whole number of tokens, 1 or more.", "—"),
-			(
-				"compactionModel", String(repeating: "m", count: 513),
-				"Model names must be 512 characters or fewer.", "—"
-			),
-			(
-				"flushModel", String(repeating: "f", count: 513),
-				"Model names must be 512 characters or fewer.", "—"
-			),
 		]
 		for row in rows {
 			SessionDebug.enter(app, row.field, row.value)

@@ -11,8 +11,8 @@ final class MailboxQueue {
 
 	var next: MailboxWork? { waiting.first }
 
-	func add(_ turn: TurnID) -> Bool {
-		append(.turn(turn))
+	func add(_ turn: TurnID, origin: AttemptOrigin) -> Bool {
+		append(.turn(turn, origin: origin))
 	}
 
 	func add(_ reset: ResetID) -> Bool {
