@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 
 @testable import EnduragentCoach
@@ -7,6 +8,36 @@ import Testing
 	let store = InMemoryRecordLog()
 	let transport = FakeModelTransport()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+
+	@Test func aRefusedTurnOffersRetryAfterConsent() async throws {
+		let coach = await makeCoach(
+			transport: transport, store: store, clock: clock, consent: false)
+		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		let refused = try #require(await coach.settledState(of: turn, in: .main))
+		guard case .failed(let refusal) = refused else {
+			Issue.record("Expected a consent refusal")
+			return
+		}
+		#expect(failure(refused) == .model(.accessUnavailable(.providerConsentRequired)))
+		#expect(refused.retryable)
+		#expect(refusal.notice.action == .tryAgain(turn))
+		#expect(transport.requestCount == 0)
+		try await coach.recordConsent()
+		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		try await coach.retry(turn, in: .main)
+		let answered = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(answered) == "Hello.")
+		#expect(transport.requestCount == 1)
+		#expect(await coach.transcript(.main) == ["Hello", "Hello."])
+	}
+
+	@Test func setupRequiresConsentBeforeItIsReady() async throws {
+		let coach = await makeCoach(
+			transport: transport, store: store, clock: clock, consent: false)
+		#expect(await coach.status().setup != .ready)
+		try await coach.recordConsent()
+		#expect(await coach.status().setup == .ready)
+	}
 
 	@Test func consentUsesTheCurrentVersionAndIsIndependentOfAccessMethod() async throws {
 		let coach = await makeCoach(
@@ -114,6 +145,48 @@ import Testing
 }
 
 extension SwiftDataSuites {
+	@Test static func malformedConsentDoesNotPreventLaterAcceptance() async throws {
+		let directory = FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		let local = try ModelContainerHandle.withoutCloudKit(
+			storeURL: directory.appending(path: "local.store"))
+		let device = DeviceID(rawValue: "consent-test-device")
+		let record = try StoredAthleteRecord(
+			record: storedRecord(
+				device: device, wall: 1,
+				body: .deviceLocal(
+					.providerConsent(ProviderConsent(at: Date(timeIntervalSince1970: 1))))))
+		record.body = Data(#"{"version":1,"at":"invalid"}"#.utf8)
+		let context = ModelContext(local.container)
+		context.insert(record)
+		try context.save()
+		let log = SwiftDataRecordLog(
+			deviceId: device,
+			synced: try ModelContainerHandle.withoutCloudKit(
+				storeURL: directory.appending(path: "synced.store")), local: local)
+		let transport = FakeModelTransport()
+		let coach = await makeCoach(transport: transport, store: log, consent: false)
+		#expect(await coach.status().needsProviderConsent)
+		#expect(
+			failure(try await coach.sendAndSettle("Hello"))
+				== .model(.accessUnavailable(.providerConsentRequired)))
+		#expect(transport.requestCount == 0)
+		try await coach.recordConsent()
+		let reopened = await makeCoach(transport: transport, store: log, consent: false)
+		#expect(await reopened.status().needsProviderConsent == false)
+		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		#expect(replyText(try await reopened.sendAndSettle("Hello again")) == "Hello.")
+		#expect(transport.requestCount == 1)
+		let page = try await log.fetch(RecordQuery(scope: .deviceLocal([.providerConsent])))
+		#expect(page.records.count == 1)
+		#expect(page.skipped == [.malformed(kind: "providerConsent", ulid: record.ulid)])
+		#expect(
+			coach.diagnostics.entries.contains {
+				$0.event == .skippedRecord(.malformed(kind: "providerConsent", ulid: record.ulid))
+			})
+	}
+
 	@Test static func providerConsentReopensFromTheDeviceLocalStore() async throws {
 		let directory = FileManager.default.temporaryDirectory.appending(
 			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
