@@ -42,7 +42,7 @@ import Testing
 			return
 		}
 		#expect(!call.id.isEmpty)
-		#expect(call.name == .intervalsFetchAthlete)
+		#expect(call.name == "intervals_fetch_athlete")
 		#expect(call.arguments == "{}")
 		#expect(
 			second.last

@@ -125,6 +125,13 @@ public struct WellnessDay: Sendable, Equatable {
 		self.form = form
 	}
 
+	public static func formattedNumber(_ value: Double?, fractionDigits: Int = 0) -> String {
+		guard let value, value.isFinite else { return "—" }
+		let number = fractionDigits == 0 ? value.rounded() : value
+		return wholeInt(number).map(String.init)
+			?? String(format: "%.*f", fractionDigits, number)
+	}
+
 	package init(json: IntervalsWellnessJSON) {
 		self.date = json.date
 		self.fitness = json.ctl
@@ -261,13 +268,19 @@ package enum IntervalsPolicy {
 
 	package static func inclusiveDayCount(from oldest: CivilDate, to newest: CivilDate) -> Int {
 		if oldest > newest { return 0 }
-		var count = 1
-		var cursor = oldest
-		while cursor < newest {
-			cursor = cursor.adding(days: 1)
-			count += 1
-		}
-		return count
+		return gregorianDayNumber(newest) - gregorianDayNumber(oldest) + 1
+	}
+
+	private static func gregorianDayNumber(_ date: CivilDate) -> Int {
+		let key = DateKey.from(date).rawValue
+		let year = key / 10_000
+		let month = key / 100 % 100
+		let day = key % 100
+		let previousYear = year - 1
+		let daysBeforeMonth = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+		let leapDay = month > 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) ? 1 : 0
+		return previousYear * 365 + previousYear / 4 - previousYear / 100 + previousYear / 400
+			+ daysBeforeMonth[month - 1] + leapDay + day
 	}
 
 	package static func rejectListRange(oldest: CivilDate, newest: CivilDate) throws {
@@ -277,7 +290,10 @@ package enum IntervalsPolicy {
 				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
 			)
 		}
-		let days = inclusiveDayCount(from: oldest, to: newest)
+		try rejectListDayCount(inclusiveDayCount(from: oldest, to: newest))
+	}
+
+	package static func rejectListDayCount(_ days: Int) throws {
 		if days > listMaxRangeDays {
 			throw IntervalsError(
 				code: "range_too_wide",

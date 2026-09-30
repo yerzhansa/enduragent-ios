@@ -156,3 +156,7 @@ private func encodeJSONNumber(_ value: Double) -> String {
 	}
 	return String(value)
 }
+
+package func wholeInt(_ value: Double) -> Int? {
+	Int(exactly: value)
+}

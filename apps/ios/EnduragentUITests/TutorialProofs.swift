@@ -19,6 +19,7 @@ final class ConnectIntervalsProof: XCTestCase {
 		TutorialHarness.named(app, "notice.continue").tap()
 		let key = TutorialHarness.named(app, "connect.apiKey")
 		TutorialHarness.wait(key)
+		XCTAssertEqual(key.elementType, .secureTextField)
 		XCTAssertTrue(app.staticTexts["intervals.icu API key"].exists || key.exists)
 		key.tap()
 		key.typeText("fixture")
