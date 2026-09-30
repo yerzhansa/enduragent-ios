@@ -48,7 +48,7 @@ func testRequest(
 
 func makeCoach(
 	transport: FakeModelTransport,
-	intervals: FakeIntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+	intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,

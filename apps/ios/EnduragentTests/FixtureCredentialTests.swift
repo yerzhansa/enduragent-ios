@@ -63,13 +63,14 @@ extension FixtureLaunchTests {
 		#expect(model.fixtureFeedback == nil)
 	}
 
-	@Test func connectStoresTheKeyAndShowsTheAthleteAndToday() async throws {
+	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
 		let model = model(services)
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
 		#expect(model.didConnect)
+		#expect(model.connectKey.isEmpty)
 		#expect(model.connectError == nil)
 		#expect(model.connected?.athleteName == "Ada Kovač")
 		#expect(model.connected?.today?.fitness == 42)
@@ -81,12 +82,26 @@ extension FixtureLaunchTests {
 		#expect(athlete?.rawValue == "i1001")
 	}
 
+	@Test func continuingConnectClearsAnyNewKey() async throws {
+		let model = model(try services())
+		model.continueNotice()
+		model.connectKey = "fixture"
+		await model.connect()
+		try #require(model.didConnect)
+		model.connectKey = "edited-after-connect"
+		model.continueConnect()
+		#expect(model.connectKey.isEmpty)
+		#expect(model.route == .onboarding(.starter))
+		#expect(model.connected?.athleteName == "Ada Kovač")
+	}
+
 	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
 		let model = model(try services())
 		model.continueNotice()
 		model.connectKey = "   "
 		await model.connect()
 		#expect(!model.didConnect)
+		#expect(model.connectKey == "   ")
 		#expect(model.connectError == "intervals.icu did not accept that key.")
 		#expect(model.connected == nil)
 	}
