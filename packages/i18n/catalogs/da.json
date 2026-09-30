@@ -1024,6 +1024,7 @@
       "savedChoice": "Gemt valg",
       "working": "Træneren arbejder…",
       "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
+      "calendarUnverified": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen.",
       "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
     },
     "planChange": {

@@ -92,7 +92,7 @@ struct ProposalPolicyTests {
 			description: "Warmup\n- 10m 55-65%",
 			now: clock.now,
 			ledger: ledger,
-			stamp: stamp
+			scope: TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		)
 	}
 }

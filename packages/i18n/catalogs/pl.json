@@ -1040,6 +1040,7 @@
       "savedChoice": "Zapisany wybór",
       "working": "Trener pracuje…",
       "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
+      "calendarUnverified": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie.",
       "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
     },
     "planChange": {

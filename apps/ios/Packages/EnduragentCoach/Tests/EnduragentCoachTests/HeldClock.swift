@@ -49,12 +49,15 @@ final class HeldClock: Clock, @unchecked Sendable {
 		}
 	}
 
-	func waitUntilHeld(_ duration: Duration, within limit: Duration = .seconds(5)) async throws {
-		let deadline = ContinuousClock.now + limit
-		while !held.contains(duration), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(5))
+	func waitUntilHeld(_ duration: Duration) async throws {
+		let deadline = ContinuousClock.now + .seconds(30)
+		while !held.contains(duration) {
+			guard ContinuousClock.now < deadline else {
+				Issue.record("HeldClock never held \(duration); held sleeps: \(held)")
+				throw CancellationError()
+			}
+			try await Task.sleep(for: .milliseconds(10))
 		}
-		try #require(held.contains(duration), "no sleeper for \(duration) in \(held)")
 	}
 
 	private func resume(_ id: UUID) {

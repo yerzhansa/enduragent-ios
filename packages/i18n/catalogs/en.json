@@ -194,6 +194,7 @@
       "responseFailure": "The coach couldn't respond. Please try again.",
       "retryMessage": "Retry message",
       "savedChoice": "Saved choice",
+      "calendarUnverified": "The calendar change may have been saved. Check your calendar before asking again.",
       "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
       "working": "Coach is working…",
       "responseStopped": "Response stopped. Your partial response is preserved."
