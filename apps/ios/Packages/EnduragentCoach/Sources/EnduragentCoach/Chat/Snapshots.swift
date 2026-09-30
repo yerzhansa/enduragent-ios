@@ -155,7 +155,8 @@ extension ChatSnapshot {
 		let items = phase.items(queued: queued)
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			phase: phase, window: window, queued: items.compactMap(\.turn), waiting: waiting,
+			live: phase.running?.live, window: window, queued: items.compactMap(\.turn),
+			waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
 			today: CivilDate(date: now, timeZone: zone))
 		if phase.cause != nil {
@@ -182,11 +183,11 @@ extension Segment {
 	}
 
 	func turnViews(
-		phase: MailboxPhase, window: OpenWindow? = nil, queued: [TurnID] = [],
+		live: LiveAttempt?, window: OpenWindow? = nil, queued: [TurnID] = [],
 		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
 		device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
-		return turns.compactMap { facts -> TurnView? in
+		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
 				return nil
 			}
@@ -197,7 +198,7 @@ extension Segment {
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: phase.running?.live, overlay: overlay, device: device,
+					of: facts, live: live, overlay: overlay, device: device,
 					process: process),
 				completedInBackground: finishedAway.contains(facts.turn)
 			)

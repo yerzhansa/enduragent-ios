@@ -61,7 +61,7 @@ extension Ledger {
 			}
 			for (segment, reason) in closed {
 				let views = segment.turnViews(
-					phase: .idle,
+					live: nil,
 					device: deviceId, process: process, today: today)
 				let first = segment.turns.first?.fragments.first
 				let note = segment.notes.first

@@ -15,7 +15,8 @@ import Testing
 		let transport = FakeModelTransport()
 		let coach = makeCoach(
 			transport: transport, store: firstClaim,
-			coalescing: CoalescingPolicy(window: .seconds(60)), secrets: FakeSecretStore())
+			coalescing: CoalescingPolicy(window: .seconds(60)),
+			secrets: ICloudKeychainStore(backing: FixtureSecretStoreBacking()))
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
@@ -90,8 +91,11 @@ import Testing
 		-> (Coach, HeldAppendLog, FakeModelTransport)
 	{
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let secrets = refusal == .missingKey ? FakeSecretStore() : keyedSecrets()
-		if refusal == .lockedKeychain { secrets.locked = true }
+		let backing = FixtureSecretStoreBacking()
+		let secrets =
+			refusal == .missingKey
+			? ICloudKeychainStore(backing: backing) : keyedSecrets(backing: backing)
+		if refusal == .lockedKeychain { backing.locked = true }
 		if refusal == .claimStorage { try log.failAppends(ofKind: "turnClaim") }
 		let claim = HeldAppendLog(inner: log, holding: "turnClaim", occurrence: 1)
 		let transport = FakeModelTransport()
