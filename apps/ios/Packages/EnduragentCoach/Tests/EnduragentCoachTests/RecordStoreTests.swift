@@ -58,6 +58,13 @@ extension SwiftDataSuites {
 			}
 		}
 
+		@Test func faultingFixtureRejectsALegacyKind() throws {
+			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			#expect(throws: RecordFaultConfigurationError.unknownKind("assistantMessage")) {
+				try fixture.faults.failAppends(ofKind: "assistantMessage")
+			}
+		}
+
 		private func coach(_ store: RecordStore) -> Coach {
 			Coach(
 				sport: .cycling,

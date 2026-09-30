@@ -59,7 +59,6 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	package func failAppends(ofKind kind: String) throws {
 		guard
 			SyncedKind(rawValue: kind) != nil || DeviceLocalKind(rawValue: kind) != nil
-				|| LegacyKind(rawValue: kind) != nil
 		else {
 			throw RecordFaultConfigurationError.unknownKind(kind)
 		}
