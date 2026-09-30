@@ -1016,6 +1016,7 @@
       "savedChoice": "已保存的选择",
       "working": "教练正在处理…",
       "responseStopped": "已停止回复。已生成的部分回复已保留。",
+      "calendarUnverified": "日历更改可能已保存。再次请求前，请先检查日历。",
       "savedUnverified": "我已保存你的信息，但未能验证我的回复。请重试。"
     },
     "planChange": {

@@ -8,7 +8,7 @@ extension TurnRunner {
 		progress: @escaping AttemptProgressSink
 	) async throws -> AttemptResult {
 		try Task.checkCancellation()
-		try await scope.chargeAttempt()
+		try await scope.chargeAttempt(using: ladder)
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
 			try await flushOnce(
@@ -103,7 +103,7 @@ extension TurnRunner {
 			await progress(.textDelta(assistantText))
 		}
 
-		if let outcome = await scope.savedReviewWork() {
+		if let outcome = try await scope.savedReviewWork(using: ladder) {
 			return .savedWork(outcome, saved: await scope.summary)
 		}
 

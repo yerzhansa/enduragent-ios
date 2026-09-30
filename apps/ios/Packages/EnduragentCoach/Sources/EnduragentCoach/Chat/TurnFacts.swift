@@ -67,8 +67,9 @@ package struct TurnFacts: Sendable, Equatable {
 			replyText = text
 		case .interrupted(let partial, _, _) where !partial.isEmpty:
 			replyText = partial
-		case .savedWork(let outcome, _):
-			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
+		case .savedWork(let outcome, let saved):
+			replyText = AthleteNotices.notice(for: outcome, saved: saved).sentence(
+				in: Self.promptPhrasebook)
 		case .interrupted, .failed:
 			return nil
 		}

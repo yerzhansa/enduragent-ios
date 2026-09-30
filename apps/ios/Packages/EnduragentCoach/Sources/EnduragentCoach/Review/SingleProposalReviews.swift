@@ -83,11 +83,15 @@ package actor SingleProposalReviews: WorkoutReviews {
 			deliveries[chat] = delivery
 			let outcome: ReviewOutcome
 			if case .approve = decision {
+				let gate: TurnScope
 				if let scope {
-					outcome = await scope.reviewing { await self.approve(token, scope: scope) }
+					gate = scope
 				} else {
-					outcome = await approve(token, scope: nil)
+					gate = TurnScope(
+						stamp: await stamp(token.ref, account: .unconnected),
+						policy: .npm, uptime: clock.uptime)
 				}
+				outcome = await approve(token, scope: gate)
 			} else {
 				outcome = await cancel(token)
 			}
@@ -101,7 +105,13 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	private func approve(
-		_ token: ReviewControlToken, scope: TurnScope?
+		_ token: ReviewControlToken, scope: TurnScope
+	) async -> ReviewOutcome {
+		await scope.reviewing { await self.applyApproval(token, scope: scope) }
+	}
+
+	private func applyApproval(
+		_ token: ReviewControlToken, scope: TurnScope
 	) async -> ReviewOutcome {
 		let live: LiveProposal
 		switch await liveProposal(for: token.ref) {
@@ -118,13 +128,15 @@ package actor SingleProposalReviews: WorkoutReviews {
 			return .blocked(.accountChanged)
 		}
 		let stamp = await stamp(token.ref, account: connection.account)
+		guard await scope.beginReview(live) else { return .staleControl }
 		do {
 			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
 		} catch {
+			await scope.recordReview(live, outcome: .storageUnavailable)
 			return .storageUnavailable
 		}
 		let outcome = await apply(live, connection: connection, stamp: stamp)
-		await scope?.recordReview(live, outcome: outcome)
+		await scope.recordReview(live, outcome: outcome)
 		return outcome
 	}
 

@@ -192,6 +192,7 @@ Catalog.chatNoticeResponseFailure
 Catalog.chatNoticeResponseStopped
 Catalog.chatNoticeRetryMessage
 Catalog.chatNoticeSavedChoice
+Catalog.chatNoticeCalendarUnverified
 Catalog.chatNoticeSavedUnverified
 Catalog.chatNoticeWorking
 Catalog.chatPlanChangeActivePlan

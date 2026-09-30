@@ -144,13 +144,18 @@ extension RetryLadderTests {
 		return try #require(await coach.currentSnapshot(.main)?.review?.token)
 	}
 
-	func settledTurn(_ turn: TurnID, on coach: Coach) async -> TurnState? {
-		for await snapshot in await coach.observe(.main) {
-			if let state = snapshot.turns.first(where: { $0.id == turn })?.state, state.isSettled {
-				return state
-			}
+	func waitForReviewGate(on coach: Coach) async throws {
+		let scope = try #require(await coach.mailbox(for: .main).reviewScope)
+		let deadline = ContinuousClock.now + .seconds(5)
+		while await !scope.waitingForReview {
+			try #require(
+				ContinuousClock.now < deadline, "The retry never waited for calendar approval")
+			try await Task.sleep(for: .milliseconds(1))
 		}
-		return nil
+	}
+
+	func settledTurn(_ turn: TurnID, on coach: Coach) async -> TurnState? {
+		await coach.settledState(of: turn, in: .main)
 	}
 }
 

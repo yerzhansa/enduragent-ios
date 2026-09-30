@@ -43,7 +43,7 @@ extension RetryLadderTests {
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(7))
-		for _ in 0..<1_000 { await Task.yield() }
+		try await waitForReviewGate(on: coach)
 		held.release(.seconds(13))
 		let first = await approving.value
 		try await expectSingleApproval(

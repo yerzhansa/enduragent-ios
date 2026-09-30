@@ -314,18 +314,26 @@ package enum AthleteNotices {
 		return AthleteNotice(key: turn.key, vars: turn.vars, action: nil)
 	}
 
-	package static func notice(for outcome: SavedWorkOutcome) -> AthleteNotice {
+	package static func notice(for outcome: SavedWorkOutcome, saved: WriteSummary = .none)
+		-> AthleteNotice
+	{
 		switch outcome {
 		case .writesSaved:
 			AthleteNotice(key: Catalog.coachFallbackWritesSaved, action: nil)
 		case .savedUnverified:
-			AthleteNotice(key: Catalog.chatNoticeSavedUnverified, action: nil)
+			AthleteNotice(
+				key: saved.calendarWrites > 0
+					? Catalog.chatNoticeCalendarUnverified : Catalog.chatNoticeSavedUnverified,
+				action: nil)
 		}
 	}
 
 	package static func notice(
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {
+		if saved.calendarWrites > 0 {
+			return AthleteNotice(key: Catalog.chatNoticeCalendarUnverified, action: nil)
+		}
 		switch interruption {
 		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded,
 			.stoppedBeforeStart:

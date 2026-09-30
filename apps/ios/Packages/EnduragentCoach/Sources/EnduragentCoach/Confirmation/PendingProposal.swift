@@ -42,7 +42,18 @@ package enum ProposalPolicy {
 		description: String,
 		now: Date,
 		ledger: Ledger,
-		stamp: OperationStamp
+		scope: TurnScope
+	) async throws -> PendingProposal {
+		try await scope.proposing {
+			try await save(
+				chatId: chatId, tool: tool, input: input, summary: summary,
+				description: description, now: now, ledger: ledger, stamp: scope.stamp)
+		}
+	}
+
+	private static func save(
+		chatId: ChatID, tool: GatedToolName, input: GatedToolInput, summary: String,
+		description: String, now: Date, ledger: Ledger, stamp: OperationStamp
 	) async throws -> PendingProposal {
 		let records = try await ledger.read(proposalQuery(chatId)).records
 		var bodies: [DeviceLocalRecordBody] = []

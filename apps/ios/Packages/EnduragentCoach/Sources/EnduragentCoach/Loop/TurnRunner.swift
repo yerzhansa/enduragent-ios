@@ -51,7 +51,7 @@ package struct TurnRunner: Sendable {
 	private let ledger: Ledger
 	let clock: any Clock
 	let diagnostics: DiagnosticsLog
-	private let ladder: RetryLadder
+	let ladder: RetryLadder
 	private let evidence: any TurnEvidence
 
 	package init(
@@ -113,7 +113,7 @@ package struct TurnRunner: Sendable {
 			} catch {
 				let failure = try AttemptFailure(caught: error)
 				let situation = AttemptSituation(
-					committed: await scope.resolvedWrites,
+					committed: try await scope.resolvedWrites(),
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
 					effectiveWindow: prompt.window,
@@ -164,7 +164,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
-		return await scope.savedWork(using: ladder)
+		return try await scope.savedWork(using: ladder)
 	}
 
 	func flushOnce(

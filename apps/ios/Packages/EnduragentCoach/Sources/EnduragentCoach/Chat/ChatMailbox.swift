@@ -329,7 +329,7 @@ package actor ChatMailbox {
 			settlement = .interrupted(
 				partial: work.phase.running?.live?.text ?? "",
 				cause: work.phase.cause ?? .athleteStopped,
-				saved: WriteSummary(await scope.resolvedWrites))
+				saved: await scope.interrupt())
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		finish(turn, under: lease)
