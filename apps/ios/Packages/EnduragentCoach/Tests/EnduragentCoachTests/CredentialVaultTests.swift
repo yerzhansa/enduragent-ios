@@ -13,22 +13,25 @@ import Testing
 	let offline = FakeIntervalsClient(athleteName: "Nobody", ftp: 200, athleteId: "i3003")
 	let built = CredentialLog()
 
-	@Test func intervalsReplaceNeverWritesStaging() async throws {
-		let memory = MemorySecretStoreBacking()
-		let store = ICloudKeychainStore(backing: memory)
-		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
-		try store.storeIntervalsConnection(testConnection)
-		memory.failWrites("intervalsConnectionStaging", with: errSecNotAvailable)
-		let outcome = await coach(store).changeTraining(
-			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
-		guard case .replaced = outcome else {
-			Issue.record("expected a direct replacement, got \(outcome)")
+	@Test(arguments: [errSecNotAvailable, errSecDecode])
+	func secureStorageDiagnosticsKeepStatus(_ status: OSStatus) async throws {
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		let coach = await coach(secrets)
+		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: status)
+		let outcome = await coach.changeTraining(
+			.replace(apiKey: "icu-new-key", athlete: .keyOwner))
+		let unavailable: AccessUnavailable =
+			status == errSecDecode
+			? .malformedStoredCredential(.intervalsConnection) : .secureStorageUnavailable
+		#expect(outcome == .failedPreviousKept(.secureStorage(unavailable), previous: adaSummary))
+		let entry = try #require(coach.diagnostics.entries.last)
+		guard case .secureStorageFailed(let slot, let failure) = entry.event else {
+			Issue.record("expected a secure storage diagnostic")
 			return
 		}
-		#expect(try store.intervalsConnection()?.credential == .apiKey("icu-rotated-key"))
-		#expect(memory.writes(to: "intervalsConnectionStaging") == 0)
-		#expect(!memory.readAccounts.contains("intervalsConnectionStaging"))
-		#expect(!memory.deletedAccounts.contains("intervalsConnectionStaging"))
+		#expect(slot == .intervalsConnection)
+		#expect(failure == KeychainStoreError.keychain(status))
 	}
 
 	init() {
@@ -72,8 +75,8 @@ import Testing
 		testVault(store, training: training, clock: clock)
 	}
 
-	func account(_ connection: IntervalsConnection) throws -> TrainingAccount {
-		.intervals(connection: try #require(connection.id), athlete: connection.resolvedAthlete)
+	func account(_ connection: IntervalsConnection) -> TrainingAccount {
+		.intervals(connection: connection.id, athlete: connection.resolvedAthlete)
 	}
 
 	func claimAccount(after text: String, on coach: Coach) async throws -> TrainingAccount {
@@ -121,9 +124,10 @@ import Testing
 	}
 
 	@Test func failedWriteKeepsPreviousItemAndNextAttemptUsesIt() async throws {
-		let secrets = keyedSecrets()
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
 		let coach = await coach(secrets)
-		secrets.failNextWrite = true
+		backing.failNextWrite = true
 		#expect(
 			await coach.changeTraining(.replace(apiKey: "icu-new-key", athlete: .keyOwner))
 				== .failedPreviousKept(
@@ -133,7 +137,7 @@ import Testing
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
 		#expect(built.credentials.contains(.apiKey("icu-new-key")))
 
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let keychain = ICloudKeychainStore(backing: memory)
 		try keychain.storeIntervalsConnection(testConnection)
 		memory.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
@@ -197,7 +201,7 @@ import Testing
 		let resolved = try #require(try secrets.intervalsConnection())
 		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))
 		#expect(resolved.resolvedAthlete == athlete)
-		#expect(status.trainingAccount == (try account(resolved)))
+		#expect(status.trainingAccount == account(resolved))
 		_ = try await proposeRide(on: coach)
 		let other = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		#expect(
@@ -240,7 +244,7 @@ import Testing
 			return
 		}
 		#expect(summary.athleteName == "Bo Lind")
-		#expect(switched == (try account(active)))
+		#expect(switched == account(active))
 		let switchedReview = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(switchedReview.ref.set == pending.ref.set)
 		#expect(switchedReview.notice?.kind == .accountChanged)
@@ -251,7 +255,7 @@ import Testing
 		let proposals = try await records.fetch(
 			RecordQuery(scope: .deviceLocal([.pendingProposal]), chatId: "main")
 		).records
-		#expect(proposals.map(\.account) == [try account(testConnection)])
+		#expect(proposals.map(\.account) == [account(testConnection)])
 	}
 
 	@Test func disconnectLeavesTheNextTurnUnconnected() async throws {
@@ -264,7 +268,7 @@ import Testing
 	}
 
 	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = await coach(secrets)

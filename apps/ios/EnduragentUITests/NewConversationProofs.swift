@@ -84,9 +84,6 @@ final class WelcomeAfterSkipProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.startUnconnected(app)
 		TutorialHarness.waitForWelcome(app)
-		let welcome = TutorialHarness.named(app, "chat.welcome")
-		XCTAssertFalse(welcome.label.contains("/sync"))
-		XCTAssertTrue(welcome.label.contains("/workout"))
 		TutorialHarness.attach(self, name: "welcome-after-skip", app: app)
 	}
 }

@@ -138,7 +138,7 @@ import Testing
 	}
 
 	@Test func legacyAccessSelectionDoesNotGrantProviderConsent() async throws {
-		let backing = MemorySecretStoreBacking(items: [
+		let backing = FixtureSecretStoreBacking(items: [
 			"openRouterAccountKey": Data("sk-or-test-account".utf8),
 			"accessSelection": Data(
 				#"{"openRouterAccount":{"model":"test/coach-model","provider":"Test Provider","consentModel":"test/coach-model","consentAt":0}}"#
@@ -224,6 +224,10 @@ private struct UnreadableConsentLog: RecordLog {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		try await inner.append(batch, locality: locality)
+	}
+
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {

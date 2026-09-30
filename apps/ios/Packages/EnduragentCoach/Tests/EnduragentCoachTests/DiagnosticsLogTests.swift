@@ -111,8 +111,9 @@ import Testing
 			])
 		let transport = FakeModelTransport()
 		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
-		let secrets = keyedSecrets()
-		secrets.locked = !keyStored
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		backing.locked = !keyStored
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
@@ -163,6 +164,10 @@ private struct UnreadableLog: RecordLog {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		nil
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		RecordPage(records: [], skipped: rows)
 	}
@@ -176,9 +181,10 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
 	case .providerFailure(_, _, let detail),
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
-		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
+		.replyObservedUnsaved(_, let detail):
 		return detail.count
-	case .toolFailed, .skippedRecord, .recoveryUnavailable, .preferencesUnavailable,
+	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
+		.preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil
 	}

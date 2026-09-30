@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 enum TutorialHarness {
@@ -11,7 +12,6 @@ enum TutorialHarness {
 	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 	static let reviewReply = "Saturday group ride"
 	static let welcomeHead = "Welcome to Cycling Coach!"
-	static let syncLine = "/sync — Force-refresh training data from intervals.icu"
 	static let newConversationStarted = "New conversation started."
 	static let newConversationMemoryWarning =
 		"New conversation started. Some recent details may not have been saved to coach memory."
@@ -228,6 +228,18 @@ enum TutorialHarness {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
 		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
+		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en_US")
+		let commands = welcome.label.split(separator: "\n").filter { $0.hasPrefix("/") }
+		XCTAssertEqual(
+			commands.map(String.init),
+			SlashCommand.allCases.map { command in
+				phrasebook.say(
+					Catalog.chatWelcomeCommand,
+					[
+						"command": command.rawValue,
+						"description": phrasebook.say(command.menuTitle),
+					])
+			})
 	}
 
 	static func startNewConversation(_ app: XCUIApplication) {

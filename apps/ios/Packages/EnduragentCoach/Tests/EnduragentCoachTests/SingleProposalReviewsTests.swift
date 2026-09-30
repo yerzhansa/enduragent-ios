@@ -9,7 +9,12 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	let ada = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250, athleteId: "i1001")
 	let bo = FakeIntervalsClient(athleteName: "Bo Lind", ftp: 240, athleteId: "i2002")
-	let secrets = keyedSecrets()
+	let secretBacking = FixtureSecretStoreBacking()
+	let secrets: ICloudKeychainStore
+
+	init() {
+		secrets = keyedSecrets(backing: secretBacking)
+	}
 	let phrasebook = CatalogPhrasebook(tag: .en, locale: LanguageTag.en.defaultLocale)
 
 	@Test func controlsAreNoneUntilPresented() async throws {
@@ -159,7 +164,7 @@ import Testing
 	@Test func lockedKeychainBlocksApprovalAndKeepsTheReview() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		secrets.locked = true
+		secretBacking.locked = true
 
 		let blocked = await coach.decide(.approve(token), in: .main)
 
@@ -169,7 +174,7 @@ import Testing
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
-		secrets.locked = false
+		secretBacking.locked = false
 		#expect(
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))

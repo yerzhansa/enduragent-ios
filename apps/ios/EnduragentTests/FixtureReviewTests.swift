@@ -10,15 +10,15 @@ extension FixtureLaunchTests {
 		async throws
 	{
 		let services = try services()
-		let secrets = try #require(services.fixtureDirector?.secrets)
+		let backing = try #require(services.fixtureDirector?.secretBacking)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
-		secrets.locked = true
+		backing.locked = true
 		await model.decide(.approve(token))
 		try #require(model.reviewNotice?.key == Catalog.reviewCannotVerify)
-		secrets.locked = false
+		backing.locked = false
 
 		if newConversation {
 			await model.newConversation()
@@ -59,11 +59,11 @@ extension FixtureLaunchTests {
 
 	@Test func onlyATapShowsTheReviewOutcome() async throws {
 		let services = try services()
-		let secrets = try #require(services.fixtureDirector?.secrets)
+		let backing = try #require(services.fixtureDirector?.secretBacking)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
-		secrets.locked = true
+		backing.locked = true
 
 		await model.decide(.approve(token))
 
@@ -73,7 +73,7 @@ extension FixtureLaunchTests {
 		)
 		await model.decide(.presented(token.ref))
 		#expect(model.reviewNotice?.key == Catalog.reviewCannotVerify)
-		secrets.locked = false
+		backing.locked = false
 		await model.decide(.approve(token))
 		#expect(model.reviewNotice == nil)
 		try await waitUntil { model.chat?.notes.count == 1 }

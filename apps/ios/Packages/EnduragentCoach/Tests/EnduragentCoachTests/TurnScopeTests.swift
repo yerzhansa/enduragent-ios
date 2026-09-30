@@ -12,7 +12,6 @@ import Testing
 		let tools = ToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			planning: Planning(clock: clock),
 			clock: clock
 		)
 		let mainChat = scope()
@@ -39,9 +38,9 @@ import Testing
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let heldTools = ToolRuntime(
 			intervals: HeldReadIntervals(clock: readClock), ledger: ledger,
-			planning: Planning(clock: clock), clock: clock)
+			clock: clock)
 		let tools = ToolRuntime(
-			intervals: intervals, ledger: ledger, planning: Planning(clock: clock), clock: clock)
+			intervals: intervals, ledger: ledger, clock: clock)
 		let turn = scope()
 		let week = try JSONValue.parse(#"{"days":7}"#)
 		let original = Task {

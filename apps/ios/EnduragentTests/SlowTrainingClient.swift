@@ -35,10 +35,6 @@ struct SlowTrainingClient: IntervalsClient {
 		try await inner.createChatEvent(draft)
 	}
 
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await inner.createOrUpdatePlanEvent(draft)
-	}
-
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{

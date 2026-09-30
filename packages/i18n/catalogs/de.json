@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden.",
       "restorePurchases": "Käufe wiederherstellen",
       "signInAgain": "Erneut anmelden"
-    }
+    },
+    "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2699,7 +2701,6 @@
       "start": "Ein neues Gespräch starten",
       "status": "Aktuelle Fitness, Ermüdung und Form prüfen",
       "sync": "Trainingsdaten von {{service}} vollständig aktualisieren",
-      "update": "Nach Updates suchen und sie installieren",
       "version": "Aktuelle Version anzeigen",
       "whatsnew": "Änderungen der neuesten Version ansehen",
       "workout": "Heutiges Training abrufen"
@@ -2816,7 +2817,6 @@
       "managedInstruction": "Sende {{whatsnew}} für die Neuerungen. {{notice}}",
       "prepareFailed": "Das Update konnte gerade nicht sicher vorbereitet werden. Versuche {{command}} bitte gleich erneut."
     },
-    "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{plan}} — Einen Trainingsplan erstellen\n{{workout}} — Heutiges Training abrufen\n{{status}} — Aktuelle Fitness, Ermüdung und Form prüfen\n{{review}} — Deine letzte Einheit besprechen\n{{sync}} — Trainingsdaten von {{service}} vollständig aktualisieren\n{{version}} — Aktuelle Version anzeigen\n{{whatsnew}} — Änderungen der neuesten Version ansehen\n{{update}} — {{updateDescription}}\n\nOder sprich einfach mit mir über dein Training!",
     "workout": {
       "working": "Ich prüfe deine Form und deinen Plan..."
     }

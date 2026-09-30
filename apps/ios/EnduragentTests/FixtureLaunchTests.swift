@@ -335,7 +335,7 @@ final class FixtureLaunchTests {
 
 	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
 		let services = try services(keychain: .locked)
-		#expect(throws: KeychainStoreError(status: errSecInteractionNotAllowed)) {
+		#expect(throws: KeychainStoreError.keychain(errSecInteractionNotAllowed)) {
 			try #require(services.fixtureDirector).secrets.creditsAccount()?.key
 		}
 	}

@@ -134,7 +134,7 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		await model.appear()
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		fixture.secrets.locked = false
+		fixture.secretBacking.locked = false
 		await model.sceneChanged(.enteredBackground)
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)

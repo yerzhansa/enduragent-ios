@@ -35,7 +35,7 @@ package actor CredentialVault {
 		guard let active = try activeConnection() else { return .unconnected }
 		return TrainingConnection(
 			account: active.account,
-			client: client(for: active.connection))
+			client: client(for: active))
 	}
 
 	package func setup(builtInModel: ModelID) -> SetupState {
@@ -50,7 +50,7 @@ package actor CredentialVault {
 	}
 
 	package func trainingStatus() async -> TrainingStatus {
-		let active: ActiveConnection?
+		let active: IntervalsConnection?
 		do {
 			active = try activeConnection()
 		} catch {
@@ -69,7 +69,7 @@ package actor CredentialVault {
 	private func applying(
 		_ change: IntervalsConnectionChange, boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
-		let current: ActiveConnection?
+		let current: IntervalsConnection?
 		do {
 			current = try activeConnection()
 		} catch {
@@ -169,7 +169,7 @@ package actor CredentialVault {
 	#endif
 
 	private func replace(
-		_ apiKey: String, _ athlete: AthleteSelection, over current: ActiveConnection?,
+		_ apiKey: String, _ athlete: AthleteSelection, over current: IntervalsConnection?,
 		switching: Bool, _ boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
 		guard let secret = NonEmptySecret(apiKey) else {
@@ -180,19 +180,16 @@ package actor CredentialVault {
 		let candidate = IntervalsConnection(
 			id: id, credential: credential, selection: athlete, resolvedAthlete: nil)
 		let profile = await readProfile(candidate)
-		if !switching, let now = current?.connection.resolvedAthlete, let new = profile.athlete,
+		if !switching, let now = current?.resolvedAthlete, let new = profile.athlete,
 			now != new, await boundWork()
 		{
 			return .refused(.differentAthlete(current: now, new: new))
 		}
-		let replacement = ActiveConnection(
-			id: id,
-			connection: IntervalsConnection(
-				id: id, credential: credential, selection: athlete, resolvedAthlete: profile.athlete
-			))
+		let replacement = IntervalsConnection(
+			id: id, credential: credential, selection: athlete, resolvedAthlete: profile.athlete)
 		do {
 			try keychain(.intervalsConnection) {
-				try store.storeIntervalsConnection(replacement.connection)
+				try store.storeIntervalsConnection(replacement)
 			}
 		} catch {
 			return .failedPreviousKept(
@@ -203,21 +200,11 @@ package actor CredentialVault {
 			authority: current.map { $0.account.authority(under: replacement.account) })
 	}
 
-	private func activeConnection() throws(AccessUnavailable) -> ActiveConnection? {
-		guard let stored = try keychain(.intervalsConnection, { try store.intervalsConnection() })
-		else { return nil }
-		if let id = stored.id {
-			return ActiveConnection(id: id, connection: stored)
-		}
-		let id = ConnectionID()
-		let upgraded = IntervalsConnection(
-			id: id, credential: stored.credential, selection: stored.selection,
-			resolvedAthlete: stored.resolvedAthlete)
-		try keychain(.intervalsConnection) { try store.storeIntervalsConnection(upgraded) }
-		return ActiveConnection(id: id, connection: upgraded)
+	private func activeConnection() throws(AccessUnavailable) -> IntervalsConnection? {
+		try keychain(.intervalsConnection) { try store.intervalsConnection() }
 	}
 
-	private func summary(ofCurrent current: ActiveConnection?) async -> IntervalsSummary? {
+	private func summary(ofCurrent current: IntervalsConnection?) async -> IntervalsSummary? {
 		guard let current else { return nil }
 		switch await read(current) {
 		case .connected(let summary, _): return summary
@@ -225,36 +212,31 @@ package actor CredentialVault {
 		}
 	}
 
-	private func read(_ active: ActiveConnection) async -> TrainingStatus {
-		let profile = await readProfile(active.connection)
-		let summary = profile.summary(of: active.connection.credential)
-		guard active.connection.resolvedAthlete == nil, let athlete = profile.athlete else {
+	private func read(_ active: IntervalsConnection) async -> TrainingStatus {
+		let profile = await readProfile(active)
+		let summary = profile.summary(of: active.credential)
+		guard active.resolvedAthlete == nil, let athlete = profile.athlete else {
 			return .connected(summary, account: active.account)
 		}
 		do {
 			return .connected(summary, account: try resolve(athlete, for: active).account)
-		} catch let keychain as KeychainStoreError
-			where keychain.status == errSecInteractionNotAllowed
-		{
-			return .connected(summary, account: active.account)
 		} catch {
-			diagnostics.record(
-				.secureStorageFailed(.intervalsConnection, detail: String(describing: error)))
+			record(KeychainStoreError(error), for: .intervalsConnection)
 			return .connected(summary, account: active.account)
 		}
 	}
 
-	private func resolve(_ athlete: IntervalsAthleteID, for active: ActiveConnection)
-		throws -> ActiveConnection
+	private func resolve(_ athlete: IntervalsAthleteID, for active: IntervalsConnection)
+		throws -> IntervalsConnection
 	{
 		let resolved = IntervalsConnection(
-			id: active.id, credential: active.connection.credential,
-			selection: active.connection.selection, resolvedAthlete: athlete)
-		guard let stored = try store.intervalsConnection(), stored == active.connection else {
+			id: active.id, credential: active.credential,
+			selection: active.selection, resolvedAthlete: athlete)
+		guard let stored = try store.intervalsConnection(), stored == active else {
 			return active
 		}
 		try store.storeIntervalsConnection(resolved)
-		return ActiveConnection(id: active.id, connection: resolved)
+		return resolved
 	}
 
 	private func client(for connection: IntervalsConnection) -> any IntervalsClient {
@@ -296,25 +278,26 @@ package actor CredentialVault {
 	{
 		do {
 			return try body()
-		} catch let keychain as KeychainStoreError
-			where keychain.status == errSecInteractionNotAllowed
-		{
-			throw .secureStorageLocked
-		} catch let keychain as KeychainStoreError where keychain.status == errSecDecode {
-			throw .malformedStoredCredential(slot)
 		} catch {
-			diagnostics.record(.secureStorageFailed(slot, detail: String(describing: error)))
-			throw .secureStorageUnavailable
+			let failure = KeychainStoreError(error)
+			record(failure, for: slot)
+			throw classify(failure, for: slot)
 		}
 	}
-}
 
-private struct ActiveConnection {
-	let id: ConnectionID
-	let connection: IntervalsConnection
+	private func record(_ failure: KeychainStoreError, for slot: CredentialSlot) {
+		guard classify(failure, for: slot) != .secureStorageLocked else { return }
+		diagnostics.record(.secureStorageFailed(slot, failure: failure))
+	}
 
-	var account: TrainingAccount {
-		.intervals(connection: id, athlete: connection.resolvedAthlete)
+	private func classify(_ failure: KeychainStoreError, for slot: CredentialSlot)
+		-> AccessUnavailable
+	{
+		switch failure.status {
+		case errSecInteractionNotAllowed: .secureStorageLocked
+		case errSecDecode: .malformedStoredCredential(slot)
+		default: .secureStorageUnavailable
+		}
 	}
 }
 

@@ -161,7 +161,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 | Prototype state | App state today |
 | --- | --- |
-| `chat-welcome` | Chat right after onboarding: `chat.welcome`, without the `/sync` line after a skip |
+| `chat-welcome` | Chat right after onboarding: `chat.welcome` lists the supported commands whether or not intervals.icu is connected |
 | `chat-menu`, `chat-menu-nosync` | The slash list after typing `/` in `chat.composer`. The nosync state is the same list after `Skip for now`. |
 | `chat-new-conversation` | A reply with `chat.newConversation` in the top bar; after the tap, the welcome with `New conversation started.` |
 | `review-ready` | The `Workout review` card after a workout request |
@@ -191,7 +191,7 @@ Proof standards:
 - Drive the athlete's path by tapping controls from launch onward. Setting `ShellModel` state, calling model methods, and unit tests are not UI proof.
 - Capture the action and the resulting state. Take a `shot` before the tap and after the result, or use a proof whose attachment shows the end state.
 - Check the side effect beside the pixels. Menu, then Debug, must show `fixture.requestCount` reading `0 requests`. `TutorialHarness.assertZeroFixtureRequests` asserts it. Any other count means a code path escaped the fakes, which is a finding.
-- The fixture is the only mock, and it replaces services at the same seam as production, `AppServices`. Fixture mode blocks all `URLSession` traffic, keeps records in a SwiftData store under `Application Support/fixture/` with CloudKit off, writes keys to `FakeSecretStore`, and skips the StoreKit price lookup. A fixture run cannot prove live networking, the real keychain, iCloud sync, or StoreKit prices. Say so when a change touches them.
+- The fixture is the only mock, and it replaces services at the same seam as production, `AppServices`. Fixture mode blocks all `URLSession` traffic, keeps records in a SwiftData store under `Application Support/fixture/` with CloudKit off, writes keys through `ICloudKeychainStore` with a file-backed `FixtureSecretStoreBacking`, and skips the StoreKit price lookup. A fixture run cannot prove live networking, the real keychain, iCloud sync, or StoreKit prices. Say so when a change touches them.
 - Report the feature ID and the entry point with every artifact. Do not report a skipped entry point as verified through another one.
 
 ## Cleanup

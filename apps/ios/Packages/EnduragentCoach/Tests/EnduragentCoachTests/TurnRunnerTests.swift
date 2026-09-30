@@ -52,7 +52,7 @@ import Testing
 		#expect(local.map(\.body.kind) == ["turnClaim"])
 		#expect(Set((synced + local).map(\.body.turn)) == [turn])
 		let connected = TrainingAccount.intervals(
-			connection: try #require(testConnection.id), athlete: testConnection.resolvedAthlete)
+			connection: testConnection.id, athlete: testConnection.resolvedAthlete)
 		#expect(synced.map(\.account) == [.unconnected, connected])
 		#expect(local.map(\.account) == [connected])
 		guard case .operation(.turn(let claimedTurn), let attempt)? = local.first?.cause else {

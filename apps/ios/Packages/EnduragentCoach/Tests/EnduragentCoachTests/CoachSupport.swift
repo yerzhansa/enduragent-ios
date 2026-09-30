@@ -14,8 +14,10 @@ let testConnection = IntervalsConnection(
 	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
 	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
 
-func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
-	let secrets = FakeSecretStore()
+func keyedSecrets(
+	_ key: String = testKey, backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
+) -> ICloudKeychainStore {
+	let secrets = ICloudKeychainStore(backing: backing)
 	do {
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: key))

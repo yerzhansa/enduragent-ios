@@ -71981,6 +71981,626 @@
         }
       }
     },
+    "chat.welcome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to %#@product@!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using %#@service@ data.\n\nCommands:\n%#@commands@\n\nOr just chat with me about your training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Te doy la bienvenida a %#@product@!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de %#@service@.\n\nComandos:\n%#@commands@\n\n¡También puedes hablar conmigo sobre tu entrenamiento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bienvenue dans %#@product@ !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de %#@service@.\n\nCommandes :\n%#@commands@\n\nTu peux aussi simplement me parler de ton entraînement !"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti do il benvenuto su %#@product@!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di %#@service@.\n\nComandi:\n%#@commands@\n\nOppure parlami del tuo allenamento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei %#@product@!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von %#@service@-Daten verfolgen.\n\nBefehle:\n%#@commands@\n\nOder sprich einfach mit mir über dein Training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welkom bij %#@product@!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van %#@service@.\n\nOpdrachten:\n%#@commands@\n\nJe kunt ook gewoon met me praten over je training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velkommen til %#@product@!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra %#@service@.\n\nKommandoer:\n%#@commands@\n\nEller skriv bare til mig om din træning!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välkommen till %#@product@!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från %#@service@.\n\nKommandon:\n%#@commands@\n\nDu kan också bara prata med mig om din träning!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velkommen til %#@product@!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra %#@service@.\n\nKommandoer:\n%#@commands@\n\nDu kan også bare prate med meg om treningen din!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tervetuloa käyttämään sovellusta %#@product@!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun %#@service@ tietojen avulla.\n\nKomennot:\n%#@commands@\n\nVoit myös vain jutella kanssani harjoittelustasi!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boas-vindas ao %#@product@!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de %#@service@.\n\nComandos:\n%#@commands@\n\nOu fala comigo sobre o teu treino!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boas-vindas ao %#@product@!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de %#@service@.\n\nComandos:\n%#@commands@\n\nOu converse comigo sobre seu treinamento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Witaj w %#@product@!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z %#@service@.\n\nPolecenia:\n%#@commands@\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@product@에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. %#@service@ 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n%#@commands@\n\n편하게 훈련 이야기를 나눠도 좋습니다!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@product@へようこそ！\n\nAIサイクリングコーチです。%#@service@のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n%#@commands@\n\nトレーニングについて、気軽に話しかけてください！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "chat.welcomeCommand": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@: %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@: %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
     "cli.language.choose": {
       "localizations": {
         "en": {
@@ -303263,112 +303883,6 @@
         }
       }
     },
-    "telegram.menu.update": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check for and install updates"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar e instalar actualizaciones"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechercher et installer des mises à jour"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cerca e installa aggiornamenti"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nach Updates suchen und sie installieren"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controleren op updates en deze installeren"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Søg efter og installer opdateringer"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sök efter och installera uppdateringar"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se etter og installer oppdateringer"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tarkista ja asenna päivitykset"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Procurar e instalar atualizações"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verificar e instalar atualizações"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sprawdź i zainstaluj aktualizacje"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트 확인 및 설치"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新を確認してインストール"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查并安装更新"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "檢查並安裝更新"
-          }
-        }
-      }
-    },
     "telegram.menu.version": {
       "localizations": {
         "en": {
@@ -322795,894 +323309,6 @@
           "substitutions": {
             "command": {
               "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        }
-      }
-    },
-    "telegram.welcome": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welcome to %#@product@!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using %#@service@ data.\n\nCommands:\n%#@plan@ — Generate a training plan\n%#@workout@ — Get today's workout\n%#@status@ — Check current fitness, fatigue, and form\n%#@review@ — Review your last session\n%#@sync@ — Force-refresh training data from %#@service@\n%#@version@ — Show current version\n%#@whatsnew@ — See what changed in the latest version\n%#@update@ — %#@updateDescription@\n\nOr just chat with me about your training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Te doy la bienvenida a %#@product@!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de %#@service@.\n\nComandos:\n%#@plan@: generar un plan de entrenamiento\n%#@workout@: consultar el entrenamiento de hoy\n%#@status@: consultar tu condición física, fatiga y forma actuales\n%#@review@: revisar tu última sesión\n%#@sync@: forzar la actualización de los datos de entrenamiento de %#@service@\n%#@version@: mostrar la versión actual\n%#@whatsnew@: ver las novedades de la última versión\n%#@update@: %#@updateDescription@\n\n¡También puedes hablar conmigo sobre tu entrenamiento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bienvenue dans %#@product@ !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de %#@service@.\n\nCommandes :\n%#@plan@ — Générer un plan d’entraînement\n%#@workout@ — Voir l’entraînement du jour\n%#@status@ — Voir ta condition physique, ta fatigue et ta forme actuelles\n%#@review@ — Analyser ta dernière séance\n%#@sync@ — Forcer l’actualisation des données d’entraînement depuis %#@service@\n%#@version@ — Afficher la version actuelle\n%#@whatsnew@ — Voir les changements de la dernière version\n%#@update@ — %#@updateDescription@\n\nTu peux aussi simplement me parler de ton entraînement !"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ti do il benvenuto su %#@product@!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di %#@service@.\n\nComandi:\n%#@plan@ — Genera un piano di allenamento\n%#@workout@ — Mostra l’allenamento di oggi\n%#@status@ — Controlla fitness, fatica e forma attuali\n%#@review@ — Rivedi la tua ultima sessione\n%#@sync@ — Forza l’aggiornamento dei dati di allenamento da %#@service@\n%#@version@ — Mostra la versione attuale\n%#@whatsnew@ — Scopri le novità dell’ultima versione\n%#@update@ — %#@updateDescription@\n\nOppure parlami del tuo allenamento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Willkommen bei %#@product@!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von %#@service@-Daten verfolgen.\n\nBefehle:\n%#@plan@ — Einen Trainingsplan erstellen\n%#@workout@ — Heutiges Training abrufen\n%#@status@ — Aktuelle Fitness, Ermüdung und Form prüfen\n%#@review@ — Deine letzte Einheit besprechen\n%#@sync@ — Trainingsdaten von %#@service@ vollständig aktualisieren\n%#@version@ — Aktuelle Version anzeigen\n%#@whatsnew@ — Änderungen der neuesten Version ansehen\n%#@update@ — %#@updateDescription@\n\nOder sprich einfach mit mir über dein Training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welkom bij %#@product@!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van %#@service@.\n\nOpdrachten:\n%#@plan@ : Een trainingsschema maken\n%#@workout@ : De training van vandaag ophalen\n%#@status@ : Je huidige conditie, vermoeidheid en vorm bekijken\n%#@review@ : Je laatste training bekijken\n%#@sync@ : Trainingsgegevens uit %#@service@ geforceerd vernieuwen\n%#@version@ : Huidige versie tonen\n%#@whatsnew@ : Bekijk wat er in de nieuwste versie is veranderd\n%#@update@ : %#@updateDescription@\n\nJe kunt ook gewoon met me praten over je training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velkommen til %#@product@!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra %#@service@.\n\nKommandoer:\n%#@plan@ — Lav en træningsplan\n%#@workout@ — Se dagens træning\n%#@status@ — Se din aktuelle fitness, træthed og form\n%#@review@ — Gennemgå din seneste træning\n%#@sync@ — Gennemtving opdatering af træningsdata fra %#@service@\n%#@version@ — Vis den aktuelle version\n%#@whatsnew@ — Se ændringer i den nyeste version\n%#@update@ — %#@updateDescription@\n\nEller skriv bare til mig om din træning!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Välkommen till %#@product@!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från %#@service@.\n\nKommandon:\n%#@plan@ — Skapa en träningsplan\n%#@workout@ — Hämta dagens träningspass\n%#@status@ — Kontrollera aktuell CTL, trötthet och TSB\n%#@review@ — Gå igenom ditt senaste träningspass\n%#@sync@ — Tvinga uppdatering av träningsdata från %#@service@\n%#@version@ — Visa aktuell version\n%#@whatsnew@ — Se vad som ändrats i den senaste versionen\n%#@update@ — %#@updateDescription@\n\nDu kan också bara prata med mig om din träning!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velkommen til %#@product@!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra %#@service@.\n\nKommandoer:\n%#@plan@ — Lag en treningsplan\n%#@workout@ — Hent dagens treningsøkt\n%#@status@ — Sjekk form (CTL), tretthet (ATL) og form (TSB)\n%#@review@ — Se gjennom den siste treningsøkten din\n%#@sync@ — Hent oppdaterte treningsdata fra %#@service@\n%#@version@ — Vis nåværende versjon\n%#@whatsnew@ — Se hva som er nytt i den nyeste versjonen\n%#@update@ — %#@updateDescription@\n\nDu kan også bare prate med meg om treningen din!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tervetuloa käyttämään sovellusta %#@product@!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun %#@service@ tietojen avulla.\n\nKomennot:\n%#@plan@: Luo harjoitussuunnitelma\n%#@workout@: Hae tämän päivän harjoitus\n%#@status@: Tarkista nykyinen kunto, väsymys ja tuoreus\n%#@review@: Tarkista viimeisin harjoituksesi\n%#@sync@: Pakota harjoitustietojen päivitys palvelusta %#@service@\n%#@version@: Näytä nykyinen versio\n%#@whatsnew@: Katso uusimman version muutokset\n%#@update@: %#@updateDescription@\n\nVoit myös vain jutella kanssani harjoittelustasi!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boas-vindas ao %#@product@!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de %#@service@.\n\nComandos:\n%#@plan@ : Gerar um plano de treino\n%#@workout@ : Ver o treino de hoje\n%#@status@ : Ver a condição física, a fadiga e a forma atuais\n%#@review@ : Rever o teu último treino\n%#@sync@ : Forçar a atualização dos dados de treino de %#@service@\n%#@version@ : Mostrar a versão atual\n%#@whatsnew@ : Ver o que mudou na versão mais recente\n%#@update@ : %#@updateDescription@\n\nOu fala comigo sobre o teu treino!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boas-vindas ao %#@product@!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de %#@service@.\n\nComandos:\n%#@plan@ : Gerar um plano de treinamento\n%#@workout@ : Ver o treino de hoje\n%#@status@ : Ver o condicionamento, a fadiga e a forma atuais\n%#@review@ : Revisar seu último treino\n%#@sync@ : Forçar a atualização dos dados de treinamento de %#@service@\n%#@version@ : Mostrar a versão atual\n%#@whatsnew@ : Ver o que mudou na versão mais recente\n%#@update@ : %#@updateDescription@\n\nOu converse comigo sobre seu treinamento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Witaj w %#@product@!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z %#@service@.\n\nPolecenia:\n%#@plan@ — Utwórz plan treningowy\n%#@workout@ — Pokaż dzisiejszy trening\n%#@status@ — Sprawdź obecne wytrenowanie, zmęczenie i formę\n%#@review@ — Przeanalizuj ostatni trening\n%#@sync@ — Wymuś odświeżenie danych treningowych z %#@service@\n%#@version@ — Pokaż obecną wersję\n%#@whatsnew@ — Zobacz zmiany w najnowszej wersji\n%#@update@ — %#@updateDescription@\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@product@에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. %#@service@ 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n%#@plan@ — 훈련 계획 만들기\n%#@workout@ — 오늘의 워크아웃 확인\n%#@status@ — 현재 체력, 피로도, 밸런스 확인\n%#@review@ — 지난 훈련 돌아보기\n%#@sync@ — %#@service@에서 훈련 데이터 강제 새로고침\n%#@version@ — 현재 버전 표시\n%#@whatsnew@ — 최신 버전의 변경 사항 보기\n%#@update@ — %#@updateDescription@\n\n편하게 훈련 이야기를 나눠도 좋습니다!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@product@へようこそ！\n\nAIサイクリングコーチです。%#@service@のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n%#@plan@ — トレーニングプランを作成\n%#@workout@ — 今日のワークアウトを確認\n%#@status@ — 現在のフィットネス、ファティーグ、フォームを確認\n%#@review@ — 前回のトレーニングを振り返る\n%#@sync@ — %#@service@からトレーニングデータを強制更新\n%#@version@ — 現在のバージョンを表示\n%#@whatsnew@ — 最新バージョンの変更内容を見る\n%#@update@ — %#@updateDescription@\n\nトレーニングについて、気軽に話しかけてください！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@plan@ — 生成训练计划\n%#@workout@ — 获取今日训练课程\n%#@status@ — 查看当前体能（CTL）、疲劳（ATL）和状态（TSB）\n%#@review@ — 回顾上次训练\n%#@sync@ — 强制从 %#@service@ 刷新训练数据\n%#@version@ — 显示当前版本\n%#@whatsnew@ — 查看最新版本的变化\n%#@update@ — %#@updateDescription@\n\n也可以直接和我聊聊训练！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@plan@ — 產生訓練計畫\n%#@workout@ — 取得今日訓練課表\n%#@status@ — 查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）\n%#@review@ — 回顧上次訓練\n%#@sync@ — 強制從 %#@service@ 重新整理訓練資料\n%#@version@ — 顯示目前版本\n%#@whatsnew@ — 查看最新版本的變更\n%#@update@ — %#@updateDescription@\n\n也可以直接和我聊聊訓練！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
               "formatSpecifier": "@"
             }
           }

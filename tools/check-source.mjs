@@ -48,6 +48,29 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
+function hasExtraSecretStore(text) {
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
+    .some(([, name, declaration]) => {
+      if (name === 'ICloudKeychainStore') return false;
+      let header = declaration;
+      while (/<[^<>]*>/.test(header)) header = header.replace(/<[^<>]*>/g, '');
+      const inheritance = header.split(/\bwhere\b/)[0];
+      return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
+    });
+}
+function checkLedgerIndexVersion(file, text) {
+  const versions = new Map([
+    ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
+  ]);
+  const modifier = /@Attribute\(\s*hashModifier:\s*"(ledger-indexes-v\d+)"\s*\)\s*var\s+deviceId\b/.exec(text)?.[1];
+  const declarations = [...text.matchAll(/#Index\s*<\s*StoredAthleteRecord\s*>\s*\(([^)]*)\)/g)];
+  const indexes = declarations.flatMap(match => [...match[1].matchAll(/\[([^\]]*)\]/g)]
+    .map(fields => fields[1].replace(/\s|\\\./g, ''))).sort();
+  const expected = versions.get(modifier);
+  if (!expected || JSON.stringify(indexes) !== JSON.stringify([...expected].sort())) {
+    report(file, 'ledger-index-version');
+  }
+}
 function checkFeatureProofs(sources) {
   const classes = new Map();
   const mapped = new Set();
@@ -107,11 +130,16 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Records\/.*\.swift$/.test(file)
       && /\b(?:public|open)\b|@_spi\b/.test(text)) report(file, 'records-package-only');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift') {
+      checkLedgerIndexVersion(file, text);
+    }
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
       const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
       const exposed = text.split('\n').some(line => {

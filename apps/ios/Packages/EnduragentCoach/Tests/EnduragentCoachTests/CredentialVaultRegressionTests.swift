@@ -10,7 +10,7 @@ extension CredentialVaultTests {
 	func athleteResolutionFailureKeepsConnectedUnresolvedAccount(
 		failingWrite: Bool, statusCode: OSStatus
 	) async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let unresolved = IntervalsConnection(
 			id: testConnection.id, credential: testConnection.credential,
@@ -30,13 +30,13 @@ extension CredentialVaultTests {
 		}
 		await gate.release()
 		let training = await status.value.training
-		#expect(training == .connected(adaSummary, account: try account(unresolved)))
+		#expect(training == .connected(adaSummary, account: account(unresolved)))
 		if statusCode != errSecInteractionNotAllowed {
 			#expect(
 				coach.diagnostics.entries.map(\.event) == [
 					.secureStorageFailed(
 						.intervalsConnection,
-						detail: String(describing: KeychainStoreError(status: statusCode)))
+						failure: KeychainStoreError.keychain(statusCode))
 				])
 		} else {
 			#expect(coach.diagnostics.entries.isEmpty)
@@ -55,7 +55,7 @@ extension CredentialVaultTests {
 	@Test func malformedItemDuringAthleteResolutionRecordsDiagnosticAndKeepsConnected()
 		async throws
 	{
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let unresolved = IntervalsConnection(
 			id: testConnection.id, credential: testConnection.credential,
@@ -71,18 +71,18 @@ extension CredentialVaultTests {
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
 		await gate.release()
 		#expect(
-			await status.value.training == .connected(adaSummary, account: try account(unresolved)))
+			await status.value.training == .connected(adaSummary, account: account(unresolved)))
 		#expect(
 			coach.diagnostics.entries.map(\.event) == [
 				.secureStorageFailed(
 					.intervalsConnection,
-					detail: String(describing: KeychainStoreError(status: errSecDecode)))
+					failure: KeychainStoreError.keychain(errSecDecode))
 			])
 		#expect(memory.writes(to: "intervalsCredential") == 2)
 	}
 
 	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let oldToken = UUID()
 		try secrets.storeCreditsAccount(
@@ -132,7 +132,7 @@ extension CredentialVaultTests {
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
 		#expect(current.id != testConnection.id)
-		#expect(try account(original).authority(under: account(current)) == .sameAthlete)
+		#expect(account(original).authority(under: account(current)) == .sameAthlete)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
@@ -159,7 +159,7 @@ extension CredentialVaultTests {
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id == testConnection.id)
 		#expect(current.resolvedAthlete != nil)
-		#expect(try account(original).authority(under: account(current)) == .same)
+		#expect(account(original).authority(under: account(current)) == .same)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
@@ -187,7 +187,7 @@ extension CredentialVaultTests {
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id != testConnection.id)
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
-		#expect(try account(original).authority(under: account(current)) == .unverifiable)
+		#expect(account(original).authority(under: account(current)) == .unverifiable)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
 		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
 		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))
@@ -199,11 +199,12 @@ extension CredentialVaultTests {
 	}
 
 	@Test func credentialsRetryAfterUnlock() async throws {
-		let secrets = keyedSecrets()
-		secrets.locked = true
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		backing.locked = true
 		let coach = await coach(secrets)
 		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		secrets.locked = false
+		backing.locked = false
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.status().setup == .ready)
 	}
@@ -362,9 +363,6 @@ private struct GatedProfileIntervals: IntervalsClient {
 	}
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		try await base.createChatEvent(draft)
-	}
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await base.createOrUpdatePlanEvent(draft)
 	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent

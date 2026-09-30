@@ -1,5 +1,4 @@
 import Foundation
-import SQLite3
 import SwiftData
 import Testing
 
@@ -212,7 +211,7 @@ extension SwiftDataSuites {
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			for name in ["synced", "local"] {
 				let sql = try String(contentsOf: try fixture(name, "sql"), encoding: .utf8)
-				try restore(sql, into: root.appending(path: "\(name).store"))
+				try restoreRecordStore(sql, into: root.appending(path: "\(name).store"))
 			}
 			let manifest = try JSONDecoder().decode(
 				Manifest.self, from: try Data(contentsOf: try fixture("manifest", "json")))
@@ -250,24 +249,7 @@ extension SwiftDataSuites {
 					forResource: name, withExtension: ext, subdirectory: "Fixtures/v1-records"))
 		}
 
-		private static func restore(_ sql: String, into url: URL) throws {
-			var handle: OpaquePointer?
-			guard sqlite3_open(url.path, &handle) == SQLITE_OK, let database = handle else {
-				throw V1StoreFailure(step: "open")
-			}
-			defer { sqlite3_close(database) }
-			var message: UnsafeMutablePointer<CChar>?
-			guard sqlite3_exec(database, sql, nil, nil, &message) == SQLITE_OK else {
-				let detail = message.map { String(cString: $0) } ?? "exec"
-				sqlite3_free(message)
-				throw V1StoreFailure(step: detail)
-			}
-		}
 	}
-}
-
-struct V1StoreFailure: Error {
-	let step: String
 }
 
 extension ULID: Decodable {

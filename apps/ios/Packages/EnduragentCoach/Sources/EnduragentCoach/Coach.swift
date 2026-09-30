@@ -3,7 +3,6 @@ import Synchronization
 
 public actor Coach {
 	package let memory: Memory
-	package let planning: Planning
 	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
 
@@ -51,13 +50,10 @@ public actor Coach {
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
-		let planning = Planning(clock: clock)
-		self.planning = planning
 		self.runner = TurnRunner(
 			transport: transport,
 			ledger: ledger,
 			clock: clock,
-			planning: planning,
 			diagnostics: diagnostics,
 			ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)

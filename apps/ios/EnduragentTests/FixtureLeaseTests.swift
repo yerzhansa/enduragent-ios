@@ -173,7 +173,7 @@ extension FixtureLaunchTests {
 	private func leaseCoach(host: ContinuedProcessingHost) async throws -> Coach {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let secrets = FakeSecretStore()
+		let secrets = try ICloudKeychainStore.fixture(directory: launch.directory).store
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "sk-or-test-lease"))

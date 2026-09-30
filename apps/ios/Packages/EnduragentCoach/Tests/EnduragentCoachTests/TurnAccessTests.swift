@@ -5,7 +5,8 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test func missingKeySettlesNotConfiguredWithoutARequest() async throws {
-		let coach = await makeCoach(secrets: FakeSecretStore())
+		let coach = await makeCoach(
+			secrets: ICloudKeychainStore(backing: FixtureSecretStoreBacking()))
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
@@ -17,8 +18,9 @@ extension TurnRunnerTests {
 	}
 
 	@Test func lockedKeychainSettlesSecureStorageLocked() async throws {
-		let secrets = keyedSecrets()
-		secrets.locked = true
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		backing.locked = true
 		let coach = await makeCoach(secrets: secrets)
 		let settled = try await coach.sendAndSettle("Hello")
 		#expect(failure(settled) == .model(.accessUnavailable(.secureStorageLocked)))
@@ -26,7 +28,7 @@ extension TurnRunnerTests {
 	}
 
 	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let coach = await makeCoach(secrets: secrets)
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
