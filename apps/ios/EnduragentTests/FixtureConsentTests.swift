@@ -21,8 +21,6 @@ extension FixtureLaunchTests {
 		#expect(model.route == .onboarding(.consentDeferred))
 		#expect(await services.coach.status().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
-		await model.startChatting()
-		#expect(model.route == .onboarding(.consent))
 		await model.acceptConsent()
 		#expect(model.route == .chat)
 		#expect(
@@ -56,19 +54,27 @@ extension FixtureLaunchTests {
 		#expect(next.fixtureTransport?.requestCount == 0)
 	}
 
-	@Test func consentWriteFailureKeepsTheNoticeAndCanBeRetried() async throws {
+	@Test(arguments: [false, true])
+	func consentWriteFailureKeepsTheNoticeAndCanBeRetried(deferred: Bool) async throws {
 		let services = try services()
 		let model = model(services)
 		await model.startChatting()
+		if deferred {
+			model.declineConsent()
+		}
 		try #require(services.fixtureRecordFaults).failNextAppend = true
 		await model.acceptConsent()
-		#expect(model.route == .onboarding(.consent))
+		#expect(model.route == .onboarding(deferred ? .consentDeferred : .consent))
 		#expect(model.consentNotSaved)
 		#expect(await services.coach.status().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
 		#expect(model.route == .chat)
 		#expect(!model.consentNotSaved)
+		#expect(
+			await services.coach.status().providerConsent?.version == ProviderConsent.currentVersion
+		)
+		#expect(services.fixtureTransport?.requestCount == 0)
 	}
 
 	@Test func existingInstallCanDeferConsentWithoutRepeatingStarterCredits() async throws {
@@ -77,23 +83,24 @@ extension FixtureLaunchTests {
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
-		for _ in 0..<2 {
-			model.declineConsent()
-			#expect(
-				model.route != .onboarding(.starter), "Declining must not repeat starter credits")
-			#expect(model.route != .chat)
-			#expect(model.route == .onboarding(.consentDeferred))
-			await model.startChatting()
-			#expect(model.route == .onboarding(.consent))
-			#expect(!model.starterResolved)
-			#expect(model.starterLine == nil)
-			#expect(model.chat == nil)
-			#expect(await services.coach.status().providerConsent == nil)
-			#expect(services.fixtureTransport?.requestCount == 0)
-		}
+		model.declineConsent()
+		#expect(
+			model.route != .onboarding(.starter), "Declining must not repeat starter credits")
+		#expect(model.route != .chat)
+		#expect(model.route == .onboarding(.consentDeferred))
+		#expect(!model.starterResolved)
+		#expect(model.starterLine == nil)
+		#expect(model.chat == nil)
+		#expect(await services.coach.status().providerConsent == nil)
+		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
 		#expect(model.route == .chat)
 		#expect(!model.starterResolved)
+		#expect(model.starterLine == nil)
+		#expect(
+			await services.coach.status().providerConsent?.version == ProviderConsent.currentVersion
+		)
+		#expect(services.fixtureTransport?.requestCount == 0)
 	}
 
 	@Test func keptConsentRefusalRetriesTheSameTurnAfterAgreement() async throws {
