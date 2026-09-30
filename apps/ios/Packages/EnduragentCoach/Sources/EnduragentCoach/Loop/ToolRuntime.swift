@@ -112,7 +112,7 @@ package struct ToolRuntime: Sendable {
 				return try await executeMemoryQuery(arguments)
 			case .memoryWrite:
 				return try await memory().executeMemoryWrite(
-					arguments, format: .turn, source: .chat, stamp: stamp)
+					arguments, source: .chat, stamp: stamp)
 			case .ledgerAppend:
 				return try await memory().executeLedgerAppend(
 					arguments, source: .chat, stamp: stamp)

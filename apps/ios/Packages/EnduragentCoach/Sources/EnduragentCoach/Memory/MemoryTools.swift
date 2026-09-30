@@ -1,12 +1,9 @@
 import Foundation
 
-enum MemoryWriteFormat {
-	case turn
-	case flush
-
+extension LedgerSource {
 	var missingSection: String {
 		switch self {
-		case .turn:
+		case .chat:
 			"type='memory' requires a section. Pick one of the listed sections, or use type='daily' for free-form notes."
 		case .flush:
 			"memory_write requires a section and content. Pick one of the listed sections."
@@ -16,19 +13,19 @@ enum MemoryWriteFormat {
 
 extension Memory {
 	func executeMemoryWrite(
-		_ arguments: JSONValue, format: MemoryWriteFormat, source: LedgerSource,
+		_ arguments: JSONValue, source: LedgerSource,
 		stamp: OperationStamp
 	) async throws -> ToolExecution {
 		let fields = arguments.objectFields
 		let type = fields["type"]?.stringValue
 		let content = fields["content"]?.stringValue ?? ""
-		if format == .flush || type == "memory" {
+		if source == .flush || type == "memory" {
 			guard let section = fields["section"]?.stringValue,
-				format == .turn || fields["content"]?.stringValue != nil
+				source == .chat || fields["content"]?.stringValue != nil
 			else {
 				return .result(
 					.object([
-						"details": .string(format.missingSection),
+						"details": .string(source.missingSection),
 						"error": .string("section_required"),
 					])
 				)

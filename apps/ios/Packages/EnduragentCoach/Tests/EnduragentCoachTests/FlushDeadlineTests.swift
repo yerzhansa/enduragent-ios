@@ -67,10 +67,9 @@ import Testing
 
 	private func deadlines(_ retryAfter: String?) -> [Duration] {
 		switch retryAfter {
-		case "7": [.seconds(10), .seconds(3)]
-		case "120", "10": [.seconds(10)]
-		case "4": [.seconds(10), .seconds(6), .seconds(2)]
-		default: [.seconds(10), .seconds(5)]
+		case "120": [.seconds(600)]
+		case "4": Array(repeating: .seconds(600), count: 3)
+		default: Array(repeating: .seconds(600), count: 2)
 		}
 	}
 

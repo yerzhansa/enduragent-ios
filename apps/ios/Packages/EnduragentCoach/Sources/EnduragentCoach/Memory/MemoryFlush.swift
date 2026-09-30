@@ -11,15 +11,10 @@ extension Memory {
 		scope: TurnScope?
 	) async throws(CancellationError) -> FlushOutcome {
 		guard !messages.isEmpty else { return .nothingToSave }
-		let policy = scope?.policy ?? .npm
-		let deadline =
-			scope?.deadline
-			?? ModelDeadline(ends: clock.uptime + policy.wallClock, perCall: policy.perCallDeadline)
 		let run = FlushRun(
 			messages: messages, timeZone: clock.timeZone, access: access, transport: transport,
 			stamp: stamp, diagnostics: diagnostics, ladder: ladder,
-			maxAttempts: policy.maxGenerateAttempts,
-			deadline: deadline.limited(to: MemoryFlushPolicy.wallClock, uptime: clock.uptime))
+			maxAttempts: (scope?.policy ?? .npm).maxGenerateAttempts)
 		var tally = FlushTally()
 		do {
 			try await runFlushGenerate(run, scope: scope, tally: &tally)
@@ -68,17 +63,19 @@ extension Memory {
 		var steps = 0
 		var counters = RetryCounters.zero
 		var attempts = 1
+		var remainingRetryWait = MemoryFlushPolicy.retryWaitAllowance
 		let modelCall = ModelCall(transport: run.transport, diagnostics: run.diagnostics)
 		while steps < MemoryFlushPolicy.maxSteps {
 			try Task.checkCancellation()
-			try run.deadline.checkDeadline(uptime: clock.uptime)
+			try await scope?.checkDeadline(uptime: clock.uptime)
 			let request = CompletionRequest(
 				access: run.access,
 				attempt: run.stamp.attempt,
 				charge: .memoryFlush,
 				messages: messages,
 				tools: schemas,
-				deadline: run.deadline.callDeadline(uptime: clock.uptime)
+				deadline: await scope?.callDeadline(uptime: clock.uptime)
+					?? TurnBudgetPolicy.npm.perCallDeadline
 			)
 			let step: GenerateStep
 			do {
@@ -97,10 +94,11 @@ extension Memory {
 				for preparation in preparations {
 					switch preparation {
 					case .wait(let duration, _):
-						guard duration <= run.deadline.callDeadline(uptime: clock.uptime) else {
+						guard duration <= remainingRetryWait else {
 							throw failure
 						}
 						try await clock.sleep(for: duration)
+						remainingRetryWait -= duration
 					case .flushMemory, .compactInTurn:
 						throw failure
 					}
@@ -128,7 +126,7 @@ extension Memory {
 					switch ToolName(rawValue: call.name) {
 					case .memoryWrite:
 						execution = try await executeMemoryWrite(
-							arguments, format: .flush, source: .flush, stamp: run.stamp)
+							arguments, source: .flush, stamp: run.stamp)
 					case .ledgerAppend:
 						execution = try await executeLedgerAppend(
 							arguments, source: .flush, stamp: run.stamp)
@@ -160,7 +158,6 @@ private struct FlushRun: Sendable {
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let maxAttempts: Int
-	let deadline: ModelDeadline
 }
 
 private struct FlushTally {
