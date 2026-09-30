@@ -119,14 +119,20 @@ for (const declaration of [
   'public nonisolated let renamed: Clock',
   'package(set) var state: State',
   '@ObservationIgnored public private(set) lazy var state = State()',
-  'var exposed: State { state }',
   'package var chatId: ChatID',
   'package let (a, b) = (1, 2)',
   'var `default`: TurnRunner',
-  'package var reviewScope: TurnScope?',
-  'package let reviewScope: TurnScope',
-  'package var reviewScope: TurnRunner { runner }',
-  'package var reviewScope: TurnScope? { get { work.phase.running?.attempt?.scope } set { replace(newValue) } }',
+  'lazy var state = State()',
+  'lazy var state: State = { State() }()',
+  'var state = makeState { State() }',
+  'var state: State { willSet { record(newValue) } }',
+  'var state: State { didSet { record(oldValue) } }',
+  'var state = State() { didSet { record(oldValue) } }',
+  'var exposed: State { get { state } set { state = newValue } }',
+  'private(set) var exposed: State { get { state } set(value) { state = value } }',
+  'var exposed: State { _read { yield state } _modify { yield &state } }',
+  'var exposed: State { get { state } nonmutating set { replace(newValue) } }',
+  'var exposed: State\n{\nget { state }\nset\n{ state = newValue }\n}',
 ]) {
   test(`rejects exposed mailbox state: ${declaration}`, () => {
     const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
@@ -161,15 +167,23 @@ test('accepts inline private mailbox bindings and braces inside strings', () => 
   assert.equal(result.status, 0, result.output);
 });
 
-test('accepts the mailbox review scope projection used by review decisions', () => {
-  const result = run({ [mailbox]: `package actor ChatMailbox {
-    private let work = MailboxQueue()
-    package var reviewScope: TurnScope? {
-      work.phase.running?.attempt?.scope
-    }
-  }` });
-  assert.equal(result.status, 0, result.output);
-});
+for (const declaration of [
+  'var exposed: State { state }',
+  'package var runningScope: TurnScope? { work.phase.running?.attempt?.scope }',
+  'var exposed: State { get { state } }',
+  'var exposed: State { _read { yield state } }',
+  'var exposed: State\n{\nstate\n}',
+  'var exposed: State { let copy = state; return copy }',
+  'var exposed: State { let set = state; return set }',
+  'var exposed: String { "set { _modify { didSet {" }',
+  'var exposed: State { get async throws { try await load() } }',
+  'package func queue() -> State { state }',
+]) {
+  test(`accepts read-only mailbox projections: ${declaration}`, () => {
+    const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
+    assert.equal(result.status, 0, result.output);
+  });
+}
 
 test('accepts private mailbox state, its immutable identity, and method locals', () => {
   const result = run({ [mailbox]: `package actor ChatMailbox {
