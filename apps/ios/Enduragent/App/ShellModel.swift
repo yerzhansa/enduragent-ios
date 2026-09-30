@@ -101,6 +101,7 @@ final class ShellModel {
 			.replace(apiKey: connectKey, athlete: .keyOwner))
 		switch outcome {
 		case .replaced:
+			connectKey = ""
 			connectError = nil
 			didConnect = true
 			await refreshStatus()
@@ -112,10 +113,12 @@ final class ShellModel {
 
 	func continueConnect() {
 		guard didConnect else { return }
+		connectKey = ""
 		route = .onboarding(.starter)
 	}
 
 	func skipConnect() {
+		connectKey = ""
 		didConnect = false
 		connectError = nil
 		route = .onboarding(.starter)
