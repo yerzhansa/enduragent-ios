@@ -159,7 +159,7 @@ import Testing
 			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: clock.uptime)
 		let result = try await runner(ladder: ladder).run(
-			attempt("How was my week?", scope: scope), scope: scope
+			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
 		) { _ in }
 		#expect(result.replyText == "Recovered.")
 		#expect(sent(.memoryFlush, by: transport).count == 1)

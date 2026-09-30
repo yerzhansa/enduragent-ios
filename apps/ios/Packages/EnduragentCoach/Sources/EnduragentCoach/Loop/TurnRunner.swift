@@ -336,10 +336,6 @@ package struct TurnRunner: Sendable {
 		).text
 	}
 
-	var modelCall: ModelCall {
-		ModelCall(transport: transport, diagnostics: diagnostics)
-	}
-
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
 			intervals: attempt.training.client, ledger: ledger, clock: clock)

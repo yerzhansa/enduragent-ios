@@ -1,5 +1,11 @@
 import Foundation
 
+extension TurnRunner {
+	var modelCall: ModelCall {
+		ModelCall(transport: transport, diagnostics: diagnostics)
+	}
+}
+
 struct ModelCall: Sendable {
 	let transport: any ModelTransport
 	let diagnostics: DiagnosticsLog
