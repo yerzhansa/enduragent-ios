@@ -171,7 +171,7 @@ struct IntervalsRESTClientTests {
 	}
 
 	@Test func vaultReadsTheSelectedAthleteThroughREST() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let vault = testVault(secrets, training: .rest(session: try stubSession()))
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		_ = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) { false }

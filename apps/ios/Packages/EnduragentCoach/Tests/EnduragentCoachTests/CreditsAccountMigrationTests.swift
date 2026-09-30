@@ -5,10 +5,90 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct CreditsAccountMigrationTests {
+	@Test func legacyFileMigratesLikeTheKeychain() async throws {
+		let directory = FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-legacy-items-\(UUID().uuidString)", directoryHint: .isDirectory)
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		defer {
+			do {
+				try FileManager.default.removeItem(at: directory)
+			} catch {
+				Issue.record(error, "legacy item directory cleanup")
+			}
+		}
+		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		let items = [
+			"openRouterKey": Data("test-legacy-key".utf8),
+			"appAccountToken": Data(token.uuidString.utf8),
+			CredentialSlot.intervalsConnection.rawValue: Data(
+				#"{"apiKey":{"_0":"test-training-key"}}"#.utf8),
+		]
+		let legacy =
+			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"test-legacy-key","intervalsApiKey":"test-training-key"}"#
+		try Data(legacy.utf8).write(to: directory.appending(path: "secrets.json"))
+		let keychain = ICloudKeychainStore(backing: FixtureSecretStoreBacking(items: items))
+		let file = try ICloudKeychainStore.fixture(directory: directory).store
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: file)
+		let expected = CreditsAccount(appAccountToken: token, key: "test-legacy-key")
+
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
+		#expect(try file.creditsAccount() == expected)
+		#expect(try file.creditsAccount() == keychain.creditsAccount())
+		#expect(try file.intervalsConnection() == keychain.intervalsConnection())
+		#expect(try file.intervalsConnection()?.credential == .apiKey("test-training-key"))
+		let migrated = try JSONDecoder().decode(
+			[String: Data].self, from: Data(contentsOf: directory.appending(path: "secrets.json")))
+		#expect(migrated["openRouterKey"] == nil)
+		#expect(migrated["appAccountToken"] == nil)
+		let accountData = try #require(migrated[CredentialSlot.creditsAccount.rawValue])
+		#expect(try JSONDecoder().decode(CreditsAccount.self, from: accountData) == expected)
+		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
+		#expect(try reopened.creditsAccount() == expected)
+		#expect(try reopened.intervalsConnection() == keychain.intervalsConnection())
+	}
+
+	@Test func failedFixtureMigrationSurfacesStorageUnavailable() async throws {
+		let directory = FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-failed-migration-\(UUID().uuidString)", directoryHint: .isDirectory)
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		defer {
+			do {
+				try FileManager.default.removeItem(at: directory)
+			} catch {
+				Issue.record(error, "failed migration directory cleanup")
+			}
+		}
+		let legacy =
+			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"test-legacy-key"}"#
+		let file = directory.appending(path: "secrets.json")
+		try Data(legacy.utf8).write(to: file)
+		let (store, backing) = try ICloudKeychainStore.fixture(directory: directory)
+		let before = try Data(contentsOf: file)
+		backing.failNextWrite = true
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
+
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.creditsIdentity()
+		}
+		#expect(try Data(contentsOf: file) == before)
+		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
+		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
+		#expect(
+			try reopened.creditsAccount()
+				== CreditsAccount(appAccountToken: token, key: "test-legacy-key"))
+	}
+
 	@Test func migrationReadsLegacyKeyAndTokenOnceThenDeletesThem() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let key = "test-legacy-credits-key"
-		let memory = MemorySecretStoreBacking(items: [
+		let memory = FixtureSecretStoreBacking(items: [
 			"openRouterKey": Data(key.utf8),
 			"appAccountToken": Data(token.uuidString.utf8),
 			"intervalsConnectionStaging": Data("undecodable legacy staging".utf8),
@@ -40,7 +120,9 @@ import Testing
 	}
 
 	@Test func tokenlessLegacyKeyWaitsForAccountPreparation() async throws {
-		let memory = MemorySecretStoreBacking(items: ["openRouterKey": Data("test-legacy-key".utf8)]
+		let memory = FixtureSecretStoreBacking(items: [
+			"openRouterKey": Data("test-legacy-key".utf8)
+		]
 		)
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = makeCoach(
@@ -64,7 +146,7 @@ import Testing
 	}
 
 	@Test func purchasePreparationMintsOnlyWhenRequested() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
@@ -81,7 +163,7 @@ import Testing
 	}
 
 	@Test func concurrentInitializationOnTwoDevicesConvergesOnOneAccount() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let interleaved = PeerInitializationBeforeAddBacking(base: memory)
 		let firstStore = ICloudKeychainStore(backing: interleaved)
 		let secondStore = ICloudKeychainStore(backing: memory)
@@ -108,7 +190,7 @@ import Testing
 
 	@Test func creditsIdentityReadsTheCombinedAccountOnce() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = MemorySecretStoreBacking(items: [
+		let memory = FixtureSecretStoreBacking(items: [
 			CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
 				CreditsAccount(appAccountToken: token, key: "test-credits-key"))
 		])
@@ -125,7 +207,7 @@ import Testing
 	#if DEBUG
 		@Test func replacingAppAccountTokenKeepsTheCreditsKey() async throws {
 			let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-			let memory = MemorySecretStoreBacking(items: [
+			let memory = FixtureSecretStoreBacking(items: [
 				CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
 					CreditsAccount(appAccountToken: token, key: "test-credits-key"))
 			])
@@ -151,7 +233,7 @@ import Testing
 }
 
 private final class PeerInitializationBeforeAddBacking: SecretStoreBacking, @unchecked Sendable {
-	private let base: MemorySecretStoreBacking
+	private let base: FixtureSecretStoreBacking
 	private let lock = NSLock()
 	private var attempted: CreditsAccount?
 	private var duplicates = 0
@@ -159,7 +241,7 @@ private final class PeerInitializationBeforeAddBacking: SecretStoreBacking, @unc
 	var attemptedAccount: CreditsAccount? { lock.withLock { attempted } }
 	var duplicateAdds: Int { lock.withLock { duplicates } }
 
-	init(base: MemorySecretStoreBacking) {
+	init(base: FixtureSecretStoreBacking) {
 		self.base = base
 	}
 

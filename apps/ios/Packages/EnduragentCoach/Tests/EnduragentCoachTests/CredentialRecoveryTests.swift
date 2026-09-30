@@ -98,7 +98,7 @@ import Testing
 		let encoded = try JSONEncoder().encode(StoredIntervalsConnection(testConnection))
 		let connection = try #require(String(data: encoded, encoding: .utf8))
 		let legacy = wrapped ? Data("{\"intervals\":{\"_0\":\(connection)}}".utf8) : encoded
-		let memory = MemorySecretStoreBacking(items: [
+		let memory = FixtureSecretStoreBacking(items: [
 			"intervalsConnectionStaging": legacy,
 			"appAccountToken": Data(UUID().uuidString.utf8),
 		])
@@ -123,7 +123,7 @@ extension CreditsClientTests {
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
 		let oldKey = "test-old-credits-key"
 		let newKey = "test-new-credits-key"
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let deviceB = ICloudKeychainStore(backing: memory)
 		try deviceB.storeCreditsAccount(CreditsAccount(appAccountToken: oldToken, key: oldKey))
 		try deviceB.storeIntervalsConnection(testConnection)
@@ -175,7 +175,7 @@ extension CreditsClientTests {
 	@Test func successfulRecoveryCommitsBothValues() async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let original = ICloudKeychainStore(backing: memory)
 		try original.storeCreditsAccount(
 			CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key"))
@@ -203,7 +203,7 @@ extension CreditsClientTests {
 }
 
 func legacyCreditsBacking(previous: CreditsAccount, current: CreditsAccount) throws
-	-> MemorySecretStoreBacking
+	-> FixtureSecretStoreBacking
 {
 	var undo = ["previousAppAccountToken": previous.appAccountToken.uuidString]
 	undo["previousKey"] = previous.key
@@ -212,15 +212,15 @@ func legacyCreditsBacking(previous: CreditsAccount, current: CreditsAccount) thr
 		"appAccountToken": Data(current.appAccountToken.uuidString.utf8),
 	]
 	items["openRouterKey"] = current.key.map { Data($0.utf8) }
-	return MemorySecretStoreBacking(items: items)
+	return FixtureSecretStoreBacking(items: items)
 }
 
 private final class OnceFailingStagingBacking: SecretStoreBacking, @unchecked Sendable {
-	private let base: MemorySecretStoreBacking
+	private let base: FixtureSecretStoreBacking
 	private let lock = NSLock()
 	private var failed = false
 
-	init(base: MemorySecretStoreBacking) {
+	init(base: FixtureSecretStoreBacking) {
 		self.base = base
 	}
 

@@ -6,7 +6,7 @@ import Testing
 
 extension CreditsClientTests {
 	@Test func accountDeletedDuringGrantWritesNothing() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let device = ICloudKeychainStore(backing: memory)
 		let client = try makeClient(secrets: device)
 		let peer = ICloudKeychainStore(backing: memory)
@@ -41,7 +41,7 @@ extension CreditsClientTests {
 	) async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let device = ICloudKeychainStore(backing: memory)
 		try device.storeCreditsAccount(CreditsAccount(appAccountToken: oldToken, key: nil))
 		let client = try makeClient(secrets: device)
@@ -77,7 +77,7 @@ extension CreditsClientTests {
 	}
 
 	@Test func grantMintsTheTokenOnce() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let client = try makeClient(secrets: store)
 		let sentTokens = Mutex<[String]>([])
@@ -106,7 +106,7 @@ extension CreditsClientTests {
 
 extension CredentialVaultTests {
 	@Test func replyWithNoAccountWritesNothing() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let coach = coach(ICloudKeychainStore(backing: memory))
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
@@ -116,7 +116,7 @@ extension CredentialVaultTests {
 	}
 
 	@Test func statusWithNoAccountWritesNothing() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = coach(store)
 		#expect(await coach.status().setup == .needsAccessMethod)
