@@ -24,7 +24,7 @@ public enum ReviewSummary: Sendable, Equatable {
 		}
 	}
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
 		switch self {
 		case .supplied(let text):
 			return text

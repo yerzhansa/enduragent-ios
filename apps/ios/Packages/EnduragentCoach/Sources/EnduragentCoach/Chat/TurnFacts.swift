@@ -1,8 +1,7 @@
 import Foundation
 
 package struct TurnFacts: Sendable, Equatable {
-	private static let promptPhrasebook = CatalogPhrasebook(
-		tag: .en, locale: LanguageTag.en.defaultLocale)
+	private static let promptPhrasebook = CatalogPhrasebook(tag: .en)
 
 	package let turn: TurnID
 	package let chat: ChatID

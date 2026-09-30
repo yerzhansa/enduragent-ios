@@ -8,7 +8,7 @@ public struct ReviewInstructions: Sendable, Equatable {
 
 	package let content: Content
 
-	public func lines(in phrasebook: any Phrasebook) -> [String] {
+	public func lines(in phrasebook: CatalogPhrasebook) -> [String] {
 		switch content {
 		case .cycling(let workout):
 			IntervalsSerializer.description(workout, phrasebook: phrasebook)

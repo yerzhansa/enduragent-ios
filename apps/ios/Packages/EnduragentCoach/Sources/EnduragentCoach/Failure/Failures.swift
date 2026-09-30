@@ -112,17 +112,21 @@ public struct WriteSummary: Sendable, Equatable {
 
 public struct AthleteNotice: Sendable, Equatable {
 	public let key: CatalogKey
+	public let count: Int?
 	public let vars: [String: String]
 	public let action: RecoveryAction?
 
-	package init(key: CatalogKey, vars: [String: String] = [:], action: RecoveryAction?) {
+	package init(
+		key: CatalogKey, count: Int? = nil, vars: [String: String] = [:], action: RecoveryAction?
+	) {
 		self.key = key
+		self.count = count
 		self.vars = vars
 		self.action = action
 	}
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
-		phrasebook.say(key, vars).trimmingCharacters(in: .whitespacesAndNewlines)
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+		phrasebook.say(key, count: count, vars).trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 }
 
@@ -261,15 +265,15 @@ package enum AthleteNotices {
 		}
 		if seconds < 60 {
 			return AthleteNotice(
-				key: Catalog.coachErrorRateLimitSeconds,
-				vars: ["count": "\(seconds)", "seconds": "\(seconds)"],
+				key: Catalog.coachErrorRateLimitSeconds, count: seconds,
+				vars: ["seconds": "\(seconds)"],
 				action: action
 			)
 		}
 		let minutes = (seconds + 59) / 60
 		return AthleteNotice(
-			key: Catalog.coachErrorRateLimitMinutes,
-			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],
+			key: Catalog.coachErrorRateLimitMinutes, count: minutes,
+			vars: ["minutes": "\(minutes)"],
 			action: action
 		)
 	}
@@ -311,7 +315,7 @@ package enum AthleteNotices {
 
 	private static func notice(outsideTurn unavailable: AccessUnavailable) -> AthleteNotice {
 		let turn = notice(for: .model(.accessUnavailable(unavailable)), turn: nil, waiting: false)
-		return AthleteNotice(key: turn.key, vars: turn.vars, action: nil)
+		return AthleteNotice(key: turn.key, count: turn.count, vars: turn.vars, action: nil)
 	}
 
 	package static func notice(for outcome: SavedWorkOutcome, saved: WriteSummary = .none)

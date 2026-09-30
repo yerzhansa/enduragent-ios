@@ -3,7 +3,7 @@ import XCTest
 
 extension TutorialHarness {
 	static func completeOnboarding(_ app: XCUIApplication, language: LanguageTag = .en) {
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
+		let phrasebook = CatalogPhrasebook(tag: language)
 		waitForLabel(app, phrasebook.say(Catalog.onboardingNoticeHealth))
 		named(app, "notice.continue").tap()
 		let key = named(app, "connect.apiKey")
@@ -26,7 +26,7 @@ extension TutorialHarness {
 		wait(named(app, "starter.credits"))
 		XCTAssertEqual(
 			named(app, "starter.credits").label,
-			phrasebook.say(Catalog.creditsBalance, ["count": "200", "formattedCount": "200"]))
+			phrasebook.say(Catalog.creditsBalance, count: 200, ["formattedCount": "200"]))
 		named(app, "starter.start").tap()
 		wait(named(app, "chat.composer"))
 		wait(named(app, "chat.welcome"))

@@ -35,7 +35,7 @@ import Testing
 			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
+				.mirror(fallback: .en)
 			)
 		)
 		#expect(section.contains(PromptAssembly.athleteDataOpen))
@@ -130,7 +130,7 @@ import Testing
 			evidence: EvidenceBlock(wellnessLine: nil),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
+				.mirror(fallback: .en)
 			)
 		)
 		let system = prefix + "\n\n" + volatile

@@ -9,9 +9,14 @@ final class CacheableHTTPServer: Sendable {
 	private let queue = DispatchQueue(label: "http-cache-test")
 
 	private let responseBody: @Sendable (Int) -> String
+	private let responseHeaders: @Sendable (Int) -> [String]
 
-	init(responseBody: @escaping @Sendable (Int) -> String) throws {
+	init(
+		responseHeaders: @escaping @Sendable (Int) -> [String] = { _ in [] },
+		responseBody: @escaping @Sendable (Int) -> String
+	) throws {
 		self.responseBody = responseBody
+		self.responseHeaders = responseHeaders
 		let parameters = NWParameters.tcp
 		parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
 		listener = try NWListener(using: parameters)
@@ -72,13 +77,15 @@ final class CacheableHTTPServer: Sendable {
 				return $0.count
 			}
 			let body = responseBody(count)
-			let response = [
-				"HTTP/1.1 200 OK",
-				"Content-Type: application/json",
-				"Cache-Control: public, max-age=3600",
-				"Content-Length: \(body.utf8.count)",
-				"Connection: close", "", body,
-			].joined(separator: "\r\n")
+			let headers =
+				[
+					"HTTP/1.1 200 OK",
+					"Content-Type: application/json",
+					"Cache-Control: public, max-age=3600",
+					"Content-Length: \(body.utf8.count)",
+					"Connection: close",
+				] + responseHeaders(count)
+			let response = (headers + ["", body]).joined(separator: "\r\n")
 			connection.send(
 				content: Data(response.utf8),
 				completion: .contentProcessed { error in

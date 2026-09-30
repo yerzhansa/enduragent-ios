@@ -2,7 +2,7 @@ import EnduragentCoach
 import SwiftUI
 
 struct StorageUnavailableView: View {
-	let phrasebook: any Phrasebook
+	let phrasebook: CatalogPhrasebook
 	let failure: any Error
 
 	var body: some View {

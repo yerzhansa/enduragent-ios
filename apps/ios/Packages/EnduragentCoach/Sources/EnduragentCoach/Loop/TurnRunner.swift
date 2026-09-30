@@ -7,7 +7,7 @@ package struct TurnAttempt: Sendable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguageResolution
+	package let language: ReplyLanguage
 	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
@@ -212,7 +212,7 @@ package struct TurnRunner: Sendable {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
+		let replyLanguage = PromptAssembly.replyLanguageSection(attempt.language)
 		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,
