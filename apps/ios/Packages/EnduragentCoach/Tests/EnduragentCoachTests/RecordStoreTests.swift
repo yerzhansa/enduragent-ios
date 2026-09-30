@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -17,9 +18,9 @@ extension SwiftDataSuites {
 		}
 
 		@Test func fixtureReopensTheExistingStoreFilesAndDevice() async throws {
-			let first = try RecordStore.fixture(directory: directory, deviceId: device)
+			let first = try FixtureRecordStore(directory: directory, deviceId: device)
 			try await coach(first.store).setLanguage(.fixed(.fr))
-			let reopened = try RecordStore.fixture(directory: directory, deviceId: device)
+			let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 			#expect(await coach(reopened.store).languagePreference() == .fixed(.fr))
 			#expect(coach(reopened.store).recordSyncProbe().deviceId == device)
 			let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
@@ -29,12 +30,12 @@ extension SwiftDataSuites {
 
 		@Test func unreadableFixtureThrowsAtStoreConstruction() throws {
 			#expect(throws: (any Error).self) {
-				try RecordStore.fixture(directory: directory, deviceId: device, unreadable: true)
+				try FixtureRecordStore(directory: directory, deviceId: device, unreadable: true)
 			}
 		}
 
 		@Test func faultingFixtureRejectsTheNamedKindAndStillSavesOtherKinds() async throws {
-			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 			let coach = coach(fixture.store)
 			try fixture.faults.failAppends(ofKind: "languagePreference")
 			await #expect(throws: PreferenceWriteFailure.notSaved) {
@@ -52,14 +53,14 @@ extension SwiftDataSuites {
 		}
 
 		@Test func faultingFixtureRejectsAnUnknownKind() throws {
-			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 			#expect(throws: RecordFaultConfigurationError.unknownKind("turnSettle")) {
 				try fixture.faults.failAppends(ofKind: "turnSettle")
 			}
 		}
 
 		@Test func faultingFixtureRejectsALegacyKind() throws {
-			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 			#expect(throws: RecordFaultConfigurationError.unknownKind("assistantMessage")) {
 				try fixture.faults.failAppends(ofKind: "assistantMessage")
 			}

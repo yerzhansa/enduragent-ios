@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -110,7 +111,9 @@ import Testing
 								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		let transport = FakeModelTransport()
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .flush,
+			otherwise: transport.respond)
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = !keyStored
@@ -143,7 +146,8 @@ extension SwiftDataSuites {
 			try store.insertRaw(
 				kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
 			let transport = FakeModelTransport()
-			transport.script = [.text("Noted."), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 			let coach = makeCoach(transport: transport, store: log, clock: clock)
 			let before = await coach.transcript(.main)
 			_ = try await coach.sendAndSettle("Still on for Saturday?")

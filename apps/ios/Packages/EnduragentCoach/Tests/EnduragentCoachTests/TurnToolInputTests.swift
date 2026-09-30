@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,10 +10,11 @@ extension TurnRunnerTests {
 		"invented_tool", "memory_read", "plan_save",
 	])
 	func unofferedToolCallsReturnUnknownTool(name: String) async throws {
-		transport.script = [
-			.toolCall(name: name, arguments: "{}"), .finish(reason: .toolCalls),
-			.text("That tool is unavailable."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: name, arguments: "{}"), .finish(reason: .toolCalls),
+				.text("That tool is unavailable."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "That tool is unavailable.")
@@ -103,7 +105,8 @@ extension TurnRunnerTests {
 	}
 
 	@Test func promptDoesNotRequestUnavailableTools() async throws {
-		transport.script = [.text("Ready."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
@@ -113,7 +116,8 @@ extension TurnRunnerTests {
 	}
 
 	@Test func promptPreservesNumberedChoiceSafetyRules() async throws {
-		transport.script = [.text("Ready."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
@@ -129,10 +133,11 @@ extension TurnRunnerTests {
 	}
 
 	private func toolResult(name: String, arguments: String) async throws -> JSONValue {
-		transport.script = [
-			.toolCall(name: name, arguments: arguments), .finish(reason: .toolCalls),
-			.text("Please correct the input."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: name, arguments: arguments), .finish(reason: .toolCalls),
+				.text("Please correct the input."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Check this input")
 		#expect(replyText(settled) == "Please correct the input.")
 		let next = try #require(transport.requests.last)

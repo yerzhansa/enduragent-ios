@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -54,7 +55,9 @@ import Testing
 				history[2].user, history[2].reply,
 			])
 
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("And Sunday?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
@@ -67,7 +70,8 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 2, tokens: historyBudget(clock: clock) * 9 / 10)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.text("Superseded partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -79,7 +83,9 @@ import Testing
 			return
 		}
 		try #require(interrupted.partial == "Superseded partial")
-		transport.script = [.text("Replacement reply"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Replacement reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		#expect(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
@@ -91,18 +97,20 @@ import Testing
 
 	@Test func aRetriedQuestionBeforeASavedWindowIsStillUnsaved() async throws {
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.fail(.http(status: 400))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
 		try #require(failed.retryable)
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
-		transport.script = [
-			.text("First."), .finish(reason: .stop),
-			.text("Second."), .finish(reason: .stop),
-			.text(longReply), .finish(reason: .stop),
-			.text("Ready."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("First."), .finish(reason: .stop),
+				.text("Second."), .finish(reason: .stop),
+				.text(longReply), .finish(reason: .stop),
+				.text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
 			_ = try await coach.sendAndSettle(question)
 		}
@@ -118,7 +126,8 @@ import Testing
 		let newest = try #require(saved.messages.max())
 		try #require(user < newest)
 		#expect(!saved.messages.contains(user))
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Noted.")
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))

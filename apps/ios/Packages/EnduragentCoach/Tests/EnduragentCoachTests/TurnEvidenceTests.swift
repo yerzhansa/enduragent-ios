@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -13,7 +14,9 @@ import Testing
 		intervals.wellness = [
 			WellnessDay(date: "1998-06-13", fitness: value, fatigue: value, form: value)
 		]
-		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("How is my form?")
@@ -26,7 +29,9 @@ import Testing
 	@Test func failedWellnessReadOmitsLineAndLogsDiagnostics() async throws {
 		let failure = IntervalsError(code: "http", details: "status 503", status: 503)
 		intervals.loadFailure = failure
-		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
@@ -50,7 +55,9 @@ import Testing
 			WellnessDay(date: "1998-06-12", fitness: 50, fatigue: 40, form: 10),
 			WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 13.1),
 		]
-		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
@@ -66,7 +73,9 @@ import Testing
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
-		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock,
 			secrets: secrets)

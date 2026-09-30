@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -29,9 +30,10 @@ import Testing
 	}
 
 	@Test func replyStreamsTextThenFinishes() async throws {
-		transport.script = [
-			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
@@ -65,7 +67,9 @@ import Testing
 	}
 
 	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
-		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .error)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Tomorrow's ride is queued."), .finish(reason: .error)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(replyText(settled) == "Tomorrow's ride is queued.")
@@ -77,14 +81,17 @@ import Testing
 	}
 
 	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
-		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)], for: .chat,
+			otherwise: transport.respond)
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 	}
 
 	@Test func emptyProviderErrorFinishFailsWithoutAReply() async throws {
-		transport.script = [.finish(reason: .error)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .error)], otherwise: transport.respond)
 		let coach = makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(failure(settled) == .model(.generationFailed(.emptyAfterError)))
@@ -102,12 +109,13 @@ import Testing
 		intervals.activities = [
 			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
 		]
-		transport.script = [
-			.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
-			.finish(reason: .toolCalls),
-			.text("Sunday long ride, 2 h, load 120."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.finish(reason: .toolCalls),
+				.text("Sunday long ride, 2 h, load 120."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("Review my last ride"), to: .main).acceptedTurn)
@@ -133,12 +141,13 @@ import Testing
 	}
 
 	@Test func calendarWriteBecomesAReview() async throws {
-		transport.script = [
-			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(review.ref.chat == "main")
@@ -169,12 +178,13 @@ import Testing
 	}
 
 	@Test func calendarProposalSurvivesProviderErrorFinish() async throws {
-		transport.script = [
-			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .error),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .error),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(
@@ -188,14 +198,6 @@ import Testing
 	}
 
 	func proposeEnduranceRide(_ coach: Coach) async throws -> ReviewSnapshot {
-		if transport.script.isEmpty {
-			transport.script = [
-				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-				.finish(reason: .toolCalls),
-				.text("I've prepared the ride. Confirm to add it."),
-				.finish(reason: .stop),
-			]
-		}
 		let turn = try #require(
 			try await coach.send(draft("Give me an endurance ride for tomorrow"), to: .main)
 				.acceptedTurn)

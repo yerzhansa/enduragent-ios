@@ -1,5 +1,6 @@
 import BackgroundTasks
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 import UIKit
@@ -171,7 +172,8 @@ extension FixtureLaunchTests {
 
 	private func leaseCoach(host: ContinuedProcessingHost) throws -> Coach {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let secrets = try ICloudKeychainStore.fixture(directory: launch.directory).store
 		try secrets.storeCreditsAccount(
 			CreditsAccount(

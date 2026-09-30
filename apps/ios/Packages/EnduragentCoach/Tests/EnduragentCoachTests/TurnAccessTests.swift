@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -35,7 +36,9 @@ extension TurnRunnerTests {
 			CreditsAccount(
 				appAccountToken: UUID(),
 				key: "sk-or-stored-after-launch"))
-		transport.script = [.text("Hello, Ada."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello, Ada."), .finish(reason: .stop)], otherwise: transport.respond
+		)
 		try await coach.retry(turn, in: .main)
 		let answered = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(answered) == "Hello, Ada.")

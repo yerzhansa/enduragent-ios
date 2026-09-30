@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import SwiftData
 import Testing
@@ -168,7 +169,8 @@ extension SwiftDataSuites {
 				return ulid
 			}
 			#expect(Set(skipped) == [fixedUlid(19).rawValue, fixedUlid(39).rawValue])
-			transport.flushScript = [.finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 			let saved = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 				\.unstampedContent)

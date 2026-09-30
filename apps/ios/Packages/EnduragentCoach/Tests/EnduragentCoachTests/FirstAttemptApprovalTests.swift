@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,7 +10,9 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let reply = "Here is a ride for tomorrow."
-		transport.script = workoutProposal + [.text(reply), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.text(reply), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(23) : nil
 		}
@@ -30,7 +33,7 @@ extension RetryLadderTests {
 	func firstAttemptApprovalAllowsDifferentProposal() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [
 				.toolCall(
 					name: "intervals_create_workout",
@@ -38,7 +41,7 @@ extension RetryLadderTests {
 						#"{"date":"1998-06-16","workout":{"name":"Tempo","steps":[{"type":"steady","duration":{"value":45,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":87}}]}}"#
 				),
 				.finish(reason: .toolCalls), .text("Tuesday is next."), .finish(reason: .stop),
-			]
+			], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(29) : nil
 		}

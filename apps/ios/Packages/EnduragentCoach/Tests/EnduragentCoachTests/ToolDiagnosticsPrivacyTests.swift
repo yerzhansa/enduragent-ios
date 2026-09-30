@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -36,12 +37,13 @@ extension TurnRunnerTests {
 					"https://intervals.icu/api/v1/athlete/i1001/wellness?oldest=1998-06-07&newest=1998-06-13"
 			))
 		intervals.loadFailure = URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])
-		transport.script = [
-			.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
-			.finish(reason: .toolCalls),
-			.text("I could not read your wellness data."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
+				.finish(reason: .toolCalls),
+				.text("I could not read your wellness data."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("How am I recovering?")

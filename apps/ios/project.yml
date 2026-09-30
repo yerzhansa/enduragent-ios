@@ -40,6 +40,9 @@ targets:
         DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
+      configs:
+        Debug:
+          OTHER_LDFLAGS: $(inherited) "$(BUILT_PRODUCTS_DIR)/EnduragentCoachFixtures.o"
     info:
       path: Enduragent/Info.plist
       properties:
@@ -62,6 +65,9 @@ targets:
           - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
+        link: false
   EnduragentTests:
     type: bundle.unit-test
     platform: iOS

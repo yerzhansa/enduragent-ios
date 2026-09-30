@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -33,10 +34,11 @@ import Testing
 	@Test func aConversationAcrossMidnightReachesTheModelWithDatedAthleteMessages() async throws {
 		let clock = FixedClock(now: "1998-06-15T23:50:00+02:00", timeZone: "Europe/Amsterdam")
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [
-			.text("Good, keep them at 105%."), .finish(reason: .stop),
-			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Good, keep them at 105%."), .finish(reason: .stop),
+				.text("Expected after yesterday's intervals."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("I'm doing intervals today.")
 		clock.advance(by: 20 * 60)
 		_ = try await coach.sendAndSettle("My legs are sore.")
@@ -49,7 +51,8 @@ import Testing
 			])
 		#expect(chat.messages.dropFirst().map(\.role) == [.user, .assistant, .user])
 		#expect(chat.messages.first?.content.contains("start with a bracketed send time") == true)
-		transport.flushScript = [.finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flush = try #require(sent(.memoryFlush, by: transport).last)
 		#expect(
@@ -64,10 +67,11 @@ import Testing
 
 	@Test func stampsUseTheCurrentZoneNotTheZoneTheMessageWasSentIn() async throws {
 		let amsterdam = FixedClock(now: "1998-06-15T20:00:00+02:00", timeZone: "Europe/Amsterdam")
-		transport.script = [
-			.text("Good, keep them at 105%."), .finish(reason: .stop),
-			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Good, keep them at 105%."), .finish(reason: .stop),
+				.text("Expected after yesterday's intervals."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		_ = try await makeCoach(transport: transport, store: store, clock: amsterdam)
 			.sendAndSettle("I'm doing intervals today.")
 		let tokyo = FixedClock(now: "1998-06-16T03:10:00+09:00", timeZone: "Asia/Tokyo")
@@ -96,9 +100,10 @@ import Testing
 					ulid: ULID.generate(at: ahead.addingTimeInterval(1)),
 					body: .synced(sampleReply(chatId: .main, turn: remote, text: "Noted."))),
 			])
-		transport.script = [
-			.text("Good."), .finish(reason: .stop), .text("Rest."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Good."), .finish(reason: .stop), .text("Rest."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		_ = try await coach.sendAndSettle("Legs sore?")

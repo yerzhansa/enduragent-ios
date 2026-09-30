@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -5,12 +6,13 @@ import Testing
 @Suite struct FakeModelTransportTests {
 	@Test func streamReplaysScriptAcrossTwoRequests() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("Ada rode Saturday."),
-			.finish(reason: .stop),
-			.toolCall(name: "intervals_fetch_athlete", arguments: "{}"),
-			.finish(reason: .toolCalls),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Ada rode Saturday."),
+				.finish(reason: .stop),
+				.toolCall(name: "intervals_fetch_athlete", arguments: "{}"),
+				.finish(reason: .toolCalls),
+			], otherwise: transport.respond)
 		let firstRequest = testRequest([
 			WireMessage(role: .user, content: "How was 1998-06-13?", toolCalls: [], toolCallId: nil)
 		])
@@ -50,12 +52,12 @@ import Testing
 					reason: .toolCalls, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)))
 
 		#expect(transport.requests == [firstRequest, secondRequest])
-		#expect(transport.script.isEmpty)
+
 	}
 
 	@Test func hangingStreamFinishesWhenCancelled() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let request = testRequest(
 			[WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil)],
 			deadline: .seconds(30))
@@ -74,12 +76,13 @@ import Testing
 
 	@Test func streamStopsAtEachFinish() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("one"),
-			.finish(reason: .stop),
-			.text("two"),
-			.finish(reason: .length),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("one"),
+				.finish(reason: .stop),
+				.text("two"),
+				.finish(reason: .length),
+			], otherwise: transport.respond)
 		let request = testRequest(
 			[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
 			deadline: .seconds(30))
@@ -98,7 +101,9 @@ import Testing
 		let delay = Duration.milliseconds(60)
 		let transport = FakeModelTransport()
 		transport.deltaDelay = delay
-		transport.script = [.text("one"), .text("two"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("one"), .text("two"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let clock = ContinuousClock()
 		let started = clock.now
 		var arrivals: [ContinuousClock.Instant] = []
@@ -113,19 +118,23 @@ import Testing
 
 	@Test func scriptedFailureFailsTheRequestThatReachesIt() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.fail(.http(status: 500)), .text("after"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500)), .text("after"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		await #expect(throws: ProviderFailure.serverError(status: 500, retryAfter: nil)) {
 			_ = try await collect(transport.stream(request("First")))
 		}
 		let second = try await collect(transport.stream(request("Second")))
 		#expect(textDeltas(in: second) == ["after"])
-		#expect(transport.script.isEmpty)
+
 		#expect(transport.requestCount == 2)
 	}
 
 	@Test func failureAfterTextStreamsTheTextThenThrows() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is "), .fail(.connection(.networkConnectionLost))]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is "), .fail(.connection(.networkConnectionLost))], for: .chat,
+			otherwise: transport.respond)
 		var received: [TransportEvent] = []
 		await #expect(throws: ProviderFailure.network) {
 			for try await event in transport.stream(request("Thursday?")) {
@@ -137,11 +146,15 @@ import Testing
 
 	@Test func summariesAndFlushesReadTheirOwnScripts() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.fail(.http(status: 429)), .text("reply"), .finish(reason: .stop)]
-		transport.summaryScript = [
-			.text("summary"), .finish(reason: .stop), .text("dropped"), .finish(reason: .stop),
-		]
-		transport.flushScript = [.text("flush"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 429)), .text("reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("summary"), .finish(reason: .stop), .text("dropped"), .finish(reason: .stop),
+			], for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("flush"), .finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		let summary = try await collect(transport.stream(maintenance(.compaction)))
 		#expect(textDeltas(in: summary) == ["summary"])
 		await #expect(throws: ProviderFailure.rateLimited(retryAfter: nil)) {
@@ -155,6 +168,19 @@ import Testing
 		#expect(textDeltas(in: try await collect(transport.stream(request("Chat")))) == ["reply"])
 	}
 
+	@Test func everyRequestKeepsItsAttemptQuestionAndStep() async throws {
+		let transport = FakeModelTransport { request in
+			ScriptedReply([.text("\(request.text):\(request.step)"), .finish(reason: .stop)])
+		}
+		let first = request("Thursday?")
+		#expect(textDeltas(in: try await collect(transport.stream(first))) == ["Thursday?:0"])
+		let second = testRequest(
+			first.messages + [
+				WireMessage(role: .user, content: "Continue", toolCalls: [], toolCallId: nil)
+			])
+		#expect(textDeltas(in: try await collect(transport.stream(second))) == ["Thursday?:1"])
+	}
+
 	private func maintenance(_ charge: GenerateCharge) -> CompletionRequest {
 		CompletionRequest(
 			access: testAccess, attempt: AttemptID(ulid: fixedUlid(901)), charge: charge,
@@ -163,7 +189,9 @@ import Testing
 
 	@Test func scriptedHangStreamsThenWaitsForCancellation() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is "), .hang, .text("next"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is "), .hang, .text("next"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let stream = transport.stream(request("Hang"))
 		let task = Task {
 			var texts: [String] = []

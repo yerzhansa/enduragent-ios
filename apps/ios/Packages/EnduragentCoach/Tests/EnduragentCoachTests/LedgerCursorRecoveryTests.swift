@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import SwiftData
 import Testing

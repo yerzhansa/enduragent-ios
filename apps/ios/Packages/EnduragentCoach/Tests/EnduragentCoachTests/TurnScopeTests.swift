@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -94,15 +95,16 @@ import Testing
 
 	@Test func stopAfterACommittedWriteOffersNoTryAgain() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.hang,
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)

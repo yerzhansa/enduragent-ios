@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -66,14 +67,18 @@ import Testing
 	@Test func anOlderJobNeverRunsAfterANewerWindowThatCoversIt() async throws {
 		let budget = historyBudget(clock: clock)
 		let history = try await seedHistory(store, clock: clock, turns: 3, tokens: budget * 9 / 10)
-		transport.flushScript =
+		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 500)), .fail(.http(status: 500))]
-			+ memoryWrite("Sundays now.") + memoryWrite("Saturdays.")
-		transport.summaryScript = [.text("Earlier."), .finish(reason: .stop)]
+				+ memoryWrite("Sundays now.") + memoryWrite("Saturdays."), for: .flush,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier."), .finish(reason: .stop)], for: .summary, otherwise: transport.respond
+		)
 		let longReply = "Long " + String(repeating: "r", count: budget / 2)
-		transport.script = [
-			.text(longReply), .finish(reason: .stop), .text("Noted."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text(longReply), .finish(reason: .stop), .text("Noted."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
@@ -98,10 +103,14 @@ import Testing
 	@Test func aFailingJobRetriesInItsProcessAndIsAbandonedAfterTheNextLaunchDrain() async throws {
 		let history = try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 12)
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 400)), count: 12), for: .flush,
+			otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		for index in 0..<3 {
-			transport.script = [.text("Reply \(index)."), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Reply \(index)."), .finish(reason: .stop)], for: .chat,
+				otherwise: transport.respond)
 			_ = try await coach.sendAndSettle("Ask \(index)?")
 			try await waitUntil { sent(.memoryFlush, by: transport).count == 2 * (index + 1) }
 		}
@@ -114,7 +123,9 @@ import Testing
 		#expect(sent(.memoryFlush, by: transport).count == 8)
 		#expect(try await settlements() == [.abandoned])
 
-		transport.script = [.text("Reply 3."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Reply 3."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await relaunched.sendAndSettle("Ask 3?")
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 10 }
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
@@ -147,13 +158,15 @@ import Testing
 				])
 			seeded.append(SeededTurn(turn: turn, user: user, reply: reply))
 		}
-		transport.summaryScript = [
-			.text("Summary one."), .finish(reason: .stop), .text("Summary two."),
-			.finish(reason: .stop),
-		]
-		transport.script = [
-			.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Summary one."), .finish(reason: .stop), .text("Summary two."),
+				.finish(reason: .stop),
+			], for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Short?")
 		let windows = try await store.fetch(
@@ -188,10 +201,13 @@ import Testing
 					store, at: asked.addingTimeInterval(1), ulid: reply,
 					body: .synced(sampleReply(chatId: .main, turn: turn, text: hugeReply))),
 			])
-		transport.summaryScript = [.text("Everything so far."), .finish(reason: .stop)]
-		transport.script = [
-			.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Everything so far."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("And now?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: running, in: .main))

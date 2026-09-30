@@ -1,5 +1,6 @@
 #if DEBUG
 	import EnduragentCoach
+	import EnduragentCoachFixtures
 	import Foundation
 
 	extension FirstWeekFixture {
@@ -7,7 +8,24 @@
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func respond(to text: String, retry: Bool) -> ScriptedReply {
+		static func respond(to request: ScriptedRequest) -> ScriptedReply {
+			switch request.purpose {
+			case .summary:
+				return ScriptedReply(summaryReply)
+			case .flush:
+				let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
+				return ScriptedReply(
+					text == "fixture:flush-partial" && !request.retry ? flushPartial : [],
+					requestDelay: text == "fixture:slow-flush" && !request.retry
+						? slowFlushDelay : nil
+				).step(request.step)
+			case .chat:
+				return reply(to: request.text, retry: request.retry).step(
+					request.step, repeatingHang: true)
+			}
+		}
+
+		private static func reply(to text: String, retry: Bool) -> ScriptedReply {
 			let normal = script(for: text)
 			guard !retry, text.hasPrefix("fixture:") else { return ScriptedReply(normal) }
 			let words = text.dropFirst("fixture:".count).split(separator: " ").map(String.init)
@@ -19,7 +37,7 @@
 				)
 			case "slow-flush" where arguments.isEmpty:
 				return ScriptedReply(
-					normal, requestDelay: slowFlushDelay, flushDelay: slowFlushDelay)
+					normal, requestDelay: slowFlushDelay)
 			case "hang" where arguments.isEmpty:
 				return ScriptedReply([.hang])
 			case "fail":
@@ -38,7 +56,7 @@
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:
-				return ScriptedReply(normal, flush: flushPartial)
+				return ScriptedReply(normal)
 			default:
 				return unknown(text)
 			}

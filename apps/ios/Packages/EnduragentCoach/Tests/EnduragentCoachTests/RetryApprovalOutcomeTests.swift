@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,10 +9,11 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal
-			+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -49,9 +51,10 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal
-			+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))], for: .chat,
+			otherwise: transport.respond)
 		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -81,10 +84,11 @@ extension RetryLadderTests {
 		let intervals = HeldApprovalWrites(
 			base: base, clock: held,
 			failure: IntervalsError(code: "http", details: "Rejected", status: 422))
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal
-			+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -113,10 +117,11 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal
-			+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}

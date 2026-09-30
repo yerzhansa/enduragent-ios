@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -207,7 +208,7 @@ import Testing
 
 	@Test func recoveryDoesNotFlipATurnAnsweredAfterAnUnsavedStop() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = InMemoryRecordLog()
 		let faulty = FaultInjectingRecordLog(wrapping: store)
 		let coach = makeCoach(transport: transport, store: faulty, clock: clock)
@@ -217,8 +218,10 @@ import Testing
 		faulty.failNextAppend = true
 		await coach.stop(.main)
 		#expect(await coach.state(of: turn)?.retryable == true)
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = { _ in ScriptedReply([]) }
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		let replied = try await coach.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(replied.flatMap(replyText) == "Thursday is on.")
@@ -232,7 +235,7 @@ import Testing
 
 	@Test func aRerunRecoveryLeavesThisProcessesRunningClaimAlone() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		log.failRecoveryReads = true
 		let coach = makeCoach(transport: transport, store: log, clock: clock)
@@ -251,7 +254,9 @@ import Testing
 
 	@Test func aRerunRecoveryDoesNotLoseThisProcessesReply() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		transport.requestDelay = .milliseconds(500)
 		let inner = InMemoryRecordLog()
 		let log = FaultInjectingRecordLog(wrapping: inner)
@@ -273,7 +278,7 @@ import Testing
 	@Test func aClaimOnAnotherDevicesTurnIsLeftAlone() async throws {
 		let store = InMemoryRecordLog()
 		let otherTransport = FakeModelTransport()
-		otherTransport.hangUntilCancelled = true
+		otherTransport.respond = { _ in ScriptedReply([.hang]) }
 		let other = makeCoach(
 			transport: otherTransport,
 			store: DeviceAliasLog(inner: store, deviceId: DeviceID(rawValue: "phone-b")),

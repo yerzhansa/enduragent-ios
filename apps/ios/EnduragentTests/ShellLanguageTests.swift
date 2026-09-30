@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -79,14 +80,15 @@ final class ShellLanguageTests {
 
 	@Test(arguments: [true, false])
 	func visibleReviewOutcomeChangesWithTheLanguagePreference(expires: Bool) async throws {
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments: #"{"date":"1998-06-14","name":"Core","description":"20 minutes"}"#),
-			.finish(reason: .toolCalls),
-			.text("Confirm to add the core workout."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments: #"{"date":"1998-06-14","name":"Core","description":"20 minutes"}"#),
+				.finish(reason: .toolCalls),
+				.text("Confirm to add the core workout."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let model = ShellModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		)

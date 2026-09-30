@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,8 +10,10 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func rateLimitRetriesThreeTimesHonoringRetryAfter() async throws {
-		transport.script = Array(
-			repeating: .fail(.http(status: 429, headers: ["retry-after": "7"])), count: 4)
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: .fail(.http(status: 429, headers: ["retry-after": "7"])), count: 4),
+			for: .chat, otherwise: transport.respond)
 		let coach = makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
@@ -30,21 +33,24 @@ import Testing
 			waits: [.milliseconds(1_500), .milliseconds(1_500), .milliseconds(1_500)]),
 	])
 	func rateLimitWaitsFollowTheHintOrBackOffUnderTheCeiling(row: RateLimitRow) async throws {
-		transport.script = Array(
-			repeating: .fail(.http(status: 429, headers: row.headers)), count: 4)
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: .fail(.http(status: 429, headers: row.headers)), count: 4), for: .chat,
+			otherwise: transport.respond)
 		_ = try await makeCoach().sendAndSettle("How was my week?")
 		#expect(Array(clock.slept.prefix(row.waits.count)) == row.waits)
 		#expect(chatRequests() == 4)
 	}
 
 	@Test func serverErrorRetriesTwiceWithJitteredWaits() async throws {
-		transport.script = [
-			.fail(.http(status: 500)),
-			.fail(.connection(.networkConnectionLost)),
-			.fail(.http(status: 503)),
-			.text("Too late."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 500)),
+				.fail(.connection(.networkConnectionLost)),
+				.fail(.http(status: 503)),
+				.text("Too late."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.providerDown(.outage)))
 		#expect(chatRequests() == 3)
@@ -53,12 +59,13 @@ import Testing
 	}
 
 	@Test func serverErrorWithRetryAfterWaitsFromTheHintUpToTheCap() async throws {
-		transport.script = [
-			.fail(.http(status: 503, headers: ["retry-after": "2"])),
-			.fail(.http(status: 503, headers: ["retry-after": "30"])),
-			.text("Thursday is on."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 503, headers: ["retry-after": "2"])),
+				.fail(.http(status: 503, headers: ["retry-after": "30"])),
+				.text("Thursday is on."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(chatRequests() == 3)
@@ -69,7 +76,9 @@ import Testing
 	}
 
 	@Test func timeoutCompactsAboveRatioElseOnePlainRetry() async throws {
-		transport.script = Array(repeating: .fail(.connection(.timedOut)), count: 3)
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.connection(.timedOut)), count: 3), for: .chat,
+			otherwise: transport.respond)
 		let plain = try await makeCoach().sendAndSettle("Is Thursday on?")
 		#expect(failure(plain) == .model(.providerDown(.timeout)))
 		#expect(chatRequests() == 2)
@@ -77,7 +86,9 @@ import Testing
 		#expect(clock.slept.isEmpty)
 
 		let large = FakeModelTransport()
-		large.script = Array(repeating: .fail(.connection(.timedOut)), count: 3)
+		large.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.connection(.timedOut)), count: 3), for: .chat,
+			otherwise: large.respond)
 		let longRequest = String(repeating: "Thursday ride notes. ", count: 21_500)
 		let crowded = try await makeCoach(transport: large).sendAndSettle(longRequest)
 		#expect(failure(crowded) == .model(.providerDown(.timeout)))
@@ -86,10 +97,10 @@ import Testing
 	}
 
 	@Test func budgetExceededIsTerminalBeforeAnyRung() async throws {
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(overflow), count: 3) + [
 				.fail(.http(status: 429)), .text("Never sent."), .finish(reason: .stop),
-			]
+			], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("How was my week?")
 		#expect(failure(settled) == .model(.budgetExhausted(.generateAttempts)))
 		#expect(chatRequests() == 4)
@@ -123,17 +134,18 @@ import Testing
 	}
 
 	@Test func committedMemoryWriteSettlesSavedUnverified() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.fail(.http(status: 500)),
-			.text("Never sent."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.fail(.http(status: 500)),
+				.text("Never sent."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
@@ -166,22 +178,25 @@ import Testing
 	}
 
 	@Test func savedWorkReachesTheNextPromptAsTheCoachsReply() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.fail(.http(status: 500)),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.fail(.http(status: 500)),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		let saved = try await coach.sendAndSettle("Remember my Saturday ride")
 		guard case .savedWork = saved else {
 			Issue.record("expected saved work, got \(saved)")
 			return
 		}
-		transport.script = [.text("Saturdays are noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saturdays are noted."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Did you save it?")
 		let prompt = try #require(transport.requests.last(where: { $0.charge == .chatAttempt }))
 		let history = prompt.messages.filter { $0.role == .user || $0.role == .assistant }
@@ -194,12 +209,13 @@ import Testing
 	}
 
 	@Test func observedTextIsTerminalExceptWindowExceeded() async throws {
-		transport.script = [
-			.text("Thursday is "),
-			.fail(.connection(.networkConnectionLost)),
-			.text("Never sent."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is "),
+				.fail(.connection(.networkConnectionLost)),
+				.text("Never sent."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let cut = try await makeCoach().sendAndSettle("Is Thursday on?")
 		#expect(failure(cut) == .model(.providerDown(.network)))
 		#expect(chatRequests() == 1)
@@ -207,10 +223,11 @@ import Testing
 		let window = FakeModelTransport()
 		window.finishUsage = Usage(
 			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
-		window.script = [
-			.text("truncated"), .finish(reason: .length), .text("after compact"),
-			.finish(reason: .stop),
-		]
+		window.respond = ScriptedReply.sequence(
+			[
+				.text("truncated"), .finish(reason: .length), .text("after compact"),
+				.finish(reason: .stop),
+			], otherwise: window.respond)
 		let rescued = try await makeCoach(transport: window).sendAndSettle("Long history")
 		#expect(replyText(rescued) == "after compact")
 		#expect(window.requests.filter { $0.charge == .chatAttempt }.count == 2)
@@ -232,11 +249,12 @@ import Testing
 
 	@Test func waitShowsTheWorkingStateWithItsReason() async throws {
 		let paused = PausingClock(calendar: clock)
-		transport.script = [
-			.fail(.http(status: 429, headers: ["retry-after": "7"])),
-			.text("Thursday is on."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 429, headers: ["retry-after": "7"])),
+				.text("Thursday is on."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: paused)
 		let turn = try #require(

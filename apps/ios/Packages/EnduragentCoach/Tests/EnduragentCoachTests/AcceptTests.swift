@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,7 +10,9 @@ extension SwiftDataSuites {
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test func acceptWritesUserMessageBeforeAnyModelRequest() async throws {
-			transport.script = [.text("Two rides."), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Two rides."), .finish(reason: .stop)], for: .chat,
+				otherwise: transport.respond)
 			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
 			let coach = makeCoach(transport: transport, store: recording, clock: clock)
 			let outcome = try await coach.send(draft("How was my week?"), to: .main)
@@ -62,7 +65,9 @@ extension SwiftDataSuites {
 		}
 
 		@Test func aFragmentSavedWhileTheWindowClosesReachesTheModel() async throws {
-			transport.script = [.text("Both days are on."), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Both days are on."), .finish(reason: .stop)], for: .chat,
+				otherwise: transport.respond)
 			let slow = SlowAppendLog(inner: InMemoryRecordLog(), delay: .milliseconds(200))
 			let coach = makeCoach(
 				transport: transport, store: slow, clock: clock,

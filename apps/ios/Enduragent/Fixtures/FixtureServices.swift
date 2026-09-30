@@ -1,5 +1,6 @@
 #if DEBUG
 	import EnduragentCoach
+	import EnduragentCoachFixtures
 	import Foundation
 
 	struct FixtureServices: Sendable {
@@ -26,8 +27,7 @@
 			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 			FirstWeekFixture.install(on: intervals)
 			let transport = FakeModelTransport(respond: FirstWeekFixture.respond)
-			transport.summaryScript = FirstWeekFixture.summaryReply
-			let fixture = try RecordStore.fixture(
+			let fixture = try FixtureRecordStore(
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)
 			let records = fixture.faults

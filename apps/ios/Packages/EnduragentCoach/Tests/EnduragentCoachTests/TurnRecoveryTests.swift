@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -35,15 +36,16 @@ import Testing
 	}
 
 	@Test func deadClaimIsInterruptedWithProcessEndedAndStampedWrites() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.hang,
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
@@ -81,13 +83,15 @@ import Testing
 	}
 
 	@Test func claimedThenKilledTurnIsInterruptedAndTryAgainAnswersIt() async throws {
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = { _ in ScriptedReply([]) }
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let after = await relaunched()
 		let state = try #require(await after.state(of: turn))
 		#expect(state != .accepted(.awaitingRestart))
@@ -111,15 +115,16 @@ import Testing
 	}
 
 	@Test func theFirstSnapshotAndRetryAfterRelaunchSeeTheSavedWorkOfADeadClaim() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.hang,
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
@@ -156,7 +161,9 @@ import Testing
 	}
 
 	@Test func settledClaimIsNotTouched() async throws {
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let before = makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		let settled = try #require(await before.settledState(of: turn, in: .main))
@@ -168,7 +175,7 @@ import Testing
 	}
 
 	@Test func planRunTwiceWritesNothingTheSecondTime() async throws {
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)

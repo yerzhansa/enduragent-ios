@@ -84,12 +84,12 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 public struct CreditsService: Sendable {
 	package let makeClient: @Sendable (CredentialVault) -> any CreditsClient
 
-	public static func worker(_ base: URL) -> CreditsService {
-		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
+	package init(makeClient: @escaping @Sendable (CredentialVault) -> any CreditsClient) {
+		self.makeClient = makeClient
 	}
 
-	public static func fake(_ client: FakeCreditsClient) -> CreditsService {
-		CreditsService { _ in client }
+	public static func worker(_ base: URL) -> CreditsService {
+		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
 	}
 }
 

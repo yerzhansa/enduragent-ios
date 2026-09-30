@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -36,7 +37,9 @@ import Testing
 		let transport = FakeModelTransport()
 		let store = InMemoryRecordLog()
 		let coach = makeCoach(transport: transport, store: store)
-		transport.script = [.text("Plans come in a later release."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Plans come in a later release."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let plan = try await coach.sendAndSettle("/plan")
 		#expect(replyText(plan) == "Plans come in a later release.")
 		#expect(sent(.chatAttempt, by: transport).count == 1)

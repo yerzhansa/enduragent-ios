@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -78,7 +79,8 @@ import Testing
 	}
 
 	func claimAccount(after text: String, on coach: Coach) async throws -> TrainingAccount {
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle(text)
 		let claims = try await records.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), chatId: "main"))
@@ -86,16 +88,17 @@ import Testing
 	}
 
 	func proposeRide(on coach: Coach) async throws -> ReviewSnapshot {
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_workout",
+					arguments:
+						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
+				),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
 		return try #require(await coach.currentSnapshot(.main)?.review)
 	}

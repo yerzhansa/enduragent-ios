@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -36,15 +37,16 @@ import Testing
 	}
 
 	@Test func flushUsesOnlyMemoryWriteAndLedgerAppend() async throws {
-		transport.flushScript = [
-			.toolCall(
-				name: "ledger_append",
-				arguments:
-					#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
-			),
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "ledger_append",
+					arguments:
+						#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
+				),
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		#expect(try await run(job()) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == 2)
 		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
@@ -54,13 +56,14 @@ import Testing
 	}
 
 	@Test func everyWriteCarriesTheJobsOperation() async throws {
-		transport.flushScript = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let job = job()
 		#expect(try await run(job) == .saved(sections: 1, events: 0))
 		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
@@ -77,21 +80,26 @@ import Testing
 	}
 
 	@Test func aFailedGenerateIsRetriedOnceThenReportedWithTheWritesItMade() async throws {
-		transport.flushScript = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
-			.finish(reason: .toolCalls),
-			.fail(.http(status: 500)),
-			.fail(.http(status: 500)),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.finish(reason: .toolCalls),
+				.fail(.http(status: 500)),
+				.fail(.http(status: 500)),
+			], for: .flush, otherwise: transport.respond)
 		#expect(
 			try await run(job())
 				== .partial(sections: 1, events: 0, failure: .model(.providerDown(.outage))))
 		#expect(transport.requests.count == 3)
-		transport.flushScript = [.fail(.http(status: 500)), .text("ok"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500)), .text("ok"), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
 		#expect(try await run(job()) == .nothingToSave)
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .flush,
+			otherwise: transport.respond)
 		#expect(try await run(job()) == .failed(.model(.providerDown(.outage))))
 	}
 
@@ -107,7 +115,8 @@ import Testing
 			script.append(.finish(reason: .toolCalls))
 		}
 		script.append(.finish(reason: .stop))
-		transport.flushScript = script
+		transport.respond = ScriptedReply.sequence(
+			script, for: .flush, otherwise: transport.respond)
 		#expect(try await run(job()) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == MemoryFlushPolicy.maxSteps)
 		#expect(
@@ -115,13 +124,14 @@ import Testing
 	}
 
 	@Test func aMultiStepFlushChargesTheTurnOneCall() async throws {
-		transport.flushScript = [
-			.toolCall(
-				name: "ledger_append",
-				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Hold volume"}"#),
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "ledger_append",
+					arguments: #"{"kind":"decision","date":"1998-06-13","text":"Hold volume"}"#),
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let roomForOne = TurnScope(
 			stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
 		#expect(try await run(job(), scope: roomForOne) == .saved(sections: 0, events: 1))
@@ -132,7 +142,9 @@ import Testing
 	}
 
 	@Test func aSpentTurnBudgetStopsTheFlushBeforeAnyRequest() async throws {
-		transport.flushScript = [.text("never sent"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("never sent"), .finish(reason: .stop)], for: .flush, otherwise: transport.respond
+		)
 		let spent = TurnScope(stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
 		try await spent.chargeCall()
 		#expect(
@@ -144,15 +156,18 @@ import Testing
 	@Test func softThresholdJobIsWrittenBeforeTheReplyAndDrainedAfterIt() async throws {
 		let history = try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		transport.flushScript = [
-			.toolCall(
-				name: "ledger_append",
-				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#
-			),
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "ledger_append",
+					arguments:
+						#"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#
+				),
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")
@@ -174,12 +189,14 @@ import Testing
 	@Test func blankFlushArgumentsReturnTheMissingSectionToTheModel() async throws {
 		_ = try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		transport.flushScript = [
-			.toolCall(name: "memory_write", arguments: ""),
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "memory_write", arguments: ""),
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")

@@ -419,6 +419,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E98553612AF2EA350EE33704 /* PBXTargetDependency */,
 			);
 			name = Enduragent;
 			packageProductDependencies = (
@@ -636,6 +637,10 @@
 			isa = PBXTargetDependency;
 			target = 3A70BE77DB500E5467D856E4 /* Enduragent */;
 			targetProxy = E4E743D9B2EB08E044426BB0 /* PBXContainerItemProxy */;
+		};
+		E98553612AF2EA350EE33704 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = "TEMP_8C6D1141-0C8E-41A9-BBD9-599E1736BA9D" /* EnduragentCoachFixtures */;
 		};
 /* End PBXTargetDependency section */
 
@@ -880,6 +885,7 @@
 				);
 				MARKETING_VERSION = 0.1.0;
 				OPENROUTER_MODEL = "deepseek/deepseek-v4.1-flash-20260910";
+				OTHER_LDFLAGS = "$(inherited) \"$(BUILT_PRODUCTS_DIR)/EnduragentCoachFixtures.o\"";
 				PRODUCT_BUNDLE_IDENTIFIER = icu.enduragent.app;
 				PRODUCT_NAME = Enduragent;
 				SDKROOT = iphoneos;
@@ -965,6 +971,10 @@
 		E957E38AABE221883FA39FAE /* EnduragentCoach */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = EnduragentCoach;
+		};
+		"TEMP_8C6D1141-0C8E-41A9-BBD9-599E1736BA9D" /* EnduragentCoachFixtures */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EnduragentCoachFixtures;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

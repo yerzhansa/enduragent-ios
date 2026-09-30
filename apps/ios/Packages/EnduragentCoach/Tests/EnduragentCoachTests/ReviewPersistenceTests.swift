@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -5,16 +6,17 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test func outcomeLineSurvivesRelaunch() async throws {
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_workout",
+					arguments:
+						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
+				),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = makeCoach()
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
 		let proposing = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
@@ -46,7 +48,10 @@ extension TurnRunnerTests {
 		).records
 		#expect(synced.count == 1)
 
-		transport.script = [.text("Saturday went well."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Saturday went well."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await reopened.sendAndSettle("How did Saturday go")
 		let later = try #require(await reopened.currentSnapshot(.main))
 		#expect(later.turns.count == 2)

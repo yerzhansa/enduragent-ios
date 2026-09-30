@@ -14,6 +14,30 @@
 			try checkImplementationFolders()
 		}
 
+		@Test func catalogGrowthPreservesBoundaryGate() throws {
+			let catalog = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Catalog","printedName":"Catalog","declKind":"Enum","moduleName":"EnduragentCoach","children":[{"name":"newKey","printedName":"newKey","declKind":"Var","moduleName":"EnduragentCoach"}]}
+					""".utf8))
+			#expect(catalog.publicNames().isEmpty)
+		}
+
+		@Test func nonCatalogGrowthStillChangesTheBoundary() throws {
+			let coach = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Coach","printedName":"Coach","declKind":"Class","moduleName":"EnduragentCoach","children":[{"name":"probe","printedName":"probe()","declKind":"Func","moduleName":"EnduragentCoach"}]}
+					""".utf8))
+			let changes = coach.publicNames().difference(from: ["Coach"])
+			#expect(
+				Array(changes) == [
+					.insert(offset: 1, element: "Coach.probe()", associatedWith: nil)
+				])
+		}
+
 		private func symbols(in resource: String) throws -> [String] {
 			let url = try #require(
 				Bundle.module.url(
@@ -180,6 +204,7 @@
 				isInternal != true,
 				isExternal != true, implicit != true
 			else { return [] }
+			guard !(parent.isEmpty && name == "Catalog") else { return [] }
 			let qualified = parent.isEmpty ? printedName : "\(parent).\(printedName)"
 			return [qualified] + (children ?? []).flatMap { $0.publicNames(in: qualified) }
 		}
