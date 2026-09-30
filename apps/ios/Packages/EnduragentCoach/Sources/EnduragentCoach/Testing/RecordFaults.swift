@@ -3,7 +3,7 @@ import Foundation
 public final class RecordFaults: Sendable {
 	package let log: FaultInjectingRecordLog
 
-	public init(directory: URL, deviceId: DeviceID) throws {
+	package init(directory: URL, deviceId: DeviceID) throws {
 		log = FaultInjectingRecordLog(
 			wrapping: SwiftDataRecordLog(
 				deviceId: deviceId,

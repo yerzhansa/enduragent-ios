@@ -2824,7 +2824,6 @@ RecordFaults
 RecordFaults.failAppends(ofKind:)
 RecordFaults.failNextAppend
 RecordFaults.failRecoveryReads
-RecordFaults.init(directory:deviceId:)
 RecordStore
 RecordStore.fixture(directory:deviceId:unreadable:)
 RecordStore.inMemory(deviceId:)
