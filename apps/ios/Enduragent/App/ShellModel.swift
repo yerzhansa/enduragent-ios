@@ -167,7 +167,7 @@ final class ShellModel {
 		let current = await services.coach.status()
 		status = current
 		if route == .loading || route == .chat {
-			route = current.setup == .needsProviderConsent ? .onboarding(.consent(nil)) : .chat
+			route = current.setup == .needsProviderConsent ? .onboarding(.consent) : .chat
 			if route == .chat {
 				observeChat()
 			}
@@ -182,8 +182,8 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
-		if case .onboarding(.consentDeferred(let turn)) = route {
-			route = .onboarding(.consent(turn))
+		if route == .onboarding(.consentDeferred) {
+			route = .onboarding(.consent)
 			return
 		}
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
@@ -192,7 +192,7 @@ final class ShellModel {
 	}
 
 	func acceptConsent() async {
-		guard case .onboarding(.consent(let turn)) = route, !isRecordingConsent else { return }
+		guard route == .onboarding(.consent), !isRecordingConsent else { return }
 		isRecordingConsent = true
 		defer { isRecordingConsent = false }
 		consentNotSaved = false
@@ -206,15 +206,12 @@ final class ShellModel {
 			return
 		}
 		await startChatting()
-		if let turn, route == .chat {
-			await perform(.tryAgain(turn))
-		}
 	}
 
 	func declineConsent() {
-		guard case .onboarding(.consent(let turn)) = route, !isRecordingConsent else { return }
+		guard route == .onboarding(.consent), !isRecordingConsent else { return }
 		consentNotSaved = false
-		route = .onboarding(.consentDeferred(turn))
+		route = .onboarding(.consentDeferred)
 	}
 
 	func newConversation() async {

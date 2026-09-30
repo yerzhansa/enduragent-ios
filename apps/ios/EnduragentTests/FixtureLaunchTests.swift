@@ -357,7 +357,7 @@ func replyText(_ state: TurnState) -> String? {
 extension ShellModel {
 	func agreeAndStartChatting() async {
 		await startChatting()
-		if route == .onboarding(.consent(nil)) {
+		if route == .onboarding(.consent) {
 			await acceptConsent()
 		}
 		#expect(route == .chat)

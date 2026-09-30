@@ -19,7 +19,7 @@ struct ProviderConsentView: View {
 							.accessibilityIdentifier("consent.error")
 					}
 					if case .onboarding(.consentDeferred) = model.route {
-						Button(model.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
+						Button(model.phrasebook.say(Catalog.onboardingConsentAccept, [:])) {
 							Task { await model.startChatting() }
 						}
 						.accessibilityIdentifier("consent.resume")

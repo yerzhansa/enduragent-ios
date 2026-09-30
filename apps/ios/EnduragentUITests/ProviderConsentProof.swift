@@ -12,10 +12,12 @@ final class ProviderConsentProof: XCTestCase {
 		TutorialHarness.named(app, "starter.start").tap()
 		let decline = TutorialHarness.named(app, "consent.decline")
 		TutorialHarness.wait(decline)
+		let acceptLabel = TutorialHarness.named(app, "consent.accept").label
 		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").exists)
 		TutorialHarness.attach(self, name: "provider-consent", app: app)
 		decline.tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "consent.resume"))
+		XCTAssertEqual(TutorialHarness.named(app, "consent.resume").label, acceptLabel)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.composer").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "starter.start").exists)
 		TutorialHarness.named(app, "consent.resume").tap()

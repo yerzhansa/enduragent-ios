@@ -13,10 +13,6 @@ extension ShellModel {
 	}
 
 	private func tryAgain(_ turn: TurnID) async {
-		guard await refreshStatus().setup != .needsProviderConsent else {
-			route = .onboarding(.consent(turn))
-			return
-		}
 		if let text = chat?.turns.first(where: { $0.id == turn })?.athleteText {
 			services.fixtureDirector?.prepareRetry(of: text)
 		}

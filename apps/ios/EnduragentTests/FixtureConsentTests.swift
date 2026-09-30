@@ -13,16 +13,16 @@ extension FixtureLaunchTests {
 		model.skipConnect()
 		await model.loadStarter()
 		await model.startChatting()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		#expect(model.chat == nil)
 		#expect(model.status?.setup == .needsProviderConsent)
 		#expect(await services.coach.status().providerConsent == nil)
 		model.declineConsent()
-		#expect(model.route == .onboarding(.consentDeferred(nil)))
+		#expect(model.route == .onboarding(.consentDeferred))
 		#expect(await services.coach.status().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.startChatting()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		await model.acceptConsent()
 		#expect(model.route == .chat)
 		#expect(
@@ -43,7 +43,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(model.route != .chat)
 		await model.appear()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		#expect(model.chat == nil)
 		model.declineConsent()
 		#expect(model.route != .chat)
@@ -51,7 +51,7 @@ extension FixtureLaunchTests {
 		let reopened = ShellModel(
 			environment: AppEnvironment(services: next, language: language, defaults: nextDefaults))
 		await reopened.appear()
-		#expect(reopened.route == .onboarding(.consent(nil)))
+		#expect(reopened.route == .onboarding(.consent))
 		#expect(await next.coach.status().providerConsent == nil)
 		#expect(next.fixtureTransport?.requestCount == 0)
 	}
@@ -62,7 +62,7 @@ extension FixtureLaunchTests {
 		await model.startChatting()
 		try #require(services.fixtureRecordFaults).failNextAppend = true
 		await model.acceptConsent()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		#expect(model.consentNotSaved)
 		#expect(await services.coach.status().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
@@ -76,22 +76,20 @@ extension FixtureLaunchTests {
 		let (services, _) = try relaunch(.keep)
 		let model = model(services)
 		await model.appear()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		for _ in 0..<2 {
 			model.declineConsent()
 			#expect(
 				model.route != .onboarding(.starter), "Declining must not repeat starter credits")
 			#expect(model.route != .chat)
-			if model.route == .onboarding(.starter) {
-				await model.loadStarter()
-			}
+			#expect(model.route == .onboarding(.consentDeferred))
+			await model.startChatting()
+			#expect(model.route == .onboarding(.consent))
 			#expect(!model.starterResolved)
 			#expect(model.starterLine == nil)
 			#expect(model.chat == nil)
 			#expect(await services.coach.status().providerConsent == nil)
 			#expect(services.fixtureTransport?.requestCount == 0)
-			await model.startChatting()
-			#expect(model.route == .onboarding(.consent(nil)))
 		}
 		await model.acceptConsent()
 		#expect(model.route == .chat)
@@ -120,7 +118,7 @@ extension FixtureLaunchTests {
 		let (services, _) = try relaunch(.keep)
 		let model = model(services)
 		await model.appear()
-		#expect(model.route == .onboarding(.consent(nil)))
+		#expect(model.route == .onboarding(.consent))
 		#expect(await services.coach.status().providerConsent == nil)
 		await model.acceptConsent()
 		try await observed(model)
