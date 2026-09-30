@@ -9,19 +9,24 @@ import Testing
 		let memory = MemorySecretStoreBacking()
 		let first = ICloudKeychainStore(backing: memory)
 		let second = ICloudKeychainStore(backing: memory)
-		let token = try first.appAccountToken()
-		#expect(try first.appAccountToken() == token)
-		#expect(try second.appAccountToken() == token)
+		let token = try first.prepareCreditsAccount().appAccountToken
+		#expect(try first.creditsAccount()?.appAccountToken == token)
+		#expect(try second.creditsAccount()?.appAccountToken == token)
 	}
 
 	@Test func keysConnectionAndSelectionRoundTrip() throws {
 		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
-		#expect(try store.openRouterKey() == nil)
+		#expect(try store.creditsAccount()?.key == nil)
 		#expect(try store.intervalsConnection() == nil)
 		#expect(try store.accessSelection() == nil)
-		try store.storeOpenRouterKey("test-or-key")
-		try store.storeOpenRouterKey("test-or-key-rotated")
-		#expect(try store.openRouterKey() == "test-or-key-rotated")
+		try store.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(), key: "test-or-key"))
+		try store.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(), key: "test-or-key-rotated")
+		)
+		#expect(try store.creditsAccount()?.key == "test-or-key-rotated")
 		try store.storeOpenRouterAccountKey("test-or-account-key")
 		#expect(try store.openRouterAccountKey() == "test-or-account-key")
 		try store.storeIntervalsConnection(testConnection)
@@ -30,9 +35,8 @@ import Testing
 			id: ConnectionID(), credential: .oauth(access: "a", refresh: "r"),
 			selection: .athlete(try #require(IntervalsAthleteID(rawValue: "i2002"))),
 			resolvedAthlete: nil)
-		try store.stageReplacement(.intervals(oauth))
-		#expect(try store.stagedReplacement() == .intervals(oauth))
-		#expect(try store.intervalsConnection() == testConnection)
+		try store.storeIntervalsConnection(oauth)
+		#expect(try store.intervalsConnection() == oauth)
 		let selection = AccessSelection.openRouterAccount(
 			model: ModelID(rawValue: "test/account-model"),
 			consent: ProviderConsent(
@@ -44,12 +48,14 @@ import Testing
 
 	@Test func deleteRemovesOnlyItsSlotAndRepeatsSafely() throws {
 		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
-		try store.storeOpenRouterKey("test-or-key")
-		try store.stageReplacement(.intervals(testConnection))
-		try store.delete(.intervalsConnectionStaging)
-		try store.delete(.intervalsConnectionStaging)
-		#expect(try store.stagedReplacement() == nil)
-		#expect(try store.openRouterKey() == "test-or-key")
+		try store.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(), key: "test-or-key"))
+		try store.storeIntervalsConnection(testConnection)
+		try store.delete(.intervalsConnection)
+		try store.delete(.intervalsConnection)
+		#expect(try store.intervalsConnection() == nil)
+		#expect(try store.creditsAccount()?.key == "test-or-key")
 	}
 
 	@Test func v1IntervalsItemDecodesWithNilConnectionIdAndIsRewrittenOnce() async throws {
@@ -96,18 +102,22 @@ import Testing
 	func appAccountTokenIsStableOnSecItem() throws {
 		let first = ICloudKeychainStore()
 		let second = ICloudKeychainStore()
-		let token = try first.appAccountToken()
-		#expect(try first.appAccountToken() == token)
-		#expect(try second.appAccountToken() == token)
+		let token = try first.prepareCreditsAccount().appAccountToken
+		#expect(try first.creditsAccount()?.appAccountToken == token)
+		#expect(try second.creditsAccount()?.appAccountToken == token)
 	}
 }
 
 final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 	private let lock = NSLock()
 	private var items: [String: Data]
-	private var copied = 0
-	var readCount: Int { lock.withLock { copied } }
+	private var copied: [String] = []
+	var readCount: Int { lock.withLock { copied.count } }
+	var readAccounts: [String] { lock.withLock { copied } }
+	private var deleted: [String] = []
+	var deletedAccounts: [String] { lock.withLock { deleted } }
 	private var written: [String: Int] = [:]
+	var writeCount: Int { lock.withLock { written.values.reduce(0, +) } }
 	private var failures: [String: OSStatus] = [:]
 	private var writeFailures: [String: OSStatus] = [:]
 
@@ -140,7 +150,7 @@ final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 
 	func copy(account: String) throws -> Data? {
 		try lock.withLock {
-			copied += 1
+			copied.append(account)
 			try check(account)
 			return items[account]
 		}
@@ -161,6 +171,7 @@ final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
 		try lock.withLock {
 			try check(account)
 			items[account] = nil
+			deleted.append(account)
 		}
 	}
 

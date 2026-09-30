@@ -3,15 +3,72 @@ import Security
 
 public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private struct Contents: Codable {
-		var appAccountToken: UUID
+		private enum CodingKeys: String, CodingKey {
+			case creditsAccount, openRouterKey, openRouterAccountKey, intervals, accessSelection
+			case intervalsApiKey, intervalsOAuthAccess, intervalsOAuthRefresh
+		}
+
+		private enum LegacyKeys: String, CodingKey {
+			case appAccountToken, stagedIntervals
+		}
+
+		var creditsAccount: CreditsAccount?
 		var openRouterKey: String?
 		var openRouterAccountKey: String?
 		var intervals: StoredIntervalsConnection?
-		var stagedIntervals: StoredCredentialReplacement?
 		var accessSelection: StoredAccessSelection?
 		var intervalsApiKey: String?
 		var intervalsOAuthAccess: String?
 		var intervalsOAuthRefresh: String?
+		var needsCreditsRewrite = false
+
+		init(creditsAccount: CreditsAccount? = nil) {
+			self.creditsAccount = creditsAccount
+		}
+
+		init(from decoder: any Decoder) throws {
+			let container = try decoder.container(keyedBy: CodingKeys.self)
+			let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+			creditsAccount = try restoredCreditsAccount(
+				current: container.decodeIfPresent(CreditsAccount.self, forKey: .creditsAccount),
+				undo: Self.legacyUndo(legacy),
+				legacyKey: container.decodeIfPresent(String.self, forKey: .openRouterKey),
+				legacyToken: legacy.decodeIfPresent(UUID.self, forKey: .appAccountToken))
+			if creditsAccount == nil {
+				openRouterKey = try container.decodeIfPresent(String.self, forKey: .openRouterKey)
+			}
+			needsCreditsRewrite =
+				creditsAccount != nil
+				&& (legacy.contains(.appAccountToken) || legacy.contains(.stagedIntervals)
+					|| container.contains(.openRouterKey))
+			openRouterAccountKey = try container.decodeIfPresent(
+				String.self, forKey: .openRouterAccountKey)
+			intervals = try container.decodeIfPresent(
+				StoredIntervalsConnection.self, forKey: .intervals)
+			accessSelection = try container.decodeIfPresent(
+				StoredAccessSelection.self, forKey: .accessSelection)
+			intervalsApiKey = try container.decodeIfPresent(String.self, forKey: .intervalsApiKey)
+			intervalsOAuthAccess = try container.decodeIfPresent(
+				String.self, forKey: .intervalsOAuthAccess)
+			intervalsOAuthRefresh = try container.decodeIfPresent(
+				String.self, forKey: .intervalsOAuthRefresh)
+		}
+
+		private static func legacyUndo(_ container: KeyedDecodingContainer<LegacyKeys>) throws
+			-> LegacyCreditsUndo?
+		{
+			do {
+				return try container.decodeIfPresent(
+					LegacyCreditsUndo.self, forKey: .stagedIntervals)
+			} catch is DecodingError {
+				return nil
+			}
+		}
+
+		mutating func replaceCredits(with account: CreditsAccount) {
+			creditsAccount = account
+			openRouterKey = nil
+		}
 
 		var intervalsItem: StoredIntervalsConnection? {
 			if let intervals {
@@ -32,11 +89,9 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 		func holds(_ slot: CredentialSlot) -> Bool {
 			switch slot {
-			case .appAccountToken: true
-			case .creditsKey: openRouterKey != nil
+			case .creditsAccount: creditsAccount != nil
 			case .openRouterAccountKey: openRouterAccountKey != nil
 			case .intervalsConnection: intervalsItem != nil
-			case .intervalsConnectionStaging: stagedIntervals != nil
 			case .accessSelection: accessSelection != nil
 			}
 		}
@@ -57,7 +112,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 	private var isLocked = false
 	private var failsNextWrite = false
 	private var slotsRead: [CredentialSlot] = []
-	public private(set) var storedOpenRouterKeys = 0
+	public private(set) var storedCreditsAccounts = 0
 
 	public var locked: Bool {
 		get { withLock { isLocked } }
@@ -75,7 +130,8 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 
 	public init(appAccountToken: UUID? = nil) {
 		self.file = nil
-		self.contents = Contents(appAccountToken: appAccountToken ?? UUID())
+		self.contents = Contents(
+			creditsAccount: appAccountToken.map { CreditsAccount(appAccountToken: $0, key: nil) })
 	}
 
 	public init(directory: URL) throws {
@@ -83,34 +139,31 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		self.file = file
 		if FileManager.default.fileExists(atPath: file.path) {
 			self.contents = try JSONDecoder().decode(Contents.self, from: Data(contentsOf: file))
+			if contents.needsCreditsRewrite { try persist(contents) }
 		} else {
-			self.contents = Contents(appAccountToken: UUID())
-			try persist(contents)
+			self.contents = Contents()
 		}
 	}
 
-	public func appAccountToken() throws -> UUID {
-		try read(.appAccountToken) {
-			if case .credits(_, let token)? = $0.stagedIntervals { return token }
-			return $0.appAccountToken
+	public func creditsAccount() throws -> CreditsAccount? {
+		try read(.creditsAccount) { $0.creditsAccount }
+	}
+
+	public func prepareCreditsAccount() throws -> CreditsAccount {
+		if let account = try creditsAccount() { return account }
+		return try write { contents in
+			if let account = contents.creditsAccount { return account }
+			let account = CreditsAccount(appAccountToken: UUID(), key: contents.openRouterKey)
+			contents.replaceCredits(with: account)
+			storedCreditsAccounts += 1
+			return account
 		}
 	}
 
-	public func storeAppAccountToken(_ token: UUID) throws {
-		try write { $0.appAccountToken = token }
-	}
-
-	public func openRouterKey() throws -> String? {
-		try read(.creditsKey) {
-			if case .credits(let key, _)? = $0.stagedIntervals { return key }
-			return $0.openRouterKey
-		}
-	}
-
-	public func storeOpenRouterKey(_ key: String) throws {
+	public func storeCreditsAccount(_ account: CreditsAccount) throws {
 		try write {
-			$0.openRouterKey = key
-			storedOpenRouterKeys += 1
+			$0.replaceCredits(with: account)
+			storedCreditsAccounts += 1
 		}
 	}
 
@@ -130,34 +183,6 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		try write { $0.replaceIntervals(with: StoredIntervalsConnection(connection)) }
 	}
 
-	public func stagedReplacement() throws -> CredentialReplacement? {
-		try read(.intervalsConnectionStaging) {
-			$0.stagedIntervals
-		}?.replacement()
-	}
-
-	public func stageReplacement(_ replacement: CredentialReplacement) throws {
-		try write {
-			$0.stagedIntervals = StoredCredentialReplacement(replacement)
-		}
-	}
-
-	public func rollbackStagedReplacement() throws {
-		guard
-			try withLock({
-				try checkUnlocked()
-				return contents.holds(.intervalsConnectionStaging)
-			})
-		else { return }
-		try write {
-			if case .credits(let key, let token)? = $0.stagedIntervals {
-				$0.openRouterKey = key
-				$0.appAccountToken = token
-			}
-			$0.stagedIntervals = nil
-		}
-	}
-
 	public func accessSelection() throws -> AccessSelection? {
 		try read(.accessSelection) { $0.accessSelection }?.selection()
 	}
@@ -174,16 +199,12 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		guard held else { return }
 		try write { contents in
 			switch slot {
-			case .appAccountToken:
-				contents.appAccountToken = UUID()
-			case .creditsKey:
-				contents.openRouterKey = nil
+			case .creditsAccount:
+				contents.creditsAccount = nil
 			case .openRouterAccountKey:
 				contents.openRouterAccountKey = nil
 			case .intervalsConnection:
 				contents.replaceIntervals(with: nil)
-			case .intervalsConnectionStaging:
-				contents.stagedIntervals = nil
 			case .accessSelection:
 				contents.accessSelection = nil
 			}
@@ -198,7 +219,7 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 		}
 	}
 
-	private func write(_ body: (inout Contents) -> Void) throws {
+	private func write<Value>(_ body: (inout Contents) -> Value) throws -> Value {
 		try withLock {
 			try checkUnlocked()
 			if failsNextWrite {
@@ -206,9 +227,10 @@ public final class FakeSecretStore: SecretStore, @unchecked Sendable {
 				throw KeychainStoreError(status: errSecNotAvailable)
 			}
 			var replacement = contents
-			body(&replacement)
+			let value = body(&replacement)
 			try persist(replacement)
 			contents = replacement
+			return value
 		}
 	}
 

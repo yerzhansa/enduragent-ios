@@ -8,46 +8,48 @@ import Testing
 	@Test func directoryStorePersistsAcrossInstances() throws {
 		try withTemporaryDirectory { directory in
 			let first = try FakeSecretStore(directory: directory)
-			try first.storeOpenRouterKey("sk-or-test-0000")
+			try first.storeCreditsAccount(
+				CreditsAccount(
+					appAccountToken: UUID(), key: "sk-or-test-0000")
+			)
 			try first.storeIntervalsConnection(testConnection)
-			let token = try first.appAccountToken()
+			let token = try first.creditsAccount()?.appAccountToken
 			let second = try FakeSecretStore(directory: directory)
-			#expect(try second.openRouterKey() == "sk-or-test-0000")
+			#expect(try second.creditsAccount()?.key == "sk-or-test-0000")
 			#expect(try second.intervalsConnection() == testConnection)
-			#expect(try second.appAccountToken() == token)
+			#expect(try second.creditsAccount()?.appAccountToken == token)
 		}
 	}
 
-	@Test func failedStagingDeletionKeepsThePreviousCreditsPair() throws {
+	@Test func failedAccountPersistenceKeepsThePreviousCreditsPair() throws {
 		try withTemporaryDirectory { directory in
 			let store = try FakeSecretStore(directory: directory)
-			let oldToken = try store.appAccountToken()
-			try store.storeOpenRouterKey("test-old-credits-key")
-			let previous = CredentialReplacement.credits(
-				previousKey: "test-old-credits-key", previousAppAccountToken: oldToken)
-			try store.stageReplacement(previous)
-			try store.storeOpenRouterKey("test-new-credits-key")
-			try store.storeAppAccountToken(UUID())
+			let previous = CreditsAccount(appAccountToken: UUID(), key: "test-old-credits-key")
+			try store.storeCreditsAccount(previous)
 			let file = directory.appending(path: FakeSecretStore.fileName)
 			try FileManager.default.removeItem(at: file)
 			try FileManager.default.createDirectory(at: file, withIntermediateDirectories: false)
-			#expect(throws: CocoaError.self) { try store.delete(.intervalsConnectionStaging) }
-			#expect(try store.stagedReplacement() == previous)
-			#expect(try store.openRouterKey() == "test-old-credits-key")
-			#expect(try store.appAccountToken() == oldToken)
+			#expect(throws: CocoaError.self) {
+				try store.storeCreditsAccount(
+					CreditsAccount(appAccountToken: UUID(), key: "test-new-credits-key"))
+			}
+			#expect(try store.creditsAccount() == previous)
 		}
 	}
 
 	@Test func lockedStoreThrowsInteractionNotAllowedFromEveryRead() throws {
 		let store = FakeSecretStore()
-		try store.storeOpenRouterKey("sk-or-test-0000")
+		try store.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(), key: "sk-or-test-0000"))
 		store.locked = true
 		let expected = KeychainStoreError(status: errSecInteractionNotAllowed)
-		#expect(throws: expected) { try store.openRouterKey() }
+		#expect(throws: expected) { try store.creditsAccount() }
 		#expect(throws: expected) { try store.intervalsConnection() }
-		#expect(throws: expected) { try store.appAccountToken() }
+		#expect(throws: expected) { try store.openRouterAccountKey() }
+		#expect(throws: expected) { try store.accessSelection() }
 		store.locked = false
-		#expect(try store.openRouterKey() == "sk-or-test-0000")
+		#expect(try store.creditsAccount()?.key == "sk-or-test-0000")
 	}
 }
 

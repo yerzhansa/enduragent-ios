@@ -131,7 +131,10 @@ final class ShellLanguageTests {
 		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	) throws -> AppServices {
 		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey("sk-or-test-shell-language")
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(),
+				key: "sk-or-test-shell-language"))
 		try secrets.storeIntervalsConnection(
 			IntervalsConnection(
 				id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,

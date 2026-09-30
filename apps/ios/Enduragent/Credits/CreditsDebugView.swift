@@ -82,7 +82,7 @@
 		private func refreshIdentity() async {
 			do {
 				let identity = try await coach.creditsIdentity()
-				identityText = identity.appAccountToken.uuidString
+				identityText = identity.appAccountToken?.uuidString ?? "—"
 				hasKey = identity.hasCreditsKey
 			} catch {
 				present(error)
@@ -197,6 +197,8 @@
 			"noPurchaseToRecover"
 		case .identityMismatch:
 			"identityMismatch"
+		case .accountChanged:
+			"accountChanged"
 		case .rateLimited:
 			"rateLimited"
 		case .unavailable:

@@ -23,64 +23,104 @@ extension CredentialVaultTests {
 			})
 	}
 
-	@Test func blockedRollbackIsNotOverwrittenByATrainingReplacement() async throws {
-		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = MemorySecretStoreBacking()
+	@Test func blockedMigrationIsNotOverwrittenByATrainingReplacement() async throws {
+		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
+		let current = CreditsAccount(appAccountToken: token, key: "test-new-credits-key")
+		let memory = try legacyCreditsBacking(previous: previous, current: current)
+		let undo = try memory.copy(account: "intervalsConnectionStaging")
 		let store = ICloudKeychainStore(backing: memory)
-		try store.storeAppAccountToken(oldToken)
-		try store.storeOpenRouterKey("test-old-credits-key")
 		try store.storeIntervalsConnection(testConnection)
-		try store.stageReplacement(
-			.credits(previousKey: "test-old-credits-key", previousAppAccountToken: oldToken))
-		try store.storeOpenRouterKey("test-new-credits-key")
-		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: errSecNotAvailable)
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
 		let coach = coach(store)
-		_ = await coach.changeTraining(.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
-		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: nil)
-		_ = await coach.status()
-		#expect(try store.openRouterKey() == "test-old-credits-key")
-		#expect(try store.appAccountToken() == oldToken)
-	}
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.creditsIdentity()
+		}
 
-	@Test func blockedRollbackIsNotUndoneByAGrant() async throws {
+		let outcome = await coach.changeTraining(
+			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
+
+		guard case .replaced = outcome else {
+			Issue.record("expected replacement during blocked migration, got \(outcome)")
+			return
+		}
+		#expect(try store.intervalsConnection()?.credential == .apiKey("icu-rotated-key"))
+		#expect(try memory.copy(account: "intervalsConnectionStaging") == undo)
+		#expect(memory.writes(to: "intervalsConnectionStaging") == 0)
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
+		#expect(try store.creditsAccount() == previous)
+	}
+}
+
+extension CreditsClientTests {
+	@Test func blockedMigrationIsNotUndoneByAGrant() async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let memory = MemorySecretStoreBacking()
+		let previous = CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key")
+		let current = CreditsAccount(appAccountToken: newToken, key: "test-new-credits-key")
+		let memory = try legacyCreditsBacking(previous: previous, current: current)
 		let store = ICloudKeychainStore(backing: memory)
-		try store.storeAppAccountToken(oldToken)
-		try store.storeOpenRouterKey("test-old-credits-key")
-		try store.stageReplacement(
-			.credits(previousKey: "test-old-credits-key", previousAppAccountToken: oldToken))
-		try store.storeOpenRouterKey("test-new-credits-key")
-		try store.storeAppAccountToken(newToken)
-		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: errSecNotAvailable)
-		let vault = testVault(store)
-		_ = await vault.setup(builtInModel: testModel)
-		memory.failWrites(CredentialSlot.creditsKey.rawValue, with: nil)
-		let granted = try #require(NonEmptySecret("test-granted-credits-key"))
-		try await vault.storeCreditsKey(granted)
-		_ = await vault.setup(builtInModel: testModel)
-		#expect(try store.openRouterKey() == "test-granted-credits-key")
-		#expect(try store.appAccountToken() == oldToken)
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.creditsIdentity()
+		}
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
+		let client = try makeClient(secrets: store)
+
+		_ = try await CreditsURLStub.withHandler({ _ in
+			.json(200, #"{"kind":"grantMinted","key":"test-granted-credits-key","credits":200}"#)
+		}) {
+			try await client.grant(deviceCheck: Data([0x01]))
+		}
+
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: oldToken, hasCreditsKey: true))
+		#expect(
+			try store.creditsAccount()
+				== CreditsAccount(appAccountToken: oldToken, key: "test-granted-credits-key"))
+		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
 	}
 
-	@Test func failedRecoveryIsRolledBackBeforeTheNextReplacement() async throws {
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let newKey = try #require(NonEmptySecret("test-new-credits-key"))
+	@Test func failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement() async throws {
+		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
 		let memory = MemorySecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
-		let oldToken = try secrets.appAccountToken()
-		try secrets.storeOpenRouterKey("test-old-credits-key")
+		try secrets.storeCreditsAccount(previous)
 		try secrets.storeIntervalsConnection(testConnection)
-		let vault = vault(secrets)
-		memory.failWrites(CredentialSlot.appAccountToken.rawValue, with: errSecNotAvailable)
+		let client = try makeClient(secrets: secrets)
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
+
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
-			try await vault.storeRecovery(key: newKey, appAccountToken: newToken)
+			try await CreditsURLStub.withHandler({ _ in
+				.json(
+					200,
+					#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
+				)
+			}) {
+				try await client.recover(signedTransaction: "test.signed.transaction")
+			}
 		}
-		memory.failWrites(CredentialSlot.appAccountToken.rawValue, with: nil)
-		_ = await vault.change(.replace(apiKey: "icu-rotated-key", athlete: .keyOwner)) { false }
-		let pair = (try secrets.openRouterKey(), try secrets.appAccountToken())
-		#expect(pair.0 == "test-old-credits-key", "\(pair)")
-		#expect(pair.1 == oldToken, "\(pair)")
+
+		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
+		let fixture = CredentialVaultTests()
+		let coach = fixture.coach(secrets)
+		let outcome = await coach.changeTraining(
+			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
+		guard case .replaced = outcome else {
+			Issue.record("expected replacement after failed recovery, got \(outcome)")
+			return
+		}
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
+		#expect(try secrets.creditsAccount() == previous)
+		#expect(try secrets.intervalsConnection()?.credential == .apiKey("icu-rotated-key"))
 	}
 }

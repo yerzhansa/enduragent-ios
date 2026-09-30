@@ -37,7 +37,7 @@ final class StoreKitPurchaseCoordinator {
 
 	func purchase(_ product: Product) async throws -> ClaimOutcome {
 		let result = try await product.purchase(options: [
-			.appAccountToken(try await coach.creditsIdentity().appAccountToken)
+			.appAccountToken(try await coach.prepareCreditsPurchase())
 		])
 		switch result {
 		case .success(let verification):
@@ -55,8 +55,9 @@ final class StoreKitPurchaseCoordinator {
 		guard case .verified(let tx) = verification else {
 			throw StoreKitPurchaseFailure.unverified
 		}
+		guard let token = tx.appAccountToken else { throw CreditsFailure.identityMismatch }
 		let outcome = try await coach.credits.claim(
-			signedTransaction: verification.jwsRepresentation)
+			signedTransaction: verification.jwsRepresentation, appAccountToken: token)
 		let hasKey = try await coach.creditsIdentity().hasCreditsKey
 		switch ClaimSettlement.settlement(after: outcome, hasKey: hasKey) {
 		case .finish:

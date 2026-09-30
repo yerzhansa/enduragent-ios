@@ -161,6 +161,10 @@ public actor Coach {
 		try await vault.creditsIdentity()
 	}
 
+	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
+		try await vault.prepareCreditsAccount()
+	}
+
 	#if DEBUG
 		public func replaceAppAccountToken() async throws(AccessUnavailable) {
 			try await vault.replaceAppAccountToken()
