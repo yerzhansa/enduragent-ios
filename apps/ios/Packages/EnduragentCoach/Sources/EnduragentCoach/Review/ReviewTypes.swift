@@ -93,7 +93,7 @@ public struct ReviewCard: Sendable, Equatable {
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
 
-	public func lines(in phrasebook: any Phrasebook) -> [String] {
+	public func lines(in phrasebook: CatalogPhrasebook) -> [String] {
 		instructions.lines(in: phrasebook)
 	}
 }

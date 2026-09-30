@@ -1,22 +1,5 @@
 import Foundation
 
-package struct AthleteKey: Sendable, Equatable, CustomStringConvertible,
-	CustomDebugStringConvertible
-{
-	package var secret: String
-	package init(secret: String) {
-		self.secret = secret
-	}
-
-	package var description: String {
-		"AthleteKey(redacted)"
-	}
-
-	package var debugDescription: String {
-		description
-	}
-}
-
 public struct Credits: Sendable, Hashable, Comparable {
 	public var units: Int
 	public init(units: Int) {

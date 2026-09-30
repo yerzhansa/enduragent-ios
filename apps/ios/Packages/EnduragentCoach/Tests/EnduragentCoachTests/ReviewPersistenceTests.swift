@@ -25,7 +25,7 @@ extension TurnRunnerTests {
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		let done = "Done — Create workout \"Endurance\" on 1998-06-14."
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: LanguageTag.en.defaultLocale)
+		let phrasebook = CatalogPhrasebook(tag: .en)
 		let shown = try #require(await coach.currentSnapshot(.main))
 		#expect(shown.notes.map { $0.sentence(in: phrasebook) } == [done])
 		#expect(shown.notes.first?.after == proposing)
