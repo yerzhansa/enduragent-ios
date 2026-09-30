@@ -185,6 +185,7 @@ Catalog.chatNewConversationBase
 Catalog.chatNewConversationCancel
 Catalog.chatNewConversationConfirm
 Catalog.chatNewConversationHydrated
+Catalog.chatNewConversationLabel
 Catalog.chatNewConversationTitle
 Catalog.chatNoticeAttachmentFailure
 Catalog.chatNoticeCheckingTraining
