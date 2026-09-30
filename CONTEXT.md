@@ -53,7 +53,7 @@ The reset that archives the current conversation, saves memory, and shows the we
 _Avoid_: Reset, new chat, clear
 
 **Language preference**:
-The one choice, `Automatic` or a fixed language, that sets both the app's text and the coach's replies.
+The one choice, `Automatic` or a fixed language, that sets both the app's text and the coach's replies. On Automatic, replies follow the athlete's latest message.
 _Avoid_: App language, reply language, coach language
 
 ### Calendar changes
