@@ -131,17 +131,7 @@ package actor ChatMailbox {
 			throw AcceptFailure.storageUnavailable
 		}
 		holdLease(.athlete)?.add(message.turn)
-		let armed = work.arm(message.turn, at: clock.now, for: coalescing.window)
-		Task {
-			do {
-				try await Task.sleep(for: coalescing.window)
-			} catch is CancellationError {
-				return
-			} catch {
-				fatalError("Task.sleep failed: \(error)")
-			}
-			await door.pass { closeWindow(ifArmed: armed) }
-		}
+		armWindow(for: message.turn)
 		publish()
 		return .accepted(message.turn)
 	}
@@ -154,7 +144,7 @@ package actor ChatMailbox {
 				throw RetryRefusal.unknownTurn
 			}
 			let waiting = waits.waiting(among: records.conversation.current.turns)
-			let queued = work.phase.items(in: records.conversation.current, queued: work.waiting)
+			let queued = work.phase.items(queued: work.waiting)
 			let overlay = TurnOverlay(
 				of: turn, window: work.window, queued: queued.compactMap(\.turn), waiting: waiting)
 			let refusal = TurnLifecycle.retryRefusal(
@@ -236,6 +226,20 @@ package actor ChatMailbox {
 		enqueue(turn)
 	}
 
+	private func armWindow(for turn: TurnID) {
+		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
+		Task {
+			do {
+				try await Task.sleep(for: coalescing.window)
+			} catch is CancellationError {
+				return
+			} catch {
+				fatalError("Task.sleep failed: \(error)")
+			}
+			await door.pass { closeWindow(ifArmed: armed) }
+		}
+	}
+
 	private func enqueue(_ turn: TurnID) {
 		if work.add(turn) { workAdded() }
 	}
@@ -246,7 +250,7 @@ package actor ChatMailbox {
 	}
 
 	private func drainIfIdle() {
-		guard case .collecting = work.phase, let initiator = work.next?.initiator,
+		guard case .idle = work.phase, let initiator = work.next?.initiator,
 			let lease = holdLease(initiator)
 		else { return }
 		work.start { next in
@@ -330,6 +334,7 @@ package actor ChatMailbox {
 	}
 
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
+		work.finishTurn()
 		let reply = records.conversation.turn(turn)?.reply
 		if reply != nil, !foreground {
 			finishedAway.insert(turn)

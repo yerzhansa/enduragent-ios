@@ -1,13 +1,13 @@
 import Foundation
 
 enum MailboxPhase: Sendable {
-	case collecting
+	case idle
 	case running(RunningWork)
 	case stopping(InterruptionCause, RunningWork?)
 
 	var running: RunningWork? {
 		switch self {
-		case .collecting: nil
+		case .idle: nil
 		case .running(let running), .stopping(_, let running?): running
 		case .stopping(_, nil): nil
 		}
@@ -18,21 +18,29 @@ enum MailboxPhase: Sendable {
 		return cause
 	}
 
-	func items(in segment: Segment, queued: [MailboxWork]) -> [MailboxWork] {
-		guard let running else { return queued }
-		if let live = running.live,
-			segment.turns.first(where: { $0.turn == live.turn })?.settlements.contains(where: {
-				$0.attempt == live.attempt
-			}) == true
-		{
-			return queued
-		}
-		return [running.item] + queued
+	func items(queued: [MailboxWork]) -> [MailboxWork] {
+		guard let item = running?.item else { return queued }
+		return [item] + queued
 	}
 }
 
-struct RunningWork: Sendable {
-	let item: MailboxWork
-	let task: Task<Void, Never>
-	var live: LiveAttempt?
+enum RunningWork: Sendable {
+	case active(MailboxWork, Task<Void, Never>, LiveAttempt?)
+	case finishing(Task<Void, Never>)
+
+	var item: MailboxWork? {
+		guard case .active(let item, _, _) = self else { return nil }
+		return item
+	}
+
+	var task: Task<Void, Never> {
+		switch self {
+		case .active(_, let task, _), .finishing(let task): task
+		}
+	}
+
+	var live: LiveAttempt? {
+		guard case .active(_, _, let live) = self else { return nil }
+		return live
+	}
 }

@@ -156,12 +156,12 @@ extension ChatSnapshot {
 	) {
 		self.chat = chat
 		let current = conversation.current
+		let items = phase.items(queued: queued)
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			phase: phase, window: window, queued: queued, waiting: waiting,
+			phase: phase, window: window, queued: items.compactMap(\.turn), waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
 			today: CivilDate(date: now, timeZone: zone))
-		let items = phase.items(in: current, queued: queued)
 		if phase.cause != nil {
 			self.activity = .stopping
 		} else if window != nil || items.contains(where: { $0.turn != nil }) {
@@ -186,11 +186,10 @@ extension Segment {
 	}
 
 	func turnViews(
-		phase: MailboxPhase, window: OpenWindow? = nil, queued: [MailboxWork] = [],
+		phase: MailboxPhase, window: OpenWindow? = nil, queued: [TurnID] = [],
 		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
 		device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
-		let queued = phase.items(in: self, queued: queued).compactMap(\.turn)
 		return turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
 				return nil

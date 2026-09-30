@@ -3,7 +3,7 @@ import Foundation
 final class MailboxQueue {
 	private(set) var window: OpenWindow?
 	private var armed = 0
-	private(set) var phase = MailboxPhase.collecting
+	private(set) var phase = MailboxPhase.idle
 	private(set) var waiting: [MailboxWork] = []
 	private var interrupted: [CheckedContinuation<Void, Never>] = []
 
@@ -36,30 +36,29 @@ final class MailboxQueue {
 	}
 
 	func start(_ run: (MailboxWork) -> Task<Void, Never>) {
-		guard case .collecting = phase, !waiting.isEmpty else { return }
+		guard case .idle = phase, !waiting.isEmpty else { return }
 		let next = waiting.removeFirst()
-		phase = .running(RunningWork(item: next, task: run(next), live: nil))
+		phase = .running(.active(next, run(next), nil))
 	}
 
 	func finish() {
 		if case .stopping(let cause, _) = phase {
 			phase = .stopping(cause, nil)
 		} else {
-			phase = .collecting
+			phase = .idle
 		}
 	}
 
-	func show(_ live: LiveAttempt) {
-		switch phase {
-		case .collecting:
-			return
-		case .running(var running):
-			running.live = live
-			phase = .running(running)
-		case .stopping(let cause, var running):
-			running?.live = live
-			phase = .stopping(cause, running)
+	func finishTurn() {
+		guard let running = phase.running else {
+			preconditionFailure("A finishing turn must retain its running task")
 		}
+		update(.finishing(running.task))
+	}
+
+	func show(_ live: LiveAttempt) {
+		guard case .active(let item, let task, _)? = phase.running else { return }
+		update(.active(item, task, live))
 	}
 
 	func beginInterruption(_ cause: InterruptionCause) {
@@ -71,7 +70,10 @@ final class MailboxQueue {
 	}
 
 	func endInterruption() {
-		phase = .collecting
+		guard case .stopping(_, nil) = phase else {
+			preconditionFailure("An interruption must join its running task before ending")
+		}
+		phase = .idle
 		while let waiting = interrupted.popLast() {
 			waiting.resume()
 		}
@@ -86,5 +88,13 @@ final class MailboxQueue {
 		guard !waiting.contains(item) else { return false }
 		waiting.append(item)
 		return true
+	}
+
+	private func update(_ running: RunningWork) {
+		if let cause = phase.cause {
+			phase = .stopping(cause, running)
+		} else {
+			phase = .running(running)
+		}
 	}
 }
