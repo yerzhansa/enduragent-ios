@@ -112,7 +112,9 @@ package struct OpenRouterTransport: ModelTransport {
 	package init(
 		baseURL: URL,
 		diagnostics: DiagnosticsLog,
-		makeSession: @escaping @Sendable (TimeInterval) -> URLSession = Self.ephemeralSession
+		makeSession: @escaping @Sendable (TimeInterval) -> URLSession = {
+			ephemeralSession(requestTimeout: $0)
+		}
 	) {
 		self.baseURL = baseURL
 		self.diagnostics = diagnostics
@@ -193,13 +195,6 @@ package struct OpenRouterTransport: ModelTransport {
 			redacting: [request.credential.secret]
 		)
 		return failure
-	}
-
-	package static let ephemeralSession: @Sendable (TimeInterval) -> URLSession = { timeout in
-		let configuration = URLSessionConfiguration.ephemeral
-		configuration.urlCache = nil
-		configuration.timeoutIntervalForRequest = timeout
-		return URLSession(configuration: configuration)
 	}
 }
 

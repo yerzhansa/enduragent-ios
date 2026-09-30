@@ -35,7 +35,7 @@ import Testing
 		)
 		let urlRequest = try OpenRouterHTTP.urlRequest(
 			baseURL: ModelService.openRouterAPI, request: request)
-		let session = OpenRouterTransport.ephemeralSession(request.deadline.timeInterval)
+		let session = ephemeralSession(requestTimeout: request.deadline.timeInterval)
 		defer { session.finishTasksAndInvalidate() }
 		let (bytes, response) = try await session.bytes(for: urlRequest)
 		let http = try #require(response as? HTTPURLResponse)
