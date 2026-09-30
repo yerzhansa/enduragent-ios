@@ -48,6 +48,16 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
+function hasExtraSecretStore(text) {
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+)([^{}]*)\{/g)]
+    .some(([, name, declaration]) => {
+      if (name === 'ICloudKeychainStore') return false;
+      let header = declaration;
+      while (/<[^<>]*>/.test(header)) header = header.replace(/<[^<>]*>/g, '');
+      const inheritance = header.split(/\bwhere\b/)[0];
+      return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
+    });
+}
 function checkFeatureProofs(sources) {
   const classes = new Map();
   const mapped = new Set();
@@ -107,8 +117,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    if (file.endsWith('.swift') && [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+)[^{]*:\s*([^{}]+)\{/g)]
-      .some(([, name, conformances]) => name !== 'ICloudKeychainStore' && /\bSecretStore\b/.test(conformances))) report(file, 'single-secret-store');
+    if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');

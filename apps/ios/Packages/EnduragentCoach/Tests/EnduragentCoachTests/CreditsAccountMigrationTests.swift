@@ -66,6 +66,7 @@ import Testing
 		let file = directory.appending(path: "secrets.json")
 		try Data(legacy.utf8).write(to: file)
 		let (store, backing) = try ICloudKeychainStore.fixture(directory: directory)
+		let before = try Data(contentsOf: file)
 		backing.failNextWrite = true
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
@@ -73,7 +74,7 @@ import Testing
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.creditsIdentity()
 		}
-		#expect(try Data(contentsOf: file) == Data(legacy.utf8))
+		#expect(try Data(contentsOf: file) == before)
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		#expect(
 			try await coach.creditsIdentity()

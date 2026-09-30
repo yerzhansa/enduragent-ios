@@ -48,10 +48,58 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		let file = directory.appending(path: Self.fileName)
 		self.file = file
 		if FileManager.default.fileExists(atPath: file.path) {
-			self.items = try JSONDecoder().decode([String: Data].self, from: Data(contentsOf: file))
+			self.items = try Self.readItems(Data(contentsOf: file))
 		} else {
 			self.items = [:]
 		}
+	}
+
+	private static func readItems(_ data: Data) throws -> [String: Data] {
+		guard let fields = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+			throw KeychainStoreError(status: errSecDecode)
+		}
+		let legacyNames: Set<String> = [
+			"stagedIntervals", "intervals", "intervalsApiKey", "intervalsOAuthAccess",
+			"intervalsOAuthRefresh",
+		]
+		if legacyNames.isDisjoint(with: fields.keys),
+			fields.values.allSatisfy({ ($0 as? String).flatMap { Data(base64Encoded: $0) } != nil })
+		{
+			return try JSONDecoder().decode([String: Data].self, from: data)
+		}
+		var items: [String: Data] = [:]
+		for name in ["appAccountToken", "openRouterKey", "openRouterAccountKey"] {
+			guard let value = fields[name], !(value is NSNull) else { continue }
+			guard let string = value as? String else {
+				throw KeychainStoreError(status: errSecDecode)
+			}
+			items[name] = Data(string.utf8)
+		}
+		for (name, account) in [
+			("creditsAccount", CredentialSlot.creditsAccount.rawValue),
+			("intervals", CredentialSlot.intervalsConnection.rawValue),
+			("accessSelection", CredentialSlot.accessSelection.rawValue),
+			("stagedIntervals", "intervalsConnectionStaging"),
+		] {
+			guard let value = fields[name], !(value is NSNull) else { continue }
+			items[account] = try JSONSerialization.data(
+				withJSONObject: value, options: .fragmentsAllowed)
+		}
+		if items[CredentialSlot.intervalsConnection.rawValue] == nil {
+			let credential: [String: Any]
+			if let key = fields["intervalsApiKey"], !(key is NSNull) {
+				credential = ["apiKey": ["_0": key]]
+			} else if let access = fields["intervalsOAuthAccess"], !(access is NSNull),
+				let refresh = fields["intervalsOAuthRefresh"], !(refresh is NSNull)
+			{
+				credential = ["oauth": ["access": access, "refresh": refresh]]
+			} else {
+				return items
+			}
+			items[CredentialSlot.intervalsConnection.rawValue] = try JSONSerialization.data(
+				withJSONObject: credential)
+		}
+		return items
 	}
 
 	package func fail(_ account: String, with status: OSStatus?) {
