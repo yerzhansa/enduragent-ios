@@ -73,11 +73,13 @@ package struct TurnRunner: Sendable {
 	package func run(
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
 	) async throws(CancellationError) -> AttemptResult {
 		let prompt: TurnPrompt
 		do {
-			prompt = try await assemble(attempt, scope: scope, progress: progress)
+			prompt = try await assemble(
+				attempt, scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
@@ -194,6 +196,7 @@ package struct TurnRunner: Sendable {
 	private func assemble(
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
 	) async throws -> TurnPrompt {
 		let chatId = attempt.chat
@@ -232,10 +235,12 @@ package struct TurnRunner: Sendable {
 					trim.kept.isEmpty
 					? transcript.current?.ulid ?? attempt.turn.ulid
 					: history.ulids[trim.dropped.count]
-				summary = try await summarizeDropped(
+				let dropped = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
 					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
 					scope: scope, progress: progress)
+				await committed(dropped.records)
+				summary = dropped.summary
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
@@ -273,14 +278,14 @@ package struct TurnRunner: Sendable {
 	private func summarizeDropped(
 		_ dropped: [WireMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
 		droppedUlids: [ULID], scope: TurnScope, progress: @escaping AttemptProgressSink
-	) async throws -> String {
+	) async throws -> (summary: String, records: [AthleteRecord]) {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
 		let summary = try await summarize(
 			PromptAssembly.droppedSummaryRequest(
 				previous: previous, transcript: PromptAssembly.transcript(dropped)),
 			charge: .droppedSummary, attempt: attempt)
-		_ = try await ledger.commit(
+		let records = try await ledger.commit(
 			synced: [
 				.windowStart(
 					WindowStartBody(
@@ -289,7 +294,7 @@ package struct TurnRunner: Sendable {
 				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
 			],
 			stamp: scope.stamp)
-		return summary
+		return (summary, records)
 	}
 
 	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)

@@ -51,6 +51,8 @@ package actor ChatMailbox {
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
 	}
 
+	var conversation: Conversation { records.conversation }
+
 	package func observe() async -> AsyncStream<ChatSnapshot> {
 		do {
 			try await records.load()
@@ -101,7 +103,7 @@ package actor ChatMailbox {
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
-		if let known = records.conversation.turn(withDraft: draft.id) {
+		if let known = conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
 		let joining: TurnID?
@@ -114,7 +116,7 @@ package actor ChatMailbox {
 		let minted = TurnID(ulid: await ledger.nextULID())
 		let writes = TurnLifecycle.writes(
 			for: .accept(draft, joining: joining, slash: slash),
-			on: joining.flatMap(records.conversation.turn),
+			on: joining.flatMap(conversation.turn),
 			chat: chatId,
 			device: ledger.deviceId,
 			mint: { minted }
@@ -143,12 +145,12 @@ package actor ChatMailbox {
 			} catch {
 				throw RetryRefusal.unknownTurn
 			}
-			let waiting = waits.waiting(among: records.conversation.current.turns)
+			let waiting = waits.waiting(among: conversation.current.turns)
 			let queued = work.phase.items(queued: work.waiting)
 			let overlay = TurnOverlay(
 				of: turn, window: work.window, queued: queued.compactMap(\.turn), waiting: waiting)
 			let refusal = TurnLifecycle.retryRefusal(
-				of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
+				of: conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
 				process: process)
 			if let refusal { throw RetryRefusal(refusal) }
 			holdLease(.athlete)?.add(turn)
@@ -260,7 +262,7 @@ package actor ChatMailbox {
 					await self.runTurn(turn, under: lease)
 				case .flush(let job):
 					let access = await self.environment.flushAccess()
-					await self.flushes.drain(job, in: self.records.conversation, access: access)
+					await self.flushes.drain(job, in: self.conversation, access: access)
 					_ = await self.records.refreshJobs(from: self.flushes)
 				case .reset(let reset):
 					let access = await self.environment.flushAccess()
@@ -298,7 +300,7 @@ package actor ChatMailbox {
 	}
 
 	private func runTurn(_ turn: TurnID, under lease: DrainLease) async {
-		guard let facts = records.conversation.turn(turn) else { return }
+		guard let facts = conversation.turn(turn) else { return }
 		lease.add(turn)
 		let resolution = await environment.resolve()
 		let stamp = await stamp(for: turn).bound(to: resolution.account)
@@ -313,7 +315,12 @@ package actor ChatMailbox {
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let settlement: Settlement
 		do {
-			let result = try await runner.run(request, scope: scope) { progress in
+			let result = try await runner.run(
+				request, scope: scope,
+				committed: { records in
+					await self.apply(records)
+				}
+			) { progress in
 				lease.observe(progress)
 				await self.apply(progress, turn: turn, stamp: stamp)
 			}
@@ -335,11 +342,16 @@ package actor ChatMailbox {
 
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		work.finishTurn()
-		let reply = records.conversation.turn(turn)?.reply
+		let reply = conversation.turn(turn)?.reply
 		if reply != nil, !foreground {
 			finishedAway.insert(turn)
 		}
 		lease.settle(turn, reply: reply)
+		publish()
+	}
+
+	private func apply(_ committed: [AthleteRecord]) {
+		records.apply(committed)
 		publish()
 	}
 
@@ -362,12 +374,12 @@ package actor ChatMailbox {
 	private func snapshot() -> ChatSnapshot {
 		ChatSnapshot(
 			chat: chatId,
-			conversation: records.conversation,
+			conversation: conversation,
 			jobs: records.jobs,
 			phase: work.phase,
 			window: work.window,
 			queued: work.waiting,
-			waiting: waits.waiting(among: records.conversation.current.turns),
+			waiting: waits.waiting(among: conversation.current.turns),
 			finishedAway: finishedAway,
 			review: records.review,
 			device: ledger.deviceId,

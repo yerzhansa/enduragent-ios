@@ -301,7 +301,7 @@ public actor Coach {
 		return plans
 	}
 
-	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
+	func mailbox(for chatId: ChatID) async -> ChatMailbox {
 		await recoverOnce()
 		return makeMailbox(for: chatId)
 	}
