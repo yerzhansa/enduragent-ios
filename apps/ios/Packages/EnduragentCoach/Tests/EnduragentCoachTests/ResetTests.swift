@@ -196,7 +196,7 @@ import Testing
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
-			diagnostics: DiagnosticsLog(clock: clock))
+			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
 		let reset = ResetID(ulid: await ledger.nextULID())
 		let result = await ConversationReset(

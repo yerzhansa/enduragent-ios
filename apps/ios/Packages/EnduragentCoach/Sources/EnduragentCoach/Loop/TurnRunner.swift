@@ -193,7 +193,7 @@ package struct TurnRunner: Sendable {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock),
-			transport: transport, clock: clock, diagnostics: diagnostics)
+			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
 	private func assemble(

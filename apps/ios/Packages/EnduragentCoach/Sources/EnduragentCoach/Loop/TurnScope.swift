@@ -35,7 +35,7 @@ package struct ToolExecution: Sendable, Equatable {
 package actor TurnScope {
 	package nonisolated let stamp: OperationStamp
 	package nonisolated let policy: TurnBudgetPolicy
-	private let started: Duration
+	nonisolated let deadline: ModelDeadline
 	private var calls = 0
 	private var attempts = 0
 	private var memo: [MemoKey: Task<ToolExecution, Error>] = [:]
@@ -60,7 +60,8 @@ package actor TurnScope {
 	package init(stamp: OperationStamp, policy: TurnBudgetPolicy, uptime: Duration) {
 		self.stamp = stamp
 		self.policy = policy
-		self.started = uptime
+		self.deadline = ModelDeadline(
+			ends: uptime + policy.wallClock, perCall: policy.perCallDeadline)
 	}
 
 	package func chargeCall() throws(TurnBudgetExceeded) {
@@ -79,14 +80,11 @@ package actor TurnScope {
 	}
 
 	package func checkDeadline(uptime: Duration) throws(TurnBudgetExceeded) {
-		if uptime - started >= policy.wallClock {
-			throw TurnBudgetExceeded(kind: .wallClock)
-		}
+		try deadline.checkDeadline(uptime: uptime)
 	}
 
 	package func callDeadline(uptime: Duration) -> Duration {
-		let remaining = max(.zero, policy.wallClock - (uptime - started))
-		return min(policy.perCallDeadline, remaining)
+		deadline.callDeadline(uptime: uptime)
 	}
 
 	package var flushLatchFree: Bool {

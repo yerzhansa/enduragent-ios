@@ -1,22 +1,34 @@
 import Foundation
 
+enum MemoryWriteFormat {
+	case turn
+	case flush
+
+	var missingSection: String {
+		switch self {
+		case .turn:
+			"type='memory' requires a section. Pick one of the listed sections, or use type='daily' for free-form notes."
+		case .flush:
+			"memory_write requires a section and content. Pick one of the listed sections."
+		}
+	}
+}
+
 extension Memory {
-	func executeMemoryWrite(_ arguments: JSONValue, source: LedgerSource, stamp: OperationStamp)
-		async throws
-		-> ToolExecution
-	{
+	func executeMemoryWrite(
+		_ arguments: JSONValue, format: MemoryWriteFormat, source: LedgerSource,
+		stamp: OperationStamp
+	) async throws -> ToolExecution {
 		let fields = arguments.objectFields
 		let type = fields["type"]?.stringValue
 		let content = fields["content"]?.stringValue ?? ""
-		if source == .flush || type == "memory" {
+		if format == .flush || type == "memory" {
 			guard let section = fields["section"]?.stringValue,
-				source == .chat || fields["content"]?.stringValue != nil
+				format == .turn || fields["content"]?.stringValue != nil
 			else {
 				return .result(
 					.object([
-						"details": .string(
-							"type='memory' requires a section. Pick one of the listed sections, or use type='daily' for free-form notes."
-						),
+						"details": .string(format.missingSection),
 						"error": .string("section_required"),
 					])
 				)

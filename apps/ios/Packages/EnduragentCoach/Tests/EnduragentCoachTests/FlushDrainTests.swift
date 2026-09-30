@@ -95,7 +95,7 @@ import Testing
 		switch failure.failure {
 		case .accessExhausted: expectedAttempts = 1
 		case .timeout: expectedAttempts = 2
-		case .rateLimited: expectedAttempts = 4
+		case .rateLimited: expectedAttempts = 2
 		default: expectedAttempts = 3
 		}
 		let requestsBeforeRecovery = expectedAttempts + (partial ? 1 : 0)

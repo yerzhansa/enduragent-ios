@@ -32,7 +32,7 @@ import Testing
 	) async throws -> FlushOutcome {
 		try await memory.runFlush(
 			messages: messages ?? conversation, access: testAccess, transport: transport,
-			diagnostics: DiagnosticsLog(clock: clock),
+			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm,
 			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope)
 	}
 
@@ -146,6 +146,46 @@ import Testing
 		#expect(try await run(job()) == .nothingToSave)
 		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		#expect(try await run(job()) == .failed(.model(.providerDown(.outage))))
+	}
+
+	@Test func aFlushRetryKeepsToolResultsWithoutRepeatingWrites() async throws {
+		let append = ScriptedEvent.toolCall(
+			name: "ledger_append",
+			arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
+		transport.flushScript = [
+			.toolCall(
+				name: "memory_write",
+				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+			append, .finish(reason: .toolCalls), .fail(.http(status: 500)),
+			append, .finish(reason: .toolCalls), .finish(reason: .stop),
+		]
+		#expect(try await run(job()) == .saved(sections: 1, events: 1))
+		#expect(transport.requests.count == 4)
+		let failed = transport.requests[1].messages
+		let retried = transport.requests[2].messages
+		#expect(retried == failed)
+		#expect(retried.filter { $0.role == .tool }.count == 2)
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent]))).records
+		#expect(sections.count == 1)
+		#expect(events.count == 1)
+		let repeated = try #require(transport.requests.last?.messages.last)
+		#expect(repeated.content.contains(#""duplicate":true"#))
+	}
+
+	@Test func missingFlushContentGetsTheFlushArgumentMessage() async throws {
+		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		transport.flushScript = [
+			.toolCall(name: "memory_write", arguments: #"{"section":"schedule"}"#),
+			.finish(reason: .toolCalls), .finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
+		#expect(result.content.contains("requires a section and content"))
+		#expect(!result.content.contains("type='"))
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		#expect(sections.isEmpty)
 	}
 
 	@Test func flushCapsAtFiveSteps() async throws {
