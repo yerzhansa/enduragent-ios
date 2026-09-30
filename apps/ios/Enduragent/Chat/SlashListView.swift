@@ -14,7 +14,7 @@ struct SlashListView: View {
 						Text(command.rawValue)
 						Text(model.phrasebook.say(command.menuTitle, [:]))
 							.font(.footnote)
-							.foregroundStyle(.secondary)
+							.foregroundStyle(Color.primary)
 					}
 				}
 				.accessibilityIdentifier("chat.slash.\(String(command.rawValue.dropFirst()))")

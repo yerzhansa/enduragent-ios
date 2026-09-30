@@ -110,6 +110,8 @@ try {
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
+    if (file === 'apps/ios/Enduragent/Chat/SlashListView.swift'
+      && /\.foregroundStyle\(\s*\.(?:secondary|tertiary|quaternary)\s*\)/.test(text)) report(file, 'slash-description-contrast');
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
       const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
       const exposed = text.split('\n').some(line => {
