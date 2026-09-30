@@ -56,15 +56,6 @@ public struct ChatExternalID: Hashable, Sendable {
 	}
 }
 
-public struct PlanMirrorUID: Hashable, Sendable {
-	public var planId: ULID
-	public var workoutId: ULID
-
-	public var rawValue: String {
-		"cycling-coach:plan:\(planId.rawValue):\(workoutId.rawValue)"
-	}
-}
-
 public struct AthleteProfile: Sendable, Equatable {
 	public var id: String
 	public var name: String
@@ -187,15 +178,6 @@ public enum CalendarEventType: String, Sendable {
 	case weightTraining = "WeightTraining"
 }
 
-public struct PlanMirrorCreate: Sendable, Equatable {
-	public var date: DateKey
-	public var name: String
-	public var description: String
-	public var movingTime: Int
-	public var uid: PlanMirrorUID
-	public var workoutDoc: JSONValue
-}
-
 public protocol IntervalsClient: Sendable {
 	func fetchAthlete() async throws -> AthleteProfile
 	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay]
@@ -204,7 +186,6 @@ public protocol IntervalsClient: Sendable {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	func deleteEvent(id: EventID) async throws

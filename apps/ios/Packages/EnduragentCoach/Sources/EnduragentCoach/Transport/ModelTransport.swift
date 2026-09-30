@@ -163,7 +163,7 @@ package struct OpenRouterTransport: ModelTransport {
 				body: try await OpenRouterHTTP.errorBody(from: bytes)
 			)
 		}
-		try await OpenRouterSSEParser.parse(lines: bytes.lines, yield: yield)
+		try await OpenRouterSSEParser.parse(bytes: bytes, yield: yield)
 	}
 
 	private func settle(_ error: any Error, of request: CompletionRequest) -> any Error {

@@ -33,34 +33,10 @@ import Testing
 			],
 			deadline: .seconds(60)
 		)
-		let urlRequest = try OpenRouterHTTP.urlRequest(
-			baseURL: ModelService.openRouterAPI, request: request)
-		let session = ephemeralSession(requestTimeout: request.deadline.timeInterval)
-		defer { session.finishTasksAndInvalidate() }
-		let (bytes, response) = try await session.bytes(for: urlRequest)
-		let http = try #require(response as? HTTPURLResponse)
-		guard http.statusCode == 200 else {
-			let body = try await OpenRouterHTTP.errorBody(from: bytes)
-			Issue.record("OpenRouter answered \(http.statusCode): \(body)")
-			return
-		}
-		var lines: [String] = []
-		var sawCacheDiscount = false
-		var sawCachedTokens = false
-		var provider: String?
-		for try await line in bytes.lines {
-			lines.append(line)
-			let flags = cacheFlags(in: line)
-			sawCacheDiscount = sawCacheDiscount || flags.discount
-			sawCachedTokens = sawCachedTokens || flags.cachedTokens
-			if provider == nil {
-				provider = providerField(in: line)
-			}
-		}
-		var events: [TransportEvent] = []
-		for try await event in OpenRouterSSEParser.events(from: lines.joined(separator: "\n")) {
-			events.append(event)
-		}
+		let transport = OpenRouterTransport(
+			baseURL: ModelService.openRouterAPI,
+			diagnostics: DiagnosticsLog(clock: SystemClock()))
+		let events = try await collect(transport.stream(request))
 		#expect(!events.isEmpty)
 		if case .finished(_, let usage) = events.last {
 			#expect(usage.inputTokens > 0)
@@ -68,79 +44,12 @@ import Testing
 			Issue.record("expected finished")
 		}
 		if let path = ProcessInfo.processInfo.environment["ENDURAGENT_LIVE_OUT"], !path.isEmpty {
-			var payload: [String: Any] = [
-				"events": events.map(json(event:)),
-				"sawCacheDiscount": sawCacheDiscount,
-				"sawCachedTokens": sawCachedTokens,
-			]
-			if let provider {
-				payload["provider"] = provider
-			}
+			let payload: [String: Any] = ["events": events.map(json(event:))]
 			let data = try JSONSerialization.data(
 				withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
 			try data.write(to: URL(fileURLWithPath: path))
 		}
 	}
-}
-
-private func cacheFlags(in line: String) -> (discount: Bool, cachedTokens: Bool) {
-	guard let object = jsonObject(fromSSELine: line) else {
-		return (false, false)
-	}
-	return inspectCache(object)
-}
-
-private func providerField(in line: String) -> String? {
-	guard let object = jsonObject(fromSSELine: line) else {
-		return nil
-	}
-	return object["provider"] as? String
-}
-
-private func jsonObject(fromSSELine line: String) -> [String: Any]? {
-	guard line.hasPrefix("data:") else {
-		return nil
-	}
-	var payload = String(line.dropFirst(5))
-	if payload.first == " " {
-		payload.removeFirst()
-	}
-	guard payload != "[DONE]",
-		let data = payload.data(using: .utf8),
-		let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-	else {
-		return nil
-	}
-	return object
-}
-
-private func inspectCache(_ value: Any) -> (discount: Bool, cachedTokens: Bool) {
-	if let object = value as? [String: Any] {
-		var discount = object["cache_discount"] != nil
-		var cachedTokens = false
-		if let details = object["prompt_tokens_details"] as? [String: Any],
-			details["cached_tokens"] != nil
-		{
-			cachedTokens = true
-		}
-		for nested in object.values {
-			let inner = inspectCache(nested)
-			discount = discount || inner.discount
-			cachedTokens = cachedTokens || inner.cachedTokens
-		}
-		return (discount, cachedTokens)
-	}
-	if let array = value as? [Any] {
-		var discount = false
-		var cachedTokens = false
-		for nested in array {
-			let inner = inspectCache(nested)
-			discount = discount || inner.discount
-			cachedTokens = cachedTokens || inner.cachedTokens
-		}
-		return (discount, cachedTokens)
-	}
-	return (false, false)
 }
 
 private func json(event: TransportEvent) -> [String: Any] {
