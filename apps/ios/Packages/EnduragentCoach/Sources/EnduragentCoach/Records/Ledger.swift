@@ -37,9 +37,10 @@ package actor Ledger {
 				else {
 					continue
 				}
-				fold(head.hlc)
-				if lastUlid.map({ $0 < head.ulid }) ?? true {
-					lastUlid = head.ulid
+				report(head.skipped)
+				if let hlc = head.hlc { fold(hlc) }
+				if let ulid = head.ulid, lastUlid.map({ $0 < ulid }) ?? true {
+					lastUlid = ulid
 				}
 			}
 		} catch {
@@ -87,12 +88,16 @@ package actor Ledger {
 		for record in page.records {
 			fold(record.hlc)
 		}
-		for skipped in page.skipped where reportedSkips.count < Self.reportedSkipLimit {
+		report(page.skipped)
+		return page
+	}
+
+	private func report(_ rows: [SkippedRow]) {
+		for skipped in rows where reportedSkips.count < Self.reportedSkipLimit {
 			if reportedSkips.insert(skipped).inserted {
 				diagnostics.record(.skippedRecord(skipped))
 			}
 		}
-		return page
 	}
 
 	package nonisolated var imports: AsyncStream<Void> {
