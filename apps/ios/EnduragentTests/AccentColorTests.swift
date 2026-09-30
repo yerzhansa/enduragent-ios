@@ -1,3 +1,4 @@
+import SwiftUI
 import Testing
 import UIKit
 
@@ -24,25 +25,28 @@ struct AccentColorTests {
 		try expectColor(asset.resolvedColor(with: traits), red: red, green: green, blue: blue)
 	}
 
+	@Test
+	func appDeclaresGlobalAccent() {
+		#expect(
+			Bundle.main.object(forInfoDictionaryKey: "NSAccentColorName") as? String
+				== "AccentColor")
+	}
+
 	@Test(arguments: [
-		(UIUserInterfaceStyle.light, UIAccessibilityContrast.normal, 56, 101, 142),
-		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.normal, 130, 174, 214),
-		(UIUserInterfaceStyle.light, UIAccessibilityContrast.high, 51, 92, 130),
-		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 171, 201, 227),
+		(ColorScheme.light, 56, 101, 142),
+		(ColorScheme.dark, 130, 174, 214),
 	])
-	func appTintMatchesAppearance(
-		style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast,
+	func swiftUIAccentMatchesAppearance(
+		scheme: ColorScheme,
 		red: Int, green: Int, blue: Int
-	) throws {
-		let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-			.flatMap(\.windows).first(where: \.isKeyWindow)
-		let window = try #require(keyWindow)
-		let traits = UITraitCollection {
-			$0.userInterfaceStyle = style
-			$0.accessibilityContrast = contrast
-		}
-		let tint = try #require(window.tintColor)
-		try expectColor(tint.resolvedColor(with: traits), red: red, green: green, blue: blue)
+	) {
+		var environment = EnvironmentValues()
+		environment.colorScheme = scheme
+		let accent = Color.accentColor.resolve(in: environment)
+		#expect(abs(accent.red - Float(red) / 255) < 0.000001)
+		#expect(abs(accent.green - Float(green) / 255) < 0.000001)
+		#expect(abs(accent.blue - Float(blue) / 255) < 0.000001)
+		#expect(accent.opacity == 1)
 	}
 
 	private func expectColor(_ color: UIColor, red: Int, green: Int, blue: Int) throws {
