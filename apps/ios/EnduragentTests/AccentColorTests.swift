@@ -37,23 +37,12 @@ struct AccentColorTests {
 		let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
 			.flatMap(\.windows).first(where: \.isKeyWindow)
 		let window = try #require(keyWindow)
-		let previousStyle = window.overrideUserInterfaceStyle
-		let previousContrast = window.traitOverrides.accessibilityContrast
-		let hadContrastOverride = window.traitOverrides.contains(UITraitAccessibilityContrast.self)
-		defer {
-			window.overrideUserInterfaceStyle = previousStyle
-			if hadContrastOverride {
-				window.traitOverrides.accessibilityContrast = previousContrast
-			} else {
-				window.traitOverrides.remove(UITraitAccessibilityContrast.self)
-			}
+		let traits = UITraitCollection {
+			$0.userInterfaceStyle = style
+			$0.accessibilityContrast = contrast
 		}
-		window.overrideUserInterfaceStyle = style
-		window.traitOverrides.accessibilityContrast = contrast
-		window.layoutIfNeeded()
 		let tint = try #require(window.tintColor)
-		try expectColor(
-			tint.resolvedColor(with: window.traitCollection), red: red, green: green, blue: blue)
+		try expectColor(tint.resolvedColor(with: traits), red: red, green: green, blue: blue)
 	}
 
 	private func expectColor(_ color: UIColor, red: Int, green: Int, blue: Int) throws {
