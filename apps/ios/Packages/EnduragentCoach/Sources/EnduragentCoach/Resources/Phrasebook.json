@@ -126918,97 +126918,97 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Aceptar y continuar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Accepter et continuer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Acconsenti e continua"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Zustimmen und fortfahren"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Akkoord en doorgaan"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Acceptér og fortsæt"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Godkänn och fortsätt"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Samtykk og fortsett"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Hyväksy ja jatka"
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Concordar e continuar"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Concordar e continuar"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "Wyraź zgodę i kontynuuj"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "동의하고 계속하기"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "同意して続ける"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "同意并继续"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Agree and continue"
+            "value": "同意並繼續"
           }
         }
       }
@@ -127024,97 +127024,97 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Para responder, Enduragent envía tus mensajes, la memoria de tu entrenador y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los transmite al proveedor del modelo de IA (DeepSeek). Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Pour répondre, Enduragent envoie tes messages, la mémoire de ton coach et les données d’entraînement que tu connectes depuis intervals.icu à OpenRouter, qui les transmet au fournisseur du modèle d’IA (DeepSeek). Ils utilisent ces données uniquement pour générer les réponses de ton coach. Rien n’est envoyé sans ton accord."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Per rispondere, Enduragent invia i tuoi messaggi, la memoria del tuo coach e i dati di allenamento che colleghi da intervals.icu a OpenRouter, che li trasmette al fornitore del modello di IA (DeepSeek). Usano questi dati solo per generare le risposte del tuo coach. Non viene inviato nulla finché non acconsenti."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Om te antwoorden stuurt Enduragent je berichten, het geheugen van je coach en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan de aanbieder van het AI-model (DeepSeek). Ze gebruiken deze gegevens alleen om de antwoorden van je coach te genereren. Er wordt niets verstuurd totdat je akkoord gaat."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "For at svare sender Enduragent dine beskeder, din coachs hukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til udbyderen af AI-modellen (DeepSeek). De bruger kun disse data til at generere din coachs svar. Intet sendes, før du giver samtykke."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "For å svare sender Enduragent meldingene dine, trenerens minne og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som sender dem videre til leverandøren av KI-modellen (DeepSeek). De bruker disse dataene bare til å lage svarene fra treneren din. Ingenting sendes før du samtykker."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Para responder, o Enduragent envia as tuas mensagens, a memória do teu treinador e os dados de treino que ligas a partir do intervals.icu ao OpenRouter, que os transmite ao fornecedor do modelo de IA (DeepSeek). Usam estes dados apenas para gerar as respostas do teu treinador. Nada é enviado até concordares."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Para responder, o Enduragent envia suas mensagens, a memória do seu treinador e os dados de treino que você conecta do intervals.icu ao OpenRouter, que os repassa ao provedor do modelo de IA (DeepSeek). Eles usam esses dados apenas para gerar as respostas do seu treinador. Nada é enviado até você concordar."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenera i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je dostawcy modelu AI (DeepSeek). Wykorzystują te dane wyłącznie do generowania odpowiedzi Twojego trenera. Nic nie zostanie wysłane bez Twojej zgody."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "为了回复你，Enduragent 会将你的消息、教练记忆以及你从 intervals.icu 连接的训练数据发送给 OpenRouter，再由 OpenRouter 传递给 AI 模型提供商（DeepSeek）。他们仅使用这些数据来生成教练的回复。在你同意之前，不会发送任何内容。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "為了回覆你，Enduragent 會將你的訊息、教練記憶，以及你從 intervals.icu 連結的訓練資料傳送給 OpenRouter，再由 OpenRouter 傳遞給 AI 模型供應商（DeepSeek）。他們僅使用這些資料來產生教練的回覆。在你同意之前，不會傳送任何內容。"
           }
         }
       }
@@ -127130,97 +127130,97 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Ahora no"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Pas maintenant"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Non ora"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Nicht jetzt"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Niet nu"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Ikke nu"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Inte nu"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Ikke nå"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Ei nyt"
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Agora não"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Agora não"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "Nie teraz"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "나중에"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "今はしない"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "暂不"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not now"
+            "value": "暫不"
           }
         }
       }
@@ -127236,97 +127236,97 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "No se pudo guardar tu consentimiento. Inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Impossible d’enregistrer ton accord. Réessaie."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Impossibile salvare il tuo consenso. Riprova."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Deine Zustimmung konnte nicht gespeichert werden. Versuche es erneut."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Je toestemming kon niet worden opgeslagen. Probeer het opnieuw."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Dit samtykke kunne ikke gemmes. Prøv igen."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Det gick inte att spara ditt samtycke. Försök igen."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Samtykket ditt kunne ikke lagres. Prøv igjen."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Não foi possível guardar o teu consentimento. Tenta novamente."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Não foi possível salvar seu consentimento. Tente novamente."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "Nie udało się zapisać Twojej zgody. Spróbuj ponownie."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "동의를 저장하지 못했어요. 다시 시도해 주세요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "同意を保存できませんでした。もう一度お試しください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "无法保存你的同意。请重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't save your agreement. Try again."
+            "value": "無法儲存你的同意。請再試一次。"
           }
         }
       }
@@ -127342,97 +127342,97 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Tu entrenador usa IA"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Ton coach utilise l’IA"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Il tuo coach usa l’IA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Dein Coach nutzt KI"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Je coach gebruikt AI"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Din coach bruger AI"
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Din coach använder AI"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Treneren din bruker KI"
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Valmentajasi käyttää tekoälyä"
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "O teu treinador usa IA"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Seu treinador usa IA"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "Twój trener korzysta z AI"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "코치는 AI를 사용해요"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "コーチはAIを使用します"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "你的教练使用 AI"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your coach uses AI"
+            "value": "你的教練使用 AI"
           }
         }
       }

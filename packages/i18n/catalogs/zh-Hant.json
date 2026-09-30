@@ -2917,11 +2917,11 @@
       "health": "僅提供訓練建議，不構成醫療建議。進行重大調整前，請諮詢醫師。"
     },
     "consent": {
-      "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
-      "accept": "Agree and continue",
-      "decline": "Not now",
-      "saveFailed": "Couldn't save your agreement. Try again."
+      "title": "你的教練使用 AI",
+      "body": "為了回覆你，Enduragent 會將你的訊息、教練記憶，以及你從 intervals.icu 連結的訓練資料傳送給 OpenRouter，再由 OpenRouter 傳遞給 AI 模型供應商（DeepSeek）。他們僅使用這些資料來產生教練的回覆。在你同意之前，不會傳送任何內容。",
+      "accept": "同意並繼續",
+      "decline": "暫不",
+      "saveFailed": "無法儲存你的同意。請再試一次。"
     }
   },
   "access": {

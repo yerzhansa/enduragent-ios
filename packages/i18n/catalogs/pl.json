@@ -3037,11 +3037,11 @@
       "health": "To sugestie treningowe, nie porady medyczne. Przed dużymi zmianami skonsultuj się z lekarzem."
     },
     "consent": {
-      "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
-      "accept": "Agree and continue",
-      "decline": "Not now",
-      "saveFailed": "Couldn't save your agreement. Try again."
+      "title": "Twój trener korzysta z AI",
+      "body": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenera i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je dostawcy modelu AI (DeepSeek). Wykorzystują te dane wyłącznie do generowania odpowiedzi Twojego trenera. Nic nie zostanie wysłane bez Twojej zgody.",
+      "accept": "Wyraź zgodę i kontynuuj",
+      "decline": "Nie teraz",
+      "saveFailed": "Nie udało się zapisać Twojej zgody. Spróbuj ponownie."
     }
   },
   "access": {

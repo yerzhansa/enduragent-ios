@@ -2957,11 +2957,11 @@
       "health": "Trainingsempfehlungen, keine medizinische Beratung. Sprich vor größeren Änderungen mit einem Arzt."
     },
     "consent": {
-      "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
-      "accept": "Agree and continue",
-      "decline": "Not now",
-      "saveFailed": "Couldn't save your agreement. Try again."
+      "title": "Dein Coach nutzt KI",
+      "body": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet.",
+      "accept": "Zustimmen und fortfahren",
+      "decline": "Nicht jetzt",
+      "saveFailed": "Deine Zustimmung konnte nicht gespeichert werden. Versuche es erneut."
     }
   },
   "access": {

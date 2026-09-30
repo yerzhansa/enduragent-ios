@@ -2917,11 +2917,11 @@
       "health": "トレーニングの提案であり、医療上の助言ではありません。大きな変更を行う前に医師に相談してください。"
     },
     "consent": {
-      "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
-      "accept": "Agree and continue",
-      "decline": "Not now",
-      "saveFailed": "Couldn't save your agreement. Try again."
+      "title": "コーチはAIを使用します",
+      "body": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。",
+      "accept": "同意して続ける",
+      "decline": "今はしない",
+      "saveFailed": "同意を保存できませんでした。もう一度お試しください。"
     }
   },
   "access": {
