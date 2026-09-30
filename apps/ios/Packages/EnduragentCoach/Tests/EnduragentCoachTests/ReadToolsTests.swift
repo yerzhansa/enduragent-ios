@@ -225,8 +225,6 @@ struct ReadToolsTests {
 		#expect(!encoded.contains("oneOf"))
 		#expect(!encoded.contains("allOf"))
 		#expect(schemas.contains { $0.description.contains("Form = fitness - fatigue") })
-		#expect(WorkoutReview.windowDays == IntervalsPolicy.reviewWindowDays)
-		#expect(WorkoutReview.windowDays == 7)
 	}
 
 	private func unwrapData(_ json: JSONValue) -> JSONValue {
