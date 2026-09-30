@@ -6,31 +6,50 @@ import UIKit
 @MainActor
 struct AccentColorTests {
 	@Test(arguments: [
-		(UIUserInterfaceStyle.light, 56, 101, 142),
-		(UIUserInterfaceStyle.dark, 130, 174, 214),
+		(UIUserInterfaceStyle.light, UIAccessibilityContrast.normal, 56, 101, 142),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.normal, 130, 174, 214),
+		(UIUserInterfaceStyle.light, UIAccessibilityContrast.high, 51, 92, 130),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 130, 174, 214),
 	])
 	func appBundleAccentMatchesAppearance(
-		style: UIUserInterfaceStyle, red: Int, green: Int, blue: Int
+		style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast,
+		red: Int, green: Int, blue: Int
 	) throws {
-		let traits = UITraitCollection(userInterfaceStyle: style)
+		let traits = UITraitCollection {
+			$0.userInterfaceStyle = style
+			$0.accessibilityContrast = contrast
+		}
 		let asset = try #require(
 			UIColor(named: "AccentColor", in: Bundle(for: ShellModel.self), compatibleWith: traits))
 		try expectColor(asset.resolvedColor(with: traits), red: red, green: green, blue: blue)
 	}
 
 	@Test(arguments: [
-		(UIUserInterfaceStyle.light, 56, 101, 142),
-		(UIUserInterfaceStyle.dark, 130, 174, 214),
+		(UIUserInterfaceStyle.light, UIAccessibilityContrast.normal, 56, 101, 142),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.normal, 130, 174, 214),
+		(UIUserInterfaceStyle.light, UIAccessibilityContrast.high, 51, 92, 130),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 130, 174, 214),
 	])
 	func appTintMatchesAppearance(
-		style: UIUserInterfaceStyle, red: Int, green: Int, blue: Int
+		style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast,
+		red: Int, green: Int, blue: Int
 	) throws {
 		let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
 			.flatMap(\.windows).first(where: \.isKeyWindow)
 		let window = try #require(keyWindow)
 		let previousStyle = window.overrideUserInterfaceStyle
-		defer { window.overrideUserInterfaceStyle = previousStyle }
+		let previousContrast = window.traitOverrides.accessibilityContrast
+		let hadContrastOverride = window.traitOverrides.contains(UITraitAccessibilityContrast.self)
+		defer {
+			window.overrideUserInterfaceStyle = previousStyle
+			if hadContrastOverride {
+				window.traitOverrides.accessibilityContrast = previousContrast
+			} else {
+				window.traitOverrides.remove(UITraitAccessibilityContrast.self)
+			}
+		}
 		window.overrideUserInterfaceStyle = style
+		window.traitOverrides.accessibilityContrast = contrast
 		window.layoutIfNeeded()
 		let tint = try #require(window.tintColor)
 		try expectColor(
