@@ -3,15 +3,11 @@ import Foundation
 struct SessionSettingsPayload: Codable {
 	var historyBudgetRatio: Double
 	var contextWindowTokens: Int?
-	var compactionModel: String
-	var flushModel: String
 
 	init(_ body: SessionSettingsBody) {
 		let settings = body.settings
 		self.historyBudgetRatio = settings.historyBudgetRatio.value
 		self.contextWindowTokens = settings.contextWindowOverride?.tokens
-		self.compactionModel = settings.compactionModel.text
-		self.flushModel = settings.flushModel.text
 	}
 
 	func body() throws(SessionSettingRejected) -> SessionSettingsBody {
@@ -21,9 +17,7 @@ struct SessionSettingsPayload: Codable {
 				contextWindowOverride: try contextWindowTokens.map {
 					(tokens: Int) throws(SessionSettingRejected) in
 					try ContextWindowOverride(tokens: tokens)
-				},
-				compactionModel: try ModelSelection(text: compactionModel, field: .compactionModel),
-				flushModel: try ModelSelection(text: flushModel, field: .flushModel)
+				}
 			))
 	}
 }

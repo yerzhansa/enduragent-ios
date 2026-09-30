@@ -106,14 +106,15 @@ final class StorageFaultProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:storage fail-next-append")
+		TutorialHarness.fixtureControl(app, "fixture.failNextAppend")
+		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		let notSent = TutorialHarness.named(app, "chat.composer.notSent")
 		TutorialHarness.wait(notSent)
 		XCTAssertEqual(notSent.label, TutorialHarness.notSent)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").value as? String,
-			"fixture:storage fail-next-append")
-		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
+			TutorialHarness.weekQuestion)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
 		TutorialHarness.attach(self, name: "storage-fault-not-sent", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -122,8 +123,8 @@ final class StorageFaultProof: XCTestCase {
 		TutorialHarness.waitForWelcome(app)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").value as? String,
-			"fixture:storage fail-next-append")
-		XCTAssertFalse(app.staticTexts["fixture:storage fail-next-append"].exists)
+			TutorialHarness.weekQuestion)
+		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		TutorialHarness.attach(self, name: "storage-fault-nothing-saved", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))

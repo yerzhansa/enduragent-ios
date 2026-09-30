@@ -308,24 +308,24 @@ import Testing
 		#expect(next.messages.dropFirst().map(\.content).contains("Thursday is on."))
 	}
 
-	@Test func compactionAndFlushUseTheirOwnModelSelections() async throws {
+	@Test func compactionAndFlushUseTheResponseModel() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
 		let coach = makeCoach()
-		try await coach.setSession(
-			SessionSettings.npmDefaults.replacing(.compactionModel, with: "test/compact")
-				.replacing(.flushModel, with: "test/flush"))
+
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
 		#expect(
 			transport.requests.map(\.model.rawValue) == [
-				"test/flush", "test/compact", testModel.rawValue,
+				testModel.rawValue, testModel.rawValue, testModel.rawValue,
 			])
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(
-			sent(.memoryFlush, by: transport).map(\.model.rawValue) == ["test/flush", "test/flush"])
+			sent(.memoryFlush, by: transport).map(\.model.rawValue) == [
+				testModel.rawValue, testModel.rawValue,
+			])
 	}
 
 	@Test func historyBudgetUsesTheStoredRatio() async throws {

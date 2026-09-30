@@ -13,9 +13,7 @@ extension ShellModel {
 	}
 
 	private func tryAgain(_ turn: TurnID) async {
-		if let text = chat?.turns.first(where: { $0.id == turn })?.athleteText {
-			services.fixtureDirector?.prepareRetry(of: text)
-		}
+
 		do {
 			try await services.coach.retry(turn, in: .main)
 		} catch {

@@ -77,7 +77,6 @@ final class FinishedWhileAwayProof: XCTestCase {
 		Thread.sleep(forTimeInterval: 15)
 		app.activate()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 20)
 		let line = TutorialHarness.named(app, "chat.turn.finishedWhileLocked")
 		TutorialHarness.wait(line)
 		XCTAssertEqual(line.label, TutorialHarness.finishedWhileLocked)
@@ -97,7 +96,7 @@ final class QueuedExpiryProof: XCTestCase {
 		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
 		TutorialHarness.closeMenu(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		TutorialHarness.send(app, "fixture:expire")
+		TutorialHarness.fixtureControl(app, "fixture.expire")
 		let stopped = app.staticTexts.matching(
 			NSPredicate(
 				format: "identifier == %@ AND label == %@", "chat.turn.notice",
@@ -121,10 +120,9 @@ final class ExpiryAfterSaveProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, "fixture:expire")
+		TutorialHarness.fixtureControl(app, "fixture.expire")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 20)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "expiry-after-save", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -162,7 +160,6 @@ final class StopTryAgainProof: XCTestCase {
 		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
 		TutorialHarness.wait(tryAgain)
 		tryAgain.tap()
-		TutorialHarness.waitForLabel(app, "quieter stretch between them.", timeout: 20)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		XCTAssertEqual(
 			app.staticTexts.containing(
@@ -195,7 +192,7 @@ final class LeaseTourProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:hang")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), timeout: 5)
 		Thread.sleep(forTimeInterval: 2)
-		TutorialHarness.send(app, "fixture:expire")
+		TutorialHarness.fixtureControl(app, "fixture.expire")
 		let stopped = app.staticTexts.matching(
 			NSPredicate(
 				format: "identifier == %@ AND label == %@", "chat.turn.notice",

@@ -1,7 +1,6 @@
 import EnduragentCoach
 import Foundation
 import Observation
-import StoreKit
 
 @MainActor
 @Observable
@@ -22,7 +21,6 @@ final class ShellModel {
 	var creditsNotice: AthleteNotice?
 	private(set) var history: HistoryList = .loading
 	private(set) var newConversationUncertain = false
-	private(set) var fixtureFeedback: String?
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
@@ -190,7 +188,6 @@ final class ShellModel {
 
 	func newConversation() async {
 		reviewNotice = nil
-		fixtureFeedback = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
@@ -212,13 +209,7 @@ final class ShellModel {
 			let held = try await services.coach.credits.balance(scale: loaded.scale)
 			balance = held.credits
 			creditsNotice = nil
-			if services.isFixture {
-				packPrices = [:]
-			} else {
-				let products = try await Product.products(for: loaded.packs.map(\.id))
-				packPrices = Dictionary(
-					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
-			}
+			packPrices = try await services.packPrices(loaded.packs.map(\.id))
 		} catch {
 			creditsNotice = AthleteNotice.credits(failure: error)
 		}
@@ -250,13 +241,9 @@ final class ShellModel {
 		defer { isSending = false }
 		notSent = false
 		newConversationUncertain = false
-		fixtureFeedback = nil
 		reviewNotice = nil
 		slashListVisible = false
-		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
-			fixtureFeedback = message
-			return
-		}
+
 		do {
 			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
 			case .accepted:
