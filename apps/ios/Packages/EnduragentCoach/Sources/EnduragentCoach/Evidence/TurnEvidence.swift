@@ -57,7 +57,7 @@ package struct WellnessEvidence: TurnEvidence {
 	}
 
 	private static func number(_ value: Double) -> String {
-		value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value)
+		wholeInt(value).map(String.init) ?? String(format: "%.1f", value)
 	}
 
 	private static func signed(_ value: Double) -> String {

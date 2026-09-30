@@ -277,7 +277,10 @@ package enum IntervalsPolicy {
 				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
 			)
 		}
-		let days = inclusiveDayCount(from: oldest, to: newest)
+		try rejectListDayCount(inclusiveDayCount(from: oldest, to: newest))
+	}
+
+	package static func rejectListDayCount(_ days: Int) throws {
 		if days > listMaxRangeDays {
 			throw IntervalsError(
 				code: "range_too_wide",

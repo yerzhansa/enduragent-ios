@@ -203,6 +203,7 @@ extension ToolRuntime {
 			return (oldest, newest)
 		}
 		if let days = fields["days"]?.intValue(), days >= 1 {
+			try IntervalsPolicy.rejectListDayCount(days)
 			let newest = today
 			let oldest = today.adding(days: -(days - 1))
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)

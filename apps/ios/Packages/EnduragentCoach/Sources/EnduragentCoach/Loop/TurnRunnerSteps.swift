@@ -53,8 +53,18 @@ extension TurnRunner {
 					role: .assistant, content: step.text, toolCalls: step.toolCalls,
 					toolCallId: nil)
 			)
-			await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
-			let outcomes = try await runTools(step.toolCalls, for: attempt, scope: scope)
+			let offeredNames = Set(prompt.schemas.map(\.name))
+			await progress(
+				.activity(
+					.runningTools(
+						step.toolCalls.compactMap {
+							guard let name = ToolName(rawValue: $0.name),
+								offeredNames.contains(name)
+							else { return nil }
+							return name
+						})))
+			let outcomes = try await runTools(
+				step.toolCalls, offeredNames: offeredNames, for: attempt, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -186,6 +196,7 @@ extension TurnRunner {
 
 	private func runTools(
 		_ calls: [WireToolCall],
+		offeredNames: Set<ToolName>,
 		for attempt: TurnAttempt,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
@@ -193,6 +204,19 @@ extension TurnRunner {
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
 			for (index, call) in calls.enumerated() {
 				group.addTask {
+					guard let name = ToolName(rawValue: call.name), offeredNames.contains(name)
+					else {
+						return (
+							index, call,
+							.result(
+								.object([
+									"error": .string("unknown_tool"),
+									"details": .string(
+										"This tool was not offered for this turn. Use an offered tool."
+									),
+								]))
+						)
+					}
 					let arguments: JSONValue
 					do {
 						arguments = try call.parseArguments()
@@ -210,7 +234,7 @@ extension TurnRunner {
 					let outcome: ToolOutcome
 					do {
 						outcome = try await runtime.execute(
-							name: call.name,
+							name: name,
 							arguments: arguments,
 							chatId: attempt.chat,
 							scope: scope
@@ -220,7 +244,7 @@ extension TurnRunner {
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								scope.stamp.attempt, call.name, failure: ToolFault(error)))
+								scope.stamp.attempt, name, failure: ToolFault(error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)

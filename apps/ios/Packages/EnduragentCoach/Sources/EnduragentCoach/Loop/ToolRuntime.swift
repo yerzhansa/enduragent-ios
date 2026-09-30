@@ -7,7 +7,7 @@ package enum ToolOutcome: Sendable, Equatable {
 }
 
 package struct ToolRuntime: Sendable {
-	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery, .planLoad]
+	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery]
 
 	private let intervals: any IntervalsClient
 	let ledger: Ledger
@@ -120,9 +120,6 @@ package struct ToolRuntime: Sendable {
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")
-			case .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.planLoad:
-				fatalError("not implemented")
 			}
 		} catch let error as IntervalsError {
 			return .result(error.json)

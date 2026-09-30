@@ -19,7 +19,7 @@ package enum IntervalsSerializer {
 		try validate(workout)
 		return SerializedWorkout(
 			description: description(workout).joined(separator: "\n"),
-			movingTime: totalSeconds(workout.steps)
+			movingTime: try totalSeconds(workout.steps)
 		)
 	}
 
@@ -31,13 +31,13 @@ package enum IntervalsSerializer {
 	}
 
 	package static func formatDuration(_ duration: DurationInput) -> String {
-		let total = Int(toSeconds(duration).rounded())
+		let total = toSeconds(duration).rounded()
 		if total < 60 {
-			return "\(total)s"
+			return "\(String(format: "%.0f", total))s"
 		}
-		let minutes = total / 60
-		let seconds = total % 60
-		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(seconds)"
+		let minutes = String(format: "%.0f", (total / 60).rounded(.down))
+		let seconds = total.truncatingRemainder(dividingBy: 60)
+		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(String(format: "%.0f", seconds))"
 	}
 
 	package static func slug(date: CivilDate, name: String) -> String {
@@ -111,6 +111,9 @@ package enum IntervalsSerializer {
 				throw InvalidWorkout(
 					message: "\(path).duration.value: Number must be greater than 0")
 			}
+			guard wholeInt(toSeconds(simple.duration).rounded()) != nil else {
+				throw InvalidWorkout(message: "\(path).duration: Seconds must fit in an integer")
+			}
 		}
 	}
 
@@ -180,7 +183,7 @@ package enum IntervalsSerializer {
 		duration.unit == .seconds ? duration.value : duration.value * 60
 	}
 
-	private static func totalSeconds(_ steps: [WorkoutStep]) -> Int {
+	private static func totalSeconds(_ steps: [WorkoutStep]) throws -> Int {
 		var total = 0.0
 		func visit(_ step: WorkoutStep, multiplier: Double) {
 			switch step {
@@ -194,7 +197,10 @@ package enum IntervalsSerializer {
 		for step in steps {
 			visit(step, multiplier: 1)
 		}
-		return Int(total.rounded())
+		guard let seconds = wholeInt(total.rounded()) else {
+			throw InvalidWorkout(message: "steps: Total seconds must fit in an integer")
+		}
+		return seconds
 	}
 
 	private static func assertZone(_ value: Double, path: String) throws {

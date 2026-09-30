@@ -91,7 +91,7 @@ private struct ParseState {
 			return []
 		}
 		finished = true
-		var events = try emitToolCalls()
+		var events = emitToolCalls()
 		switch lastFinishReason {
 		case "stop":
 			events.append(.finished(reason: .stop, usage: summedUsage()))
@@ -174,17 +174,14 @@ private struct ParseState {
 		}
 	}
 
-	private mutating func emitToolCalls() throws(ProviderFailure) -> [TransportEvent] {
+	private mutating func emitToolCalls() -> [TransportEvent] {
 		let ordered = partials.keys.sorted().compactMap { partials[$0] }
 		partials.removeAll()
-		return try ordered.map { partial throws(ProviderFailure) in
-			guard let name = ToolName(rawValue: partial.name) else {
-				throw ProviderFailure.malformedStream
-			}
-			return .toolCall(
+		return ordered.map { partial in
+			.toolCall(
 				WireToolCall(
 					id: partial.id,
-					name: name,
+					name: partial.name,
 					arguments: partial.arguments
 				)
 			)
