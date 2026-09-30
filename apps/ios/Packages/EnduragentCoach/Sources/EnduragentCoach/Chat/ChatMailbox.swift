@@ -363,19 +363,8 @@ package actor ChatMailbox {
 	}
 
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
-		if case .textDelta(let delta) = progress, !delta.isEmpty {
-			await records.observeReply(turn, stamp: stamp)
-		}
-		if case .proposalPending = progress {
-			await records.refreshReview()
-		}
-		guard var current = work.phase.running?.attempt, current.live.attempt == stamp.attempt
-		else {
-			publish()
-			return
-		}
-		current.live.apply(progress)
-		work.show(current)
+		await records.apply(progress, turn: turn, stamp: stamp)
+		work.apply(progress, attempt: stamp.attempt)
 		publish()
 	}
 
