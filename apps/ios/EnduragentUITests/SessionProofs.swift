@@ -98,8 +98,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.waitUntilHittable(button)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
 		XCTAssertEqual(button.elementType, .button)
-		XCTAssertTrue(button.images.firstMatch.exists)
-		XCTAssertFalse(button.staticTexts.firstMatch.exists)
+		TutorialHarness.assertIconButtonWidth(button)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)

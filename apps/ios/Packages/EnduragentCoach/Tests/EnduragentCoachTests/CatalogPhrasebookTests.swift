@@ -40,7 +40,7 @@ import Testing
 	])
 	func newConversationLabelUsesEverySelectedLanguage(tag: LanguageTag, expected: String) {
 		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
-		#expect(book.say(CatalogKey(rawValue: "chat.newConversation.label")) == expected)
+		#expect(book.say(Catalog.chatNewConversationLabel) == expected)
 	}
 
 	@Test(arguments: [
