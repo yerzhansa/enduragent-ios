@@ -36,7 +36,7 @@ extension SwiftDataSuites {
 		@Test func faultingFixtureRejectsTheNamedKindAndStillSavesOtherKinds() async throws {
 			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
 			let coach = coach(fixture.store)
-			fixture.faults.failAppends(ofKind: "languagePreference")
+			try fixture.faults.failAppends(ofKind: "languagePreference")
 			await #expect(throws: PreferenceWriteFailure.notSaved) {
 				try await coach.setLanguage(.fixed(.fr))
 			}
@@ -49,6 +49,13 @@ extension SwiftDataSuites {
 			let snapshot = try await coach.recordSyncProbe().snapshot()
 			#expect(snapshot.counts.contains { $0.kind == "sessionSettings" && $0.count == 1 })
 			#expect(!snapshot.counts.contains { $0.kind == "languagePreference" })
+		}
+
+		@Test func faultingFixtureRejectsAnUnknownKind() throws {
+			let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+			#expect(throws: RecordFaultConfigurationError.unknownKind("turnSettle")) {
+				try fixture.faults.failAppends(ofKind: "turnSettle")
+			}
 		}
 
 		private func coach(_ store: RecordStore) -> Coach {

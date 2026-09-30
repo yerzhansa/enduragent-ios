@@ -1,6 +1,10 @@
 import Foundation
 import Synchronization
 
+package enum RecordFaultConfigurationError: Error, Equatable {
+	case unknownKind(String)
+}
+
 package struct RecordStorageFault: Error, Sendable, Equatable {
 	package enum Operation: Sendable, Equatable {
 		case append(kinds: [String])
@@ -17,6 +21,7 @@ package struct RecordStorageFault: Error, Sendable, Equatable {
 package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	private struct Faults: Sendable {
 		var nextAppend = false
+		var syncedAppends = false
 		var appendKinds: Set<String> = []
 		var fetches = false
 		var recoveryReads = false
@@ -41,12 +46,23 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		set { faults.withLock { $0.fetches = newValue } }
 	}
 
+	package var failSyncedAppends: Bool {
+		get { faults.withLock { $0.syncedAppends } }
+		set { faults.withLock { $0.syncedAppends = newValue } }
+	}
+
 	package var failRecoveryReads: Bool {
 		get { faults.withLock { $0.recoveryReads } }
 		set { faults.withLock { $0.recoveryReads = newValue } }
 	}
 
-	package func failAppends(ofKind kind: String) {
+	package func failAppends(ofKind kind: String) throws {
+		guard
+			SyncedKind(rawValue: kind) != nil || DeviceLocalKind(rawValue: kind) != nil
+				|| LegacyKind(rawValue: kind) != nil
+		else {
+			throw RecordFaultConfigurationError.unknownKind(kind)
+		}
 		faults.withLock { _ = $0.appendKinds.insert(kind) }
 	}
 
@@ -57,7 +73,8 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 				current.nextAppend = false
 				return true
 			}
-			return kinds.contains { current.appendKinds.contains($0) }
+			return (current.syncedAppends && locality == .synced)
+				|| kinds.contains { current.appendKinds.contains($0) }
 		}
 		if fails {
 			throw RecordStorageFault(operation: .append(kinds: kinds))

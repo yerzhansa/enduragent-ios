@@ -118,12 +118,12 @@ extension Coach {
 		return await state(of: turn)
 	}
 
-	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
+	func dieWithoutWriting(to log: FaultInjectingRecordLog) async throws {
 		for kind in SyncedKind.allCases {
-			log.failAppends(ofKind: kind.rawValue)
+			try log.failAppends(ofKind: kind.rawValue)
 		}
 		for kind in DeviceLocalKind.allCases {
-			log.failAppends(ofKind: kind.rawValue)
+			try log.failAppends(ofKind: kind.rawValue)
 		}
 		await lifecycle(.willTerminate)
 	}

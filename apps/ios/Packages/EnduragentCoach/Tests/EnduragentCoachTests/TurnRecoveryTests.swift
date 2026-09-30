@@ -48,7 +48,7 @@ import Testing
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let after = await relaunched()
 		let state = try #require(await after.state(of: turn))
 		guard case .interrupted(let interrupted) = state else {
@@ -85,7 +85,7 @@ import Testing
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		transport.hangUntilCancelled = false
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
 		let after = await relaunched()
@@ -124,7 +124,7 @@ import Testing
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let after = makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(await after.currentSnapshot(.main)?.turns.first?.state)
 		guard case .interrupted(let interrupted) = first else {
@@ -143,7 +143,7 @@ import Testing
 		let (before, dying) = processBeforeTheKill(
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let recording = BatchRecordingLog(inner: store)
 		let after = await relaunched(over: recording)
 		let state = try #require(await after.state(of: turn))
@@ -172,7 +172,7 @@ import Testing
 		let (before, dying) = processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let first = await relaunched()
 		#expect(try await settlements(of: turn).count == 1)
 		let recording = BatchRecordingLog(inner: store)

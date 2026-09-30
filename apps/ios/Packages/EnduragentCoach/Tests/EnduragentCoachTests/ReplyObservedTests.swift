@@ -104,7 +104,7 @@ import Testing
 	@Test func anUnsavedReplyMarkIsReportedOncePerAttempt() async throws {
 		transport.script = [.text("One "), .text("two "), .text("three."), .finish(reason: .stop)]
 		let faulty = FaultInjectingRecordLog(wrapping: store)
-		faulty.failAppends(ofKind: "replyObserved")
+		try faulty.failAppends(ofKind: "replyObserved")
 		let coach = EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: faulty, clock: clock)
 		let settled = try await coach.sendAndSettle("Count to three")

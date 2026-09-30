@@ -157,7 +157,7 @@ import Testing
 		let settled = try await before.sendAndSettle("Remember Saturdays", within: .seconds(5))
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.synced([.ledgerEvent]), count: 1, in: store)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 
@@ -176,7 +176,7 @@ import Testing
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		try await waitForRecords(.deviceLocal([.flushPending]), count: 1, in: store)
 		await before.waitUntilProcessing(turn)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 
 		transport.hangUntilCancelled = false

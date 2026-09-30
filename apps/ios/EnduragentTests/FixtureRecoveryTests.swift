@@ -79,13 +79,7 @@ extension FixtureLaunchTests {
 			return !processing.liveText.isEmpty
 		}
 		NotificationCenter.default.post(name: UIApplication.willTerminateNotification, object: nil)
-		for kind in [
-			"userMessage", "turnSettled", "windowStart", "compactionSummary", "memorySection",
-			"dailyNote", "ledgerEvent", "journal", "provenance", "coachReplyLanguage",
-			"planningDevice", "reviewApplied", "sessionSettings", "languagePreference",
-		] {
-			records.failAppends(ofKind: kind)
-		}
+		records.failSyncedAppends = true
 		let reopened = try #require(
 			await firstSnapshot(try relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)

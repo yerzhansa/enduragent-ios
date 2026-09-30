@@ -23,7 +23,12 @@ public final class RecordFaults: Sendable {
 		set { log.failRecoveryReads = newValue }
 	}
 
-	public func failAppends(ofKind kind: String) {
-		log.failAppends(ofKind: kind)
+	public var failSyncedAppends: Bool {
+		get { log.failSyncedAppends }
+		set { log.failSyncedAppends = newValue }
+	}
+
+	public func failAppends(ofKind kind: String) throws {
+		try log.failAppends(ofKind: kind)
 	}
 }

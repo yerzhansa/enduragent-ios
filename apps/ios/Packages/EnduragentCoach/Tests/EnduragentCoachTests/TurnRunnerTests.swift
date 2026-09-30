@@ -120,7 +120,7 @@ import Testing
 
 	@Test func aToolThatCannotSaveTellsTheModelInPlainWords() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
-		failing.failAppends(ofKind: "ledgerEvent")
+		try failing.failAppends(ofKind: "ledgerEvent")
 		transport.script = [
 			.toolCall(
 				name: "ledger_append",
@@ -145,7 +145,7 @@ import Testing
 
 	@Test func toolFailureDiagnosticsKeepOnlyTheTypedFailure() async throws {
 		let failing = FaultInjectingRecordLog(wrapping: store)
-		failing.failAppends(ofKind: "ledgerEvent")
+		try failing.failAppends(ofKind: "ledgerEvent")
 		transport.script = [
 			.toolCall(
 				name: "ledger_append",

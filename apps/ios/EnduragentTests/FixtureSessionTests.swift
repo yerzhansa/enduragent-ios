@@ -58,7 +58,8 @@ extension FixtureLaunchTests {
 		let model = model(services)
 		model.startChatting()
 		await model.refreshStatus()
-		services.fixtureRecordFaults?.failAppends(ofKind: "languagePreference")
+		let records = try #require(services.fixtureRecordFaults)
+		try records.failAppends(ofKind: "languagePreference")
 		await model.chooseLanguage(.fixed(.de))
 		#expect(
 			model.languageNotSavedLine

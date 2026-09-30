@@ -20,7 +20,7 @@ import Testing
 
 	@Test func failAppendsOfKindRejectsTheWholeBatchAndLeavesOtherKindsWritable() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
-		log.failAppends(ofKind: "turnSettled")
+		try log.failAppends(ofKind: "turnSettled")
 		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
 		let turn = TurnID(ulid: fixedUlid(1))
 		let batch = [
