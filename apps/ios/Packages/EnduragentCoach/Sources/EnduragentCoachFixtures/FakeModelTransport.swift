@@ -5,6 +5,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public typealias Response = @Sendable (ScriptedRequest) -> ScriptedReply
 
 	private let lock = NSLock()
+	private let clock: any Clock
 	private var response: Response
 	private var history: [CompletionRequest] = []
 	private var steps: [AttemptID: [ScriptedRequest.Purpose: Int]] = [:]
@@ -13,7 +14,10 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var deltaDelay: Duration?
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 
-	public init(respond: @escaping Response = { _ in ScriptedReply([]) }) {
+	public init(
+		clock: any Clock = SystemClock(), respond: @escaping Response = { _ in ScriptedReply([]) }
+	) {
+		self.clock = clock
 		self.response = respond
 	}
 
@@ -69,12 +73,13 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		let delay = reply.requestDelay ?? requestDelay
 		let pause = reply.deltaDelay ?? deltaDelay
 		let usage = finishUsage
+		let clock = clock
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
-					if let delay { try await Task.sleep(for: delay) }
+					if let delay { try await clock.sleep(for: delay) }
 					for event in reply.events {
-						if let pause { try await Task.sleep(for: pause) }
+						if let pause { try await clock.sleep(for: pause) }
 						switch event {
 						case .text(let text):
 							continuation.yield(.textDelta(text))

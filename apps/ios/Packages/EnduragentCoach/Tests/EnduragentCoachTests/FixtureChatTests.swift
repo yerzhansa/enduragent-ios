@@ -32,23 +32,27 @@ import Testing
 	}
 
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
-		let transport = FakeModelTransport { request in
+		let responseClock = HeldClock()
+		let transport = FakeModelTransport(clock: responseClock) { request in
 			let text = request.text
 			return ScriptedReply(
 				[.text("Reply to " + text), .finish(reason: .stop)],
 				requestDelay: text == "Hold" ? .seconds(1) : nil)
 		}
 		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
-		let held = try #require(try await coach.send(draft("Hold"), to: .main).acceptedTurn)
-		await coach.waitUntilProcessing(held)
-		let deadline = ContinuousClock.now + .seconds(5)
-		while transport.requestCount == 0, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		try #require(transport.requestCount == 1)
+		_ = try #require(try await coach.send(draft("Hold"), to: .main).acceptedTurn)
+		try await responseClock.waitUntilHeld(.seconds(1))
 		let first = try #require(try await coach.send(draft("Thursday"), to: .main).acceptedTurn)
-		try await Task.sleep(for: .milliseconds(40))
+		let firstQueued = try await coach.waitForState(of: first) {
+			$0 == .accepted(.queued(position: 2))
+		}
+		try #require(firstQueued == .accepted(.queued(position: 2)))
 		let second = try #require(try await coach.send(draft("Saturday"), to: .main).acceptedTurn)
+		let secondQueued = try await coach.waitForState(of: second) {
+			$0 == .accepted(.queued(position: 3))
+		}
+		try #require(secondQueued == .accepted(.queued(position: 3)))
+		responseClock.release(.seconds(1))
 		let firstReply = try #require(await coach.settledState(of: first, in: .main))
 		let secondReply = try #require(await coach.settledState(of: second, in: .main))
 		#expect(replyText(firstReply) == "Reply to Thursday")
