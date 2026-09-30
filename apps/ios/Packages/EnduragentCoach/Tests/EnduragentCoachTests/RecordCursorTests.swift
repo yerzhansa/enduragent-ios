@@ -77,5 +77,33 @@ extension SwiftDataSuites {
 			#expect(next.hlc.logical == stored.hlc.logical + 1)
 			#expect(next.ulid > stored.ulid)
 		}
+
+		@Test(arguments: RecordLogKind.allCases, [RecordLocality.synced, .deviceLocal])
+		func openUsesIndependentClockAndULIDMaxima(kind: RecordLogKind, locality: RecordLocality)
+			async throws
+		{
+			let log = try makeRecordLog(kind, deviceId: device)
+			let body: RecordBody =
+				locality == .synced
+				? .synced(sampleUser(chatId: .main, text: "stored"))
+				: .deviceLocal(.flushPending(FlushPendingBody(chatId: .main, messageUlids: [])))
+			try await seed(
+				log,
+				[
+					storedRecord(
+						device: device, wall: 900_000_000_000, ulid: fixedUlid(1), body: body),
+					storedRecord(
+						device: device, wall: 899_000_000_000, ulid: fixedUlid(2), body: body),
+					storedRecord(
+						device: DeviceID(rawValue: "phone-b"), wall: 901_000_000_000,
+						ulid: fixedUlid(99), body: body),
+				])
+			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+			let written = try await ledger.commit(
+				synced: [sampleUser(chatId: .main, text: "new")], stamp: testStamp())
+			#expect(written.first?.ulid == fixedUlid(3))
+			#expect(written.first?.hlc.wallMs == 900_000_000_000)
+			#expect(written.first?.hlc.logical == 1)
+		}
 	}
 }

@@ -26,6 +26,40 @@ function run(files, tracked = true) {
 const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/intervals-activity.json';
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
+const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
+const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
+const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
+
+for (const indexes of [
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical])`,
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcLogical, \.hlcWallMs], [\.kind, \.chatId])`,
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId], [\.ulid])`,
+  '',
+]) {
+  test(`rejects changed ledger indexes with an unchanged model version: ${indexes}`, () => {
+    const result = run({ [recordModel]: `${indexes}\n${ledgerIndexVersion}\nvar deviceId: String = ""` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ledger-index-version/);
+  });
+}
+
+test('accepts the registered ledger index set and version', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\n${ledgerIndexVersion}\nvar deviceId: String = ""` });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('rejects unregistered ledger index versions', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\n@Attribute(hashModifier: "ledger-indexes-v2")\nvar deviceId: String = ""` });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ledger-index-version/);
+});
+
+test('rejects ledger indexes without a model version modifier', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\nvar deviceId: String = ""` });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ledger-index-version/);
+});
+
 for (const [name, file, value, code] of [
   ['intervals identifier', 'apps/ios/value.swift', sensitiveID, 'intervals-id'],
   ['large JSON activity identifier', fixture, JSON.stringify({ id: activityID }), 'activity-id'],

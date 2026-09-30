@@ -8,11 +8,13 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	let inner: any RecordLog
 	private(set) var batches: [[String]] = []
 	private let scopes = Mutex<[RecordQuery.Scope]>([])
+	private let cursorLocalities = Mutex<[RecordLocality]>([])
 	private let recordCounts = Mutex(0)
 
 	var fetchedRecordCount: Int { recordCounts.withLock { $0 } }
 
 	var reads: [RecordQuery.Scope] { scopes.withLock { $0 } }
+	var cursorReads: [RecordLocality] { cursorLocalities.withLock { $0 } }
 
 	init(inner: any RecordLog) {
 		self.inner = inner
@@ -26,10 +28,8 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	}
 
 	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
-		scopes.withLock { $0.append(locality == .synced ? .everySynced : .everyDeviceLocal) }
-		let cursor = try await inner.latest(locality: locality, writtenBy: writtenBy)
-		recordCounts.withLock { $0 += cursor == nil ? 0 : 1 }
-		return cursor
+		cursorLocalities.withLock { $0.append(locality) }
+		return try await inner.latest(locality: locality, writtenBy: writtenBy)
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
