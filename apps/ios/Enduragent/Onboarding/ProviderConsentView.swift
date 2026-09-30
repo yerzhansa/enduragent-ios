@@ -18,15 +18,22 @@ struct ProviderConsentView: View {
 							.foregroundStyle(.red)
 							.accessibilityIdentifier("consent.error")
 					}
-					Button(model.phrasebook.say(Catalog.onboardingConsentAccept, [:])) {
-						Task { await model.acceptConsent() }
+					if case .onboarding(.consentDeferred) = model.route {
+						Button(model.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
+							Task { await model.startChatting() }
+						}
+						.accessibilityIdentifier("consent.resume")
+					} else {
+						Button(model.phrasebook.say(Catalog.onboardingConsentAccept, [:])) {
+							Task { await model.acceptConsent() }
+						}
+						.buttonStyle(.borderedProminent)
+						.accessibilityIdentifier("consent.accept")
+						Button(model.phrasebook.say(Catalog.onboardingConsentDecline, [:])) {
+							model.declineConsent()
+						}
+						.accessibilityIdentifier("consent.decline")
 					}
-					.buttonStyle(.borderedProminent)
-					.accessibilityIdentifier("consent.accept")
-					Button(model.phrasebook.say(Catalog.onboardingConsentDecline, [:])) {
-						model.declineConsent()
-					}
-					.accessibilityIdentifier("consent.decline")
 				}
 				.disabled(model.isRecordingConsent)
 				.padding(24)

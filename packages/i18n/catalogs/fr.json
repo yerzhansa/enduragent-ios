@@ -2968,7 +2968,7 @@
     "error": {
       "locked": "Déverrouille ton iPhone pour continuer. Ton message est enregistré.",
       "notConfigured": "Choisis comment le coach accède à un modèle pour continuer.",
-      "providerConsentRequired": "Votre autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
+      "providerConsentRequired": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits."
     }
   },

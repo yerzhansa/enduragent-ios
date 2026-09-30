@@ -16,7 +16,7 @@ struct RootView: View {
 				ConnectView(model: model)
 			case .onboarding(.starter):
 				StarterView(model: model)
-			case .onboarding(.consent):
+			case .onboarding(.consent), .onboarding(.consentDeferred):
 				ProviderConsentView(model: model)
 			case .chat:
 				ChatView(model: model)

@@ -185,6 +185,10 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
+		if case .onboarding(.consentDeferred(let turn)) = route {
+			route = .onboarding(.consent(turn))
+			return
+		}
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
 		route = .loading
 		await refreshStatus()
@@ -211,9 +215,9 @@ final class ShellModel {
 	}
 
 	func declineConsent() {
-		guard !isRecordingConsent else { return }
+		guard case .onboarding(.consent(let turn)) = route, !isRecordingConsent else { return }
 		consentNotSaved = false
-		route = .onboarding(.starter)
+		route = .onboarding(.consentDeferred(turn))
 	}
 
 	func newConversation() async {

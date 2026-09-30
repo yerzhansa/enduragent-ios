@@ -18,7 +18,7 @@ extension FixtureLaunchTests {
 		#expect(model.status?.setup == .needsProviderConsent)
 		#expect(await services.coach.status().providerConsent == nil)
 		model.declineConsent()
-		#expect(model.route == .onboarding(.starter))
+		#expect(model.route == .onboarding(.consentDeferred(nil)))
 		#expect(await services.coach.status().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.startChatting()
@@ -98,32 +98,37 @@ extension FixtureLaunchTests {
 		#expect(!model.starterResolved)
 	}
 
-	@Test func consentRefusalReturnsToTheNoticeAndRetriesTheSameTurnAfterAgreement() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.startChatting()
-		model.declineConsent()
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		let refused = try #require(await firstSnapshot(services, chat: .main)?.turns.first)
+	@Test func keptConsentRefusalRetriesTheSameTurnAfterAgreement() async throws {
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let seeded = try services()
+		_ = try await seeded.coach.send(
+			Draft(id: DraftID(), text: TutorialCopy.weekQuestion), to: .main)
 		let deadline = ContinuousClock.now + .seconds(5)
-		var snapshot = await firstSnapshot(services, chat: .main)
+		var snapshot = await firstSnapshot(seeded, chat: .main)
 		while snapshot?.turns.first?.state.isSettled != true, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
-			snapshot = await firstSnapshot(services, chat: .main)
+			snapshot = await firstSnapshot(seeded, chat: .main)
 		}
 		guard case .failed(let failure) = snapshot?.turns.first?.state else {
 			Issue.record("Expected a consent refusal")
 			return
 		}
+		let refused = try #require(snapshot?.turns.first)
 		#expect(failure.notice.key == Catalog.accessErrorProviderConsentRequired)
 		#expect(failure.notice.action == .tryAgain(refused.id))
-		#expect(services.fixtureTransport?.requestCount == 0)
-		await model.perform(try #require(failure.notice.action))
-		#expect(model.route == .onboarding(.consent(refused.id)))
+		#expect(seeded.fixtureTransport?.requestCount == 0)
+		let (services, _) = try relaunch(.keep)
+		let model = model(services)
+		await model.appear()
+		#expect(model.route == .onboarding(.consent(nil)))
 		#expect(await services.coach.status().providerConsent == nil)
 		await model.acceptConsent()
-		#expect(model.route == .chat)
+		try await observed(model)
+		let kept = try #require(model.chat?.turns.first)
+		#expect(kept.id == refused.id)
+		#expect(kept.state == refused.state)
+		#expect(services.fixtureTransport?.requestCount == 0)
+		await model.perform(try #require(failure.notice.action))
 		let answered = try await settledTurn(model, after: snapshot?.turns.first?.state)
 		#expect(answered.id == refused.id)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)

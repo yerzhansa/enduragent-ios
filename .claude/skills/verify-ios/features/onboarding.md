@@ -9,7 +9,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - `onboarding-connect-empty` keeps the connect screen and shows `intervals.icu did not accept that key.` in `connect.error`.
 - `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected.
 - `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
-- `onboarding-consent` names OpenRouter and DeepSeek and the data shared. `consent.accept` saves permission and opens chat. `consent.decline` returns to starter Credits without permission. The next attempt to chat or next launch asks again.
+- `onboarding-consent` names OpenRouter and DeepSeek and the data shared. `consent.accept` saves permission and opens chat. `consent.decline` keeps chat locked and shows `consent.resume`, which offers the consent step again without requesting starter Credits. The next attempt to chat or next launch asks again.
 - `onboarding-credentials` keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
 - `onboarding-unavailable` shows `launch.storageUnavailable` when the record store cannot open. A locked keychain on a kept store preserves the transcript and shows `chat.composer.notice`.
 
@@ -34,7 +34,7 @@ Preconditions:
 | `sim.mjs test <run id> InstallOpenProof` | Health notice and Continue, `01-install-open`. |
 | `sim.mjs test <run id> ConnectIntervalsProof` | `connect.athleteName`, `.fitness`, `.fatigue`, and `.form` show the fixture values, `02-connect-intervals`. |
 | `sim.mjs test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
-| `sim.mjs test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, and one saved consent after Agree, `provider-consent`. |
+| `sim.mjs test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after Agree, `provider-consent` and `provider-consent-deferred`. |
 | `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
 | `sim.mjs test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
 | `sim.mjs test <run id> CredentialTransactionProof` | Blank key, Cancel, and a failed replacement preserve Ada's key; the next reply succeeds, `credential-blank`, `credential-transaction`, `credential-transaction-reply`. |

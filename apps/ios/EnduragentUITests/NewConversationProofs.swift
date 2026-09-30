@@ -41,6 +41,7 @@ final class ResetKeepsReviewProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
 		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "reset-keeps-review-records", app: app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
 	}
 }
 

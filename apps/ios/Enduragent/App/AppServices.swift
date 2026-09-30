@@ -12,6 +12,7 @@ enum OnboardingStep: Equatable {
 	case connect
 	case starter
 	case consent(TurnID?)
+	case consentDeferred(TurnID?)
 }
 
 enum CivilDates {
