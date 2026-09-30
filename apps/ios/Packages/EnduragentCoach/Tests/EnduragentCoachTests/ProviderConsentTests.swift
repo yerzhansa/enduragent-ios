@@ -193,9 +193,9 @@ extension SwiftDataSuites {
 		#expect(page.records.count == 1)
 		#expect(page.skipped == [.malformed(kind: "providerConsent", ulid: record.ulid)])
 		#expect(
-			coach.diagnostics.entries.contains {
+			coach.diagnostics.entries.filter {
 				$0.event == .skippedRecord(.malformed(kind: "providerConsent", ulid: record.ulid))
-			})
+			}.count == 1)
 	}
 
 	@Test static func providerConsentReopensFromTheDeviceLocalStore() async throws {
