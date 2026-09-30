@@ -23,7 +23,9 @@ import Testing
 			CredentialSlot.intervalsConnection.rawValue: Data(
 				#"{"apiKey":{"_0":"test-training-key"}}"#.utf8),
 		]
-		try JSONEncoder().encode(items).write(to: directory.appending(path: "secrets.json"))
+		let legacy =
+			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"test-legacy-key","intervalsApiKey":"test-training-key"}"#
+		try Data(legacy.utf8).write(to: directory.appending(path: "secrets.json"))
 		let keychain = ICloudKeychainStore(backing: FixtureSecretStoreBacking(items: items))
 		let file = try ICloudKeychainStore.fixture(directory: directory).store
 		let coach = makeCoach(
@@ -46,6 +48,40 @@ import Testing
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try reopened.creditsAccount() == expected)
 		#expect(try reopened.intervalsConnection() == keychain.intervalsConnection())
+	}
+
+	@Test func failedFixtureMigrationSurfacesStorageUnavailable() async throws {
+		let directory = FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-failed-migration-\(UUID().uuidString)", directoryHint: .isDirectory)
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		defer {
+			do {
+				try FileManager.default.removeItem(at: directory)
+			} catch {
+				Issue.record(error, "failed migration directory cleanup")
+			}
+		}
+		let legacy =
+			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"test-legacy-key"}"#
+		let file = directory.appending(path: "secrets.json")
+		try Data(legacy.utf8).write(to: file)
+		let (store, backing) = try ICloudKeychainStore.fixture(directory: directory)
+		backing.failNextWrite = true
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
+
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.creditsIdentity()
+		}
+		#expect(try Data(contentsOf: file) == Data(legacy.utf8))
+		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		#expect(
+			try await coach.creditsIdentity()
+				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
+		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
+		#expect(
+			try reopened.creditsAccount()
+				== CreditsAccount(appAccountToken: token, key: "test-legacy-key"))
 	}
 
 	@Test func migrationReadsLegacyKeyAndTokenOnceThenDeletesThem() async throws {

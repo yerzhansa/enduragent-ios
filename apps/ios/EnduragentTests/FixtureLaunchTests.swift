@@ -199,9 +199,8 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func fixtureAppServicesOpensALegacySecretsFile() async throws {
-		let legacy = ["appAccountToken": Data("11111111-2222-4333-8444-555555555555".utf8)]
-		try JSONEncoder().encode(legacy).write(
-			to: launch.directory.appending(path: "secrets.json"))
+		let legacy = #"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#
+		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let (services, kept) = try relaunch(.keep)
 		let reopened = ShellModel(

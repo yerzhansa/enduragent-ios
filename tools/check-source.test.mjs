@@ -248,6 +248,8 @@ for (const declaration of [
   'final class Duplicate: SecretStore, @unchecked Sendable {}',
   'struct Duplicate: Sendable, SecretStore {}',
   'extension Duplicate: SecretStore {}',
+  'struct Duplicate<S: Sendable>: SecretStore where S: Equatable {}',
+  'struct Duplicate<S: Collection>: SecretStore where S.Element: SecretStore {}',
 ]) {
   test(`rejects a second secret store: ${declaration}`, () => {
     const result = run({ 'apps/ios/Store.swift': declaration });
@@ -263,3 +265,17 @@ test('accepts the real secret store and fixture backings', () => {
   });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const declaration of [
+  'struct Box<S: SecretStore> {}',
+  'struct Box<S> where S: SecretStore {}',
+  'struct Box<S: SecretStore>: Sendable {}',
+  'struct Box<S>: Sendable where S: SecretStore {}',
+  'extension Box: Equatable where S: SecretStore {}',
+  'struct Box<S: Collection<SecretStore>>: Sendable {}',
+]) {
+  test(`accepts a secret store constraint: ${declaration}`, () => {
+    const result = run({ 'apps/ios/Box.swift': declaration });
+    assert.equal(result.status, 0, result.output);
+  });
+}
