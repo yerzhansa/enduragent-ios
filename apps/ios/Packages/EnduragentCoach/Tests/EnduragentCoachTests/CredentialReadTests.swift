@@ -85,9 +85,9 @@ extension CredentialVaultTests {
 		#expect(
 			diagnostics.entries.map(\.event) == [
 				.secureStorageFailed(
-					.creditsAccount, failure: KeychainStoreError(status: errSecDecode)),
+					.creditsAccount, failure: KeychainStoreError.keychain(errSecDecode)),
 				.secureStorageFailed(
-					.intervalsConnection, failure: KeychainStoreError(status: errSecDecode)),
+					.intervalsConnection, failure: KeychainStoreError.keychain(errSecDecode)),
 			])
 	}
 
@@ -165,7 +165,7 @@ extension CredentialVaultTests {
 		#expect(resolved.resolvedAthlete?.rawValue == "i1001")
 		_ = await coach.status()
 		#expect(try keychain.intervalsConnection() == resolved)
-		#expect(memory.writes(to: CredentialSlot.intervalsConnection.rawValue) == 2)
+		#expect(memory.writes(to: CredentialSlot.intervalsConnection.rawValue) == 1)
 	}
 
 	@Test func athleteSelectionReachesEveryTrainingClient() async throws {

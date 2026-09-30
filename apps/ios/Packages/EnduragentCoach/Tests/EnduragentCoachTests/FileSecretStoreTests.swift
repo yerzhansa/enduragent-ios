@@ -80,11 +80,11 @@ import Testing
 			let original = Data("test-original-key".utf8)
 			let replacement = Data("test-replacement-key".utf8)
 			#expect(try backing.copy(account: account) == nil)
-			#expect(throws: KeychainStoreError(status: errSecItemNotFound)) {
+			#expect(throws: KeychainStoreError.keychain(errSecItemNotFound)) {
 				try backing.update(account: account, data: replacement)
 			}
 			try backing.add(account: account, data: original)
-			#expect(throws: KeychainStoreError(status: errSecDuplicateItem)) {
+			#expect(throws: KeychainStoreError.keychain(errSecDuplicateItem)) {
 				try backing.add(account: account, data: replacement)
 			}
 			#expect(try backing.copy(account: account) == original)
@@ -100,7 +100,7 @@ import Testing
 			try store.storeCreditsAccount(
 				CreditsAccount(appAccountToken: UUID(), key: "sk-or-test-0000"))
 			backing.locked = true
-			let expected = KeychainStoreError(status: errSecInteractionNotAllowed)
+			let expected = KeychainStoreError.keychain(errSecInteractionNotAllowed)
 			#expect(throws: expected) { try store.creditsAccount() }
 			#expect(throws: expected) { try store.intervalsConnection() }
 			#expect(throws: expected) { try store.openRouterAccountKey() }
@@ -119,7 +119,7 @@ import Testing
 			let replacement = CreditsAccount(
 				appAccountToken: previous.appAccountToken, key: "test-key")
 			backing.failNextWrite = true
-			#expect(throws: KeychainStoreError(status: errSecNotAvailable)) {
+			#expect(throws: KeychainStoreError.keychain(errSecNotAvailable)) {
 				try store.storeCreditsAccount(replacement)
 			}
 			#expect(!backing.failNextWrite)

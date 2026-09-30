@@ -56,7 +56,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 
 	private static func readItems(_ data: Data) throws -> [String: Data] {
 		guard let fields = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		let legacyNames: Set<String> = [
 			"intervals", "intervalsApiKey", "intervalsOAuthAccess",
@@ -71,7 +71,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		for name in ["appAccountToken", "openRouterKey", "openRouterAccountKey"] {
 			guard let value = fields[name], !(value is NSNull) else { continue }
 			guard let string = value as? String else {
-				throw KeychainStoreError(status: errSecDecode)
+				throw KeychainStoreError.keychain(errSecDecode)
 			}
 			items[name] = Data(string.utf8)
 		}
@@ -117,7 +117,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		try lock.withLock {
 			try check(account, writing: true)
 			guard items[account] == nil else {
-				throw KeychainStoreError(status: errSecDuplicateItem)
+				throw KeychainStoreError.keychain(errSecDuplicateItem)
 			}
 			try persist(account: account, data: data)
 			written[account, default: 0] += 1
@@ -136,7 +136,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		try lock.withLock {
 			try check(account, writing: true)
 			guard items[account] != nil else {
-				throw KeychainStoreError(status: errSecItemNotFound)
+				throw KeychainStoreError.keychain(errSecItemNotFound)
 			}
 			try persist(account: account, data: data)
 			written[account, default: 0] += 1
@@ -156,14 +156,14 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 
 	private func check(_ account: String, writing: Bool = false) throws {
 		if isLocked {
-			throw KeychainStoreError(status: errSecInteractionNotAllowed)
+			throw KeychainStoreError.keychain(errSecInteractionNotAllowed)
 		}
 		if let status = failures[account] ?? (writing ? writeFailures[account] : nil) {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 		if writing && failsNextWrite {
 			failsNextWrite = false
-			throw KeychainStoreError(status: errSecNotAvailable)
+			throw KeychainStoreError.keychain(errSecNotAvailable)
 		}
 	}
 

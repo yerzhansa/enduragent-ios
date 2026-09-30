@@ -221,7 +221,7 @@ package actor CredentialVault {
 		do {
 			return .connected(summary, account: try resolve(athlete, for: active).account)
 		} catch {
-			_ = classify(error, for: .intervalsConnection)
+			record(KeychainStoreError(error), for: .intervalsConnection)
 			return .connected(summary, account: active.account)
 		}
 	}
@@ -279,16 +279,25 @@ package actor CredentialVault {
 		do {
 			return try body()
 		} catch {
-			throw classify(error, for: slot)
+			let failure = KeychainStoreError(error)
+			record(failure, for: slot)
+			throw classify(failure, for: slot)
 		}
 	}
 
-	private func classify(_ error: any Error, for slot: CredentialSlot) -> AccessUnavailable {
-		let failure = KeychainStoreError(error)
-		if failure.status == errSecInteractionNotAllowed { return .secureStorageLocked }
+	private func record(_ failure: KeychainStoreError, for slot: CredentialSlot) {
+		guard classify(failure, for: slot) != .secureStorageLocked else { return }
 		diagnostics.record(.secureStorageFailed(slot, failure: failure))
-		if failure.status == errSecDecode { return .malformedStoredCredential(slot) }
-		return .secureStorageUnavailable
+	}
+
+	private func classify(_ failure: KeychainStoreError, for slot: CredentialSlot)
+		-> AccessUnavailable
+	{
+		switch failure.status {
+		case errSecInteractionNotAllowed: .secureStorageLocked
+		case errSecDecode: .malformedStoredCredential(slot)
+		default: .secureStorageUnavailable
+		}
 	}
 }
 

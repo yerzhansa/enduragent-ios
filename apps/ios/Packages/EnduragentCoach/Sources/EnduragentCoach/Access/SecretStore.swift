@@ -25,10 +25,6 @@ public enum KeychainStoreError: Error, Sendable, Equatable {
 		return status
 	}
 
-	public init(status: OSStatus) {
-		self = .keychain(status)
-	}
-
 	init(_ error: any Error) {
 		switch error {
 		case let failure as KeychainStoreError: self = failure
@@ -48,7 +44,6 @@ package protocol SecretStoreBacking: Sendable {
 
 public struct ICloudKeychainStore: SecretStore {
 	package static let serviceName = "icu.enduragent.ios"
-	private static let intervalsLock = NSLock()
 
 	private let backing: any SecretStoreBacking
 
@@ -111,7 +106,7 @@ public struct ICloudKeychainStore: SecretStore {
 			return nil
 		}
 		guard let token = UUID(uuidString: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return token
 	}
@@ -125,22 +120,11 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func intervalsConnection() throws -> IntervalsConnection? {
-		try Self.intervalsLock.withLock {
-			guard let stored = try readItem(StoredIntervalsConnection.self, .intervalsConnection)
-			else { return nil }
-			let connection = try stored.connection(
-				id: stored.id.map(ConnectionID.init(rawValue:)) ?? ConnectionID())
-			if stored.id == nil {
-				try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
-			}
-			return connection
-		}
+		try readItem(StoredIntervalsConnection.self, .intervalsConnection)?.connection()
 	}
 
 	public func storeIntervalsConnection(_ connection: IntervalsConnection) throws {
-		try Self.intervalsLock.withLock {
-			try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
-		}
+		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
 	}
 
 	public func accessSelection() throws -> AccessSelection? {
@@ -152,13 +136,13 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func delete(_ slot: CredentialSlot) throws {
-		try Self.intervalsLock.withLock { try backing.delete(account: slot.rawValue) }
+		try backing.delete(account: slot.rawValue)
 	}
 
 	private func readString(account: String) throws -> String? {
 		guard let data = try backing.copy(account: account) else { return nil }
 		guard let string = String(data: data, encoding: .utf8) else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return string
 	}
@@ -172,7 +156,7 @@ public struct ICloudKeychainStore: SecretStore {
 		do {
 			return try JSONDecoder().decode(type, from: data)
 		} catch is DecodingError {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 	}
 
@@ -228,7 +212,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 		let status = SecItemAdd(
 			KeychainQuery.add(service: service, account: account, data: data) as CFDictionary, nil)
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 
@@ -240,10 +224,10 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 			return nil
 		}
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 		guard let data = result as? Data else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return data
 	}
@@ -254,7 +238,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 			KeychainQuery.update(data: data) as CFDictionary
 		)
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 
@@ -262,7 +246,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 		let status = SecItemDelete(
 			KeychainQuery.item(service: service, account: account) as CFDictionary)
 		guard status == errSecSuccess || status == errSecItemNotFound else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 }

@@ -39,9 +39,7 @@ import Testing
 		#expect(try file.creditsAccount() == keychain.creditsAccount())
 		let connection = try #require(try file.intervalsConnection())
 		let peer = try #require(try keychain.intervalsConnection())
-		#expect(connection.credential == peer.credential)
-		#expect(connection.selection == peer.selection)
-		#expect(connection.resolvedAthlete == peer.resolvedAthlete)
+		#expect(connection == peer)
 		#expect(try file.intervalsConnection()?.credential == .apiKey("test-training-key"))
 		let migrated = try JSONDecoder().decode(
 			[String: Data].self, from: Data(contentsOf: directory.appending(path: "secrets.json")))

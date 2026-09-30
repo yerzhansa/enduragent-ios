@@ -79,29 +79,42 @@ import Testing
 		let first = try #require(try store.intervalsConnection())
 		let second = try #require(try store.intervalsConnection())
 		let id = first.id
+		#expect(id.rawValue.uuidString == "A7005915-31F4-86C4-8B4C-2DDDC138C432")
 		#expect(second.id == id)
 		#expect(first.credential == .apiKey("icu-v1-key"))
 		#expect(first.selection == .keyOwner)
 		#expect(first.resolvedAthlete == nil)
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try reopened.intervalsConnection() == first)
-		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 2)
+		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 1)
+		#expect(
+			try backing.copy(account: CredentialSlot.intervalsConnection.rawValue)
+				== Data(legacy.utf8))
+		try store.storeIntervalsConnection(first)
+		let persisted = try #require(
+			try backing.copy(account: CredentialSlot.intervalsConnection.rawValue))
+		#expect(
+			try JSONDecoder().decode(StoredIntervalsConnection.self, from: persisted).id
+				== id.rawValue)
+		let rewritten = try ICloudKeychainStore.fixture(directory: directory).store
+		#expect(try rewritten.intervalsConnection() == first)
 	}
 
-	@Test func failedLegacyIdentityWriteReturnsNoConnection() throws {
+	@Test func legacyConnectionReadsWhenWritesFail() throws {
 		let legacy = Data(#"{"apiKey":{"_0":"icu-v1-key"}}"#.utf8)
 		let backing = FixtureSecretStoreBacking(items: [
 			CredentialSlot.intervalsConnection.rawValue: legacy
 		])
 		let store = ICloudKeychainStore(backing: backing)
 		backing.failNextWrite = true
-		#expect(throws: KeychainStoreError(status: errSecNotAvailable)) {
-			try store.intervalsConnection()
-		}
-		#expect(try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
 		let connection = try #require(try store.intervalsConnection())
 		#expect(try ICloudKeychainStore(backing: backing).intervalsConnection() == connection)
-		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 1)
+		#expect(try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
+		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)
+		#expect(throws: KeychainStoreError.keychain(errSecNotAvailable)) {
+			try store.storeIntervalsConnection(connection)
+		}
+		#expect(try store.intervalsConnection() == connection)
 	}
 
 	@Test func concurrentLegacyReadersShareOneIdentity() async throws {
@@ -120,7 +133,7 @@ import Testing
 		let first = try #require(connections.first)
 		#expect(connections.allSatisfy { $0 == first })
 		#expect(try ICloudKeychainStore(backing: backing).intervalsConnection() == first)
-		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 1)
+		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)
 	}
 
 	@Test func everyItemIsSynchronizableAndReadableAfterFirstUnlock() {

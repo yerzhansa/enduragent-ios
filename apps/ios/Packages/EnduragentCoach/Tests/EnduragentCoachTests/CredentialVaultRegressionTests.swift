@@ -35,7 +35,7 @@ extension CredentialVaultTests {
 				coach.diagnostics.entries.map(\.event) == [
 					.secureStorageFailed(
 						.intervalsConnection,
-						failure: KeychainStoreError(status: statusCode))
+						failure: KeychainStoreError.keychain(statusCode))
 				])
 		} else {
 			#expect(coach.diagnostics.entries.isEmpty)
@@ -74,7 +74,7 @@ extension CredentialVaultTests {
 			coach.diagnostics.entries.map(\.event) == [
 				.secureStorageFailed(
 					.intervalsConnection,
-					failure: KeychainStoreError(status: errSecDecode))
+					failure: KeychainStoreError.keychain(errSecDecode))
 			])
 		#expect(memory.writes(to: "intervalsCredential") == 2)
 	}

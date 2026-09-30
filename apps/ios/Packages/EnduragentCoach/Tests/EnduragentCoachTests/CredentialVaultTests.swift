@@ -31,7 +31,7 @@ import Testing
 			return
 		}
 		#expect(slot == .intervalsConnection)
-		#expect(failure == KeychainStoreError(status: status))
+		#expect(failure == KeychainStoreError.keychain(status))
 	}
 
 	init() {

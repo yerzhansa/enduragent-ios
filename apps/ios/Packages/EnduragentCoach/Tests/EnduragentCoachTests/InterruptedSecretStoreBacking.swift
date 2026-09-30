@@ -37,7 +37,7 @@ final class InterruptedSecretStoreBacking: SecretStoreBacking, @unchecked Sendab
 	private func write(_ body: () throws -> Void) throws {
 		try lock.withLock {
 			if let remainingWrites, remainingWrites == 0 {
-				throw KeychainStoreError(status: errSecNotAvailable)
+				throw KeychainStoreError.keychain(errSecNotAvailable)
 			}
 			try body()
 			if let remainingWrites { self.remainingWrites = remainingWrites - 1 }

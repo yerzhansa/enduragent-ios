@@ -89,7 +89,7 @@ import Testing
 		let coach = makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(try await coach.creditsIdentity().hasCreditsKey)
-		#expect(throws: KeychainStoreError(status: errSecDecode)) { try store.accessSelection() }
+		#expect(throws: KeychainStoreError.keychain(errSecDecode)) { try store.accessSelection() }
 	}
 
 	@Test func v1TokenOpensWithoutOtherFields() async throws {
