@@ -5,10 +5,38 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
+	@Test(arguments: ["\n", "\r\n", "\r"], [false, true])
+	func streamKeepsUnicodeSeparators(lineEnding: String, fragmented: Bool) async throws {
+		let text = "Ride\u{2028}recover\u{2029}repeat\u{0085}rest"
+		let sse = [
+			": keep-alive",
+			"",
+			#"data: {"choices":[{"delta":{"content":"\#(text)"}}]}"#,
+			"",
+			#"data: {"choices":[{"delta":{},"finish_reason":"stop"}]}"#,
+			"",
+			"data: [DONE]",
+			"",
+			"",
+		].joined(separator: lineEnding)
+		let transport = try OpenRouterStub.transport { _ in
+			.reply(.sse(sse, fragmented: fragmented))
+		}
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
+		#expect(
+			events == [
+				.heartbeat,
+				.textDelta(text),
+				.heartbeat,
+				.finished(reason: .stop, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
+			])
+	}
+
 	@Test func parserPreservesUnknownToolNames() async throws {
 		let sse =
 			#"data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"unknown_call","function":{"name":"invented_tool","arguments":"{}"}}]},"finish_reason":"tool_calls"}]}"#
-		let events = try await collect(OpenRouterSSEParser.events(from: sse + "\ndata: [DONE]\n"))
+		let transport = try OpenRouterStub.transport { _ in .reply(.sse(sse + "\ndata: [DONE]\n")) }
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
 		let call = try #require(toolCalls(in: events).first)
 		#expect(call.name == "invented_tool")
 		#expect(call.id == "unknown_call")
@@ -315,7 +343,9 @@ private func sampleRequest(tools: Bool) -> CompletionRequest {
 }
 
 private func parseFixture(_ name: String) async throws -> [TransportEvent] {
-	try await collect(OpenRouterSSEParser.events(from: fixture(name, ext: "sse")))
+	let sse = try fixture(name, ext: "sse")
+	let transport = try OpenRouterStub.transport { _ in .reply(.sse(sse)) }
+	return try await collect(transport.stream(sampleRequest(tools: false)))
 }
 
 private struct UnexpectedJSONShape: Error {
