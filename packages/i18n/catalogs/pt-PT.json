@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
       "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
+      "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
       "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
     }
   },

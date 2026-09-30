@@ -7,7 +7,7 @@ import Testing
 extension CredentialVaultTests {
 	@Test func unverifiableReplacementCannotExecuteOldWorkoutReview() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -32,7 +32,7 @@ extension CredentialVaultTests {
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeIntervalsConnection(testConnection)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
-		let coach = coach(store)
+		let coach = await coach(store)
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.creditsIdentity()
 		}
@@ -64,7 +64,7 @@ extension CreditsClientTests {
 		let memory = try legacyCreditsBacking(previous: previous, current: current)
 		let store = ICloudKeychainStore(backing: memory)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.creditsIdentity()
@@ -110,7 +110,7 @@ extension CreditsClientTests {
 
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
 		let fixture = CredentialVaultTests()
-		let coach = fixture.coach(secrets)
+		let coach = await fixture.coach(secrets)
 		let outcome = await coach.changeTraining(
 			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
 		guard case .replaced = outcome else {

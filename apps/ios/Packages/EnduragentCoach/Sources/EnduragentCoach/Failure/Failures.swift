@@ -43,6 +43,7 @@ public enum ModelFailure: Sendable, Equatable {
 }
 
 public enum AccessUnavailable: Error, Sendable, Equatable {
+	case providerConsentRequired
 	case notConfigured(AccessMethod)
 	case secureStorageLocked
 	case secureStorageUnavailable
@@ -229,6 +230,8 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.coachErrorUnknown, action: tryAgain)
 		case .model(.generationFailed):
 			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, action: tryAgain)
+		case .model(.accessUnavailable(.providerConsentRequired)):
+			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: nil)
 		case .model(.accessUnavailable(.secureStorageLocked)):
 			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
 		case .model(.accessUnavailable(.notConfigured)),

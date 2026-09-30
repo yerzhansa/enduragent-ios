@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Sblocca il tuo iPhone per continuare. Il tuo messaggio è salvato.",
       "notConfigured": "Scegli come il coach accede a un modello per continuare.",
+      "providerConsentRequired": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA.",
       "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti."
     }
   },

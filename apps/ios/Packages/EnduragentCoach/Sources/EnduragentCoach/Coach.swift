@@ -128,7 +128,42 @@ public actor Coach {
 	public func status() async -> CoachStatus {
 		CoachStatus(
 			setup: await vault.setup(builtInModel: builtInModel),
-			training: await vault.trainingStatus(), preferences: await loadedPreferences())
+			training: await vault.trainingStatus(), preferences: await loadedPreferences(),
+			providerConsent: await providerConsent())
+	}
+
+	public func recordConsent() async throws(PreferenceWriteFailure) {
+		guard await providerConsent()?.version != ProviderConsent.currentVersion else { return }
+		let stamp = OperationStamp(
+			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
+			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
+		do {
+			_ = try await ledger.commit(
+				local: [.providerConsent(ProviderConsent(at: clock.now))], stamp: stamp)
+		} catch {
+			throw .notSaved
+		}
+	}
+
+	private func providerConsent() async -> ProviderConsent? {
+		do {
+			let page = try await ledger.read(
+				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
+			guard page.skipped.isEmpty,
+				case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
+			else { return nil }
+			return consent
+		} catch {
+			diagnostics.record(.preferencesUnavailable(error))
+			return nil
+		}
+	}
+
+	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
+		guard await providerConsent()?.version == ProviderConsent.currentVersion else {
+			throw .providerConsentRequired
+		}
+		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
@@ -315,10 +350,9 @@ public actor Coach {
 			return existing
 		}
 		let vault = self.vault
-		let builtInModel = self.builtInModel
 		let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
 			() async throws(AccessUnavailable) in
-			try await vault.modelAccess(builtInModel: builtInModel)
+			try await self.modelAccess()
 		}
 		let created = ChatMailbox(
 			chatId: chatId,

@@ -14,6 +14,9 @@ extension RecordCodec {
 	{
 		let name = kind.rawValue
 		switch kind {
+		case .providerConsent:
+			return .providerConsent(
+				try payload(ProviderConsent.self, version: version, kind: name, data: data))
 		case .turnClaim:
 			let payload = try payload(
 				TurnClaimPayload.self, version: version, kind: name, data: data)

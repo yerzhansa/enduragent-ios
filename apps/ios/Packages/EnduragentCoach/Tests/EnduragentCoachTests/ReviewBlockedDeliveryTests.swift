@@ -8,7 +8,7 @@ extension SingleProposalReviewsTests {
 		let staleRead = ReviewGate()
 		let laterClaim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: laterClaim, readGate: staleRead)
-		let coach = gatedCoach(log: log, client: ada)
+		let coach = await gatedCoach(log: log, client: ada)
 		let firstToken = try await presentedToken(on: coach)
 		await staleRead.arm()
 		let first = Task { await coach.decide(.approve(firstToken), in: .main) }

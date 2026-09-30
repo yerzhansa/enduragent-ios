@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
       "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
       "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
     }
   },

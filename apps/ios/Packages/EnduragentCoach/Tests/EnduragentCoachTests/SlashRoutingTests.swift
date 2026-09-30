@@ -35,7 +35,7 @@ import Testing
 		#expect(SlashRouting.parse("/plan") == nil)
 		let transport = FakeModelTransport()
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(transport: transport, store: store)
+		let coach = await makeCoach(transport: transport, store: store)
 		transport.script = [.text("Plans come in a later release."), .finish(reason: .stop)]
 		let plan = try await coach.sendAndSettle("/plan")
 		#expect(replyText(plan) == "Plans come in a later release.")

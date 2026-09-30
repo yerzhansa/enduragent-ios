@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
       "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
+      "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
       "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
     }
   },

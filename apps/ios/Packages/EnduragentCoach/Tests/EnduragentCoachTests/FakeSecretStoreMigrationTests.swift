@@ -118,7 +118,7 @@ import Testing
 		try seed(#"{"openRouterKey":"test-legacy-key"}"#)
 		let before = try Data(contentsOf: file)
 		let store = try FakeSecretStore(directory: directory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(
 			try await coach.creditsIdentity()
@@ -140,7 +140,7 @@ import Testing
 		async throws
 	{
 		let token = try #require(UUID(uuidString: raw))
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(
 			try await coach.creditsIdentity()

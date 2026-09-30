@@ -153,7 +153,7 @@ import Testing
 			.finish(reason: .toolCalls),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
@@ -180,7 +180,7 @@ import Testing
 			.finish(reason: .toolCalls),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)

@@ -319,6 +319,112 @@
         }
       }
     },
+    "access.error.providerConsentRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your permission is needed before sharing chat data with AI providers."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesitamos tu permiso antes de compartir datos del chat con proveedores de IA."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt samtykke kreves før chatdata deles med KI-leverandører."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisamos da sua permissão antes de compartilhar dados da conversa com provedores de IA."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Potrzebujemy Twojej zgody przed udostępnieniem danych z czatu dostawcom AI."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "채팅 데이터를 AI 제공업체와 공유하기 전에 동의가 필요합니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。"
+          }
+        }
+      }
+    },
     "archive.athlete": {
       "localizations": {
         "en": {

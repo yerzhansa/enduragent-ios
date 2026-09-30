@@ -14,7 +14,7 @@ extension CredentialVaultTests {
 			"appAccountToken": Data(token.uuidString.utf8),
 		])
 		let secrets = ICloudKeychainStore(backing: memory)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 
 		#expect(await coach.status().setup == .ready)
 		await coach.lifecycle(.becameActive)
@@ -35,7 +35,7 @@ extension CredentialVaultTests {
 		let secrets = ICloudKeychainStore(backing: memory)
 		let account = CreditsAccount(appAccountToken: token, key: "test-credits-key")
 		try secrets.storeCreditsAccount(account)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(await coach.status().setup == .ready)
 		let unreadable = Data(#"{"future":{"x":1}}"#.utf8)
 		try memory.add(account: "intervalsConnectionStaging", data: unreadable)
@@ -58,7 +58,7 @@ extension CredentialVaultTests {
 		let memory = try legacyCreditsBacking(previous: previous, current: current)
 		try memory.update(account: "openRouterKey", data: Data([0xFF]))
 		let secrets = ICloudKeychainStore(backing: memory)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 
 		#expect(
 			try await coach.creditsIdentity()
@@ -76,7 +76,7 @@ extension CredentialVaultTests {
 		let memory = try legacyCreditsBacking(previous: previous, current: current)
 		let backing = FailedLegacyDeletionBacking(base: memory, failedSlot: failedSlot)
 		let secrets = ICloudKeychainStore(backing: backing)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.creditsIdentity()

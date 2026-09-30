@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
       "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
+      "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
       "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
     }
   },

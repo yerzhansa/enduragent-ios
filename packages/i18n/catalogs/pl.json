@@ -3041,6 +3041,7 @@
     "error": {
       "locked": "Odblokuj iPhone’a, aby kontynuować. Twoja wiadomość jest zapisana.",
       "notConfigured": "Wybierz sposób dostępu trenera do modelu, aby kontynuować.",
+      "providerConsentRequired": "Potrzebujemy Twojej zgody przed udostępnieniem danych z czatu dostawcom AI.",
       "openRouterFunds": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty."
     }
   },

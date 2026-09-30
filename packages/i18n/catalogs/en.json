@@ -3,6 +3,7 @@
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
       "notConfigured": "Choose how the coach reaches a model to continue.",
+      "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
       "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
     }
   },

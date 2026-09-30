@@ -276,6 +276,9 @@ package struct FlushWork: Sendable {
 	}
 
 	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
+		guard outcome != .failed(.model(.accessUnavailable(.providerConsentRequired))) else {
+			return
+		}
 		let settlement: FlushSettlement
 		if let saved = outcome.settlement {
 			settlement = saved

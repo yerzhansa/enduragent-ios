@@ -1,9 +1,10 @@
 public enum Catalog {
-	public static let englishLeafCount = 2474
-	public static let keyCount = 2514
+	public static let englishLeafCount = 2475
+	public static let keyCount = 2515
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
+	public static let accessErrorProviderConsentRequired = CatalogKey(rawValue: "access.error.providerConsentRequired")
 	public static let archiveAthlete = CatalogKey(rawValue: "archive.athlete")
 	public static let archiveBack = CatalogKey(rawValue: "archive.back")
 	public static let archiveCoach = CatalogKey(rawValue: "archive.coach")

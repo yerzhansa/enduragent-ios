@@ -16,7 +16,7 @@ import Testing
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 
 	func relaunched(over log: (any RecordLog)? = nil) async -> Coach {
-		let coach = makeCoach(transport: transport, store: log ?? store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: log ?? store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		return coach
 	}
@@ -104,7 +104,7 @@ import Testing
 			.fail(.http(status: 500)), saturdays, .finish(reason: .toolCalls),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("Rest day?")
 		try await waitForDiagnostic(in: coach) { event in
@@ -153,7 +153,7 @@ import Testing
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .hang]
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let settled = try await before.sendAndSettle("Remember Saturdays", within: .seconds(5))
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.synced([.ledgerEvent]), count: 1, in: store)
@@ -172,7 +172,7 @@ import Testing
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		transport.hangUntilCancelled = true
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		try await waitForRecords(.deviceLocal([.flushPending]), count: 1, in: store)
 		await before.waitUntilProcessing(turn)

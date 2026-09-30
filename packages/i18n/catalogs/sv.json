@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
       "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
+      "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
       "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter."
     }
   },

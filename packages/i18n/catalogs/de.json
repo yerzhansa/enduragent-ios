@@ -2961,6 +2961,7 @@
     "error": {
       "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
       "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
+      "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
       "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
     }
   },
