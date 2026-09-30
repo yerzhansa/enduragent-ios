@@ -32,7 +32,59 @@ import Testing
 	) async throws -> FlushOutcome {
 		try await memory.runFlush(
 			messages: messages ?? conversation, access: testAccess, transport: transport,
+			diagnostics: DiagnosticsLog(clock: clock),
 			stamp: testStamp(operation: .memoryFlush(job.id)), scope: scope)
+	}
+
+	@Test(arguments: [401, 429])
+	func flushHonorsProviderFailures(status: Int) async throws {
+		let held = HeldClock()
+		try await seedHistory(store, clock: held, turns: 1, tokens: 200)
+		transport.flushScript = [
+			.fail(.http(status: status, headers: ["Retry-After": "7"])),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: held)
+		let reset = Task { await coach.startNewConversation(in: .main) }
+		defer { reset.cancel() }
+		if status == 429 {
+			try await held.waitUntilHeld(.seconds(7))
+			#expect(sent(.memoryFlush, by: transport).count == 1)
+			held.release(.seconds(7))
+			#expect(await reset.value == .started(memory: .saved))
+			#expect(sent(.memoryFlush, by: transport).count == 2)
+		} else {
+			#expect(await reset.value == .started(memory: .notSaved))
+			#expect(sent(.memoryFlush, by: transport).count == 1)
+			#expect(held.held.isEmpty)
+		}
+	}
+
+	@Test func flushCannotWriteAnUnlistedSection() async throws {
+		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		transport.flushScript = [
+			.toolCall(
+				name: "memory_write",
+				arguments: #"{"section":"unlisted","content":"Must not be stored."}"#),
+			.finish(reason: .toolCalls),
+			.finish(reason: .stop),
+		]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		#expect(written.isEmpty)
+		let followUp = try #require(sent(.memoryFlush, by: transport).last)
+		let result = try #require(followUp.messages.last(where: { $0.role == .tool }))
+		#expect(result.content.contains("unknown_section"))
+	}
+
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func flushReportsFailedGeneration(reason: FinishReason) async throws {
+		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		transport.flushScript = [.finish(reason: reason)]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 
 	@Test func flushUsesOnlyMemoryWriteAndLedgerAppend() async throws {
@@ -76,7 +128,7 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
-	@Test func aFailedGenerateIsRetriedOnceThenReportedWithTheWritesItMade() async throws {
+	@Test func aFailedGenerateUsesTheLadderThenReportsTheWritesItMade() async throws {
 		transport.flushScript = [
 			.toolCall(
 				name: "memory_write",
@@ -84,14 +136,15 @@ import Testing
 			.finish(reason: .toolCalls),
 			.fail(.http(status: 500)),
 			.fail(.http(status: 500)),
+			.fail(.http(status: 500)),
 		]
 		#expect(
 			try await run(job())
 				== .partial(sections: 1, events: 0, failure: .model(.providerDown(.outage))))
-		#expect(transport.requests.count == 3)
+		#expect(transport.requests.count == 4)
 		transport.flushScript = [.fail(.http(status: 500)), .text("ok"), .finish(reason: .stop)]
 		#expect(try await run(job()) == .nothingToSave)
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		#expect(try await run(job()) == .failed(.model(.providerDown(.outage))))
 	}
 
@@ -188,7 +241,7 @@ import Testing
 		#expect(flushRequests.count == 2)
 		let followUp = try #require(flushRequests.last)
 		let result = try #require(followUp.messages.last(where: { $0.role == .tool }))
-		#expect(result.content == #"{"error":"section_required"}"#)
+		#expect(result.content.contains(#""error":"section_required""#))
 	}
 
 	private func budget(calls: Int) -> TurnBudgetPolicy {

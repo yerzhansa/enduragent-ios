@@ -112,7 +112,7 @@ import Testing
 		let coach = coach(over: log)
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
@@ -137,7 +137,7 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		let offline = ScriptedEvent.fail(.connection(.notConnectedToInternet))
-		transport.flushScript = [offline, offline]
+		transport.flushScript = [offline, offline, offline]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		#expect(
 			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: false)
@@ -145,7 +145,7 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let original = try #require(sent(.memoryFlush, by: transport).first).messages
 
-		transport.flushScript = [offline, offline]
+		transport.flushScript = [offline, offline, offline]
 		let offlineHost = ImmediateExecutionHost()
 		let reopened = makeCoach(
 			transport: transport, store: store, clock: clock, host: offlineHost)
@@ -156,7 +156,7 @@ import Testing
 				== .afterNewConversation(memorySaved: false))
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
-		#expect(sent(.memoryFlush, by: transport).count == 4)
+		#expect(sent(.memoryFlush, by: transport).count == 6)
 
 		transport.flushScript = [schedule, .finish(reason: .toolCalls), .finish(reason: .stop)]
 		let healthyHost = ImmediateExecutionHost()
@@ -171,8 +171,8 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 		let flushes = sent(.memoryFlush, by: transport)
-		#expect(flushes.count == 6)
-		#expect(flushes.dropFirst(4).first?.messages == original)
+		#expect(flushes.count == 8)
+		#expect(flushes.dropFirst(6).first?.messages == original)
 		#expect(
 			await self.coach().currentSnapshot(.main)?.opening
 				== .afterNewConversation(memorySaved: true))

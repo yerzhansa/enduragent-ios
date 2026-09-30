@@ -266,7 +266,8 @@ package struct FlushWork: Sendable {
 		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
 	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
-			messages: messages, access: access, transport: transport, stamp: stamp, scope: scope)
+			messages: messages, access: access, transport: transport, diagnostics: diagnostics,
+			stamp: stamp, scope: scope)
 		if outcome.settlement == nil {
 			diagnostics.record(
 				.memoryFlushFailed(chat, detail: "\(outcome)"),

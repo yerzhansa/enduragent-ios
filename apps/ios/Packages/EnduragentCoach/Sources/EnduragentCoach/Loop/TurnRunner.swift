@@ -298,7 +298,7 @@ package struct TurnRunner: Sendable {
 	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
 		async throws -> String
 	{
-		try await generateStep(
+		try await modelCall.run(
 			request: CompletionRequest(
 				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,
@@ -314,6 +314,10 @@ package struct TurnRunner: Sendable {
 			),
 			progress: { _ in }
 		).text
+	}
+
+	var modelCall: ModelCall {
+		ModelCall(transport: transport, diagnostics: diagnostics)
 	}
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {

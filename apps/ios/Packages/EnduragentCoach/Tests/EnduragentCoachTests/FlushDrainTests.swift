@@ -85,13 +85,21 @@ import Testing
 			process: ProcessID(ulid: fixedUlid(60)))
 		transport.flushScript =
 			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
-			+ [.fail(failure), .fail(failure)]
+			+ Array(repeating: .fail(failure), count: 4)
 		let host = ImmediateExecutionHost()
 		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
 		_ = try #require(await host.ended(0))
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
-		#expect(sent(.memoryFlush, by: transport).count == (partial ? 3 : 2))
+		let expectedAttempts: Int
+		switch failure.failure {
+		case .accessExhausted: expectedAttempts = 1
+		case .timeout: expectedAttempts = 2
+		case .rateLimited: expectedAttempts = 4
+		default: expectedAttempts = 3
+		}
+		let requestsBeforeRecovery = expectedAttempts + (partial ? 1 : 0)
+		#expect(sent(.memoryFlush, by: transport).count == requestsBeforeRecovery)
 		let original = try #require(sent(.memoryFlush, by: transport).first)
 			.messages.dropFirst().prefix(2)
 
@@ -100,7 +108,7 @@ import Testing
 		_ = try await coach.sendAndSettle("Anything else?")
 		_ = try #require(await host.ended(1))
 		let flushes = sent(.memoryFlush, by: transport)
-		#expect(flushes.count == (partial ? 5 : 4))
+		#expect(flushes.count == requestsBeforeRecovery + 2)
 		for request in flushes.suffix(2) {
 			#expect(Array(request.messages.dropFirst().prefix(2)) == Array(original))
 		}
@@ -134,7 +142,7 @@ import Testing
 		try await seedJob(
 			covering: try #require(history.first), settled: false,
 			process: ProcessID(ulid: fixedUlid(60)))
-		transport.flushScript = [.fail(failure), .fail(failure)]
+		transport.flushScript = [.fail(failure)]
 		let host = ImmediateExecutionHost()
 		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
@@ -147,7 +155,7 @@ import Testing
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("Anything else?")
 		_ = try #require(await host.ended(1))
-		#expect(sent(.memoryFlush, by: transport).count == 2)
+		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 
 	@Test func v1ConsumedMarkerStillSettlesAJob() async throws {
@@ -181,7 +189,8 @@ import Testing
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		transport.flushScript = [
 			saturdays, schedule, .finish(reason: .toolCalls), .fail(.http(status: 500)),
-			.fail(.http(status: 500)), saturdays, .finish(reason: .toolCalls),
+			.fail(.http(status: 500)), .fail(.http(status: 500)), saturdays,
+			.finish(reason: .toolCalls),
 			.finish(reason: .stop),
 		]
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
