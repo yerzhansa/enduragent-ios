@@ -248,6 +248,7 @@ for (const declaration of [
   'final class Duplicate: SecretStore, @unchecked Sendable {}',
   'struct Duplicate: Sendable, SecretStore {}',
   'extension Duplicate: SecretStore {}',
+  'extension Outer.Inner: SecretStore {}',
   'struct Duplicate<S: Sendable>: SecretStore where S: Equatable {}',
   'struct Duplicate<S: Collection>: SecretStore where S.Element: SecretStore {}',
 ]) {
