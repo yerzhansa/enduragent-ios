@@ -14,7 +14,7 @@ import Testing
 		let before = makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		transport.hangUntilCancelled = false
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
 		let requestsBefore = transport.requests.count
@@ -65,7 +65,7 @@ import Testing
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let requestsBefore = transport.requests.count
 		transport.script = [.text("Noted again."), .finish(reason: .stop)]
 		let log = FaultInjectingRecordLog(wrapping: store)

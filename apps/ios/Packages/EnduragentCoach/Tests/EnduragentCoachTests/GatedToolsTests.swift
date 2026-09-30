@@ -163,7 +163,7 @@ struct GatedToolsTests {
 		return ToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			planning: Planning(store: store, clock: clock),
+			planning: Planning(clock: clock),
 			clock: clock
 		)
 	}

@@ -201,6 +201,43 @@ extension SwiftDataSuites {
 			#expect(elapsed < .seconds(2))
 		}
 
+		@Test func syncedFaultsRejectEverySyncedKindAndLeaveLocalRecordsWritable() async throws {
+			let fixture = try RecordStore.fixture(
+				directory: FileManager.default.temporaryDirectory.appending(
+					path: "enduragent-synced-faults-\(UUID().uuidString)",
+					directoryHint: .isDirectory),
+				deviceId: phoneA)
+			let samples = try sampleBodies()
+			fixture.faults.failSyncedAppends = true
+			for kind in SyncedKind.allCases {
+				let sample = try #require(samples.first { $0.kind == kind.rawValue })
+				let record = storedRecord(device: phoneA, wall: 1, body: sample.body)
+				await #expect(
+					throws: RecordStorageFault(operation: .append(kinds: [kind.rawValue]))
+				) {
+					try await fixture.store.log.append([record], locality: .synced)
+				}
+			}
+			#expect(
+				try await fixture.store.log.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
+			for sample in samples where sample.body.locality == .deviceLocal {
+				try await fixture.store.log.append(
+					[storedRecord(device: phoneA, wall: 2, body: sample.body)],
+					locality: .deviceLocal)
+			}
+			let local = try await fixture.store.log.fetch(RecordQuery(scope: .everyDeviceLocal))
+				.records
+			#expect(Set(local.map(\.body.kind)) == Set(DeviceLocalKind.allCases.map(\.rawValue)))
+			fixture.faults.failSyncedAppends = false
+			let saved = storedRecord(
+				device: phoneA, wall: 3, body: .synced(sampleUser(chatId: .main, text: "saved")))
+			try await fixture.store.log.append([saved], locality: .synced)
+			#expect(
+				try await fixture.store.log.fetch(RecordQuery(scope: .everySynced)).records == [
+					saved
+				])
+		}
+
 		private func sampleBodies() throws -> [(kind: String, body: RecordBody)] {
 			let ulid = ULID.generate(at: Date(timeIntervalSince1970: 899_164_800))
 			let turn = TurnID(ulid: ulid)

@@ -105,11 +105,7 @@ struct FixtureLaunch {
 			}
 		}
 		try files.createDirectory(at: directory, withIntermediateDirectories: true)
-		if store == .unreadable {
-			try files.createDirectory(
-				at: directory.appending(path: ModelContainerHandle.syncedStoreFileName),
-				withIntermediateDirectories: true)
-		}
+
 		return defaults
 	}
 

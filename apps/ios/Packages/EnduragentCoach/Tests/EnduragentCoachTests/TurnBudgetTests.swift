@@ -145,7 +145,7 @@ import Testing
 	private func runner() -> TurnRunner {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
-		let planning = Planning(store: store, clock: clock)
+		let planning = Planning(clock: clock)
 		return TurnRunner(
 			transport: transport,
 			ledger: ledger,

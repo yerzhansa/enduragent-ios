@@ -1,6 +1,10 @@
 import Foundation
 import Synchronization
 
+package enum RecordFaultConfigurationError: Error, Equatable {
+	case unknownKind(String)
+}
+
 package struct RecordStorageFault: Error, Sendable, Equatable {
 	package enum Operation: Sendable, Equatable {
 		case append(kinds: [String])
@@ -14,54 +18,62 @@ package struct RecordStorageFault: Error, Sendable, Equatable {
 	}
 }
 
-public final class FaultInjectingRecordLog: RecordLog, Sendable {
+package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	private struct Faults: Sendable {
 		var nextAppend = false
+		var syncedAppends = false
 		var appendKinds: Set<String> = []
 		var fetches = false
 		var recoveryReads = false
 	}
 
-	public let deviceId: DeviceID
+	package let deviceId: DeviceID
 	private let wrapped: any RecordLog
 	private let faults = Mutex(Faults())
 
-	public init(wrapping wrapped: any RecordLog) {
+	package init(wrapping wrapped: any RecordLog) {
 		self.deviceId = wrapped.deviceId
 		self.wrapped = wrapped
 	}
 
-	public var failNextAppend: Bool {
+	package var failNextAppend: Bool {
 		get { faults.withLock { $0.nextAppend } }
 		set { faults.withLock { $0.nextAppend = newValue } }
 	}
 
-	public var failFetches: Bool {
+	package var failFetches: Bool {
 		get { faults.withLock { $0.fetches } }
 		set { faults.withLock { $0.fetches = newValue } }
 	}
 
-	public var failRecoveryReads: Bool {
+	package var failSyncedAppends: Bool {
+		get { faults.withLock { $0.syncedAppends } }
+		set { faults.withLock { $0.syncedAppends = newValue } }
+	}
+
+	package var failRecoveryReads: Bool {
 		get { faults.withLock { $0.recoveryReads } }
 		set { faults.withLock { $0.recoveryReads = newValue } }
 	}
 
-	public func failAppends(ofKind kind: SyncedKind) {
-		faults.withLock { _ = $0.appendKinds.insert(kind.rawValue) }
+	package func failAppends(ofKind kind: String) throws {
+		guard
+			SyncedKind(rawValue: kind) != nil || DeviceLocalKind(rawValue: kind) != nil
+		else {
+			throw RecordFaultConfigurationError.unknownKind(kind)
+		}
+		faults.withLock { _ = $0.appendKinds.insert(kind) }
 	}
 
-	public func failAppends(ofKind kind: DeviceLocalKind) {
-		faults.withLock { _ = $0.appendKinds.insert(kind.rawValue) }
-	}
-
-	public func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		let kinds = batch.map(\.body.kind)
 		let fails = faults.withLock { current -> Bool in
 			if current.nextAppend {
 				current.nextAppend = false
 				return true
 			}
-			return kinds.contains { current.appendKinds.contains($0) }
+			return (current.syncedAppends && locality == .synced)
+				|| kinds.contains { current.appendKinds.contains($0) }
 		}
 		if fails {
 			throw RecordStorageFault(operation: .append(kinds: kinds))
@@ -69,7 +81,7 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 		try await wrapped.append(batch, locality: locality)
 	}
 
-	public func fetch(_ query: RecordQuery) async throws -> RecordPage {
+	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let fails = faults.withLock { current in
 			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.localScope)
 		}
@@ -79,7 +91,7 @@ public final class FaultInjectingRecordLog: RecordLog, Sendable {
 		return try await wrapped.fetch(query)
 	}
 
-	public var imports: AsyncStream<Void> {
+	package var imports: AsyncStream<Void> {
 		wrapped.imports
 	}
 }

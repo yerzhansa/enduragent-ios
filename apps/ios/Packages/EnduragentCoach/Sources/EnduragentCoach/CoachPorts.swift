@@ -1,7 +1,7 @@
 import Foundation
 
 public struct CoachPorts: Sendable {
-	public let records: any RecordLog
+	public let records: RecordStore
 	public let secrets: any SecretStore
 	public let models: ModelService
 	public let training: TrainingService
@@ -10,7 +10,7 @@ public struct CoachPorts: Sendable {
 	public let clock: any Clock
 
 	public init(
-		records: any RecordLog,
+		records: RecordStore,
 		secrets: any SecretStore,
 		models: ModelService,
 		training: TrainingService,
@@ -25,6 +25,35 @@ public struct CoachPorts: Sendable {
 		self.credits = credits
 		self.host = host
 		self.clock = clock
+	}
+}
+
+public struct RecordStore: Sendable {
+	package let log: any RecordLog
+
+	public static func onDevice(deviceId: DeviceID) throws -> RecordStore {
+		let directory = try ModelContainerHandle.applicationSupportDirectory()
+		return RecordStore(
+			log: SwiftDataRecordLog(
+				deviceId: deviceId,
+				synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
+				local: try ModelContainerHandle.deviceLocal(directory: directory)))
+	}
+
+	public static func inMemory(deviceId: DeviceID) -> RecordStore {
+		RecordStore(log: InMemoryRecordLog(deviceId: deviceId))
+	}
+
+	public static func fixture(
+		directory: URL, deviceId: DeviceID, unreadable: Bool = false
+	) throws -> (store: RecordStore, faults: RecordFaults) {
+		if unreadable {
+			try FileManager.default.createDirectory(
+				at: directory.appending(path: ModelContainerHandle.syncedStoreFileName),
+				withIntermediateDirectories: true)
+		}
+		let faults = try RecordFaults(directory: directory, deviceId: deviceId)
+		return (RecordStore(log: faults.log), faults)
 	}
 }
 

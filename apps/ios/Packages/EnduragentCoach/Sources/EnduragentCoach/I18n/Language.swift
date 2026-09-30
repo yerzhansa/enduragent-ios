@@ -91,19 +91,19 @@ public enum LanguageTag: String, Sendable, CaseIterable {
 	]
 }
 
-public enum LanguageSource: String, Sendable {
+package enum LanguageSource: String, Sendable {
 	case preference
 	case message
 	case surface
 	case `default`
 }
 
-public struct LanguageResolution: Sendable, Equatable {
-	public var language: LanguageTag
-	public var source: LanguageSource
-	public var locale: String
+package struct LanguageResolution: Sendable, Equatable {
+	package var language: LanguageTag
+	package var source: LanguageSource
+	package var locale: String
 
-	public init(language: LanguageTag, source: LanguageSource, locale: String) {
+	package init(language: LanguageTag, source: LanguageSource, locale: String) {
 		self.language = language
 		self.source = source
 		self.locale = locale
@@ -119,7 +119,7 @@ public struct CatalogKey: Hashable, Sendable, RawRepresentable {
 }
 
 public struct Language {
-	public static func resolve(
+	package static func resolve(
 		saved: LanguageTag?,
 		messageHint: LanguageTag?,
 		surface: LanguageTag?

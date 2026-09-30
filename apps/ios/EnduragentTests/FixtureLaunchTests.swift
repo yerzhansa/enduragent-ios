@@ -286,7 +286,8 @@ final class FixtureLaunchTests {
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let settled = try await settledTurn(model)
-		services.fixtureRecordLog?.failAppends(ofKind: SyncedKind.windowStart)
+		let records = try #require(services.fixtureRecordFaults)
+		try records.failAppends(ofKind: "windowStart")
 		model.draft.text = "/start"
 		await model.send()
 		#expect(model.draft.text.isEmpty)
