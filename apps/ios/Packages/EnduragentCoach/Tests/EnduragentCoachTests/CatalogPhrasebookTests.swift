@@ -20,6 +20,30 @@ import Testing
 	}
 
 	@Test(arguments: [
+		(LanguageTag.en, "New conversation"),
+		(LanguageTag.da, "Ny samtale"),
+		(LanguageTag.de, "Neues Gespräch"),
+		(LanguageTag.es, "Nueva conversación"),
+		(LanguageTag.fi, "Uusi keskustelu"),
+		(LanguageTag.fr, "Nouvelle conversation"),
+		(LanguageTag.it, "Nuova conversazione"),
+		(LanguageTag.ja, "新しい会話"),
+		(LanguageTag.ko, "새 대화"),
+		(LanguageTag.nb, "Ny samtale"),
+		(LanguageTag.nl, "Nieuw gesprek"),
+		(LanguageTag.pl, "Nowa rozmowa"),
+		(LanguageTag.ptBR, "Nova conversa"),
+		(LanguageTag.ptPT, "Nova conversa"),
+		(LanguageTag.sv, "Nytt samtal"),
+		(LanguageTag.zhHans, "新对话"),
+		(LanguageTag.zhHant, "新對話"),
+	])
+	func newConversationLabelUsesEverySelectedLanguage(tag: LanguageTag, expected: String) {
+		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
+		#expect(book.say(CatalogKey(rawValue: "chat.newConversation.label")) == expected)
+	}
+
+	@Test(arguments: [
 		(Catalog.archiveReasonEarlierChat, "Earlier chat"),
 		(
 			Catalog.creditsErrorAccessRejected,
