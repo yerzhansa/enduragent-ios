@@ -145,10 +145,10 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
 | `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A turn at 20:00 local and one 13 hours later after a relaunch stay in one conversation; Records show no `windowStart` and History is empty, `m1-15-overnight-continues`, `m1-15-overnight-history`. |
-| `sim.mjs test <run id> SessionRejectionProof` | All four invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
+| `sim.mjs test <run id> SessionRejectionProof` | Both invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
 | `sim.mjs test <run id> RatioAppliesProof` | A 0.05 history ratio causes earlier compaction than the default, `ratio-applies-turns`, `m1-12-ratio-applies`. |
 
-Debug, Conversation & time uses the field names `historyBudgetRatio`, `contextWindowOverride`, `compactionModel`, and `flushModel`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
+Debug, Conversation & time uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
 
 ## Gotchas
 
@@ -156,10 +156,10 @@ Debug, Conversation & time uses the field names `historyBudgetRatio`, `contextWi
 - `fixture:fail <kind>` fails one model request. Exhaustion needs `500 x3`, `network x3`, `timeout x2`, `overflow x4`, or `429 <seconds> x4`. A single retryable failure normally ends with a successful reply.
 - Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
 - `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
-- `fixture:storage fail-next-append` fails its own acceptance and remains in the composer. An unknown directive is not sent and shows `chat.error`; turn failures use `chat.turn.notice`.
-- A new plain message clears the fixture's pending slow or failure script. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
+- In Debug, tap `fixture.failNextAppend`, close the menu, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
+- Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
-- `fixture:expire` expires current leases before its own send, then becomes a later turn. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
+- The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
 - The fixture execution host does not exercise iOS background scheduling, system cancellation UI, or notifications. Record those device paths as unverified by the simulator.
 - Killing within the collection window leaves an accepted message. Wait for a claim before testing interrupted work. A process kill loses uncommitted partial text; it differs from a delivered termination notification.
 - Use `sim.mjs launch <run id> --keep -EnduragentFixtureRecovery unreadable` only after a claimed turn was killed to reach unreadable recovery.

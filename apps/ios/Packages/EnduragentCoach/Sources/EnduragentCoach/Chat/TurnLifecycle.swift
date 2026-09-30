@@ -269,12 +269,12 @@ public struct CoalescingPolicy: Sendable, Equatable {
 }
 
 package enum MailboxWork: Sendable, Equatable {
-	case turn(TurnID)
+	case turn(TurnID, origin: AttemptOrigin)
 	case flush(FlushJobID)
 	case reset(ResetID)
 
 	package var turn: TurnID? {
-		guard case .turn(let turn) = self else { return nil }
+		guard case .turn(let turn, _) = self else { return nil }
 		return turn
 	}
 

@@ -111,9 +111,9 @@ final class FixtureLaunchTests {
 
 	@Test func fixtureArgumentBuildsCoachFromFakes() async throws {
 		let services = try services()
-		#expect(services.isFixture)
+		#expect(services.fixture != nil)
 		#expect(
-			try await #require(services.fixtureDirector).intervals.fetchAthlete().name
+			try await #require(services.fixture).intervals.fetchAthlete().name
 				== "Ada Kovač")
 		#expect(await services.coach.status().training == .unconnected)
 		let model = model(services)
@@ -174,7 +174,7 @@ final class FixtureLaunchTests {
 
 	@Test func alreadyGrantedWithStoredKeyShowsBalance() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		try fixture.secrets.storeCreditsAccount(
 			CreditsAccount(
@@ -332,7 +332,7 @@ final class FixtureLaunchTests {
 	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
 		let services = try services(keychain: .locked)
 		#expect(throws: KeychainStoreError.keychain(errSecInteractionNotAllowed)) {
-			try #require(services.fixtureDirector).secrets.creditsAccount()?.key
+			try #require(services.fixture).secrets.creditsAccount()?.key
 		}
 	}
 

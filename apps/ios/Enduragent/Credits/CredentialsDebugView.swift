@@ -23,7 +23,7 @@
 						.accessibilityIdentifier("credentials.keySuffix")
 				}
 				Section("Change") {
-					TextField("intervals.icu API key", text: $key)
+					SecureField("intervals.icu API key", text: $key)
 						.accessibilityIdentifier("credentials.apiKey")
 						.autocorrectionDisabled()
 						.textInputAutocapitalization(.never)
@@ -42,7 +42,7 @@
 						}
 						action("Disconnect", "credentials.disconnect") { .disconnect }
 					}
-					if let backing = model.services.fixtureDirector?.secretBacking {
+					if let backing = model.services.fixture?.secretBacking {
 						HStack {
 							Button(locked ? "Unlock keychain" : "Lock keychain") {
 								backing.locked.toggle()
@@ -64,7 +64,7 @@
 			.navigationTitle("Credentials")
 			.navigationBarTitleDisplayMode(.inline)
 			.task {
-				locked = model.services.fixtureDirector?.secretBacking.locked ?? false
+				locked = model.services.fixture?.secretBacking.locked ?? false
 				await model.refreshStatus()
 			}
 		}
@@ -96,7 +96,9 @@
 
 		@MainActor
 		private func change(_ change: IntervalsConnectionChange) async {
-			outcome = describe(await model.services.coach.changeTraining(change))
+			let result = await model.services.coach.changeTraining(change)
+			if case .replaced = result { key = "" }
+			outcome = describe(result)
 			await model.refreshStatus()
 		}
 
