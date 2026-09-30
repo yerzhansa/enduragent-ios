@@ -4,7 +4,10 @@ import Testing
 @testable import EnduragentCoach
 
 extension RetryLadderTests {
-	@Test func uncertainApprovalDuringBackoffSettlesUnverifiedWork() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func uncertainApprovalDuringBackoffSettlesUnverifiedWork(checkpoint: ApprovalCheckpoint)
+		async throws
+	{
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
@@ -12,15 +15,19 @@ extension RetryLadderTests {
 			workoutProposal
 			+ [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
-		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
+		}
+		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(7))
-		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
-		#expect(!waiting.state.isSettled)
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		held.release(.seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("expected an uncertain calendar write")
@@ -41,7 +48,8 @@ extension RetryLadderTests {
 		)
 		#expect(!settled.retryable)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
-		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
+		#expect(
+			transport.requests.filter { $0.charge == .chatAttempt }.count == checkpoint.requests)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.count == 1)
@@ -111,7 +119,10 @@ extension RetryLadderTests {
 		#expect(base.calls.filter(\.isWrite).count == 1)
 	}
 
-	@Test func pendingApprovalDuringRetryModelRequestBlocksAnotherProposal() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func pendingApprovalDuringRetryModelRequestBlocksAnotherProposal(checkpoint: ApprovalCheckpoint)
+		async throws
+	{
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
@@ -126,16 +137,15 @@ extension RetryLadderTests {
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
-		held.release(.seconds(7))
-		try await held.waitUntilHeld(.seconds(11))
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(11))
-		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
-		#expect(!waiting.state.isSettled)
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		held.release(.seconds(13))
 		try await expectSingleApproval(
 			turn: turn, first: await approving.value, coach: coach, intervals: base,
-			savedRequests: 3)
+			savedRequests: checkpoint.requests)
 	}
 }

@@ -4,6 +4,27 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct WriteSummaryCodecTests {
+	@Test func confirmedCalendarSettlementMatchesGoldenBytes() throws {
+		let golden = Data(try fixture("confirmed-calendar-settlement", ext: "json").utf8)
+		let body = RecordBody.synced(
+			.turnSettled(
+				TurnSettledBody(
+					chatId: .main, turn: TurnID(ulid: fixedUlid(1)),
+					attempt: AttemptID(ulid: fixedUlid(2)),
+					settlement: .interrupted(
+						partial: "", cause: .athleteStopped,
+						saved: WriteSummary(
+							memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 1,
+							unverifiedCalendarWrites: 0)))))
+		let encoded = try RecordCodec.encode(body)
+		#expect(encoded.version == 2)
+		#expect(encoded.data == golden)
+		let decoded = RecordCodec.decode(
+			kind: "turnSettled", version: 2, data: golden,
+			civilDate: "1998-06-13", ulid: fixedUlid(3).rawValue)
+		#expect(try decoded.get() == body)
+	}
+
 	@Test func legacyCalendarWritesRemainUnverified() throws {
 		let json =
 			#"{"chatId":"main","turn":"01J0000000000000000000000A","attempt":"01J0000000000000000000000B","settlement":{"kind":"interrupted","partial":"","cause":"athleteStopped","saved":{"memorySections":0,"ledgerEvents":0,"planSaves":0,"calendarWrites":1}}}"#

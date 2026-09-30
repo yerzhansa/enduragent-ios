@@ -4,24 +4,29 @@ import Testing
 @testable import EnduragentCoach
 
 extension RetryLadderTests {
-	@Test(.timeLimit(.minutes(1)))
-	func hungApprovalDoesNotBlockStopOrNewSend() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func hungApprovalDoesNotBlockStopOrNewSend(checkpoint: ApprovalCheckpoint) async throws {
 		let held = HeldClock()
 		let intervals = HeldApprovalWrites(
 			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), clock: held)
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+			+ (checkpoint == .retryModelRequest ? workoutProposal : [])
 			+ [.text("Rest today."), .finish(reason: .stop)]
-		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			checkpoint == .retryModelRequest && request.charge == .chatAttempt && index == 3
+				? .seconds(11) : nil
+		}
+		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(7))
-		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
-		#expect(!waiting.state.isSettled)
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		let stopped = AsyncStream.makeStream(of: Bool.self)
 		Task {
 			await coach.stop(.main)

@@ -27,28 +27,33 @@ extension RetryLadderTests {
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 3)
 	}
 
-	@Test func approvalDuringBackoffWaitsForCalendarWrite() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func approvalDuringBackoffWaitsForCalendarWrite(checkpoint: ApprovalCheckpoint) async throws {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
+		}
 		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
+		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(7))
-		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
-		#expect(!waiting.state.isSettled)
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		held.release(.seconds(13))
 		let first = await approving.value
 		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: base, savedRequests: 2)
+			turn: turn, first: first, coach: coach, intervals: base,
+			savedRequests: checkpoint.requests)
 	}
 
 	@Test func approvalDuringOverflowFlushSettlesSavedWork() async throws {

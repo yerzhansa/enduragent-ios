@@ -1,13 +1,15 @@
 import Foundation
 import Synchronization
+import Testing
 
 @testable import EnduragentCoach
 
-struct HeldApprovalTransport: ModelTransport {
+final class HeldApprovalTransport: ModelTransport {
 	let base: FakeModelTransport
 	let clock: HeldClock
 	let hold: @Sendable (Int, CompletionRequest) -> Duration?
 	private let counter = ApprovalRequestCounter()
+	private let streamedTools = Mutex<Set<Int>>([])
 
 	init(
 		base: FakeModelTransport, clock: HeldClock,
@@ -16,6 +18,14 @@ struct HeldApprovalTransport: ModelTransport {
 		self.base = base
 		self.clock = clock
 		self.hold = hold
+	}
+
+	func waitForToolCall(in request: Int) async throws {
+		let deadline = ContinuousClock.now + .seconds(5)
+		while !streamedTools.withLock({ $0.contains(request) }) {
+			try #require(ContinuousClock.now < deadline, "Retry tool call never streamed")
+			try await Task.sleep(for: .milliseconds(10))
+		}
 	}
 
 	func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
@@ -29,6 +39,9 @@ struct HeldApprovalTransport: ModelTransport {
 					if let pause { try await clock.sleep(for: pause) }
 					for try await event in source {
 						continuation.yield(event)
+						if case .toolCall = event {
+							streamedTools.withLock { _ = $0.insert(index) }
+						}
 					}
 					continuation.finish()
 				} catch {
