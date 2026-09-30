@@ -40,7 +40,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case replyObservedUnsaved(AttemptID, detail: String)
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
-	case secureStorageFailed(CredentialSlot, detail: String)
+	case secureStorageFailed(CredentialSlot, failure: KeychainStoreError)
 	case preferencesUnavailable(LedgerFailure)
 	case evidenceUnavailable(AttemptID, TrainingFailure)
 	case reviewOutcomeUnsaved(LedgerFailure)
@@ -53,9 +53,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .memoryFlushFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .compactionFailed(let chat, let detail):
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
-		case .secureStorageFailed(let slot, let detail):
-			return .secureStorageFailed(slot, detail: Redaction.clean(detail, secrets))
-		case .toolFailed, .replyObservedUnsaved, .skippedRecord, .recoveryUnavailable,
+		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
+			.recoveryUnavailable,
 			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved:
 			return self
 		}
