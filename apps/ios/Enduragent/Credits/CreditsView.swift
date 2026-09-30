@@ -42,7 +42,7 @@ struct CreditsView: View {
 		}
 	}
 
-	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
+	func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
 		var vars = ["formattedCount": "\(units)"]
 		if let price {
 			vars["price"] = price

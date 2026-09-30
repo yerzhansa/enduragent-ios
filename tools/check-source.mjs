@@ -58,6 +58,22 @@ function hasExtraSecretStore(text) {
       return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
     });
 }
+function hasExposedMailboxState(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  let depth = 0;
+  for (const [, declaration, boundary] of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+    if (depth === 1) {
+      const member = /^(.*?)\b(?:let|var)\s+/.exec(declaration);
+      if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
+        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
+        return true;
+      }
+    }
+    if (boundary === '{') depth++;
+    if (boundary === '}') depth--;
+  }
+  return false;
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -141,15 +157,7 @@ try {
       checkLedgerIndexVersion(file, text);
     }
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
-      let depth = 0;
-      const exposed = text.split('\n').some(line => {
-        const code = line.replace(/"(?:\\.|[^"\\])*"/g, '""');
-        const member = depth === 1 && /^(.*?)\b(let|var)\s+(\w+)\b(.*)/.exec(code);
-        depth += (code.match(/\{/g) ?? []).length - (code.match(/\}/g) ?? []).length;
-        if (!member || /(?:^|\s)private(?:\s|$)/.test(member[1])) return false;
-        return !/^\s*package let chatId: ChatID\s*$/.test(code);
-      });
-      if (exposed) report(file, 'mailbox-private-state');
+      if (hasExposedMailboxState(text)) report(file, 'mailbox-private-state');
     }
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
       && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)

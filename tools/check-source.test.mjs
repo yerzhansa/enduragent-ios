@@ -121,6 +121,8 @@ for (const declaration of [
   '@ObservationIgnored public private(set) lazy var state = State()',
   'var exposed: State { state }',
   'package var chatId: ChatID',
+  'package let (a, b) = (1, 2)',
+  'var `default`: TurnRunner',
 ]) {
   test(`rejects exposed mailbox state: ${declaration}`, () => {
     const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
@@ -128,6 +130,32 @@ for (const declaration of [
     assert.match(result.output, /\[mailbox-private-state\]/);
   });
 }
+
+for (const [name, source] of [
+  ['same-line member', 'package actor ChatMailbox { var runner: TurnRunner }'],
+  ['member after a method', 'package actor ChatMailbox { func accept() {} ; var runner: TurnRunner }'],
+  ['member after private state', 'package actor ChatMailbox { private let hidden = 1; var runner: TurnRunner }'],
+  ['opening brace in a multiline string', 'package actor ChatMailbox {\nprivate let text = """\n{\n"""\nvar runner: TurnRunner\n}'],
+  ['closing brace in a multiline string', 'package actor ChatMailbox {\nprivate let text = """\n}\n"""\nvar runner: TurnRunner\n}'],
+  ['braces and quotes in a raw multiline string', 'package actor ChatMailbox {\nprivate let text = #"""\n"{"\n"""#\nvar runner: TurnRunner\n}'],
+]) {
+  test(`rejects exposed mailbox state with ${name}`, () => {
+    const result = run({ [mailbox]: source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /\[mailbox-private-state\]/);
+  });
+}
+
+test('accepts inline private mailbox bindings and braces inside strings', () => {
+  const result = run({ [mailbox]: `package actor ChatMailbox { package let chatId: ChatID;
+    private let (a, b) = (1, 2); private var \`default\`: TurnRunner
+    private let text = """
+    } var exposed: TurnRunner {
+    """
+    package func accept() { let runner = self.runner }
+  }` });
+  assert.equal(result.status, 0, result.output);
+});
 
 test('accepts private mailbox state, its immutable identity, and method locals', () => {
   const result = run({ [mailbox]: `package actor ChatMailbox {

@@ -4,6 +4,24 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
+	@Test(
+		arguments: [
+			(Catalog.creditsBalance, nil, "1 crédito"),
+			(Catalog.creditsPack, nil, "1 crédito"),
+			(Catalog.creditsPackPrice, "0,99 €", "1 crédito · 0,99 €"),
+		] as [(CatalogKey, String?, String)])
+	func creditsViewUsesTheSingularForm(key: CatalogKey, price: String?, expected: String)
+		async throws
+	{
+		let services = try services()
+		try await services.coach.setLanguage(.fixed(.es))
+		let model = ShellModel(
+			environment: environment(services),
+			initialLanguage: await services.coach.languagePreference())
+		let view = CreditsView(model: model)
+		#expect(view.countLine(key, units: 1, price: price) == expected)
+	}
+
 	@Test(arguments: [
 		(GrantOutcome.minted(Credits(units: 1)), "1 crédito"),
 		(GrantOutcome.toppedUp(added: Credits(units: 1)), "Se añadió 1 crédito"),
