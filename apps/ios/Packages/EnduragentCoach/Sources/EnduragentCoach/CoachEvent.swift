@@ -17,9 +17,6 @@ package struct ChatMessage: Sendable, Equatable {
 
 public enum ToolName: String, Sendable {
 	case calculateZones = "calculate_zones"
-	case buildPlanSkeleton = "build_plan_skeleton"
-	case assessFeasibility = "assess_feasibility"
-	case getSampleWeek = "get_sample_week"
 	case intervalsFetchAthlete = "intervals_fetch_athlete"
 	case intervalsFetchWellness = "intervals_fetch_wellness"
 	case intervalsFetchActivity = "intervals_fetch_activity"
@@ -35,7 +32,6 @@ public enum ToolName: String, Sendable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
 	case planSave = "plan_save"
-	case planLoad = "plan_load"
 }
 
 package enum GatedToolName: String, Sendable {

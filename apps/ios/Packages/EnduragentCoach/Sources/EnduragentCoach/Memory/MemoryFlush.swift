@@ -141,7 +141,7 @@ extension Memory {
 				false, false
 			)
 		}
-		switch call.name {
+		switch ToolName(rawValue: call.name) {
 		case .memoryWrite:
 			let fields = arguments.objectFields
 			guard let section = fields["section"]?.stringValue,

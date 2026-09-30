@@ -79,7 +79,7 @@ package struct WireMessage: Sendable, Equatable {
 
 package struct WireToolCall: Sendable, Equatable {
 	package var id: String
-	package var name: ToolName
+	package var name: String
 	package var arguments: String
 
 	package func parseArguments() throws(DecodingError) -> JSONValue {
@@ -276,7 +276,7 @@ package enum OpenRouterHTTP {
 			"id": .string(toolCall.id),
 			"type": .string("function"),
 			"function": .object([
-				"name": .string(toolCall.name.rawValue),
+				"name": .string(toolCall.name),
 				"arguments": .string(toolCall.arguments),
 			]),
 		])

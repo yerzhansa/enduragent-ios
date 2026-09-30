@@ -151,7 +151,7 @@ private func json(event: TransportEvent) -> [String: Any] {
 		return [
 			"type": "toolCall",
 			"id": call.id,
-			"name": call.name.rawValue,
+			"name": call.name,
 			"arguments": call.arguments,
 		]
 	case .heartbeat:

@@ -88,14 +88,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				}
 			}
 		}
-		let batch: ScriptedBatch
-		do {
-			batch = try nextBatch(for: request)
-		} catch {
-			return AsyncThrowingStream { continuation in
-				continuation.finish(throwing: error)
-			}
-		}
+		let batch = nextBatch(for: request)
 		let delay = requestDelay
 		let pause = deltaDelay
 		return AsyncThrowingStream { continuation in
@@ -137,7 +130,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		}
 	}
 
-	private func nextBatch(for request: CompletionRequest) throws -> ScriptedBatch {
+	private func nextBatch(for request: CompletionRequest) -> ScriptedBatch {
 		lock.lock()
 		defer { lock.unlock() }
 		requests.append(request)
@@ -147,14 +140,11 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 			case .text(let text):
 				events.append(.textDelta(text))
 			case .toolCall(let name, let arguments):
-				guard let toolName = ToolName(rawValue: name) else {
-					throw ProviderFailure.malformedStream
-				}
 				events.append(
 					.toolCall(
 						WireToolCall(
 							id: UUID().uuidString,
-							name: toolName,
+							name: name,
 							arguments: arguments
 						)
 					)
