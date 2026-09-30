@@ -59,7 +59,9 @@ function hasExtraSecretStore(text) {
     });
 }
 function hasExposedMailboxState(text) {
-  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  const reviewScope = /\bpackage\s+var\s+reviewScope\s*:\s*TurnScope\?\s*\{\s*work\.phase\.running\?\.attempt\?\.scope\s*\}/g;
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""')
+    .replace(reviewScope, '');
   let depth = 0;
   for (const [, declaration, boundary] of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
     if (depth === 1) {

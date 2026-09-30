@@ -123,6 +123,10 @@ for (const declaration of [
   'package var chatId: ChatID',
   'package let (a, b) = (1, 2)',
   'var `default`: TurnRunner',
+  'package var reviewScope: TurnScope?',
+  'package let reviewScope: TurnScope',
+  'package var reviewScope: TurnRunner { runner }',
+  'package var reviewScope: TurnScope? { get { work.phase.running?.attempt?.scope } set { replace(newValue) } }',
 ]) {
   test(`rejects exposed mailbox state: ${declaration}`, () => {
     const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
@@ -153,6 +157,16 @@ test('accepts inline private mailbox bindings and braces inside strings', () => 
     } var exposed: TurnRunner {
     """
     package func accept() { let runner = self.runner }
+  }` });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('accepts the mailbox review scope projection used by review decisions', () => {
+  const result = run({ [mailbox]: `package actor ChatMailbox {
+    private let work = MailboxQueue()
+    package var reviewScope: TurnScope? {
+      work.phase.running?.attempt?.scope
+    }
   }` });
   assert.equal(result.status, 0, result.output);
 });
