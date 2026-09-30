@@ -15,7 +15,29 @@ struct AccentColorTests {
 		let traits = UITraitCollection(userInterfaceStyle: style)
 		let asset = try #require(
 			UIColor(named: "AccentColor", in: Bundle(for: ShellModel.self), compatibleWith: traits))
-		let color = asset.resolvedColor(with: traits)
+		try expectColor(asset.resolvedColor(with: traits), red: red, green: green, blue: blue)
+	}
+
+	@Test(arguments: [
+		(UIUserInterfaceStyle.light, 56, 101, 142),
+		(UIUserInterfaceStyle.dark, 130, 174, 214),
+	])
+	func appTintMatchesAppearance(
+		style: UIUserInterfaceStyle, red: Int, green: Int, blue: Int
+	) throws {
+		let keyWindow = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+			.flatMap(\.windows).first(where: \.isKeyWindow)
+		let window = try #require(keyWindow)
+		let previousStyle = window.overrideUserInterfaceStyle
+		defer { window.overrideUserInterfaceStyle = previousStyle }
+		window.overrideUserInterfaceStyle = style
+		window.layoutIfNeeded()
+		let tint = try #require(window.tintColor)
+		try expectColor(
+			tint.resolvedColor(with: window.traitCollection), red: red, green: green, blue: blue)
+	}
+
+	private func expectColor(_ color: UIColor, red: Int, green: Int, blue: Int) throws {
 		var actualRed: CGFloat = 0
 		var actualGreen: CGFloat = 0
 		var actualBlue: CGFloat = 0
