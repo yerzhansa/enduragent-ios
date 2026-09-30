@@ -5,74 +5,10 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct CredentialRecoveryTests {
-	@Test(arguments: [false, true])
-	func migrationPrefersAnInterruptedRecoveryUndoRecord(afterTokenWrite: Bool) async throws {
+	@Test func blockedMigrationPreservesLegacyItemsAndRetriesAfterUnlock() async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
 		let previous = CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key")
-		let current = CreditsAccount(
-			appAccountToken: afterTokenWrite ? newToken : oldToken, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
-		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: oldToken, hasCreditsKey: true))
-		#expect(try store.creditsAccount() == previous)
-		#expect(try ICloudKeychainStore(backing: memory).creditsAccount() == previous)
-		for account in ["intervalsConnectionStaging", "openRouterKey", "appAccountToken"] {
-			#expect(try memory.copy(account: account) == nil)
-		}
-	}
-
-	@Test func transientMigrationReadKeepsTheUndoRecord() async throws {
-		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
-		let current = CreditsAccount(appAccountToken: token, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
-		let undo = try memory.copy(account: "intervalsConnectionStaging")
-		let store = ICloudKeychainStore(backing: OnceFailingStagingBacking(base: memory))
-		let coach = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-
-		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
-			try await coach.creditsIdentity()
-		}
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == undo)
-		#expect(try memory.copy(account: CredentialSlot.creditsAccount.rawValue) == nil)
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
-		#expect(try store.creditsAccount() == previous)
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
-	}
-
-	@Test func migrationRestoresMissingPreviousKey() async throws {
-		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let previous = CreditsAccount(appAccountToken: oldToken, key: nil)
-		let current = CreditsAccount(appAccountToken: newToken, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
-		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: oldToken, hasCreditsKey: false))
-		#expect(try store.creditsAccount() == previous)
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
-	}
-
-	@Test func blockedMigrationPreservesUndoRecordAndRetriesAfterUnlock() async throws {
-		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let previous = CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key")
-		let current = CreditsAccount(appAccountToken: newToken, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
-		let undo = try memory.copy(account: "intervalsConnectionStaging")
+		let memory = legacyCreditsBacking(previous)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecInteractionNotAllowed)
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = makeCoach(
@@ -81,7 +17,7 @@ import Testing
 		await #expect(throws: AccessUnavailable.secureStorageLocked) {
 			try await coach.creditsIdentity()
 		}
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == undo)
+		#expect(try memory.copy(account: "openRouterKey") == Data("test-old-credits-key".utf8))
 		#expect(try memory.copy(account: CredentialSlot.creditsAccount.rawValue) == nil)
 		#expect(coach.diagnostics.entries.isEmpty)
 
@@ -90,29 +26,7 @@ import Testing
 			try await coach.creditsIdentity()
 				== CreditsIdentity(appAccountToken: oldToken, hasCreditsKey: true))
 		#expect(try store.creditsAccount() == previous)
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
-	}
-
-	@Test(arguments: [false, true])
-	func legacyIntervalsStageIsDiscardedWhenCreditsMigrate(wrapped: Bool) async throws {
-		let encoded = try JSONEncoder().encode(StoredIntervalsConnection(testConnection))
-		let connection = try #require(String(data: encoded, encoding: .utf8))
-		let legacy = wrapped ? Data("{\"intervals\":{\"_0\":\(connection)}}".utf8) : encoded
-		let memory = FixtureSecretStoreBacking(items: [
-			"intervalsConnectionStaging": legacy,
-			"appAccountToken": Data(UUID().uuidString.utf8),
-		])
-		let store = ICloudKeychainStore(backing: memory)
-		try store.storeIntervalsConnection(testConnection)
-		let coach = makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-
-		let identity = try await coach.creditsIdentity()
-
-		#expect(!identity.hasCreditsKey)
-		#expect(try store.creditsAccount()?.appAccountToken == identity.appAccountToken)
-		#expect(try store.intervalsConnection() == testConnection)
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
+		#expect(try memory.copy(account: "openRouterKey") == nil)
 	}
 }
 
@@ -202,43 +116,8 @@ extension CreditsClientTests {
 	}
 }
 
-func legacyCreditsBacking(previous: CreditsAccount, current: CreditsAccount) throws
-	-> FixtureSecretStoreBacking
-{
-	var undo = ["previousAppAccountToken": previous.appAccountToken.uuidString]
-	undo["previousKey"] = previous.key
-	var items = [
-		"intervalsConnectionStaging": try JSONEncoder().encode(["credits": undo]),
-		"appAccountToken": Data(current.appAccountToken.uuidString.utf8),
-	]
-	items["openRouterKey"] = current.key.map { Data($0.utf8) }
+func legacyCreditsBacking(_ account: CreditsAccount) -> FixtureSecretStoreBacking {
+	var items = ["appAccountToken": Data(account.appAccountToken.uuidString.utf8)]
+	items["openRouterKey"] = account.key.map { Data($0.utf8) }
 	return FixtureSecretStoreBacking(items: items)
-}
-
-private final class OnceFailingStagingBacking: SecretStoreBacking, @unchecked Sendable {
-	private let base: FixtureSecretStoreBacking
-	private let lock = NSLock()
-	private var failed = false
-
-	init(base: FixtureSecretStoreBacking) {
-		self.base = base
-	}
-
-	func add(account: String, data: Data) throws { try base.add(account: account, data: data) }
-
-	func copy(account: String) throws -> Data? {
-		let failNow = lock.withLock {
-			guard account == "intervalsConnectionStaging", !failed else { return false }
-			failed = true
-			return true
-		}
-		if failNow { throw KeychainStoreError(status: errSecNotAvailable) }
-		return try base.copy(account: account)
-	}
-
-	func update(account: String, data: Data) throws {
-		try base.update(account: account, data: data)
-	}
-
-	func delete(account: String) throws { try base.delete(account: account) }
 }
