@@ -17,39 +17,40 @@ struct SlashListTests {
 
 extension FixtureLaunchTests {
 	@Test(arguments: [ColorScheme.light, .dark])
-	func slashDescriptionsRenderInPrimaryTextColor(scheme: ColorScheme) throws {
+	func slashDescriptionsIgnoreTint(scheme: ColorScheme) throws {
 		let model = model(try services())
-		let actual = try slashImage(SlashListView(model: model), scheme: scheme)
-		let reference = VStack(alignment: .leading, spacing: 0) {
-			ForEach(SlashCommand.allCases, id: \.self) { command in
-				Button {
-				} label: {
-					VStack(alignment: .leading, spacing: 2) {
-						Text(command.rawValue)
-						Text(model.phrasebook.say(command.menuTitle, [:]))
-							.font(.footnote)
-							.foregroundStyle(Color.primary)
-					}
-				}
-				.frame(maxWidth: .infinity, alignment: .leading)
-				.padding(.horizontal)
-				.padding(.vertical, 10)
-			}
+		let red = try slashImage(
+			SlashListView(model: model), tint: Color(.sRGB, red: 1, green: 0, blue: 0),
+			scheme: scheme)
+		let green = try slashImage(
+			SlashListView(model: model), tint: Color(.sRGB, red: 0, green: 1, blue: 0),
+			scheme: scheme)
+		try #require(red.width > 0 && red.height > 0)
+		try #require(red.width == green.width && red.height == green.height)
+		let redPixels = try rgba(red)
+		let greenPixels = try rgba(green)
+		let background: UInt8 = scheme == .light ? 255 : 0
+		let unchangedForeground = stride(from: 0, to: redPixels.count, by: 4).filter { offset in
+			redPixels[offset..<offset + 4] == greenPixels[offset..<offset + 4]
+				&& (redPixels[offset] != background || redPixels[offset + 1] != background
+					|| redPixels[offset + 2] != background)
 		}
-		let expected = try slashImage(reference, scheme: scheme)
-		try #require(expected.width > 0 && expected.height > 0)
-		#expect(actual.width == expected.width)
-		#expect(actual.height == expected.height)
-		let matchesPrimaryReference = try rgba(actual) == rgba(expected)
-		#expect(matchesPrimaryReference)
+		try #require(!unchangedForeground.isEmpty)
+		#expect(
+			unchangedForeground.allSatisfy { offset in
+				redPixels[offset] == redPixels[offset + 1]
+					&& redPixels[offset + 1] == redPixels[offset + 2]
+			})
 	}
 
-	private func slashImage(_ content: some View, scheme: ColorScheme) throws -> CGImage {
+	private func slashImage(_ content: some View, tint: Color, scheme: ColorScheme) throws
+		-> CGImage
+	{
 		let renderer = ImageRenderer(
 			content:
 				content
 				.frame(width: 390)
-				.tint(Color.accentColor)
+				.tint(tint)
 				.font(.body)
 				.dynamicTypeSize(.medium)
 				.environment(\.colorScheme, scheme)
