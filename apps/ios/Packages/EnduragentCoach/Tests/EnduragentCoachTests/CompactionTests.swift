@@ -135,6 +135,57 @@ import Testing
 		#expect(windows == [fixedUlid(2)])
 	}
 
+	@Test func aTrimmedLegacyQuestionWithoutAReplyStaysDropped() async throws {
+		let budget = historyBudget(clock: clock)
+		let orphan = "Orphan question " + String(repeating: "o", count: budget * 2)
+		let legacyReplyText = "Legacy answer " + String(repeating: "l", count: budget * 5 / 3)
+		let kept = TurnID(ulid: fixedUlid(4))
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId, wall: 1, ulid: fixedUlid(1),
+					body: legacyUser(chatId: .main, text: orphan)),
+				storedRecord(
+					device: store.deviceId, wall: 2, ulid: fixedUlid(2),
+					body: legacyUser(chatId: .main, text: "Legacy question")),
+				storedRecord(
+					device: store.deviceId, wall: 3, ulid: fixedUlid(3),
+					body: legacyReply(chatId: .main, text: legacyReplyText)),
+				storedRecord(
+					device: store.deviceId, wall: 4, ulid: fixedUlid(4),
+					body: .synced(sampleUser(chatId: .main, text: "Kept question", turn: kept))),
+				storedRecord(
+					device: store.deviceId, wall: 5, ulid: fixedUlid(5),
+					body: .synced(sampleReply(chatId: .main, turn: kept, text: "Kept answer"))),
+			])
+		transport.summaryScript = Array(
+			repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 2
+		).flatMap { $0 }
+		transport.script = [
+			.text("Thursday is on."), .finish(reason: .stop),
+			.text("Saturday too."), .finish(reason: .stop),
+		]
+		let coach = makeCoach()
+		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
+		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
+		#expect(sent(.droppedSummary, by: transport).count == 1)
+		let prompts = sent(.chatAttempt, by: transport)
+		#expect(prompts.count == 2)
+		for prompt in prompts {
+			#expect(!prompt.messages.contains { $0.content.contains("Orphan question") })
+			#expect(prompt.messages.contains { $0.unstampedContent == "Legacy question" })
+			#expect(prompt.messages.contains { $0.content == legacyReplyText })
+			#expect(prompt.messages.contains { $0.unstampedContent == "Kept question" })
+			#expect(prompt.messages.contains { $0.content == "Kept answer" })
+		}
+		let windows = try await chatWindowRecords().compactMap { record -> ULID? in
+			guard case .synced(.windowStart(let body)) = record.body else { return nil }
+			return body.firstIncludedUlid
+		}
+		#expect(windows == [fixedUlid(2)])
+	}
+
 	@Test func aSettlementAfterTheTrimStaysInLaterPrompts() async throws {
 		try await seedInterleavedHistory(firstReply: "Late answer")
 		try await seed(

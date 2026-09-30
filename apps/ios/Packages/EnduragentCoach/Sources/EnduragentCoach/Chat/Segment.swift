@@ -18,12 +18,16 @@ package struct ReviewNote: Sendable, Equatable {
 }
 
 package struct PromptWindow: Sendable, Equatable {
-	package var firstIncluded: ULID?
-	package var opened: ULID?
+	package struct Trim: Sendable, Equatable {
+		package let firstIncluded: ULID
+		package let opened: ULID
+	}
+
+	package var trim: Trim?
 	package var summary: CompactionSummaryBody?
 
 	mutating func summarize(_ body: CompactionSummaryBody, at ulid: ULID) {
-		if let opened, ulid < opened {
+		if let opened = trim?.opened, ulid < opened {
 			return
 		}
 		summary = body
@@ -52,10 +56,9 @@ package struct Segment: Sendable, Equatable {
 		var history = PromptHistory(
 			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
-			if let firstIncluded = promptWindow.firstIncluded, let opened = promptWindow.opened,
-				let first = facts.fragments.min(by: { $0.index < $1.index }),
-				first.ulid < firstIncluded,
-				let settled = facts.latestSettlement, settled.ulid < opened
+			if let trim = promptWindow.trim, let first = facts.userRow?.ulid,
+				first < trim.firstIncluded,
+				facts.latestSettlement.map({ $0.ulid < trim.opened }) ?? true
 			{
 				continue
 			}
