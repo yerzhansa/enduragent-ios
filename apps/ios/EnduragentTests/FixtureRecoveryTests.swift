@@ -69,7 +69,7 @@ extension FixtureLaunchTests {
 	@Test(.timeLimit(.minutes(1)))
 	func willTerminateSettlesTheRunningTurnBeforeItReturns() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "fixture:slow"
@@ -79,9 +79,7 @@ extension FixtureLaunchTests {
 			return !processing.liveText.isEmpty
 		}
 		NotificationCenter.default.post(name: UIApplication.willTerminateNotification, object: nil)
-		for kind in SyncedKind.allCases {
-			records.failAppends(ofKind: kind)
-		}
+		records.failSyncedAppends = true
 		let reopened = try #require(
 			await firstSnapshot(try relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)
@@ -97,15 +95,16 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
 		let services = try services()
-		let records = try #require(services.fixtureRecordLog)
+		let records = services.coach.recordSyncProbe()
 		let killed = model(services)
 		killed.startChatting()
 		killed.draft.text = "fixture:memory-then-hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
 		let deadline = ContinuousClock.now + .seconds(5)
-		while try await records.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-			.isEmpty,
+		while try await !records.snapshot().counts.contains(where: {
+			$0.kind == "memorySection" && $0.count > 0
+		}),
 			ContinuousClock.now < deadline
 		{
 			try await Task.sleep(for: .milliseconds(20))

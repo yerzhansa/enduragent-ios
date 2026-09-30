@@ -215,3 +215,31 @@ test('accepts fixture feedback in a guarded DebugView and its model', () => {
   });
   assert.equal(result.status, 0, result.output);
 });
+
+const recordSource = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/Body.swift';
+for (const declaration of [
+  'public struct Body {}',
+  'public enum Body { case sample }',
+  'public\nextension Body {}',
+  'public private(set) var value: Int',
+  'open class Body {}',
+  '@_spi(Testing) public struct Body {}',
+  '@_spi(Testing) package struct Body {}',
+]) {
+  test(`rejects record access declaration ${declaration}`, () => {
+    const result = run({ [recordSource]: declaration });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /\[records-package-only\]/);
+  });
+}
+
+test('accepts package and internal records and public handles outside Records', () => {
+  const result = run({
+    [recordSource]: 'package struct Body { package var value: Int }\nstruct InternalBody {}',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/CoachPorts.swift':
+      'public struct RecordStore {}',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Diagnostics/RecordSyncProbe.swift':
+      '#if DEBUG\npublic struct RecordSyncProbe {}\n#endif',
+  });
+  assert.equal(result.status, 0, result.output);
+});

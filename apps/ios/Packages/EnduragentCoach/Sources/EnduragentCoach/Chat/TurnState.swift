@@ -106,3 +106,7 @@ public enum InterruptionCause: String, Sendable, CaseIterable {
 	case processEnded
 	case stoppedBeforeStart
 }
+
+public enum ReplyText: Sendable, Equatable {
+	case model(String)
+}

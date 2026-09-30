@@ -134,9 +134,11 @@ extension FixtureLaunchTests {
 		let running = try await leaseTurn(in: model) { state in
 			if case .processing = state { true } else { false }
 		}
-		let records = try #require(services.fixtureRecordLog)
+		let records = services.coach.recordSyncProbe()
 		try await waitUntil {
-			try await !records.fetch(RecordQuery(scope: .synced([.memorySection]))).records.isEmpty
+			try await records.snapshot().counts.contains {
+				$0.kind == "memorySection" && $0.count > 0
+			}
 		}
 		model.draft.text = "fixture:expire"
 		await model.send()
@@ -179,7 +181,7 @@ extension FixtureLaunchTests {
 		return Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: InMemoryRecordLog(),
+				records: .inMemory(deviceId: DeviceID()),
 				secrets: secrets,
 				models: .scripted(transport),
 				training: .fake { _, _ in intervals },

@@ -1,191 +1,187 @@
 import Foundation
 
-public struct UserMessageBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var turn: TurnID
-	public var fragment: Int
-	public var draft: DraftID
-	public var athleteText: String
-	public var slash: SlashCommand?
+package struct UserMessageBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var turn: TurnID
+	package var fragment: Int
+	package var draft: DraftID
+	package var athleteText: String
+	package var slash: SlashCommand?
 }
 
-public struct TurnSettledBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var turn: TurnID
-	public var attempt: AttemptID
-	public var settlement: Settlement
+package struct TurnSettledBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var turn: TurnID
+	package var attempt: AttemptID
+	package var settlement: Settlement
 }
 
-public enum Settlement: Sendable, Equatable {
+package enum Settlement: Sendable, Equatable {
 	case replied(ReplyText, lineage: ReplyLineage?)
 	case savedWork(SavedWorkOutcome, saved: WriteSummary)
 	case failed(CoachFailure, saved: WriteSummary)
 	case interrupted(partial: String, cause: InterruptionCause, saved: WriteSummary)
 }
 
-public struct TurnClaimBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var turn: TurnID
-	public var attempt: AttemptID
-	public var process: ProcessID?
-	public var lease: LeaseKind
+package struct TurnClaimBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var turn: TurnID
+	package var attempt: AttemptID
+	package var process: ProcessID?
+	package var lease: LeaseKind
 }
 
-public struct ReplyObservedBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var turn: TurnID
-	public var attempt: AttemptID
+package struct ReplyObservedBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var turn: TurnID
+	package var attempt: AttemptID
 }
 
-public enum ReplyText: Sendable, Equatable {
-	case model(String)
+package struct ReplyLineage: Sendable, Equatable {
+	package var templateHash: String
+	package var assembledHash: String
 }
 
-public struct ReplyLineage: Sendable, Equatable {
-	public var templateHash: String
-	public var assembledHash: String
+package struct WindowStartBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var firstIncludedUlid: ULID
+	package var reason: WindowReason
 }
 
-public struct WindowStartBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var firstIncludedUlid: ULID
-	public var reason: WindowReason
-}
-
-public enum WindowReason: Sendable, Equatable {
+package enum WindowReason: Sendable, Equatable {
 	case trim
 	case compaction
 	case reset(ResetID)
 }
 
-public struct CompactionSummaryBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var markdown: String
+package struct CompactionSummaryBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var markdown: String
 }
 
-public struct MemorySectionBody: Sendable, Equatable {
-	public var name: SectionName
-	public var content: String
+package struct MemorySectionBody: Sendable, Equatable {
+	package var name: SectionName
+	package var content: String
 }
 
-public struct DailyNoteBody: Sendable, Equatable {
-	public var note: String
+package struct DailyNoteBody: Sendable, Equatable {
+	package var note: String
 }
 
-public struct LedgerEventBody: Sendable, Equatable {
-	public var date: CivilDate
-	public var kind: LedgerKind
-	public var text: String
-	public var source: LedgerSource
+package struct LedgerEventBody: Sendable, Equatable {
+	package var date: CivilDate
+	package var kind: LedgerKind
+	package var text: String
+	package var source: LedgerSource
 }
 
-public struct JournalBody: Sendable, Equatable {
-	public var op: JournalOp
-	public var preview: String
+package struct JournalBody: Sendable, Equatable {
+	package var op: JournalOp
+	package var preview: String
 }
 
-public struct ProvenanceBody: Sendable, Equatable {
-	public var key: String
-	public var garmin: Bool
-	public var nonGarmin: Bool
-	public var unknown: Bool
-	public var contentSha256: String
+package struct ProvenanceBody: Sendable, Equatable {
+	package var key: String
+	package var garmin: Bool
+	package var nonGarmin: Bool
+	package var unknown: Bool
+	package var contentSha256: String
 }
 
-public struct ProposalBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var nonce: Nonce
-	public var tool: GatedToolName
-	public var toolInput: GatedToolInput
-	public var summary: String
-	public var description: String
-	public var expiresAt: Date
+package struct ProposalBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var nonce: Nonce
+	package var tool: GatedToolName
+	package var toolInput: GatedToolInput
+	package var summary: String
+	package var description: String
+	package var expiresAt: Date
 }
 
-public struct ProposalClearedBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var nonce: Nonce
-	public var reason: ProposalClearReason
+package struct ProposalClearedBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var nonce: Nonce
+	package var reason: ProposalClearReason
 }
 
-public enum ProposalClearReason: String, Sendable {
+package enum ProposalClearReason: String, Sendable {
 	case executed
 	case replaced
 	case expired
 	case canceled
 }
 
-public struct ReviewAppliedBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var summary: ReviewSummary
+package struct ReviewAppliedBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var summary: ReviewSummary
 }
 
-public struct FlushPendingBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var messageUlids: [ULID]
-	public var process: ProcessID?
+package struct FlushPendingBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var messageUlids: [ULID]
+	package var process: ProcessID?
 }
 
-public struct FlushSettledBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var job: FlushJobID
-	public var settlement: FlushSettlement
+package struct FlushSettledBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var job: FlushJobID
+	package var settlement: FlushSettlement
 }
 
-public enum FlushSettlement: Sendable, Equatable {
+package enum FlushSettlement: Sendable, Equatable {
 	case saved(sections: Int, events: Int)
 	case nothingToSave
 	case abandoned
 }
 
-public struct CoachReplyLanguageBody: Sendable, Equatable {
-	public var tag: LanguageTag?
+package struct CoachReplyLanguageBody: Sendable, Equatable {
+	package var tag: LanguageTag?
 }
 
-public struct SessionSettingsBody: Sendable, Equatable {
-	public var settings: SessionSettings
+package struct SessionSettingsBody: Sendable, Equatable {
+	package var settings: SessionSettings
 }
 
-public struct LanguagePreferenceBody: Sendable, Equatable {
-	public var preference: LanguagePreference
+package struct LanguagePreferenceBody: Sendable, Equatable {
+	package var preference: LanguagePreference
 }
 
-public struct PlanningDeviceBody: Sendable, Equatable {
-	public var planningDeviceId: DeviceID
-	public var planUlid: ULID
-	public var activatedAt: Date
+package struct PlanningDeviceBody: Sendable, Equatable {
+	package var planningDeviceId: DeviceID
+	package var planUlid: ULID
+	package var activatedAt: Date
 }
 
-public struct PlanningCommandBody: Sendable, Equatable {
-	public var commandName: PlanningCommandName
-	public var commandId: String
-	public var requestDigest: String
-	public var status: PlanningCommandStatus
-	public var result: JSONValue?
+package struct PlanningCommandBody: Sendable, Equatable {
+	package var commandName: PlanningCommandName
+	package var commandId: String
+	package var requestDigest: String
+	package var status: PlanningCommandStatus
+	package var result: JSONValue?
 }
 
-public struct PlanRevisionBody: Sendable, Equatable {
-	public var planUlid: ULID
-	public var version: Int
-	public var status: PlanStatus
-	public var snapshot: JSONValue
+package struct PlanRevisionBody: Sendable, Equatable {
+	package var planUlid: ULID
+	package var version: Int
+	package var status: PlanStatus
+	package var snapshot: JSONValue
 }
 
-public struct MirrorJobBody: Sendable, Equatable {
-	public var planUlid: ULID
-	public var kind: MirrorJobKind
-	public var windowStart: DateKey
-	public var windowEnd: DateKey
-	public var failureCount: Int
+package struct MirrorJobBody: Sendable, Equatable {
+	package var planUlid: ULID
+	package var kind: MirrorJobKind
+	package var windowStart: DateKey
+	package var windowEnd: DateKey
+	package var failureCount: Int
 }
 
-public struct WorkoutMatchBody: Sendable, Equatable {
-	public var planWorkoutId: ULID
-	public var activityId: String
-	public var decision: MatchDecision
+package struct WorkoutMatchBody: Sendable, Equatable {
+	package var planWorkoutId: ULID
+	package var activityId: String
+	package var decision: MatchDecision
 }
 
-public struct WorkoutDriftBody: Sendable, Equatable {
-	public var planWorkoutId: ULID
-	public var askedAt: Date
+package struct WorkoutDriftBody: Sendable, Equatable {
+	package var planWorkoutId: ULID
+	package var askedAt: Date
 }

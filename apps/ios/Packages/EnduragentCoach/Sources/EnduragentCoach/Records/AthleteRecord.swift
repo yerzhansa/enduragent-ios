@@ -1,11 +1,11 @@
 import Foundation
 
-public enum RecordLocality: Sendable, Equatable {
+package enum RecordLocality: Sendable, Equatable {
 	case synced
 	case deviceLocal
 }
 
-public enum SyncedKind: String, Sendable, CaseIterable {
+package enum SyncedKind: String, Sendable, CaseIterable {
 	case userMessage
 	case turnSettled
 	case windowStart
@@ -22,7 +22,7 @@ public enum SyncedKind: String, Sendable, CaseIterable {
 	case languagePreference
 }
 
-public enum DeviceLocalKind: String, Sendable, CaseIterable {
+package enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case turnClaim
 	case replyObserved
 	case pendingProposal
@@ -36,13 +36,13 @@ public enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case workoutDrift
 }
 
-public enum LegacyKind: String, Sendable, CaseIterable {
+package enum LegacyKind: String, Sendable, CaseIterable {
 	case userMessage
 	case assistantMessage
 	case windowStart
 }
 
-public enum SyncedRecordBody: Sendable, Equatable {
+package enum SyncedRecordBody: Sendable, Equatable {
 	case userMessage(UserMessageBody)
 	case turnSettled(TurnSettledBody)
 	case windowStart(WindowStartBody)
@@ -58,7 +58,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 	case sessionSettings(SessionSettingsBody)
 	case languagePreference(LanguagePreferenceBody)
 
-	public var kind: SyncedKind {
+	package var kind: SyncedKind {
 		switch self {
 		case .userMessage: .userMessage
 		case .turnSettled: .turnSettled
@@ -77,7 +77,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var chatId: ChatID? {
+	package var chatId: ChatID? {
 		switch self {
 		case .userMessage(let body): body.chatId
 		case .turnSettled(let body): body.chatId
@@ -90,7 +90,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var turn: TurnID? {
+	package var turn: TurnID? {
 		switch self {
 		case .userMessage(let body): body.turn
 		case .turnSettled(let body): body.turn
@@ -102,7 +102,7 @@ public enum SyncedRecordBody: Sendable, Equatable {
 	}
 }
 
-public enum DeviceLocalRecordBody: Sendable, Equatable {
+package enum DeviceLocalRecordBody: Sendable, Equatable {
 	case turnClaim(TurnClaimBody)
 	case replyObserved(ReplyObservedBody)
 	case pendingProposal(ProposalBody)
@@ -115,7 +115,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	case workoutMatch(WorkoutMatchBody)
 	case workoutDrift(WorkoutDriftBody)
 
-	public var kind: DeviceLocalKind {
+	package var kind: DeviceLocalKind {
 		switch self {
 		case .turnClaim: .turnClaim
 		case .replyObserved: .replyObserved
@@ -131,7 +131,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var chatId: ChatID? {
+	package var chatId: ChatID? {
 		switch self {
 		case .turnClaim(let body): body.chatId
 		case .replyObserved(let body): body.chatId
@@ -143,7 +143,7 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var turn: TurnID? {
+	package var turn: TurnID? {
 		switch self {
 		case .turnClaim(let body): body.turn
 		case .replyObserved(let body): body.turn
@@ -154,12 +154,12 @@ public enum DeviceLocalRecordBody: Sendable, Equatable {
 	}
 }
 
-public enum RecordBody: Sendable, Equatable {
+package enum RecordBody: Sendable, Equatable {
 	case synced(SyncedRecordBody)
 	case deviceLocal(DeviceLocalRecordBody)
 	case legacy(LegacyRecordBody)
 
-	public var kind: String {
+	package var kind: String {
 		switch self {
 		case .synced(let body): body.kind.rawValue
 		case .deviceLocal(let body): body.kind.rawValue
@@ -167,14 +167,14 @@ public enum RecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var locality: RecordLocality {
+	package var locality: RecordLocality {
 		switch self {
 		case .synced, .legacy: .synced
 		case .deviceLocal: .deviceLocal
 		}
 	}
 
-	public var chatId: ChatID? {
+	package var chatId: ChatID? {
 		switch self {
 		case .synced(let body): body.chatId
 		case .deviceLocal(let body): body.chatId
@@ -182,7 +182,7 @@ public enum RecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var turn: TurnID? {
+	package var turn: TurnID? {
 		switch self {
 		case .synced(let body): body.turn
 		case .deviceLocal(let body): body.turn
@@ -191,24 +191,24 @@ public enum RecordBody: Sendable, Equatable {
 	}
 }
 
-public enum RecordCause: Hashable, Sendable {
+package enum RecordCause: Hashable, Sendable {
 	case operation(OperationID, AttemptID)
 	case legacy
 }
 
-public struct AthleteRecord: Sendable, Equatable, Identifiable {
-	public var id: ULID { ulid }
-	public let ulid: ULID
-	public let deviceId: DeviceID
-	public let hlc: HybridLogicalClock
-	public let timeZone: IANATimeZone
-	public let civilDate: CivilDate
-	public let cause: RecordCause
-	public let account: TrainingAccount
-	public let body: RecordBody
+package struct AthleteRecord: Sendable, Equatable, Identifiable {
+	package var id: ULID { ulid }
+	package let ulid: ULID
+	package let deviceId: DeviceID
+	package let hlc: HybridLogicalClock
+	package let timeZone: IANATimeZone
+	package let civilDate: CivilDate
+	package let cause: RecordCause
+	package let account: TrainingAccount
+	package let body: RecordBody
 
-	public var locality: RecordLocality { body.locality }
-	public var chatId: ChatID? { body.chatId }
+	package var locality: RecordLocality { body.locality }
+	package var chatId: ChatID? { body.chatId }
 
 	package init(
 		ulid: ULID,

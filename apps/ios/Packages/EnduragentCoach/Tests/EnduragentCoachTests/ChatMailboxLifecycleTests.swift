@@ -39,7 +39,7 @@ extension ChatMailboxTests {
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitForLiveText(turn)
 		try await waitForRecords(.deviceLocal([.replyObserved]), count: 1, in: store)
-		await before.dieWithoutWriting(to: dying)
+		try await before.dieWithoutWriting(to: dying)
 		let reopened = makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		try await Task.sleep(for: .milliseconds(100))

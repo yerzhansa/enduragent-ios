@@ -1,11 +1,11 @@
 import Foundation
 
-public struct HybridLogicalClock: Sendable, Hashable, Comparable {
-	public var wallMs: Int64
-	public var logical: UInt32
-	public var deviceId: DeviceID
+package struct HybridLogicalClock: Sendable, Hashable, Comparable {
+	package var wallMs: Int64
+	package var logical: UInt32
+	package var deviceId: DeviceID
 
-	public init(wallMs: Int64, logical: UInt32, deviceId: DeviceID) {
+	package init(wallMs: Int64, logical: UInt32, deviceId: DeviceID) {
 		self.wallMs = wallMs
 		self.logical = logical
 		self.deviceId = deviceId
@@ -15,7 +15,7 @@ public struct HybridLogicalClock: Sendable, Hashable, Comparable {
 		Date(timeIntervalSince1970: Double(wallMs) / 1000)
 	}
 
-	public static func tick(now: Date, deviceId: DeviceID, last: HybridLogicalClock?)
+	package static func tick(now: Date, deviceId: DeviceID, last: HybridLogicalClock?)
 		-> HybridLogicalClock
 	{
 		let nowMs = Int64((now.timeIntervalSince1970 * 1000).rounded(.down))
@@ -27,7 +27,7 @@ public struct HybridLogicalClock: Sendable, Hashable, Comparable {
 		return HybridLogicalClock(wallMs: wallMs, logical: logical, deviceId: deviceId)
 	}
 
-	public static func < (lhs: HybridLogicalClock, rhs: HybridLogicalClock) -> Bool {
+	package static func < (lhs: HybridLogicalClock, rhs: HybridLogicalClock) -> Bool {
 		if lhs.wallMs != rhs.wallMs { return lhs.wallMs < rhs.wallMs }
 		if lhs.logical != rhs.logical { return lhs.logical < rhs.logical }
 		return lhs.deviceId.rawValue < rhs.deviceId.rawValue

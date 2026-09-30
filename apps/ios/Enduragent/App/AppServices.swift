@@ -55,7 +55,7 @@ struct AppServices: Sendable {
 		fixtureDirector?.transport
 	}
 
-	var fixtureRecordLog: FaultInjectingRecordLog? {
+	var fixtureRecordFaults: RecordFaults? {
 		fixtureDirector?.records
 	}
 
@@ -69,17 +69,10 @@ struct AppServices: Sendable {
 		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 		FirstWeekFixture.install(on: intervals)
 		let transport = FakeModelTransport()
-		let records = FaultInjectingRecordLog(
-			wrapping: SwiftDataRecordLog(
-				deviceId: persistedDeviceID(in: defaults),
-				synced: try ModelContainerHandle.withoutCloudKit(
-					storeURL: launch.directory.appending(
-						path: ModelContainerHandle.syncedStoreFileName)),
-				local: try ModelContainerHandle.withoutCloudKit(
-					storeURL: launch.directory.appending(
-						path: ModelContainerHandle.localStoreFileName))
-			)
-		)
+		let fixture = try RecordStore.fixture(
+			directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
+			unreadable: launch.store == .unreadable)
+		let records = fixture.faults
 		records.failRecoveryReads = launch.recovery == .unreadable
 		let secrets = try FakeSecretStore(directory: launch.directory)
 		if launch.keychain != .empty {
@@ -92,7 +85,7 @@ struct AppServices: Sendable {
 		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: records,
+				records: fixture.store,
 				secrets: secrets,
 				models: .scripted(transport),
 				training: FirstWeekFixture.training(intervals),
@@ -118,12 +111,7 @@ struct AppServices: Sendable {
 	@MainActor
 	static func live(language: LanguageTag) throws -> AppServices {
 		let clock = SystemClock()
-		let directory = try ModelContainerHandle.applicationSupportDirectory()
-		let store = SwiftDataRecordLog(
-			deviceId: persistedDeviceID(in: .standard),
-			synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
-			local: try ModelContainerHandle.deviceLocal(directory: directory)
-		)
+		let store = try RecordStore.onDevice(deviceId: persistedDeviceID(in: .standard))
 		let host = ContinuedProcessingHost(
 			bundleIdentifier: bundleIdentifier, system: LiveBackgroundSystem())
 		let coach = Coach(

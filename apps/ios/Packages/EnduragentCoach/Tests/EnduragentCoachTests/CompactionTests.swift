@@ -81,6 +81,30 @@ import Testing
 		#expect(compactionFailed(coach))
 	}
 
+	@Test func trimmedHistoryPersistsTheFixtureSummaryMarkdown() async throws {
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = [
+			.text("Summary of the earlier conversation."), .finish(reason: .stop),
+		]
+		transport.script = [
+			.text("Thursday is on."), .finish(reason: .stop),
+			.text("Saturday too."), .finish(reason: .stop),
+		]
+		let coach = makeCoach()
+		_ = try await coach.sendAndSettle("Is Thursday on?")
+		_ = try await coach.sendAndSettle("And Saturday?")
+		let summaries = try await chatWindowRecords().compactMap { record -> String? in
+			guard case .synced(.compactionSummary(let body)) = record.body else { return nil }
+			return body.markdown
+		}
+		#expect(summaries == ["Summary of the earlier conversation."])
+		let next = try #require(sent(.chatAttempt, by: transport).last)
+		#expect(
+			next.messages.dropFirst().first?.content
+				== "[Previous conversation summary]\nSummary of the earlier conversation.")
+	}
+
 	private func chatWindowRecords() async throws -> [AthleteRecord] {
 		try await store.fetch(
 			RecordQuery(scope: .synced([.windowStart, .compactionSummary]), chatId: .main)

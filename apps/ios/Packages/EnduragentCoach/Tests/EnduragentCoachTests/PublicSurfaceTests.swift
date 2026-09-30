@@ -11,7 +11,7 @@
 			let actual = (root.children ?? []).flatMap { $0.publicNames() }.sorted()
 			let changes = actual.difference(from: expected.sorted())
 			#expect(changes.isEmpty, "Public API declarations changed: \(Array(changes))")
-			try checkImplementationFolders(root)
+			try checkImplementationFolders()
 		}
 
 		private func symbols(in resource: String) throws -> [String] {
@@ -95,11 +95,11 @@
 			#expect(declarations.map(\.description) == ["struct Record", "var probe"])
 		}
 
-		private func checkImplementationFolders(_ root: APINode) throws {
+		private func checkImplementationFolders() throws {
 			let package = URL(fileURLWithPath: #filePath)
 				.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
 			let sources = package.appendingPathComponent("Sources/EnduragentCoach")
-			for folder in ["Loop", "Transport"] {
+			for folder in ["Loop", "Transport", "Records"] {
 				for file in try swiftFiles(in: sources.appendingPathComponent(folder)) {
 					let declarations = try publicDeclarations(
 						in: String(contentsOf: file, encoding: .utf8))
@@ -116,24 +116,6 @@
 					)
 				}
 			}
-			var recordDeclarations: [String] = []
-			var recordTypes: Set<String> = []
-			for file in try swiftFiles(in: sources.appendingPathComponent("Records")) {
-				let declarations = try publicDeclarations(
-					in: String(contentsOf: file, encoding: .utf8))
-				recordDeclarations += declarations.map {
-					"source \(file.lastPathComponent): \($0)"
-				}
-				recordTypes.formUnion(declarations.filter(\.isType).map(\.name))
-			}
-			let recordMembers = (root.children ?? []).filter { recordTypes.contains($0.name) }
-				.flatMap { $0.publicNames() }.map { "symbol \($0)" }
-			let retained = try symbols(in: "PublicSurfaceRecordDependencies")
-			let changes = (recordDeclarations + recordMembers).sorted()
-				.difference(from: retained.sorted())
-			#expect(
-				changes.isEmpty,
-				"Records public declarations changed: \(Array(changes))")
 		}
 
 		private func publicDeclarations(in source: String) throws -> [PublicSourceDeclaration] {
@@ -171,10 +153,6 @@
 	private struct PublicSourceDeclaration: CustomStringConvertible {
 		let kind: String
 		let name: String
-
-		var isType: Bool {
-			["actor", "class", "struct", "enum", "protocol", "typealias"].contains(kind)
-		}
 
 		var description: String { name.isEmpty ? kind : "\(kind) \(name)" }
 	}

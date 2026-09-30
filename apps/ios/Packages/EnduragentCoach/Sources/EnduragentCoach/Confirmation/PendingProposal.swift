@@ -9,7 +9,7 @@ package struct PendingProposal: Sendable, Equatable {
 	package var account: TrainingAccount
 }
 
-public enum GatedToolInput: Sendable, Equatable {
+package enum GatedToolInput: Sendable, Equatable {
 	case createWorkout(date: CivilDate, workout: IntervalsWorkoutInput)
 	case createStrengthWorkout(date: CivilDate, name: String, description: String)
 	case deleteWorkout(eventId: EventID)
@@ -17,11 +17,11 @@ public enum GatedToolInput: Sendable, Equatable {
 	case planSave(PlanHeadline)
 }
 
-public struct UpdateWorkoutInput: Sendable, Equatable {
-	public var eventId: EventID
-	public var date: CivilDate?
-	public var name: String?
-	public var description: String?
+package struct UpdateWorkoutInput: Sendable, Equatable {
+	package var eventId: EventID
+	package var date: CivilDate?
+	package var name: String?
+	package var description: String?
 }
 
 package struct LiveProposal: Sendable, Equatable {

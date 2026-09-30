@@ -69,7 +69,7 @@ extension FixtureLaunchTests {
 	@Test func sendKeepsDraftWhenAcceptFails() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let records = try #require(services.fixtureRecordLog)
+		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "fixture:storage fail-next-append"
