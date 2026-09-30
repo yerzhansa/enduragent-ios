@@ -10,6 +10,53 @@ import Testing
 		name: "ledger_append",
 		arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
 
+	@Test(arguments: [
+		InterruptionCause.athleteStopped, .systemExpired, .appTerminating,
+	])
+	func interruptionCancelsInFlightRead(cause: InterruptionCause) async throws {
+		let readClock = HeldClock()
+		let intervals = HeldReadIntervals(clock: readClock)
+		let transport = FakeModelTransport()
+		transport.script = [
+			.text("Checking your recent rides. "),
+			.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+			.finish(reason: .toolCalls),
+		]
+		let store = InMemoryRecordLog()
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock, host: host)
+		let turn = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		try await readClock.waitUntilHeld(.seconds(30))
+		let returned = Mutex(false)
+		let interruption = Task {
+			switch cause {
+			case .athleteStopped:
+				await coach.stop(.main)
+			case .systemExpired:
+				await host.expire(.systemExpired)
+			case .appTerminating:
+				await coach.lifecycle(.willTerminate)
+			default:
+				Issue.record("unsupported interruption: \(cause)")
+			}
+			returned.withLock { $0 = true }
+		}
+		try await waitUntil(within: .seconds(1)) { returned.withLock { $0 } }
+		#expect(readClock.held.isEmpty, "the training read did not receive cancellation")
+		readClock.release(.seconds(30))
+		await interruption.value
+		guard case .interrupted(let interrupted)? = await coach.state(of: turn) else {
+			Issue.record("expected the reply to be interrupted")
+			return
+		}
+		#expect(interrupted.cause == cause)
+		#expect(interrupted.partial == "Checking your recent rides. ")
+		#expect(try await settlements(of: turn, in: store).count == 1)
+		#expect(await host.ended(0)?.ending == .interrupted)
+	}
+
 	@Test func stopExpiryAndTerminateTogetherSettleEachTurnOnce() async throws {
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true

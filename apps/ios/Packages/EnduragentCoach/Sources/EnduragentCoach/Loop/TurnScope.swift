@@ -86,13 +86,19 @@ package actor TurnScope {
 		run: @escaping @Sendable () async throws -> ToolExecution
 	) async throws -> ToolExecution {
 		let key = MemoKey(tool: tool, arguments: arguments)
+		let task: Task<ToolExecution, Error>
 		if let known = memo[key] {
-			return try await known.value
+			task = known
+		} else {
+			task = Task { try await run() }
 		}
-		let task = Task { try await run() }
 		memo[key] = task
 		do {
-			return try await task.value
+			return try await withTaskCancellationHandler {
+				try await task.value
+			} onCancel: {
+				task.cancel()
+			}
 		} catch {
 			memo[key] = nil
 			throw error
