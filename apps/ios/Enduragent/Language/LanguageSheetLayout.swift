@@ -1,3 +1,3 @@
 enum LanguageSheetLayout {
-	static let heightFraction = 0.87
+	static let heightFraction = 0.94
 }
