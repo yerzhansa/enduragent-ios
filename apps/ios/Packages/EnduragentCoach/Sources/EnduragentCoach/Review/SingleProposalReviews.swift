@@ -56,7 +56,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 		)
 	}
 
-	package func decide(_ decision: ReviewDecision, chat: ChatID) async -> ReviewOutcome {
+	package func decide(
+		_ decision: ReviewDecision, chat: ChatID,
+		applied: @Sendable (LiveProposal) async -> Void
+	) async -> ReviewOutcome {
 		guard decision.ref.chat == chat, var delivery = deliveries[chat],
 			delivery.ref == decision.ref
 		else {
@@ -80,7 +83,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			deliveries[chat] = delivery
 			let outcome: ReviewOutcome
 			if case .approve = decision {
-				outcome = await approve(token)
+				outcome = await approve(token, applied: applied)
 			} else {
 				outcome = await cancel(token)
 			}
@@ -93,7 +96,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 		return .presentationRecorded
 	}
 
-	private func approve(_ token: ReviewControlToken) async -> ReviewOutcome {
+	private func approve(
+		_ token: ReviewControlToken, applied: @Sendable (LiveProposal) async -> Void
+	) async -> ReviewOutcome {
 		let live: LiveProposal
 		switch await liveProposal(for: token.ref) {
 		case .found(let found): live = found
@@ -127,6 +132,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			}
 			return .partiallyApplied(done: [], stoppedAt: card, failure: failure)
 		}
+		await applied(live)
 		await note(live.body, stamp: stamp)
 		return .applied([ReviewReceipt(index: card.index, result: .confirmed(eventId: eventId))])
 	}

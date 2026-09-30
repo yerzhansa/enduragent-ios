@@ -4,6 +4,18 @@ package struct CommittedWrite: Sendable, Equatable {
 	package let tool: ReplayUnsafeToolName
 }
 
+extension CommittedWrite {
+	package init(applied tool: GatedToolName) {
+		switch tool {
+		case .intervalsCreateWorkout: self.init(tool: .intervalsCreateWorkout)
+		case .intervalsCreateStrengthWorkout: self.init(tool: .intervalsCreateStrengthWorkout)
+		case .intervalsDeleteWorkout: self.init(tool: .intervalsDeleteWorkout)
+		case .intervalsUpdateWorkout: self.init(tool: .intervalsUpdateWorkout)
+		case .planSave: self.init(tool: .planSave)
+		}
+	}
+}
+
 package struct ToolExecution: Sendable, Equatable {
 	package let outcome: ToolOutcome
 	package let commit: CommittedWrite?
@@ -70,6 +82,11 @@ package actor TurnScope {
 
 	package func record(_ commit: CommittedWrite) {
 		commits.append(commit)
+	}
+
+	package func recordApplied(_ proposal: LiveProposal) {
+		guard proposal.cause == .operation(stamp.operation, stamp.attempt) else { return }
+		record(CommittedWrite(applied: proposal.body.tool))
 	}
 
 	package var written: [CommittedWrite] {

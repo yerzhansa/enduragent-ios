@@ -101,10 +101,12 @@ package struct TurnRunner: Sendable {
 		while true {
 			let observed = TextObservation()
 			do {
-				if let pending {
-					try await prepare(
+				if let pending,
+					let outcome = try await prepare(
 						pending, prompt: &prompt, attempt: attempt, scope: scope, progress: progress
 					)
+				{
+					return .savedWork(outcome, saved: await scope.summary)
 				}
 				pending = nil
 				return try await generate(
@@ -141,7 +143,7 @@ package struct TurnRunner: Sendable {
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws {
+	) async throws -> SavedWorkOutcome? {
 		for preparation in retry.preparations {
 			switch preparation {
 			case .flushMemory:
@@ -161,8 +163,12 @@ package struct TurnRunner: Sendable {
 				await progress(.activity(.waiting(RetryWait(until: until, reason: reason))))
 				try await clock.sleep(for: duration)
 				try await scope.checkDeadline(uptime: clock.uptime)
+				if let outcome = ladder.savedWork(committed: await scope.written) {
+					return outcome
+				}
 			}
 		}
+		return nil
 	}
 
 	func flushOnce(

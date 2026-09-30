@@ -1,5 +1,13 @@
 import Foundation
 
+extension ChatMailbox {
+	struct Admitted: ~Copyable {
+		fileprivate let queue: MailboxQueue
+
+		init(_ queue: MailboxQueue) { self.queue = queue }
+	}
+}
+
 extension ChatMailbox.Admitted {
 	func add(_ turn: TurnID) -> Bool {
 		queue.append(.turn(turn))

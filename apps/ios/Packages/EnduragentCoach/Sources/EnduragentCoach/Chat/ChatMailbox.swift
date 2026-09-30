@@ -18,6 +18,7 @@ package actor ChatMailbox {
 	private let work = MailboxQueue()
 	private let door = Turnstile()
 	private var live: LiveAttempt?
+	private var liveScope: TurnScope?
 	private var running: Task<Void, Never>?
 	private let interruption = Interruption()
 	private let lifetime: Coach.Lifetime
@@ -231,6 +232,10 @@ package actor ChatMailbox {
 		publish()
 	}
 
+	package func recordApplied(_ proposal: LiveProposal) async {
+		await liveScope?.recordApplied(proposal)
+	}
+
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
 	}
@@ -310,9 +315,10 @@ package actor ChatMailbox {
 				facts, resolution: resolution, stamp: stamp, lease: await lease.kind)
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
+		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
+		liveScope = scope
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
 		publish()
-		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in
@@ -336,6 +342,7 @@ package actor ChatMailbox {
 
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		live = nil
+		liveScope = nil
 		work.finish()
 		let reply = records.conversation.turn(turn)?.reply
 		if reply != nil, !foreground {
@@ -387,12 +394,5 @@ package actor ChatMailbox {
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
 		if waits.end(turn, attempt: attempt) { publish() }
-	}
-
-	struct Admitted: ~Copyable {
-		private let bound: MailboxQueue
-		var queue: MailboxQueue { bound }
-
-		fileprivate init(_ queue: MailboxQueue) { bound = queue }
 	}
 }

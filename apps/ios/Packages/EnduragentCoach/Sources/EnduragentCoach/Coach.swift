@@ -116,8 +116,11 @@ public actor Coach {
 	}
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
-		let outcome = await reviews.decide(decision, chat: chat)
-		await mailbox(for: chat).reviewChanged()
+		let mailbox = await mailbox(for: chat)
+		let outcome = await reviews.decide(decision, chat: chat) { proposal in
+			await mailbox.recordApplied(proposal)
+		}
+		await mailbox.reviewChanged()
 		return outcome
 	}
 
