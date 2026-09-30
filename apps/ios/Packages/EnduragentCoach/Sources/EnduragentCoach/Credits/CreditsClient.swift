@@ -158,7 +158,7 @@ package struct PhoneCreditsClient: CreditsClient {
 		self.vault = vault
 		self.workerBase = workerBase
 		self.openRouterBase = openRouterBase
-		self.session = session ?? OpenRouterTransport.ephemeralSession(Self.timeout)
+		self.session = session ?? ephemeralSession(requestTimeout: Self.timeout)
 	}
 
 	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
