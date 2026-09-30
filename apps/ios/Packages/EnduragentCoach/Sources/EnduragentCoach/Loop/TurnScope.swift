@@ -44,7 +44,7 @@ package actor TurnScope {
 	private var reviewWrites: [Nonce: ReviewWrite] = [:]
 	private let reviewGate = Turnstile()
 	private var interrupted = false
-	private var ladder: RetryLadder?
+	private let ladder: RetryLadder
 
 	private struct ReviewWrite {
 		let invocation: Int
@@ -57,9 +57,12 @@ package actor TurnScope {
 		let arguments: String
 	}
 
-	package init(stamp: OperationStamp, policy: TurnBudgetPolicy, uptime: Duration) {
+	package init(
+		stamp: OperationStamp, policy: TurnBudgetPolicy, ladder: RetryLadder, uptime: Duration
+	) {
 		self.stamp = stamp
 		self.policy = policy
+		self.ladder = ladder
 		self.started = uptime
 	}
 
@@ -70,8 +73,7 @@ package actor TurnScope {
 		}
 	}
 
-	package func chargeAttempt(using ladder: RetryLadder) throws(TurnBudgetExceeded) {
-		self.ladder = ladder
+	package func chargeAttempt() throws(TurnBudgetExceeded) {
 		attempts += 1
 		if attempts > policy.maxGenerateAttempts {
 			throw TurnBudgetExceeded(kind: .generateAttempts)
@@ -139,7 +141,7 @@ package actor TurnScope {
 		_ run: @Sendable () async throws -> PendingProposal
 	) async throws -> PendingProposal {
 		try await reviewGate.passCancellable {
-			if let ladder, let outcome = savedReviewWorkBeforeInvocation(using: ladder) {
+			if let outcome = savedReviewWorkBeforeInvocation() {
 				throw SavedWorkReached(outcome: outcome)
 			}
 			let proposal = try await run()
@@ -148,35 +150,29 @@ package actor TurnScope {
 		}
 	}
 
-	package func savedWork(using ladder: RetryLadder) async throws -> SavedWorkOutcome? {
+	package func savedWork() async throws -> SavedWorkOutcome? {
 		try await reviewGate.passCancellable { ladder.savedWork(committed: written) }
 	}
 
-	package func savedReviewWork(using ladder: RetryLadder) async throws -> SavedWorkOutcome? {
+	package func savedReviewWork() async throws -> SavedWorkOutcome? {
 		guard proposalInvocations.values.contains(where: { $0 < attempts }) else { return nil }
 		return try await reviewGate.passCancellable {
-			savedReviewWorkBeforeInvocation(using: ladder)
+			savedReviewWorkBeforeInvocation()
 		}
 	}
 
-	private func savedReviewWorkBeforeInvocation(using ladder: RetryLadder) -> SavedWorkOutcome? {
+	private func savedReviewWorkBeforeInvocation() -> SavedWorkOutcome? {
 		ladder.savedWork(
 			committed: reviewWrites.values.filter { $0.invocation < attempts }.map(\.commit))
 	}
 
-	package func resolvedWrites() async throws(CancellationError) -> [CommittedWrite] {
-		do {
-			return try await reviewGate.passCancellable { written }
-		} catch {
-			throw CancellationError()
-		}
+	package func resolvedWrites() async throws -> [CommittedWrite] {
+		try await reviewGate.passCancellable { written }
 	}
 
 	package var written: [CommittedWrite] {
 		commits + reviewWrites.values.map(\.commit)
 	}
-
-	var waitingForReview: Bool { reviewGate.waiting }
 
 	package var summary: WriteSummary {
 		WriteSummary(written)
@@ -222,6 +218,7 @@ extension WriteSummary {
 		var ledgerEvents = 0
 		var planSaves = 0
 		var calendarWrites = 0
+		var unverifiedCalendarWrites = 0
 		for commit in commits {
 			switch commit.tool {
 			case .memoryWrite:
@@ -233,13 +230,15 @@ extension WriteSummary {
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout:
 				calendarWrites += 1
+				if !commit.verified { unverifiedCalendarWrites += 1 }
 			}
 		}
 		self.init(
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
 			planSaves: planSaves,
-			calendarWrites: calendarWrites
+			calendarWrites: calendarWrites,
+			unverifiedCalendarWrites: unverifiedCalendarWrites
 		)
 	}
 }

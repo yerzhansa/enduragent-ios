@@ -100,12 +100,14 @@ struct WriteSummaryPayload: Codable {
 	var ledgerEvents: Int
 	var planSaves: Int
 	var calendarWrites: Int
+	var unverifiedCalendarWrites: Int?
 
 	init(_ summary: WriteSummary) {
 		memorySections = summary.memorySections
 		ledgerEvents = summary.ledgerEvents
 		planSaves = summary.planSaves
 		calendarWrites = summary.calendarWrites
+		unverifiedCalendarWrites = summary.unverifiedCalendarWrites
 	}
 
 	var summary: WriteSummary {
@@ -113,7 +115,8 @@ struct WriteSummaryPayload: Codable {
 			memorySections: memorySections,
 			ledgerEvents: ledgerEvents,
 			planSaves: planSaves,
-			calendarWrites: calendarWrites
+			calendarWrites: calendarWrites,
+			unverifiedCalendarWrites: unverifiedCalendarWrites ?? calendarWrites
 		)
 	}
 }

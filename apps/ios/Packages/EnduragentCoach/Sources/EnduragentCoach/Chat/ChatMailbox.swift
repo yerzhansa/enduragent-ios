@@ -311,7 +311,8 @@ package actor ChatMailbox {
 				facts, resolution: resolution, stamp: stamp, lease: await lease.kind)
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
-		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
+		let scope = TurnScope(
+			stamp: stamp, policy: .npm, ladder: runner.ladder, uptime: clock.uptime)
 		work.show(
 			RunningAttempt(
 				live: LiveAttempt(

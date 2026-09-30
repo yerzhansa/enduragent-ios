@@ -2911,6 +2911,7 @@
     "accountChanged": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa {{service}}. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle.",
     "add": "Lisää kalenteriin",
     "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
+    "turnStopping": "Tätä vastausta pysäytetään. Kun se on pysähtynyt, voit hyväksyä tai perua harjoituksen tarkistuksen.",
     "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
     "title": "Harjoituksen tarkistus",
     "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",

@@ -1435,6 +1435,7 @@ Catalog.reviewAdd
 Catalog.reviewCannotVerify
 Catalog.reviewEarlierVersion
 Catalog.reviewTitle
+Catalog.reviewTurnStopping
 Catalog.reviewUncertain
 Catalog.reviewWorkoutCooldown
 Catalog.reviewWorkoutMainSet

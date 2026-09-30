@@ -20,7 +20,7 @@ import Testing
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 1, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, ladder: .npm, uptime: .zero)
 		let result = try await runner().run(attempt("Keep fetching", scope: scope), scope: scope) {
 			_ in
 		}
@@ -42,7 +42,7 @@ import Testing
 					.http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#)),
 				count: 3)
 			+ [.text("Fits now."), .finish(reason: .stop)]
-		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 		let result = try await runner().run(attempt("Is Thursday on?", scope: scope), scope: scope)
 		{
 			_ in
@@ -60,7 +60,7 @@ import Testing
 		let tight = TurnBudgetPolicy(
 			maxGenerateAttempts: 2, maxGenerateCalls: 40, wallClock: .seconds(10),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: tight, uptime: clock.uptime)
+		let scope = TurnScope(stamp: testStamp(), policy: tight, ladder: .npm, uptime: clock.uptime)
 		let result = try await runner().run(attempt("Is Thursday on?", scope: scope), scope: scope)
 		{
 			_ in
@@ -84,7 +84,7 @@ import Testing
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: oneCall, ladder: .npm, uptime: .zero)
 		let result = try await runner().run(
 			attempt("Remember Saturdays", scope: scope), scope: scope
 		) {
@@ -111,7 +111,7 @@ import Testing
 		let twoCalls = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 2, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
-		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, uptime: .zero)
+		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, ladder: .npm, uptime: .zero)
 		let result = try await runner().run(attempt("How was my week?", scope: scope), scope: scope)
 		{
 			_ in

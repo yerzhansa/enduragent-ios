@@ -20,7 +20,8 @@ extension RetryLadderTests {
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(7))
-		try await waitForReviewGate(on: coach)
+		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
+		#expect(!waiting.state.isSettled)
 		let stopped = AsyncStream.makeStream(of: Bool.self)
 		Task {
 			await coach.stop(.main)
@@ -35,6 +36,7 @@ extension RetryLadderTests {
 			return
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
+		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(!settled.retryable)
 		#expect(
 			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)

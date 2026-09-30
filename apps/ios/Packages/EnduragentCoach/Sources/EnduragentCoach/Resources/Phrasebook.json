@@ -199705,6 +199705,112 @@
         }
       }
     },
+    "review.turnStopping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply is stopping. You can approve or cancel the workout review once it stops."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta respuesta se está deteniendo. Cuando se detenga, podrás aprobar o cancelar la revisión del entrenamiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa risposta si sta interrompendo. Quando si sarà interrotta, potrai approvare o annullare la revisione dell'allenamento."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Antwort wird gerade gestoppt. Danach kannst du die Trainingsprüfung bestätigen oder abbrechen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tätä vastausta pysäytetään. Kun se on pysähtynyt, voit hyväksyä tai perua harjoituksen tarkistuksen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta está sendo interrompida. Quando parar, você poderá aprovar ou cancelar a revisão do treino."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta odpowiedź jest zatrzymywana. Po jej zatrzymaniu możesz zatwierdzić lub anulować przegląd treningu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 답변을 중지하고 있어요. 중지되면 운동 검토 내용을 승인하거나 취소할 수 있어요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この返信を停止しています。停止したら、ワークアウトの確認内容を承認またはキャンセルできます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止此回复。停止后，你可以批准或取消训练审核。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止此回覆。停止後，你可以核准或取消訓練審核。"
+          }
+        }
+      }
+    },
     "review.uncertain": {
       "localizations": {
         "en": {

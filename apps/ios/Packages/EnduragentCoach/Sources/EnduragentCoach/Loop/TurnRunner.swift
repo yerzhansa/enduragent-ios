@@ -75,15 +75,14 @@ package struct TurnRunner: Sendable {
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws(CancellationError) -> AttemptResult {
-		let prompt: TurnPrompt
 		do {
-			prompt = try await assemble(attempt, scope: scope, progress: progress)
+			let prompt = try await assemble(attempt, scope: scope, progress: progress)
+			return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
 				failure.coachFailure(for: attempt.access.method), saved: await scope.summary)
 		}
-		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
 	}
 
 	private func attempts(
@@ -91,7 +90,7 @@ package struct TurnRunner: Sendable {
 		prompt initial: TurnPrompt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws(CancellationError) -> AttemptResult {
+	) async throws -> AttemptResult {
 		var prompt = initial
 		var counters = RetryCounters.zero
 		var pending: RetryPlan?
@@ -164,7 +163,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
-		return try await scope.savedWork(using: ladder)
+		return try await scope.savedWork()
 	}
 
 	func flushOnce(

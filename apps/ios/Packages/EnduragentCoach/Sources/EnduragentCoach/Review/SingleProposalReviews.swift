@@ -89,7 +89,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 				} else {
 					gate = TurnScope(
 						stamp: await stamp(token.ref, account: .unconnected),
-						policy: .npm, uptime: clock.uptime)
+						policy: .npm, ladder: .npm, uptime: clock.uptime)
 				}
 				outcome = await approve(token, scope: gate)
 			} else {
@@ -128,7 +128,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			return .blocked(.accountChanged)
 		}
 		let stamp = await stamp(token.ref, account: connection.account)
-		guard await scope.beginReview(live) else { return .staleControl }
+		guard await scope.beginReview(live) else { return .blocked(.turnStopping) }
 		do {
 			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
 		} catch {

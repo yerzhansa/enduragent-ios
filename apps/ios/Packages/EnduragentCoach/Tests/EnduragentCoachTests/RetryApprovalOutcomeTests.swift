@@ -19,7 +19,8 @@ extension RetryLadderTests {
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(7))
-		try await waitForReviewGate(on: coach)
+		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
+		#expect(!waiting.state.isSettled)
 		held.release(.seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("expected an uncertain calendar write")
@@ -32,6 +33,7 @@ extension RetryLadderTests {
 		}
 		#expect(saved.outcome == .savedUnverified)
 		#expect(saved.saved.calendarWrites == 1)
+		#expect(saved.saved.unverifiedCalendarWrites == 1)
 		#expect(saved.notice.action == nil)
 		#expect(
 			saved.notice.sentence(in: LanguageTag.en.phrasebook)
@@ -129,7 +131,8 @@ extension RetryLadderTests {
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(11))
-		try await waitForReviewGate(on: coach)
+		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
+		#expect(!waiting.state.isSettled)
 		held.release(.seconds(13))
 		try await expectSingleApproval(
 			turn: turn, first: await approving.value, coach: coach, intervals: base,

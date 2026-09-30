@@ -8,6 +8,29 @@ import test from 'node:test';
 
 const config = fileURLToPath(new URL('../.swiftlint.yml', import.meta.url));
 
+test('swallowed_error rejects relabeling every failure as cancellation', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ios-swiftlint-check-'));
+  try {
+    const file = join(root, 'Probe.swift');
+    const cases = [
+      ['do { try run() } catch { throw CancellationError() }', true],
+      ['do { try run() } catch let failure { throw CancellationError() }', true],
+      ['do { try run() } catch is CancellationError { throw CancellationError() }', false],
+      ['do { try run() } catch { throw error }', false],
+    ];
+    writeFileSync(file, cases.map(([source]) => source).join('\n') + '\n');
+    const result = spawnSync('swiftlint', [
+      'lint', '--config', config, '--quiet', '--no-cache', '--reporter', 'json', file,
+    ], { encoding: 'utf8' });
+    assert.equal(result.status, 2, result.stdout + result.stderr);
+    const swallowed = JSON.parse(result.stdout).filter(row => row.rule_id === 'swallowed_error');
+    assert.deepEqual(swallowed.map(row => row.line).sort((a, b) => a - b),
+      cases.flatMap(([, rejected], index) => rejected ? [index + 1] : []));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('optional_try accepts only a standalone conditional container decode probe', () => {
   const root = mkdtempSync(join(tmpdir(), 'ios-swiftlint-check-'));
   try {

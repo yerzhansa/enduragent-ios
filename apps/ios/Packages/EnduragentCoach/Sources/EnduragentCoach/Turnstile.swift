@@ -10,7 +10,6 @@ final class Turnstile: Sendable {
 	private let state = Mutex(State())
 
 	var held: Bool { state.withLock { $0.held } }
-	var waiting: Bool { state.withLock { !$0.line.isEmpty } }
 
 	func pass<Value, Failure: Error>(
 		isolation: isolated (any Actor)? = #isolation,

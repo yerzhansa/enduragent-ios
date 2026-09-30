@@ -35,7 +35,7 @@ custom_rules:
     message: 'Comments are not allowed. Rename, split, or restructure the code instead.'
     severity: error
   swallowed_error:
-    regex: 'catch\s*(?:let\s+\w+\s*)?\{\s*(?:(?:return|break|continue)(?:[ \t]+(?:nil|\[\]|\[:\]|""|false|true|0|\.none))?|_\s*=\s*\w+)?\s*\}'
+    regex: 'catch\s*(?:let\s+\w+\s*)?\{\s*(?:(?:return|break|continue)(?:[ \t]+(?:nil|\[\]|\[:\]|""|false|true|0|\.none))?|_\s*=\s*\w+|throw\s+CancellationError\s*\(\s*\))?\s*\}'
     message: 'This catch discards every error. Handle it, surface it to the user, or let it propagate. Catch a specific error type to ignore it on purpose.'
     severity: error
   optional_try:

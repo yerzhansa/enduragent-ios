@@ -2911,6 +2911,7 @@
     "accountChanged": "Este treino foi preparado para outro atleta no {{service}}. Pede-me novamente para o preparar para o atleta ligado.",
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
+    "turnStopping": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",

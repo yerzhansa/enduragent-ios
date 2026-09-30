@@ -176,6 +176,6 @@ import Testing
 	}
 
 	private func turnScope() -> TurnScope {
-		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
+		TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: .zero)
 	}
 }

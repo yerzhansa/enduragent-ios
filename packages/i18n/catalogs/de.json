@@ -2911,6 +2911,7 @@
     "accountChanged": "Dieses Training wurde für einen anderen Athleten bei {{service}} vorbereitet. Bitte mich erneut, es für den verbundenen Athleten vorzubereiten.",
     "add": "Zum Kalender hinzufügen",
     "cannotVerify": "Ich konnte deine Verbindung zu {{service}} nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal.",
+    "turnStopping": "Diese Antwort wird gerade gestoppt. Danach kannst du die Trainingsprüfung bestätigen oder abbrechen.",
     "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
     "title": "Training prüfen",
     "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",

@@ -123,7 +123,7 @@ import Testing
 			.finish(reason: .stop),
 		]
 		let roomForOne = TurnScope(
-			stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
+			stamp: testStamp(), policy: budget(calls: 1), ladder: .npm, uptime: clock.uptime)
 		#expect(try await run(job(), scope: roomForOne) == .saved(sections: 0, events: 1))
 		#expect(transport.requests.count == 2)
 		await #expect(throws: TurnBudgetExceeded(kind: .generateCalls)) {
@@ -133,7 +133,8 @@ import Testing
 
 	@Test func aSpentTurnBudgetStopsTheFlushBeforeAnyRequest() async throws {
 		transport.flushScript = [.text("never sent"), .finish(reason: .stop)]
-		let spent = TurnScope(stamp: testStamp(), policy: budget(calls: 1), uptime: clock.uptime)
+		let spent = TurnScope(
+			stamp: testStamp(), policy: budget(calls: 1), ladder: .npm, uptime: clock.uptime)
 		try await spent.chargeCall()
 		#expect(
 			try await run(job(), scope: spent)

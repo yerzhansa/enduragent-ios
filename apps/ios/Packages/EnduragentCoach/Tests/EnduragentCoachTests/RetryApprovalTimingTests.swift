@@ -43,7 +43,8 @@ extension RetryLadderTests {
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(7))
-		try await waitForReviewGate(on: coach)
+		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first)
+		#expect(!waiting.state.isSettled)
 		held.release(.seconds(13))
 		let first = await approving.value
 		try await expectSingleApproval(
@@ -145,12 +146,13 @@ extension RetryLadderTests {
 	}
 
 	func heldApprovalCoach(
-		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient
+		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
+		records: (any RecordLog)? = nil
 	) -> Coach {
 		Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
+				records: RecordStore(log: records ?? store), secrets: keyedSecrets(),
 				models: ModelService { _ in model }, training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
 			builtInModel: testModel, deviceLanguage: .en,
