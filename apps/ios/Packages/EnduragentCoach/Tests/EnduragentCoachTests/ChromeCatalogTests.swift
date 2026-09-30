@@ -114,11 +114,11 @@ import Testing
 		let coach = makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
 		try await coach.setLanguage(.fixed(tag))
 		let book = await coach.languagePreference().phrasebook(device: .en)
-		let count = ["count": "12", "formattedCount": "12"]
+		let vars = ["formattedCount": "12"]
 		#expect(book.say(Catalog.chatMenu, [:]) == menu)
-		#expect(book.say(Catalog.creditsBalance, count) == balance)
+		#expect(book.say(Catalog.creditsBalance, count: 12, vars) == balance)
 		#expect(book.say(Catalog.onboardingStarterProgress, [:]) == progress)
-		#expect(book.say(Catalog.onboardingStarterAdded, count) == added)
+		#expect(book.say(Catalog.onboardingStarterAdded, count: 12, vars) == added)
 		#expect(
 			book.say(Catalog.onboardingStarterAlreadyGranted, [:]) == alreadyGranted)
 	}
@@ -130,9 +130,9 @@ import Testing
 			(3, "3 kredyty", "Dodano 3 kredyty"),
 			(5, "5 kredytów", "Dodano 5 kredytów"),
 		] {
-			let count = ["count": String(units), "formattedCount": String(units)]
-			#expect(book.say(Catalog.creditsBalance, count) == balance)
-			#expect(book.say(Catalog.onboardingStarterAdded, count) == added)
+			let vars = ["formattedCount": String(units)]
+			#expect(book.say(Catalog.creditsBalance, count: units, vars) == balance)
+			#expect(book.say(Catalog.onboardingStarterAdded, count: units, vars) == added)
 		}
 	}
 }
