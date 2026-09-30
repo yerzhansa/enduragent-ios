@@ -11,15 +11,13 @@ package struct ToolRuntime: Sendable {
 
 	private let intervals: any IntervalsClient
 	let ledger: Ledger
-	private let planning: Planning
 	let clock: any Clock
 
 	package init(
-		intervals: any IntervalsClient, ledger: Ledger, planning: Planning, clock: any Clock
+		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock
 	) {
 		self.intervals = intervals
 		self.ledger = ledger
-		self.planning = planning
 		self.clock = clock
 	}
 
@@ -78,7 +76,6 @@ package struct ToolRuntime: Sendable {
 		arguments: JSONValue,
 		stamp: OperationStamp
 	) async throws -> ToolExecution {
-		_ = planning
 		do {
 			switch name {
 			case .calculateZones:
