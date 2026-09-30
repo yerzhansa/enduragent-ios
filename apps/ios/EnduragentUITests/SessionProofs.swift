@@ -1,6 +1,7 @@
 import EnduragentCoach
 import XCTest
 
+@MainActor
 final class LanguagePickerProof: XCTestCase {
 	private let english = [
 		"Automatic", "English", "Español", "Français", "Italiano", "Deutsch", "Nederlands",
@@ -16,7 +17,11 @@ final class LanguagePickerProof: XCTestCase {
 		TutorialHarness.send(app, "/language")
 		let automatic = TutorialHarness.named(app, "language.choice.automatic")
 		TutorialHarness.wait(automatic)
+		XCTAssertTrue(app.buttons["Sheet Grabber"].exists)
 		XCTAssertTrue(app.navigationBars["Choose your language"].exists)
+		XCTAssertGreaterThan(
+			app.navigationBars["Choose your language"].frame.minY,
+			app.windows.firstMatch.frame.height * 0.1)
 		XCTAssertTrue(automatic.isSelected)
 		let visible = choiceLabels(app)
 		XCTAssertGreaterThanOrEqual(visible.count, 10)
