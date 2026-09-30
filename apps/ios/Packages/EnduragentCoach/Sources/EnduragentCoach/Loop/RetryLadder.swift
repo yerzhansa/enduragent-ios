@@ -22,8 +22,6 @@ package enum LadderClass: Hashable, Sendable {
 	case rateLimit
 	case serverError
 	case network
-	case auth
-	case invalidRequest
 	case unknown
 }
 
@@ -129,6 +127,8 @@ package struct RetryLadder: Sendable, Equatable {
 				return decision
 			}
 		}
+		let coachFailure = failure.coachFailure(for: situation.accessMethod)
+		guard !coachFailure.isTerminal else { return .terminal(coachFailure) }
 		let failureClass = failure.ladderClass
 		for rung in rungs
 		where rung.classes.contains(failureClass) && counters.count(rung.counter) < rung.limit {
@@ -136,7 +136,7 @@ package struct RetryLadder: Sendable, Equatable {
 				return retry
 			}
 		}
-		return .terminal(failure.coachFailure(for: situation.accessMethod))
+		return .terminal(coachFailure)
 	}
 }
 
@@ -194,11 +194,8 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			.serverError
 		case .provider(.network):
 			.network
-		case .provider(.credentialRejected):
-			.auth
-		case .provider(.invalidRequest):
-			.invalidRequest
-		case .provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
+		case .provider(.credentialRejected), .provider(.invalidRequest),
+			.provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
 			.budget, .generation, .recordStorage, .rescueFailed:
 			.unknown
 		}
