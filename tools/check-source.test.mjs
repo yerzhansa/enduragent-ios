@@ -132,6 +132,8 @@ for (const declaration of [
   'private(set) var exposed: State { get { state } set(value) { state = value } }',
   'var exposed: State { _read { yield state } _modify { yield &state } }',
   'var exposed: State { get { state } nonmutating set { replace(newValue) } }',
+  'var exposed: State { get { state } @_transparent set { state = newValue } }',
+  'var exposed: State { _read { yield state } @_transparent _modify { yield &state } }',
   'var exposed: State\n{\nget { state }\nset\n{ state = newValue }\n}',
 ]) {
   test(`rejects exposed mailbox state: ${declaration}`, () => {

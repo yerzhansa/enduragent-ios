@@ -74,20 +74,25 @@ function hasExtraSecretStore(text) {
     });
 }
 function hasExposedMailboxState(text) {
-  const reviewScope = /\bpackage\s+var\s+reviewScope\s*:\s*TurnScope\?\s*\{\s*work\.phase\.running\?\.attempt\?\.scope\s*\}/g;
-  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""')
-    .replace(reviewScope, '');
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
   let depth = 0;
-  for (const [, declaration, boundary] of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+  let projection = false;
+  for (const match of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+    const [, declaration, boundary] = match;
+    const opensBody = boundary === '{' || (boundary === '\n' && /^\s*\{/.test(code.slice(match.index + match[0].length)));
     if (depth === 1) {
-      const member = /^(.*?)\b(?:let|var)\s+/.exec(declaration);
+      const member = /^(.*?)\b(let|var)\s+/.exec(declaration);
       if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
         && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
-        return true;
+        if (member[2] === 'let' || /\blazy\b/.test(member[1]) || declaration.includes('=') || !opensBody) return true;
+        projection = true;
       }
     }
+    if (depth === 2 && projection && opensBody
+      && /^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:nonmutating|mutating)\s+)?(?:set|_modify|willSet|didSet)(?:\s*\([^)]*\))?\s*$/.test(declaration)) return true;
     if (boundary === '{') depth++;
     if (boundary === '}') depth--;
+    if (depth === 1 && boundary === '}') projection = false;
   }
   return false;
 }

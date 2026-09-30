@@ -6,22 +6,14 @@ struct CreditsView: View {
 
 	var body: some View {
 		List {
-			if let balance = model.balance {
-				Text(countLine(Catalog.creditsBalance, units: balance.units))
+			if let balance = model.creditsBalanceLine {
+				Text(balance)
 					.accessibilityIdentifier("credits.balance")
 			}
 			if let catalog = model.catalog {
 				ForEach(catalog.packs) { pack in
 					HStack {
-						if let price = model.packPrices[pack.id] {
-							Text(
-								countLine(
-									Catalog.creditsPackPrice, units: pack.credits.units,
-									price: price)
-							)
-						} else {
-							Text(countLine(Catalog.creditsPack, units: pack.credits.units))
-						}
+						Text(model.creditsPackLine(pack))
 						Spacer()
 						Button(model.phrasebook.say(Catalog.creditsBuy, [:])) {}
 							.disabled(true)
@@ -42,11 +34,25 @@ struct CreditsView: View {
 		}
 	}
 
-	func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
+}
+
+extension ShellModel {
+	var creditsBalanceLine: String? {
+		balance.map { countLine(Catalog.creditsBalance, units: $0.units) }
+	}
+
+	func creditsPackLine(_ pack: CreditPack) -> String {
+		if let price = packPrices[pack.id] {
+			return countLine(Catalog.creditsPackPrice, units: pack.credits.units, price: price)
+		}
+		return countLine(Catalog.creditsPack, units: pack.credits.units)
+	}
+
+	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
 		var vars = ["formattedCount": "\(units)"]
 		if let price {
 			vars["price"] = price
 		}
-		return model.phrasebook.say(key, count: units, vars)
+		return phrasebook.say(key, count: units, vars)
 	}
 }

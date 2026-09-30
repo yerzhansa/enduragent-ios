@@ -4,22 +4,25 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	@Test(
-		arguments: [
-			(Catalog.creditsBalance, nil, "1 crédito"),
-			(Catalog.creditsPack, nil, "1 crédito"),
-			(Catalog.creditsPackPrice, "0,99 €", "1 crédito · 0,99 €"),
-		] as [(CatalogKey, String?, String)])
-	func creditsViewUsesTheSingularForm(key: CatalogKey, price: String?, expected: String)
-		async throws
-	{
-		let services = try services()
+	@Test(arguments: [nil, "0,99 €"] as [String?])
+	func creditsViewModelUsesTheSingularForm(price: String?) async throws {
+		var services = try services()
+		let fixture = try #require(services.fixture)
+		fixture.credits.balanceResult = .success(CreditBalance(credits: Credits(units: 1)))
+		fixture.credits.catalogResult = .success(
+			PackCatalog(
+				purchasesEnabled: false, scale: CreditScale(creditsPerUsd: 100),
+				packs: [CreditPack(id: "single-credit", credits: Credits(units: 1))]))
+		services.packPrices = { _ in price.map { ["single-credit": $0] } ?? [:] }
 		try await services.coach.setLanguage(.fixed(.es))
 		let model = ShellModel(
 			environment: environment(services),
 			initialLanguage: await services.coach.languagePreference())
-		let view = CreditsView(model: model)
-		#expect(view.countLine(key, units: 1, price: price) == expected)
+		await model.loadCredits()
+		#expect(model.creditsNotice == nil)
+		#expect(model.creditsBalanceLine == "1 crédito")
+		let pack = try #require(model.catalog?.packs.first)
+		#expect(model.creditsPackLine(pack) == (price == nil ? "1 crédito" : "1 crédito · 0,99 €"))
 	}
 
 	@Test(arguments: [
