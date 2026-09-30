@@ -37,7 +37,11 @@ import Testing
 				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
 		#expect(try file.creditsAccount() == expected)
 		#expect(try file.creditsAccount() == keychain.creditsAccount())
-		#expect(try file.intervalsConnection() == keychain.intervalsConnection())
+		let connection = try #require(try file.intervalsConnection())
+		let peer = try #require(try keychain.intervalsConnection())
+		#expect(connection.credential == peer.credential)
+		#expect(connection.selection == peer.selection)
+		#expect(connection.resolvedAthlete == peer.resolvedAthlete)
 		#expect(try file.intervalsConnection()?.credential == .apiKey("test-training-key"))
 		let migrated = try JSONDecoder().decode(
 			[String: Data].self, from: Data(contentsOf: directory.appending(path: "secrets.json")))
@@ -47,7 +51,7 @@ import Testing
 		#expect(try JSONDecoder().decode(CreditsAccount.self, from: accountData) == expected)
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		#expect(try reopened.creditsAccount() == expected)
-		#expect(try reopened.intervalsConnection() == keychain.intervalsConnection())
+		#expect(try reopened.intervalsConnection() == connection)
 	}
 
 	@Test func failedFixtureMigrationSurfacesStorageUnavailable() async throws {
@@ -91,7 +95,6 @@ import Testing
 		let memory = FixtureSecretStoreBacking(items: [
 			"openRouterKey": Data(key.utf8),
 			"appAccountToken": Data(token.uuidString.utf8),
-			"intervalsConnectionStaging": Data("undecodable legacy staging".utf8),
 		])
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = makeCoach(
@@ -101,7 +104,7 @@ import Testing
 
 		#expect(identity == CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
 		#expect(try store.creditsAccount() == CreditsAccount(appAccountToken: token, key: key))
-		let legacyAccounts = ["intervalsConnectionStaging", "openRouterKey", "appAccountToken"]
+		let legacyAccounts = ["openRouterKey", "appAccountToken"]
 		#expect(Set(memory.deletedAccounts) == Set(legacyAccounts))
 		for legacy in legacyAccounts {
 			#expect(memory.readAccounts.filter { $0 == legacy }.count == 1)

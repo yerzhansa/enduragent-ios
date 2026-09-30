@@ -5,6 +5,42 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct FileSecretStoreTests {
+	@Test func fileFailureKeepsItsCodeWithoutErrorText() async throws {
+		let directory = FileManager.default.temporaryDirectory.appending(
+			path: "enduragent-unwritable-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		defer {
+			do {
+				try FileManager.default.removeItem(at: directory)
+			} catch {
+				Issue.record(error, "unwritable secrets directory cleanup")
+			}
+		}
+		let store = try ICloudKeychainStore.fixture(directory: directory).store
+		let coach = makeCoach(
+			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
+		try FileManager.default.createDirectory(
+			at: directory.appending(path: FixtureSecretStoreBacking.fileName),
+			withIntermediateDirectories: false)
+		let expected: CocoaError
+		do {
+			_ = try store.prepareCreditsAccount()
+			Issue.record("expected the file write to fail")
+			return
+		} catch let error as CocoaError {
+			expected = error
+		}
+		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
+			try await coach.prepareCreditsPurchase()
+		}
+		let entry = try #require(coach.diagnostics.entries.last)
+		guard case .secureStorageFailed(.creditsAccount, .fileSystem(let code)) = entry.event else {
+			Issue.record("expected the file system failure code")
+			return
+		}
+		#expect(code == expected.code.rawValue)
+	}
+
 	@Test func directoryStorePersistsAcrossInstances() throws {
 		try withTemporaryDirectory { directory in
 			let first = try ICloudKeychainStore.fixture(directory: directory).store
@@ -103,7 +139,7 @@ import Testing
 	}
 
 	@Test(arguments: [false, true], [nil, "test-previous-key"] as [String?])
-	func fileMigrationPreservesCurrentAccountAndUndoPrecedence(current: Bool, previousKey: String?)
+	func fileMigrationPreservesCurrentAccountPrecedence(current: Bool, previousKey: String?)
 		throws
 	{
 		try withTemporaryDirectory { directory in
@@ -113,15 +149,12 @@ import Testing
 			let expected =
 				current
 				? CreditsAccount(appAccountToken: UUID(), key: "test-current-key") : previous
-			var undo = ["previousAppAccountToken": previousToken.uuidString]
-			undo["previousKey"] = previousKey
 			var items = [
-				"openRouterKey": Data("test-interrupted-key".utf8),
-				"appAccountToken": Data(UUID().uuidString.utf8),
-				"intervalsConnectionStaging": try JSONEncoder().encode(["credits": undo]),
+				"appAccountToken": Data(previousToken.uuidString.utf8),
 				CredentialSlot.openRouterAccountKey.rawValue: Data("test-own-key".utf8),
 				CredentialSlot.accessSelection.rawValue: Data(#"{"credits":{}}"#.utf8),
 			]
+			items["openRouterKey"] = previousKey.map { Data($0.utf8) }
 			if current {
 				items[CredentialSlot.creditsAccount.rawValue] = try JSONEncoder().encode(expected)
 			}

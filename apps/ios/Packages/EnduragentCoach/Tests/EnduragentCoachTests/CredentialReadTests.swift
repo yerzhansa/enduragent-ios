@@ -26,7 +26,7 @@ extension CredentialVaultTests {
 		let memory = FixtureSecretStoreBacking()
 		for account in [
 			"accessSelection", "creditsAccount", "intervalsCredential", "openRouterAccountKey",
-			"intervalsConnectionStaging", "openRouterKey", "appAccountToken",
+			"openRouterKey", "appAccountToken",
 		] {
 			memory.fail(account, with: errSecInteractionNotAllowed)
 		}
@@ -82,7 +82,13 @@ extension CredentialVaultTests {
 			#expect(error == .malformedStoredCredential(.intervalsConnection))
 			#expect(!String(describing: error).contains("leaked"))
 		}
-		#expect(diagnostics.entries.isEmpty)
+		#expect(
+			diagnostics.entries.map(\.event) == [
+				.secureStorageFailed(
+					.creditsAccount, failure: KeychainStoreError(status: errSecDecode)),
+				.secureStorageFailed(
+					.intervalsConnection, failure: KeychainStoreError(status: errSecDecode)),
+			])
 	}
 
 	@Test func malformedKeyFailsTheTurnAndTheFailureSurvivesRelaunch() async throws {
@@ -156,7 +162,6 @@ extension CredentialVaultTests {
 		let coach = coach(keychain)
 		_ = await coach.status()
 		let resolved = try #require(try keychain.intervalsConnection())
-		#expect(resolved.id != nil)
 		#expect(resolved.resolvedAthlete?.rawValue == "i1001")
 		_ = await coach.status()
 		#expect(try keychain.intervalsConnection() == resolved)
@@ -187,7 +192,7 @@ extension CredentialVaultTests {
 		)
 		try keychain.storeIntervalsConnection(testConnection)
 		let vault = vault(keychain)
-		let expectedAccount = try account(testConnection)
+		let expectedAccount = account(testConnection)
 		var samples = PerformanceSamples()
 		let expectedReads = 3
 		for _ in 0..<PerformanceSamples.batchCount {

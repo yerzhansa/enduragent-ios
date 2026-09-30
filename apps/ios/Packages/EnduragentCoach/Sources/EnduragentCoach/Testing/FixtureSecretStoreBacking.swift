@@ -59,7 +59,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 			throw KeychainStoreError(status: errSecDecode)
 		}
 		let legacyNames: Set<String> = [
-			"stagedIntervals", "intervals", "intervalsApiKey", "intervalsOAuthAccess",
+			"intervals", "intervalsApiKey", "intervalsOAuthAccess",
 			"intervalsOAuthRefresh",
 		]
 		if legacyNames.isDisjoint(with: fields.keys),
@@ -79,7 +79,6 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 			("creditsAccount", CredentialSlot.creditsAccount.rawValue),
 			("intervals", CredentialSlot.intervalsConnection.rawValue),
 			("accessSelection", CredentialSlot.accessSelection.rawValue),
-			("stagedIntervals", "intervalsConnectionStaging"),
 		] {
 			guard let value = fields[name], !(value is NSNull) else { continue }
 			items[account] = try JSONSerialization.data(

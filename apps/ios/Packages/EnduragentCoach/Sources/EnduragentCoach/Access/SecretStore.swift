@@ -14,11 +14,28 @@ public protocol SecretStore: Sendable {
 	func delete(_ slot: CredentialSlot) throws
 }
 
-public struct KeychainStoreError: Error, Sendable, Equatable {
-	public var status: OSStatus
+public enum KeychainStoreError: Error, Sendable, Equatable {
+	case keychain(OSStatus)
+	case encoding
+	case fileSystem(Int)
+	case unexpected
+
+	public var status: OSStatus? {
+		guard case .keychain(let status) = self else { return nil }
+		return status
+	}
 
 	public init(status: OSStatus) {
-		self.status = status
+		self = .keychain(status)
+	}
+
+	init(_ error: any Error) {
+		switch error {
+		case let failure as KeychainStoreError: self = failure
+		case is EncodingError: self = .encoding
+		case let failure as CocoaError: self = .fileSystem(failure.code.rawValue)
+		default: self = .unexpected
+		}
 	}
 }
 
@@ -31,6 +48,7 @@ package protocol SecretStoreBacking: Sendable {
 
 public struct ICloudKeychainStore: SecretStore {
 	package static let serviceName = "icu.enduragent.ios"
+	private static let intervalsLock = NSLock()
 
 	private let backing: any SecretStoreBacking
 
@@ -43,22 +61,15 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	private enum LegacyAccount: String, CaseIterable {
-		case intervalsConnectionStaging
 		case openRouterKey
 		case appAccountToken
 	}
 
 	public func creditsAccount() throws -> CreditsAccount? {
-		let current = try readItem(CreditsAccount.self, .creditsAccount)
-		guard
-			let migrated = try restoredCreditsAccount(
-				current: current,
-				undo: legacyCreditsUndo(),
-				legacyKey: readString(account: LegacyAccount.openRouterKey.rawValue),
-				legacyToken: legacyCreditsToken())
-		else { return nil }
-		if current != nil { return migrated }
-		let account = try addCreditsAccount(migrated)
+		if let current = try readItem(CreditsAccount.self, .creditsAccount) { return current }
+		let key = try readString(account: LegacyAccount.openRouterKey.rawValue)
+		guard let token = try legacyCreditsToken() else { return nil }
+		let account = try addCreditsAccount(CreditsAccount(appAccountToken: token, key: key))
 		try deleteLegacyCreditsItems()
 		return account
 	}
@@ -95,18 +106,6 @@ public struct ICloudKeychainStore: SecretStore {
 		try writeItem(account, .creditsAccount)
 	}
 
-	private func legacyCreditsUndo() throws -> LegacyCreditsUndo? {
-		guard
-			let staging = try backing.copy(
-				account: LegacyAccount.intervalsConnectionStaging.rawValue)
-		else { return nil }
-		do {
-			return try JSONDecoder().decode(LegacyCreditsUndo.self, from: staging)
-		} catch is DecodingError {
-			return nil
-		}
-	}
-
 	private func legacyCreditsToken() throws -> UUID? {
 		guard let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) else {
 			return nil
@@ -126,11 +125,22 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func intervalsConnection() throws -> IntervalsConnection? {
-		try readItem(StoredIntervalsConnection.self, .intervalsConnection)?.connection()
+		try Self.intervalsLock.withLock {
+			guard let stored = try readItem(StoredIntervalsConnection.self, .intervalsConnection)
+			else { return nil }
+			let connection = try stored.connection(
+				id: stored.id.map(ConnectionID.init(rawValue:)) ?? ConnectionID())
+			if stored.id == nil {
+				try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
+			}
+			return connection
+		}
 	}
 
 	public func storeIntervalsConnection(_ connection: IntervalsConnection) throws {
-		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
+		try Self.intervalsLock.withLock {
+			try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
+		}
 	}
 
 	public func accessSelection() throws -> AccessSelection? {
@@ -142,7 +152,7 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	public func delete(_ slot: CredentialSlot) throws {
-		try backing.delete(account: slot.rawValue)
+		try Self.intervalsLock.withLock { try backing.delete(account: slot.rawValue) }
 	}
 
 	private func readString(account: String) throws -> String? {

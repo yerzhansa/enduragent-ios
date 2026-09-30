@@ -9,13 +9,13 @@ package struct StoredIntervalsConnection: Codable, Equatable, Sendable {
 		case resolvedAthlete
 	}
 
-	private var id: UUID?
+	package private(set) var id: UUID?
 	private var credential: StoredIntervalsCredential
 	private var athlete: String?
 	private var resolvedAthlete: String?
 
 	package init(_ connection: IntervalsConnection) {
-		self.id = connection.id?.rawValue
+		self.id = connection.id.rawValue
 		self.credential = StoredIntervalsCredential(connection.credential)
 		switch connection.selection {
 		case .keyOwner:
@@ -41,9 +41,9 @@ package struct StoredIntervalsConnection: Codable, Equatable, Sendable {
 		self.resolvedAthlete = try container.decodeIfPresent(String.self, forKey: .resolvedAthlete)
 	}
 
-	package func connection() throws -> IntervalsConnection {
+	package func connection(id: ConnectionID) throws -> IntervalsConnection {
 		IntervalsConnection(
-			id: id.map(ConnectionID.init(rawValue:)),
+			id: id,
 			credential: credential.credential,
 			selection: try athlete.map { .athlete(try Self.athleteID($0)) } ?? .keyOwner,
 			resolvedAthlete: try resolvedAthlete.map(Self.athleteID)

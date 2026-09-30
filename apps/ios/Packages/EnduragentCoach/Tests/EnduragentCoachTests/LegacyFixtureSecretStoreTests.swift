@@ -46,19 +46,12 @@ import Testing
 	}
 
 	@Test(arguments: [false, true])
-	func currentAccountAndStagingKeepTheRealMigrationPrecedence(hasCurrent: Bool) throws {
-		let previousToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+	func currentAccountKeepsTheRealMigrationPrecedence(hasCurrent: Bool) throws {
 		let currentToken = try #require(UUID(uuidString: "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE"))
 		var fields: [String: Any] = [
 			"appAccountToken": currentToken.uuidString,
 			"openRouterKey": "test-interrupted-key",
 			"openRouterAccountKey": "test-own-key",
-			"stagedIntervals": [
-				"credits": [
-					"previousAppAccountToken": previousToken.uuidString,
-					"previousKey": "test-previous-key",
-				]
-			],
 			"intervals": ["credential": ["apiKey": ["_0": "test-current-training-key"]]],
 			"intervalsApiKey": "test-old-training-key",
 			"accessSelection": ["credits": [:]],
@@ -71,11 +64,10 @@ import Testing
 		try JSONSerialization.data(withJSONObject: fields).write(
 			to: directory.appending(path: "secrets.json"))
 		let (store, backing) = try ICloudKeychainStore.fixture(directory: directory)
-		#expect(try backing.copy(account: "intervalsConnectionStaging") != nil)
 		#expect(backing.writeCount == 0)
 		let expected = CreditsAccount(
-			appAccountToken: hasCurrent ? currentToken : previousToken,
-			key: hasCurrent ? "test-current-key" : "test-previous-key")
+			appAccountToken: currentToken,
+			key: hasCurrent ? "test-current-key" : "test-interrupted-key")
 		#expect(try store.creditsAccount() == expected)
 		#expect(try store.intervalsConnection()?.credential == .apiKey("test-current-training-key"))
 		#expect(try store.accessSelection() == .credits)

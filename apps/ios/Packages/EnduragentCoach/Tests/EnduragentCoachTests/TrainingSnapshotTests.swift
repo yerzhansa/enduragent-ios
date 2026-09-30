@@ -42,7 +42,7 @@ import Testing
 	private func connection() throws -> TrainingConnection {
 		TrainingConnection(
 			account: .intervals(
-				connection: try #require(testConnection.id), athlete: testConnection.resolvedAthlete
+				connection: testConnection.id, athlete: testConnection.resolvedAthlete
 			),
 			client: client)
 	}
