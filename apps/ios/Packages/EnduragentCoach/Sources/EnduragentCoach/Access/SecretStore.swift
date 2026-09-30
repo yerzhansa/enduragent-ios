@@ -14,11 +14,24 @@ public protocol SecretStore: Sendable {
 	func delete(_ slot: CredentialSlot) throws
 }
 
-public struct KeychainStoreError: Error, Sendable, Equatable {
-	public var status: OSStatus
+public enum KeychainStoreError: Error, Sendable, Equatable {
+	case keychain(OSStatus)
+	case encoding
+	case fileSystem(Int)
+	case unexpected
 
-	public init(status: OSStatus) {
-		self.status = status
+	public var status: OSStatus? {
+		guard case .keychain(let status) = self else { return nil }
+		return status
+	}
+
+	init(_ error: any Error) {
+		switch error {
+		case let failure as KeychainStoreError: self = failure
+		case is EncodingError: self = .encoding
+		case let failure as CocoaError: self = .fileSystem(failure.code.rawValue)
+		default: self = .unexpected
+		}
 	}
 }
 
@@ -43,22 +56,15 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	private enum LegacyAccount: String, CaseIterable {
-		case intervalsConnectionStaging
 		case openRouterKey
 		case appAccountToken
 	}
 
 	public func creditsAccount() throws -> CreditsAccount? {
-		let current = try readItem(CreditsAccount.self, .creditsAccount)
-		guard
-			let migrated = try restoredCreditsAccount(
-				current: current,
-				undo: legacyCreditsUndo(),
-				legacyKey: readString(account: LegacyAccount.openRouterKey.rawValue),
-				legacyToken: legacyCreditsToken())
-		else { return nil }
-		if current != nil { return migrated }
-		let account = try addCreditsAccount(migrated)
+		if let current = try readItem(CreditsAccount.self, .creditsAccount) { return current }
+		let key = try readString(account: LegacyAccount.openRouterKey.rawValue)
+		guard let token = try legacyCreditsToken() else { return nil }
+		let account = try addCreditsAccount(CreditsAccount(appAccountToken: token, key: key))
 		try deleteLegacyCreditsItems()
 		return account
 	}
@@ -95,24 +101,12 @@ public struct ICloudKeychainStore: SecretStore {
 		try writeItem(account, .creditsAccount)
 	}
 
-	private func legacyCreditsUndo() throws -> LegacyCreditsUndo? {
-		guard
-			let staging = try backing.copy(
-				account: LegacyAccount.intervalsConnectionStaging.rawValue)
-		else { return nil }
-		do {
-			return try JSONDecoder().decode(LegacyCreditsUndo.self, from: staging)
-		} catch is DecodingError {
-			return nil
-		}
-	}
-
 	private func legacyCreditsToken() throws -> UUID? {
 		guard let raw = try readString(account: LegacyAccount.appAccountToken.rawValue) else {
 			return nil
 		}
 		guard let token = UUID(uuidString: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return token
 	}
@@ -148,7 +142,7 @@ public struct ICloudKeychainStore: SecretStore {
 	private func readString(account: String) throws -> String? {
 		guard let data = try backing.copy(account: account) else { return nil }
 		guard let string = String(data: data, encoding: .utf8) else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return string
 	}
@@ -162,7 +156,7 @@ public struct ICloudKeychainStore: SecretStore {
 		do {
 			return try JSONDecoder().decode(type, from: data)
 		} catch is DecodingError {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 	}
 
@@ -218,7 +212,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 		let status = SecItemAdd(
 			KeychainQuery.add(service: service, account: account, data: data) as CFDictionary, nil)
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 
@@ -230,10 +224,10 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 			return nil
 		}
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 		guard let data = result as? Data else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return data
 	}
@@ -244,7 +238,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 			KeychainQuery.update(data: data) as CFDictionary
 		)
 		guard status == errSecSuccess else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 
@@ -252,7 +246,7 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 		let status = SecItemDelete(
 			KeychainQuery.item(service: service, account: account) as CFDictionary)
 		guard status == errSecSuccess || status == errSecItemNotFound else {
-			throw KeychainStoreError(status: status)
+			throw KeychainStoreError.keychain(status)
 		}
 	}
 }

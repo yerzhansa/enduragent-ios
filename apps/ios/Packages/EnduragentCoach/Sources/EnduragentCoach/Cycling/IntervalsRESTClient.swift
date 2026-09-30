@@ -3,14 +3,17 @@ import Foundation
 package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let credential: IntervalsCredential
 	private let session: URLSession
+	private let baseURL: URL
 	private let athletePath: String
 	private let clock: any Clock
 
 	package init(
 		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
-		session: URLSession? = nil, clock: any Clock = SystemClock()
+		session: URLSession? = nil, clock: any Clock = SystemClock(),
+		baseURL: URL = IntervalsPolicy.baseURL
 	) {
 		self.credential = credential
+		self.baseURL = baseURL
 		switch athlete {
 		case .keyOwner:
 			self.athletePath = IntervalsPolicy.athletePath
@@ -18,14 +21,11 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 			self.athletePath = id.rawValue
 		}
 		self.clock = clock
-		if let session {
-			self.session = session
-		} else {
-			let configuration = URLSessionConfiguration.ephemeral
-			configuration.timeoutIntervalForRequest = IntervalsPolicy.requestTimeout
-			configuration.timeoutIntervalForResource = IntervalsPolicy.requestTimeout
-			self.session = URLSession(configuration: configuration)
-		}
+		self.session =
+			session
+			?? ephemeralSession(
+				requestTimeout: IntervalsPolicy.requestTimeout,
+				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
 	package func fetchAthlete() async throws -> AthleteProfile {
@@ -200,7 +200,7 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		query: [URLQueryItem] = [],
 		body: JSONValue? = nil
 	) async throws -> Data {
-		var url = IntervalsPolicy.baseURL
+		var url = baseURL
 		for component in path {
 			url.append(path: component)
 		}
