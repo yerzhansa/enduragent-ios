@@ -156,8 +156,8 @@ extension JSONValue {
 
 	package func intValue() -> Int? {
 		switch self {
-		case .number(let value) where value.rounded(.towardZero) == value:
-			return Int(value)
+		case .number(let value):
+			return wholeInt(value)
 		case .string(let value):
 			return Int(value)
 		default:

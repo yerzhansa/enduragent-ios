@@ -254,10 +254,11 @@ package enum AthleteNotices {
 	private static func rateLimitNotice(after retryAfter: Duration?, action: RecoveryAction?)
 		-> AthleteNotice
 	{
-		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }) else {
+		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }),
+			let seconds = wholeInt((hinted / .seconds(1)).rounded(.up))
+		else {
 			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, action: action)
 		}
-		let seconds = Int((hinted / .seconds(1)).rounded(.up))
 		if seconds < 60 {
 			return AthleteNotice(
 				key: Catalog.coachErrorRateLimitSeconds,
