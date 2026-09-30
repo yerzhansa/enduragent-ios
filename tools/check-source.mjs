@@ -49,7 +49,7 @@ function isDebugOnly(text) {
   return depth === 0;
 }
 function hasExtraSecretStore(text) {
-  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+)([^{}]*)\{/g)]
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
     .some(([, name, declaration]) => {
       if (name === 'ICloudKeychainStore') return false;
       let header = declaration;
