@@ -8,6 +8,33 @@ import Testing
 	let phoneB = DeviceID(rawValue: "phone-b")
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func openReadsCursorsWithoutFetchingHistory() async throws {
+		let store = InMemoryRecordLog(deviceId: phoneA)
+		let previous = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		_ = try await previous.commit(
+			synced: (0..<500).map { sampleUser(chatId: .main, text: "message \($0)") },
+			stamp: testStamp())
+		let local = try await previous.commit(
+			local: Array(
+				repeating: .flushPending(FlushPendingBody(chatId: .main, messageUlids: [])),
+				count: 500), stamp: testStamp())
+		let last = try #require(local.last)
+		let log = BatchRecordingLog(inner: store)
+		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let written = try await reopened.commit(
+			synced: [sampleUser(chatId: .main, text: "after reopening")], stamp: testStamp())
+		let next = try #require(written.first)
+		#expect(log.reads.isEmpty)
+		#expect(log.cursorReads == [.synced, .deviceLocal])
+		#expect(log.fetchedRecordCount == 0)
+		#expect(next.hlc.wallMs == last.hlc.wallMs)
+		#expect(next.hlc.logical == last.hlc.logical + 1)
+		#expect(next.ulid > last.ulid)
+		_ = try await reopened.commit(local: [], stamp: testStamp())
+		#expect(log.fetchedRecordCount == 0)
+		#expect(log.cursorReads == [.synced, .deviceLocal])
+	}
+
 	@Test func twoWritersInOneMillisecondGetStrictlyIncreasingClocks() async throws {
 		let log = InMemoryRecordLog(deviceId: phoneA)
 		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
