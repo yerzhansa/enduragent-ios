@@ -8,7 +8,7 @@ extension SingleProposalReviewsTests {
 		Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: log, secrets: secrets, models: .scripted(transport),
+				records: RecordStore(log: log), secrets: secrets, models: .scripted(transport),
 				training: TrainingService { _, _, _ in client },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)

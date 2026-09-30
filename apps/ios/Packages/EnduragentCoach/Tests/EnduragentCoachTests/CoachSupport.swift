@@ -57,7 +57,7 @@ func makeCoach(
 	Coach(
 		sport: .cycling,
 		ports: CoachPorts(
-			records: store, secrets: secrets, models: .scripted(transport),
+			records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
 			training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
 			host: host, clock: clock
 		),
@@ -118,12 +118,12 @@ extension Coach {
 		return await state(of: turn)
 	}
 
-	func dieWithoutWriting(to log: FaultInjectingRecordLog) async {
+	func dieWithoutWriting(to log: FaultInjectingRecordLog) async throws {
 		for kind in SyncedKind.allCases {
-			log.failAppends(ofKind: kind)
+			try log.failAppends(ofKind: kind.rawValue)
 		}
 		for kind in DeviceLocalKind.allCases {
-			log.failAppends(ofKind: kind)
+			try log.failAppends(ofKind: kind.rawValue)
 		}
 		await lifecycle(.willTerminate)
 	}

@@ -38,14 +38,14 @@ public enum ToolName: String, Sendable {
 	case planLoad = "plan_load"
 }
 
-public enum GatedToolName: String, Sendable {
+package enum GatedToolName: String, Sendable {
 	case intervalsCreateWorkout = "intervals_create_workout"
 	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
 	case intervalsDeleteWorkout = "intervals_delete_workout"
 	case intervalsUpdateWorkout = "intervals_update_workout"
 	case planSave = "plan_save"
 
-	public var toolName: ToolName {
+	package var toolName: ToolName {
 		switch self {
 		case .intervalsCreateWorkout: .intervalsCreateWorkout
 		case .intervalsCreateStrengthWorkout: .intervalsCreateStrengthWorkout
@@ -55,7 +55,7 @@ public enum GatedToolName: String, Sendable {
 		}
 	}
 
-	public static let all: Set<GatedToolName> = [
+	package static let all: Set<GatedToolName> = [
 		.intervalsCreateWorkout,
 		.intervalsCreateStrengthWorkout,
 		.intervalsDeleteWorkout,

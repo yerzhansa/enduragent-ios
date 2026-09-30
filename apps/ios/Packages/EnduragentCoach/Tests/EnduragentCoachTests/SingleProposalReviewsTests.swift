@@ -277,7 +277,7 @@ import Testing
 		return Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: records, secrets: secrets, models: .scripted(transport),
+				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
 				training: .fake { credential, _ in credential == .apiKey("other-athlete") ? bo : ada
 				},
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),

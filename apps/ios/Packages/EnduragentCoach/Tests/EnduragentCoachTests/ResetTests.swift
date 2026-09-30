@@ -57,7 +57,7 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
-		log.failAppends(ofKind: SyncedKind.windowStart)
+		try log.failAppends(ofKind: "windowStart")
 		#expect(await coach.startNewConversation(in: .main) == .notStarted(.local(.recordStorage)))
 		#expect(await coach.transcript(.main) == ["How was my week?", "Two rides."])
 		#expect(await coach.currentSnapshot(.main)?.opening == .continuing)

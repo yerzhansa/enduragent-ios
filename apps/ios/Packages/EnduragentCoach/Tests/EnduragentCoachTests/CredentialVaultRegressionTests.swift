@@ -262,7 +262,7 @@ extension CredentialVaultTests {
 		return Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: records, secrets: secrets, models: .scripted(transport),
+				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
 				training: service ?? training,
 				credits: CreditsService { vault in
 					PhoneCreditsClient(vault: vault, workerBase: base, session: session)
@@ -276,7 +276,7 @@ extension CredentialVaultTests {
 		Coach(
 			sport: .cycling,
 			ports: CoachPorts(
-				records: records, secrets: secrets, models: .scripted(transport),
+				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
 				training: training, credits: .fake(FakeCreditsClient()),
 				host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: testModel, deviceLanguage: .en,

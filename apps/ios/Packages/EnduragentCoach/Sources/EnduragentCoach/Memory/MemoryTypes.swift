@@ -1,6 +1,6 @@
 import Foundation
 
-public enum LedgerKind: String, Sendable {
+package enum LedgerKind: String, Sendable {
 	case decision
 	case override
 	case illness
@@ -8,12 +8,12 @@ public enum LedgerKind: String, Sendable {
 	case outcome
 }
 
-public enum LedgerSource: String, Sendable {
+package enum LedgerSource: String, Sendable {
 	case flush
 	case chat
 }
 
-public enum JournalOp: String, Sendable {
+package enum JournalOp: String, Sendable {
 	case writeSection = "write-section"
 	case savePlan = "save-plan"
 	case renameSections = "rename-sections"
@@ -54,13 +54,13 @@ package struct MemoryView: Sendable, Equatable {
 	}
 }
 
-public struct PlanHeadline: Sendable, Equatable {
-	public var name: String
-	public var primaryGoal: String?
-	public var totalWeeks: Int?
-	public var status: PlanStatus?
+package struct PlanHeadline: Sendable, Equatable {
+	package var name: String
+	package var primaryGoal: String?
+	package var totalWeeks: Int?
+	package var status: PlanStatus?
 
-	public init(name: String, primaryGoal: String?, totalWeeks: Int?, status: PlanStatus?) {
+	package init(name: String, primaryGoal: String?, totalWeeks: Int?, status: PlanStatus?) {
 		self.name = name
 		self.primaryGoal = primaryGoal
 		self.totalWeeks = totalWeeks

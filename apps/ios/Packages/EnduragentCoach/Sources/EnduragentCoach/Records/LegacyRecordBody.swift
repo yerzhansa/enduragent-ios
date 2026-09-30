@@ -1,11 +1,11 @@
 import Foundation
 
-public enum LegacyRecordBody: Sendable, Equatable {
+package enum LegacyRecordBody: Sendable, Equatable {
 	case userMessageV1(chatId: ChatID, athleteText: String, slash: SlashCommand?)
 	case assistantMessage(AssistantMessageBody)
 	case windowStartV1(chatId: ChatID, firstIncludedUlid: ULID)
 
-	public var kind: LegacyKind {
+	package var kind: LegacyKind {
 		switch self {
 		case .userMessageV1: .userMessage
 		case .assistantMessage: .assistantMessage
@@ -13,7 +13,7 @@ public enum LegacyRecordBody: Sendable, Equatable {
 		}
 	}
 
-	public var chatId: ChatID? {
+	package var chatId: ChatID? {
 		switch self {
 		case .userMessageV1(let chatId, _, _): chatId
 		case .assistantMessage(let body): body.chatId
@@ -22,9 +22,9 @@ public enum LegacyRecordBody: Sendable, Equatable {
 	}
 }
 
-public struct AssistantMessageBody: Sendable, Equatable {
-	public var chatId: ChatID
-	public var text: String
-	public var templateHash: String
-	public var assembledHash: String
+package struct AssistantMessageBody: Sendable, Equatable {
+	package var chatId: ChatID
+	package var text: String
+	package var templateHash: String
+	package var assembledHash: String
 }
