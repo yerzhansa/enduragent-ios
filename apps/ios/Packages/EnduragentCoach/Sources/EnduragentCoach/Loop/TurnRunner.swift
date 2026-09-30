@@ -50,7 +50,6 @@ package struct TurnRunner: Sendable {
 	let transport: any ModelTransport
 	private let ledger: Ledger
 	let clock: any Clock
-	private let planning: Planning
 	let diagnostics: DiagnosticsLog
 	private let ladder: RetryLadder
 	private let evidence: any TurnEvidence
@@ -59,7 +58,6 @@ package struct TurnRunner: Sendable {
 		transport: any ModelTransport,
 		ledger: Ledger,
 		clock: any Clock,
-		planning: Planning,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		evidence: any TurnEvidence
@@ -67,7 +65,6 @@ package struct TurnRunner: Sendable {
 		self.transport = transport
 		self.ledger = ledger
 		self.clock = clock
-		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
@@ -205,7 +202,6 @@ package struct TurnRunner: Sendable {
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
 	) async throws -> TurnPrompt {
-		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
 		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
@@ -323,7 +319,7 @@ package struct TurnRunner: Sendable {
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, planning: planning, clock: clock)
+			intervals: attempt.training.client, ledger: ledger, clock: clock)
 	}
 
 }

@@ -10,7 +10,7 @@ extension CredentialVaultTests {
 	func athleteResolutionFailureKeepsConnectedUnresolvedAccount(
 		failingWrite: Bool, statusCode: OSStatus
 	) async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let unresolved = IntervalsConnection(
 			id: testConnection.id, credential: testConnection.credential,
@@ -54,7 +54,7 @@ extension CredentialVaultTests {
 	@Test func malformedItemDuringAthleteResolutionRecordsDiagnosticAndKeepsConnected()
 		async throws
 	{
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let unresolved = IntervalsConnection(
 			id: testConnection.id, credential: testConnection.credential,
@@ -80,7 +80,7 @@ extension CredentialVaultTests {
 	}
 
 	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let oldToken = UUID()
 		try secrets.storeCreditsAccount(
@@ -197,11 +197,12 @@ extension CredentialVaultTests {
 	}
 
 	@Test func credentialsRetryAfterUnlock() async throws {
-		let secrets = keyedSecrets()
-		secrets.locked = true
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		backing.locked = true
 		let coach = coach(secrets)
 		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		secrets.locked = false
+		backing.locked = false
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.status().setup == .ready)
 	}
@@ -354,9 +355,6 @@ private struct GatedProfileIntervals: IntervalsClient {
 	}
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		try await base.createChatEvent(draft)
-	}
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await base.createOrUpdatePlanEvent(draft)
 	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent

@@ -7,7 +7,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - `onboarding-notice` shows the health notice with `notice.continue`.
 - `onboarding-connect` accepts a non-blank key, shows the connected athlete and training values, and offers `connect.continue`.
 - `onboarding-connect-empty` keeps the connect screen and shows `intervals.icu did not accept that key.` in `connect.error`.
-- `onboarding-skip` opens starter Credits without a training connection. The conversation welcome omits `/sync`.
+- `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected.
 - `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
 - `onboarding-credentials` keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
 - `onboarding-unavailable` shows `launch.storageUnavailable` when the record store cannot open. A locked keychain on a kept store preserves the transcript and shows `chat.composer.notice`.
@@ -32,7 +32,7 @@ Preconditions:
 | `sim.mjs test <run id> InstallOpenProof` | Health notice and Continue, `01-install-open`. |
 | `sim.mjs test <run id> ConnectIntervalsProof` | `connect.athleteName`, `.fitness`, `.fatigue`, and `.form` show the fixture values, `02-connect-intervals`. |
 | `sim.mjs test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
-| `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome after skipping has no `/sync`, `welcome-after-skip`. |
+| `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
 | `sim.mjs test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
 | `sim.mjs test <run id> CredentialTransactionProof` | Blank key, Cancel, and a failed replacement preserve Ada's key; the next reply succeeds, `credential-blank`, `credential-transaction`, `credential-transaction-reply`. |
 | `sim.mjs test <run id> DifferentAthleteProof` | Replace with `other-athlete` refuses the switch while a review exists. Confirming Switch athlete removes approval controls, `different-athlete`, `switch-confirmed`. |

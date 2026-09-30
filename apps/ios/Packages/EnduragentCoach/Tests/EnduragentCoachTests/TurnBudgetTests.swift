@@ -145,12 +145,10 @@ import Testing
 	private func runner() -> TurnRunner {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
-		let planning = Planning(clock: clock)
 		return TurnRunner(
 			transport: transport,
 			ledger: ledger,
 			clock: clock,
-			planning: planning,
 			diagnostics: diagnostics,
 			ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)

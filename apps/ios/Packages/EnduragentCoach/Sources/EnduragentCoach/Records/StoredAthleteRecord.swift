@@ -3,8 +3,11 @@ import SwiftData
 
 @Model
 final class StoredAthleteRecord {
+	#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])
+
 	var envelopeVersion: Int = 1
 	var ulid: String = ""
+	@Attribute(hashModifier: "ledger-indexes-v1")
 	var deviceId: String = ""
 	var hlcWallMs: Int64 = 0
 	var hlcLogical: Int64 = 0
@@ -21,6 +24,12 @@ final class StoredAthleteRecord {
 	var body: Data = Data()
 
 	static let currentEnvelopeVersion = 2
+
+	var hlc: HybridLogicalClock? {
+		guard let logical = UInt32(exactly: hlcLogical) else { return nil }
+		return HybridLogicalClock(
+			wallMs: hlcWallMs, logical: logical, deviceId: DeviceID(rawValue: hlcDeviceId))
+	}
 
 	init(record: AthleteRecord) throws {
 		let encoded = try RecordCodec.encode(record.body)
@@ -50,6 +59,7 @@ final class StoredAthleteRecord {
 
 	func decode() -> Result<AthleteRecord, SkippedRow> {
 		guard let ulid = ULID(rawValue: ulid),
+			let hlc,
 			let timeZone = IANATimeZone(identifier: timeZone),
 			let civilDate = CivilDate(rawValue: civilDate),
 			let account = TrainingAccount(storedValue: account)
@@ -76,11 +86,7 @@ final class StoredAthleteRecord {
 			AthleteRecord(
 				ulid: ulid,
 				deviceId: DeviceID(rawValue: deviceId),
-				hlc: HybridLogicalClock(
-					wallMs: hlcWallMs,
-					logical: UInt32(hlcLogical),
-					deviceId: DeviceID(rawValue: hlcDeviceId)
-				),
+				hlc: hlc,
 				timeZone: timeZone,
 				civilDate: civilDate,
 				cause: cause,

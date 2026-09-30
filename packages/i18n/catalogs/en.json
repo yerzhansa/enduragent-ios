@@ -638,7 +638,9 @@
       "showContext": "Show training context",
       "title": "Chat"
     },
-    "menu": "Menu"
+    "menu": "Menu",
+    "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{commands}}\n\nOr just chat with me about your training!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "cli": {
     "language": {
@@ -2480,7 +2482,6 @@
       "start": "Start a fresh session",
       "status": "Check current fitness, fatigue, and form",
       "sync": "Force-refresh training data from {{service}}",
-      "update": "Check for and install updates",
       "version": "Show current version",
       "whatsnew": "See what changed in the latest version",
       "workout": "Get today's workout"
@@ -2597,7 +2598,6 @@
       "managedInstruction": "Send {{whatsnew}} to see what changed. {{notice}}",
       "prepareFailed": "Couldn't safely prepare the update just now. Please try {{command}} again in a moment."
     },
-    "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{plan}} — Generate a training plan\n{{workout}} — Get today's workout\n{{status}} — Check current fitness, fatigue, and form\n{{review}} — Review your last session\n{{sync}} — Force-refresh training data from {{service}}\n{{version}} — Show current version\n{{whatsnew}} — See what changed in the latest version\n{{update}} — {{updateDescription}}\n\nOr just chat with me about your training!",
     "workout": {
       "working": "Checking your form and plan..."
     }

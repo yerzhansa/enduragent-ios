@@ -4,11 +4,11 @@ import Security
 @testable import EnduragentCoach
 
 final class InterruptedSecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
-	private let base: MemorySecretStoreBacking
+	private let base: FixtureSecretStoreBacking
 	private let lock = NSLock()
 	private var remainingWrites: Int?
 
-	init(base: MemorySecretStoreBacking) {
+	init(base: FixtureSecretStoreBacking) {
 		self.base = base
 	}
 

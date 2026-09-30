@@ -49,6 +49,10 @@ struct GatedReviewLog: RecordLog {
 	var readGate: ReviewGate?
 	var deviceId: DeviceID { inner.deviceId }
 	var imports: AsyncStream<Void> { inner.imports }
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let page = try await inner.fetch(query)
 		if query.scope == .deviceLocal([.pendingProposal, .proposalCleared]) {
@@ -91,9 +95,6 @@ struct GatedReviewIntervals: IntervalsClient {
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		await gate.pass()
 		return try await base.createChatEvent(draft)
-	}
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await base.createOrUpdatePlanEvent(draft)
 	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent

@@ -285,12 +285,6 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		)
 	}
 
-	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		_ = draft
-		throw IntervalsError(
-			code: "not_implemented", details: "Plan mirror writes are not available.")
-	}
-
 	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{

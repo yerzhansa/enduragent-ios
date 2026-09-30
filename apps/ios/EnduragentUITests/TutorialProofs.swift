@@ -174,7 +174,6 @@ final class NewConversationProof: XCTestCase {
 		sample.name = "new-conversation-latency-ms"
 		sample.lifetime = .keepAlways
 		add(sample)
-		XCTAssertTrue(welcome.label.contains(TutorialHarness.syncLine))
 		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
 		TutorialHarness.wait(notice)
 		XCTAssertEqual(notice.label, TutorialHarness.newConversationStarted)

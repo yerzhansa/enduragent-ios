@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Recebida antes de o app fechar. Toque em Tentar novamente para enviá-la.",
       "restorePurchases": "Restaurar compras",
       "signInAgain": "Entrar novamente"
-    }
+    },
+    "welcome": "Boas-vindas ao {{product}}!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu converse comigo sobre seu treinamento!",
+    "welcomeCommand": "{{command}} : {{description}}"
   },
   "plan": {
     "details": {
@@ -2699,7 +2701,6 @@
       "start": "Iniciar uma nova conversa",
       "status": "Ver o condicionamento, a fadiga e a forma atuais",
       "sync": "Forçar a atualização dos dados de treinamento de {{service}}",
-      "update": "Verificar e instalar atualizações",
       "version": "Mostrar a versão atual",
       "whatsnew": "Ver o que mudou na versão mais recente",
       "workout": "Ver o treino de hoje"
@@ -2816,7 +2817,6 @@
       "managedInstruction": "Envie {{whatsnew}} para ver o que mudou. {{notice}}",
       "prepareFailed": "Não consegui preparar a atualização com segurança agora. Tente {{command}} novamente daqui a pouco."
     },
-    "welcome": "Boas-vindas ao {{product}}!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de {{service}}.\n\nComandos:\n{{plan}} : Gerar um plano de treinamento\n{{workout}} : Ver o treino de hoje\n{{status}} : Ver o condicionamento, a fadiga e a forma atuais\n{{review}} : Revisar seu último treino\n{{sync}} : Forçar a atualização dos dados de treinamento de {{service}}\n{{version}} : Mostrar a versão atual\n{{whatsnew}} : Ver o que mudou na versão mais recente\n{{update}} : {{updateDescription}}\n\nOu converse comigo sobre seu treinamento!",
     "workout": {
       "working": "Verificando sua forma e seu plano..."
     }

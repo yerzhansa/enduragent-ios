@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen.",
       "restorePurchases": "Gjenopprett kjøp",
       "signInAgain": "Logg inn igjen"
-    }
+    },
+    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2483,7 +2485,6 @@
       "start": "Start en ny samtale",
       "status": "Sjekk form (CTL), tretthet (ATL) og form (TSB)",
       "sync": "Hent oppdaterte treningsdata fra {{service}}",
-      "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
       "whatsnew": "Se hva som er nytt i den nyeste versjonen",
       "workout": "Hent dagens treningsøkt"
@@ -2600,7 +2601,6 @@
       "managedInstruction": "Send {{whatsnew}} for å se hva som er nytt. {{notice}}",
       "prepareFailed": "Kunne ikke klargjøre oppdateringen trygt akkurat nå. Prøv {{command}} igjen om litt."
     },
-    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{plan}} — Lag en treningsplan\n{{workout}} — Hent dagens treningsøkt\n{{status}} — Sjekk form (CTL), tretthet (ATL) og form (TSB)\n{{review}} — Se gjennom den siste treningsøkten din\n{{sync}} — Hent oppdaterte treningsdata fra {{service}}\n{{version}} — Vis nåværende versjon\n{{whatsnew}} — Se hva som er nytt i den nyeste versjonen\n{{update}} — {{updateDescription}}\n\nDu kan også bare prate med meg om treningen din!",
     "workout": {
       "working": "Sjekker formen og planen din…"
     }

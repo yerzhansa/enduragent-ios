@@ -8,18 +8,19 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 	struct Reply: Sendable {
 		var status: Int
 		var headers: [String: String]
-		var body: Data
+		var chunks: [Data]
 
-		static func sse(_ text: String) -> Reply {
+		static func sse(_ text: String, fragmented: Bool = false) -> Reply {
 			Reply(
-				status: 200, headers: ["Content-Type": "text/event-stream"], body: Data(text.utf8))
+				status: 200, headers: ["Content-Type": "text/event-stream"],
+				chunks: fragmented ? text.utf8.map { Data([$0]) } : [Data(text.utf8)])
 		}
 
 		static func json(_ status: Int, _ body: String, headers: [String: String] = [:]) -> Reply {
 			Reply(
 				status: status,
 				headers: headers.merging(["Content-Type": "application/json"]) { own, _ in own },
-				body: Data(body.utf8)
+				chunks: [Data(body.utf8)]
 			)
 		}
 	}
@@ -73,7 +74,9 @@ final class OpenRouterStub: URLProtocol, @unchecked Sendable {
 				return
 			}
 			client?.urlProtocol(self, didReceive: http, cacheStoragePolicy: .notAllowed)
-			client?.urlProtocol(self, didLoad: reply.body)
+			for chunk in reply.chunks {
+				client?.urlProtocol(self, didLoad: chunk)
+			}
 			client?.urlProtocolDidFinishLoading(self)
 		}
 	}

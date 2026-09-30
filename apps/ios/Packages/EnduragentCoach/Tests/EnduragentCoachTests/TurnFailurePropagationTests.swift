@@ -161,6 +161,10 @@ private final class MemoryReadFailingLog: RecordLog, Sendable {
 		try await wrapped.append(batch, locality: locality)
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await wrapped.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		if query.scope
 			== .synced([.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary])
