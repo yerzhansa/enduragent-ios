@@ -1024,6 +1024,7 @@
       "savedChoice": "Gespeicherte Auswahl",
       "working": "Der Coach arbeitet…",
       "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
+      "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
       "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
     },
     "planChange": {

@@ -4,7 +4,7 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct SessionSettingsTests {
-	private let english = CatalogPhrasebook(tag: .en, locale: "en-GB")
+	private let english = CatalogPhrasebook(tag: .en)
 
 	@Test func defaultsMatchNpm() {
 		let defaults = SessionSettings.npmDefaults

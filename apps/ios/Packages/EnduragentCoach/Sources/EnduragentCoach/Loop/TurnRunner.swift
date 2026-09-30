@@ -13,7 +13,7 @@ package struct TurnAttempt: Sendable {
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguageResolution
+	package let language: ReplyLanguage
 	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
@@ -57,7 +57,7 @@ package struct TurnRunner: Sendable {
 	private let ledger: Ledger
 	let clock: any Clock
 	let diagnostics: DiagnosticsLog
-	private let ladder: RetryLadder
+	let ladder: RetryLadder
 	private let evidence: any TurnEvidence
 
 	package init(
@@ -104,18 +104,22 @@ package struct TurnRunner: Sendable {
 		while true {
 			let observed = TextObservation()
 			do {
-				if let pending {
-					try await prepare(
+				if let pending,
+					let outcome = try await prepare(
 						pending, prompt: &prompt, attempt: attempt, scope: scope, progress: progress
 					)
+				{
+					return .savedWork(outcome, saved: await scope.summary)
 				}
 				pending = nil
 				return try await generate(
 					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
+			} catch let saved as SavedWorkReached {
+				return .savedWork(saved.outcome, saved: await scope.summary)
 			} catch {
 				let failure = try AttemptFailure(caught: error)
 				let situation = AttemptSituation(
-					committed: await scope.written,
+					committed: try await scope.resolvedWrites(),
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
 					effectiveWindow: prompt.window,
@@ -144,7 +148,7 @@ package struct TurnRunner: Sendable {
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws {
+	) async throws -> SavedWorkOutcome? {
 		for preparation in retry.preparations {
 			switch preparation {
 			case .flushMemory:
@@ -166,6 +170,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
+		return try await scope.savedWork(using: ladder)
 	}
 
 	func flushOnce(
@@ -213,7 +218,7 @@ package struct TurnRunner: Sendable {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
+		let replyLanguage = PromptAssembly.replyLanguageSection(attempt.language)
 		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,

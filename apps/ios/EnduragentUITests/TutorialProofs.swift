@@ -157,7 +157,7 @@ final class NewConversationProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		let button = TutorialHarness.named(app, "chat.newConversation")
 		TutorialHarness.waitUntilHittable(button)
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en_US")
+		let phrasebook = CatalogPhrasebook(tag: .en)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
 		XCTAssertEqual(button.elementType, .button)
 		TutorialHarness.assertIconButtonWidth(button)

@@ -1,4 +1,3 @@
-import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -9,7 +8,7 @@ import Testing
 
 	@Test func preferenceBranchMatchesDesktopBytesForItalian() {
 		let section = PromptAssembly.replyLanguageSection(
-			resolution: LanguageResolution(language: .it, source: .preference, locale: "it-IT")
+			.fixed(.it)
 		)
 		let expected = """
 			# Reply language
@@ -25,32 +24,28 @@ import Testing
 		#expect(!section.contains("TSB"))
 	}
 
-	@Test func automaticSourcesShareTheFallbackSentence() {
-		for source in [LanguageSource.message, .surface, .default] {
-			let section = PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .it, source: source, locale: "it-IT")
-			)
-			let expected = """
-				# Reply language
+	@Test func mirrorUsesTheFallbackSentence() {
+		let section = PromptAssembly.replyLanguageSection(
+			.mirror(fallback: .it)
+		)
+		let expected = """
+			# Reply language
 
-				No language is saved. Reply in the language of the athlete's latest message; that is what "Mirror the athlete's register" means for language. When the message carries no language signal (a bare command, numbers only), reply in Italian (Italiano).
+			No language is saved. Reply in the language of the athlete's latest message; that is what "Mirror the athlete's register" means for language. When the message carries no language signal (a bare command, numbers only), reply in Italian (Italiano).
 
-				\(protected)
-				"""
-			#expect(section == expected)
-			#expect(!section.contains("The athlete chose"))
-		}
+			\(protected)
+			"""
+		#expect(section == expected)
+		#expect(!section.contains("The athlete chose"))
 	}
 
 	@Test func everyTagHasBothBranches() {
 		for tag in LanguageTag.contractOrder {
 			let preference = PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(
-					language: tag, source: .preference, locale: tag.defaultLocale)
+				.fixed(tag)
 			)
 			let automatic = PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(
-					language: tag, source: .message, locale: tag.defaultLocale)
+				.mirror(fallback: tag)
 			)
 			#expect(preference.contains("The athlete chose \(tag.englishName) (\(tag.endonym))"))
 			#expect(automatic.contains("reply in \(tag.englishName) (\(tag.endonym))"))
@@ -58,27 +53,5 @@ import Testing
 			#expect(automatic.contains(protected))
 			#expect(preference.contains("Fitness, Fatigue, Form"))
 		}
-		writeReplyLanguageEvidence()
-	}
-
-	private func writeReplyLanguageEvidence() {
-		let directory = URL(fileURLWithPath: "/tmp/ios-c7")
-		guard FileManager.default.fileExists(atPath: directory.path) else { return }
-		var lines: [String] = []
-		for tag in LanguageTag.contractOrder {
-			for source in [LanguageSource.preference, .message] {
-				let section = PromptAssembly.replyLanguageSection(
-					resolution: LanguageResolution(
-						language: tag, source: source, locale: tag.defaultLocale)
-				)
-				lines.append("=== \(tag.rawValue) \(source.rawValue)")
-				lines.append(section)
-			}
-		}
-		try? lines.joined(separator: "\n").write(
-			to: directory.appendingPathComponent("reply-language-swift.txt"),
-			atomically: true,
-			encoding: .utf8
-		)
 	}
 }

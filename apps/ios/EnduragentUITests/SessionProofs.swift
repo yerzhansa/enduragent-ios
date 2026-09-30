@@ -98,7 +98,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
 		TutorialHarness.completeOnboarding(app, language: .fr)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
-		let phrasebook = CatalogPhrasebook(tag: .fr, locale: "fr_FR")
+		let phrasebook = CatalogPhrasebook(tag: .fr)
 		let button = TutorialHarness.named(app, "chat.newConversation")
 		TutorialHarness.waitUntilHittable(button)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
@@ -128,7 +128,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 final class SavedLanguageFirstFrameProof: XCTestCase {
 	private let englishChrome: Set<String> = [
 		"Message your coach", "Send message", "Choose your language",
-		CatalogPhrasebook(tag: .en, locale: "en_US").say(Catalog.chatNewConversationLabel),
+		CatalogPhrasebook(tag: .en).say(Catalog.chatNewConversationLabel),
 		"Not medical advice, and not a substitute for a doctor or a certified coach.",
 	]
 

@@ -192,6 +192,7 @@ Catalog.chatNoticeResponseFailure
 Catalog.chatNoticeResponseStopped
 Catalog.chatNoticeRetryMessage
 Catalog.chatNoticeSavedChoice
+Catalog.chatNoticeCalendarUnverified
 Catalog.chatNoticeSavedUnverified
 Catalog.chatNoticeWorking
 Catalog.chatPlanChangeActivePlan
@@ -2544,9 +2545,8 @@ CatalogKey
 CatalogKey.init(rawValue:)
 CatalogKey.rawValue
 CatalogPhrasebook
-CatalogPhrasebook.init(tag:locale:)
-CatalogPhrasebook.locale
-CatalogPhrasebook.say(_:_:)
+CatalogPhrasebook.init(tag:)
+CatalogPhrasebook.say(_:count:_:)
 CatalogPhrasebook.tag
 ChatCalendarCreate
 ChatCalendarCreate.date
@@ -2759,7 +2759,6 @@ LanguageTag
 LanguageTag.contractOrder
 LanguageTag.da
 LanguageTag.de
-LanguageTag.defaultLocale
 LanguageTag.en
 LanguageTag.endonym
 LanguageTag.englishName
@@ -2795,8 +2794,6 @@ PackCatalog.init(purchasesEnabled:scale:packs:)
 PackCatalog.packs
 PackCatalog.purchasesEnabled
 PackCatalog.scale
-Phrasebook
-Phrasebook.say(_:_:)
 RecordFaults
 RecordFaults.failAppends(ofKind:)
 RecordFaults.failNextAppend
@@ -2899,5 +2896,5 @@ WellnessDay.date
 WellnessDay.fatigue
 WellnessDay.fitness
 WellnessDay.form
-WellnessDay.init(date:fitness:fatigue:form:)
 WellnessDay.formattedNumber(_:fractionDigits:)
+WellnessDay.init(date:fitness:fatigue:form:)

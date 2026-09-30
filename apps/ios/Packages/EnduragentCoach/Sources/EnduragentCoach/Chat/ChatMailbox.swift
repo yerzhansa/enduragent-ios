@@ -217,6 +217,10 @@ package actor ChatMailbox {
 		publish()
 	}
 
+	package var reviewScope: TurnScope? {
+		work.phase.running?.attempt?.scope
+	}
+
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
 	}
@@ -304,10 +308,13 @@ package actor ChatMailbox {
 			)
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
-		work.show(
-			LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)))
-		publish()
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
+		work.show(
+			RunningAttempt(
+				live: LiveAttempt(
+					turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)),
+				scope: scope))
+		publish()
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(request, scope: scope) { progress in
@@ -319,7 +326,7 @@ package actor ChatMailbox {
 			settlement = .interrupted(
 				partial: work.phase.running?.live?.text ?? "",
 				cause: work.phase.cause ?? .athleteStopped,
-				saved: await scope.summary)
+				saved: await scope.interrupt())
 		}
 		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
 		finish(turn, under: lease)
@@ -347,11 +354,12 @@ package actor ChatMailbox {
 		if case .proposalPending = progress {
 			await records.refreshReview()
 		}
-		guard var current = work.phase.running?.live, current.attempt == stamp.attempt else {
+		guard var current = work.phase.running?.attempt, current.live.attempt == stamp.attempt
+		else {
 			publish()
 			return
 		}
-		current.apply(progress)
+		current.live.apply(progress)
 		work.show(current)
 		publish()
 	}

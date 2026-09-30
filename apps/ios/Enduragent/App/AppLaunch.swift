@@ -4,7 +4,7 @@ import Foundation
 @MainActor
 enum AppLaunch {
 	case ready(ShellModel)
-	case storageUnavailable(any Phrasebook, failure: any Error)
+	case storageUnavailable(CatalogPhrasebook, failure: any Error)
 
 	static func start() async -> AppLaunch {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
@@ -37,7 +37,7 @@ enum AppLaunch {
 				}
 			#endif
 			return .storageUnavailable(
-				CatalogPhrasebook(tag: language, locale: language.defaultLocale), failure: error)
+				CatalogPhrasebook(tag: language), failure: error)
 		}
 	}
 

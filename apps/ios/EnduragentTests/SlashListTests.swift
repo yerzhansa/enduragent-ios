@@ -6,7 +6,7 @@ import Testing
 
 struct SlashListTests {
 	@Test func startIsListedWithItsMenuTitleAndPlanIsGone() {
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en")
+		let phrasebook = CatalogPhrasebook(tag: .en)
 		let rows = SlashCommand.allCases.map { ($0.rawValue, phrasebook.say($0.menuTitle, [:])) }
 		#expect(rows.map(\.0) == ["/start", "/workout", "/status", "/review", "/language"])
 		#expect(rows.first?.1 == "Start a fresh session")

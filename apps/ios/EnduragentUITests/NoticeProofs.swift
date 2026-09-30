@@ -140,7 +140,7 @@ final class RateLimitTryAgainOpensProof: XCTestCase {
 final class FrenchNoticesProof: XCTestCase {
 	func testNewNoticesUseFrenchCatalog() {
 		let app = XCUIApplication()
-		let phrasebook = CatalogPhrasebook(tag: .fr, locale: "fr_FR")
+		let phrasebook = CatalogPhrasebook(tag: .fr)
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
 		TutorialHarness.completeOnboarding(app, language: .fr)
 		TutorialHarness.send(app, "fixture:fail 402")

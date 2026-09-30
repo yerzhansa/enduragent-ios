@@ -43,10 +43,10 @@ struct CreditsView: View {
 	}
 
 	private func countLine(_ key: CatalogKey, units: Int, price: String? = nil) -> String {
-		var vars = ["count": "\(units)", "formattedCount": "\(units)"]
+		var vars = ["formattedCount": "\(units)"]
 		if let price {
 			vars["price"] = price
 		}
-		return model.phrasebook.say(key, vars)
+		return model.phrasebook.say(key, count: units, vars)
 	}
 }

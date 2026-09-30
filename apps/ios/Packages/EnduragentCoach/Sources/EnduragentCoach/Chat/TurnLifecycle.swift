@@ -178,7 +178,8 @@ package enum TurnLifecycle {
 			case .savedWork(let outcome, let saved):
 				return .savedWork(
 					TurnState.SavedWork(
-						outcome: outcome, saved: saved, notice: AthleteNotices.notice(for: outcome))
+						outcome: outcome, saved: saved,
+						notice: AthleteNotices.notice(for: outcome, saved: saved))
 				)
 			case .failed(let failure, let saved):
 				return .failed(

@@ -56,9 +56,9 @@ final class MailboxQueue {
 		update(.finishing(running.task))
 	}
 
-	func show(_ live: LiveAttempt) {
+	func show(_ attempt: RunningAttempt) {
 		guard case .active(let item, let task, _)? = phase.running else { return }
-		update(.active(item, task, live))
+		update(.active(item, task, attempt))
 	}
 
 	func beginInterruption(_ cause: InterruptionCause) {

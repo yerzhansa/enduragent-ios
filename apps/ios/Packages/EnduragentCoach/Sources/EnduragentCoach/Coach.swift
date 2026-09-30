@@ -112,8 +112,10 @@ public actor Coach {
 	}
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
-		let outcome = await reviews.decide(decision, chat: chat)
-		await mailbox(for: chat).reviewChanged()
+		let mailbox = await mailbox(for: chat)
+		let outcome = await reviews.decide(
+			decision, chat: chat, scope: await mailbox.reviewScope)
+		await mailbox.reviewChanged()
 		return outcome
 	}
 
@@ -301,7 +303,7 @@ public actor Coach {
 		return plans
 	}
 
-	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
+	func mailbox(for chatId: ChatID) async -> ChatMailbox {
 		await recoverOnce()
 		return makeMailbox(for: chatId)
 	}
