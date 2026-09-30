@@ -9,7 +9,8 @@ import Testing
 	@Test func resetPartitionsReviewNotesLikeARelaunch() {
 		let notes = [note(1), note(4)]
 		let before = ConversationFold.fold(chat: .main, synced: notes, device: device)
-		let applied = ConversationFold.applying([boundary], to: before, device: device)
+		var applied = before
+		applied.apply([boundary], device: device)
 		let relaunched = ConversationFold.fold(
 			chat: .main, synced: notes + [boundary], device: device)
 		#expect(applied.segments.map(\.notes) == relaunched.segments.map(\.notes))
@@ -17,14 +18,16 @@ import Testing
 
 	@Test func lateReviewNoteStaysInItsArchivedConversation() {
 		let before = ConversationFold.fold(chat: .main, synced: [boundary], device: device)
-		let applied = ConversationFold.applying([note(1)], to: before, device: device)
+		var applied = before
+		applied.apply([note(1)], device: device)
 		#expect(applied.current.notes.isEmpty)
 		#expect(applied.segments.first?.notes.map(\.ulid) == [fixedUlid(1)])
 	}
 
 	@Test func refreshedReviewNotesKeepTheirOrderAndAreNotDuplicated() {
 		let before = ConversationFold.fold(chat: .main, synced: [note(4)], device: device)
-		let applied = ConversationFold.applying([note(4), note(1)], to: before, device: device)
+		var applied = before
+		applied.apply([note(4), note(1)], device: device)
 		#expect(applied.current.notes.map(\.ulid) == [fixedUlid(1), fixedUlid(4)])
 	}
 

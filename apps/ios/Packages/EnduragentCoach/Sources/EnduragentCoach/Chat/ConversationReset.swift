@@ -133,13 +133,14 @@ final class PendingResets {
 
 extension Conversation {
 	package mutating func openSegment(at boundary: ULID, openedBy opening: SegmentOpening) {
+		guard !segments.contains(where: { $0.id.boundary == boundary }) else { return }
 		var opened = Segment(id: SegmentID(boundary: boundary), openedBy: opening)
-		if let last = segments.indices.last {
-			opened.turns = segments[last].turns.filter { $0.opens(atOrAfter: boundary) }
+		let last = segmentIndex(for: boundary)
+		if !segments.isEmpty {
 			opened.notes = segments[last].notes.filter { $0.ulid >= boundary }
-			segments[last] = segments[last].closing(at: boundary)
+			segments[last].notes.removeAll { $0.ulid >= boundary }
 		}
-		segments.append(opened)
+		segments.insert(opened, at: last + 1)
 	}
 }
 

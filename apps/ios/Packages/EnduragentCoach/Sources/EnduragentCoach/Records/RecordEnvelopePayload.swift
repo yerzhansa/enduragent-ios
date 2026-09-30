@@ -43,7 +43,8 @@ enum SyncedPayload: Encodable {
 				WindowStartPayload(
 					chatId: value.chatId.rawValue,
 					firstIncludedUlid: value.firstIncludedUlid.rawValue,
-					reason: encodeWindowReason(value.reason)
+					reason: encodeWindowReason(value.reason),
+					droppedMessageUlids: value.droppedMessageUlids?.map(\.rawValue)
 				)
 			)
 		case .compactionSummary(let value):
