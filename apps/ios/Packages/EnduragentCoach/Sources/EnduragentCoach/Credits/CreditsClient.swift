@@ -91,6 +91,7 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 	case purchasesDisabled
 	case noPurchaseToRecover
 	case identityMismatch
+	case accountChanged
 	case rateLimited
 	case unavailable
 	case unexpectedResponse(status: Int)
@@ -111,7 +112,7 @@ public struct CreditsService: Sendable {
 
 public protocol CreditsClient: Sendable {
 	func grant(deviceCheck: Data) async throws -> GrantOutcome
-	func claim(signedTransaction: String) async throws -> ClaimOutcome
+	func claim(signedTransaction: String, appAccountToken: UUID) async throws -> ClaimOutcome
 	func recover(signedTransaction: String) async throws -> Recovery
 	func catalog() async throws -> PackCatalog
 	func balance(scale: CreditScale) async throws -> CreditBalance
@@ -161,7 +162,7 @@ package struct PhoneCreditsClient: CreditsClient {
 	}
 
 	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
-		let athleteId = try await vault.appAccountToken()
+		let athleteId = try await vault.prepareCreditsAccount()
 		let (status, data) = try await worker(
 			path: "grant",
 			method: "POST",
@@ -173,7 +174,8 @@ package struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "grantMinted":
 			let wire = try decode(GrantMintedWire.self, from: data, status: status)
-			try await vault.storeCreditsKey(try mintedKey(wire.key, status: status))
+			try await vault.storeCreditsKey(
+				try mintedKey(wire.key, status: status), mintedFor: athleteId)
 			return .minted(Credits(units: wire.credits))
 		case "grantToppedUp":
 			let wire = try decode(GrantToppedUpWire.self, from: data, status: status)
@@ -185,7 +187,9 @@ package struct PhoneCreditsClient: CreditsClient {
 		}
 	}
 
-	package func claim(signedTransaction: String) async throws -> ClaimOutcome {
+	package func claim(signedTransaction: String, appAccountToken: UUID) async throws
+		-> ClaimOutcome
+	{
 		let (status, data) = try await worker(
 			path: "claim",
 			method: "POST",
@@ -194,7 +198,8 @@ package struct PhoneCreditsClient: CreditsClient {
 		switch try decode(KindWire.self, from: data, status: status).kind {
 		case "claimMinted":
 			let wire = try decode(ClaimMintedWire.self, from: data, status: status)
-			try await vault.storeCreditsKey(try mintedKey(wire.key, status: status))
+			try await vault.storeCreditsKey(
+				try mintedKey(wire.key, status: status), mintedFor: appAccountToken)
 			return .minted(creditsAdded: Credits(units: wire.creditsAdded))
 		case "claimToppedUp":
 			let wire = try decode(ClaimToppedUpWire.self, from: data, status: status)

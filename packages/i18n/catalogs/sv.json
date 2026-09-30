@@ -2932,7 +2932,8 @@
     "error": {
       "accessRejected": "Dina krediter kunde inte användas. Återställ köp för att fortsätta.",
       "exhausted": "Dina krediter är slut. Köp fler eller byt till ditt OpenRouter-konto.",
-      "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare."
+      "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
+      "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
     }
   },
   "onboarding": {

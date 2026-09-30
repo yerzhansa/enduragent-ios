@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2472
-	public static let keyCount = 2512
+	public static let englishLeafCount = 2473
+	public static let keyCount = 2513
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -777,6 +777,7 @@ public enum Catalog {
 	public static let creditsBalanceOther = CatalogKey(rawValue: "credits.balance_other")
 	public static let creditsBuy = CatalogKey(rawValue: "credits.buy")
 	public static let creditsErrorAccessRejected = CatalogKey(rawValue: "credits.error.accessRejected")
+	public static let creditsErrorAccountChanged = CatalogKey(rawValue: "credits.error.accountChanged")
 	public static let creditsErrorExhausted = CatalogKey(rawValue: "credits.error.exhausted")
 	public static let creditsErrorUnavailable = CatalogKey(rawValue: "credits.error.unavailable")
 	public static let creditsPack = CatalogKey(rawValue: "credits.pack")
