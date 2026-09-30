@@ -2651,7 +2651,6 @@ FakeIntervalsClient.athleteId
 FakeIntervalsClient.athleteName
 FakeIntervalsClient.calls
 FakeIntervalsClient.createChatEvent(_:)
-FakeIntervalsClient.createOrUpdatePlanEvent(_:)
 FakeIntervalsClient.deleteEvent(id:)
 FakeIntervalsClient.events
 FakeIntervalsClient.fetchActivities(oldest:newest:)
@@ -2734,7 +2733,6 @@ ImmediateExecutionHost.init(expiringAfter:clock:)
 ImmediateExecutionHost.leases
 IntervalsClient
 IntervalsClient.createChatEvent(_:)
-IntervalsClient.createOrUpdatePlanEvent(_:)
 IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchActivities(oldest:newest:)
 IntervalsClient.fetchActivity(id:)
@@ -2810,17 +2808,6 @@ PackCatalog.purchasesEnabled
 PackCatalog.scale
 Phrasebook
 Phrasebook.say(_:_:)
-PlanMirrorCreate
-PlanMirrorCreate.date
-PlanMirrorCreate.description
-PlanMirrorCreate.movingTime
-PlanMirrorCreate.name
-PlanMirrorCreate.uid
-PlanMirrorCreate.workoutDoc
-PlanMirrorUID
-PlanMirrorUID.planId
-PlanMirrorUID.rawValue
-PlanMirrorUID.workoutId
 RecordFaults
 RecordFaults.failAppends(ofKind:)
 RecordFaults.failNextAppend

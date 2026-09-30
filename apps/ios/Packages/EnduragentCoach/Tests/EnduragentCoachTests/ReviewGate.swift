@@ -92,9 +92,6 @@ struct GatedReviewIntervals: IntervalsClient {
 		await gate.pass()
 		return try await base.createChatEvent(draft)
 	}
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await base.createOrUpdatePlanEvent(draft)
-	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{ try await base.updateEvent(id: id, name: name, description: description, date: date) }

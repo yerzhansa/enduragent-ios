@@ -355,9 +355,6 @@ private struct GatedProfileIntervals: IntervalsClient {
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		try await base.createChatEvent(draft)
 	}
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		try await base.createOrUpdatePlanEvent(draft)
-	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{
