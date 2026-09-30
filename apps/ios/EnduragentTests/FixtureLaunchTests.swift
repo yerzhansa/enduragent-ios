@@ -164,7 +164,9 @@ final class FixtureLaunchTests {
 	@Test func skippingConnectMovesToStarterWithoutAthlete() throws {
 		let model = model(try services())
 		model.continueNotice()
+		model.connectKey = "abandoned-key"
 		model.skipConnect()
+		#expect(model.connectKey.isEmpty)
 		#expect(model.route == .onboarding(.starter))
 		#expect(model.connected == nil)
 		#expect(model.athleteFirstName.isEmpty)
