@@ -19,7 +19,7 @@ package struct ReviewNote: Sendable, Equatable {
 
 package struct PromptWindow: Sendable, Equatable {
 	package struct Trim: Sendable, Equatable {
-		package let firstIncluded: ULID
+		package let messageUlids: Set<ULID>
 		package let opened: ULID
 	}
 
@@ -56,9 +56,8 @@ package struct Segment: Sendable, Equatable {
 		var history = PromptHistory(
 			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
-			if let trim = promptWindow.trim, let first = facts.userRow?.ulid,
-				first < trim.firstIncluded,
-				facts.latestSettlement.map({ $0.ulid < trim.opened }) ?? true
+			if let trim = promptWindow.trim,
+				visibleRows(of: facts).allSatisfy({ trim.messageUlids.contains($0.ulid) })
 			{
 				continue
 			}
@@ -71,7 +70,7 @@ package struct Segment: Sendable, Equatable {
 	}
 
 	package func hidesQuestion(of facts: TurnFacts) -> Bool {
-		facts.fragments.min { $0.index < $1.index }.map { isTrimmed($0.ulid) } ?? false
+		facts.userRow.map { isTrimmed($0.ulid) } ?? false
 	}
 
 	package func hidesWholly(_ facts: TurnFacts) -> Bool {

@@ -219,9 +219,10 @@ import Testing
 					text: "Modern reply")))
 		let conversation: Conversation
 		if incremental {
-			let initial = ConversationFold.fold(
+			var initial = ConversationFold.fold(
 				chat: .main, synced: [question], device: store.deviceId)
-			conversation = ConversationFold.applying([reply], to: initial, device: store.deviceId)
+			initial.apply([reply], device: store.deviceId)
+			conversation = initial
 		} else {
 			conversation = ConversationFold.fold(
 				chat: .main, synced: [question, reply], device: store.deviceId)

@@ -23,7 +23,9 @@ import Testing
 			maxGenerateAttempts: 1, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
-		let result = try await runner().run(attempt("Keep fetching", scope: scope), scope: scope) {
+		let result = try await runner().run(
+			attempt("Keep fetching", scope: scope), scope: scope, committed: { _ in }
+		) {
 			_ in
 		}
 		#expect(result.replyText == "Ten steps.")
@@ -47,8 +49,9 @@ import Testing
 				+ [.text("Fits now."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
-		let result = try await runner().run(attempt("Is Thursday on?", scope: scope), scope: scope)
-		{
+		let result = try await runner().run(
+			attempt("Is Thursday on?", scope: scope), scope: scope, committed: { _ in }
+		) {
 			_ in
 		}
 		#expect(result.replyText == "Fits now.")
@@ -66,8 +69,9 @@ import Testing
 			maxGenerateAttempts: 2, maxGenerateCalls: 40, wallClock: .seconds(10),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: tight, uptime: clock.uptime)
-		let result = try await runner().run(attempt("Is Thursday on?", scope: scope), scope: scope)
-		{
+		let result = try await runner().run(
+			attempt("Is Thursday on?", scope: scope), scope: scope, committed: { _ in }
+		) {
 			_ in
 		}
 		#expect(
@@ -92,7 +96,7 @@ import Testing
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
 		let result = try await runner().run(
-			attempt("Remember Saturdays", scope: scope), scope: scope
+			attempt("Remember Saturdays", scope: scope), scope: scope, committed: { _ in }
 		) {
 			_ in
 		}
@@ -120,8 +124,9 @@ import Testing
 			maxGenerateAttempts: 4, maxGenerateCalls: 2, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, uptime: .zero)
-		let result = try await runner().run(attempt("How was my week?", scope: scope), scope: scope)
-		{
+		let result = try await runner().run(
+			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
+		) {
 			_ in
 		}
 		#expect(result == .failed(.model(.budgetExhausted(.generateCalls)), saved: .none))
