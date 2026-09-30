@@ -53,18 +53,11 @@ extension TurnRunner {
 					role: .assistant, content: step.text, toolCalls: step.toolCalls,
 					toolCallId: nil)
 			)
-			let offeredNames = Set(prompt.schemas.map(\.name))
-			await progress(
-				.activity(
-					.runningTools(
-						step.toolCalls.compactMap {
-							guard let name = ToolName(rawValue: $0.name),
-								offeredNames.contains(name)
-							else { return nil }
-							return name
-						})))
-			let outcomes = try await runTools(
-				step.toolCalls, offeredNames: offeredNames, for: attempt, scope: scope)
+			let calls = step.toolCalls.map { call in
+				(call, prompt.schemas.first { $0.name.rawValue == call.name }?.name)
+			}
+			await progress(.activity(.runningTools(calls.compactMap { $0.1 })))
+			let outcomes = try await runTools(calls, for: attempt, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -195,17 +188,15 @@ extension TurnRunner {
 	}
 
 	private func runTools(
-		_ calls: [WireToolCall],
-		offeredNames: Set<ToolName>,
+		_ calls: [(WireToolCall, ToolName?)],
 		for attempt: TurnAttempt,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
 		let runtime = tools(for: attempt)
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
-			for (index, call) in calls.enumerated() {
+			for (index, (call, name)) in calls.enumerated() {
 				group.addTask {
-					guard let name = ToolName(rawValue: call.name), offeredNames.contains(name)
-					else {
+					guard let name else {
 						return (
 							index, call,
 							.result(

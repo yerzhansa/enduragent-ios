@@ -212,7 +212,7 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 		let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - UInt8(ascii: "0")) }
 		let month = Int(bytes[5] - UInt8(ascii: "0")) * 10 + Int(bytes[6] - UInt8(ascii: "0"))
 		let day = Int(bytes[8] - UInt8(ascii: "0")) * 10 + Int(bytes[9] - UInt8(ascii: "0"))
-		guard year > 0, (1...12).contains(month) else { return false }
+		guard year >= 1583, (1...12).contains(month) else { return false }
 		let daysInMonth: Int
 		switch month {
 		case 2:

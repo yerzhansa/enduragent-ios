@@ -35,7 +35,7 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: ["1e20", "-1e20", "9e18"])
+	@Test(arguments: ["1e20", "-1e20"])
 	func oversizedToolNumbersReturnErrors(days: String) async throws {
 		let result = try await toolResult(
 			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
@@ -58,6 +58,39 @@ extension TurnRunnerTests {
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.isEmpty)
+	}
+
+	@Test(arguments: ["9e18", "4000000"])
+	func excessiveDayCountsReturnRangeTooWide(days: String) async throws {
+		let result = try await toolResult(
+			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
+		#expect(result.objectFields["error"] == .string("range_too_wide"))
+	}
+
+	@Test(arguments: ["1e20", "-5", "0", "1.5"])
+	func invalidDayCountsIdentifyTheDaysValue(days: String) async throws {
+		let result = try await toolResult(
+			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
+		#expect(result.objectFields["error"] == .string("invalid_input"))
+		#expect(result.objectFields["details"] == .string("days must be a positive integer."))
+	}
+
+	@Test(arguments: ["1500-02-28", "1582-10-10", "0001-01-01"])
+	func historicalDateKeysReturnInvalidDate(oldest: String) async throws {
+		let result = try await toolResult(
+			name: "intervals_fetch_activities",
+			arguments: "{\"oldest\":\"\(oldest)\",\"newest\":\"\(oldest)\"}")
+		#expect(result.objectFields["error"] == .string("invalid_date"))
+	}
+
+	@Test func promptDoesNotRequestUnavailableTools() async throws {
+		transport.script = [.text("Ready."), .finish(reason: .stop)]
+		let settled = try await makeCoach().sendAndSettle("Help me plan")
+		#expect(replyText(settled) == "Ready.")
+		let request = try #require(transport.requests.first)
+		let prompt = request.messages.map(\.content).joined(separator: "\n")
+		#expect(!prompt.contains("plan_save"))
+		#expect(!prompt.contains("request_user_decision"))
 	}
 
 	private func toolResult(name: String, arguments: String) async throws -> JSONValue {

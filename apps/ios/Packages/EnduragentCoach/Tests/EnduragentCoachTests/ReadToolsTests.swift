@@ -154,6 +154,30 @@ struct ReadToolsTests {
 		#expect(events[0].objectFields["name"]?.stringValue == "Endurance")
 	}
 
+	@Test(arguments: [
+		("1998-06-13", "1998-06-13", 1), ("1998-06-14", "1998-06-13", 0),
+		("2000-02-28", "2000-03-01", 3), ("1900-02-28", "1900-03-01", 2),
+		("1999-12-31", "2000-01-01", 2), ("1583-01-01", "1583-12-31", 365),
+	])
+	func inclusiveRangesCountGregorianDays(oldest: String, newest: String, days: Int) throws {
+		#expect(
+			IntervalsPolicy.inclusiveDayCount(
+				from: try #require(CivilDate(rawValue: oldest)),
+				to: try #require(CivilDate(rawValue: newest))) == days)
+	}
+
+	@Test func wholeCalendarRangeReturnsRangeTooWide() {
+		#expect(throws: IntervalsError.self) {
+			do {
+				try IntervalsPolicy.rejectListRange(
+					oldest: CivilDate(year: 1, month: 1, day: 1), newest: "9999-12-31")
+			} catch let error as IntervalsError {
+				#expect(error.code == "range_too_wide")
+				throw error
+			}
+		}
+	}
+
 	@Test func rangeTooWideReturnsTypedError() async throws {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,

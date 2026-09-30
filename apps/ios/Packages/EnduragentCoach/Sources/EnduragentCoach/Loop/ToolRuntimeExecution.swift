@@ -7,16 +7,6 @@ extension ToolRuntime {
 		chatId: ChatID,
 		stamp: OperationStamp
 	) async throws -> ToolOutcome {
-		if gated == .planSave {
-			return .result(
-				UntrustedEnvelope.wrap(
-					.object([
-						"error": .string("not_implemented"),
-						"details": .string("Saving a plan is not available yet."),
-					])
-				)
-			)
-		}
 		do {
 			let parsed = try parseGated(gated, arguments: arguments)
 			let proposal = try await ProposalPolicy.propose(
@@ -202,7 +192,11 @@ extension ToolRuntime {
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 			return (oldest, newest)
 		}
-		if let days = fields["days"]?.intValue(), days >= 1 {
+		if let value = fields["days"] {
+			guard let days = value.intValue(), days >= 1 else {
+				throw IntervalsError(
+					code: "invalid_input", details: "days must be a positive integer.")
+			}
 			try IntervalsPolicy.rejectListDayCount(days)
 			let newest = today
 			let oldest = today.adding(days: -(days - 1))

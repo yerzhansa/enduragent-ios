@@ -4,13 +4,21 @@ import Testing
 
 @Suite struct CivilDateValidationTests {
 	@Test(arguments: [
-		"0001-01-01", "0004-02-29", "0400-02-29", "1582-06-15", "1600-02-29",
+		"1583-01-01", "1600-02-29",
 		"1900-02-28", "1996-02-29", "2000-02-29", "2024-02-29", "2024-04-30",
 		"2024-01-31", "2100-02-28", "2400-02-29", "9999-12-31",
 	])
 	func acceptsCanonicalGregorianDates(key: String) {
 		#expect(CivilDate.isRealDateKey(key))
 		#expect(CivilDate(rawValue: key)?.rawValue == key)
+	}
+
+	@Test(arguments: [
+		"0001-01-01", "0004-02-29", "0400-02-29", "1500-02-28", "1582-06-15", "1582-10-10",
+	])
+	func rejectsDatesBeforeGregorianArithmetic(key: String) {
+		#expect(!CivilDate.isRealDateKey(key))
+		#expect(CivilDate(rawValue: key) == nil)
 	}
 
 	@Test(arguments: [

@@ -16,7 +16,7 @@ package enum PromptStaticBlocks {
 	package static let confirmationGateRules = #"""
 		# Mutation Confirmations
 
-		The host may require confirmation for intervals_create_workout, intervals_create_strength_workout, intervals_delete_workout, intervals_update_workout, and plan_save. When one of these tools returns {pendingConfirmation: true}, it only proposed the change and will execute after the athlete confirms through a button or prompt outside this conversation.
+		The host may require confirmation for intervals_create_workout, intervals_create_strength_workout, intervals_delete_workout, and intervals_update_workout. When one of these tools returns {pendingConfirmation: true}, it only proposed the change and will execute after the athlete confirms through a button or prompt outside this conversation.
 
 		After a pending-confirmation result, state what you proposed and that confirmation is pending. Never claim the write happened. Never call the tool again to retry a pending proposal. Propose at most one mutation per turn because a new proposal replaces the outstanding one.
 		"""#
@@ -24,9 +24,9 @@ package enum PromptStaticBlocks {
 	package static let coachDecisionRules = #"""
 		# Material Coach Decisions
 
-		When available, call request_user_decision only for a material choice between coaching or Plan directions; the host renders the panel. Otherwise ask the same choice as numbered text. Ask ordinary questions in text.
+		Ask material choices between coaching or Plan directions as numbered text. Ask ordinary questions in text.
 
-		Give 2–5 options with a short label, one-sentence description, consequence, and recommendation flag. Recommend at most one. Call the tool alone. Never use it for medical red flags or to mutate Plan, Calendar, or Training.
+		Give 2–5 options with a short label, one-sentence description, and consequence. Recommend at most one. Never treat an answer as permission to mutate Plan, Calendar, or Training.
 		"""#
 
 	package static let crossSportVoiceRules = #"""

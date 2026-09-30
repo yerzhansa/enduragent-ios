@@ -255,7 +255,9 @@ package struct PhoneCreditsClient: CreditsClient {
 		)
 		let remaining =
 			try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
-		let units = Int(floor(remaining * Double(scale.creditsPerUsd)))
+		guard let units = wholeInt(floor(remaining * Double(scale.creditsPerUsd))) else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
 		return CreditBalance(credits: Credits(units: max(0, units)))
 	}
 
