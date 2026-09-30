@@ -1,6 +1,5 @@
 import Foundation
 import SQLite3
-import SwiftData
 import Testing
 
 @testable import EnduragentCoach
@@ -13,12 +12,12 @@ extension SwiftDataSuites {
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			let url = root.appending(path: "synced.store")
 			let device = DeviceID(rawValue: "phone-a")
-			let record = storedRecord(
-				device: device, wall: 900_000_000_000, logical: 7, ulid: fixedUlid(1),
-				body: .synced(sampleUser(chatId: .main, text: "before indexes")))
-			try autoreleasepool {
-				try writeWithoutIndexes(record, to: url)
-			}
+			let fixture = try #require(
+				Bundle.module.url(
+					forResource: "unindexed-records", withExtension: "sql",
+					subdirectory: "Fixtures"))
+			let sql = try String(contentsOf: fixture, encoding: .utf8)
+			try restoreRecordStore(sql, into: url)
 			let expected: Set<String> = ["ZDEVICEID,ZHLCWALLMS,ZHLCLOGICAL", "ZKIND,ZCHATID"]
 			#expect(try indexColumns(at: url).isDisjoint(with: expected))
 			let log = SwiftDataRecordLog(
@@ -26,7 +25,14 @@ extension SwiftDataSuites {
 				synced: try ModelContainerHandle.withoutCloudKit(storeURL: url),
 				local: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "local.store")))
-			#expect(try await log.fetch(RecordQuery(scope: .everySynced)).records == [record])
+			let records = try await log.fetch(RecordQuery(scope: .everySynced)).records
+			let record = try #require(records.first)
+			#expect(records.count == 1)
+			#expect(messageText(record) == "before indexes")
+			#expect(record.ulid == fixedUlid(1))
+			#expect(
+				record.hlc
+					== HybridLogicalClock(wallMs: 900_000_000_000, logical: 7, deviceId: device))
 			#expect(try expected.isSubset(of: indexColumns(at: url)))
 			let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 			let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -35,17 +41,6 @@ extension SwiftDataSuites {
 			#expect(written.first?.hlc.logical == 8)
 			#expect(
 				try await log.fetch(RecordQuery(scope: .everySynced)).records == [record] + written)
-		}
-
-		private func writeWithoutIndexes(_ record: AthleteRecord, to url: URL) throws {
-			let schema = Schema([UnindexedRecordSchema.StoredAthleteRecord.self])
-			let configuration = ModelConfiguration(
-				schema: schema, url: url, cloudKitDatabase: .none)
-			let container = try ModelContainer(for: schema, configurations: [configuration])
-			let context = ModelContext(container)
-			context.autosaveEnabled = false
-			context.insert(try UnindexedRecordSchema.StoredAthleteRecord(record: record))
-			try context.save()
 		}
 
 		private func indexColumns(at url: URL) throws -> Set<String> {
@@ -74,56 +69,5 @@ extension SwiftDataSuites {
 			try #require(result == SQLITE_DONE)
 			return columns
 		}
-	}
-}
-
-private enum UnindexedRecordSchema {
-	@Model
-	final class StoredAthleteRecord {
-		var envelopeVersion: Int = 1
-		var ulid: String = ""
-		var deviceId: String = ""
-		var hlcWallMs: Int64 = 0
-		var hlcLogical: Int64 = 0
-		var hlcDeviceId: String = ""
-		var timeZone: String = ""
-		var civilDate: String = ""
-		var kind: String = ""
-		var bodyVersion: Int = 1
-		var chatId: String?
-		var turn: String?
-		var operation: String?
-		var attempt: String?
-		var account: String?
-		var body: Data = Data()
-
-		static let currentEnvelopeVersion = 2
-
-		init(record: AthleteRecord) throws {
-			let encoded = try RecordCodec.encode(record.body)
-			self.envelopeVersion = Self.currentEnvelopeVersion
-			self.ulid = record.ulid.rawValue
-			self.deviceId = record.deviceId.rawValue
-			self.hlcWallMs = record.hlc.wallMs
-			self.hlcLogical = Int64(record.hlc.logical)
-			self.hlcDeviceId = record.hlc.deviceId.rawValue
-			self.timeZone = record.timeZone.identifier
-			self.civilDate = record.civilDate.rawValue
-			self.kind = record.body.kind
-			self.bodyVersion = encoded.version
-			self.chatId = record.body.chatId?.rawValue
-			self.turn = record.body.turn?.ulid.rawValue
-			switch record.cause {
-			case .operation(let operation, let attempt):
-				self.operation = operation.storedValue
-				self.attempt = attempt.ulid.rawValue
-			case .legacy:
-				self.operation = nil
-				self.attempt = nil
-			}
-			self.account = record.account.storedValue
-			self.body = encoded.data
-		}
-
 	}
 }
