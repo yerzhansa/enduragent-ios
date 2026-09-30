@@ -21,13 +21,12 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 			])
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
 		#expect(rows.filter { $0 == "Triggering question" }.count == 1)
 		#expect(rows.filter { $0 == "Triggering reply" }.count == 1)
 		#expect(rows.filter { $0 == "Earlier question" }.count == 1)
@@ -45,8 +44,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [fixedUlid(4), fixedUlid(6)])))),
+								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 				record(
 					1, device: DeviceID(rawValue: "other-phone"),
 					body: legacyUser(chatId: .main, text: "Imported Saturday")),
@@ -70,7 +68,7 @@ import Testing
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
 		#expect(rows.contains("Imported Saturday"))
 		#expect(rows.contains("Imported reply"))
 	}

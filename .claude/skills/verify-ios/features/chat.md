@@ -25,9 +25,9 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
 - `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` treats `/plan` as ordinary text and omits it from the list.
 - `chat-new-conversation` accepts Start new conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
-- `chat-automatic-reset` opens a new conversation on the next message after the daily reset is due and the last turn is at least 30 minutes old. The default daily hour is 04:00 in the conversation's time zone. An enabled idle reset uses its configured gap without the daily grace period.
+- `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
-- `chat-session-settings` edits eight settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
+- `chat-session-settings` edits four settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
 - `chat-no-network` keeps `fixture.requestCount` at zero through all fixture work.
 
 | Turn or composer state | Visible notice and action |
@@ -48,7 +48,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | Recovery cannot read records | `Conversation history is temporarily unavailable.` with no recovery button. |
 | Message save failed | `Not sent. Your draft is still here.` in `chat.composer.notSent`; the message remains unsent. |
 
-New conversation reports `New conversation started.` in `chat.newConversation.notice`. If memory saving was incomplete, it adds `Some recent details may not have been saved to coach memory.` If the boundary could not be confirmed, the prior visible conversation stays and the notice says `We couldn’t confirm whether the new conversation started. Your visible conversation is preserved.` Automatic reset uses `chat.automaticReset.notice` once above the new turn, with `Started a fresh session - earlier conversation is archived, and I still have your key details in memory.`
+New conversation reports `New conversation started.` in `chat.newConversation.notice`. If memory saving was incomplete, it adds `Some recent details may not have been saved to coach memory.` If the boundary could not be confirmed, the prior visible conversation stays and the notice says `We couldn’t confirm whether the new conversation started. Your visible conversation is preserved.`
 
 ## How to get to it (user POV)
 
@@ -56,7 +56,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 - Type `/` at the beginning of the composer to open the slash list; choose a command and send it.
 - Tap Stop responding while work is running, or the recovery action beneath a settled notice.
 - Tap Start new conversation in the top bar or send `/start`.
-- Send the next message after the daily or idle-reset gap.
+- Relaunch the next morning with the store kept and send another message.
 - Choose Menu, Debug, then Records, Leases, or Conversation & time for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
 
 ## Driving it with sim.mjs and XCUITest
@@ -64,7 +64,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 Preconditions:
 
 - Follow the [index](./README.md) setup and require a passing doctor. Each proof prepares its fixture state.
-- Let `TutorialHarness.exchange` wait for settlement. For daily, daylight-saving, and idle-reset turns that open a fresh session, the existing proofs use `opensFreshSession: true` and wait for one settled turn plus the reset notice.
+- Let `TutorialHarness.exchange` wait for settlement.
 
 ### Sending, commands, and records
 
@@ -131,7 +131,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> QueuedTurnAfterKillProof` | The running turn reopens interrupted; the queued turn says received before close and runs only after its Try again, `queued-turn-after-kill`, `queued-turn-after-kill-try-again`. |
 | `sim.mjs test <run id> ObservedReplyKillProof` | A kill after visible text restores the interruption notice with no partial text or automatic model request, `observed-reply-before-kill`, `observed-reply-after-kill`, `observed-reply-after-kill-records`. |
 
-### Memory, New conversation, and automatic resets
+### Memory, New conversation, and overnight continuity
 
 | Command | Observable result and attachment |
 | --- | --- |
@@ -144,14 +144,11 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> NewConversationWorkingProof` | The old conversation shows working while reset memory saving runs, then opens the welcome, `new-conversation-working`. |
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
-| `sim.mjs test <run id> DailyResetProof/testFortyMinutesOpensAFreshSession` | A turn at 03:40 local followed by one at 04:20 opens a new conversation with one reset notice, `m1-12-daily-reset`, `m1-12-daily-reset-history`. |
-| `sim.mjs test <run id> DailyResetProof/testTwentyMinutesKeepsTheConversation` | 03:55 to 04:15 remains inside the grace period; both messages stay and no reset is saved, `m1-12-daily-deferred`. |
-| `sim.mjs test <run id> DaylightSavingResetProof` | Spring's 03:10 to 04:10 crosses the reset; autumn's 02:20 to 03:20 does not, `m1-12-dst-spring`, `m1-12-dst-autumn`. |
-| `sim.mjs test <run id> IdleResetProof` | Setting 30 idle minutes then sending after 31 opens a fresh conversation, `m1-12-idle-reset`, `m1-12-idle-reset-history`. |
-| `sim.mjs test <run id> SessionRejectionProof` | All eight invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
+| `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A turn at 20:00 local and one 13 hours later after a relaunch stay in one conversation; Records show no `windowStart` and History is empty, `m1-15-overnight-continues`, `m1-15-overnight-history`. |
+| `sim.mjs test <run id> SessionRejectionProof` | All four invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
 | `sim.mjs test <run id> RatioAppliesProof` | A 0.05 history ratio causes earlier compaction than the default, `ratio-applies-turns`, `m1-12-ratio-applies`. |
 
-Debug, Conversation & time uses the field names `historyBudgetRatio`, `idleReset`, `dailyResetHour`, `archiveRetention`, `timeZone`, `contextWindowOverride`, `compactionModel`, and `flushModel`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
+Debug, Conversation & time uses the field names `historyBudgetRatio`, `contextWindowOverride`, `compactionModel`, and `flushModel`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
 
 ## Gotchas
 
@@ -169,7 +166,6 @@ Debug, Conversation & time uses the field names `historyBudgetRatio`, `idleReset
 - Transcript rows are virtualized. Check the newest content or record counts instead of counting every label in a long conversation.
 - Records and Leases read when opened or refreshed. Records has `records.refresh`; Leases has a visible Refresh button without an identifier.
 - `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
-- The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch. June's 04:00 daily boundary is `02:00:00Z`.
-- Automatic reset occurs when the next message arrives. Its notice remains above the new conversation until another reset; relaunch alone does not open a fresh conversation.
+- The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
 - Menu is a sheet without a close button. Dismiss it and wait for `chat.sidebar` to become hittable before interacting with the conversation.
 - Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.

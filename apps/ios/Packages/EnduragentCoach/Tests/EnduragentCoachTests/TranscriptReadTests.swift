@@ -25,8 +25,7 @@ import Testing
 				.deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .trim,
-							messageUlids: [fixedUlid(1), fixedUlid(2)],
+							chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(2)],
 							process: ProcessID(ulid: fixedUlid(60)))))
 			),
 		]

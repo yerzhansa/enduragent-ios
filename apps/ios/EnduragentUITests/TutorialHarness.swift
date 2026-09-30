@@ -47,9 +47,6 @@ enum TutorialHarness {
 	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
-	static let freshSession =
-		"Started a fresh session - earlier conversation is archived, and I still have your key details in memory."
-	static let closedAfterBreak = "Closed after a break"
 	static let draft = "Is Thursday still on?"
 	static let saturday = "How did Saturday go"
 	static let finishedWhileLocked = "Finished while the phone was locked."
@@ -254,8 +251,7 @@ enum TutorialHarness {
 	}
 
 	static func exchange(
-		_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30,
-		opensFreshSession: Bool = false
+		_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30
 	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
@@ -268,11 +264,7 @@ enum TutorialHarness {
 			return
 		}
 		send(app, text)
-		if opensFreshSession {
-			wait(named(app, "chat.automaticReset.notice"), timeout: timeout)
-		}
-		let turns = opensFreshSession ? 1 : count + 1
-		let expected = "turns \(turns) settled \(turns)"
+		let expected = "turns \(count + 1) settled \(count + 1)"
 		let settled = XCTNSPredicateExpectation(
 			predicate: NSPredicate(format: "value == %@", expected), object: progress)
 		XCTAssertEqual(

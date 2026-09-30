@@ -29,8 +29,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [4, 6, 7, 8, 9, 10].map(receiptID))))),
+								chatId: .main, messageUlids: [4, 6, 7, 8, 9, 10].map(receiptID))))),
 				record(
 					23,
 					body: .synced(
@@ -90,7 +89,8 @@ import Testing
 		try #require(await coach.transcript(.main).count == (belowListedMaximum ? 10 : 8))
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.content)
+		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
+			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Never extracted imported question" }.count == 1)
 		#expect(extracted.filter { $0 == "Never extracted imported reply" }.count == 1)
 		let afterReset = try await ledger.conversation(.main)
@@ -116,8 +116,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [4, 6, 9, 10].map(receiptID))))),
+								chatId: .main, messageUlids: [4, 6, 9, 10].map(receiptID))))),
 				record(
 					23,
 					body: .synced(

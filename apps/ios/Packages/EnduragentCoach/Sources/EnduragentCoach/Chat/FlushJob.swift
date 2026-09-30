@@ -2,7 +2,6 @@ import Foundation
 
 package struct FlushJob: Sendable, Equatable {
 	package let id: FlushJobID
-	package let trigger: FlushTrigger
 	package let messages: [ULID]
 	package var process: ProcessID?
 	package var settled: Bool
@@ -91,7 +90,7 @@ extension ConversationFold {
 			let id = FlushJobID(ulid: record.ulid)
 			let consumedInV1 = body.process == nil && consumed.contains(id)
 			return FlushJob(
-				id: id, trigger: body.trigger, messages: body.messageUlids, process: body.process,
+				id: id, messages: body.messageUlids, process: body.process,
 				settled: consumedInV1 || settled.contains(id), reset: resetOpened(by: record.cause),
 				abandoned: abandoned.contains(id), consumedInV1: consumedInV1)
 		}
@@ -228,19 +227,19 @@ package struct FlushWork: Sendable {
 	package let clock: any Clock
 	package let diagnostics: DiagnosticsLog
 
-	package func open(_ trigger: FlushTrigger, covering ulids: [ULID], stamp: OperationStamp)
+	package func open(covering ulids: [ULID], stamp: OperationStamp)
 		async throws(LedgerFailure) -> FlushJob
 	{
 		let records = try await ledger.commit(
 			local: [
 				.flushPending(
 					FlushPendingBody(
-						chatId: chat, trigger: trigger, messageUlids: ulids, process: process))
+						chatId: chat, messageUlids: ulids, process: process))
 			],
 			stamp: stamp)
 		guard let record = records.first else { throw LedgerFailure.rejectedBatch }
 		return FlushJob(
-			id: FlushJobID(ulid: record.ulid), trigger: trigger, messages: ulids, process: process,
+			id: FlushJobID(ulid: record.ulid), messages: ulids, process: process,
 			settled: false)
 	}
 
@@ -249,7 +248,7 @@ package struct FlushWork: Sendable {
 	) async throws(CancellationError) -> FlushOutcome {
 		let stamp = await stamp(for: job)
 		let outcome = try await extract(
-			job, messages: messages, access: access, scope: scope, stamp: stamp)
+			messages: messages, access: access, scope: scope, stamp: stamp)
 		await settle(job, outcome, stamp: stamp)
 		return outcome
 	}
@@ -264,12 +263,10 @@ package struct FlushWork: Sendable {
 	}
 
 	package func extract(
-		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?,
-		stamp: OperationStamp
+		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
 	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
-			job, messages: messages, access: access, transport: transport, stamp: stamp,
-			scope: scope)
+			messages: messages, access: access, transport: transport, stamp: stamp, scope: scope)
 		if outcome.settlement == nil {
 			diagnostics.record(
 				.memoryFlushFailed(chat, detail: "\(outcome)"),

@@ -35,8 +35,8 @@ import Testing
 
 	func settled(_ attempt: AttemptID, at wall: Int64, _ settlement: Settlement) -> SettledAttempt {
 		SettledAttempt(
-			ulid: fixedUlid(Int(wall) + 100), hlc: clockAt(wall), civilDate: "1998-06-13",
-			attempt: attempt, settlement: settlement)
+			ulid: fixedUlid(Int(wall) + 100), hlc: clockAt(wall), attempt: attempt,
+			settlement: settlement)
 	}
 
 	@Test func aLateSettlementOfAnOlderAttemptDoesNotOverrideTheLatestAttempt() {
@@ -172,7 +172,7 @@ import Testing
 		var conversation = Conversation(chat: .main, segments: [segment])
 		conversation.settleInMemory(
 			turn, attempt: second, .failed(.local(.recordStorage), saved: .none),
-			ulid: fixedUlid(80), now: Date(timeIntervalSince1970: 0.001), zone: .gmt, device: device
+			ulid: fixedUlid(80), now: Date(timeIntervalSince1970: 0.001), device: device
 		)
 		let settled = conversation.turn(turn)
 		#expect(settled?.latestAttempt == second)

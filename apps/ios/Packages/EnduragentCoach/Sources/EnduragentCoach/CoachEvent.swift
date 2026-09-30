@@ -1,19 +1,17 @@
 import Foundation
 
 package struct ChatMessage: Sendable, Equatable {
-	package var role: Role
-	package var text: String
-	package var civilDate: CivilDate?
+	package let author: Author
+	package let text: String
 
-	package init(role: Role, text: String, civilDate: CivilDate? = nil) {
-		self.role = role
+	package init(author: Author, text: String) {
+		self.author = author
 		self.text = text
-		self.civilDate = civilDate
 	}
 
-	package enum Role: String, Sendable {
-		case user
-		case assistant
+	package enum Author: Sendable, Equatable {
+		case athlete(sent: Date)
+		case coach
 	}
 }
 

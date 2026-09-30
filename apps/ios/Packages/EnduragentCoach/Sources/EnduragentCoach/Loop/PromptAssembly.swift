@@ -123,13 +123,6 @@ package enum PromptAssembly {
 		summaryPrefix + "\n" + summary
 	}
 
-	package static func archiveMarker(at date: Date) -> String {
-		let stamp = ISO8601DateFormatter.string(
-			from: date, timeZone: .gmt,
-			formatOptions: [.withInternetDateTime, .withFractionalSeconds])
-		return "Previous session archived at \(stamp). Briefly disclose this before answering."
-	}
-
 	package static func droppedSummaryRequest(previous: String?, transcript: String) -> String {
 		summaryRequest(
 			"Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.",
@@ -142,8 +135,16 @@ package enum PromptAssembly {
 			label: "Messages to summarize:", previous: previous, transcript: transcript)
 	}
 
-	package static func transcript(_ messages: [ChatMessage]) -> String {
-		messages.map { "\($0.role.rawValue): \($0.text)" }.joined(separator: "\n")
+	package static func wireMessage(from message: ChatMessage, in zone: TimeZone) -> WireMessage {
+		switch message.author {
+		case .athlete(let sent):
+			WireMessage(
+				role: .user,
+				content: "[" + GregorianStamp.weekdayMinute(sent, in: zone) + "] " + message.text,
+				toolCalls: [], toolCallId: nil)
+		case .coach:
+			WireMessage(role: .assistant, content: message.text, toolCalls: [], toolCallId: nil)
+		}
 	}
 
 	package static func transcript(_ messages: [WireMessage]) -> String {
@@ -164,19 +165,19 @@ package enum PromptAssembly {
 
 package struct HistoryWindow {
 	package static func trim(
-		messages conversation: [ChatMessage],
+		messages conversation: [WireMessage],
 		systemTokens: Int,
 		window: Int = TurnPolicy.contextWindowCap,
 		ratio: Double
-	) -> (kept: [ChatMessage], dropped: [ChatMessage], budget: Int) {
+	) -> (kept: [WireMessage], dropped: [WireMessage], budget: Int) {
 		let budget = historyTokenBudget(systemTokens: systemTokens, window: window, ratio: ratio)
 		if conversation.isEmpty {
 			return ([], [], budget)
 		}
 		var startIdx = 0
-		var totalTokens = conversation.reduce(0) { $0 + estimateTokens($1.text) }
+		var totalTokens = conversation.reduce(0) { $0 + estimateTokens($1.content) }
 		while totalTokens > budget, startIdx < conversation.count - 1 {
-			totalTokens -= estimateTokens(conversation[startIdx].text)
+			totalTokens -= estimateTokens(conversation[startIdx].content)
 			startIdx += 1
 		}
 		while startIdx > 0, startIdx < conversation.count, conversation[startIdx].role != .user {
@@ -195,12 +196,9 @@ package struct HistoryWindow {
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 
-}
-
-extension PromptHistory {
-	package var estimatedTokens: Int {
+	package static func estimatedTokens(summary: String?, messages: [WireMessage]) -> Int {
 		messages.reduce(summary.map { estimateTokens(PromptAssembly.summaryMessage($0)) } ?? 0) {
-			$0 + estimateTokens($1.text)
+			$0 + estimateTokens($1.content)
 		}
 	}
 }

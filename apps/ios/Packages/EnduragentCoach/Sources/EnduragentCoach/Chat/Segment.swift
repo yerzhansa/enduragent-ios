@@ -6,7 +6,8 @@ package struct SegmentID: Hashable, Sendable {
 
 package enum SegmentOpening: Sendable, Equatable {
 	case chatStart
-	case reset(ResetKind)
+	case reset(ResetID)
+	case legacyBoundary
 }
 
 package struct ReviewNote: Sendable, Equatable {
@@ -33,11 +34,6 @@ package struct PromptHistory: Sendable, Equatable {
 	package var summary: String?
 	package var messages: [ChatMessage]
 	package var ulids: [ULID]
-
-	package func ulid(for message: ChatMessage) -> ULID? {
-		guard let index = messages.firstIndex(of: message) else { return nil }
-		return ulids[index]
-	}
 }
 
 package struct Segment: Sendable, Equatable {

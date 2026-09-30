@@ -175,104 +175,26 @@ final class SavedLanguageFirstFrameProof: XCTestCase {
 	}
 }
 
-final class DailyResetProof: XCTestCase {
-	func testFortyMinutesOpensAFreshSession() {
+final class OvernightConversationProof: XCTestCase {
+	func testThirteenHoursLaterContinuesTheConversation() {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, clock: "1998-06-15T01:40:00Z")
+		TutorialHarness.launch(app, clock: "1998-06-15T18:00:00Z")
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T02:20:00Z")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		XCTAssertFalse(TutorialHarness.named(app, "chat.automaticReset.notice").exists)
-		TutorialHarness.exchange(app, TutorialHarness.remember, opensFreshSession: true)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		let notices = app.staticTexts.matching(identifier: "chat.automaticReset.notice")
-		TutorialHarness.wait(notices.firstMatch)
-		XCTAssertEqual(notices.count, 1)
-		XCTAssertEqual(notices.firstMatch.label, TutorialHarness.freshSession)
-		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.attach(self, name: "m1-12-daily-reset", app: app)
-		TutorialHarness.openHistory(app)
-		let rows = TutorialHarness.historyRows(app)
-		TutorialHarness.wait(rows.firstMatch)
-		XCTAssertEqual(rows.count, 1)
-		TutorialHarness.waitForLabel(app, TutorialHarness.closedAfterBreak)
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
-		TutorialHarness.attach(self, name: "m1-12-daily-reset-history", app: app)
-	}
-
-	func testTwentyMinutesKeepsTheConversation() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, clock: "1998-06-15T01:55:00Z")
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T02:15:00Z")
+		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-16T07:00:00Z")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.exchange(app, TutorialHarness.remember)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.automaticReset.notice").exists)
-		TutorialHarness.attach(self, name: "m1-12-daily-deferred", app: app)
+		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
+		TutorialHarness.attach(self, name: "m1-15-overnight-continues", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 2")
 		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
 		TutorialHarness.closeMenu(app)
-	}
-}
-
-final class DaylightSavingResetProof: XCTestCase {
-	func testSpringForwardResetsAtFourLocal() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, clock: "1998-03-29T01:10:00Z")
-		TutorialHarness.startUnconnected(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-03-29T02:10:00Z")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.exchange(app, TutorialHarness.remember, opensFreshSession: true)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.automaticReset.notice"))
-		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.attach(self, name: "m1-12-dst-spring", app: app)
-	}
-
-	func testFallBackKeepsTheConversationBeforeFourLocal() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, clock: "1998-10-25T01:20:00Z")
-		TutorialHarness.startUnconnected(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-10-25T02:20:00Z")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.exchange(app, TutorialHarness.remember)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.automaticReset.notice").exists)
-		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.attach(self, name: "m1-12-dst-autumn", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
-		TutorialHarness.closeMenu(app)
-	}
-}
-
-final class IdleResetProof: XCTestCase {
-	func testIdleReset() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		SessionDebug.open(app)
-		SessionDebug.enter(app, "idleReset", "30")
-		XCTAssertEqual(TutorialHarness.named(app, "session.idleReset.outcome").label, "Saved")
-		XCTAssertEqual(TutorialHarness.named(app, "session.idleReset.stored").label, "30")
-		TutorialHarness.closeMenu(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T08:31:00Z")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.exchange(app, TutorialHarness.remember, opensFreshSession: true)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.automaticReset.notice"))
-		TutorialHarness.attach(self, name: "m1-12-idle-reset", app: app)
 		TutorialHarness.openHistory(app)
-		TutorialHarness.wait(TutorialHarness.historyRows(app).firstMatch)
-		TutorialHarness.waitForLabel(app, TutorialHarness.closedAfterBreak)
-		TutorialHarness.attach(self, name: "m1-12-idle-reset-history", app: app)
+		TutorialHarness.waitForLabel(app, "No past conversations yet.")
+		XCTAssertFalse(TutorialHarness.historyRows(app).firstMatch.exists)
+		TutorialHarness.attach(self, name: "m1-15-overnight-history", app: app)
 	}
 }
 
@@ -286,13 +208,6 @@ final class SessionRejectionProof: XCTestCase {
 			(
 				"historyBudgetRatio", "0", "Enter a history budget above 0% and no more than 100%.",
 				"0.3"
-			),
-			("idleReset", "-1", "Enter a safe whole number of minutes, 0 or more.", "0"),
-			("dailyResetHour", "24", "Enter a whole hour from 0 to 23.", "4"),
-			("archiveRetention", "-1", "Enter a safe whole number of days, 0 or more.", "0"),
-			(
-				"timeZone", "Mars/Olympus", "Enter a valid IANA timezone, such as Europe/London.",
-				"—"
 			),
 			("contextWindowOverride", "0", "Enter a safe whole number of tokens, 1 or more.", "—"),
 			(
@@ -311,7 +226,7 @@ final class SessionRejectionProof: XCTestCase {
 			XCTAssertEqual(
 				TutorialHarness.named(app, "session.\(row.field).stored").label, row.stored,
 				row.field)
-			if row.field == "dailyResetHour" {
+			if row.field == "historyBudgetRatio" {
 				TutorialHarness.attach(self, name: "m1-12-rejected", app: app)
 			}
 		}

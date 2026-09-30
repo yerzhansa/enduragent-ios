@@ -172,7 +172,6 @@ enum DeviceLocalPayload: Encodable {
 			self = .flushPending(
 				FlushPendingPayload(
 					chatId: value.chatId.rawValue,
-					trigger: value.trigger.rawValue,
 					messageUlids: value.messageUlids.map(\.rawValue),
 					process: value.process?.ulid.rawValue
 				)
