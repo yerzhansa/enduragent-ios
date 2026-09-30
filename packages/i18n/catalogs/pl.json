@@ -1492,7 +1492,9 @@
       "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość.",
       "restorePurchases": "Przywróć zakupy",
       "signInAgain": "Zaloguj się ponownie"
-    }
+    },
+    "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2888,7 +2890,6 @@
       "managedInstruction": "Wyślij {{whatsnew}}, aby zobaczyć zmiany. {{notice}}",
       "prepareFailed": "Nie udało się teraz bezpiecznie przygotować aktualizacji. Spróbuj ponownie użyć {{command}} za chwilę."
     },
-    "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{plan}} — Utwórz plan treningowy\n{{workout}} — Pokaż dzisiejszy trening\n{{status}} — Sprawdź obecne wytrenowanie, zmęczenie i formę\n{{review}} — Przeanalizuj ostatni trening\n{{sync}} — Wymuś odświeżenie danych treningowych z {{service}}\n{{version}} — Pokaż obecną wersję\n{{whatsnew}} — Zobacz zmiany w najnowszej wersji\n{{update}} — {{updateDescription}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
     "workout": {
       "working": "Sprawdzam twoją formę i plan…"
     }

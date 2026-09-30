@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Se recibió antes de cerrar la app. Toca Reintentar para enviarlo.",
       "restorePurchases": "Restaurar compras",
       "signInAgain": "Iniciar sesión de nuevo"
-    }
+    },
+    "welcome": "¡Te doy la bienvenida a {{product}}!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de {{service}}.\n\nComandos:\n{{commands}}\n\n¡También puedes hablar conmigo sobre tu entrenamiento!",
+    "welcomeCommand": "{{command}}: {{description}}"
   },
   "plan": {
     "details": {
@@ -2816,7 +2818,6 @@
       "managedInstruction": "Envía {{whatsnew}} para ver las novedades. {{notice}}",
       "prepareFailed": "No se ha podido preparar la actualización de forma segura ahora. Prueba {{command}} de nuevo en un momento."
     },
-    "welcome": "¡Te doy la bienvenida a {{product}}!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de {{service}}.\n\nComandos:\n{{plan}}: generar un plan de entrenamiento\n{{workout}}: consultar el entrenamiento de hoy\n{{status}}: consultar tu condición física, fatiga y forma actuales\n{{review}}: revisar tu última sesión\n{{sync}}: forzar la actualización de los datos de entrenamiento de {{service}}\n{{version}}: mostrar la versión actual\n{{whatsnew}}: ver las novedades de la última versión\n{{update}}: {{updateDescription}}\n\n¡También puedes hablar conmigo sobre tu entrenamiento!",
     "workout": {
       "working": "Revisando tu forma y tu plan..."
     }

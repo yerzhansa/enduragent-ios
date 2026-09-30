@@ -1453,7 +1453,9 @@
       "receivedBeforeClose": "已在应用关闭前收到。点按“重试”以发送。",
       "restorePurchases": "恢复购买",
       "signInAgain": "重新登录"
-    }
+    },
+    "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2780,7 +2782,6 @@
       "managedInstruction": "发送 {{whatsnew}} 查看变化。{{notice}}",
       "prepareFailed": "暂时无法安全地准备更新。请稍后再次尝试 {{command}}。"
     },
-    "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n{{plan}} — 生成训练计划\n{{workout}} — 获取今日训练课程\n{{status}} — 查看当前体能（CTL）、疲劳（ATL）和状态（TSB）\n{{review}} — 回顾上次训练\n{{sync}} — 强制从 {{service}} 刷新训练数据\n{{version}} — 显示当前版本\n{{whatsnew}} — 查看最新版本的变化\n{{update}} — {{updateDescription}}\n\n也可以直接和我聊聊训练！",
     "workout": {
       "working": "正在查看状态（TSB）和训练计划…"
     }

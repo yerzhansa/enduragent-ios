@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
       "restorePurchases": "Återställ köp",
       "signInAgain": "Logga in igen"
-    }
+    },
+    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "training": {
     "export": {
@@ -2816,7 +2818,6 @@
       "managedInstruction": "Skicka {{whatsnew}} för att se vad som ändrats. {{notice}}",
       "prepareFailed": "Kunde inte förbereda uppdateringen på ett säkert sätt just nu. Prova {{command}} igen om en liten stund."
     },
-    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{plan}} — Skapa en träningsplan\n{{workout}} — Hämta dagens träningspass\n{{status}} — Kontrollera aktuell CTL, trötthet och TSB\n{{review}} — Gå igenom ditt senaste träningspass\n{{sync}} — Tvinga uppdatering av träningsdata från {{service}}\n{{version}} — Visa aktuell version\n{{whatsnew}} — Se vad som ändrats i den senaste versionen\n{{update}} — {{updateDescription}}\n\nDu kan också bara prata med mig om din träning!",
     "workout": {
       "working": "Kontrollerar din TSB och träningsplan..."
     }

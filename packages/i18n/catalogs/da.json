@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Modtaget, før appen lukkede. Tryk på Prøv igen for at sende beskeden.",
       "restorePurchases": "Gendan køb",
       "signInAgain": "Log ind igen"
-    }
+    },
+    "welcome": "Velkommen til {{product}}!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nEller skriv bare til mig om din træning!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2600,7 +2602,6 @@
       "managedInstruction": "Send {{whatsnew}} for at se ændringerne. {{notice}}",
       "prepareFailed": "Kunne ikke forberede opdateringen sikkert lige nu. Prøv {{command}} igen om lidt."
     },
-    "welcome": "Velkommen til {{product}}!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra {{service}}.\n\nKommandoer:\n{{plan}} — Lav en træningsplan\n{{workout}} — Se dagens træning\n{{status}} — Se din aktuelle fitness, træthed og form\n{{review}} — Gennemgå din seneste træning\n{{sync}} — Gennemtving opdatering af træningsdata fra {{service}}\n{{version}} — Vis den aktuelle version\n{{whatsnew}} — Se ændringer i den nyeste version\n{{update}} — {{updateDescription}}\n\nEller skriv bare til mig om din træning!",
     "workout": {
       "working": "Tjekker din form og plan..."
     }

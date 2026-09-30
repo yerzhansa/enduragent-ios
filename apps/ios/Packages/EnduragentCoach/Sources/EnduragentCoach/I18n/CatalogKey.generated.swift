@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2474
-	public static let keyCount = 2514
+	public static let englishLeafCount = 2475
+	public static let keyCount = 2515
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -566,6 +566,8 @@ public enum Catalog {
 	public static let chatViewHideContext = CatalogKey(rawValue: "chat.view.hideContext")
 	public static let chatViewShowContext = CatalogKey(rawValue: "chat.view.showContext")
 	public static let chatViewTitle = CatalogKey(rawValue: "chat.view.title")
+	public static let chatWelcome = CatalogKey(rawValue: "chat.welcome")
+	public static let chatWelcomeCommand = CatalogKey(rawValue: "chat.welcomeCommand")
 	public static let cliLanguageChoose = CatalogKey(rawValue: "cli.language.choose")
 	public static let cliSetupAllowlistLockfileIsHeldByAnother = CatalogKey(rawValue: "cli.setup.allowlistLockfileIsHeldByAnother")
 	public static let cliSetupApiKey = CatalogKey(rawValue: "cli.setup.apiKey")
@@ -2172,7 +2174,6 @@ public enum Catalog {
 	public static let telegramUpdateLatest = CatalogKey(rawValue: "telegram.update.latest")
 	public static let telegramUpdateManagedInstruction = CatalogKey(rawValue: "telegram.update.managedInstruction")
 	public static let telegramUpdatePrepareFailed = CatalogKey(rawValue: "telegram.update.prepareFailed")
-	public static let telegramWelcome = CatalogKey(rawValue: "telegram.welcome")
 	public static let telegramWorkoutWorking = CatalogKey(rawValue: "telegram.workout.working")
 	public static let trainingExportDescription = CatalogKey(rawValue: "training.export.description")
 	public static let trainingExportFormatLabel = CatalogKey(rawValue: "training.export.formatLabel")

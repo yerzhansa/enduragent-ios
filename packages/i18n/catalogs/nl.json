@@ -1466,7 +1466,9 @@
       "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden.",
       "restorePurchases": "Aankopen herstellen",
       "signInAgain": "Opnieuw inloggen"
-    }
+    },
+    "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
+    "welcomeCommand": "{{command}} : {{description}}"
   },
   "plan": {
     "details": {
@@ -2600,7 +2602,6 @@
       "managedInstruction": "Stuur {{whatsnew}} om de wijzigingen te bekijken. {{notice}}",
       "prepareFailed": "De update kon zojuist niet veilig worden voorbereid. Probeer {{command}} zo opnieuw."
     },
-    "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{plan}} : Een trainingsschema maken\n{{workout}} : De training van vandaag ophalen\n{{status}} : Je huidige conditie, vermoeidheid en vorm bekijken\n{{review}} : Je laatste training bekijken\n{{sync}} : Trainingsgegevens uit {{service}} geforceerd vernieuwen\n{{version}} : Huidige versie tonen\n{{whatsnew}} : Bekijk wat er in de nieuwste versie is veranderd\n{{update}} : {{updateDescription}}\n\nJe kunt ook gewoon met me praten over je training!",
     "workout": {
       "working": "Je vorm en trainingsschema controleren..."
     }

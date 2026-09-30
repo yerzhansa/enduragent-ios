@@ -1453,7 +1453,9 @@
       "receivedBeforeClose": "앱이 닫히기 전에 수신되었습니다. 전송하려면 다시 시도를 누르세요.",
       "restorePurchases": "구매 복원",
       "signInAgain": "다시 로그인"
-    }
+    },
+    "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{commands}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2780,7 +2782,6 @@
       "managedInstruction": "변경 사항을 보려면 {{whatsnew}}를 보내세요. {{notice}}",
       "prepareFailed": "지금은 업데이트를 안전하게 준비하지 못했습니다. 잠시 후 {{command}}를 다시 시도해 주세요."
     },
-    "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{plan}} — 훈련 계획 만들기\n{{workout}} — 오늘의 워크아웃 확인\n{{status}} — 현재 체력, 피로도, 밸런스 확인\n{{review}} — 지난 훈련 돌아보기\n{{sync}} — {{service}}에서 훈련 데이터 강제 새로고침\n{{version}} — 현재 버전 표시\n{{whatsnew}} — 최신 버전의 변경 사항 보기\n{{update}} — {{updateDescription}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
     "workout": {
       "working": "밸런스와 계획을 확인하고 있습니다..."
     }

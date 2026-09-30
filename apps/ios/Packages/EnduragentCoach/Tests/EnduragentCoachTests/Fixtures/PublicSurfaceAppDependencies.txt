@@ -589,6 +589,8 @@ Catalog.chatViewDisclaimer
 Catalog.chatViewHideContext
 Catalog.chatViewShowContext
 Catalog.chatViewTitle
+Catalog.chatWelcome
+Catalog.chatWelcomeCommand
 Catalog.cliLanguageChoose
 Catalog.cliSetupAllowlistLockfileIsHeldByAnother
 Catalog.cliSetupApiKey
@@ -2197,7 +2199,6 @@ Catalog.telegramUpdateInstruction
 Catalog.telegramUpdateLatest
 Catalog.telegramUpdateManagedInstruction
 Catalog.telegramUpdatePrepareFailed
-Catalog.telegramWelcome
 Catalog.telegramWorkoutWorking
 Catalog.trainingExportDescription
 Catalog.trainingExportFormatLabel
@@ -2919,7 +2920,7 @@ TurnBudgetExceeded.Kind.generateCalls
 TurnBudgetExceeded.Kind.wallClock
 TurnBudgetExceeded.kind
 Welcome
-Welcome.text(in:showsSyncLine:)
+Welcome.text(in:)
 WellnessDay
 WellnessDay.date
 WellnessDay.fatigue
