@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import Security
 
@@ -9,13 +10,13 @@ package struct StoredIntervalsConnection: Codable, Equatable, Sendable {
 		case resolvedAthlete
 	}
 
-	private var id: UUID?
+	package private(set) var id: UUID?
 	private var credential: StoredIntervalsCredential
 	private var athlete: String?
 	private var resolvedAthlete: String?
 
 	package init(_ connection: IntervalsConnection) {
-		self.id = connection.id?.rawValue
+		self.id = connection.id.rawValue
 		self.credential = StoredIntervalsCredential(connection.credential)
 		switch connection.selection {
 		case .keyOwner:
@@ -43,16 +44,33 @@ package struct StoredIntervalsConnection: Codable, Equatable, Sendable {
 
 	package func connection() throws -> IntervalsConnection {
 		IntervalsConnection(
-			id: id.map(ConnectionID.init(rawValue:)),
+			id: try id.map(ConnectionID.init(rawValue:)) ?? legacyID(),
 			credential: credential.credential,
 			selection: try athlete.map { .athlete(try Self.athleteID($0)) } ?? .keyOwner,
 			resolvedAthlete: try resolvedAthlete.map(Self.athleteID)
 		)
 	}
 
+	private func legacyID() throws -> ConnectionID {
+		let encoder = JSONEncoder()
+		encoder.outputFormatting = .sortedKeys
+		var input = Data("icu.enduragent.ios/intervals-connection-id/v1".utf8)
+		input.append(try encoder.encode(self))
+		var bytes = Array(SHA256.hash(data: input))
+		bytes[6] = (bytes[6] & 0x0F) | 0x80
+		bytes[8] = (bytes[8] & 0x3F) | 0x80
+		return ConnectionID(
+			rawValue: UUID(
+				uuid: (
+					bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+					bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14],
+					bytes[15]
+				)))
+	}
+
 	private static func athleteID(_ raw: String) throws -> IntervalsAthleteID {
 		guard let athlete = IntervalsAthleteID(rawValue: raw) else {
-			throw KeychainStoreError(status: errSecDecode)
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 		return athlete
 	}

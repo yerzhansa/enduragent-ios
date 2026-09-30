@@ -181,9 +181,10 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 	switch entry.event {
 	case .providerFailure(_, _, let detail),
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
-		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
+		.replyObservedUnsaved(_, let detail):
 		return detail.count
-	case .toolFailed, .skippedRecord, .recoveryUnavailable, .preferencesUnavailable,
+	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
+		.preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil
 	}

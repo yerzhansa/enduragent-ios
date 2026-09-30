@@ -2744,7 +2744,10 @@ JSONValue.object
 JSONValue.parse(_:)
 JSONValue.string
 KeychainStoreError
-KeychainStoreError.init(status:)
+KeychainStoreError.keychain
+KeychainStoreError.encoding
+KeychainStoreError.fileSystem
+KeychainStoreError.unexpected
 KeychainStoreError.status
 Language
 Language.detectMessageLanguage(_:)
