@@ -243,3 +243,23 @@ test('accepts package and internal records and public handles outside Records', 
   });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const declaration of [
+  'final class Duplicate: SecretStore, @unchecked Sendable {}',
+  'struct Duplicate: Sendable, SecretStore {}',
+  'extension Duplicate: SecretStore {}',
+]) {
+  test(`rejects a second secret store: ${declaration}`, () => {
+    const result = run({ 'apps/ios/Store.swift': declaration });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /single-secret-store/);
+  });
+}
+
+test('accepts the real secret store and fixture backings', () => {
+  const result = run({
+    'apps/ios/Store.swift': 'struct ICloudKeychainStore: SecretStore {}',
+    'apps/ios/Backing.swift': 'final class FixtureSecretStoreBacking: SecretStoreBacking {}',
+  });
+  assert.equal(result.status, 0, result.output);
+});

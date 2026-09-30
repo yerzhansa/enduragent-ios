@@ -35,7 +35,8 @@ extension SingleProposalReviewsTests {
 		).get()
 		try await seed(
 			records, [seededRecord(records, at: clock.now, ulid: fixedUlid(1), body: decoded)])
-		let selectedSecrets = connected ? secrets : FakeSecretStore()
+		let selectedSecrets =
+			connected ? secrets : ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		if !connected {
 			try selectedSecrets.storeCreditsAccount(
 				CreditsAccount(

@@ -42,17 +42,17 @@
 						}
 						action("Disconnect", "credentials.disconnect") { .disconnect }
 					}
-					if let secrets = model.services.fixtureDirector?.secrets {
+					if let backing = model.services.fixtureDirector?.secretBacking {
 						HStack {
 							Button(locked ? "Unlock keychain" : "Lock keychain") {
-								secrets.locked.toggle()
-								locked = secrets.locked
+								backing.locked.toggle()
+								locked = backing.locked
 								Task { await model.refreshStatus() }
 							}
 							.accessibilityIdentifier("credentials.lock")
 							Spacer()
 							Button("Fail next write") {
-								secrets.failNextWrite = true
+								backing.failNextWrite = true
 								outcome = "The next keychain write fails."
 							}
 							.accessibilityIdentifier("credentials.failNextWrite")
@@ -64,7 +64,7 @@
 			.navigationTitle("Credentials")
 			.navigationBarTitleDisplayMode(.inline)
 			.task {
-				locked = model.services.fixtureDirector?.secrets.locked ?? false
+				locked = model.services.fixtureDirector?.secretBacking.locked ?? false
 				await model.refreshStatus()
 			}
 		}

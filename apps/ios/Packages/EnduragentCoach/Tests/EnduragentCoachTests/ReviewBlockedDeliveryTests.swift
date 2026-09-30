@@ -19,10 +19,10 @@ extension SingleProposalReviewsTests {
 		await laterClaim.arm()
 		let laterApproval = Task { await coach.decide(.approve(laterToken), in: .main) }
 		#expect(await laterClaim.waitUntilEntered())
-		secrets.locked = true
+		secretBacking.locked = true
 		await staleRead.release()
 		#expect(await first.value == .blocked(.cannotVerify))
-		secrets.locked = false
+		secretBacking.locked = false
 		#expect(await coach.decide(.approve(laterToken), in: .main) == .staleControl)
 		await laterClaim.release()
 		_ = await laterApproval.value

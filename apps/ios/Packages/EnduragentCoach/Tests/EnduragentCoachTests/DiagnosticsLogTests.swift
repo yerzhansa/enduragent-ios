@@ -111,8 +111,9 @@ import Testing
 			])
 		let transport = FakeModelTransport()
 		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
-		let secrets = keyedSecrets()
-		secrets.locked = !keyStored
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
+		backing.locked = !keyStored
 		let coach = makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
