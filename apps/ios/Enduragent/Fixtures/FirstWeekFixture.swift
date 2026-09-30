@@ -49,7 +49,7 @@ enum FirstWeekFixture {
 		}
 	}
 
-	static func install(on secrets: FakeSecretStore) throws {
+	static func install(on secrets: ICloudKeychainStore) throws {
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: secrets.prepareCreditsAccount().appAccountToken, key: creditsKey))

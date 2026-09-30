@@ -589,6 +589,8 @@ Catalog.chatViewDisclaimer
 Catalog.chatViewHideContext
 Catalog.chatViewShowContext
 Catalog.chatViewTitle
+Catalog.chatWelcome
+Catalog.chatWelcomeCommand
 Catalog.cliLanguageChoose
 Catalog.cliSetupAllowlistLockfileIsHeldByAnother
 Catalog.cliSetupApiKey
@@ -2100,7 +2102,6 @@ Catalog.telegramMenuReview
 Catalog.telegramMenuStart
 Catalog.telegramMenuStatus
 Catalog.telegramMenuSync
-Catalog.telegramMenuUpdate
 Catalog.telegramMenuVersion
 Catalog.telegramMenuWhatsnew
 Catalog.telegramMenuWorkout
@@ -2197,7 +2198,6 @@ Catalog.telegramUpdateInstruction
 Catalog.telegramUpdateLatest
 Catalog.telegramUpdateManagedInstruction
 Catalog.telegramUpdatePrepareFailed
-Catalog.telegramWelcome
 Catalog.telegramWorkoutWorking
 Catalog.trainingExportDescription
 Catalog.trainingExportFormatLabel
@@ -2678,24 +2678,6 @@ FakeModelTransport.requestCount
 FakeModelTransport.requestDelay
 FakeModelTransport.script
 FakeModelTransport.summaryScript
-FakeSecretStore
-FakeSecretStore.accessSelection()
-FakeSecretStore.creditsAccount()
-FakeSecretStore.delete(_:)
-FakeSecretStore.failNextWrite
-FakeSecretStore.fileName
-FakeSecretStore.init(appAccountToken:)
-FakeSecretStore.init(directory:)
-FakeSecretStore.intervalsConnection()
-FakeSecretStore.locked
-FakeSecretStore.openRouterAccountKey()
-FakeSecretStore.prepareCreditsAccount()
-FakeSecretStore.reads
-FakeSecretStore.storeAccessSelection(_:)
-FakeSecretStore.storeCreditsAccount(_:)
-FakeSecretStore.storeIntervalsConnection(_:)
-FakeSecretStore.storeOpenRouterAccountKey(_:)
-FakeSecretStore.storedCreditsAccounts
 FinishReason
 FinishReason.contentFilter
 FinishReason.error
@@ -2710,6 +2692,9 @@ FixedClock.sleep(for:)
 FixedClock.slept
 FixedClock.timeZone
 FixedClock.uptime
+FixtureSecretStoreBacking
+FixtureSecretStoreBacking.failNextWrite
+FixtureSecretStoreBacking.locked
 GrantOutcome
 GrantOutcome.alreadyGranted
 GrantOutcome.minted
@@ -2718,6 +2703,7 @@ ICloudKeychainStore
 ICloudKeychainStore.accessSelection()
 ICloudKeychainStore.creditsAccount()
 ICloudKeychainStore.delete(_:)
+ICloudKeychainStore.fixture(directory:)
 ICloudKeychainStore.init()
 ICloudKeychainStore.intervalsConnection()
 ICloudKeychainStore.openRouterAccountKey()
@@ -2915,7 +2901,7 @@ TurnBudgetExceeded.Kind.generateCalls
 TurnBudgetExceeded.Kind.wallClock
 TurnBudgetExceeded.kind
 Welcome
-Welcome.text(in:showsSyncLine:)
+Welcome.text(in:)
 WellnessDay
 WellnessDay.date
 WellnessDay.fatigue

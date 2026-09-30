@@ -24,6 +24,10 @@ final class HeldFlushReadLog: RecordLog, Sendable {
 		try await inner.append(batch, locality: locality)
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let hold = state.withLock { current -> Bool in
 			guard current.armed, query.scope == ConversationFold.flushScope, query.chatId != nil

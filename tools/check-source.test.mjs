@@ -26,6 +26,40 @@ function run(files, tracked = true) {
 const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/intervals-activity.json';
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
+const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
+const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
+const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
+
+for (const indexes of [
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical])`,
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcLogical, \.hlcWallMs], [\.kind, \.chatId])`,
+  String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId], [\.ulid])`,
+  '',
+]) {
+  test(`rejects changed ledger indexes with an unchanged model version: ${indexes}`, () => {
+    const result = run({ [recordModel]: `${indexes}\n${ledgerIndexVersion}\nvar deviceId: String = ""` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ledger-index-version/);
+  });
+}
+
+test('accepts the registered ledger index set and version', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\n${ledgerIndexVersion}\nvar deviceId: String = ""` });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('rejects unregistered ledger index versions', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\n@Attribute(hashModifier: "ledger-indexes-v2")\nvar deviceId: String = ""` });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ledger-index-version/);
+});
+
+test('rejects ledger indexes without a model version modifier', () => {
+  const result = run({ [recordModel]: `${ledgerIndexes}\nvar deviceId: String = ""` });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ledger-index-version/);
+});
+
 for (const [name, file, value, code] of [
   ['rounded app number', 'apps/ios/Enduragent/Onboarding/ConnectView.swift', 'String(Int(value.rounded()))', 'app-number-formatting'],
   ['intervals identifier', 'apps/ios/value.swift', sensitiveID, 'intervals-id'],
@@ -244,6 +278,43 @@ test('accepts package and internal records and public handles outside Records', 
   });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const declaration of [
+  'final class Duplicate: SecretStore, @unchecked Sendable {}',
+  'struct Duplicate: Sendable, SecretStore {}',
+  'extension Duplicate: SecretStore {}',
+  'extension Outer.Inner: SecretStore {}',
+  'struct Duplicate<S: Sendable>: SecretStore where S: Equatable {}',
+  'struct Duplicate<S: Collection>: SecretStore where S.Element: SecretStore {}',
+]) {
+  test(`rejects a second secret store: ${declaration}`, () => {
+    const result = run({ 'apps/ios/Store.swift': declaration });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /single-secret-store/);
+  });
+}
+
+test('accepts the real secret store and fixture backings', () => {
+  const result = run({
+    'apps/ios/Store.swift': 'struct ICloudKeychainStore: SecretStore {}',
+    'apps/ios/Backing.swift': 'final class FixtureSecretStoreBacking: SecretStoreBacking {}',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const declaration of [
+  'struct Box<S: SecretStore> {}',
+  'struct Box<S> where S: SecretStore {}',
+  'struct Box<S: SecretStore>: Sendable {}',
+  'struct Box<S>: Sendable where S: SecretStore {}',
+  'extension Box: Equatable where S: SecretStore {}',
+  'struct Box<S: Collection<SecretStore>>: Sendable {}',
+]) {
+  test(`accepts a secret store constraint: ${declaration}`, () => {
+    const result = run({ 'apps/ios/Box.swift': declaration });
+    assert.equal(result.status, 0, result.output);
+  });
+}
 
 test('accepts checked app conversions and string parsing', () => {
   const result = run({

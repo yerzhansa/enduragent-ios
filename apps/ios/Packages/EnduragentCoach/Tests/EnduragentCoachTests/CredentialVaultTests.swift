@@ -14,7 +14,7 @@ import Testing
 	let built = CredentialLog()
 
 	@Test func intervalsReplaceNeverWritesStaging() async throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try store.storeIntervalsConnection(testConnection)
@@ -119,9 +119,10 @@ import Testing
 	}
 
 	@Test func failedWriteKeepsPreviousItemAndNextAttemptUsesIt() async throws {
-		let secrets = keyedSecrets()
+		let backing = FixtureSecretStoreBacking()
+		let secrets = keyedSecrets(backing: backing)
 		let coach = coach(secrets)
-		secrets.failNextWrite = true
+		backing.failNextWrite = true
 		#expect(
 			await coach.changeTraining(.replace(apiKey: "icu-new-key", athlete: .keyOwner))
 				== .failedPreviousKept(
@@ -131,7 +132,7 @@ import Testing
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
 		#expect(built.credentials.contains(.apiKey("icu-new-key")))
 
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let keychain = ICloudKeychainStore(backing: memory)
 		try keychain.storeIntervalsConnection(testConnection)
 		memory.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
@@ -262,7 +263,7 @@ import Testing
 	}
 
 	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = coach(secrets)

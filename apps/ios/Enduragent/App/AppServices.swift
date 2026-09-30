@@ -74,11 +74,12 @@ struct AppServices: Sendable {
 			unreadable: launch.store == .unreadable)
 		let records = fixture.faults
 		records.failRecoveryReads = launch.recovery == .unreadable
-		let secrets = try FakeSecretStore(directory: launch.directory)
+		let secretFixture = try ICloudKeychainStore.fixture(directory: launch.directory)
+		let secrets = secretFixture.store
 		if launch.keychain != .empty {
 			try FirstWeekFixture.install(on: secrets)
 		}
-		secrets.locked = launch.keychain == .locked
+		secretFixture.backing.locked = launch.keychain == .locked
 		let credits = FakeCreditsClient()
 		FirstWeekFixture.install(on: credits)
 		let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
@@ -103,6 +104,7 @@ struct AppServices: Sendable {
 			clock: clock,
 			fixtureDirector: FixtureDirector(
 				transport: transport, records: records, host: host, secrets: secrets,
+				secretBacking: secretFixture.backing,
 				intervals: intervals, credits: credits),
 			leases: { host.leases }
 		)

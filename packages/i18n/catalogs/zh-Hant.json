@@ -1453,7 +1453,9 @@
       "receivedBeforeClose": "已在應用程式關閉前收到。點一下「重試」即可傳送。",
       "restorePurchases": "回復購買項目",
       "signInAgain": "重新登入"
-    }
+    },
+    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2666,7 +2668,6 @@
       "start": "開始新對話",
       "status": "查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）",
       "sync": "強制從 {{service}} 重新整理訓練資料",
-      "update": "檢查並安裝更新",
       "version": "顯示目前版本",
       "whatsnew": "查看最新版本的變更",
       "workout": "取得今日訓練課表"
@@ -2780,7 +2781,6 @@
       "managedInstruction": "傳送 {{whatsnew}} 查看變更。{{notice}}",
       "prepareFailed": "暫時無法安全地準備更新。請稍後再次嘗試 {{command}}。"
     },
-    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n{{plan}} — 產生訓練計畫\n{{workout}} — 取得今日訓練課表\n{{status}} — 查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）\n{{review}} — 回顧上次訓練\n{{sync}} — 強制從 {{service}} 重新整理訓練資料\n{{version}} — 顯示目前版本\n{{whatsnew}} — 查看最新版本的變更\n{{update}} — {{updateDescription}}\n\n也可以直接和我聊聊訓練！",
     "workout": {
       "working": "正在查看狀態（TSB）和訓練計畫…"
     }

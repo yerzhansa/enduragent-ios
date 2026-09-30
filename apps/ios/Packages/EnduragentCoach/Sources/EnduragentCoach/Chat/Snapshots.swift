@@ -59,22 +59,18 @@ public enum ConversationOpening: Sendable, Equatable {
 }
 
 public enum Welcome {
-	package static let syncCommand = "/sync"
-
-	public static func text(in phrasebook: any Phrasebook, showsSyncLine: Bool) -> String {
-		let text = phrasebook.say(
-			Catalog.telegramWelcome,
-			[
-				"product": "Cycling Coach", "service": "intervals.icu", "plan": "/plan",
-				"workout": SlashCommand.workout.rawValue, "status": SlashCommand.status.rawValue,
-				"review": SlashCommand.review.rawValue, "sync": syncCommand,
-				"version": "/version", "whatsnew": "/whatsnew", "update": "/update",
-				"updateDescription": phrasebook.say(Catalog.telegramMenuUpdate, [:]),
-			])
-		guard !showsSyncLine else { return text }
-		return text.split(separator: "\n", omittingEmptySubsequences: false)
-			.filter { !$0.hasPrefix(syncCommand) }
-			.joined(separator: "\n")
+	public static func text(in phrasebook: any Phrasebook) -> String {
+		let commands = SlashCommand.allCases.map { command in
+			phrasebook.say(
+				Catalog.chatWelcomeCommand,
+				[
+					"command": command.rawValue,
+					"description": phrasebook.say(command.menuTitle, [:]),
+				])
+		}.joined(separator: "\n")
+		return phrasebook.say(
+			Catalog.chatWelcome,
+			["product": "Cycling Coach", "service": "intervals.icu", "commands": commands])
 	}
 }
 
