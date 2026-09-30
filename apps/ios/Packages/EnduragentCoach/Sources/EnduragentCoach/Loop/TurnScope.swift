@@ -140,7 +140,7 @@ package actor TurnScope {
 	package func proposing(
 		_ run: @Sendable () async throws -> PendingProposal
 	) async throws -> PendingProposal {
-		try await reviewGate.passCancellable {
+		try await reviewGate.passCancellable(cancellation: CancellationError()) {
 			if let outcome = savedReviewWorkBeforeInvocation() {
 				throw SavedWorkReached(outcome: outcome)
 			}
@@ -150,13 +150,16 @@ package actor TurnScope {
 		}
 	}
 
-	package func savedWork() async throws -> SavedWorkOutcome? {
-		try await reviewGate.passCancellable { ladder.savedWork(committed: written) }
+	package func savedWork() async throws(CancellationError) -> SavedWorkOutcome? {
+		try await reviewGate.passCancellable(cancellation: CancellationError()) {
+			() throws(CancellationError) in ladder.savedWork(committed: written)
+		}
 	}
 
-	package func savedReviewWork() async throws -> SavedWorkOutcome? {
+	package func savedReviewWork() async throws(CancellationError) -> SavedWorkOutcome? {
 		guard proposalInvocations.values.contains(where: { $0 < attempts }) else { return nil }
-		return try await reviewGate.passCancellable {
+		return try await reviewGate.passCancellable(cancellation: CancellationError()) {
+			() throws(CancellationError) in
 			savedReviewWorkBeforeInvocation()
 		}
 	}
@@ -166,8 +169,10 @@ package actor TurnScope {
 			committed: reviewWrites.values.filter { $0.invocation < attempts }.map(\.commit))
 	}
 
-	package func resolvedWrites() async throws -> [CommittedWrite] {
-		try await reviewGate.passCancellable { written }
+	package func resolvedWrites() async throws(CancellationError) -> [CommittedWrite] {
+		try await reviewGate.passCancellable(cancellation: CancellationError()) {
+			() throws(CancellationError) in written
+		}
 	}
 
 	package var written: [CommittedWrite] {

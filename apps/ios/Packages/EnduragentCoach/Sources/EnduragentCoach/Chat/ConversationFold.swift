@@ -104,6 +104,9 @@ package enum ConversationFold {
 						settlement: body.settlement
 					)
 				)
+			case .synced(.reviewApplied):
+				guard case .operation(.turn(let turn), let attempt) = record.cause else { continue }
+				turns[turn]?.appliedReviews[attempt, default: []].insert(record.ulid)
 			case .legacy(.assistantMessage(let body)):
 				guard
 					let turn = legacyTurns.last(where: {
@@ -213,6 +216,12 @@ package enum ConversationFold {
 				guard let position = next.position(of: body.turn) else { continue }
 				next.segments[position.segment].turns[position.turn].replyObserved.append(body)
 			case .synced(.reviewApplied(let body)):
+				if case .operation(.turn(let turn), let attempt) = record.cause,
+					let position = next.position(of: turn)
+				{
+					next.segments[position.segment].turns[position.turn]
+						.appliedReviews[attempt, default: []].insert(record.ulid)
+				}
 				next.appendNote(
 					ReviewNote(
 						ulid: record.ulid, hlc: record.hlc, date: record.civilDate,

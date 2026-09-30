@@ -156,7 +156,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			}
 			return .partiallyApplied(done: [], stoppedAt: card, failure: failure)
 		}
-		await note(live.body, stamp: stamp)
+		await note(live, stamp: stamp)
 		return .applied([ReviewReceipt(index: card.index, result: .confirmed(eventId: eventId))])
 	}
 
@@ -244,7 +244,15 @@ package actor SingleProposalReviews: WorkoutReviews {
 		)
 	}
 
-	private func note(_ body: ProposalBody, stamp: OperationStamp) async {
+	private func note(_ live: LiveProposal, stamp: OperationStamp) async {
+		let body = live.body
+		let origin: OperationStamp
+		if case .operation(.turn(let turn), let attempt) = live.cause {
+			origin = OperationStamp(
+				operation: .turn(turn), attempt: attempt, binding: stamp.binding)
+		} else {
+			origin = stamp
+		}
 		do {
 			_ = try await ledger.commit(
 				synced: [
@@ -252,7 +260,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 						ReviewAppliedBody(
 							chatId: body.chatId, summary: ReviewSummary(body.toolInput)))
 				],
-				stamp: stamp)
+				stamp: origin)
 		} catch {
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 		}

@@ -11,6 +11,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package var claims: [ClaimedAttempt] = []
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
+	package var appliedReviews: [AttemptID: Set<ULID>] = [:]
 
 	package var requestText: String {
 		fragments.sorted { $0.index < $1.index }.map(\.text).joined(separator: "\n")
@@ -29,8 +30,13 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	package var latestSettlement: SettledAttempt? {
-		guard let latest = latestAttempt else { return nil }
-		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
+		guard let latest = latestAttempt,
+			let settled = settlements.filter({ $0.attempt == latest }).max(by: { $0.hlc < $1.hlc })
+		else { return nil }
+		return SettledAttempt(
+			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
+			settlement: settled.settlement.confirmingCalendarWrites(
+				appliedReviews[latest, default: []].count))
 	}
 
 	package var reply: ReplyText? {
@@ -102,4 +108,29 @@ package struct SettledAttempt: Sendable, Equatable {
 	package let hlc: HybridLogicalClock
 	package let attempt: AttemptID
 	package let settlement: Settlement
+}
+
+extension Settlement {
+	fileprivate func confirmingCalendarWrites(_ count: Int) -> Settlement {
+		guard count > 0 else { return self }
+		switch self {
+		case .interrupted(let partial, let cause, let saved):
+			return .interrupted(
+				partial: partial, cause: cause, saved: saved.confirmingCalendarWrites(count))
+		case .failed(let failure, let saved):
+			return .failed(failure, saved: saved.confirmingCalendarWrites(count))
+		case .replied, .savedWork:
+			return self
+		}
+	}
+}
+
+extension WriteSummary {
+	fileprivate func confirmingCalendarWrites(_ count: Int) -> WriteSummary {
+		let total = max(calendarWrites, count)
+		let confirmed = max(calendarWrites - unverifiedCalendarWrites, count)
+		return WriteSummary(
+			memorySections: memorySections, ledgerEvents: ledgerEvents, planSaves: planSaves,
+			calendarWrites: total, unverifiedCalendarWrites: total - confirmed)
+	}
 }

@@ -20,13 +20,14 @@ final class Turnstile: Sendable {
 		return try await body()
 	}
 
-	func passCancellable<Value>(
+	func passCancellable<Value, Failure: Error>(
 		isolation: isolated (any Actor)? = #isolation,
-		_ body: nonisolated(nonsending) () async throws -> Value
-	) async throws -> Value {
-		guard await enter(cancellable: true) else { throw CancellationError() }
+		cancellation: Failure,
+		_ body: nonisolated(nonsending) () async throws(Failure) -> Value
+	) async throws(Failure) -> Value {
+		guard await enter(cancellable: true) else { throw cancellation }
 		defer { leave() }
-		try Task.checkCancellation()
+		guard !Task.isCancelled else { throw cancellation }
 		return try await body()
 	}
 
