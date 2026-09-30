@@ -28,6 +28,7 @@ extension TutorialHarness {
 			named(app, "starter.credits").label,
 			phrasebook.say(Catalog.creditsBalance, ["count": "200", "formattedCount": "200"]))
 		named(app, "starter.start").tap()
+		agreeToProviderConsent(app, language: language)
 		wait(named(app, "chat.composer"))
 		wait(named(app, "chat.welcome"))
 	}
@@ -41,5 +42,18 @@ extension TutorialHarness {
 		let start = named(app, "starter.start")
 		wait(start)
 		start.tap()
+		agreeToProviderConsent(app)
+	}
+
+	static func agreeToProviderConsent(_ app: XCUIApplication, language: LanguageTag = .en) {
+		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
+		let accept = named(app, "consent.accept")
+		wait(accept)
+		XCTAssertEqual(
+			named(app, "consent.body").label, phrasebook.say(Catalog.onboardingConsentBody))
+		XCTAssertEqual(accept.label, phrasebook.say(Catalog.onboardingConsentAccept))
+		XCTAssertTrue(named(app, "consent.decline").exists)
+		accept.tap()
+		wait(named(app, "chat.composer"))
 	}
 }

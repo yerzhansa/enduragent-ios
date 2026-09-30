@@ -97,7 +97,7 @@ extension FixtureLaunchTests {
 		#expect(await services.coach.status().providerConsent == nil)
 		await model.acceptConsent()
 		#expect(model.route == .chat)
-		let answered = try await settledTurn(model)
+		let answered = try await settledTurn(model, after: snapshot?.turns.first?.state)
 		#expect(answered.id == refused.id)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
 		#expect(model.chat?.turns.count == 1)

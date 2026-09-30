@@ -128,7 +128,7 @@ extension FixtureLaunchTests {
 	@Test func fixtureExpireInterruptsTheRunningTurnAsSystemExpired() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-hang"
 		await model.send()
 		let running = try await leaseTurn(in: model) { state in

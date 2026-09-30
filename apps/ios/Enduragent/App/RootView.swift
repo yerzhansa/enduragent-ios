@@ -8,12 +8,16 @@ struct RootView: View {
 	var body: some View {
 		Group {
 			switch model.route {
+			case .loading:
+				ProgressView()
 			case .onboarding(.notice):
 				NoticeView(model: model)
 			case .onboarding(.connect):
 				ConnectView(model: model)
 			case .onboarding(.starter):
 				StarterView(model: model)
+			case .onboarding(.consent):
+				ProviderConsentView(model: model)
 			case .chat:
 				ChatView(model: model)
 			}

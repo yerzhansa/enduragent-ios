@@ -33,7 +33,7 @@ final class ShellLanguageTests {
 			Issue.record("The saved language did not reopen into a ready shell")
 			return
 		}
-		#expect(model.route == .chat)
+		#expect(model.route == .loading)
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
@@ -82,7 +82,7 @@ final class ShellLanguageTests {
 		let model = ShellModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		await model.appear()
 		model.draft.text = "Add a core workout tomorrow."
 		await model.send()

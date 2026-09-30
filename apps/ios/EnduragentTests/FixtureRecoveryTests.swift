@@ -8,11 +8,12 @@ import UIKit
 extension FixtureLaunchTests {
 	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
 		let killed = model(try services())
-		killed.startChatting()
+		await killed.agreeAndStartChatting()
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
 		let relaunched = model(try relaunch(.keep).0)
+		await relaunched.appear()
 		await relaunched.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
 		#expect(cause(recovered.state) == .processEnded)
@@ -38,12 +39,13 @@ extension FixtureLaunchTests {
 		arguments.set("unreadable", forKey: FixtureLaunch.recoveryArgumentKey)
 		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
 		let killed = model(try services())
-		killed.startChatting()
+		await killed.agreeAndStartChatting()
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
 		let (unreadableServices, _) = try relaunch(.keep, recovery: parsed.recovery)
 		let unreadable = model(unreadableServices)
+		await unreadable.appear()
 		await unreadable.lifecycle.forward(.becameActive)
 		let held = try await turn(dead.id, in: unreadable, where: isUnrecovered)
 		guard case .unrecovered(let unrecovered) = held.state else {
@@ -59,6 +61,7 @@ extension FixtureLaunchTests {
 		#expect(transport.requestCount == 0)
 		#expect(unreadable.chat?.turns.first { $0.id == dead.id }?.state == held.state)
 		let readable = model(try relaunch(.keep).0)
+		await readable.appear()
 		await readable.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
 		#expect(cause(recovered.state) == .processEnded)
@@ -71,7 +74,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()
 		let streaming = try await turn(in: model, within: .seconds(10)) { state in
@@ -97,7 +100,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
 		let killed = model(services)
-		killed.startChatting()
+		await killed.agreeAndStartChatting()
 		killed.draft.text = "fixture:memory-then-hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
@@ -128,7 +131,7 @@ extension FixtureLaunchTests {
 		var quick = launch
 		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
 		let seeded = model(try AppServices.fixture(quick, defaults: defaults))
-		seeded.startChatting()
+		await seeded.agreeAndStartChatting()
 		for index in 1...200 {
 			seeded.draft.text = "Seed \(index)"
 			await seeded.send()

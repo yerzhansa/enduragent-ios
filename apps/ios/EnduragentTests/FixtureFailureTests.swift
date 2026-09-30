@@ -9,7 +9,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "Give me a ride for tomorrow"
 		await model.send()
 		transport.script = Array(
@@ -47,7 +47,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = directive
 		await model.send()
 		let failed = try await settledTurn(model)
@@ -65,7 +65,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500"
 		await model.send()
 		let answered = try await settledTurn(model)
@@ -97,7 +97,7 @@ extension FixtureLaunchTests {
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-fail"
 		await model.send()
 		let settled = try await settledTurn(model)
@@ -114,7 +114,7 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
 		let model = model(try services())
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-hang"
 		await model.send()
 		let deadline = ContinuousClock.now + .seconds(10)
@@ -140,7 +140,7 @@ extension FixtureLaunchTests {
 	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500 x3"
 		await model.send()
 		let failed = try await settledTurn(model)

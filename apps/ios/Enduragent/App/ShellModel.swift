@@ -13,6 +13,8 @@ final class ShellModel {
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
+	private(set) var consentNotSaved = false
+	private(set) var isRecordingConsent = false
 	var slashListVisible = false
 	private(set) var status: CoachStatus?
 	var starterLine: String?
@@ -46,12 +48,9 @@ final class ShellModel {
 		self.defaults = environment.defaults
 		self.drafts = DraftStore(defaults: environment.defaults)
 		if defaults.bool(forKey: Self.onboardingCompletedKey) {
-			route = .chat
+			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
-		if route == .chat {
-			observeChat()
-		}
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
@@ -163,9 +162,6 @@ final class ShellModel {
 	}
 
 	func appear() async {
-		if route == .chat {
-			observeChat()
-		}
 		await refreshStatus()
 	}
 
@@ -173,6 +169,12 @@ final class ShellModel {
 	func refreshStatus() async -> CoachStatus {
 		let current = await services.coach.status()
 		status = current
+		if route == .loading || route == .chat {
+			route = current.setup == .needsProviderConsent ? .onboarding(.consent(nil)) : .chat
+			if route == .chat {
+				observeChat()
+			}
+		}
 		return current
 	}
 
@@ -182,10 +184,36 @@ final class ShellModel {
 		await refreshStatus()
 	}
 
-	func startChatting() {
+	func startChatting() async {
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
-		route = .chat
-		observeChat()
+		route = .loading
+		await refreshStatus()
+	}
+
+	func acceptConsent() async {
+		guard case .onboarding(.consent(let turn)) = route, !isRecordingConsent else { return }
+		isRecordingConsent = true
+		defer { isRecordingConsent = false }
+		consentNotSaved = false
+		do {
+			try await services.coach.recordConsent()
+		} catch {
+			switch error {
+			case .notSaved:
+				consentNotSaved = true
+			}
+			return
+		}
+		await startChatting()
+		if let turn, route == .chat {
+			await perform(.tryAgain(turn))
+		}
+	}
+
+	func declineConsent() {
+		guard !isRecordingConsent else { return }
+		consentNotSaved = false
+		route = .onboarding(.starter)
 	}
 
 	func newConversation() async {

@@ -2,6 +2,7 @@ import EnduragentCoach
 import Foundation
 
 enum ShellRoute: Equatable {
+	case loading
 	case onboarding(OnboardingStep)
 	case chat
 }
@@ -10,6 +11,7 @@ enum OnboardingStep: Equatable {
 	case notice
 	case connect
 	case starter
+	case consent(TurnID?)
 }
 
 enum CivilDates {
