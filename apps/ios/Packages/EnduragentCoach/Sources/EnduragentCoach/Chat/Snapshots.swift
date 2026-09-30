@@ -139,16 +139,14 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 }
 
 extension ChatSnapshot {
-	package init(
+	init(
 		chat: ChatID,
 		conversation: Conversation,
 		jobs: [FlushJob],
-		live: LiveAttempt?,
+		phase: MailboxPhase,
 		window: OpenWindow?,
-		queued: [TurnID],
+		queued: [MailboxWork],
 		waiting: Set<TurnID>,
-		stopping: Bool,
-		resetting: Bool,
 		finishedAway: Set<TurnID>,
 		review: ReviewSnapshot?,
 		device: DeviceID,
@@ -160,14 +158,15 @@ extension ChatSnapshot {
 		let current = conversation.current
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			live: live, window: window, queued: queued, waiting: waiting,
+			phase: phase, window: window, queued: queued, waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
 			today: CivilDate(date: now, timeZone: zone))
-		if stopping {
+		let items = [phase.active(in: current)].compactMap { $0 } + queued
+		if phase.cause != nil {
 			self.activity = .stopping
-		} else if live != nil || window != nil || !queued.isEmpty {
+		} else if window != nil || items.contains(where: { $0.turn != nil }) {
 			self.activity = .working(label: Catalog.chatNoticeWorking)
-		} else if resetting, opening == .continuing {
+		} else if items.contains(where: { $0.reset != nil }), opening == .continuing {
 			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
 		} else {
 			self.activity = .idle
@@ -186,22 +185,24 @@ extension Segment {
 		}
 	}
 
-	package func turnViews(
-		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
-		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
+	func turnViews(
+		phase: MailboxPhase, window: OpenWindow? = nil, queued: [MailboxWork] = [],
+		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
+		device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
 		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
 				return nil
 			}
-			let overlay = TurnOverlay(
-				of: facts.turn, window: window, queued: queued, waiting: waiting)
+			let overlay = phase.overlay(
+				of: facts.turn, in: self, window: window, queued: queued, waiting: waiting)
 			return TurnView(
 				id: facts.turn,
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process),
+					of: facts, live: phase.running?.live, overlay: overlay, device: device,
+					process: process),
 				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
