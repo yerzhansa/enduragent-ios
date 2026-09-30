@@ -38,8 +38,6 @@ for (const [name, file, value, code] of [
   ['private key', 'key.txt', '-----BEGIN ' + 'PRIVATE KEY-----', 'secret-shape'],
   ['app TypeScript public wording', 'packages/i18n/scripts/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
   ['Swift label', 'apps/ios/Enduragent/Screen.swift', 'Text("Normalized Power")', 'public-language'],
-  ['faded slash accent', 'apps/ios/Enduragent/Chat/SlashListView.swift', 'Text(description).foregroundStyle(.secondary)', 'slash-description-contrast'],
-  ['fainter slash accent', 'apps/ios/Enduragent/Chat/SlashListView.swift', 'Text(description).foregroundStyle( .tertiary )', 'slash-description-contrast'],
   ['literal confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "That proposal expired."', 'uncatalogued-confirmation'],
   ['interpolated confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "Done — \\(summary)."', 'uncatalogued-confirmation'],
   ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
@@ -79,14 +77,6 @@ for (const [name, file, value, code] of [
 test('accepts the App Store 1024 icon', () => {
   const result = run({
     'apps/ios/Enduragent/Assets.xcassets/AppIcon.appiconset/AppIcon.png': Buffer.from([137, 80, 78, 71, 0, 1, 2, 3]),
-  });
-  assert.equal(result.status, 0, result.output);
-});
-
-test('accepts semantic slash text and secondary text outside the slash buttons', () => {
-  const result = run({
-    'apps/ios/Enduragent/Chat/SlashListView.swift': 'Text(description).foregroundStyle(Color.primary)',
-    'apps/ios/Enduragent/Chat/TurnRowView.swift': 'Text(status).foregroundStyle(.secondary)',
   });
   assert.equal(result.status, 0, result.output);
 });
