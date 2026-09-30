@@ -66,15 +66,13 @@ final class ChatRecords {
 	}
 
 	func apply(_ committed: [AthleteRecord]) {
-		conversation = ConversationFold.applying(
-			committed, to: conversation, device: ledger.deviceId)
+		conversation.apply(committed, device: ledger.deviceId)
 	}
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
 			RecordQuery(scope: .synced([.reviewApplied]), chatId: chat))
-		conversation = ConversationFold.applying(
-			notes.records, to: conversation, device: ledger.deviceId)
+		apply(notes.records)
 	}
 
 	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {
@@ -87,7 +85,7 @@ final class ChatRecords {
 		_ writes: TurnWrites, stamp: OperationStamp, isolation: isolated (any Actor)? = #isolation
 	) async throws(LedgerFailure) {
 		let records = try await ledger.commit(writes, stamp: stamp)
-		conversation = ConversationFold.applying(records, to: conversation, device: ledger.deviceId)
+		apply(records)
 	}
 
 	func settle(
@@ -124,7 +122,7 @@ final class ChatRecords {
 		do {
 			try await commit(mark, stamp: stamp)
 		} catch {
-			conversation.observeInMemory(turn, attempt: stamp.attempt)
+			conversation.observeInMemory(turn, attempt: stamp.attempt, device: ledger.deviceId)
 			ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
 		}
 	}

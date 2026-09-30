@@ -197,9 +197,8 @@ import Testing
 		_ = try await coach.sendAndSettle("After trimming")
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
-		let trim = try #require(conversation.current.promptWindow.trim?.firstIncluded)
+		try #require(conversation.current.promptWindow.trim != nil)
 		let user = try #require(conversation.turn(turn)?.userRow?.ulid)
-		try #require(user < trim)
 		try #require(!conversation.current.promptHistory(excluding: nil).ulids.contains(user))
 		transport.script = [.text("Recovered reply"), .finish(reason: .stop)]
 		try await coach.retry(turn, in: .main)
@@ -320,7 +319,7 @@ import Testing
 	@Test func coverageKeepsPromptTrimmingAndRunningTurnExclusion() {
 		var conversation = conversation(turns: 3)
 		conversation.segments[0].promptWindow = PromptWindow(
-			trim: .init(firstIncluded: fixedUlid(4), opened: fixedUlid(9)))
+			trim: .init(messageUlids: [fixedUlid(1), fixedUlid(2)], opened: fixedUlid(9)))
 		let running = TurnID(ulid: fixedUlid(7))
 		#expect(
 			conversation.messagesSinceLastFlush([], excluding: running).map(\.ulid)

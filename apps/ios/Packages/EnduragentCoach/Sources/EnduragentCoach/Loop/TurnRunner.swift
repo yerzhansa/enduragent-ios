@@ -234,6 +234,7 @@ package struct TurnRunner: Sendable {
 					: history.ulids[trim.dropped.count]
 				summary = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
 					scope: scope, progress: progress)
 			} catch is CancellationError {
 				throw CancellationError()
@@ -271,7 +272,7 @@ package struct TurnRunner: Sendable {
 
 	private func summarizeDropped(
 		_ dropped: [WireMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
-		scope: TurnScope, progress: @escaping AttemptProgressSink
+		droppedUlids: [ULID], scope: TurnScope, progress: @escaping AttemptProgressSink
 	) async throws -> String {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
@@ -283,7 +284,8 @@ package struct TurnRunner: Sendable {
 			synced: [
 				.windowStart(
 					WindowStartBody(
-						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim)),
+						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim,
+						droppedMessageUlids: droppedUlids)),
 				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
 			],
 			stamp: scope.stamp)
