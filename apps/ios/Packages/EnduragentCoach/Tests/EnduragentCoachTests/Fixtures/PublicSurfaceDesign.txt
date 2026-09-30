@@ -454,6 +454,7 @@ SessionSettings.text(for:)
 SetupState
 SetupState.accessTemporarilyUnavailable
 SetupState.needsAccessMethod
+SetupState.needsProviderConsent
 SetupState.ready
 SignInFailure
 SignInFailure.presentationUnavailable

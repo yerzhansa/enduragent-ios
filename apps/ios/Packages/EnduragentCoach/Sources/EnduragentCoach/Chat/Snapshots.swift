@@ -92,7 +92,7 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 public struct CoachStatus: Sendable, Equatable {
 	public let providerConsent: ProviderConsent?
 	public var needsProviderConsent: Bool {
-		providerConsent?.version != ProviderConsent.currentVersion
+		setup == .needsProviderConsent
 	}
 	public let setup: SetupState
 	public let training: TrainingStatus
@@ -124,6 +124,7 @@ public struct CoachStatus: Sendable, Equatable {
 }
 
 public enum SetupState: Sendable, Equatable {
+	case needsProviderConsent
 	case needsAccessMethod
 	case ready
 	case accessTemporarilyUnavailable(AccessUnavailable)

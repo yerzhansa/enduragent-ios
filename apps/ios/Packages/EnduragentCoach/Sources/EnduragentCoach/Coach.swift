@@ -126,14 +126,16 @@ public actor Coach {
 	}
 
 	public func status() async -> CoachStatus {
-		CoachStatus(
-			setup: await vault.setup(builtInModel: builtInModel),
+		let consent = await providerConsent()
+		return CoachStatus(
+			setup: consent?.isCurrent == true
+				? await vault.setup(builtInModel: builtInModel) : .needsProviderConsent,
 			training: await vault.trainingStatus(), preferences: await loadedPreferences(),
-			providerConsent: await providerConsent())
+			providerConsent: consent)
 	}
 
 	public func recordConsent() async throws(PreferenceWriteFailure) {
-		guard await providerConsent()?.version != ProviderConsent.currentVersion else { return }
+		guard await providerConsent()?.isCurrent != true else { return }
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
 			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
@@ -149,8 +151,7 @@ public actor Coach {
 		do {
 			let page = try await ledger.read(
 				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
-			guard page.skipped.isEmpty,
-				case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
+			guard case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
 			else { return nil }
 			return consent
 		} catch {
@@ -160,7 +161,7 @@ public actor Coach {
 	}
 
 	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		guard await providerConsent()?.version == ProviderConsent.currentVersion else {
+		guard await providerConsent()?.isCurrent == true else {
 			throw .providerConsentRequired
 		}
 		return try await vault.modelAccess(builtInModel: builtInModel)

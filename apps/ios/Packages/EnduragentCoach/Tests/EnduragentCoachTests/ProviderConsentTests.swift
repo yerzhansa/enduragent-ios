@@ -34,9 +34,20 @@ import Testing
 	@Test func setupRequiresConsentBeforeItIsReady() async throws {
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(await coach.status().setup != .ready)
+		#expect(await coach.status().setup == .needsProviderConsent)
 		try await coach.recordConsent()
 		#expect(await coach.status().setup == .ready)
+	}
+
+	@Test func consentPayloadPreservesTheStoredDateFormat() throws {
+		let consent = ProviderConsent(at: Date(timeIntervalSinceReferenceDate: 123))
+		let row = try StoredAthleteRecord(
+			record: storedRecord(
+				device: store.deviceId, wall: 1, body: .deviceLocal(.providerConsent(consent))))
+		let payload = Data(#"{"at":123,"version":1}"#.utf8)
+		#expect(row.body == payload)
+		row.body = payload
+		#expect(try row.decode().get().body == .deviceLocal(.providerConsent(consent)))
 	}
 
 	@Test func consentUsesTheCurrentVersionAndIsIndependentOfAccessMethod() async throws {

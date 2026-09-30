@@ -231,7 +231,7 @@ package enum AthleteNotices {
 		case .model(.generationFailed):
 			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, action: tryAgain)
 		case .model(.accessUnavailable(.providerConsentRequired)):
-			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: nil)
+			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: tryAgain)
 		case .model(.accessUnavailable(.secureStorageLocked)):
 			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
 		case .model(.accessUnavailable(.notConfigured)),
