@@ -39,6 +39,7 @@ ArchivedConversationRef
 ArchivedConversationRef.rawValue
 AthleteNotice
 AthleteNotice.action
+AthleteNotice.count
 AthleteNotice.credits(failure:)
 AthleteNotice.key
 AthleteNotice.recordStoreUnavailable

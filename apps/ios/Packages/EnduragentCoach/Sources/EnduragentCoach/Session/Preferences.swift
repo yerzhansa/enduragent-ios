@@ -14,14 +14,14 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		}
 	}
 
-	public func title(in phrasebook: any Phrasebook) -> String {
+	public func title(in phrasebook: CatalogPhrasebook) -> String {
 		switch self {
 		case .automatic: phrasebook.say(Catalog.commonAutomatic, [:])
 		case .fixed(let tag): tag.endonym
 		}
 	}
 
-	public func notSaved(keeping current: LanguagePreference, in phrasebook: any Phrasebook)
+	public func notSaved(keeping current: LanguagePreference, in phrasebook: CatalogPhrasebook)
 		-> String
 	{
 		switch current {
@@ -45,20 +45,19 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		appLanguage(device: device).phrasebook
 	}
 
-	package func replyLanguage(for message: String, device: LanguageTag) -> LanguageResolution {
+	package func replyLanguage(for message: String, device: LanguageTag) -> ReplyLanguage {
 		switch self {
 		case .automatic:
-			Language.resolve(
-				saved: nil, messageHint: Language.detectMessageLanguage(message), surface: device)
+			.mirror(fallback: Language.detectMessageLanguage(message) ?? device)
 		case .fixed(let tag):
-			Language.resolve(saved: tag, messageHint: nil, surface: device)
+			.fixed(tag)
 		}
 	}
 }
 
 extension LanguageTag {
 	public var phrasebook: CatalogPhrasebook {
-		CatalogPhrasebook(tag: self, locale: defaultLocale)
+		CatalogPhrasebook(tag: self)
 	}
 }
 

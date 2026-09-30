@@ -5,7 +5,7 @@ extension ToolRuntime {
 		_ gated: GatedToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		stamp: OperationStamp
+		scope: TurnScope
 	) async throws -> ToolOutcome {
 		do {
 			let parsed = try parseGated(gated, arguments: arguments)
@@ -17,7 +17,7 @@ extension ToolRuntime {
 				description: parsed.description,
 				now: clock.now,
 				ledger: ledger,
-				stamp: stamp
+				scope: scope
 			)
 			return .pending(proposal)
 		} catch let error as IntervalsError {

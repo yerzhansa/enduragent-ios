@@ -3,7 +3,7 @@ import Testing
 
 @testable import EnduragentCoach
 
-@Suite struct RetryLadderTests {
+@Suite(.timeLimit(.minutes(1))) struct RetryLadderTests {
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")

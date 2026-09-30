@@ -79,10 +79,10 @@ import Testing
 			try await turn.chargeCall()
 		}
 		for _ in 0..<TurnBudgetPolicy.npm.maxGenerateAttempts {
-			try await turn.chargeAttempt()
+			try await turn.chargeAttempt(using: .npm)
 		}
 		await #expect(throws: TurnBudgetExceeded(kind: .generateAttempts)) {
-			try await turn.chargeAttempt()
+			try await turn.chargeAttempt(using: .npm)
 		}
 		try await turn.checkDeadline(uptime: .seconds(30 + 599))
 		#expect(await turn.callDeadline(uptime: .seconds(30 + 590)) == .seconds(10))

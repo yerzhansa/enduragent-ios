@@ -59,7 +59,7 @@ public enum ConversationOpening: Sendable, Equatable {
 }
 
 public enum Welcome {
-	public static func text(in phrasebook: any Phrasebook) -> String {
+	public static func text(in phrasebook: CatalogPhrasebook) -> String {
 		let commands = SlashCommand.allCases.map { command in
 			phrasebook.say(
 				Catalog.chatWelcomeCommand,
@@ -231,7 +231,7 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 	public let after: TurnID?
 	public let summary: ReviewSummary
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
 		phrasebook.say(
 			Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
 	}

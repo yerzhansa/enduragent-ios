@@ -15,7 +15,7 @@ import Testing
 	init() {
 		secrets = keyedSecrets(backing: secretBacking)
 	}
-	let phrasebook = CatalogPhrasebook(tag: .en, locale: LanguageTag.en.defaultLocale)
+	let phrasebook = CatalogPhrasebook(tag: .en)
 
 	@Test func controlsAreNoneUntilPresented() async throws {
 		let coach = await coach()

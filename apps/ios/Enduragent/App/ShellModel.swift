@@ -63,7 +63,7 @@ final class ShellModel {
 		status?.language ?? initialLanguage
 	}
 
-	var phrasebook: any Phrasebook {
+	var phrasebook: CatalogPhrasebook {
 		languagePreference.phrasebook(device: environment.language)
 	}
 
@@ -132,12 +132,12 @@ final class ShellModel {
 			switch outcome {
 			case .minted(let credits):
 				starterLine = phrasebook.say(
-					Catalog.creditsBalance,
-					["count": String(credits.units), "formattedCount": String(credits.units)])
+					Catalog.creditsBalance, count: credits.units,
+					["formattedCount": String(credits.units)])
 			case .toppedUp(let added):
 				starterLine = phrasebook.say(
-					Catalog.onboardingStarterAdded,
-					["count": String(added.units), "formattedCount": String(added.units)])
+					Catalog.onboardingStarterAdded, count: added.units,
+					["formattedCount": String(added.units)])
 			case .alreadyGranted:
 				starterLine =
 					try await existingBalanceLine()
@@ -154,11 +154,8 @@ final class ShellModel {
 		let scale = try await services.coach.credits.catalog().scale
 		let balance = try await services.coach.credits.balance(scale: scale)
 		return phrasebook.say(
-			Catalog.creditsBalance,
-			[
-				"count": String(balance.credits.units),
-				"formattedCount": String(balance.credits.units),
-			])
+			Catalog.creditsBalance, count: balance.credits.units,
+			["formattedCount": String(balance.credits.units)])
 	}
 
 	func appear() async {

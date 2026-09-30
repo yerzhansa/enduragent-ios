@@ -15,7 +15,7 @@ import Testing
 
 	@Test(arguments: LanguageTag.allCases)
 	func welcomeAdvertisesOnlySupportedCommands(tag: LanguageTag) {
-		let phrasebook = CatalogPhrasebook(tag: tag, locale: tag.defaultLocale)
+		let phrasebook = CatalogPhrasebook(tag: tag)
 		let text = Welcome.text(in: phrasebook)
 		let advertised = text.matches(of: /\/[a-z]+/).map { String($0.output) }
 		#expect(advertised.count == SlashCommand.allCases.count)

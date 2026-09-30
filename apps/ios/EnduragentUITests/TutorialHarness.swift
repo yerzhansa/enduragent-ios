@@ -228,7 +228,7 @@ enum TutorialHarness {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
 		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en_US")
+		let phrasebook = CatalogPhrasebook(tag: .en)
 		let commands = welcome.label.split(separator: "\n").filter { $0.hasPrefix("/") }
 		XCTAssertEqual(
 			commands.map(String.init),

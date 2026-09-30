@@ -2,7 +2,6 @@ import Foundation
 
 package protocol WorkoutReviews: Sendable {
 	func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot?
-	func decide(_ decision: ReviewDecision, chat: ChatID) async -> ReviewOutcome
 }
 
 extension ReviewDecision {

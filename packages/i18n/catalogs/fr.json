@@ -1024,6 +1024,7 @@
       "savedChoice": "Choix enregistré",
       "working": "Le coach travaille…",
       "responseStopped": "Réponse arrêtée. La réponse partielle est conservée.",
+      "calendarUnverified": "La modification du calendrier a peut-être été enregistrée. Vérifie ton calendrier avant de renouveler ta demande.",
       "savedUnverified": "J’ai enregistré tes informations, mais je n’ai pas pu vérifier ma réponse. Réessaie."
     },
     "planChange": {

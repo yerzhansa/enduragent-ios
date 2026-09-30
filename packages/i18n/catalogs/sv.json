@@ -1024,6 +1024,7 @@
       "savedChoice": "Sparat val",
       "working": "Tränaren arbetar…",
       "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
+      "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
       "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
     },
     "planChange": {
