@@ -319,7 +319,8 @@ import Testing
 
 	@Test func coverageKeepsPromptTrimmingAndRunningTurnExclusion() {
 		var conversation = conversation(turns: 3)
-		conversation.segments[0].promptWindow.firstIncluded = fixedUlid(4)
+		conversation.segments[0].promptWindow = PromptWindow(
+			firstIncluded: fixedUlid(4), opened: fixedUlid(9))
 		let running = TurnID(ulid: fixedUlid(7))
 		#expect(
 			conversation.messagesSinceLastFlush([], excluding: running).map(\.ulid)

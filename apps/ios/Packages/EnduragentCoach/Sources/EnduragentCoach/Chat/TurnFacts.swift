@@ -44,10 +44,6 @@ package struct TurnFacts: Sendable, Equatable {
 		return claims.first { $0.attempt == latest }
 	}
 
-	var lastUlid: ULID {
-		(fragments.map(\.ulid) + settlements.map(\.ulid)).max() ?? turn.ulid
-	}
-
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
 		guard let userRow else { return [] }
 		if let replyRow {

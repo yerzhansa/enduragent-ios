@@ -52,7 +52,11 @@ package struct Segment: Sendable, Equatable {
 		var history = PromptHistory(
 			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
-			if let firstIncluded = promptWindow.firstIncluded, facts.lastUlid < firstIncluded {
+			if let firstIncluded = promptWindow.firstIncluded, let opened = promptWindow.opened,
+				let first = facts.fragments.min(by: { $0.index < $1.index }),
+				first.ulid < firstIncluded,
+				let settled = facts.latestSettlement, settled.ulid < opened
+			{
 				continue
 			}
 			for (ulid, message) in visibleRows(of: facts) {
