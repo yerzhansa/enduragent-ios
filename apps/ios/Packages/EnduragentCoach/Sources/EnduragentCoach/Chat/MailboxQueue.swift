@@ -1,8 +1,8 @@
 import Foundation
 
 extension ChatMailbox.Admitted {
-	func add(_ turn: TurnID) -> Bool {
-		queue.append(.turn(turn))
+	func add(_ turn: TurnID, origin: AttemptOrigin) -> Bool {
+		queue.append(.turn(turn, origin: origin))
 	}
 
 	func add(_ reset: ResetID) -> Bool {

@@ -1,9 +1,15 @@
 import Foundation
 import Synchronization
 
+package enum AttemptOrigin: Sendable, Equatable {
+	case send
+	case retry
+}
+
 package struct TurnAttempt: Sendable {
 	package let turn: TurnID
 	package let attempt: AttemptID
+	package let origin: AttemptOrigin
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?

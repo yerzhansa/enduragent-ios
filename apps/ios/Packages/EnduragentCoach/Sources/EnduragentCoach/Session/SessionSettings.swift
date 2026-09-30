@@ -22,7 +22,6 @@ public struct SessionSettings: Sendable, Equatable {
 		case .contextWindowOverride:
 			next.contextWindowOverride = try ContextWindowOverride(
 				tokens: try Self.whole(text, for: field))
-
 		}
 		return next
 	}

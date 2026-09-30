@@ -39,7 +39,6 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	public var deltaDelay: Duration?
 	private let lock = NSLock()
 	private var replies: [AttemptID: ScriptedReply] = [:]
-	private var repliedTurns: Set<TurnID> = []
 	private var flushDelay: Duration?
 	private let respond: (@Sendable (String, Bool) -> ScriptedReply)?
 
@@ -181,9 +180,8 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		guard let respond, request.charge == .chatAttempt, replies[request.attempt] == nil,
 			let lastUser = request.messages.lastIndex(where: { $0.role == .user })
 		else { return }
-		let retry = request.turn.map { !repliedTurns.insert($0).inserted } ?? false
 		let text = request.messages[lastUser].content.components(separatedBy: "\nCurrent time:")[0]
-		let reply = respond(text, retry)
+		let reply = respond(text, request.origin == .retry)
 		replies[request.attempt] = reply
 		flushDelay = reply.flushDelay
 		if let flush = reply.flush { flushScript = flush }

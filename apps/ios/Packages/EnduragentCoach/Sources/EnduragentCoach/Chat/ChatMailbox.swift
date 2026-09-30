@@ -166,7 +166,7 @@ package actor ChatMailbox {
 				process: process)
 			if let refusal { throw RetryRefusal(refusal) }
 			holdLease(.athlete)?.add(turn)
-			enqueue(turn, admitted)
+			if admitted.add(turn, origin: .retry) { workAdded() }
 		}
 	}
 
@@ -241,11 +241,7 @@ package actor ChatMailbox {
 
 	private func closeWindow(_ admitted: borrowing Admitted, ifArmed armed: Int? = nil) {
 		guard let turn = admitted.closeWindow(ifArmed: armed) else { return }
-		enqueue(turn, admitted)
-	}
-
-	private func enqueue(_ turn: TurnID, _ admitted: borrowing Admitted) {
-		if admitted.add(turn) { workAdded() }
+		if admitted.add(turn, origin: .send) { workAdded() }
 	}
 
 	private func workAdded() {
@@ -259,8 +255,8 @@ package actor ChatMailbox {
 		else { return }
 		running = Task {
 			switch next {
-			case .turn(let turn):
-				await self.runTurn(turn, under: lease)
+			case .turn(let turn, let origin):
+				await self.runTurn(turn, origin: origin, under: lease)
 			case .flush(let job):
 				let access = await self.environment.flushAccess()
 				await self.flushes.drain(job, in: self.records.conversation, access: access)
@@ -300,14 +296,15 @@ package actor ChatMailbox {
 		await interrupt(InterruptionCause(cause))
 	}
 
-	private func runTurn(_ turn: TurnID, under lease: DrainLease) async {
+	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
 		guard let facts = records.conversation.turn(turn) else { return }
 		lease.add(turn)
 		let resolution = await environment.resolve()
 		let stamp = await stamp(for: turn).bound(to: resolution.account)
 		guard
 			let request = await start.begin(
-				facts, resolution: resolution, stamp: stamp, lease: await lease.kind)
+				facts, origin: origin, resolution: resolution, stamp: stamp, lease: await lease.kind
+			)
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
 		live = LiveAttempt(turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))

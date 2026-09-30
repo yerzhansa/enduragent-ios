@@ -54,5 +54,4 @@ enum AppLaunch {
 				|| NSClassFromString("XCTestCase") != nil
 		}
 	#endif
-
 }

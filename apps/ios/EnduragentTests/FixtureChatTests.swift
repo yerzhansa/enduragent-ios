@@ -181,7 +181,9 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
-		let services = try services()
+		var launch = launch
+		launch.coalescing = CoalescingPolicy(window: .milliseconds(100))
+		let services = try AppServices.fixture(launch, defaults: defaults)
 		let model = model(services)
 		model.startChatting()
 		model.draft.text = "fixture:slow"

@@ -40,7 +40,7 @@ package struct CompletionRequest: Sendable, Equatable {
 	package let credential: ProviderCredential
 	package let model: ModelID
 	package let attempt: AttemptID
-	package let turn: TurnID?
+	package let origin: AttemptOrigin?
 	package let charge: GenerateCharge
 	package let messages: [WireMessage]
 	package let tools: [ToolSchema]
@@ -49,7 +49,7 @@ package struct CompletionRequest: Sendable, Equatable {
 	package init(
 		access: ResolvedAccess,
 		attempt: AttemptID,
-		turn: TurnID? = nil,
+		origin: AttemptOrigin? = nil,
 		charge: GenerateCharge,
 		messages: [WireMessage],
 		tools: [ToolSchema],
@@ -58,7 +58,7 @@ package struct CompletionRequest: Sendable, Equatable {
 		self.credential = access.credential
 		self.model = access.model
 		self.attempt = attempt
-		self.turn = turn
+		self.origin = origin
 		self.charge = charge
 		self.messages = messages
 		self.tools = tools

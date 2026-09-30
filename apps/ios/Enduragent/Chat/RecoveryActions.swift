@@ -13,7 +13,6 @@ extension ShellModel {
 	}
 
 	private func tryAgain(_ turn: TurnID) async {
-
 		do {
 			try await services.coach.retry(turn, in: .main)
 		} catch {

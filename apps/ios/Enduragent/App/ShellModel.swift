@@ -243,7 +243,6 @@ final class ShellModel {
 		newConversationUncertain = false
 		reviewNotice = nil
 		slashListVisible = false
-
 		do {
 			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
 			case .accepted:
