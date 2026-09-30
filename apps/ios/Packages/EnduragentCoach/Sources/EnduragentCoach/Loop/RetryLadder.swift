@@ -128,7 +128,6 @@ package struct RetryLadder: Sendable, Equatable {
 			}
 		}
 		let coachFailure = failure.coachFailure(for: situation.accessMethod)
-		guard !coachFailure.isTerminal else { return .terminal(coachFailure) }
 		let failureClass = failure.ladderClass
 		for rung in rungs
 		where rung.classes.contains(failureClass) && counters.count(rung.counter) < rung.limit {

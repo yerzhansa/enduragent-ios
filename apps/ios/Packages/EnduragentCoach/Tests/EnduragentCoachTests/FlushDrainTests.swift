@@ -127,6 +127,7 @@ import Testing
 	@Test(arguments: [
 		ScriptedFailure.http(status: 400), .http(status: 401), .http(status: 403),
 		.http(status: 404), .http(status: 422), .unknownFinish,
+		.http(status: 400, body: "maximum context length is 8192 tokens"),
 	])
 	func aRelaunchDrainAbandonsATerminalFailure(failure: ScriptedFailure) async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)

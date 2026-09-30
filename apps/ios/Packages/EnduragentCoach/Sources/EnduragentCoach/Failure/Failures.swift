@@ -148,10 +148,11 @@ public enum RecoveryAction: Sendable, Equatable {
 extension CoachFailure {
 	package var isTerminal: Bool {
 		switch self {
-		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed):
+		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed),
+			.model(.contextOverflow):
 			true
 		case .model(.accessExhausted), .model(.rateLimited), .model(.providerDown),
-			.model(.contextOverflow), .model(.budgetExhausted), .model(.accessUnavailable), .local:
+			.model(.budgetExhausted), .model(.accessUnavailable), .local:
 			false
 		}
 	}
