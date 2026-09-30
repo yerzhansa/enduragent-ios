@@ -169,8 +169,7 @@ import Testing
 			access: testAccess,
 			training: TrainingConnection(
 				account: .intervals(connection: ConnectionID(), athlete: nil), client: intervals),
-			process: ProcessID(ulid: scope.stamp.attempt.ulid),
-			autoReset: nil
+			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}
 }

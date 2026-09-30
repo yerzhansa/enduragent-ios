@@ -229,10 +229,10 @@ import Testing
 		#expect(await coach.status().language == .automatic)
 		try await coach.setLanguage(.fixed(.ja))
 		#expect(await coach.status().language == .fixed(.ja))
-		let hour = try SessionSettings.npmDefaults.replacing(.dailyResetHour, with: "6")
-		try await coach.setSession(hour)
+		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
+		try await coach.setSession(ratio)
 		let status = await coach.status()
-		#expect(status.session == hour)
+		#expect(status.session == ratio)
 		#expect(status.language == .fixed(.ja))
 		#expect(status.setup == .ready)
 	}

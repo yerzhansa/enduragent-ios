@@ -30,7 +30,7 @@ import Testing
 	@Test func aJobKeepsItsProcessAndAnAbandonedSettlementRoundTrips() throws {
 		let process = ProcessID(ulid: fixedUlid(60))
 		let pending = FlushPendingBody(
-			chatId: .main, trigger: .trim, messageUlids: [fixedUlid(1)], process: process)
+			chatId: .main, messageUlids: [fixedUlid(1)], process: process)
 		let abandoned = FlushSettledBody(
 			chatId: .main, job: FlushJobID(ulid: fixedUlid(2)), settlement: .abandoned)
 		for body in [
@@ -82,7 +82,7 @@ import Testing
 		try await Task.sleep(for: .milliseconds(200))
 		let flushes = sent(.memoryFlush, by: transport)
 		#expect(flushes.count == 4)
-		let window = flushes[2].messages.map(\.content)
+		let window = flushes[2].messages.map(\.unstampedContent)
 		#expect(window.contains { $0.hasPrefix("Question 0") })
 		#expect(window.contains { $0 == "Rest day?" })
 		let memory = Memory(ledger: ledger(), clock: clock)
@@ -90,7 +90,7 @@ import Testing
 		#expect(context.contains("Sundays now."))
 		#expect(!context.contains("Saturdays."))
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
-		#expect(jobs.map(\.trigger) == [.softThreshold, .trim])
+		#expect(jobs.count == 2)
 		#expect(jobs.map(\.settled) == [true, true])
 		#expect(jobs.first?.messages == history.flatMap { [$0.user, $0.reply] })
 	}
@@ -167,7 +167,7 @@ import Testing
 		#expect(seeded.map(\.user).contains(firstIncluded))
 		_ = try await coach.sendAndSettle("Short again?")
 		let lastChat = try #require(sent(.chatAttempt, by: transport).last)
-		#expect(!lastChat.messages.contains { $0.content.hasPrefix("Question 0") })
+		#expect(!lastChat.messages.contains { $0.unstampedContent.hasPrefix("Question 0") })
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 	}
 
@@ -207,7 +207,7 @@ import Testing
 		#expect(windows == [userMessage])
 		let summaries = sent(.droppedSummary, by: transport)
 		#expect(summaries.count == 1)
-		let summarized = try #require(summaries.first).messages.map(\.content).joined()
+		let summarized = try #require(summaries.first).messages.map(\.unstampedContent).joined()
 		#expect(summarized.contains("Question 0"))
 		#expect(summarized.contains("Answer 0"))
 		#expect(summarized.contains("Short question?"))
@@ -215,8 +215,8 @@ import Testing
 		#expect(history.count == 1)
 		_ = try await coach.sendAndSettle("And later?")
 		for request in sent(.chatAttempt, by: transport) {
-			#expect(!request.messages.contains { $0.content == hugeReply })
-			#expect(!request.messages.contains { $0.content == "Short question?" })
+			#expect(!request.messages.contains { $0.unstampedContent == hugeReply })
+			#expect(!request.messages.contains { $0.unstampedContent == "Short question?" })
 		}
 		#expect(sent(.chatAttempt, by: transport).count == 2)
 		#expect(sent(.droppedSummary, by: transport).count == 1)
@@ -239,7 +239,7 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)), trigger: .softThreshold,
+			id: FlushJobID(ulid: fixedUlid(offset)),
 			messages: messages.map(fixedUlid), settled: settled)
 	}
 
@@ -251,7 +251,7 @@ import Testing
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: job.trigger, messageUlids: job.messages))))
+							chatId: .main, messageUlids: job.messages))))
 		]
 		if job.settled {
 			records.append(

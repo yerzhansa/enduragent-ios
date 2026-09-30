@@ -2,7 +2,6 @@ import Foundation
 
 extension Memory {
 	package func runFlush(
-		_ job: FlushJob,
 		messages: [ChatMessage],
 		access: ResolvedAccess,
 		transport: any ModelTransport,
@@ -10,15 +9,12 @@ extension Memory {
 		scope: TurnScope?
 	) async throws(CancellationError) -> FlushOutcome {
 		guard !messages.isEmpty else { return .nothingToSave }
-		let run = FlushRun(messages: messages, access: access, transport: transport, stamp: stamp)
+		let run = FlushRun(
+			messages: messages, timeZone: clock.timeZone, access: access, transport: transport,
+			stamp: stamp)
 		var tally = FlushTally()
 		do {
 			try await flushRetryingFailures(run, scope: scope, tally: &tally)
-			if job.trigger == .staleReset, tally.isEmpty,
-				messages.count >= MemoryFlushPolicy.flushZeroWriteMinMessages
-			{
-				try await flushRetryingFailures(run, scope: scope, tally: &tally)
-			}
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {
@@ -56,14 +52,15 @@ extension Memory {
 	{
 		try await scope?.chargeCall()
 		let current = try await fullContext()
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
+		let today = IntervalsPolicy.today(now: clock.now, timeZone: run.timeZone)
 		let fenced = PromptAssembly.wrapAthleteContext(
 			current.isEmpty ? "No athlete data stored yet." : current)
 		var messages: [WireMessage] = [
 			WireMessage(
 				role: .system, content: MemoryFlushPrompt.system, toolCalls: [], toolCallId: nil)
 		]
-		messages.append(contentsOf: run.messages.map(memoryWireMessage(from:)))
+		messages.append(
+			contentsOf: run.messages.map { PromptAssembly.wireMessage(from: $0, in: run.timeZone) })
 		messages.append(
 			WireMessage(
 				role: .user,
@@ -198,6 +195,7 @@ extension Memory {
 
 private struct FlushRun: Sendable {
 	let messages: [ChatMessage]
+	let timeZone: TimeZone
 	let access: ResolvedAccess
 	let transport: any ModelTransport
 	let stamp: OperationStamp
@@ -210,13 +208,4 @@ private struct FlushTally {
 	var isEmpty: Bool {
 		sections == 0 && events == 0
 	}
-}
-
-private func memoryWireMessage(from message: ChatMessage) -> WireMessage {
-	WireMessage(
-		role: message.role == .user ? .user : .assistant,
-		content: message.text,
-		toolCalls: [],
-		toolCallId: nil
-	)
 }

@@ -56,7 +56,7 @@ struct FlushCostBenchmark {
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
+								chatId: .main,
 								messageUlids: Self.rowUlids((10 * jobIndex)..<(10 * jobIndex + 10)),
 								process: ProcessID(ulid: fixedUlid(9_000)))))))
 			settled.append(
@@ -97,7 +97,7 @@ struct FlushCostBenchmark {
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .trim, messageUlids: listed,
+								chatId: .main, messageUlids: listed,
 								process: ProcessID(ulid: fixedUlid(9_000)))))))
 		}
 

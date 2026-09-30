@@ -24,14 +24,14 @@ package enum ConversationFold {
 		for record in ordered {
 			switch record.body {
 			case .synced(.windowStart(let body)):
-				if case .reset(let kind) = body.reason {
-					boundaries.append((body.firstIncludedUlid, .reset(kind)))
+				if case .reset(let reset) = body.reason {
+					boundaries.append((body.firstIncludedUlid, .reset(reset)))
 				}
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessages.contains(firstIncluded) {
 					legacyTrims.append(firstIncluded)
 				} else {
-					boundaries.append((firstIncluded, .reset(.daily)))
+					boundaries.append((firstIncluded, .legacyBoundary))
 				}
 			default:
 				break
@@ -100,7 +100,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: body.attempt,
 						settlement: body.settlement
 					)
@@ -117,7 +116,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: AttemptID(ulid: record.ulid),
 						settlement: .replied(
 							.model(body.text),
@@ -204,7 +202,6 @@ package enum ConversationFold {
 					SettledAttempt(
 						ulid: record.ulid,
 						hlc: record.hlc,
-						civilDate: record.civilDate,
 						attempt: body.attempt,
 						settlement: body.settlement
 					))
@@ -221,8 +218,8 @@ package enum ConversationFold {
 						ulid: record.ulid, hlc: record.hlc, date: record.civilDate,
 						summary: body.summary))
 			case .synced(.windowStart(let body)):
-				guard case .reset(let kind) = body.reason else { continue }
-				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(kind))
+				guard case .reset(let reset) = body.reason else { continue }
+				next.openSegment(at: body.firstIncludedUlid, openedBy: .reset(reset))
 			default:
 				continue
 			}
@@ -285,7 +282,7 @@ package struct Conversation: Sendable, Equatable {
 
 	package mutating func settleInMemory(
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID, now: Date,
-		zone: TimeZone, device: DeviceID
+		device: DeviceID
 	) {
 		guard let position = position(of: turn) else { return }
 		let facts = segments[position.segment].turns[position.turn]
@@ -296,7 +293,6 @@ package struct Conversation: Sendable, Equatable {
 			SettledAttempt(
 				ulid: ulid,
 				hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
-				civilDate: CivilDate(date: now, timeZone: zone),
 				attempt: attempt,
 				settlement: settlement
 			))
@@ -317,16 +313,5 @@ package struct Conversation: Sendable, Equatable {
 		let index = segments.lastIndex { $0.id.boundary.map { $0 <= note.ulid } ?? true } ?? 0
 		segments[index].notes.append(note)
 		segments[index].notes.sort { $0.hlc < $1.hlc }
-	}
-
-	package func lastExchange(before turn: TurnID) -> LastExchange {
-		let segment = current
-		guard let running = segment.turns.first(where: { $0.turn == turn })?.firstFragment
-		else { return .none }
-		let stamps = segment.turns.filter { facts in
-			facts.firstFragment.map { $0 < running } ?? false
-		}.flatMap { $0.fragments.map(\.hlc) + $0.settlements.map(\.hlc) }
-		guard let latest = stamps.max() else { return .none }
-		return latest.wallMs > 0 ? .at(latest.wallTime) : .malformed
 	}
 }

@@ -231,7 +231,7 @@ import Testing
 			SettledAttempt(
 				ulid: fixedUlid(3),
 				hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: device),
-				civilDate: "1998-06-13", attempt: attempt,
+				attempt: attempt,
 				settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
 		#expect(
 			TurnLifecycle.writes(

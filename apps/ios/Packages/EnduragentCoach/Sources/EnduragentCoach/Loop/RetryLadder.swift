@@ -49,7 +49,7 @@ package enum WaitRule: Sendable, Equatable {
 }
 
 package enum RungRecovery: Sendable, Equatable {
-	case flushOnceThenCompact(trigger: FlushTrigger)
+	case flushOnceThenCompact
 	case compactAboveRatio(ratio: Double, reserveTokens: Int, plainLimit: Int)
 	case wait(WaitRule, RetryWaitReason)
 }
@@ -84,7 +84,7 @@ package struct RetryLadder: Sendable, Equatable {
 				classes: [.overflow],
 				counter: .overflow,
 				limit: 3,
-				recovery: .flushOnceThenCompact(trigger: .overflow)
+				recovery: .flushOnceThenCompact
 			),
 			LadderRung(
 				classes: [.timeout],
@@ -249,7 +249,7 @@ package enum LadderDecision: Sendable, Equatable {
 }
 
 package enum RetryPreparation: Sendable, Equatable {
-	case flushMemory(FlushTrigger)
+	case flushMemory
 	case compactInTurn
 	case wait(Duration, RetryWaitReason)
 }
@@ -283,8 +283,8 @@ extension LadderRung {
 		after failure: AttemptFailure, in situation: AttemptSituation, counters: RetryCounters
 	) -> LadderDecision? {
 		switch recovery {
-		case .flushOnceThenCompact(let trigger):
-			let flush: [RetryPreparation] = situation.flushLatchFree ? [.flushMemory(trigger)] : []
+		case .flushOnceThenCompact:
+			let flush: [RetryPreparation] = situation.flushLatchFree ? [.flushMemory] : []
 			return .retry(
 				counters: counters.incremented([counter]), preparations: flush + [.compactInTurn])
 		case .compactAboveRatio(let ratio, let reserveTokens, let plainLimit):

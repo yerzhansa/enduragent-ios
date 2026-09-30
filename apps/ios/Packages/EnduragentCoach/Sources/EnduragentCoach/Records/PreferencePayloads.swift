@@ -2,10 +2,6 @@ import Foundation
 
 struct SessionSettingsPayload: Codable {
 	var historyBudgetRatio: Double
-	var idleMinutes: Int
-	var dailyResetHour: Int
-	var archiveRetentionDays: Int
-	var timeZone: String
 	var contextWindowTokens: Int?
 	var compactionModel: String
 	var flushModel: String
@@ -13,10 +9,6 @@ struct SessionSettingsPayload: Codable {
 	init(_ body: SessionSettingsBody) {
 		let settings = body.settings
 		self.historyBudgetRatio = settings.historyBudgetRatio.value
-		self.idleMinutes = settings.idleReset.minutes
-		self.dailyResetHour = settings.dailyResetHour.hour
-		self.archiveRetentionDays = settings.archiveRetention.days
-		self.timeZone = settings.timeZone.text
 		self.contextWindowTokens = settings.contextWindowOverride?.tokens
 		self.compactionModel = settings.compactionModel.text
 		self.flushModel = settings.flushModel.text
@@ -26,10 +18,6 @@ struct SessionSettingsPayload: Codable {
 		SessionSettingsBody(
 			settings: SessionSettings(
 				historyBudgetRatio: try HistoryBudgetRatio(historyBudgetRatio),
-				idleReset: try IdleReset(minutes: idleMinutes),
-				dailyResetHour: try DailyResetHour(dailyResetHour),
-				archiveRetention: try ArchiveRetention(days: archiveRetentionDays),
-				timeZone: try SessionTimeZone(text: timeZone),
 				contextWindowOverride: try contextWindowTokens.map {
 					(tokens: Int) throws(SessionSettingRejected) in
 					try ContextWindowOverride(tokens: tokens)

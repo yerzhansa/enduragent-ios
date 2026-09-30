@@ -373,8 +373,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [turn.user, turn.reply]))))
+								chatId: .main, messageUlids: [turn.user, turn.reply]))))
 			])
 	}
 }

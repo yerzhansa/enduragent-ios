@@ -164,7 +164,7 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 			ulid: fixedUlid(3),
 			hlc: HybridLogicalClock(
 				wallMs: Int64(failedAt.timeIntervalSince1970 * 1000), logical: 0, deviceId: phone),
-			civilDate: "1998-06-16", attempt: attempt, settlement: settlement))
+			attempt: attempt, settlement: settlement))
 	return TurnLifecycle.state(
 		of: facts, live: nil, overlay: overlay, device: phone, process: thisProcess)
 }

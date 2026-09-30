@@ -75,16 +75,16 @@ extension FixtureLaunchTests {
 		let model = model(services)
 		model.startChatting()
 		let stored = await model.refreshStatus().session
-		#expect(stored.text(for: .dailyResetHour) == "4")
-		try await model.saveSession(try stored.replacing(.dailyResetHour, with: "6"))
-		#expect(model.status?.session.dailyResetHour.hour == 6)
+		#expect(stored.text(for: .contextWindowOverride) == "")
+		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
+		#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
 		let (kept, _) = try relaunch(.keep)
-		#expect(await kept.coach.status().session.text(for: .dailyResetHour) == "6")
+		#expect(await kept.coach.status().session.text(for: .contextWindowOverride) == "64000")
 	}
 
-	@Test func aDailyResetAfterAClockMoveOpensAFreshSession() async throws {
+	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
 		var evening = launch
-		evening.clock = "1998-06-16T01:40:00Z"
+		evening.clock = "1998-06-15T18:00:00Z"
 		let first = model(try AppServices.fixture(evening, defaults: defaults))
 		first.startChatting()
 		first.draft.text = TutorialCopy.weekQuestion
@@ -92,7 +92,7 @@ extension FixtureLaunchTests {
 		let earlier = try await settledTurn(first)
 		var morning = launch
 		morning.store = .keep
-		morning.clock = "1998-06-16T02:20:00Z"
+		morning.clock = "1998-06-16T07:00:00Z"
 		let keptDefaults = try morning.prepare()
 		let second = ShellModel(
 			environment: AppEnvironment(
@@ -103,19 +103,16 @@ extension FixtureLaunchTests {
 		second.draft.text = TutorialCopy.weekQuestion
 		await second.send()
 		try await until(within: .seconds(20)) {
-			second.chat?.opening == .afterAutomaticReset(.daily)
-				&& second.chat?.turns.first?.state.isSettled == true
+			second.chat?.turns.count == 2 && second.chat?.turns.last?.state.isSettled == true
 		}
-		let reset = try #require(second.chat?.turns.first)
-		#expect(reset.id != earlier.id)
-		#expect(second.chat?.turns.map(\.id) == [reset.id])
+		#expect(second.chat?.opening == .continuing)
+		#expect(second.chat?.turns.first?.id == earlier.id)
 		await second.loadHistory()
 		guard case .loaded(let archived) = second.history else {
 			Issue.record("History did not load: \(second.history)")
 			return
 		}
-		#expect(archived.map(\.reason) == [.closedAfterBreak])
-		#expect(archived.first?.turns.map(\.id) == [earlier.id])
+		#expect(archived.isEmpty)
 	}
 
 	private func instant(_ text: String) throws -> Date {

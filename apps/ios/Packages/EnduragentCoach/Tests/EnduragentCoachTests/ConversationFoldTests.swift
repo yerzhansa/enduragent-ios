@@ -34,7 +34,9 @@ import Testing
 				"week?", "Two rides.", "again?", "Still two.",
 			])
 		#expect(
-			conversation.current.messages.map(\.role) == [.user, .assistant, .user, .assistant])
+			conversation.current.messages.map(\.author) == [
+				.athlete(sent: ulid(1).time), .coach, .athlete(sent: ulid(3).time), .coach,
+			])
 	}
 
 	@Test func settledTurnsInterleaveWithLegacyOnesByClock() throws {
@@ -56,7 +58,6 @@ import Testing
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(
 			conversation.current.messages.map(\.text) == ["old", "old reply", "new", "new reply"])
-		#expect(conversation.lastExchange(before: turn) == .at(Date(timeIntervalSince1970: 0.002)))
 	}
 
 	@Test func resetBoundaryFromAnyDeviceSplitsSegments() throws {
@@ -76,7 +77,7 @@ import Testing
 					.windowStart(
 						WindowStartBody(
 							chatId: .main, firstIncludedUlid: ulid(3),
-							reason: .reset(.explicit(resetId)))))),
+							reason: .reset(resetId))))),
 			storedRecord(
 				device: phoneA, wall: 4, ulid: ulid(4),
 				body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
@@ -88,7 +89,7 @@ import Testing
 		#expect(conversation.segments.count == 2)
 		#expect(conversation.segments[0].openedBy == .chatStart)
 		#expect(conversation.segments[0].messages.map(\.text) == ["before", "before reply"])
-		#expect(conversation.current.openedBy == .reset(.explicit(resetId)))
+		#expect(conversation.current.openedBy == .reset(resetId))
 		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
 		#expect(conversation.current.messages.map(\.text) == ["after", "after reply"])
 		#expect(conversation.current.promptHistory(excluding: after).messages.isEmpty)
@@ -115,11 +116,11 @@ import Testing
 				.windowStart(
 					WindowStartBody(
 						chatId: .main, firstIncludedUlid: ulid(3),
-						reason: .reset(.explicit(resetId))))))
+						reason: .reset(resetId)))))
 		let applied = ConversationFold.applying([boundary], to: folded, device: phoneA)
 		#expect(applied.segments.map(\.turns.count) == [1, 1])
 		#expect(applied.segments[0].turns.map(\.turn) == [before])
-		#expect(applied.current.openedBy == .reset(.explicit(resetId)))
+		#expect(applied.current.openedBy == .reset(resetId))
 		#expect(applied.current.id == SegmentID(boundary: ulid(3)))
 		#expect(applied.current.turns.map(\.turn) == [after])
 	}
@@ -186,7 +187,7 @@ import Testing
 		#expect(history.ulids == [ulid(2), ulid(3)])
 	}
 
-	@Test func v1DailyResetSplitsTheDaysAfterAnUpgrade() throws {
+	@Test func v1BoundarySplitsTheDaysAfterAnUpgrade() throws {
 		let records = [
 			storedRecord(
 				device: phoneA, wall: 1, ulid: ulid(1),
@@ -207,7 +208,7 @@ import Testing
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
 		#expect(conversation.segments.count == 2)
 		#expect(conversation.segments[0].messages.map(\.text) == ["day one", "day one reply"])
-		#expect(conversation.current.openedBy == .reset(.daily))
+		#expect(conversation.current.openedBy == .legacyBoundary)
 		#expect(conversation.current.id == SegmentID(boundary: ulid(3)))
 		#expect(conversation.current.messages.map(\.text) == ["day two", "day two reply"])
 	}
@@ -364,7 +365,7 @@ import Testing
 					.windowStart(
 						WindowStartBody(
 							chatId: .main, firstIncludedUlid: ulid(4),
-							reason: .reset(.explicit(ResetID(ulid: ulid(4)))))))),
+							reason: .reset(ResetID(ulid: ulid(4))))))),
 			storedRecord(
 				device: phoneA, wall: 5, ulid: ulid(5),
 				body: .synced(sampleUser(chatId: .main, text: "new", turn: current))),
@@ -374,7 +375,7 @@ import Testing
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		let legacy = FlushJob(
-			id: FlushJobID(ulid: ulid(3)), trigger: .explicitReset, messages: [], settled: false)
+			id: FlushJobID(ulid: ulid(3)), messages: [], settled: false)
 		#expect(
 			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
 		#expect(

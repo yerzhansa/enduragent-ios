@@ -26,7 +26,8 @@ extension FlushCoverageTests {
 		}
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
 		let first = try #require(sent(.memoryFlush, by: transport).first)
-		try #require(first.messages.contains { $0.content == "Pending superseded partial" })
+		try #require(
+			first.messages.contains { $0.unstampedContent == "Pending superseded partial" })
 		transport.script = [.text("Replacement after pending"), .finish(reason: .stop)]
 		try await coach.retry(turn, in: .main)
 		try #require(
@@ -37,7 +38,7 @@ extension FlushCoverageTests {
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = sent(.memoryFlush, by: transport)
 		try #require(saved.count == 5)
-		let reset = try #require(saved.last).messages.map(\.content)
+		let reset = try #require(saved.last).messages.map(\.unstampedContent)
 		try #require(reset.filter { $0 == "Pending Saturday question" }.count == 1)
 		try #require(reset.filter { $0 == "Replacement after pending" }.count == 1)
 		#expect(!reset.contains("Pending superseded partial"))
@@ -46,7 +47,7 @@ extension FlushCoverageTests {
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let after = sent(.memoryFlush, by: transport)
 		#expect(after.count == saved.count)
-		let successfulRows = after.dropFirst(4).flatMap(\.messages).map(\.content)
+		let successfulRows = after.dropFirst(4).flatMap(\.messages).map(\.unstampedContent)
 		#expect(successfulRows.filter { $0 == "Pending Saturday question" }.count == 1)
 	}
 
@@ -58,7 +59,7 @@ extension FlushCoverageTests {
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		#expect(requests.count == 1)
-		let rows = requests.flatMap(\.messages).map(\.content)
+		let rows = requests.flatMap(\.messages).map(\.unstampedContent)
 		#expect(rows.filter { $0 == "Pending question" }.count == 1)
 		#expect(rows.filter { $0 == "Replacement reply" }.count == 1)
 		#expect(rows.filter { $0 == "Uncovered question" }.count == 1)
@@ -83,7 +84,7 @@ extension FlushCoverageTests {
 		let failed = sent(.memoryFlush, by: transport)
 		#expect(!failed.isEmpty)
 		for request in failed {
-			let rows = request.messages.map(\.content)
+			let rows = request.messages.map(\.unstampedContent)
 			#expect(rows.contains("Uncovered question"))
 			#expect(rows.contains("Uncovered reply"))
 			#expect(!rows.contains("Superseded partial"))
@@ -93,7 +94,8 @@ extension FlushCoverageTests {
 				== false)
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(saved.contains("Uncovered question"))
 		#expect(saved.contains("Uncovered reply"))
 		#expect(
@@ -110,7 +112,7 @@ extension FlushCoverageTests {
 		let requests = sent(.memoryFlush, by: transport)
 		#expect(requests.count == 2)
 		for request in requests {
-			let rows = request.messages.map(\.content)
+			let rows = request.messages.map(\.unstampedContent)
 			#expect(rows.filter { $0 == "Replacement reply" }.count == 1)
 			#expect(rows.filter { $0 == "Uncovered question" }.count == 1)
 			#expect(rows.filter { $0 == "Uncovered reply" }.count == 1)
@@ -125,7 +127,8 @@ extension FlushCoverageTests {
 		#expect(pending.messages.count == 3)
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
-		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(\.content)
+		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
+			\.unstampedContent)
 		#expect(saved.contains("Replacement reply"))
 		#expect(saved.contains("Uncovered question"))
 		#expect(saved.contains("Uncovered reply"))
@@ -159,8 +162,7 @@ extension FlushCoverageTests {
 				.deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .softThreshold,
-							messageUlids: pending.map { ulids[$0] },
+							chatId: .main, messageUlids: pending.map { ulids[$0] },
 							process: pending.isEmpty ? nil : process)))
 			),
 			(
@@ -168,7 +170,7 @@ extension FlushCoverageTests {
 				.deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, trigger: .trim, messageUlids: newer.map { ulids[$0] },
+							chatId: .main, messageUlids: newer.map { ulids[$0] },
 							process: process)))
 			),
 		]

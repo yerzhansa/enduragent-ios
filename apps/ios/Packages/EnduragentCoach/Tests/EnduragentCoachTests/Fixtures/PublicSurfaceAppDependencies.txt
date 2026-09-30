@@ -2718,12 +2718,6 @@ GrantOutcome
 GrantOutcome.alreadyGranted
 GrantOutcome.minted
 GrantOutcome.toppedUp
-IANATimeZone
-IANATimeZone.gmt
-IANATimeZone.identifier
-IANATimeZone.init(current:)
-IANATimeZone.init(identifier:)
-IANATimeZone.timeZone
 ICloudKeychainStore
 ICloudKeychainStore.accessSelection()
 ICloudKeychainStore.appAccountToken()

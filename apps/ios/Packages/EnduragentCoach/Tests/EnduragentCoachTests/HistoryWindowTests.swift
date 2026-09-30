@@ -19,9 +19,9 @@ import Testing
 
 	@Test func trimDropsOldestAndKeepsAtLeastOne() {
 		let messages = (0..<20).map { index in
-			ChatMessage(
+			WireMessage(
 				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: String(repeating: "x", count: 8_000))
+				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
 		}
 		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
 		#expect(!result.kept.isEmpty)
@@ -33,8 +33,10 @@ import Testing
 	@Test func trimKeepsWholeTurns() {
 		let budget = HistoryWindow.historyTokenBudget(
 			systemTokens: 1_000, window: TurnPolicy.contextWindowCap, ratio: 0.3)
-		func message(_ role: ChatMessage.Role, tokens: Int) -> ChatMessage {
-			ChatMessage(role: role, text: String(repeating: "x", count: tokens * 10 / 3))
+		func message(_ role: WireMessage.Role, tokens: Int) -> WireMessage {
+			WireMessage(
+				role: role, content: String(repeating: "x", count: tokens * 10 / 3), toolCalls: [],
+				toolCallId: nil)
 		}
 		let messages = [
 			message(.user, tokens: budget / 2), message(.assistant, tokens: budget / 4),
@@ -47,9 +49,9 @@ import Testing
 
 	@Test func trimUsesTheRatioItIsGiven() {
 		let messages = (0..<20).map { index in
-			ChatMessage(
+			WireMessage(
 				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: String(repeating: "x", count: 8_000))
+				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
 		}
 		let narrow = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
 		let wide = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.6)

@@ -253,7 +253,7 @@ extension SwiftDataSuites {
 				.windowStart(
 					WindowStartBody(
 						chatId: .main, firstIncludedUlid: ulid,
-						reason: .reset(.explicit(ResetID(ulid: ulid))))),
+						reason: .reset(ResetID(ulid: ulid)))),
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
 				.reviewApplied(
 					ReviewAppliedBody(
@@ -279,10 +279,6 @@ extension SwiftDataSuites {
 					SessionSettingsBody(
 						settings: try SessionSettings.npmDefaults
 							.replacing(.historyBudgetRatio, with: "0.05")
-							.replacing(.idleReset, with: "30")
-							.replacing(.dailyResetHour, with: "6")
-							.replacing(.archiveRetention, with: "14")
-							.replacing(.timeZone, with: "Asia/Tokyo")
 							.replacing(.contextWindowOverride, with: "64000")
 							.replacing(.compactionModel, with: "test/compact")
 							.replacing(.flushModel, with: "test/flush"))),
@@ -308,7 +304,7 @@ extension SwiftDataSuites {
 				.proposalCleared(
 					ProposalClearedBody(chatId: .main, nonce: nonce, reason: .canceled)),
 				.flushPending(
-					FlushPendingBody(chatId: .main, trigger: .trim, messageUlids: [ulid])),
+					FlushPendingBody(chatId: .main, messageUlids: [ulid])),
 				.flushSettled(
 					FlushSettledBody(
 						chatId: .main, job: FlushJobID(ulid: ulid),

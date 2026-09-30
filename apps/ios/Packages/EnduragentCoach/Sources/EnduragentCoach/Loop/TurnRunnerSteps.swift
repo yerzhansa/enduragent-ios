@@ -12,7 +12,7 @@ extension TurnRunner {
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
 			try await flushOnce(
-				.preCompaction, covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+				covering: prompt.inTurnRows, attempt: attempt, scope: scope,
 				progress: progress)
 			try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
 		}

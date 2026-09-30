@@ -107,8 +107,7 @@ import Testing
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, trigger: .softThreshold,
-								messageUlids: [history[0].user, history[0].reply]))))
+								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		let transport = FakeModelTransport()
 		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
@@ -179,8 +178,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.memoryFlushFailed(_, let detail), .compactionFailed(_, let detail),
 		.replyObservedUnsaved(_, let detail), .secureStorageFailed(_, let detail):
 		return detail.count
-	case .toolFailed, .skippedRecord, .recoveryUnavailable, .automaticResetUnsaved,
-		.preferencesUnavailable,
+	case .toolFailed, .skippedRecord, .recoveryUnavailable, .preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil
 	}

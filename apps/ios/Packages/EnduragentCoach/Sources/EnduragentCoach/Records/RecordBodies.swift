@@ -51,7 +51,7 @@ package struct WindowStartBody: Sendable, Equatable {
 package enum WindowReason: Sendable, Equatable {
 	case trim
 	case compaction
-	case reset(ResetKind)
+	case reset(ResetID)
 }
 
 package struct CompactionSummaryBody: Sendable, Equatable {
@@ -118,7 +118,6 @@ package struct ReviewAppliedBody: Sendable, Equatable {
 
 package struct FlushPendingBody: Sendable, Equatable {
 	package var chatId: ChatID
-	package var trigger: FlushTrigger
 	package var messageUlids: [ULID]
 	package var process: ProcessID?
 }

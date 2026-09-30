@@ -65,7 +65,9 @@ package enum PromptStaticBlocks {
 		memory_query tool. Before answering any question about the past ("what did we note...",
 		"when did I...", "how did that experiment go", anything tied to a date or period), call
 		memory_query with a date range covering that period FIRST. Derive the range from the
-		per-message "Current time:" line. Never claim a past note or decision does not exist
+		per-message "Current time:" line. Earlier athlete messages start with a bracketed send time,
+		such as [Mon 2026-09-28 07:12 Europe/Amsterdam], that the app adds. It is not text the
+		athlete typed, and your replies never include it. Never claim a past note or decision does not exist
 		until a memory_query over the covering range has come back empty.
 		"""#
 
