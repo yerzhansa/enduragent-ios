@@ -48,6 +48,21 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
+function hasReleaseFixtureLaunch(text) {
+  const guards = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*#if\b/.test(line)) {
+      guards.push({ debug: /^\s*#if\s+DEBUG\s*$/.test(line), alternate: false });
+    } else if (/^\s*#(?:else|elseif)\b/.test(line)) {
+      if (guards.length) guards.at(-1).alternate = true;
+    } else if (/^\s*#endif\b/.test(line)) {
+      guards.pop();
+    } else if (/\bFixtureLaunch\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+      return true;
+    }
+  }
+  return false;
+}
 function hasExtraSecretStore(text) {
   return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
     .some(([, name, declaration]) => {
@@ -148,6 +163,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');

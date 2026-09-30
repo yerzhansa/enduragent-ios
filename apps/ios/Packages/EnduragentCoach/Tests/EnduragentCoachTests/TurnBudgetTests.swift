@@ -159,6 +159,7 @@ import Testing
 		TurnAttempt(
 			turn: TurnID(ulid: scope.stamp.attempt.ulid),
 			attempt: scope.stamp.attempt,
+			origin: .send,
 			chat: .main,
 			request: request,
 			slash: nil,

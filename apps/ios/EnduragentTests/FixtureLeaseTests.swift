@@ -140,8 +140,7 @@ extension FixtureLaunchTests {
 				$0.kind == "memorySection" && $0.count > 0
 			}
 		}
-		model.draft.text = "fixture:expire"
-		await model.send()
+		await services.fixture?.host.expire(.systemExpired)
 		try await waitUntil {
 			guard
 				case .interrupted? = model.chat?.turns.first(where: { $0.id == running.id })?.state

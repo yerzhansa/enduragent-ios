@@ -313,9 +313,7 @@ extension SwiftDataSuites {
 					SessionSettingsBody(
 						settings: try SessionSettings.npmDefaults
 							.replacing(.historyBudgetRatio, with: "0.05")
-							.replacing(.contextWindowOverride, with: "64000")
-							.replacing(.compactionModel, with: "test/compact")
-							.replacing(.flushModel, with: "test/flush"))),
+							.replacing(.contextWindowOverride, with: "64000"))),
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [

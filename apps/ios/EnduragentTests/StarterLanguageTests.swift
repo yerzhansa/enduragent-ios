@@ -31,7 +31,7 @@ extension FixtureLaunchTests {
 	])
 	func starterOutcomeUsesTheChosenLanguage(outcome: GrantOutcome, expected: String) async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(outcome)
 		try await services.coach.setLanguage(.fixed(.es))
 		let model = ShellModel(
@@ -45,7 +45,7 @@ extension FixtureLaunchTests {
 
 	@Test func existingSingleCreditUsesTheSingularForm() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		fixture.credits.balanceResult = .success(CreditBalance(credits: Credits(units: 1)))
 		try await services.coach.setLanguage(.fixed(.es))
@@ -60,7 +60,7 @@ extension FixtureLaunchTests {
 
 	@Test func alreadyGrantedWithoutAKeyUsesTheChosenLanguage() async throws {
 		let services = try services(keychain: .empty)
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		try await services.coach.setLanguage(.fixed(.es))
 		let model = ShellModel(

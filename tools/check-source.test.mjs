@@ -289,6 +289,26 @@ test('accepts fixture feedback in a guarded DebugView and its model', () => {
   assert.equal(result.status, 0, result.output);
 });
 
+for (const source of [
+  'let launch = FixtureLaunch.firstWeek()',
+  '#if DEBUG\nlet debug = true\n#else\nlet launch = FixtureLaunch.firstWeek()\n#endif',
+  '#if DEBUG\nlet debug = true\n#endif\nlet launch = FixtureLaunch.firstWeek()',
+  '#if DEBUG || os(iOS)\nlet launch = FixtureLaunch.firstWeek()\n#endif',
+]) {
+  test(`rejects FixtureLaunch outside DEBUG: ${source}`, () => {
+    const result = run({ 'apps/ios/Enduragent/App/AppLaunch.swift': source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /\[fixture-launch-debug-only\]/);
+  });
+}
+
+test('accepts FixtureLaunch in a nested DEBUG guard', () => {
+  const result = run({
+    'apps/ios/Enduragent/App/AppLaunch.swift': 'import Foundation\n#if DEBUG\n#if os(iOS)\nlet launch = FixtureLaunch.firstWeek()\n#else\nlet launch = FixtureLaunch.firstWeek()\n#endif\n#endif\nlet live = true',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
 const recordSource = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/Body.swift';
 for (const declaration of [
   'public struct Body {}',
