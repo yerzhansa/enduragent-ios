@@ -146,6 +146,17 @@ public enum RecoveryAction: Sendable, Equatable {
 }
 
 extension CoachFailure {
+	package var isTerminal: Bool {
+		switch self {
+		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed),
+			.model(.contextOverflow):
+			true
+		case .model(.accessExhausted), .model(.rateLimited), .model(.providerDown),
+			.model(.budgetExhausted), .model(.accessUnavailable), .local:
+			false
+		}
+	}
+
 	package var tryAgainWait: Duration? {
 		guard case .model(.rateLimited(let retryAfter)) = self else { return nil }
 		return retryAfter.flatMap { $0 > .zero ? $0 : nil } ?? .seconds(60)

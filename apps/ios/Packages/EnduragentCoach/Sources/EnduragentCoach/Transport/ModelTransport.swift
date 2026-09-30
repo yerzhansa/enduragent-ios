@@ -197,6 +197,7 @@ package struct OpenRouterTransport: ModelTransport {
 
 	package static let ephemeralSession: @Sendable (TimeInterval) -> URLSession = { timeout in
 		let configuration = URLSessionConfiguration.ephemeral
+		configuration.urlCache = nil
 		configuration.timeoutIntervalForRequest = timeout
 		return URLSession(configuration: configuration)
 	}

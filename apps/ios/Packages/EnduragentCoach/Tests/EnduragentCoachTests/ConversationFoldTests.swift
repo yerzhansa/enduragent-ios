@@ -148,13 +148,13 @@ import Testing
 				body: .synced(sampleReply(chatId: .main, turn: second, text: "second reply"))),
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(onA.current.promptWindow.firstIncluded == nil)
+		#expect(onA.current.promptWindow.trim == nil)
 		#expect(
 			onA.current.promptHistory(excluding: nil).messages.map(\.text) == [
 				"first", "first reply", "second", "second reply",
 			])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
-		#expect(onB.current.promptWindow.firstIncluded == ulid(3))
+		#expect(onB.current.promptWindow.trim == .init(firstIncluded: ulid(3), opened: ulid(4)))
 		#expect(
 			onB.current.promptHistory(excluding: nil).messages.map(\.text) == [
 				"second", "second reply",

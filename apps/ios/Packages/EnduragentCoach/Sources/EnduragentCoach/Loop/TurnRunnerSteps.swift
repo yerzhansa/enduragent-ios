@@ -232,6 +232,8 @@ extension TurnRunner {
 						).outcome
 					} catch is CancellationError {
 						throw CancellationError()
+					} catch  where Task.isCancelled {
+						throw CancellationError()
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(

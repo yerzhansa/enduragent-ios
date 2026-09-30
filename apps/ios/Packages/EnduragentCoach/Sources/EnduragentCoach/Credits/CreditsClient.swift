@@ -153,12 +153,12 @@ package struct PhoneCreditsClient: CreditsClient {
 		vault: CredentialVault,
 		workerBase: URL,
 		openRouterBase: URL = ModelService.openRouterAPI,
-		session: URLSession = .shared
+		session: URLSession? = nil
 	) {
 		self.vault = vault
 		self.workerBase = workerBase
 		self.openRouterBase = openRouterBase
-		self.session = session
+		self.session = session ?? OpenRouterTransport.ephemeralSession(Self.timeout)
 	}
 
 	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
