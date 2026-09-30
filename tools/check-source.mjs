@@ -58,6 +58,19 @@ function hasExtraSecretStore(text) {
       return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
     });
 }
+function checkLedgerIndexVersion(file, text) {
+  const versions = new Map([
+    ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
+  ]);
+  const modifier = /@Attribute\(\s*hashModifier:\s*"(ledger-indexes-v\d+)"\s*\)\s*var\s+deviceId\b/.exec(text)?.[1];
+  const declarations = [...text.matchAll(/#Index\s*<\s*StoredAthleteRecord\s*>\s*\(([^)]*)\)/g)];
+  const indexes = declarations.flatMap(match => [...match[1].matchAll(/\[([^\]]*)\]/g)]
+    .map(fields => fields[1].replace(/\s|\\\./g, ''))).sort();
+  const expected = versions.get(modifier);
+  if (!expected || JSON.stringify(indexes) !== JSON.stringify([...expected].sort())) {
+    report(file, 'ledger-index-version');
+  }
+}
 function checkFeatureProofs(sources) {
   const classes = new Map();
   const mapped = new Set();
@@ -124,6 +137,9 @@ try {
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Records\/.*\.swift$/.test(file)
       && /\b(?:public|open)\b|@_spi\b/.test(text)) report(file, 'records-package-only');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift') {
+      checkLedgerIndexVersion(file, text);
+    }
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
       const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
       const exposed = text.split('\n').some(line => {

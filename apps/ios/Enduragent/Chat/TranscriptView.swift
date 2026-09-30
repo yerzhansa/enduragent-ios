@@ -10,11 +10,8 @@ struct TranscriptView: View {
 				Group {
 					if let opening = model.chat?.opening {
 						if opening.showsWelcome {
-							Text(
-								Welcome.text(
-									in: model.phrasebook, showsSyncLine: model.connected != nil)
-							)
-							.accessibilityIdentifier("chat.welcome")
+							Text(Welcome.text(in: model.phrasebook))
+								.accessibilityIdentifier("chat.welcome")
 						}
 						if let notice = opening.notice {
 							newConversationNotice(notice)

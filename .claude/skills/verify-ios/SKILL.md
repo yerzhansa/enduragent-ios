@@ -161,7 +161,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 | Prototype state | App state today |
 | --- | --- |
-| `chat-welcome` | Chat right after onboarding: `chat.welcome`, without the `/sync` line after a skip |
+| `chat-welcome` | Chat right after onboarding: `chat.welcome` lists the supported commands whether or not intervals.icu is connected |
 | `chat-menu`, `chat-menu-nosync` | The slash list after typing `/` in `chat.composer`. The nosync state is the same list after `Skip for now`. |
 | `chat-new-conversation` | A reply with `chat.newConversation` in the top bar; after the tap, the welcome with `New conversation started.` |
 | `review-ready` | The `Workout review` card after a workout request |

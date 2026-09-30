@@ -164,6 +164,10 @@ private struct UnreadableLog: RecordLog {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		nil
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		RecordPage(records: [], skipped: rows)
 	}

@@ -22,7 +22,17 @@ final class HeldFirstReadLog: RecordLog, Sendable {
 		try await inner.append(batch, locality: locality)
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		await holdIfNeeded()
+		return try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		await holdIfNeeded()
+		return try await inner.fetch(query)
+	}
+
+	private func holdIfNeeded() async {
 		let shouldHold = state.withLock { current in
 			guard !current.claimed else { return false }
 			current.claimed = true
@@ -34,7 +44,6 @@ final class HeldFirstReadLog: RecordLog, Sendable {
 				continuation.yield()
 			}
 		}
-		return try await inner.fetch(query)
 	}
 
 	func release() {
