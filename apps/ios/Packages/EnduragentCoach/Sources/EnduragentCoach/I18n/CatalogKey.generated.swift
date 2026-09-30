@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2474
-	public static let keyCount = 2514
+	public static let englishLeafCount = 2475
+	public static let keyCount = 2515
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -144,6 +144,7 @@ public enum Catalog {
 	public static let chatNewConversationLabel = CatalogKey(rawValue: "chat.newConversation.label")
 	public static let chatNewConversationTitle = CatalogKey(rawValue: "chat.newConversation.title")
 	public static let chatNoticeAttachmentFailure = CatalogKey(rawValue: "chat.notice.attachmentFailure")
+	public static let chatNoticeCalendarUnverified = CatalogKey(rawValue: "chat.notice.calendarUnverified")
 	public static let chatNoticeCheckingTraining = CatalogKey(rawValue: "chat.notice.checkingTraining")
 	public static let chatNoticeChoiceUnchanged = CatalogKey(rawValue: "chat.notice.choiceUnchanged")
 	public static let chatNoticeConnectionInterrupted = CatalogKey(rawValue: "chat.notice.connectionInterrupted")

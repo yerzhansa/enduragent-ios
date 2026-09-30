@@ -18233,6 +18233,112 @@
         }
       }
     },
+    "chat.notice.calendarUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The calendar change may have been saved. Check your calendar before asking again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es posible que el cambio en el calendario se haya guardado. Revisa tu calendario antes de volver a pedirlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La modification du calendrier a peut-être été enregistrée. Vérifie ton calendrier avant de renouveler ta demande."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La modifica al calendario potrebbe essere stata salvata. Controlla il calendario prima di chiedere di nuovo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderendringen kan ha blitt lagret. Sjekk kalenderen din før du spør igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A alteração no calendário pode ter sido salva. Confira seu calendário antes de pedir novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더 변경 사항이 저장되었을 수 있습니다. 다시 요청하기 전에 캘린더를 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーの変更は保存されている可能性があります。もう一度依頼する前に、カレンダーを確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日历更改可能已保存。再次请求前，请先检查日历。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行事曆變更可能已儲存。再次提出要求前，請先檢查行事曆。"
+          }
+        }
+      }
+    },
     "chat.notice.checkingTraining": {
       "localizations": {
         "en": {

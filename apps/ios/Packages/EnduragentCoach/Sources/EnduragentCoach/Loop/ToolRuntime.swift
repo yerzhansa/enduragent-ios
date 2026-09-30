@@ -30,7 +30,7 @@ package struct ToolRuntime: Sendable {
 		let stamp = scope.stamp
 		if let gated = GatedToolName(rawValue: name.rawValue) {
 			let outcome = try await executeGated(
-				gated, arguments: arguments, chatId: chatId, stamp: stamp)
+				gated, arguments: arguments, chatId: chatId, scope: scope)
 			return ToolExecution(outcome: outcome, commit: nil)
 		}
 		if ReplayUnsafeToolName(rawValue: name.rawValue) != nil {

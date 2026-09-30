@@ -25,7 +25,7 @@ enum MailboxPhase: Sendable {
 }
 
 enum RunningWork: Sendable {
-	case active(MailboxWork, Task<Void, Never>, LiveAttempt?)
+	case active(MailboxWork, Task<Void, Never>, RunningAttempt?)
 	case finishing(Task<Void, Never>)
 
 	var item: MailboxWork? {
@@ -39,8 +39,17 @@ enum RunningWork: Sendable {
 		}
 	}
 
-	var live: LiveAttempt? {
-		guard case .active(_, _, let live) = self else { return nil }
-		return live
+	var attempt: RunningAttempt? {
+		guard case .active(_, _, let attempt) = self else { return nil }
+		return attempt
 	}
+
+	var live: LiveAttempt? {
+		attempt?.live
+	}
+}
+
+struct RunningAttempt: Sendable {
+	var live: LiveAttempt
+	let scope: TurnScope
 }
