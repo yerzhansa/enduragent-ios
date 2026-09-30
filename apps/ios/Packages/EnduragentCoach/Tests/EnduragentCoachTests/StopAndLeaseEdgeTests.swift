@@ -29,7 +29,7 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		try await readClock.waitUntilHeld(.seconds(30))
-		let returned = Mutex(false)
+		let snapshots = await coach.observe(.main)
 		let interruption = Task {
 			switch cause {
 			case .athleteStopped:
@@ -41,9 +41,11 @@ import Testing
 			default:
 				Issue.record("unsupported interruption: \(cause)")
 			}
-			returned.withLock { $0 = true }
 		}
-		try await waitUntil(within: .seconds(1)) { returned.withLock { $0 } }
+		for await snapshot in snapshots where snapshot.activity == .stopping {
+			break
+		}
+		_ = await coach.currentSnapshot(.main)
 		#expect(readClock.held.isEmpty, "the training read did not receive cancellation")
 		readClock.release(.seconds(30))
 		await interruption.value
@@ -55,6 +57,11 @@ import Testing
 		#expect(interrupted.partial == "Checking your recent rides. ")
 		#expect(try await settlements(of: turn, in: store).count == 1)
 		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(
+			!coach.diagnostics.entries.contains {
+				if case .toolFailed = $0.event { return true }
+				return false
+			})
 	}
 
 	@Test func stopExpiryAndTerminateTogetherSettleEachTurnOnce() async throws {

@@ -11,7 +11,11 @@ struct HeldReadIntervals: IntervalsClient {
 		try await base.fetchWellness(oldest: oldest, newest: newest)
 	}
 	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
-		try await clock.sleep(for: .seconds(30))
+		do {
+			try await clock.sleep(for: .seconds(30))
+		} catch is CancellationError {
+			throw URLError(.cancelled)
+		}
 		return try await base.fetchActivities(oldest: oldest, newest: newest)
 	}
 	func fetchActivity(id: ActivityID) async throws -> JSONValue {

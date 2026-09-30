@@ -100,7 +100,7 @@ package actor TurnScope {
 				task.cancel()
 			}
 		} catch {
-			memo[key] = nil
+			if memo[key] == task { memo[key] = nil }
 			throw error
 		}
 	}
