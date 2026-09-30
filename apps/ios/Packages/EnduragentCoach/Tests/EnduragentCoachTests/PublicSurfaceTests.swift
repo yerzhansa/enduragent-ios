@@ -116,7 +116,6 @@
 					)
 				}
 			}
-
 		}
 
 		private func publicDeclarations(in source: String) throws -> [PublicSourceDeclaration] {
