@@ -9,7 +9,11 @@ struct CreditsClientTests {
 	@Test("grant minted stores key before returning")
 	func grantMintedStoresKeyBeforeReturning() async throws {
 		let athleteId = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let secrets = FakeSecretStore(appAccountToken: athleteId)
+		let backing = FixtureSecretStoreBacking(items: [
+			CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
+				CreditsAccount(appAccountToken: athleteId, key: nil))
+		])
+		let secrets = ICloudKeychainStore(backing: backing)
 		let deviceCheck = Data([0x01, 0x02, 0x03])
 		let client = try makeClient(secrets: secrets)
 		let captured = Mutex<URLRequest?>(nil)
@@ -23,7 +27,7 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: deviceCheck)
 		}
 		#expect(outcome == .minted(Credits(units: 200)))
-		#expect(secrets.storedCreditsAccounts == 1)
+		#expect(backing.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-0000")
 		#expect(try secrets.creditsAccount()?.appAccountToken == athleteId)
 		let request = captured.withLock { $0 }
@@ -35,7 +39,8 @@ struct CreditsClientTests {
 
 	@Test("grant alreadyGranted with empty keychain surfaces outcome")
 	func grantAlreadyGrantedWithEmptyKeychainSurfacesOutcome() async throws {
-		let secrets = FakeSecretStore()
+		let backing = FixtureSecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: backing)
 		let client = try makeClient(secrets: secrets)
 		let outcome = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"kind":"grantAlreadyGranted"}"#)
@@ -43,18 +48,19 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: Data([0x01]))
 		}
 		#expect(outcome == .alreadyGranted)
-		#expect(secrets.storedCreditsAccounts == 1)
+		#expect(backing.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 		#expect(try secrets.creditsAccount()?.key == nil)
 	}
 
 	@Test("grant toppedUp keeps existing key")
 	func grantToppedUpKeepsExistingKey() async throws {
-		let secrets = FakeSecretStore()
+		let backing = FixtureSecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: backing)
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(),
 				key: "sk-or-test-existing"))
-		let stored = secrets.storedCreditsAccounts
+		let stored = backing.writes(to: CredentialSlot.creditsAccount.rawValue)
 		let client = try makeClient(secrets: secrets)
 		let outcome = try await CreditsURLStub.withHandler({ _ in
 			.json(200, #"{"kind":"grantToppedUp","added":200}"#)
@@ -62,12 +68,12 @@ struct CreditsClientTests {
 			try await client.grant(deviceCheck: Data([0x01]))
 		}
 		#expect(outcome == .toppedUp(added: Credits(units: 200)))
-		#expect(secrets.storedCreditsAccounts == stored)
+		#expect(backing.writes(to: CredentialSlot.creditsAccount.rawValue) == stored)
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-existing")
 	}
 
 	@Test func grantWritesCreditsKeyOnlyAndNeverTheSelection() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let model = ModelID(rawValue: "test/account-model")
 		let selection = AccessSelection.openRouterAccount(
 			model: model,
@@ -97,7 +103,7 @@ struct CreditsClientTests {
 	}
 
 	@Test func emptyMintedKeyIsRefusedAndNothingIsWritten() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let token = try secrets.creditsAccount()?.appAccountToken
 		let client = try makeClient(secrets: secrets)
 		await #expect(throws: CreditsFailure.unexpectedResponse(status: 200)) {
@@ -116,7 +122,8 @@ struct CreditsClientTests {
 
 	@Test("banned maps from error code not status")
 	func bannedMapsFromErrorCodeNotStatus() async throws {
-		let client = try makeClient(secrets: FakeSecretStore())
+		let client = try makeClient(
+			secrets: ICloudKeychainStore(backing: FixtureSecretStoreBacking()))
 		try await CreditsURLStub.withHandler({ _ in
 			.json(403, #"{"error":"banned"}"#)
 		}) {
@@ -171,7 +178,8 @@ struct CreditsClientTests {
 
 	@Test("recover stores key and athlete id")
 	func recoverStoresKeyAndAthleteId() async throws {
-		let secrets = FakeSecretStore()
+		let backing = FixtureSecretStoreBacking()
+		let secrets = ICloudKeychainStore(backing: backing)
 		let athleteId = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
 		let client = try makeClient(secrets: secrets)
 		let recovery = try await CreditsURLStub.withHandler({ _ in
@@ -184,13 +192,13 @@ struct CreditsClientTests {
 		}
 		#expect(recovery == Recovery(athleteId: athleteId, credits: Credits(units: 150)))
 		#expect(try secrets.creditsAccount()?.appAccountToken == athleteId)
-		#expect(secrets.storedCreditsAccounts == 1)
+		#expect(backing.writes(to: CredentialSlot.creditsAccount.rawValue) == 1)
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-0000")
 	}
 
 	@Test(arguments: ["1e20", "1e308", "-1e20"])
 	func unrepresentableCreditsReturnResponseError(remaining: String) async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: "sk-or-test-0000"))
 		let client = try makeClient(secrets: secrets)
@@ -205,7 +213,7 @@ struct CreditsClientTests {
 
 	@Test("balance floors 1.999 to 199 credits")
 	func balanceFloors1999To199Credits() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "sk-or-test-0000"))
@@ -223,7 +231,7 @@ struct CreditsClientTests {
 			try await client.balance(scale: scale)
 		}
 		#expect(nilRemaining == CreditBalance(credits: Credits(units: 0)))
-		let empty = FakeSecretStore()
+		let empty = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let missing = try makeClient(secrets: empty)
 		do {
 			_ = try await missing.balance(scale: scale)
@@ -237,7 +245,8 @@ struct CreditsClientTests {
 
 	@Test("catalog decodes disabled packs")
 	func catalogDecodesDisabledPacks() async throws {
-		let client = try makeClient(secrets: FakeSecretStore())
+		let client = try makeClient(
+			secrets: ICloudKeychainStore(backing: FixtureSecretStoreBacking()))
 		let catalog = try await CreditsURLStub.withHandler({ request in
 			#expect(request.url?.path == "/catalog")
 			return .json(

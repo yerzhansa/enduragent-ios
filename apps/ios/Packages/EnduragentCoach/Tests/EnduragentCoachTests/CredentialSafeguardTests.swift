@@ -90,7 +90,7 @@ extension CreditsClientTests {
 	@Test func failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		try secrets.storeCreditsAccount(previous)
 		try secrets.storeIntervalsConnection(testConnection)

@@ -10,7 +10,7 @@ extension CreditsClientTests {
 		let server = try CacheableCreditsServer()
 		defer { server.stop() }
 		let base = try await server.start()
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: "sk-or-test-cache"))
 		let client = PhoneCreditsClient(

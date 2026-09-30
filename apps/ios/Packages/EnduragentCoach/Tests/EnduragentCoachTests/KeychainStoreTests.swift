@@ -6,7 +6,7 @@ import Testing
 
 @Suite struct KeychainStoreTests {
 	@Test func appAccountTokenIsStable() throws {
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let first = ICloudKeychainStore(backing: memory)
 		let second = ICloudKeychainStore(backing: memory)
 		let token = try first.prepareCreditsAccount().appAccountToken
@@ -15,7 +15,7 @@ import Testing
 	}
 
 	@Test func keysConnectionAndSelectionRoundTrip() throws {
-		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
+		let store = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		#expect(try store.creditsAccount()?.key == nil)
 		#expect(try store.intervalsConnection() == nil)
 		#expect(try store.accessSelection() == nil)
@@ -47,7 +47,7 @@ import Testing
 	}
 
 	@Test func deleteRemovesOnlyItsSlotAndRepeatsSafely() throws {
-		let store = ICloudKeychainStore(backing: MemorySecretStoreBacking())
+		let store = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try store.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "test-or-key"))
@@ -59,7 +59,7 @@ import Testing
 	}
 
 	@Test func v1IntervalsItemDecodesWithNilConnectionIdAndIsRewrittenOnce() async throws {
-		let memory = MemorySecretStoreBacking(items: [
+		let memory = FixtureSecretStoreBacking(items: [
 			CredentialSlot.intervalsConnection.rawValue: Data(
 				#"{"apiKey":{"_0":"icu-v1-key"}}"#.utf8)
 		])
@@ -105,79 +105,5 @@ import Testing
 		let token = try first.prepareCreditsAccount().appAccountToken
 		#expect(try first.creditsAccount()?.appAccountToken == token)
 		#expect(try second.creditsAccount()?.appAccountToken == token)
-	}
-}
-
-final class MemorySecretStoreBacking: SecretStoreBacking, @unchecked Sendable {
-	private let lock = NSLock()
-	private var items: [String: Data]
-	private var copied: [String] = []
-	var readCount: Int { lock.withLock { copied.count } }
-	var readAccounts: [String] { lock.withLock { copied } }
-	private var deleted: [String] = []
-	var deletedAccounts: [String] { lock.withLock { deleted } }
-	private var written: [String: Int] = [:]
-	var writeCount: Int { lock.withLock { written.values.reduce(0, +) } }
-	private var failures: [String: OSStatus] = [:]
-	private var writeFailures: [String: OSStatus] = [:]
-
-	init(items: [String: Data] = [:]) {
-		self.items = items
-	}
-
-	func fail(_ account: String, with status: OSStatus?) {
-		lock.withLock { failures[account] = status }
-	}
-
-	func failWrites(_ account: String, with status: OSStatus?) {
-		lock.withLock { writeFailures[account] = status }
-	}
-
-	func writes(to account: String) -> Int {
-		lock.withLock { written[account, default: 0] }
-	}
-
-	func add(account: String, data: Data) throws {
-		try lock.withLock {
-			try check(account, writing: true)
-			if items[account] != nil {
-				throw KeychainStoreError(status: errSecDuplicateItem)
-			}
-			items[account] = data
-			written[account, default: 0] += 1
-		}
-	}
-
-	func copy(account: String) throws -> Data? {
-		try lock.withLock {
-			copied.append(account)
-			try check(account)
-			return items[account]
-		}
-	}
-
-	func update(account: String, data: Data) throws {
-		try lock.withLock {
-			try check(account, writing: true)
-			guard items[account] != nil else {
-				throw KeychainStoreError(status: errSecItemNotFound)
-			}
-			items[account] = data
-			written[account, default: 0] += 1
-		}
-	}
-
-	func delete(account: String) throws {
-		try lock.withLock {
-			try check(account)
-			items[account] = nil
-			deleted.append(account)
-		}
-	}
-
-	private func check(_ account: String, writing: Bool = false) throws {
-		if let status = failures[account] ?? (writing ? writeFailures[account] : nil) {
-			throw KeychainStoreError(status: status)
-		}
 	}
 }

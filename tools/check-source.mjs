@@ -48,6 +48,16 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
+function hasExtraSecretStore(text) {
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
+    .some(([, name, declaration]) => {
+      if (name === 'ICloudKeychainStore') return false;
+      let header = declaration;
+      while (/<[^<>]*>/.test(header)) header = header.replace(/<[^<>]*>/g, '');
+      const inheritance = header.split(/\bwhere\b/)[0];
+      return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
+    });
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -120,6 +130,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');

@@ -15,7 +15,8 @@ struct FixtureDirector: Sendable {
 	let transport: FakeModelTransport
 	let records: RecordFaults
 	let host: ImmediateExecutionHost
-	let secrets: FakeSecretStore
+	let secrets: ICloudKeychainStore
+	let secretBacking: FixtureSecretStoreBacking
 	let intervals: FakeIntervalsClient
 	let credits: FakeCreditsClient
 
