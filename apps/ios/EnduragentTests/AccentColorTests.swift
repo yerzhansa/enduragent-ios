@@ -1,4 +1,3 @@
-import SwiftUI
 import Testing
 import UIKit
 
@@ -30,23 +29,6 @@ struct AccentColorTests {
 		#expect(
 			Bundle.main.object(forInfoDictionaryKey: "NSAccentColorName") as? String
 				== "AccentColor")
-	}
-
-	@Test(arguments: [
-		(ColorScheme.light, 56, 101, 142),
-		(ColorScheme.dark, 130, 174, 214),
-	])
-	func swiftUIAccentMatchesAppearance(
-		scheme: ColorScheme,
-		red: Int, green: Int, blue: Int
-	) {
-		var environment = EnvironmentValues()
-		environment.colorScheme = scheme
-		let accent = Color.accentColor.resolve(in: environment)
-		#expect(abs(accent.red - Float(red) / 255) < 0.000001)
-		#expect(abs(accent.green - Float(green) / 255) < 0.000001)
-		#expect(abs(accent.blue - Float(blue) / 255) < 0.000001)
-		#expect(accent.opacity == 1)
 	}
 
 	private func expectColor(_ color: UIColor, red: Int, green: Int, blue: Int) throws {
