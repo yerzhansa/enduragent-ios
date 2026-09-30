@@ -6,6 +6,29 @@ import UIKit
 @testable import Enduragent
 
 extension FixtureLaunchTests {
+	@Test(arguments: [false, true])
+	func retryAfterRelaunchAnswersAHangingDirective(started: Bool) async throws {
+		var launch = launch
+		launch.coalescing = CoalescingPolicy(window: started ? .milliseconds(100) : .seconds(60))
+		let first = model(try AppServices.fixture(launch, defaults: defaults))
+		await first.agreeAndStartChatting()
+		first.draft.text = "fixture:hang"
+		await first.send()
+		let accepted = try await firstTurn(first)
+		if started {
+			_ = try await turn(accepted.id, in: first, where: isProcessing)
+		}
+		let reopened = model(try relaunch(.keep).0)
+		await reopened.lifecycle.forward(.becameActive)
+		let recovered = try await turn(accepted.id, in: reopened) { $0.retryable }
+		#expect(recovered.athleteText == "fixture:hang")
+		await reopened.perform(.tryAgain(accepted.id))
+		let answered = try await turn(accepted.id, in: reopened, where: isCompleted)
+		await reopened.stop()
+		await first.stop()
+		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
+	}
+
 	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
 		let killed = model(try services())
 		await killed.agreeAndStartChatting()

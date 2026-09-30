@@ -304,6 +304,15 @@ enum TutorialHarness {
 		wait(named(app, "sidebar.credits"))
 	}
 
+	static func fixtureControl(_ app: XCUIApplication, _ identifier: String) {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let control = named(app, identifier)
+		waitUntilHittable(control)
+		control.tap()
+		closeMenu(app)
+	}
+
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()

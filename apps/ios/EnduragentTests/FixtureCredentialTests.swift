@@ -12,7 +12,7 @@ extension FixtureLaunchTests {
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
 		#expect(onboarding.didConnect)
-		try #require(services.fixtureDirector).intervals.loadFailure = IntervalsError(
+		try #require(services.fixture).intervals.loadFailure = IntervalsError(
 			code: "load_failed",
 			details: "intervals.icu could not load today's training data."
 		)
@@ -21,7 +21,6 @@ extension FixtureLaunchTests {
 		await model.appear()
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.fixtureFeedback == nil)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(
 			model.status?.notice?.sentence(in: model.phrasebook)
@@ -53,7 +52,7 @@ extension FixtureLaunchTests {
 
 	@Test func creditsFailuresShowCatalogNotices() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .failure(.banned)
 		fixture.credits.catalogResult = .failure(.unavailable)
 		let model = model(services)
@@ -61,7 +60,6 @@ extension FixtureLaunchTests {
 		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")
 		await model.loadCredits()
 		#expect(model.creditsNotice?.key == Catalog.creditsErrorUnavailable)
-		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func successfulConnectClearsSubmittedKey() async throws {
@@ -129,7 +127,7 @@ extension FixtureLaunchTests {
 	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let services = try services(keychain: .locked)
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		await model.appear()
@@ -144,7 +142,7 @@ extension FixtureLaunchTests {
 
 	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion

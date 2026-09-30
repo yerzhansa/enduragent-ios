@@ -10,7 +10,7 @@ extension FixtureLaunchTests {
 		async throws
 	{
 		let services = try services()
-		let backing = try #require(services.fixtureDirector?.secretBacking)
+		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
@@ -54,12 +54,12 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.turns.count == 2)
 		#expect(model.chat?.review == nil)
 		#expect(
-			services.fixtureDirector?.intervals.calls.contains(where: \.isCalendarWrite) == false)
+			services.fixture?.intervals.calls.contains(where: \.isCalendarWrite) == false)
 	}
 
 	@Test func onlyATapShowsTheReviewOutcome() async throws {
 		let services = try services()
-		let backing = try #require(services.fixtureDirector?.secretBacking)
+		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)

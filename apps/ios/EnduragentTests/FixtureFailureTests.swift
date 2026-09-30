@@ -6,8 +6,9 @@ import Testing
 
 extension FixtureLaunchTests {
 	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
+		var services = try services()
+		let transport = FakeModelTransport()
+		services.coach = try await failureCoach(transport, fixture: #require(services.fixture))
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "Give me a ride for tomorrow"
@@ -24,7 +25,6 @@ extension FixtureLaunchTests {
 		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
 		#expect(failed.notice.vars.isEmpty)
 		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test(arguments: [
@@ -58,7 +58,6 @@ extension FixtureLaunchTests {
 		#expect(failure.notice.key == key)
 		#expect(failure.notice.action?.title == button)
 		#expect(transport.requestCount == requests)
-		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func failDirectiveRetriesOnceThenReplies() async throws {
@@ -71,27 +70,6 @@ extension FixtureLaunchTests {
 		let answered = try await settledTurn(model)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
 		#expect(transport.requestCount == 2)
-	}
-
-	@Test func failDirectiveRepeatsOnlyWithACount() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let director = try #require(services.fixtureDirector)
-		#expect(await director.prepare(for: "fixture:fail 429 7 x4") == .sendToCoach)
-		let limited = ScriptedEvent.fail(.http(status: 429, headers: ["retry-after": "7"]))
-		#expect(
-			Array(transport.script.prefix(5)) == Array(repeating: limited, count: 4) + [
-				.text(FirstWeekFixture.weekSummary)
-			])
-		#expect(await director.prepare(for: "fixture:fail network") == .sendToCoach)
-		#expect(transport.script.first == .fail(.connection(.notConnectedToInternet)))
-		#expect(transport.script.dropFirst().first == .text(FirstWeekFixture.weekSummary))
-		#expect(
-			await director.prepare(for: "fixture:fail 500 xlots")
-				== .rejected(
-					"Unknown fixture directive: fixture:fail 500 xlots"))
-		#expect(await director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
-		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
 	}
 
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {
@@ -150,10 +128,30 @@ extension FixtureLaunchTests {
 		}
 		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
 		#expect(failure.notice.action == .tryAgain(failed.id))
-		#expect(model.fixtureFeedback == nil)
 		await model.perform(.tryAgain(failed.id))
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
 	}
+	private func failureCoach(_ transport: FakeModelTransport, fixture: FixtureServices) async throws
+		-> Coach
+	{
+		let clock = FixtureClock(
+			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
+		let coach = Coach(
+			sport: .cycling,
+			ports: CoachPorts(
+				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
+				models: .scripted(transport),
+				training: FirstWeekFixture.training(fixture.intervals),
+				credits: .fake(fixture.credits), host: fixture.host, clock: clock),
+			builtInModel: AppServices.builtInModel, deviceLanguage: .en,
+			coalescing: CoalescingPolicy(window: .milliseconds(200)))
+		let services = AppServices(
+			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+			leases: { fixture.host.leases }, packPrices: { _ in [:] })
+		await model(services).agreeAndStartChatting()
+		return coach
+	}
+
 }

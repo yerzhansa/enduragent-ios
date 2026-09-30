@@ -2675,7 +2675,7 @@ FakeModelTransport
 FakeModelTransport.deltaDelay
 FakeModelTransport.flushScript
 FakeModelTransport.hangUntilCancelled
-FakeModelTransport.init()
+FakeModelTransport.init(respond:)
 FakeModelTransport.lastChatHistoryHead
 FakeModelTransport.lastReplyLanguage
 FakeModelTransport.requestCount
@@ -2854,6 +2854,8 @@ ScriptedFailure
 ScriptedFailure.connection(_:)
 ScriptedFailure.http(status:headers:body:)
 ScriptedFailure.unknownFinish
+ScriptedReply
+ScriptedReply.init(_:requestDelay:deltaDelay:flush:flushDelay:)
 SlashRouting
 SlashRouting.parse(_:)
 SportID

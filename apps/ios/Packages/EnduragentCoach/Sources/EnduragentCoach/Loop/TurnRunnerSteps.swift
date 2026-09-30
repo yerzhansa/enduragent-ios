@@ -27,6 +27,7 @@ extension TurnRunner {
 			let request = CompletionRequest(
 				access: attempt.access,
 				attempt: attempt.attempt,
+				origin: attempt.origin,
 				charge: .chatAttempt,
 				messages: [prompt.systemMessage] + prompt.summaryMessages + wire,
 				tools: prompt.schemas,
@@ -82,6 +83,7 @@ extension TurnRunner {
 				request: CompletionRequest(
 					access: attempt.access,
 					attempt: attempt.attempt,
+					origin: attempt.origin,
 					charge: .stepRecovery,
 					messages: [prompt.systemMessage] + prompt.summaryMessages + wire + [
 						WireMessage(

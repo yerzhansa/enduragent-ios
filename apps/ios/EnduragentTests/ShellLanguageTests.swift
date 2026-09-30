@@ -157,6 +157,6 @@ final class ShellLanguageTests {
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
 		return AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			fixtureDirector: nil, leases: { [] })
+			leases: { [] }, packPrices: { _ in [:] })
 	}
 }
