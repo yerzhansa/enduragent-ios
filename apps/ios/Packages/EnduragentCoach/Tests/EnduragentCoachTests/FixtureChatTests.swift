@@ -4,6 +4,32 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct FixtureChatTests {
+	@Test(arguments: [false, true])
+	func retryAfterRelaunchRecoversAHangingDirective(started: Bool) async throws {
+		let respond: @Sendable (String, Bool) -> ScriptedReply = { _, retry in
+			ScriptedReply(retry ? [.text("Recovered"), .finish(reason: .stop)] : [.hang])
+		}
+		let store = InMemoryRecordLog()
+		let dying = FaultInjectingRecordLog(wrapping: store)
+		let transport = FakeModelTransport(respond: respond)
+		let before = makeCoach(
+			transport: transport, store: dying,
+			coalescing: started ? quickWindow : CoalescingPolicy(window: .seconds(60)))
+		let turn = try #require(
+			try await before.send(draft("fixture:hang"), to: .main).acceptedTurn)
+		if started {
+			try await waitUntil { transport.requestCount == 1 }
+		}
+		try await before.dieWithoutWriting(to: dying)
+		let after = makeCoach(transport: FakeModelTransport(respond: respond), store: store)
+		await after.lifecycle(.becameActive)
+		try #require(await after.state(of: turn)?.retryable == true)
+		try await after.retry(turn, in: .main)
+		let recovered = await after.settledState(of: turn, in: .main, within: .seconds(3))
+		await after.stop(.main)
+		#expect(recovered.flatMap(replyText) == "Recovered")
+	}
+
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
 		let transport = FakeModelTransport { text, _ in
 			ScriptedReply(
