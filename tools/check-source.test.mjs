@@ -27,6 +27,7 @@ const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fi
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
 for (const [name, file, value, code] of [
+  ['rounded app number', 'apps/ios/Enduragent/Onboarding/ConnectView.swift', 'String(Int(value.rounded()))', 'app-number-formatting'],
   ['intervals identifier', 'apps/ios/value.swift', sensitiveID, 'intervals-id'],
   ['large JSON activity identifier', fixture, JSON.stringify({ id: activityID }), 'activity-id'],
   ['large activity URL', 'README.md', '/activity/' + activityID, 'activity-id'],
@@ -280,3 +281,10 @@ for (const declaration of [
     assert.equal(result.status, 0, result.output);
   });
 }
+
+test('accepts checked app conversions and string parsing', () => {
+  const result = run({
+    'apps/ios/Enduragent/App/Example.swift': 'let rounded = Int(exactly: value.rounded())\nlet parsed = Int(raw)',
+  });
+  assert.equal(result.status, 0, result.output);
+});

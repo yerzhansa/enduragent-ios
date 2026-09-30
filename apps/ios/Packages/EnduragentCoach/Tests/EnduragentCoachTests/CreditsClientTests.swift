@@ -196,6 +196,21 @@ struct CreditsClientTests {
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-0000")
 	}
 
+	@Test(arguments: ["1e20", "1e308", "-1e20"])
+	func unrepresentableCreditsReturnResponseError(remaining: String) async throws {
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
+		try secrets.storeCreditsAccount(
+			CreditsAccount(appAccountToken: UUID(), key: "sk-or-test-0000"))
+		let client = try makeClient(secrets: secrets)
+		await #expect(throws: CreditsFailure.unexpectedResponse(status: 200)) {
+			try await CreditsURLStub.withHandler({ _ in
+				.json(200, "{\"data\":{\"limit_remaining\":\(remaining)}}")
+			}) {
+				try await client.balance(scale: CreditScale(creditsPerUsd: 100))
+			}
+		}
+	}
+
 	@Test("balance floors 1.999 to 199 credits")
 	func balanceFloors1999To199Credits() async throws {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())

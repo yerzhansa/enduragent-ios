@@ -37,20 +37,21 @@ struct ConnectView: View {
 						Text(
 							model.phrasebook.say(
 								Catalog.onboardingConnectFitness,
-								["value": wholeNumber(wellness.fitness)]
+								["value": WellnessDay.formattedNumber(wellness.fitness)]
 							)
 						)
 						.accessibilityIdentifier("connect.fitness")
 						Text(
 							model.phrasebook.say(
 								Catalog.onboardingConnectFatigue,
-								["value": wholeNumber(wellness.fatigue)]
+								["value": WellnessDay.formattedNumber(wellness.fatigue)]
 							)
 						)
 						.accessibilityIdentifier("connect.fatigue")
 						Text(
 							model.phrasebook.say(
-								Catalog.onboardingConnectForm, ["value": wholeNumber(wellness.form)]
+								Catalog.onboardingConnectForm,
+								["value": WellnessDay.formattedNumber(wellness.form)]
 							)
 						)
 						.accessibilityIdentifier("connect.form")
@@ -62,10 +63,5 @@ struct ConnectView: View {
 				}
 			}
 		}
-	}
-
-	private func wholeNumber(_ value: Double?) -> String {
-		guard let value else { return "—" }
-		return String(Int(value.rounded()))
 	}
 }
