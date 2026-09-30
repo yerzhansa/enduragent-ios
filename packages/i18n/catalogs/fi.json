@@ -2701,7 +2701,6 @@
       "start": "Aloita uusi keskustelu",
       "status": "Tarkista nykyinen kunto, väsymys ja tuoreus",
       "sync": "Pakota harjoitustietojen päivitys palvelusta {{service}}",
-      "update": "Tarkista ja asenna päivitykset",
       "version": "Näytä nykyinen versio",
       "whatsnew": "Katso uusimman version muutokset",
       "workout": "Hae tämän päivän harjoitus"

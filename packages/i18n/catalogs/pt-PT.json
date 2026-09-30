@@ -2701,7 +2701,6 @@
       "start": "Iniciar uma nova conversa",
       "status": "Ver a condição física, a fadiga e a forma atuais",
       "sync": "Forçar a atualização dos dados de treino de {{service}}",
-      "update": "Procurar e instalar atualizações",
       "version": "Mostrar a versão atual",
       "whatsnew": "Ver o que mudou na versão mais recente",
       "workout": "Ver o treino de hoje"

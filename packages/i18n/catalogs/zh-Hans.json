@@ -2668,7 +2668,6 @@
       "start": "开始新对话",
       "status": "查看当前体能（CTL）、疲劳（ATL）和状态（TSB）",
       "sync": "强制从 {{service}} 刷新训练数据",
-      "update": "检查并安装更新",
       "version": "显示当前版本",
       "whatsnew": "查看最新版本的变化",
       "workout": "获取今日训练课程"

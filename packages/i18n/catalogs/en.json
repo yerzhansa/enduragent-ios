@@ -2482,7 +2482,6 @@
       "start": "Start a fresh session",
       "status": "Check current fitness, fatigue, and form",
       "sync": "Force-refresh training data from {{service}}",
-      "update": "Check for and install updates",
       "version": "Show current version",
       "whatsnew": "See what changed in the latest version",
       "workout": "Get today's workout"

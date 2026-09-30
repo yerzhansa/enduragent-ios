@@ -2485,7 +2485,6 @@
       "start": "Start en ny samtale",
       "status": "Se din aktuelle fitness, træthed og form",
       "sync": "Gennemtving opdatering af træningsdata fra {{service}}",
-      "update": "Søg efter og installer opdateringer",
       "version": "Vis den aktuelle version",
       "whatsnew": "Se ændringer i den nyeste version",
       "workout": "Se dagens træning"

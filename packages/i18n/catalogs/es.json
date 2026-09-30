@@ -2701,7 +2701,6 @@
       "start": "Iniciar una nueva sesión",
       "status": "Consultar tu condición física, fatiga y forma actuales",
       "sync": "Forzar la actualización de los datos de entrenamiento de {{service}}",
-      "update": "Buscar e instalar actualizaciones",
       "version": "Mostrar la versión actual",
       "whatsnew": "Ver las novedades de la última versión",
       "workout": "Consultar el entrenamiento de hoy"

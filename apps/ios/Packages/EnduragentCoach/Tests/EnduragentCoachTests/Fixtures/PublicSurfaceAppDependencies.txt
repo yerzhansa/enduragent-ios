@@ -2102,7 +2102,6 @@ Catalog.telegramMenuReview
 Catalog.telegramMenuStart
 Catalog.telegramMenuStatus
 Catalog.telegramMenuSync
-Catalog.telegramMenuUpdate
 Catalog.telegramMenuVersion
 Catalog.telegramMenuWhatsnew
 Catalog.telegramMenuWorkout

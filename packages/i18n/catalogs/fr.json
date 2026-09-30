@@ -2485,7 +2485,6 @@
       "start": "Commencer une nouvelle conversation",
       "status": "Voir ta condition physique, ta fatigue et ta forme actuelles",
       "sync": "Forcer l’actualisation des données d’entraînement depuis {{service}}",
-      "update": "Rechercher et installer des mises à jour",
       "version": "Afficher la version actuelle",
       "whatsnew": "Voir les changements de la dernière version",
       "workout": "Voir l’entraînement du jour"

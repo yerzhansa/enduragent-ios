@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2475
-	public static let keyCount = 2515
+	public static let englishLeafCount = 2474
+	public static let keyCount = 2514
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -2077,7 +2077,6 @@ public enum Catalog {
 	public static let telegramMenuStart = CatalogKey(rawValue: "telegram.menu.start")
 	public static let telegramMenuStatus = CatalogKey(rawValue: "telegram.menu.status")
 	public static let telegramMenuSync = CatalogKey(rawValue: "telegram.menu.sync")
-	public static let telegramMenuUpdate = CatalogKey(rawValue: "telegram.menu.update")
 	public static let telegramMenuVersion = CatalogKey(rawValue: "telegram.menu.version")
 	public static let telegramMenuWhatsnew = CatalogKey(rawValue: "telegram.menu.whatsnew")
 	public static let telegramMenuWorkout = CatalogKey(rawValue: "telegram.menu.workout")

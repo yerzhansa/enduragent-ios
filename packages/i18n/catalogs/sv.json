@@ -2701,7 +2701,6 @@
       "start": "Starta en ny session",
       "status": "Kontrollera aktuell CTL, trötthet och TSB",
       "sync": "Tvinga uppdatering av träningsdata från {{service}}",
-      "update": "Sök efter och installera uppdateringar",
       "version": "Visa aktuell version",
       "whatsnew": "Se vad som ändrats i den senaste versionen",
       "workout": "Hämta dagens träningspass"

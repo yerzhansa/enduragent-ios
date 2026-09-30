@@ -2485,7 +2485,6 @@
       "start": "Start en ny samtale",
       "status": "Sjekk form (CTL), tretthet (ATL) og form (TSB)",
       "sync": "Hent oppdaterte treningsdata fra {{service}}",
-      "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
       "whatsnew": "Se hva som er nytt i den nyeste versjonen",
       "workout": "Hent dagens treningsøkt"
