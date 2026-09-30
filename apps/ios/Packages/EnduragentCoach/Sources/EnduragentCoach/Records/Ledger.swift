@@ -31,13 +31,20 @@ package actor Ledger {
 		if opened {
 			return
 		}
-		let synced = try await fetch(RecordQuery(scope: .everySynced, writtenBy: deviceId))
-		let local = try await fetch(RecordQuery(scope: .everyDeviceLocal, writtenBy: deviceId))
-		for record in synced.records + local.records {
-			fold(record.hlc)
-			if lastUlid.map({ $0 < record.ulid }) ?? true {
-				lastUlid = record.ulid
+		do {
+			for locality in [RecordLocality.synced, .deviceLocal] {
+				guard let head = try await log.latest(locality: locality, writtenBy: deviceId)
+				else {
+					continue
+				}
+				report(head.skipped)
+				if let hlc = head.hlc { fold(hlc) }
+				if let ulid = head.ulid, lastUlid.map({ $0 < ulid }) ?? true {
+					lastUlid = ulid
+				}
 			}
+		} catch {
+			throw LedgerFailure.unavailable
 		}
 		opened = true
 	}
@@ -81,12 +88,16 @@ package actor Ledger {
 		for record in page.records {
 			fold(record.hlc)
 		}
-		for skipped in page.skipped where reportedSkips.count < Self.reportedSkipLimit {
+		report(page.skipped)
+		return page
+	}
+
+	private func report(_ rows: [SkippedRow]) {
+		for skipped in rows where reportedSkips.count < Self.reportedSkipLimit {
 			if reportedSkips.insert(skipped).inserted {
 				diagnostics.record(.skippedRecord(skipped))
 			}
 		}
-		return page
 	}
 
 	package nonisolated var imports: AsyncStream<Void> {

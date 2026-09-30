@@ -49,6 +49,10 @@ struct GatedReviewLog: RecordLog {
 	var readGate: ReviewGate?
 	var deviceId: DeviceID { inner.deviceId }
 	var imports: AsyncStream<Void> { inner.imports }
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let page = try await inner.fetch(query)
 		if query.scope == .deviceLocal([.pendingProposal, .proposalCleared]) {
