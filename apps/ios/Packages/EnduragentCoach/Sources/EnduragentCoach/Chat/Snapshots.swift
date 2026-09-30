@@ -135,16 +135,14 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 }
 
 extension ChatSnapshot {
-	package init(
+	init(
 		chat: ChatID,
 		conversation: Conversation,
 		jobs: [FlushJob],
-		live: LiveAttempt?,
+		phase: MailboxPhase,
 		window: OpenWindow?,
-		queued: [TurnID],
+		queued: [MailboxWork],
 		waiting: Set<TurnID>,
-		stopping: Bool,
-		resetting: Bool,
 		finishedAway: Set<TurnID>,
 		review: ReviewSnapshot?,
 		device: DeviceID,
@@ -154,16 +152,18 @@ extension ChatSnapshot {
 	) {
 		self.chat = chat
 		let current = conversation.current
+		let items = phase.items(queued: queued)
 		self.opening = ConversationOpening(current, jobs: jobs)
 		self.turns = current.turnViews(
-			live: live, window: window, queued: queued, waiting: waiting,
+			live: phase.running?.live, window: window, queued: items.compactMap(\.turn),
+			waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
 			today: CivilDate(date: now, timeZone: zone))
-		if stopping {
+		if phase.cause != nil {
 			self.activity = .stopping
-		} else if live != nil || window != nil || !queued.isEmpty {
+		} else if window != nil || items.contains(where: { $0.turn != nil }) {
 			self.activity = .working(label: Catalog.chatNoticeWorking)
-		} else if resetting, opening == .continuing {
+		} else if items.contains(where: { $0.reset != nil }), opening == .continuing {
 			self.activity = .startingNewConversation(label: Catalog.chatNoticeWorking)
 		} else {
 			self.activity = .idle
@@ -182,9 +182,10 @@ extension Segment {
 		}
 	}
 
-	package func turnViews(
-		live: LiveAttempt?, window: OpenWindow?, queued: [TurnID], waiting: Set<TurnID>,
-		finishedAway: Set<TurnID>, device: DeviceID, process: ProcessID, today: CivilDate
+	func turnViews(
+		live: LiveAttempt?, window: OpenWindow? = nil, queued: [TurnID] = [],
+		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
+		device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
 		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
@@ -197,7 +198,8 @@ extension Segment {
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
 				sentOn: facts.fragments.first?.civilDate ?? today,
 				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device, process: process),
+					of: facts, live: live, overlay: overlay, device: device,
+					process: process),
 				completedInBackground: finishedAway.contains(facts.turn)
 			)
 		}
