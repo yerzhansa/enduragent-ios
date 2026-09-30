@@ -160,7 +160,7 @@ package enum ConversationFold {
 				switch body.reason {
 				case .trim, .compaction:
 					segments[index].promptWindow = PromptWindow(
-						firstIncluded: body.firstIncludedUlid, opened: record.ulid)
+						trim: .init(firstIncluded: body.firstIncludedUlid, opened: record.ulid))
 				case .reset:
 					continue
 				}
