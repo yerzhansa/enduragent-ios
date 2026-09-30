@@ -7,10 +7,10 @@ import Testing
 		(Double.infinity, "—"), (-Double.infinity, "—"), (42.6, "43"), (-42.6, "-43"),
 	])
 	func wellnessWholeNumbersAreSafe(value: Double, expected: String) {
-		#expect(WellnessDay.wholeNumber(value) == expected)
+		#expect(WellnessDay.formattedNumber(value) == expected)
 	}
 
 	@Test func missingWellnessUsesPlaceholder() {
-		#expect(WellnessDay.wholeNumber(nil) == "—")
+		#expect(WellnessDay.formattedNumber(nil) == "—")
 	}
 }

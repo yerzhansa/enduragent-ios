@@ -125,10 +125,11 @@ public struct WellnessDay: Sendable, Equatable {
 		self.form = form
 	}
 
-	public static func wholeNumber(_ value: Double?) -> String {
+	public static func formattedNumber(_ value: Double?, fractionDigits: Int = 0) -> String {
 		guard let value, value.isFinite else { return "—" }
-		let rounded = value.rounded()
-		return wholeInt(rounded).map(String.init) ?? String(format: "%.0f", rounded)
+		let number = fractionDigits == 0 ? value.rounded() : value
+		return wholeInt(number).map(String.init)
+			?? String(format: "%.*f", fractionDigits, number)
 	}
 
 	package init(json: IntervalsWellnessJSON) {

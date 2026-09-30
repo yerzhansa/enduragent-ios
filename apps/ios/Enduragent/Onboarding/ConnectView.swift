@@ -37,21 +37,21 @@ struct ConnectView: View {
 						Text(
 							model.phrasebook.say(
 								Catalog.onboardingConnectFitness,
-								["value": WellnessDay.wholeNumber(wellness.fitness)]
+								["value": WellnessDay.formattedNumber(wellness.fitness)]
 							)
 						)
 						.accessibilityIdentifier("connect.fitness")
 						Text(
 							model.phrasebook.say(
 								Catalog.onboardingConnectFatigue,
-								["value": WellnessDay.wholeNumber(wellness.fatigue)]
+								["value": WellnessDay.formattedNumber(wellness.fatigue)]
 							)
 						)
 						.accessibilityIdentifier("connect.fatigue")
 						Text(
 							model.phrasebook.say(
 								Catalog.onboardingConnectForm,
-								["value": WellnessDay.wholeNumber(wellness.form)]
+								["value": WellnessDay.formattedNumber(wellness.form)]
 							)
 						)
 						.accessibilityIdentifier("connect.form")

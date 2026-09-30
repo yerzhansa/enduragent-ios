@@ -8,6 +8,7 @@ package enum ZoneMidpoints {
 
 package enum IntervalsSerializer {
 	package static let maxWatts = 1500
+	package static let maxDurationSeconds = 24 * 60 * 60
 	package static let maxPercentFtp = 200
 	package static let maxSteps = 40
 	package static let maxRepeat = 20
@@ -113,6 +114,10 @@ package enum IntervalsSerializer {
 			}
 			guard wholeInt(toSeconds(simple.duration).rounded()) != nil else {
 				throw InvalidWorkout(message: "\(path).duration: Seconds must fit in an integer")
+			}
+			if toSeconds(simple.duration) > Double(maxDurationSeconds) {
+				throw InvalidWorkout(
+					message: "\(path).duration: Seconds exceed sanity bound \(maxDurationSeconds)")
 			}
 		}
 	}

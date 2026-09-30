@@ -170,7 +170,7 @@ struct ReadToolsTests {
 		#expect(throws: IntervalsError.self) {
 			do {
 				try IntervalsPolicy.rejectListRange(
-					oldest: CivilDate(year: 1, month: 1, day: 1), newest: "9999-12-31")
+					oldest: "1583-01-01", newest: "9999-12-31")
 			} catch let error as IntervalsError {
 				#expect(error.code == "range_too_wide")
 				throw error

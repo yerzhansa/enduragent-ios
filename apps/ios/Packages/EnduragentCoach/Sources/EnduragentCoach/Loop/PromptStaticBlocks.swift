@@ -26,7 +26,7 @@ package enum PromptStaticBlocks {
 
 		Ask material choices between coaching or Plan directions as numbered text. Ask ordinary questions in text.
 
-		Give 2–5 options with a short label, one-sentence description, and consequence. Recommend at most one. Never treat an answer as permission to mutate Plan, Calendar, or Training.
+		Give 2–5 options with a short label, one-sentence description, consequence, and recommendation flag. Recommend at most one. Never offer numbered choices for medical red flags, and never treat a chosen option as permission to mutate Plan, Calendar, or Training.
 		"""#
 
 	package static let crossSportVoiceRules = #"""

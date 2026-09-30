@@ -255,7 +255,7 @@ package enum AthleteNotices {
 				action: action
 			)
 		}
-		let minutes = seconds / 60 + (seconds % 60 == 0 ? 0 : 1)
+		let minutes = (seconds + 59) / 60
 		return AthleteNotice(
 			key: Catalog.coachErrorRateLimitMinutes,
 			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],

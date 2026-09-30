@@ -45,10 +45,10 @@ package struct WellnessEvidence: TurnEvidence {
 	private static func line(_ day: WellnessDay) -> String? {
 		var parts: [String] = []
 		if let fitness = day.fitness {
-			parts.append("Fitness \(number(fitness))")
+			parts.append("Fitness \(WellnessDay.formattedNumber(fitness, fractionDigits: 1))")
 		}
 		if let fatigue = day.fatigue {
-			parts.append("Fatigue \(number(fatigue))")
+			parts.append("Fatigue \(WellnessDay.formattedNumber(fatigue, fractionDigits: 1))")
 		}
 		if let form = day.form {
 			parts.append("Form \(signed(form))")
@@ -56,12 +56,8 @@ package struct WellnessEvidence: TurnEvidence {
 		return parts.isEmpty ? nil : parts.joined(separator: " · ")
 	}
 
-	private static func number(_ value: Double) -> String {
-		wholeInt(value).map(String.init) ?? String(format: "%.1f", value)
-	}
-
 	private static func signed(_ value: Double) -> String {
-		let body = number((value * 10).rounded() / 10)
+		let body = WellnessDay.formattedNumber((value * 10).rounded() / 10, fractionDigits: 1)
 		return value > 0 ? "+\(body)" : body
 	}
 }
