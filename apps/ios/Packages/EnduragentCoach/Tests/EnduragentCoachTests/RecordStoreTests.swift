@@ -41,7 +41,8 @@ extension SwiftDataSuites {
 				try await coach.setLanguage(.fixed(.fr))
 			}
 			#expect(await coach.languagePreference() == .automatic)
-			let session = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.5")
+			let session = try SessionSettings.npmDefaults.replacing(
+				.historyBudgetRatio, with: "0.5")
 			try await coach.setSession(session)
 			let status = await coach.status()
 			#expect(status.session == session)
