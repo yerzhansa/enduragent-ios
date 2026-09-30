@@ -8,7 +8,7 @@ extension CredentialVaultTests {
 	@Test(arguments: [Data(#"{"future":{"x":1}}"#.utf8), Data([0xFF, 0xFE, 0xFD])])
 	func undecodableLegacyStagingDoesNotBlockCredits(_ unreadable: Data) async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = MemorySecretStoreBacking(items: [
+		let memory = FixtureSecretStoreBacking(items: [
 			"intervalsConnectionStaging": unreadable,
 			"openRouterKey": Data("test-credits-key".utf8),
 			"appAccountToken": Data(token.uuidString.utf8),
@@ -31,7 +31,7 @@ extension CredentialVaultTests {
 
 	@Test func existingAccountDoesNotReadLaterUnreadableLegacyStaging() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		let account = CreditsAccount(appAccountToken: token, key: "test-credits-key")
 		try secrets.storeCreditsAccount(account)
@@ -95,7 +95,7 @@ extension CredentialVaultTests {
 }
 
 private struct FailedLegacyDeletionBacking: SecretStoreBacking {
-	let base: MemorySecretStoreBacking
+	let base: FixtureSecretStoreBacking
 	let failedSlot: String
 
 	func add(account: String, data: Data) throws { try base.add(account: account, data: data) }

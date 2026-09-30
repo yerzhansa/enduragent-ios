@@ -63,7 +63,7 @@ import Testing
 	}
 
 	@Test func unconnectedAthleteReadsNoWellnessAndLogsNothing() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
