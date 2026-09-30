@@ -287,10 +287,14 @@ package enum AthleteNotices {
 		if let unavailable = failure as? AccessUnavailable {
 			return notice(outsideTurn: unavailable)
 		}
-		guard case .noAthleteKey? = failure as? CreditsFailure else {
+		switch failure as? CreditsFailure {
+		case .noAthleteKey?:
+			return notice(outsideTurn: .notConfigured(.credits))
+		case .accountChanged?:
+			return AthleteNotice(key: Catalog.creditsErrorAccountChanged, action: nil)
+		default:
 			return AthleteNotice(key: Catalog.creditsErrorUnavailable, action: nil)
 		}
-		return notice(outsideTurn: .notConfigured(.credits))
 	}
 
 	private static func notice(outsideTurn unavailable: AccessUnavailable) -> AthleteNotice {

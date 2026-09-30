@@ -174,7 +174,9 @@ extension FixtureLaunchTests {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
 		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey("sk-or-test-lease")
+		try secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(), key: "sk-or-test-lease"))
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		return Coach(
 			sport: .cycling,

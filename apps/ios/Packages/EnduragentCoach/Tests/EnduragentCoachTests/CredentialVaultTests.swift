@@ -13,6 +13,24 @@ import Testing
 	let offline = FakeIntervalsClient(athleteName: "Nobody", ftp: 200, athleteId: "i3003")
 	let built = CredentialLog()
 
+	@Test func intervalsReplaceNeverWritesStaging() async throws {
+		let memory = MemorySecretStoreBacking()
+		let store = ICloudKeychainStore(backing: memory)
+		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
+		try store.storeIntervalsConnection(testConnection)
+		memory.failWrites("intervalsConnectionStaging", with: errSecNotAvailable)
+		let outcome = await coach(store).changeTraining(
+			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))
+		guard case .replaced = outcome else {
+			Issue.record("expected a direct replacement, got \(outcome)")
+			return
+		}
+		#expect(try store.intervalsConnection()?.credential == .apiKey("icu-rotated-key"))
+		#expect(memory.writes(to: "intervalsConnectionStaging") == 0)
+		#expect(!memory.readAccounts.contains("intervalsConnectionStaging"))
+		#expect(!memory.deletedAccounts.contains("intervalsConnectionStaging"))
+	}
+
 	init() {
 		offline.loadFailure = IntervalsError(
 			code: "down", details: "intervals.icu is unavailable.", status: 503)
@@ -86,7 +104,6 @@ import Testing
 			await coach.changeTraining(.replace(apiKey: " \n ", athlete: .keyOwner))
 				== .refused(.blankReplacementKeepsCurrent))
 		#expect(try secrets.intervalsConnection() == testConnection)
-		#expect(try secrets.stagedReplacement() == nil)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
 		#expect(built.credentials == [.apiKey("icu-test-key")])
@@ -112,7 +129,7 @@ import Testing
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
-		#expect(!built.credentials.contains(.apiKey("icu-new-key")))
+		#expect(built.credentials.contains(.apiKey("icu-new-key")))
 
 		let memory = MemorySecretStoreBacking()
 		let keychain = ICloudKeychainStore(backing: memory)
@@ -125,7 +142,6 @@ import Testing
 				== .failedPreviousKept(
 					.secureStorage(.secureStorageUnavailable), previous: adaSummary))
 		#expect(try keychain.intervalsConnection() == testConnection)
-		#expect(try keychain.stagedReplacement() == nil)
 	}
 
 	@Test func profileReadFailureFlipsWithUnverifiableAuthority() async throws {
@@ -148,7 +164,7 @@ import Testing
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(active))
 	}
 
-	@Test func differentAthleteWithBoundWorkIsRefusedAndStagingDeleted() async throws {
+	@Test func differentAthleteWithBoundWorkIsRefused() async throws {
 		let secrets = keyedSecrets()
 		let coach = coach(secrets)
 		_ = try await proposeRide(on: coach)
@@ -157,7 +173,6 @@ import Testing
 		#expect(
 			await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
 				== .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.stagedReplacement() == nil)
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
 		#expect(
@@ -248,7 +263,8 @@ import Testing
 
 	@Test func keyStoredAfterLaunchReachesTheNextAttempt() async throws {
 		let secrets = FakeSecretStore()
-		try secrets.storeOpenRouterKey(testKey)
+		try secrets.storeCreditsAccount(
+			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		let coach = coach(secrets)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
 		guard

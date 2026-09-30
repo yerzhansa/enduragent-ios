@@ -2932,7 +2932,8 @@
     "error": {
       "accessRejected": "Non è stato possibile usare i tuoi crediti. Ripristina gli acquisti per continuare.",
       "exhausted": "Hai esaurito i crediti. Acquistane altri oppure passa al tuo conto OpenRouter.",
-      "unavailable": "I crediti non sono disponibili al momento. Riprova più tardi."
+      "unavailable": "I crediti non sono disponibili al momento. Riprova più tardi.",
+      "accountChanged": "Il tuo conto crediti è cambiato mentre questa richiesta veniva completata. Il tuo conto attuale è stato mantenuto."
     }
   },
   "onboarding": {

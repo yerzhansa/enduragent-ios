@@ -174,7 +174,10 @@ final class FixtureLaunchTests {
 		let services = try services()
 		let fixture = try #require(services.fixtureDirector)
 		fixture.credits.grantResult = .success(.alreadyGranted)
-		try fixture.secrets.storeOpenRouterKey("sk-or-test-0000")
+		try fixture.secrets.storeCreditsAccount(
+			CreditsAccount(
+				appAccountToken: UUID(),
+				key: "sk-or-test-0000"))
 		let model = model(services)
 		await model.loadStarter()
 		#expect(model.starterLine == "200 credits")
@@ -193,6 +196,24 @@ final class FixtureLaunchTests {
 		#expect(model.route == .chat)
 		#expect(model.chat?.chat == .main)
 		#expect(model.chat?.opening == .welcome)
+	}
+
+	@Test func fixtureAppServicesOpensALegacySecretsFile() async throws {
+		let legacy = #"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#
+		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let (services, kept) = try relaunch(.keep)
+		let reopened = ShellModel(
+			environment: AppEnvironment(services: services, language: language, defaults: kept))
+		try await observed(reopened)
+		#expect(reopened.route == .chat)
+		#expect(reopened.chat?.chat == .main)
+		#expect(await services.coach.status().setup == .ready)
+		let identity = try await services.coach.creditsIdentity()
+		#expect(
+			identity.appAccountToken
+				== UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
+		#expect(identity.hasCreditsKey)
 	}
 
 	@Test func coldStartRestoresTheTypedDraft() async throws {
@@ -308,7 +329,7 @@ final class FixtureLaunchTests {
 	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
 		let services = try services(keychain: .locked)
 		#expect(throws: KeychainStoreError(status: errSecInteractionNotAllowed)) {
-			try #require(services.fixtureDirector).secrets.openRouterKey()
+			try #require(services.fixtureDirector).secrets.creditsAccount()?.key
 		}
 	}
 
