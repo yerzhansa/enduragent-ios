@@ -113,9 +113,8 @@ public actor Coach {
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
 		let mailbox = await mailbox(for: chat)
-		let outcome = await reviews.decide(decision, chat: chat) { proposal in
-			await mailbox.recordApplied(proposal)
-		}
+		let outcome = await reviews.decide(
+			decision, chat: chat, scope: await mailbox.reviewScope)
 		await mailbox.reviewChanged()
 		return outcome
 	}

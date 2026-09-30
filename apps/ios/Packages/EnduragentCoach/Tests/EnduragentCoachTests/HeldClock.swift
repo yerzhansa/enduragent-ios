@@ -1,12 +1,12 @@
 import Foundation
 import Synchronization
+import Testing
 
 @testable import EnduragentCoach
 
 final class HeldClock: Clock, @unchecked Sendable {
 	private let base = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	private let sleepers = Mutex<[Sleeper]>([])
-	private let sleeps = AsyncStream<Duration>.makeStream()
 
 	private struct Sleeper: Sendable {
 		let id: UUID
@@ -27,7 +27,6 @@ final class HeldClock: Clock, @unchecked Sendable {
 		await withTaskCancellationHandler {
 			await withCheckedContinuation { wake in
 				sleepers.withLock { $0.append(Sleeper(id: id, duration: duration, wake: wake)) }
-				sleeps.continuation.yield(duration)
 				if Task.isCancelled {
 					resume(id)
 				}
@@ -51,11 +50,14 @@ final class HeldClock: Clock, @unchecked Sendable {
 	}
 
 	func waitUntilHeld(_ duration: Duration) async throws {
-		if held.contains(duration) { return }
-		for await _ in sleeps.stream {
-			if held.contains(duration) { return }
+		let deadline = ContinuousClock.now + .seconds(30)
+		while !held.contains(duration) {
+			guard ContinuousClock.now < deadline else {
+				Issue.record("HeldClock never held \(duration); held sleeps: \(held)")
+				throw CancellationError()
+			}
+			try await Task.sleep(for: .milliseconds(10))
 		}
-		throw CancellationError()
 	}
 
 	private func resume(_ id: UUID) {

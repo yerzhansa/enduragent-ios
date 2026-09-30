@@ -103,6 +103,10 @@ extension TurnRunner {
 			await progress(.textDelta(assistantText))
 		}
 
+		if let outcome = await scope.savedReviewWork() {
+			return .savedWork(outcome, saved: await scope.summary)
+		}
+
 		let templateHash = sha256Hex(
 			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
@@ -230,6 +234,8 @@ extension TurnRunner {
 							chatId: attempt.chat,
 							scope: scope
 						).outcome
+					} catch let saved as SavedWorkReached {
+						throw saved
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch  where Task.isCancelled {

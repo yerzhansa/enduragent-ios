@@ -58,7 +58,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 
 	package func decide(
 		_ decision: ReviewDecision, chat: ChatID,
-		applied: @Sendable (LiveProposal) async -> Void
+		scope: TurnScope?
 	) async -> ReviewOutcome {
 		guard decision.ref.chat == chat, var delivery = deliveries[chat],
 			delivery.ref == decision.ref
@@ -83,7 +83,11 @@ package actor SingleProposalReviews: WorkoutReviews {
 			deliveries[chat] = delivery
 			let outcome: ReviewOutcome
 			if case .approve = decision {
-				outcome = await approve(token, applied: applied)
+				if let scope {
+					outcome = await scope.reviewing { await self.approve(token, scope: scope) }
+				} else {
+					outcome = await approve(token, scope: nil)
+				}
 			} else {
 				outcome = await cancel(token)
 			}
@@ -97,7 +101,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	private func approve(
-		_ token: ReviewControlToken, applied: @Sendable (LiveProposal) async -> Void
+		_ token: ReviewControlToken, scope: TurnScope?
 	) async -> ReviewOutcome {
 		let live: LiveProposal
 		switch await liveProposal(for: token.ref) {
@@ -119,6 +123,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 		} catch {
 			return .storageUnavailable
 		}
+		let outcome = await apply(live, connection: connection, stamp: stamp)
+		await scope?.recordReview(live, outcome: outcome)
+		return outcome
+	}
+
+	private func apply(
+		_ live: LiveProposal, connection: TrainingConnection, stamp: OperationStamp
+	) async -> ReviewOutcome {
 		let card = ReviewCard(live.body)
 		let eventId: String
 		do {
@@ -132,7 +144,6 @@ package actor SingleProposalReviews: WorkoutReviews {
 			}
 			return .partiallyApplied(done: [], stoppedAt: card, failure: failure)
 		}
-		await applied(live)
 		await note(live.body, stamp: stamp)
 		return .applied([ReviewReceipt(index: card.index, result: .confirmed(eventId: eventId))])
 	}

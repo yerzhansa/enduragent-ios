@@ -2,16 +2,23 @@ import Foundation
 
 package struct CommittedWrite: Sendable, Equatable {
 	package let tool: ReplayUnsafeToolName
+	package let verified: Bool
+
+	package init(tool: ReplayUnsafeToolName, verified: Bool = true) {
+		self.tool = tool
+		self.verified = verified
+	}
 }
 
 extension CommittedWrite {
-	package init(applied tool: GatedToolName) {
+	package init(applied tool: GatedToolName, verified: Bool) {
 		switch tool {
-		case .intervalsCreateWorkout: self.init(tool: .intervalsCreateWorkout)
-		case .intervalsCreateStrengthWorkout: self.init(tool: .intervalsCreateStrengthWorkout)
-		case .intervalsDeleteWorkout: self.init(tool: .intervalsDeleteWorkout)
-		case .intervalsUpdateWorkout: self.init(tool: .intervalsUpdateWorkout)
-		case .planSave: self.init(tool: .planSave)
+		case .intervalsCreateWorkout: self.init(tool: .intervalsCreateWorkout, verified: verified)
+		case .intervalsCreateStrengthWorkout:
+			self.init(tool: .intervalsCreateStrengthWorkout, verified: verified)
+		case .intervalsDeleteWorkout: self.init(tool: .intervalsDeleteWorkout, verified: verified)
+		case .intervalsUpdateWorkout: self.init(tool: .intervalsUpdateWorkout, verified: verified)
+		case .planSave: self.init(tool: .planSave, verified: verified)
 		}
 	}
 }
@@ -33,6 +40,8 @@ package actor TurnScope {
 	private var attempts = 0
 	private var memo: [MemoKey: Task<ToolExecution, Error>] = [:]
 	private var commits: [CommittedWrite] = []
+	private var reviewWrites: [CommittedWrite] = []
+	private let reviewGate = Turnstile()
 	private var flushLatch = true
 
 	private struct MemoKey: Hashable {
@@ -84,17 +93,53 @@ package actor TurnScope {
 		commits.append(commit)
 	}
 
-	package func recordApplied(_ proposal: LiveProposal) {
+	package func reviewing(_ run: @Sendable () async -> ReviewOutcome) async -> ReviewOutcome {
+		await reviewGate.pass { await run() }
+	}
+
+	package func recordReview(_ proposal: LiveProposal, outcome: ReviewOutcome) {
 		guard proposal.cause == .operation(stamp.operation, stamp.attempt) else { return }
-		record(CommittedWrite(applied: proposal.body.tool))
+		switch outcome {
+		case .applied:
+			reviewWrites.append(CommittedWrite(applied: proposal.body.tool, verified: true))
+		case .uncertain:
+			reviewWrites.append(CommittedWrite(applied: proposal.body.tool, verified: false))
+		case .partiallyApplied, .blocked, .storageUnavailable, .staleControl, .canceled,
+			.changedSinceReview, .presentationRecorded:
+			break
+		}
+	}
+
+	package func proposing(
+		_ run: @Sendable () async throws -> ToolOutcome
+	) async throws -> ToolOutcome {
+		try await reviewGate.pass {
+			if let outcome = RetryLadder.npm.savedWork(committed: reviewWrites) {
+				throw SavedWorkReached(outcome: outcome)
+			}
+			try Task.checkCancellation()
+			return try await run()
+		}
+	}
+
+	package func savedWork(using ladder: RetryLadder) async -> SavedWorkOutcome? {
+		await reviewGate.pass { ladder.savedWork(committed: written) }
+	}
+
+	package func savedReviewWork() async -> SavedWorkOutcome? {
+		await reviewGate.pass { RetryLadder.npm.savedWork(committed: reviewWrites) }
+	}
+
+	package var resolvedWrites: [CommittedWrite] {
+		get async { await reviewGate.pass { written } }
 	}
 
 	package var written: [CommittedWrite] {
-		commits
+		commits + reviewWrites
 	}
 
 	package var summary: WriteSummary {
-		WriteSummary(commits)
+		WriteSummary(written)
 	}
 
 	package func memoized(
@@ -125,6 +170,10 @@ package actor TurnScope {
 	package func evict(_ tools: Set<ToolName>) {
 		memo = memo.filter { key, _ in !tools.contains(key.tool) }
 	}
+}
+
+struct SavedWorkReached: Error {
+	let outcome: SavedWorkOutcome
 }
 
 extension WriteSummary {

@@ -8,7 +8,7 @@ extension RetryLadderTests {
 		try await approvalDuringWaitSettlesSavedWork(timeout: false)
 	}
 
-	@Test func approvalDuringTimeoutSettlesSavedWork() async throws {
+	@Test func approvalBeforeTimeoutFailureSettlesSavedWork() async throws {
 		try await approvalDuringWaitSettlesSavedWork(timeout: true)
 	}
 
@@ -115,7 +115,7 @@ extension RetryLadderTests {
 		#expect(intervals.calls.filter(\.isWrite).isEmpty)
 	}
 
-	private var workoutProposal: [ScriptedEvent] {
+	var workoutProposal: [ScriptedEvent] {
 		[
 			.toolCall(
 				name: "intervals_create_workout",
@@ -138,13 +138,13 @@ extension RetryLadderTests {
 			coalescing: CoalescingPolicy(window: .zero))
 	}
 
-	private func presentReview(on coach: Coach) async throws -> ReviewControlToken {
+	func presentReview(on coach: Coach) async throws -> ReviewControlToken {
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		return try #require(await coach.currentSnapshot(.main)?.review?.token)
 	}
 
-	private func settledTurn(_ turn: TurnID, on coach: Coach) async -> TurnState? {
+	func settledTurn(_ turn: TurnID, on coach: Coach) async -> TurnState? {
 		for await snapshot in await coach.observe(.main) {
 			if let state = snapshot.turns.first(where: { $0.id == turn })?.state, state.isSettled {
 				return state

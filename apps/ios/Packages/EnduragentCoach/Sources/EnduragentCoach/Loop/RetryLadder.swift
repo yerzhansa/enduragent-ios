@@ -276,7 +276,7 @@ extension LadderGuard {
 		}
 		let tools = Set(committed.map(\.tool))
 		if !tools.isDisjoint(with: calendar) {
-			return .writesSaved
+			return committed.allSatisfy(\.verified) ? .writesSaved : .savedUnverified
 		}
 		if !tools.isDisjoint(with: other) {
 			return .savedUnverified

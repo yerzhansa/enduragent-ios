@@ -108,10 +108,12 @@ package struct TurnRunner: Sendable {
 				pending = nil
 				return try await generate(
 					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
+			} catch let saved as SavedWorkReached {
+				return .savedWork(saved.outcome, saved: await scope.summary)
 			} catch {
 				let failure = try AttemptFailure(caught: error)
 				let situation = AttemptSituation(
-					committed: await scope.written,
+					committed: await scope.resolvedWrites,
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
 					effectiveWindow: prompt.window,
@@ -160,12 +162,9 @@ package struct TurnRunner: Sendable {
 				await progress(.activity(.waiting(RetryWait(until: until, reason: reason))))
 				try await clock.sleep(for: duration)
 				try await scope.checkDeadline(uptime: clock.uptime)
-				if let outcome = ladder.savedWork(committed: await scope.written) {
-					return outcome
-				}
 			}
 		}
-		return nil
+		return await scope.savedWork(using: ladder)
 	}
 
 	func flushOnce(
