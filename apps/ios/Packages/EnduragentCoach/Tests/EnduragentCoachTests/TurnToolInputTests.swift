@@ -43,6 +43,9 @@ extension TurnRunnerTests {
 	}
 
 	@Test(arguments: [
+		#"[{"type":"steady","duration":{"value":1.5e17,"unit":"minutes"}}]"#,
+		#"[{"type":"steady","duration":{"value":86401,"unit":"seconds"}}]"#,
+		#"[{"type":"steady","duration":{"value":1441,"unit":"minutes"}}]"#,
 		#"[{"type":"steady","duration":{"value":1e20,"unit":"seconds"}}]"#,
 		#"[{"type":"steady","duration":{"value":1e18,"unit":"minutes"}}]"#,
 		#"[{"type":"steady","duration":{"value":1e308,"unit":"minutes"}}]"#,
@@ -58,6 +61,22 @@ extension TurnRunnerTests {
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.isEmpty)
+	}
+
+	@Test(arguments: [
+		#"{"value":86400,"unit":"seconds"}"#,
+		#"{"value":1440,"unit":"minutes"}"#,
+	])
+	func workoutDurationLimitRemainsProposable(duration: String) async throws {
+		let result = try await toolResult(
+			name: "intervals_create_workout",
+			arguments:
+				#"{"date":"1998-06-14","workout":{"name":"Ride","steps":[{"type":"steady","duration":\#(duration)}]}}"#
+		)
+		#expect(result.objectFields["pendingConfirmation"] == .bool(true))
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
 	}
 
 	@Test(arguments: ["9e18", "4000000"])
@@ -91,6 +110,22 @@ extension TurnRunnerTests {
 		let prompt = request.messages.map(\.content).joined(separator: "\n")
 		#expect(!prompt.contains("plan_save"))
 		#expect(!prompt.contains("request_user_decision"))
+	}
+
+	@Test func promptPreservesNumberedChoiceSafetyRules() async throws {
+		transport.script = [.text("Ready."), .finish(reason: .stop)]
+		let settled = try await makeCoach().sendAndSettle("Help me plan")
+		#expect(replyText(settled) == "Ready.")
+		let request = try #require(transport.requests.first)
+		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
+		#expect(prompt.contains("Never offer numbered choices for medical red flags"))
+		#expect(
+			prompt.contains(
+				"never treat a chosen option as permission to mutate Plan, Calendar, or Training"))
+		#expect(
+			prompt.contains(
+				"short label, one-sentence description, consequence, and recommendation flag"))
+		#expect(prompt.contains("Recommend at most one."))
 	}
 
 	private func toolResult(name: String, arguments: String) async throws -> JSONValue {
