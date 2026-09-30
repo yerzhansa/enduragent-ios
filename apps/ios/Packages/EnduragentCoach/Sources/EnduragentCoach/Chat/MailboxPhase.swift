@@ -18,25 +18,16 @@ enum MailboxPhase: Sendable {
 		return cause
 	}
 
-	func active(in segment: Segment) -> MailboxWork? {
-		guard let running else { return nil }
+	func items(in segment: Segment, queued: [MailboxWork]) -> [MailboxWork] {
+		guard let running else { return queued }
 		if let live = running.live,
 			segment.turns.first(where: { $0.turn == live.turn })?.settlements.contains(where: {
 				$0.attempt == live.attempt
 			}) == true
 		{
-			return nil
+			return queued
 		}
-		return running.item
-	}
-
-	func overlay(
-		of turn: TurnID, in segment: Segment, window: OpenWindow?, queued: [MailboxWork],
-		waiting: Set<TurnID>
-	) -> TurnOverlay {
-		let items = [active(in: segment)].compactMap { $0 } + queued
-		return TurnOverlay(
-			of: turn, window: window, queued: items.compactMap(\.turn), waiting: waiting)
+		return [running.item] + queued
 	}
 }
 

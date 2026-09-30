@@ -154,9 +154,9 @@ package actor ChatMailbox {
 				throw RetryRefusal.unknownTurn
 			}
 			let waiting = waits.waiting(among: records.conversation.current.turns)
-			let overlay = work.phase.overlay(
-				of: turn, in: records.conversation.current, window: work.window,
-				queued: work.waiting, waiting: waiting)
+			let queued = work.phase.items(in: records.conversation.current, queued: work.waiting)
+			let overlay = TurnOverlay(
+				of: turn, window: work.window, queued: queued.compactMap(\.turn), waiting: waiting)
 			let refusal = TurnLifecycle.retryRefusal(
 				of: records.conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
 				process: process)

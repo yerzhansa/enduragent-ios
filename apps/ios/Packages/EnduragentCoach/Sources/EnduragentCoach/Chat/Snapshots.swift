@@ -161,7 +161,7 @@ extension ChatSnapshot {
 			phase: phase, window: window, queued: queued, waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
 			today: CivilDate(date: now, timeZone: zone))
-		let items = [phase.active(in: current)].compactMap { $0 } + queued
+		let items = phase.items(in: current, queued: queued)
 		if phase.cause != nil {
 			self.activity = .stopping
 		} else if window != nil || items.contains(where: { $0.turn != nil }) {
@@ -190,12 +190,13 @@ extension Segment {
 		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
 		device: DeviceID, process: ProcessID, today: CivilDate
 	) -> [TurnView] {
-		turns.compactMap { facts -> TurnView? in
+		let queued = phase.items(in: self, queued: queued).compactMap(\.turn)
+		return turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
 				return nil
 			}
-			let overlay = phase.overlay(
-				of: facts.turn, in: self, window: window, queued: queued, waiting: waiting)
+			let overlay = TurnOverlay(
+				of: facts.turn, window: window, queued: queued, waiting: waiting)
 			return TurnView(
 				id: facts.turn,
 				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
