@@ -71,6 +71,33 @@ extension FixtureLaunchTests {
 		#expect(!model.consentNotSaved)
 	}
 
+	@Test func existingInstallCanDeferConsentWithoutRepeatingStarterCredits() async throws {
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		let (services, _) = try relaunch(.keep)
+		let model = model(services)
+		await model.appear()
+		#expect(model.route == .onboarding(.consent(nil)))
+		for _ in 0..<2 {
+			model.declineConsent()
+			#expect(
+				model.route != .onboarding(.starter), "Declining must not repeat starter credits")
+			#expect(model.route != .chat)
+			if model.route == .onboarding(.starter) {
+				await model.loadStarter()
+			}
+			#expect(!model.starterResolved)
+			#expect(model.starterLine == nil)
+			#expect(model.chat == nil)
+			#expect(await services.coach.status().providerConsent == nil)
+			#expect(services.fixtureTransport?.requestCount == 0)
+			await model.startChatting()
+			#expect(model.route == .onboarding(.consent(nil)))
+		}
+		await model.acceptConsent()
+		#expect(model.route == .chat)
+		#expect(!model.starterResolved)
+	}
+
 	@Test func consentRefusalReturnsToTheNoticeAndRetriesTheSameTurnAfterAgreement() async throws {
 		let services = try services()
 		let model = model(services)
