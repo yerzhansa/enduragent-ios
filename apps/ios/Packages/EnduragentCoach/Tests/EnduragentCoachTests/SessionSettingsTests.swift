@@ -10,10 +10,8 @@ import Testing
 		let defaults = SessionSettings.npmDefaults
 		#expect(defaults.historyBudgetRatio.value == 0.3)
 		#expect(defaults.contextWindowOverride == nil)
-		#expect(defaults.compactionModel == .sameAsResponse)
-		#expect(defaults.flushModel == .sameAsResponse)
 		#expect(
-			SessionField.allCases.map { defaults.text(for: $0) } == ["0.3", "", "", ""])
+			SessionField.allCases.map { defaults.text(for: $0) } == ["0.3", ""])
 	}
 
 	@Test(arguments: [
@@ -23,11 +21,7 @@ import Testing
 		),
 		(.historyBudgetRatio, "1.5", "Enter a history budget above 0% and no more than 100%."),
 		(.contextWindowOverride, "0", "Enter a safe whole number of tokens, 1 or more."),
-		(.compactionModel, "open\u{7}router", "Model names can’t contain control characters."),
-		(
-			.flushModel, String(repeating: "m", count: 513),
-			"Model names must be 512 characters or fewer."
-		),
+
 	])
 	func eachFieldRejectsItsInvalidValue(field: SessionField, text: String, sentence: String) {
 		let stored = SessionSettings.npmDefaults
@@ -45,17 +39,10 @@ import Testing
 		var settings = SessionSettings.npmDefaults
 		settings = try settings.replacing(.historyBudgetRatio, with: "0.05")
 		settings = try settings.replacing(.contextWindowOverride, with: "64000")
-		settings = try settings.replacing(.compactionModel, with: "test/compact")
-		settings = try settings.replacing(.flushModel, with: "test/flush")
 		#expect(settings.historyBudgetRatio.value == 0.05)
 		#expect(settings.contextWindowOverride?.tokens == 64_000)
-		#expect(settings.compactionModel == .model(ModelID(rawValue: "test/compact")))
-		#expect(settings.flushModel == .model(ModelID(rawValue: "test/flush")))
 		let cleared = try settings.replacing(.contextWindowOverride, with: " ")
-			.replacing(.compactionModel, with: "")
 		#expect(cleared.contextWindowOverride == nil)
-		#expect(cleared.compactionModel == .sameAsResponse)
-		#expect(cleared.flushModel == .model(ModelID(rawValue: "test/flush")))
 	}
 
 	@Test func setSessionStoresOneRecordThatTheNextCoachReads() async throws {
@@ -72,6 +59,35 @@ import Testing
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records.count
 				== 1)
+	}
+
+	@Test func debugModelOverrideDoesNotSync() async throws {
+		let old = Data(
+			#"{"historyBudgetRatio":0.05,"compactionModel":"debug/compact","flushModel":"debug/flush"}"#
+				.utf8)
+		let decoded = try RecordCodec.decode(
+			kind: "sessionSettings", version: 2, data: old, civilDate: "1998-06-13",
+			ulid: "debug-settings"
+		).get()
+		guard case .synced(.sessionSettings(let body)) = decoded else {
+			Issue.record("Expected session settings")
+			return
+		}
+		let store = InMemoryRecordLog()
+		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		try await coach.setSession(body.settings)
+		let rows = try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records
+		let encoded = try RecordCodec.encode(try #require(rows.first).body).data
+		let payload = try #require(
+			try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+		#expect(payload["compactionModel"] == nil)
+		#expect(payload["flushModel"] == nil)
+		let restored = await makeCoach(transport: FakeModelTransport(), store: store).status()
+			.session
+		let roles = ModelRoles(response: testModel, session: restored)
+		#expect(roles.compaction == testModel)
+		#expect(roles.flush == testModel)
+		#expect(restored.historyBudgetRatio.value == 0.05)
 	}
 
 	@Test func failedSessionWriteKeepsTheStoredSettings() async throws {
@@ -108,7 +124,6 @@ import Testing
 		let expected = try SessionSettings.npmDefaults
 			.replacing(.historyBudgetRatio, with: "0.05")
 			.replacing(.contextWindowOverride, with: "64000")
-			.replacing(.compactionModel, with: "test/compact")
 		#expect(
 			RecordCodec.decode(
 				kind: "sessionSettings", version: 2, data: old, civilDate: "1998-06-13",
@@ -116,17 +131,16 @@ import Testing
 				== .success(.synced(.sessionSettings(SessionSettingsBody(settings: expected)))))
 	}
 
-	@Test func modelRolesResolveSameAsResponseAndCapTheWindow() throws {
+	@Test func modelRolesUseTheResponseModelAndCapTheWindow() throws {
 		let response = ModelID(rawValue: "test/chat")
 		let defaults = ModelRoles(response: response, session: .npmDefaults)
 		#expect(defaults.compaction == response)
 		#expect(defaults.flush == response)
 		#expect(defaults.chatWindow == 200_000)
 		let chosen = try SessionSettings.npmDefaults
-			.replacing(.compactionModel, with: "test/compact")
 			.replacing(.contextWindowOverride, with: "500000")
 		let roles = ModelRoles(response: response, session: chosen)
-		#expect(roles.compaction == ModelID(rawValue: "test/compact"))
+		#expect(roles.compaction == response)
 		#expect(roles.flush == response)
 		#expect(roles.chatWindow == 200_000)
 		let small = try chosen.replacing(.contextWindowOverride, with: "32000")

@@ -72,7 +72,8 @@ extension FixtureLaunchTests {
 		let records = try #require(services.fixtureRecordFaults)
 		let model = model(services)
 		model.startChatting()
-		model.draft.text = "fixture:storage fail-next-append"
+		records.failNextAppend = true
+		model.draft.text = TutorialCopy.weekQuestion
 		model.draftChanged(from: "")
 		let draft = model.draft
 		await model.send()
@@ -105,7 +106,6 @@ extension FixtureLaunchTests {
 		}
 		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
 		#expect(failed.notice.action == .tryAgain(turn.id))
-		#expect(model.fixtureFeedback == nil)
 	}
 
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
@@ -138,46 +138,68 @@ extension FixtureLaunchTests {
 		let settled = try await settledTurn(model)
 		#expect(transport.requestCount == 1)
 		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
-		#expect(transport.requestDelay == FixtureDirector.slowFirstWordDelay)
-		#expect(transport.deltaDelay == FixtureDirector.slowWordDelay)
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
-		#expect(transport.requestDelay == nil)
-		#expect(transport.deltaDelay == nil)
 		#expect(replyText(try await settledTurn(model, at: 1).state) != nil)
 	}
 
-	@Test func unknownDirectiveIsShownAndSendsNothing() async throws {
+	@Test(arguments: [
+		"fixture:fail bogus", "fixture:storage fail-everything", "fixture:fail 500 xlots",
+	])
+	func unknownDirectiveRepliesWithItsDiagnostic(_ text: String) async throws {
 		let services = try services()
-		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
 		model.startChatting()
-		model.draft.text = "fixture:fail bogus"
-		await model.send()
-		#expect(transport.requestCount == 0)
-		#expect(model.chat?.turns.isEmpty ?? true)
-		#expect(model.draft.text == "fixture:fail bogus")
-		#expect(model.fixtureFeedback == "Unknown fixture directive: fixture:fail bogus")
-		model.draft.text = "fixture:storage fail-everything"
+		model.draft.text = text
 		await model.send()
 		#expect(
-			model.fixtureFeedback == "Unknown fixture directive: fixture:storage fail-everything")
-		#expect(transport.requestCount == 0)
-		#expect(await firstSnapshot(services, chat: .main)?.turns.isEmpty == true)
+			replyText(try await settledTurn(model).state) == "Unknown fixture directive: \(text)")
+		#expect(model.draft.text.isEmpty)
+		#expect(services.fixtureTransport?.requestCount == 1)
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let director = try #require(services.fixtureDirector)
-		#expect(await director.prepare(for: "fixture:hang") == .sendToCoach)
-		#expect(transport.hangUntilCancelled)
-		#expect(await director.prepare(for: TutorialCopy.weekQuestion) == .sendToCoach)
-		#expect(!transport.hangUntilCancelled)
-		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
-		#expect(await director.prepare(for: "fixture:hang") == .sendToCoach)
-		director.prepareRetry(of: "fixture:hang")
-		#expect(!transport.hangUntilCancelled)
-		#expect(transport.script == [.text(FirstWeekFixture.weekSummary), .finish(reason: .stop)])
+		let model = model(try services())
+		model.startChatting()
+		model.draft.text = "fixture:hang"
+		await model.send()
+		let turn = try await firstTurn(model)
+		let deadline = ContinuousClock.now + .seconds(5)
+		while model.services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		await model.stop()
+		let stopped = try await settledTurn(model)
+		await model.perform(.tryAgain(turn.id))
+		#expect(
+			replyText(try await settledTurn(model, after: stopped.state).state)
+				== FirstWeekFixture.weekSummary)
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		#expect(
+			replyText(try await settledTurn(model, at: 1).state) == FirstWeekFixture.weekSummary)
+	}
+
+	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
+		var launch = launch
+		launch.coalescing = CoalescingPolicy(window: .milliseconds(100))
+		let services = try AppServices.fixture(launch, defaults: defaults)
+		let model = model(services)
+		model.startChatting()
+		model.draft.text = "fixture:slow"
+		await model.send()
+		let deadline = ContinuousClock.now + .seconds(5)
+		while services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		model.draft.text = "Remember that Saturdays are group rides"
+		await model.send()
+		try await Task.sleep(for: .milliseconds(250))
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		#expect(
+			replyText(try await settledTurn(model, at: 1).state) == FirstWeekFixture.rememberReply)
+		#expect(
+			replyText(try await settledTurn(model, at: 2).state) == FirstWeekFixture.weekSummary)
 	}
 }

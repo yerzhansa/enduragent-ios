@@ -38,11 +38,6 @@ struct TranscriptView: View {
 						Text(notice.sentence(in: model.phrasebook))
 							.accessibilityIdentifier("chat.review.notice")
 					}
-					#if DEBUG
-						FixtureFeedbackDebugView(model: model) {
-							proxy.scrollTo("transcript.tail", anchor: .bottom)
-						}
-					#endif
 				}
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
 				.listRowSeparator(.hidden)
