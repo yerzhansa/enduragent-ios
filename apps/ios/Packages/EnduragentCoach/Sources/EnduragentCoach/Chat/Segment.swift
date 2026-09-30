@@ -57,7 +57,7 @@ package struct Segment: Sendable, Equatable {
 			summary: promptWindow.summary?.markdown, messages: [], ulids: [])
 		for facts in turns where facts.turn != turn {
 			if let trim = promptWindow.trim,
-				facts.messageRows.allSatisfy({ trim.messageUlids.contains($0.ulid) })
+				visibleRows(of: facts).allSatisfy({ trim.messageUlids.contains($0.ulid) })
 			{
 				continue
 			}

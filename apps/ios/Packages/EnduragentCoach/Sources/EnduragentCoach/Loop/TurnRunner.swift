@@ -47,6 +47,8 @@ extension Settlement {
 package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Void
 
 package struct TurnRunner: Sendable {
+	private static let droppedMessageLimit = 1_024
+
 	let transport: any ModelTransport
 	private let ledger: Ledger
 	let clock: any Clock
@@ -285,13 +287,18 @@ package struct TurnRunner: Sendable {
 			PromptAssembly.droppedSummaryRequest(
 				previous: previous, transcript: PromptAssembly.transcript(dropped)),
 			charge: .droppedSummary, attempt: attempt)
+		let windows = stride(from: 0, to: droppedUlids.count, by: Self.droppedMessageLimit).map {
+			start in
+			SyncedRecordBody.windowStart(
+				WindowStartBody(
+					chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim,
+					droppedMessageUlids: Array(
+						droppedUlids[
+							start..<min(start + Self.droppedMessageLimit, droppedUlids.count)])))
+		}
 		let records = try await ledger.commit(
-			synced: [
-				.windowStart(
-					WindowStartBody(
-						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim,
-						droppedMessageUlids: droppedUlids)),
-				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
+			synced: windows + [
+				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary))
 			],
 			stamp: scope.stamp)
 		return (summary, records)

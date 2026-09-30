@@ -137,9 +137,8 @@ extension Conversation {
 		var opened = Segment(id: SegmentID(boundary: boundary), openedBy: opening)
 		let last = segmentIndex(for: boundary)
 		if !segments.isEmpty {
-			opened.turns = segments[last].turns.filter { $0.opens(atOrAfter: boundary) }
 			opened.notes = segments[last].notes.filter { $0.ulid >= boundary }
-			segments[last] = segments[last].closing(at: boundary)
+			segments[last].notes.removeAll { $0.ulid >= boundary }
 		}
 		segments.insert(opened, at: last + 1)
 	}

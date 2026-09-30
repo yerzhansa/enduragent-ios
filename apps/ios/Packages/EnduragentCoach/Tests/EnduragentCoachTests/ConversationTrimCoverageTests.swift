@@ -108,6 +108,10 @@ import Testing
 					chatId: .main, firstIncludedUlid: fixedUlid(3), reason: .trim,
 					droppedMessageUlids: [fixedUlid(1), fixedUlid(2)])))
 		let encoded = try RecordCodec.encode(body)
+		let golden =
+			#"{"chatId":"main","droppedMessageUlids":["\#(fixedUlid(1).rawValue)","\#(fixedUlid(2).rawValue)"],"firstIncludedUlid":"\#(fixedUlid(3).rawValue)","reason":"trim"}"#
+		#expect(encoded.version == 2)
+		#expect(encoded.data == Data(golden.utf8))
 		#expect(
 			RecordCodec.decode(
 				kind: "windowStart", version: encoded.version, data: encoded.data,
