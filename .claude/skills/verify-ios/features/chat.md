@@ -24,7 +24,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-summary` summarizes older whole turns when the prompt budget is exceeded while preserving the visible transcript. Debug can show the summary at the head of the next prompt.
 - `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
 - `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` treats `/plan` as ordinary text and omits it from the list.
-- `chat-new-conversation` accepts Start new conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
+- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
 - `chat-session-settings` edits four settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
@@ -55,7 +55,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 - Finish onboarding, tap `chat.composer`, type, and tap `chat.send`.
 - Type `/` at the beginning of the composer to open the slash list; choose a command and send it.
 - Tap Stop responding while work is running, or the recovery action beneath a settled notice.
-- Tap Start new conversation in the top bar or send `/start`.
+- Tap the compose icon labeled New conversation in the top bar or send `/start`.
 - Relaunch the next morning with the store kept and send another message.
 - Choose Menu, Debug, then Records, Leases, or Conversation & time for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
 

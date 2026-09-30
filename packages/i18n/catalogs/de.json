@@ -993,6 +993,7 @@
       "cancel": "Abbrechen",
       "confirm": "Neues Gespräch starten",
       "hydrated": "Dein sichtbares Gespräch und die auf {{computer}} wiederhergestellten früheren Nachrichten werden gelöscht. Deine Trainingsdaten und die gespeicherten Erinnerungen des Coaches bleiben erhalten.",
+      "label": "Neues Gespräch",
       "title": "Neues Gespräch starten?"
     },
     "notice": {

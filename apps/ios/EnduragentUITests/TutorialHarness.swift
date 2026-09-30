@@ -141,6 +141,10 @@ enum TutorialHarness {
 		app.descendants(matching: .any).matching(identifier: identifier).firstMatch
 	}
 
+	static func assertIconButtonWidth(_ button: XCUIElement) {
+		XCTAssertLessThanOrEqual(button.frame.width, 44)
+	}
+
 	static func text(_ app: XCUIApplication, containing fragment: String) -> XCUIElement {
 		app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", fragment)).firstMatch
 	}

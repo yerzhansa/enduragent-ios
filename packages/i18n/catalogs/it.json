@@ -993,6 +993,7 @@
       "cancel": "Annulla",
       "confirm": "Inizia nuova conversazione",
       "hydrated": "La conversazione visibile e i messaggi precedenti ripristinati su {{computer}} verranno cancellati. I dati di allenamento e la memoria salvata del coach rimarranno.",
+      "label": "Nuova conversazione",
       "title": "Iniziare una nuova conversazione?"
     },
     "notice": {

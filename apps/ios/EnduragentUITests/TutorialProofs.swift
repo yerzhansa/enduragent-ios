@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 final class InstallOpenProof: XCTestCase {
@@ -155,7 +156,11 @@ final class NewConversationProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		let button = TutorialHarness.named(app, "chat.newConversation")
 		TutorialHarness.waitUntilHittable(button)
-		XCTAssertEqual(button.label, "Start new conversation")
+		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en_US")
+		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
+		XCTAssertEqual(button.elementType, .button)
+		TutorialHarness.assertIconButtonWidth(button)
+		TutorialHarness.attach(self, name: "new-conversation-compose-icon", app: app)
 		let welcome = TutorialHarness.named(app, "chat.welcome")
 		let tapped = Date()
 		button.tap()
