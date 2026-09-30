@@ -2887,10 +2887,7 @@ SystemClock.sleep(for:)
 SystemClock.timeZone
 SystemClock.uptime
 ToolName
-ToolName.assessFeasibility
-ToolName.buildPlanSkeleton
 ToolName.calculateZones
-ToolName.getSampleWeek
 ToolName.intervalsCreateStrengthWorkout
 ToolName.intervalsCreateWorkout
 ToolName.intervalsDeleteWorkout
@@ -2905,7 +2902,6 @@ ToolName.ledgerAppend
 ToolName.memoryQuery
 ToolName.memoryRead
 ToolName.memoryWrite
-ToolName.planLoad
 ToolName.planSave
 TranscriptNote
 TranscriptNote.after
@@ -2926,3 +2922,4 @@ WellnessDay.fatigue
 WellnessDay.fitness
 WellnessDay.form
 WellnessDay.init(date:fitness:fatigue:form:)
+WellnessDay.formattedNumber(_:fractionDigits:)

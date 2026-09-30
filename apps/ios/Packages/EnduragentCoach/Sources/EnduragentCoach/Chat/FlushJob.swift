@@ -276,13 +276,14 @@ package struct FlushWork: Sendable {
 	}
 
 	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
-		let settlement: FlushSettlement
-		if let saved = outcome.settlement {
-			settlement = saved
-		} else {
-			guard job.process != process else { return }
-			settlement = .abandoned
-		}
+		let settlement: FlushSettlement? =
+			switch outcome {
+			case .failed(let failure), .partial(_, _, let failure):
+				job.process != process && failure.isTerminal ? .abandoned : nil
+			case .saved, .nothingToSave:
+				outcome.settlement
+			}
+		guard let settlement else { return }
 		do {
 			_ = try await ledger.commit(
 				local: [

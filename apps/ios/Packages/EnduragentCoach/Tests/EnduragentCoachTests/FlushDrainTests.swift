@@ -22,7 +22,7 @@ import Testing
 	}
 
 	@discardableResult
-	func seedJob(covering turn: SeededTurn, settled: Bool)
+	func seedJob(covering turn: SeededTurn, settled: Bool, process: ProcessID? = nil)
 		async throws -> FlushJobID
 	{
 		let at = clock.now.addingTimeInterval(-5)
@@ -36,7 +36,7 @@ import Testing
 						.flushPending(
 							FlushPendingBody(
 								chatId: .main,
-								messageUlids: [turn.user, turn.reply]))))
+								messageUlids: [turn.user, turn.reply], process: process))))
 			])
 		if settled {
 			try await settle(job)
@@ -68,6 +68,86 @@ import Testing
 		_ = try await relaunched().sendAndSettle("Anything else?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
+	}
+
+	@Test(
+		arguments: [
+			ScriptedFailure.connection(.notConnectedToInternet), .connection(.timedOut),
+			.http(status: 408), .http(status: 429), .http(status: 500), .http(status: 503),
+			.http(status: 402),
+		], [false, true])
+	func aRelaunchDrainThatFailsTransientlyKeepsTheJobPending(
+		failure: ScriptedFailure, partial: Bool
+	) async throws {
+		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		let job = try await seedJob(
+			covering: try #require(history.first), settled: false,
+			process: ProcessID(ulid: fixedUlid(60)))
+		transport.flushScript =
+			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
+			+ [.fail(failure), .fail(failure)]
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		await coach.lifecycle(.becameActive)
+		_ = try #require(await host.ended(0))
+		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
+		#expect(sent(.memoryFlush, by: transport).count == (partial ? 3 : 2))
+		let original = try #require(sent(.memoryFlush, by: transport).first)
+			.messages.dropFirst().prefix(2)
+
+		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("Anything else?")
+		_ = try #require(await host.ended(1))
+		let flushes = sent(.memoryFlush, by: transport)
+		#expect(flushes.count == (partial ? 5 : 4))
+		for request in flushes.suffix(2) {
+			#expect(Array(request.messages.dropFirst().prefix(2)) == Array(original))
+		}
+		let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent]))).records
+		#expect(events.count == 1)
+		guard case .synced(.ledgerEvent(let event)) = try #require(events.first?.body) else {
+			Issue.record("expected the recovered memory event")
+			return
+		}
+		#expect(event.text == "Keep Saturdays free")
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
+		#expect(jobs.map(\.id) == [job])
+		#expect(jobs.map(\.saved) == [true])
+		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
+
+		transport.script = [.text("Still noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("And later?")
+		_ = try #require(await host.ended(2))
+		#expect(sent(.memoryFlush, by: transport).count == flushes.count)
+		#expect(try await count(.synced([.ledgerEvent])) == 1)
+	}
+
+	@Test(arguments: [
+		ScriptedFailure.http(status: 400), .http(status: 401), .http(status: 403),
+		.http(status: 404), .http(status: 422), .unknownFinish,
+		.http(status: 400, body: "maximum context length is 8192 tokens"),
+	])
+	func aRelaunchDrainAbandonsATerminalFailure(failure: ScriptedFailure) async throws {
+		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
+		try await seedJob(
+			covering: try #require(history.first), settled: false,
+			process: ProcessID(ulid: fixedUlid(60)))
+		transport.flushScript = [.fail(failure), .fail(failure)]
+		let host = ImmediateExecutionHost()
+		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		await coach.lifecycle(.becameActive)
+		_ = try #require(await host.ended(0))
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
+		#expect(jobs.map(\.abandoned) == [true])
+		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
+
+		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		_ = try await coach.sendAndSettle("Anything else?")
+		_ = try #require(await host.ended(1))
+		#expect(sent(.memoryFlush, by: transport).count == 2)
 	}
 
 	@Test func v1ConsumedMarkerStillSettlesAJob() async throws {

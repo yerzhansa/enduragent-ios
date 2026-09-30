@@ -61,6 +61,7 @@ test('rejects ledger indexes without a model version modifier', () => {
 });
 
 for (const [name, file, value, code] of [
+  ['rounded app number', 'apps/ios/Enduragent/Onboarding/ConnectView.swift', 'String(Int(value.rounded()))', 'app-number-formatting'],
   ['intervals identifier', 'apps/ios/value.swift', sensitiveID, 'intervals-id'],
   ['large JSON activity identifier', fixture, JSON.stringify({ id: activityID }), 'activity-id'],
   ['large activity URL', 'README.md', '/activity/' + activityID, 'activity-id'],
@@ -274,6 +275,13 @@ test('accepts package and internal records and public handles outside Records', 
       'public struct RecordStore {}',
     'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Diagnostics/RecordSyncProbe.swift':
       '#if DEBUG\npublic struct RecordSyncProbe {}\n#endif',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('accepts checked app conversions and string parsing', () => {
+  const result = run({
+    'apps/ios/Enduragent/App/Example.swift': 'let rounded = Int(exactly: value.rounded())\nlet parsed = Int(raw)',
   });
   assert.equal(result.status, 0, result.output);
 });

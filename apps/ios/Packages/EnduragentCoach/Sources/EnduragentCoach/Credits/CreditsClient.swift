@@ -153,12 +153,12 @@ package struct PhoneCreditsClient: CreditsClient {
 		vault: CredentialVault,
 		workerBase: URL,
 		openRouterBase: URL = ModelService.openRouterAPI,
-		session: URLSession = .shared
+		session: URLSession? = nil
 	) {
 		self.vault = vault
 		self.workerBase = workerBase
 		self.openRouterBase = openRouterBase
-		self.session = session
+		self.session = session ?? OpenRouterTransport.ephemeralSession(Self.timeout)
 	}
 
 	package func grant(deviceCheck: Data) async throws -> GrantOutcome {
@@ -255,7 +255,9 @@ package struct PhoneCreditsClient: CreditsClient {
 		)
 		let remaining =
 			try decode(OpenRouterKeyWire.self, from: data, status: status).data.limit_remaining ?? 0
-		let units = Int(floor(remaining * Double(scale.creditsPerUsd)))
+		guard let units = wholeInt(floor(remaining * Double(scale.creditsPerUsd))) else {
+			throw CreditsFailure.unexpectedResponse(status: status)
+		}
 		return CreditBalance(credits: Credits(units: max(0, units)))
 	}
 

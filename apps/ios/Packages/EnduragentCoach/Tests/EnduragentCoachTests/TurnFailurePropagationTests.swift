@@ -60,7 +60,7 @@ import Testing
 				.text("ok"),
 				.finish(reason: .stop),
 			]
-			let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+			let coach = makeCoach(transport: transport, store: try await storeWithNotes())
 			let settled = try await coach.sendAndSettle("Read my information")
 			#expect(replyText(settled) == "ok")
 			let followUp = try #require(transport.requests.dropFirst().first)
@@ -104,7 +104,7 @@ import Testing
 			.text("ok"),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = makeCoach(transport: transport, store: try await storeWithNotes())
 		let settled = try await coach.sendAndSettle("read memory")
 		#expect(replyText(settled) == "ok")
 		#expect(transport.requests.count == 2)
@@ -116,6 +116,17 @@ import Testing
 					"error": .string("invalid_arguments"),
 					"details": .string("Tool arguments were not valid JSON."),
 				]).canonicalDigestInput())
+	}
+
+	private func storeWithNotes() async throws -> InMemoryRecordLog {
+		let store = InMemoryRecordLog()
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let memory = Memory(
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+			clock: clock)
+		try await memory.writeSection(
+			.notes, content: "Prefers hill repeats", source: .chat, stamp: testStamp())
+		return store
 	}
 
 	private func expectPromptReadFailure(on occurrence: Int) async throws {

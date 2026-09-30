@@ -5,6 +5,16 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
+	@Test func parserPreservesUnknownToolNames() async throws {
+		let sse =
+			#"data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"unknown_call","function":{"name":"invented_tool","arguments":"{}"}}]},"finish_reason":"tool_calls"}]}"#
+		let events = try await collect(OpenRouterSSEParser.events(from: sse + "\ndata: [DONE]\n"))
+		let call = try #require(toolCalls(in: events).first)
+		#expect(call.name == "invented_tool")
+		#expect(call.id == "unknown_call")
+		#expect(call.arguments == "{}")
+	}
+
 	@Test func bodyOmitsTemperatureAndIncludesUsage() throws {
 		let body = OpenRouterHTTP.body(for: sampleRequest(tools: true))
 		let object = try objectValue(body)
@@ -51,7 +61,7 @@ import Testing
 		let calls = toolCalls(in: events)
 		#expect(calls.count == 1)
 		#expect(calls[0].id == "call_ada_week")
-		#expect(calls[0].name == .intervalsFetchActivities)
+		#expect(calls[0].name == "intervals_fetch_activities")
 		#expect(calls[0].arguments == "{\"days\":7}")
 		guard case .finished(let reason, let usage) = events.last else {
 			Issue.record("expected finished")
@@ -68,10 +78,10 @@ import Testing
 		let calls = toolCalls(in: events)
 		#expect(calls.count == 2)
 		#expect(calls[0].id == "call_ada_athlete")
-		#expect(calls[0].name == .intervalsFetchAthlete)
+		#expect(calls[0].name == "intervals_fetch_athlete")
 		#expect(calls[0].arguments == "{}")
 		#expect(calls[1].id == "call_ada_wellness")
-		#expect(calls[1].name == .intervalsFetchWellness)
+		#expect(calls[1].name == "intervals_fetch_wellness")
 		#expect(calls[1].arguments == "{\"oldest\":\"1998-06-01\",\"newest\":\"1998-06-13\"}")
 	}
 
@@ -281,7 +291,7 @@ private func sampleRequest(tools: Bool) -> CompletionRequest {
 				role: .assistant,
 				content: "",
 				toolCalls: [
-					WireToolCall(id: "call_ada_1", name: .intervalsFetchAthlete, arguments: "{}")
+					WireToolCall(id: "call_ada_1", name: "intervals_fetch_athlete", arguments: "{}")
 				],
 				toolCallId: nil
 			),

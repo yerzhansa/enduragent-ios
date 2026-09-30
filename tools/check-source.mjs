@@ -122,6 +122,7 @@ try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Records\/.*\.swift$/.test(file)
       && /\b(?:public|open)\b|@_spi\b/.test(text)) report(file, 'records-package-only');
