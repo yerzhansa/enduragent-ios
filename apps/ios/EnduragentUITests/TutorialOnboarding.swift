@@ -46,7 +46,7 @@ extension TutorialHarness {
 	}
 
 	static func agreeToProviderConsent(_ app: XCUIApplication, language: LanguageTag = .en) {
-		let phrasebook = CatalogPhrasebook(tag: language, locale: language.defaultLocale)
+		let phrasebook = CatalogPhrasebook(tag: language)
 		let accept = named(app, "consent.accept")
 		wait(accept)
 		XCTAssertEqual(
