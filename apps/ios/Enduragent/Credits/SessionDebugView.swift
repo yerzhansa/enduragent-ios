@@ -70,8 +70,6 @@
 			switch self {
 			case .historyBudgetRatio: "historyBudgetRatio"
 			case .contextWindowOverride: "contextWindowOverride"
-			case .compactionModel: "compactionModel"
-			case .flushModel: "flushModel"
 			}
 		}
 
@@ -79,8 +77,6 @@
 			switch self {
 			case .historyBudgetRatio: "History budget ratio"
 			case .contextWindowOverride: "Context window tokens"
-			case .compactionModel: "Compaction model"
-			case .flushModel: "Flush model"
 			}
 		}
 	}

@@ -46,6 +46,7 @@ package struct WindowStartBody: Sendable, Equatable {
 	package var chatId: ChatID
 	package var firstIncludedUlid: ULID
 	package var reason: WindowReason
+	package var droppedMessageUlids: [ULID]? = nil
 }
 
 package enum WindowReason: Sendable, Equatable {

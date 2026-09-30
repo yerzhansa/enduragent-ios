@@ -151,6 +151,7 @@ struct WindowStartPayload: Codable {
 	var chatId: String
 	var firstIncludedUlid: String
 	var reason: String
+	var droppedMessageUlids: [String]?
 }
 
 struct CompactionSummaryPayload: Codable {

@@ -1,5 +1,6 @@
 import EnduragentCoach
 import Foundation
+import StoreKit
 
 enum ShellRoute: Equatable {
 	case onboarding(OnboardingStep)
@@ -44,71 +45,12 @@ struct AppServices: Sendable {
 	var coach: Coach
 	var deviceCheck: any DeviceCheckTokenProviding
 	var clock: any Clock
-	var fixtureDirector: FixtureDirector?
 	var leases: @Sendable () async -> [LeaseRecord]
+	var packPrices: @Sendable ([String]) async throws -> [String: String]
 
-	var isFixture: Bool {
-		fixtureDirector != nil
-	}
-
-	var fixtureTransport: FakeModelTransport? {
-		fixtureDirector?.transport
-	}
-
-	var fixtureRecordFaults: RecordFaults? {
-		fixtureDirector?.records
-	}
-
-	static func fixture(_ launch: FixtureLaunch, defaults: UserDefaults) throws -> AppServices {
-		guard launch.name == FixtureLaunch.firstWeekName else {
-			throw FixtureLaunchError.unknownFixture(launch.name)
-		}
-		FixtureBlockingURLProtocol.register()
-		let clock = FixtureClock(
-			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
-		let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
-		FirstWeekFixture.install(on: intervals)
-		let transport = FakeModelTransport()
-		let fixture = try RecordStore.fixture(
-			directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
-			unreadable: launch.store == .unreadable)
-		let records = fixture.faults
-		records.failRecoveryReads = launch.recovery == .unreadable
-		let secretFixture = try ICloudKeychainStore.fixture(directory: launch.directory)
-		let secrets = secretFixture.store
-		if launch.keychain != .empty {
-			try FirstWeekFixture.install(on: secrets)
-		}
-		secretFixture.backing.locked = launch.keychain == .locked
-		let credits = FakeCreditsClient()
-		FirstWeekFixture.install(on: credits)
-		let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: fixture.store,
-				secrets: secrets,
-				models: .scripted(transport),
-				training: FirstWeekFixture.training(intervals),
-				credits: .fake(credits),
-				host: host,
-				clock: clock
-			),
-			builtInModel: builtInModel,
-			deviceLanguage: Language.uiTag(systemLanguages: Locale.preferredLanguages),
-			coalescing: launch.coalescing
-		)
-		return AppServices(
-			coach: coach,
-			deviceCheck: FakeDeviceCheckTokenProvider(),
-			clock: clock,
-			fixtureDirector: FixtureDirector(
-				transport: transport, records: records, host: host, secrets: secrets,
-				secretBacking: secretFixture.backing,
-				intervals: intervals, credits: credits),
-			leases: { host.leases }
-		)
-	}
+	#if DEBUG
+		var fixture: FixtureServices?
+	#endif
 
 	@MainActor
 	static func live(language: LanguageTag) throws -> AppServices {
@@ -134,8 +76,11 @@ struct AppServices: Sendable {
 			coach: coach,
 			deviceCheck: DeviceCheckTokenProvider(),
 			clock: clock,
-			fixtureDirector: nil,
-			leases: { await host.leases }
+			leases: { await host.leases },
+			packPrices: { identifiers in
+				let products = try await Product.products(for: identifiers)
+				return Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
+			}
 		)
 	}
 
@@ -157,16 +102,6 @@ final class AppEnvironment {
 
 	var deviceCheck: any DeviceCheckTokenProviding {
 		services.deviceCheck
-	}
-
-	var isFixture: Bool {
-		services.isFixture
-	}
-
-	static var isHostedByTests: Bool {
-		ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-			|| ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
-			|| NSClassFromString("XCTestCase") != nil
 	}
 
 	init(services: AppServices, language: LanguageTag, defaults: UserDefaults) {
