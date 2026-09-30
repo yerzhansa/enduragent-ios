@@ -2650,7 +2650,6 @@ FakeIntervalsClient.athleteId
 FakeIntervalsClient.athleteName
 FakeIntervalsClient.calls
 FakeIntervalsClient.createChatEvent(_:)
-FakeIntervalsClient.createOrUpdatePlanEvent(_:)
 FakeIntervalsClient.deleteEvent(id:)
 FakeIntervalsClient.events
 FakeIntervalsClient.fetchActivities(oldest:newest:)
@@ -2719,7 +2718,6 @@ ImmediateExecutionHost.init(expiringAfter:clock:)
 ImmediateExecutionHost.leases
 IntervalsClient
 IntervalsClient.createChatEvent(_:)
-IntervalsClient.createOrUpdatePlanEvent(_:)
 IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchActivities(oldest:newest:)
 IntervalsClient.fetchActivity(id:)
@@ -2792,17 +2790,6 @@ PackCatalog.init(purchasesEnabled:scale:packs:)
 PackCatalog.packs
 PackCatalog.purchasesEnabled
 PackCatalog.scale
-PlanMirrorCreate
-PlanMirrorCreate.date
-PlanMirrorCreate.description
-PlanMirrorCreate.movingTime
-PlanMirrorCreate.name
-PlanMirrorCreate.uid
-PlanMirrorCreate.workoutDoc
-PlanMirrorUID
-PlanMirrorUID.planId
-PlanMirrorUID.rawValue
-PlanMirrorUID.workoutId
 RecordFaults
 RecordFaults.failAppends(ofKind:)
 RecordFaults.failNextAppend
@@ -2903,5 +2890,5 @@ WellnessDay.date
 WellnessDay.fatigue
 WellnessDay.fitness
 WellnessDay.form
-WellnessDay.init(date:fitness:fatigue:form:)
 WellnessDay.formattedNumber(_:fractionDigits:)
+WellnessDay.init(date:fitness:fatigue:form:)

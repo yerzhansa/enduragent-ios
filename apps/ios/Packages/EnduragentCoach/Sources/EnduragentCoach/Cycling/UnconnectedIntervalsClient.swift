@@ -22,9 +22,6 @@ package struct UnconnectedIntervalsClient: IntervalsClient, Sendable {
 	package func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		throw Self.error
 	}
-	package func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		throw Self.error
-	}
 	package func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{
