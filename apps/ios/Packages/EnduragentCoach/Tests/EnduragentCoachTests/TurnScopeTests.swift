@@ -33,6 +33,35 @@ import Testing
 		#expect(await otherChat.written.isEmpty)
 	}
 
+	@Test func cancelledReadDoesNotEvictItsReplacement() async throws {
+		let readClock = HeldClock()
+		let ledger = Ledger(
+			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let heldTools = ToolRuntime(
+			intervals: HeldReadIntervals(clock: readClock), ledger: ledger,
+			planning: Planning(clock: clock), clock: clock)
+		let tools = ToolRuntime(
+			intervals: intervals, ledger: ledger, planning: Planning(clock: clock), clock: clock)
+		let turn = scope()
+		let week = try JSONValue.parse(#"{"days":7}"#)
+		let original = Task {
+			try await heldTools.execute(
+				name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+		}
+		try await readClock.waitUntilHeld(.seconds(30))
+		await turn.evict([.intervalsFetchActivities])
+		let replacement = try await tools.execute(
+			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+		original.cancel()
+		await #expect(throws: URLError(.cancelled)) {
+			try await original.value
+		}
+		let cached = try await tools.execute(
+			name: .intervalsFetchActivities, arguments: week, chatId: .main, scope: turn)
+		#expect(cached == replacement)
+		#expect(intervals.calls == [.activities(days: 7)])
+	}
+
 	@Test func flushLatchReturnsTrueOnce() async {
 		let turn = scope()
 		#expect(await turn.flushLatchFree)

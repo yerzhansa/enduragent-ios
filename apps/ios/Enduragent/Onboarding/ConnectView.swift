@@ -7,7 +7,7 @@ struct ConnectView: View {
 	var body: some View {
 		NavigationStack {
 			Form {
-				TextField(
+				SecureField(
 					model.phrasebook.say(Catalog.onboardingConnectApiKey, [:]),
 					text: $model.connectKey
 				)
