@@ -993,6 +993,7 @@
       "cancel": "Annuller",
       "confirm": "Start en ny samtale",
       "hydrated": "Din synlige samtale og de tidligere beskeder, der er gendannet på {{computer}}, bliver ryddet. Dine træningsdata og trænerens gemte hukommelse bliver bevaret.",
+      "label": "Ny samtale",
       "title": "Start en ny samtale?"
     },
     "notice": {

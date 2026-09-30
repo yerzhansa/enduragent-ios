@@ -993,6 +993,7 @@
       "cancel": "Annuleren",
       "confirm": "Nieuw gesprek starten",
       "hydrated": "Je zichtbare gesprek en de eerdere berichten die op {{computer}} zijn hersteld, worden gewist. Je trainingsgegevens en het opgeslagen coachgeheugen blijven bewaard.",
+      "label": "Nieuw gesprek",
       "title": "Een nieuw gesprek starten?"
     },
     "notice": {

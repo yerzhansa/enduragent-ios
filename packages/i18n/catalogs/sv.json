@@ -993,6 +993,7 @@
       "cancel": "Avbryt",
       "confirm": "Starta nytt samtal",
       "hydrated": "Ditt synliga samtal och de tidigare meddelanden som återställdes på {{computer}} rensas. Dina träningsdata och tränarens sparade minne finns kvar.",
+      "label": "Nytt samtal",
       "title": "Starta ett nytt samtal?"
     },
     "notice": {

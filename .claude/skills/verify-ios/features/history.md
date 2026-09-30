@@ -15,7 +15,7 @@ History contains archived conversations and opens each one read-only. There is s
 
 - Choose Menu, then History from the ongoing conversation.
 - Tap a `history.row.<id>` to read an archived conversation.
-- Create an archive with Start new conversation or `/start`. The [conversation map](./chat.md) covers those paths.
+- Create an archive with the compose icon labeled New conversation or `/start`. The [conversation map](./chat.md) covers those paths.
 
 ## Driving it with sim.mjs and XCUITest
 

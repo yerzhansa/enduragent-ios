@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 @MainActor
@@ -97,6 +98,12 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
 		TutorialHarness.completeOnboarding(app, language: .fr)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
+		let phrasebook = CatalogPhrasebook(tag: .fr, locale: "fr_FR")
+		let button = TutorialHarness.named(app, "chat.newConversation")
+		TutorialHarness.waitUntilHittable(button)
+		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
+		XCTAssertEqual(button.elementType, .button)
+		TutorialHarness.assertIconButtonWidth(button)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
@@ -120,7 +127,8 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 @MainActor
 final class SavedLanguageFirstFrameProof: XCTestCase {
 	private let englishChrome: Set<String> = [
-		"Message your coach", "Send message", "Start new conversation", "Choose your language",
+		"Message your coach", "Send message", "Choose your language",
+		CatalogPhrasebook(tag: .en, locale: "en_US").say(Catalog.chatNewConversationLabel),
 		"Not medical advice, and not a substitute for a doctor or a certified coach.",
 	]
 

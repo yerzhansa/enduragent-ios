@@ -993,6 +993,7 @@
       "cancel": "Peruuta",
       "confirm": "Aloita uusi keskustelu",
       "hydrated": "Näkyvä keskustelusi ja tietokoneelle {{computer}} palautetut aiemmat viestit tyhjennetään. Harjoitustietosi ja valmentajan tallennettu muisti säilyvät.",
+      "label": "Uusi keskustelu",
       "title": "Aloitetaanko uusi keskustelu?"
     },
     "notice": {

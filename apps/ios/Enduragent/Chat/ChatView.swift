@@ -26,9 +26,14 @@ struct ChatView: View {
 						.accessibilityIdentifier("chat.sidebar")
 					}
 					ToolbarItem(placement: .topBarTrailing) {
-						Button(model.phrasebook.say(Catalog.chatNewConversationConfirm, [:])) {
+						Button {
 							Task { await model.newConversation() }
+						} label: {
+							Label(
+								model.phrasebook.say(Catalog.chatNewConversationLabel, [:]),
+								systemImage: "square.and.pencil")
 						}
+						.labelStyle(.iconOnly)
 						.accessibilityIdentifier("chat.newConversation")
 					}
 				}

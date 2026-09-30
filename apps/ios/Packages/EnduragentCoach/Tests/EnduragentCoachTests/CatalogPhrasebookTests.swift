@@ -5,8 +5,8 @@ import Testing
 
 @Suite struct CatalogPhrasebookTests {
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2473)
-		#expect(Catalog.keyCount == 2513)
+		#expect(Catalog.englishLeafCount == 2474)
+		#expect(Catalog.keyCount == 2514)
 	}
 
 	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {
@@ -17,6 +17,30 @@ import Testing
 		#expect(
 			book.say(Catalog.creditsBalance, ["count": "12", "formattedCount": "12"])
 				== "12 credits")
+	}
+
+	@Test(arguments: [
+		(LanguageTag.en, "New conversation"),
+		(LanguageTag.da, "Ny samtale"),
+		(LanguageTag.de, "Neues Gespräch"),
+		(LanguageTag.es, "Nueva conversación"),
+		(LanguageTag.fi, "Uusi keskustelu"),
+		(LanguageTag.fr, "Nouvelle conversation"),
+		(LanguageTag.it, "Nuova conversazione"),
+		(LanguageTag.ja, "新しい会話"),
+		(LanguageTag.ko, "새 대화"),
+		(LanguageTag.nb, "Ny samtale"),
+		(LanguageTag.nl, "Nieuw gesprek"),
+		(LanguageTag.pl, "Nowa rozmowa"),
+		(LanguageTag.ptBR, "Nova conversa"),
+		(LanguageTag.ptPT, "Nova conversa"),
+		(LanguageTag.sv, "Nytt samtal"),
+		(LanguageTag.zhHans, "新对话"),
+		(LanguageTag.zhHant, "新對話"),
+	])
+	func newConversationLabelUsesEverySelectedLanguage(tag: LanguageTag, expected: String) {
+		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
+		#expect(book.say(Catalog.chatNewConversationLabel) == expected)
 	}
 
 	@Test(arguments: [
