@@ -31,13 +31,19 @@ package actor Ledger {
 		if opened {
 			return
 		}
-		let synced = try await fetch(RecordQuery(scope: .everySynced, writtenBy: deviceId))
-		let local = try await fetch(RecordQuery(scope: .everyDeviceLocal, writtenBy: deviceId))
-		for record in synced.records + local.records {
-			fold(record.hlc)
-			if lastUlid.map({ $0 < record.ulid }) ?? true {
-				lastUlid = record.ulid
+		do {
+			for locality in [RecordLocality.synced, .deviceLocal] {
+				guard let head = try await log.latest(locality: locality, writtenBy: deviceId)
+				else {
+					continue
+				}
+				fold(head.hlc)
+				if lastUlid.map({ $0 < head.ulid }) ?? true {
+					lastUlid = head.ulid
+				}
 			}
+		} catch {
+			throw LedgerFailure.unavailable
 		}
 		opened = true
 	}

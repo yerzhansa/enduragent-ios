@@ -3,8 +3,11 @@ import SwiftData
 
 @Model
 final class StoredAthleteRecord {
+	#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])
+
 	var envelopeVersion: Int = 1
 	var ulid: String = ""
+	@Attribute(hashModifier: "ledger-indexes-v1")
 	var deviceId: String = ""
 	var hlcWallMs: Int64 = 0
 	var hlcLogical: Int64 = 0

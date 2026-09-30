@@ -25,6 +25,13 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 		try await inner.append(batch, locality: locality)
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		scopes.withLock { $0.append(locality == .synced ? .everySynced : .everyDeviceLocal) }
+		let cursor = try await inner.latest(locality: locality, writtenBy: writtenBy)
+		recordCounts.withLock { $0 += cursor == nil ? 0 : 1 }
+		return cursor
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		scopes.withLock { $0.append(query.scope) }
 		let page = try await inner.fetch(query)
@@ -49,6 +56,10 @@ final class SlowAppendLog: RecordLog, Sendable {
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		try await Task.sleep(for: delay)
 		try await inner.append(batch, locality: locality)
+	}
+
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
@@ -77,6 +88,10 @@ final class SlowConversationReadLog: RecordLog, Sendable {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		try await inner.append(batch, locality: locality)
+	}
+
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
@@ -137,6 +152,10 @@ final class HeldAppendLog: RecordLog, Sendable {
 		}
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		try await inner.fetch(query)
 	}
@@ -159,6 +178,10 @@ final class SlowScopeLog: RecordLog, Sendable {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		try await inner.append(batch, locality: locality)
+	}
+
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {

@@ -85,7 +85,13 @@ package protocol RecordLog: Sendable {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
 	func fetch(_ query: RecordQuery) async throws -> RecordPage
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
 	var imports: AsyncStream<Void> { get }
+}
+
+package struct RecordCursor: Sendable, Equatable {
+	package let ulid: ULID
+	package let hlc: HybridLogicalClock
 }
 
 package struct RecordPage: Sendable, Equatable {
@@ -129,6 +135,15 @@ package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
 		return RecordPage(records: matching.sorted { $0.hlc < $1.hlc }, skipped: [])
 	}
 
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		records.withLock { records in
+			records.lazy.filter { $0.locality == locality && $0.deviceId == writtenBy }
+				.max { $0.hlc < $1.hlc }
+				.map { RecordCursor(ulid: $0.ulid, hlc: $0.hlc) }
+		}
+	}
+
 	package var imports: AsyncStream<Void> {
 		AsyncStream { _ in }
 	}
@@ -152,6 +167,30 @@ package struct SwiftDataRecordLog: RecordLog {
 			context.insert(try StoredAthleteRecord(record: record))
 		}
 		try context.save()
+	}
+
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		let deviceId = writtenBy.rawValue
+		var descriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { $0.deviceId == deviceId },
+			sortBy: [
+				SortDescriptor(\.hlcWallMs, order: .reverse),
+				SortDescriptor(\.hlcLogical, order: .reverse),
+			])
+		descriptor.fetchLimit = 1
+		descriptor.propertiesToFetch = [\.ulid, \.hlcWallMs, \.hlcLogical, \.hlcDeviceId, \.kind]
+		let context = ModelContext(container(for: locality))
+		guard let row = try context.fetch(descriptor).first else { return nil }
+		guard let ulid = ULID(rawValue: row.ulid), let logical = UInt32(exactly: row.hlcLogical)
+		else {
+			throw SkippedRow.malformed(kind: row.kind, ulid: row.ulid)
+		}
+		return RecordCursor(
+			ulid: ulid,
+			hlc: HybridLogicalClock(
+				wallMs: row.hlcWallMs, logical: logical,
+				deviceId: DeviceID(rawValue: row.hlcDeviceId)))
 	}
 
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
