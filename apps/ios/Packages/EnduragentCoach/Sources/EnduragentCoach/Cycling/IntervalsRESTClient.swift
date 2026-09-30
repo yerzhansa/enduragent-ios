@@ -108,12 +108,6 @@ package struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return event
 	}
 
-	package func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		_ = draft
-		throw IntervalsError(
-			code: "not_implemented", details: "Plan mirror writes are not available.")
-	}
-
 	package func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{

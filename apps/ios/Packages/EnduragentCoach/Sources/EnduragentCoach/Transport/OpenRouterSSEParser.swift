@@ -1,58 +1,38 @@
 import Foundation
 
 package enum OpenRouterSSEParser {
-	package static func events(from text: String) -> AsyncThrowingStream<TransportEvent, Error> {
-		AsyncThrowingStream { continuation in
-			do {
-				var state = ParseState()
-				for line in splitLines(text) {
-					for event in try state.consume(line: line) {
-						continuation.yield(event)
-					}
-					if state.isComplete {
-						break
-					}
-				}
-				if !state.isComplete {
-					for event in try state.finish() {
-						continuation.yield(event)
-					}
-				}
-				continuation.finish()
-			} catch {
-				continuation.finish(throwing: error)
-			}
-		}
-	}
-
 	package static func parse<S: AsyncSequence>(
-		lines: S,
+		bytes: S,
 		yield: @Sendable (TransportEvent) -> Void
-	) async throws where S.Element == String {
+	) async throws where S.Element == UInt8 {
 		var state = ParseState()
-		for try await line in lines {
+		var line: [UInt8] = []
+		var previousWasCR = false
+		for try await byte in bytes {
 			try Task.checkCancellation()
-			for event in try state.consume(line: line) {
+			if byte == 0x0A, previousWasCR {
+				previousWasCR = false
+				continue
+			}
+			previousWasCR = byte == 0x0D
+			guard byte == 0x0A || byte == 0x0D else {
+				line.append(byte)
+				continue
+			}
+			for event in try state.consume(line: String(decoding: line, as: UTF8.self)) {
 				yield(event)
 			}
+			line.removeAll(keepingCapacity: true)
 			if state.isComplete {
 				return
 			}
 		}
-		if !state.isComplete {
-			for event in try state.finish() {
-				yield(event)
-			}
+		for event in try state.consume(line: String(decoding: line, as: UTF8.self)) {
+			yield(event)
 		}
-	}
-}
-
-private func splitLines(_ text: String) -> [String] {
-	text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
-		if line.last == "\r" {
-			return String(line.dropLast())
+		for event in try state.finish() {
+			yield(event)
 		}
-		return String(line)
 	}
 }
 
