@@ -8,7 +8,7 @@ extension TurnRunner {
 		progress: @escaping AttemptProgressSink
 	) async throws -> AttemptResult {
 		try Task.checkCancellation()
-		try await scope.chargeAttempt()
+		try await scope.chargeAttempt(using: ladder)
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
 			try await flushOnce(
@@ -101,6 +101,10 @@ extension TurnRunner {
 		if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 			assistantText = PromptStaticBlocks.stepLimitCopy
 			await progress(.textDelta(assistantText))
+		}
+
+		if let outcome = try await scope.savedReviewWork(using: ladder) {
+			return .savedWork(outcome, saved: await scope.summary)
 		}
 
 		let templateHash = sha256Hex(
@@ -230,6 +234,8 @@ extension TurnRunner {
 							chatId: attempt.chat,
 							scope: scope
 						).outcome
+					} catch let saved as SavedWorkReached {
+						throw saved
 					} catch is CancellationError {
 						throw CancellationError()
 					} catch  where Task.isCancelled {

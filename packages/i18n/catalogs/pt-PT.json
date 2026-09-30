@@ -1024,6 +1024,7 @@
       "savedChoice": "Escolha guardada",
       "working": "O treinador está a trabalhar…",
       "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
+      "calendarUnverified": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente.",
       "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente."
     },
     "planChange": {
