@@ -9,7 +9,7 @@ struct AccentColorTests {
 		(UIUserInterfaceStyle.light, UIAccessibilityContrast.normal, 56, 101, 142),
 		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.normal, 130, 174, 214),
 		(UIUserInterfaceStyle.light, UIAccessibilityContrast.high, 51, 92, 130),
-		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 130, 174, 214),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 151, 188, 221),
 	])
 	func appBundleAccentMatchesAppearance(
 		style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast,
@@ -28,7 +28,7 @@ struct AccentColorTests {
 		(UIUserInterfaceStyle.light, UIAccessibilityContrast.normal, 56, 101, 142),
 		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.normal, 130, 174, 214),
 		(UIUserInterfaceStyle.light, UIAccessibilityContrast.high, 51, 92, 130),
-		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 130, 174, 214),
+		(UIUserInterfaceStyle.dark, UIAccessibilityContrast.high, 151, 188, 221),
 	])
 	func appTintMatchesAppearance(
 		style: UIUserInterfaceStyle, contrast: UIAccessibilityContrast,
