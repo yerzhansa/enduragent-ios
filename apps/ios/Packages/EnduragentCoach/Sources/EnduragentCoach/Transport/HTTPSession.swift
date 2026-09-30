@@ -5,6 +5,9 @@ package func ephemeralSession(
 ) -> URLSession {
 	let configuration = URLSessionConfiguration.ephemeral
 	configuration.urlCache = nil
+	configuration.httpCookieStorage = nil
+	configuration.httpShouldSetCookies = false
+	configuration.urlCredentialStorage = nil
 	configuration.timeoutIntervalForRequest = requestTimeout
 	if let resourceTimeout {
 		configuration.timeoutIntervalForResource = resourceTimeout
