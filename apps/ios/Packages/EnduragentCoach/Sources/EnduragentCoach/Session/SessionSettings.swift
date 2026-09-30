@@ -153,7 +153,7 @@ public struct SessionSettingRejected: Error, Sendable, Equatable {
 		self.init(field: field, reason: field.rejection)
 	}
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
 		phrasebook.say(reason, [:])
 	}
 }

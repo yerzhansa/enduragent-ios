@@ -352,7 +352,7 @@ import Testing
 
 }
 
-private let english = CatalogPhrasebook(tag: .en, locale: "en")
+private let english = CatalogPhrasebook(tag: .en)
 private let earlierSummary = "## Athlete Profile\n- Rides Saturdays with a group"
 
 extension Array {

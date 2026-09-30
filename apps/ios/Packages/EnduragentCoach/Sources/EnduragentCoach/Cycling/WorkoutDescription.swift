@@ -2,7 +2,7 @@ import Foundation
 
 extension IntervalsSerializer {
 	package static func description(
-		_ workout: IntervalsWorkoutInput, phrasebook: (any Phrasebook)? = nil
+		_ workout: IntervalsWorkoutInput, phrasebook: CatalogPhrasebook? = nil
 	) -> [String] {
 		var lines: [String] = []
 		var currentLabel: String?
@@ -25,7 +25,8 @@ extension IntervalsSerializer {
 		return lines
 	}
 
-	private static func sectionLabel(_ step: WorkoutStep, phrasebook: (any Phrasebook)?) -> String {
+	private static func sectionLabel(_ step: WorkoutStep, phrasebook: CatalogPhrasebook?) -> String
+	{
 		if case .simple(let simple) = step {
 			if simple.type == .warmup {
 				return phrasebook?.say(Catalog.reviewWorkoutWarmup, [:]) ?? "Warmup"
@@ -37,7 +38,7 @@ extension IntervalsSerializer {
 		return phrasebook?.say(Catalog.reviewWorkoutMainSet, [:]) ?? "Main set"
 	}
 
-	private static func stepLine(_ step: SimpleStep, phrasebook: (any Phrasebook)?) -> String {
+	private static func stepLine(_ step: SimpleStep, phrasebook: CatalogPhrasebook?) -> String {
 		var parts = [formatDuration(step.duration)]
 		if let power = step.power {
 			let target = powerText(power, ramp: step.type == .ramp)
