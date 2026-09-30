@@ -1009,6 +1009,7 @@
       "cancel": "Anuluj",
       "confirm": "Rozpocznij nową rozmowę",
       "hydrated": "Widoczna rozmowa i wcześniejsze wiadomości przywrócone na {{computer}} zostaną usunięte. Twoje dane treningowe i zapisana pamięć trenera pozostaną.",
+      "label": "Nowa rozmowa",
       "title": "Rozpocząć nową rozmowę?"
     },
     "notice": {

@@ -165,6 +165,7 @@
       "cancel": "Cancel",
       "confirm": "Start new conversation",
       "hydrated": "Your visible conversation and the earlier messages restored on {{computer}} will be cleared. Your training data and saved coach memory will remain.",
+      "label": "New conversation",
       "title": "Start a new conversation?"
     },
     "notice": {
