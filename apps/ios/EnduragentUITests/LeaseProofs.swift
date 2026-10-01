@@ -121,16 +121,18 @@ final class FinishedWhileAwayProof: XCTestCase {
 			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
 		TutorialHarness.attach(self, name: "finished-while-away-second-return", app: app)
 		let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-		app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.01))
+		let cover = TutorialHarness.named(system, "lockscreen-date-view")
+		app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.01))
 			.press(
 				forDuration: 0.05,
-				thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.6)))
-		TutorialHarness.wait(system.buttons["Airplane Mode"], until: .hittable)
-		TutorialHarness.attach(self, name: "finished-while-away-control-center", app: system)
+				thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
+		TutorialHarness.wait(cover)
+		TutorialHarness.attach(self, name: "finished-while-away-notification-center", app: system)
 		system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98))
 			.press(
 				forDuration: 0.05,
 				thenDragTo: system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+		TutorialHarness.wait(cover, until: .absent)
 		TutorialHarness.wait(app, until: .foreground)
 		assertReadingPosition(
 			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
