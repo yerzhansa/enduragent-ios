@@ -39,7 +39,11 @@ extension ChatMailboxTests {
 		let count = observed.count
 		store.notifyImport()
 		try await waitUntil { observed.count > count }
-		#expect(observed.latest == snapshot)
+		let refreshed = try #require(observed.latest)
+		#expect(refreshed.revision > snapshot.revision)
+		var expected = snapshot
+		expected.revision = refreshed.revision
+		#expect(refreshed == expected)
 		#expect(store.subscriptions == 1)
 	}
 
@@ -57,12 +61,13 @@ extension ChatMailboxTests {
 		try await waitUntil { observed.latest?.turns.contains { $0.id == remote } == true }
 		let snapshot = try #require(observed.latest)
 		#expect(snapshot.turns.map(\.athleteText) == ["Local question", "Remote question"])
-		guard case .processing(let live)? = snapshot.turns.first?.state else {
+		guard case .processing? = snapshot.turns.first?.state else {
 			await coach.stop(.main)
 			Issue.record("import replaced the running local turn")
 			return
 		}
-		#expect(live.liveText == "Local partial")
+		#expect(snapshot.liveReply?.turn == local)
+		#expect(snapshot.liveReply?.text == "Local partial")
 		#expect(replyText(try #require(snapshot.turns.last?.state)) == "Remote answer")
 		await coach.stop(.main)
 		#expect(try await settlements(of: local, in: store).count == 1)
@@ -141,7 +146,11 @@ extension ChatMailboxTests {
 		let before = observed.latest
 		faults.failFetches = true
 		let remote = try await importTurn(into: store)
-		try await waitUntil { coach.diagnostics.entries.count == 1 }
+		try await waitUntil {
+			coach.diagnostics.entries.contains {
+				$0.event == .importsUnavailable(.main, .unavailable)
+			}
+		}
 		#expect(observed.latest == before)
 		faults.failFetches = false
 		store.notifyImport()

@@ -57,12 +57,12 @@ import Testing
 			keySuffix: "-key", athleteName: "Ada Kovač", today: nil, displayUnavailable: nil)
 	}
 
-	func coach(_ secrets: any SecretStore) async -> Coach {
+	func coach(_ secrets: any SecretStore, log: (any RecordLog)? = nil) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
 				ports: CoachPorts(
-					records: RecordStore(log: records), secrets: secrets,
+					records: RecordStore(log: log ?? records), secrets: secrets,
 					models: .scripted(transport),
 					training: training, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),

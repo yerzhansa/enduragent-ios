@@ -45,6 +45,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case preferencesUnavailable(LedgerFailure)
 	case evidenceUnavailable(AttemptID, TrainingFailure)
 	case reviewOutcomeUnsaved(LedgerFailure)
+	case settlementUnsaved(TurnID, LedgerFailure)
+	case reviewUnavailable(ChatID, LedgerFailure)
 
 	fileprivate func redacted(_ secrets: [String]) -> DiagnosticsEvent {
 		switch self {
@@ -56,7 +58,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
 			.recoveryUnavailable, .importsUnavailable,
-			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved:
+			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved,
+			.settlementUnsaved, .reviewUnavailable:
 			return self
 		}
 	}

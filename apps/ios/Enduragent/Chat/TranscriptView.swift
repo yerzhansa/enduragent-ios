@@ -59,7 +59,7 @@ struct TranscriptView: View {
 			.accessibilityIdentifier("chat.transcript")
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
-			.onChange(of: model.chat, initial: true) {
+			.onChange(of: model.chat?.revision, initial: true) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 			.onChange(of: model.slashListVisible) {
@@ -77,7 +77,7 @@ struct TranscriptView: View {
 	}
 
 	private func notes(after turn: TurnID?) -> some View {
-		ForEach((model.chat?.notes ?? []).filter { $0.after == turn }) { note in
+		ForEach(model.chat?.notes[turn] ?? []) { note in
 			Text(note.sentence(in: model.phrasebook))
 				.accessibilityIdentifier("chat.note")
 		}

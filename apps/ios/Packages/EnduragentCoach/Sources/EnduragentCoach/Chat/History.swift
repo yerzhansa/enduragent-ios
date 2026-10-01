@@ -93,7 +93,9 @@ extension Ledger {
 		var archive = Conversation(chat: ref.chat, segments: [segment])
 		archive.apply(settled + local, device: deviceId)
 		let loaded = archive.current
-		let views = loaded.turnViews(live: nil, device: deviceId, process: process, today: today)
+		var projection = TurnProjection()
+		let views = projection.turns(
+			in: loaded, live: nil, device: deviceId, process: process, today: today)
 		return ArchivedConversation(
 			id: ref, startedOn: summary.startedOn, reason: reason,
 			turns: views, notes: loaded.transcriptNotes(among: views))

@@ -29,20 +29,20 @@ extension TurnRunnerTests {
 		let done = "Done — Create workout \"Endurance\" on 1998-06-14."
 		let phrasebook = CatalogPhrasebook(tag: .en)
 		let shown = try #require(await coach.currentSnapshot(.main))
-		#expect(shown.notes.map { $0.sentence(in: phrasebook) } == [done])
-		#expect(shown.notes.first?.after == proposing)
+		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: phrasebook) } == [done])
+		#expect(shown.notes[proposing]?.first?.after == proposing)
 
 		try await coach.setLanguage(.fixed(.fr))
 		let french = try await coach.observedStatus().language.phrasebook(device: .en)
 		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 1998-06-14."
-		#expect(shown.notes.map { $0.sentence(in: french) } == [frenchDone])
+		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
 
 		let reopened = await makeCoach()
 		let relaunched = try #require(await reopened.currentSnapshot(.main))
 		#expect(relaunched.review == nil)
-		#expect(relaunched.notes.map { $0.sentence(in: phrasebook) } == [done])
-		#expect(relaunched.notes.first?.after == proposing)
-		#expect(relaunched.notes.map { $0.sentence(in: french) } == [frenchDone])
+		#expect((relaunched.notes[proposing] ?? []).map { $0.sentence(in: phrasebook) } == [done])
+		#expect(relaunched.notes[proposing]?.first?.after == proposing)
+		#expect((relaunched.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
 		let synced = try await store.fetch(
 			RecordQuery(scope: .synced([.reviewApplied]), chatId: "main")
 		).records
@@ -55,7 +55,7 @@ extension TurnRunnerTests {
 		_ = try await reopened.sendAndSettle("How did Saturday go")
 		let later = try #require(await reopened.currentSnapshot(.main))
 		#expect(later.turns.count == 2)
-		#expect(later.notes.first?.after == proposing)
+		#expect(later.notes[proposing]?.first?.after == proposing)
 		#expect(await reopened.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(await reopened.currentSnapshot(.main)?.notes.isEmpty == true)
 		let archivedRef = try #require(try await reopened.history().first?.id)
@@ -85,7 +85,7 @@ extension SingleProposalReviewsTests {
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		let shown = try #require(await coach.currentSnapshot(.main))
 		#expect(shown.turns.isEmpty)
-		#expect(shown.notes.count == 1)
+		#expect(shown.notes[nil]?.count == 1)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let history = try await coach.history()
 		#expect(history.count == 2)
@@ -93,7 +93,7 @@ extension SingleProposalReviewsTests {
 		#expect(history.first?.firstQuestion == nil)
 		let archived = try #require(try await coach.archivedConversation(ref))
 		#expect(archived.turns.isEmpty)
-		#expect(archived.notes == shown.notes)
-		#expect(try await self.coach().archivedConversation(ref)?.notes == shown.notes)
+		#expect(archived.notes == shown.notes[nil])
+		#expect(try await self.coach().archivedConversation(ref)?.notes == shown.notes[nil])
 	}
 }
