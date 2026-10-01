@@ -78,7 +78,7 @@ final class LanguagePickerProof: XCTestCase {
 	private func timedChoice(_ choice: XCUIElement, until title: XCUIElement) -> TimeInterval {
 		let tapped = Date()
 		choice.tap()
-		XCTAssertTrue(title.waitForExistence(timeout: 5))
+		TutorialHarness.wait(title, within: .screen)
 		return Date().timeIntervalSince(tapped)
 	}
 
@@ -100,7 +100,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		let phrasebook = CatalogPhrasebook(tag: .fr)
 		let button = TutorialHarness.named(app, "chat.newConversation")
-		TutorialHarness.waitUntilHittable(button)
+		TutorialHarness.wait(button, until: .hittable)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
 		XCTAssertEqual(button.elementType, .button)
 		TutorialHarness.assertIconButtonWidth(button)
@@ -159,15 +159,19 @@ final class SavedLanguageFirstFrameProof: XCTestCase {
 
 	private func stringsUntilTheComposer(_ app: XCUIApplication) throws -> Set<String> {
 		var seen = Set<String>()
-		let deadline = Date().addingTimeInterval(10)
-		while Date() < deadline {
-			let snapshot = try app.snapshot()
-			seen.formUnion(strings(in: snapshot))
-			if contains(snapshot, identifier: "chat.composer") {
-				return seen
-			}
-		}
-		XCTFail("the chat composer never appeared after the relaunch")
+		var failure: (any Error)?
+		TutorialHarness.wait(
+			until: {
+				do {
+					let snapshot = try app.snapshot()
+					seen.formUnion(self.strings(in: snapshot))
+					return self.contains(snapshot, identifier: "chat.composer")
+				} catch {
+					failure = error
+					return true
+				}
+			}, message: "the chat composer never appeared after the relaunch")
+		if let failure { throw failure }
 		return seen
 	}
 
@@ -233,7 +237,9 @@ final class SessionRejectionProof: XCTestCase {
 			}
 		}
 		TutorialHarness.attach(self, name: "m1-12-rejected-last", app: app)
-		app.navigationBars.buttons.element(boundBy: 0).tap()
+		let back = app.navigationBars["Session"].buttons["Debug"]
+		TutorialHarness.wait(back, until: .hittable)
+		back.tap()
 		TutorialHarness.named(app, "debug.records").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
@@ -267,7 +273,7 @@ final class RatioAppliesProof: XCTestCase {
 			TutorialHarness.closeMenu(app)
 		}
 		for turn in 1...9 {
-			TutorialHarness.exchange(app, "fixture:long", timeout: 60)
+			TutorialHarness.exchange(app, "fixture:long", within: .longTurn)
 			TutorialHarness.openRecords(app)
 			let written = TutorialHarness.recordCount(app, "compactionSummary") != nil
 			if written, ratio != nil {
@@ -309,6 +315,6 @@ enum SessionDebug {
 		for _ in 0..<12 where !element.isHittable {
 			from.press(forDuration: 0.05, thenDragTo: to)
 		}
-		TutorialHarness.waitUntilHittable(element)
+		TutorialHarness.wait(element, until: .hittable)
 	}
 }

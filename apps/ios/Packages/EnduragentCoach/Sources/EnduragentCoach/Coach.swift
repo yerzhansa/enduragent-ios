@@ -4,7 +4,6 @@ public actor Coach {
 	package let memory: Memory
 	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
-
 	private let sport: SportID
 	private let transport: any ModelTransport
 	let ledger: Ledger
@@ -64,14 +63,16 @@ public actor Coach {
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
+		let reviews = SingleProposalReviews(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
+		)
+		self.reviews = reviews
 		self.runner = TurnRunner(
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			watchdogSleep: ports.watchdogSleep)
-		self.reviews = SingleProposalReviews(
-			ledger: ledger, clock: clock, diagnostics: diagnostics,
-			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
+			reviews: reviews, watchdogSleep: ports.watchdogSleep
 		)
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
@@ -115,13 +116,15 @@ public actor Coach {
 		do {
 			mailbox = try await self.mailbox(for: chat)
 		} catch {
-			return .storageUnavailable
+			diagnostics.record(.recoveryUnavailable(error))
+			return await reviews.unresolved(.unknown(.readFailed))
 		}
-		if case .checkAgain(let ref) = decision {
+		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
 			return await mailbox.reviewChanged(ref)
 		}
 		let outcome = await reviews.decide(
-			decision, chat: chat, scope: await mailbox.reviewScope)
+			decision, chat: chat, scope: await mailbox.reviewScope,
+			changed: { _ = await mailbox.reviewChanged() })
 		_ = await mailbox.reviewChanged()
 		return outcome
 	}

@@ -61,7 +61,7 @@ final class ChatRecords {
 		} else {
 			jobs = try await ledger.flushJobs(in: folded)
 		}
-		let review = try await reviews.snapshot(chat: chat)
+		let review = try await reviews.snapshot(chat: chat, records: imported)
 		folded.apply(Array(applied.values), device: ledger.deviceId)
 		conversation = folded
 		self.review = review
@@ -79,7 +79,7 @@ final class ChatRecords {
 		if let ref, review?.ref != ref { return .staleControl }
 		do {
 			try await refreshNotes()
-			review = try await reviews.snapshot(chat: chat)
+			review = try await reviews.snapshot(chat: chat, records: nil)
 			return .presentationRecorded
 		} catch {
 			reviewUnavailable(error)
@@ -118,7 +118,7 @@ final class ChatRecords {
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
-			RecordQuery(scope: .synced([.reviewApplied]), chatId: chat))
+			RecordQuery(scope: .synced([.reviewApplied, .reviewWrite]), chatId: chat))
 		apply(notes.records)
 	}
 

@@ -101,16 +101,15 @@ import Testing
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		#expect(ada.calls.filter(\.isWrite).count == 1)
-		let clears = try await records.fetch(
-			RecordQuery(scope: .deviceLocal([.proposalCleared]), chatId: "main")
+		let writes = try await records.fetch(
+			RecordQuery(scope: .synced([.reviewWrite]), chatId: .main)
 		).records
-		guard
-			case .operation(.workoutChangeSet(token.ref.set, token.ref.revision), _)? =
-				clears.first?.cause
-		else {
-			Issue.record("expected the change-set stamp on the clear, got \(clears)")
+		guard case .synced(.reviewWrite(let applied)) = writes.last?.body else {
+			Issue.record("expected durable applied evidence")
 			return
 		}
+		#expect(applied.evidence == .applied(eventID: 1))
+
 	}
 
 	@Test func presentationFailedWithdrawsTheControl() async throws {
@@ -177,27 +176,35 @@ import Testing
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == .approveOrCancel(token))
+		#expect(
+			try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]), chatId: .main))
+				.records.isEmpty)
 		secretBacking.locked = false
 		#expect(
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 	}
 
-	@Test func rejectedWriteSettlesPartiallyAppliedWithACatalogSentence() async throws {
+	@Test func dispatchedRejectionKeepsPendingReviewWithACatalogSentence() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = IntervalsError(code: "http", details: "status 422", status: 422)
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
 		#expect(
-			outcome == .partiallyApplied(done: [], stoppedAt: card, failure: .requestRejected))
+			outcome
+				== .uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
+		)
 		#expect(
 			outcome.notice?.sentence(in: phrasebook)
-				== "intervals.icu rejected the request — check your intervals.icu connection or API key."
+				== "This workout may have been saved. Check the calendar before continuing."
 		)
-		#expect(await coach.currentSnapshot(.main)?.review == nil)
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
 		#expect(
 			coach.diagnostics.entries.contains {
 				if case .toolFailed(_, .intervalsCreateWorkout, _) = $0.event {
@@ -211,15 +218,18 @@ import Testing
 	@Test func lostResponseSettlesUncertain() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = URLError(.timedOut)
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
-		#expect(outcome == .uncertain(done: [], unresolved: card))
+		#expect(
+			outcome
+				== .uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
+		)
 		#expect(
 			outcome.notice?.sentence(in: phrasebook)
-				== "Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
+				== "This workout may have been saved. Check the calendar before continuing."
 		)
 		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
 	}
@@ -259,8 +269,9 @@ import Testing
 				"intervals.icu rejected the request — check your intervals.icu connection or API key."
 			),
 			(
-				.uncertain(done: [], unresolved: card),
-				"Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
+				.uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:])),
+				"This workout may have been saved. Check the calendar before continuing."
 			),
 			(
 				.blocked(.accountChanged),

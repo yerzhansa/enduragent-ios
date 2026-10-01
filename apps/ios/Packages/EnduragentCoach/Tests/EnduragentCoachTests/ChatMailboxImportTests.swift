@@ -75,8 +75,7 @@ extension ChatMailboxTests {
 			RecordQuery(scope: .synced([.turnSettled]), turn: local)
 		).records
 		#expect(try #require(settled.first).hlc.wallMs >= 2_000_000_000_002)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
 		#expect(transport.requestCount == 1)
 	}
 
@@ -104,9 +103,10 @@ extension ChatMailboxTests {
 		let state = try #require(observed.latest?.turns.first { $0.id == local }?.state)
 		#expect(isInterrupted(state))
 		#expect(try await settlements(of: local, in: store).count == 1)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
-		#expect(await mailbox.conversation.turn(local)?.requestText == "Local question")
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
+		#expect(
+			await coach.currentSnapshot(.main)?.turns.first { $0.id == local }?.athleteText
+				== "Local question")
 	}
 
 	@Test func importKeepsAnUnsavedSettlement() async throws {
@@ -128,9 +128,8 @@ extension ChatMailboxTests {
 		#expect(observed.latest?.turns.first { $0.id == local }?.state == before)
 		#expect(replyText(before) == "Unsaved answer")
 		#expect(try await settlements(of: local, in: store).isEmpty)
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
-		#expect(await mailbox.conversation.turn(local)?.replyObserved.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.filter { $0.id == local }.count == 1)
+		#expect(await coach.currentSnapshot(.main)?.turns.first { $0.id == local }?.state == before)
 	}
 
 	@Test func failedImportKeepsTheConversationAndRetriesTheNextNotification() async throws {

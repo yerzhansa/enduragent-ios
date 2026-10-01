@@ -6,7 +6,7 @@ final class NoticeCopyProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 402")
+		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.creditsExhausted))
 		let buy = TutorialHarness.named(app, "chat.turn.buyCredits")
 		XCTAssertEqual(buy.label, TutorialHarness.buyCredits)
@@ -18,7 +18,7 @@ final class NoticeCopyProof: XCTestCase {
 		XCTAssertEqual(balance.label, "200 credits")
 		TutorialHarness.attach(self, name: "notice-copy-buy-credits-opens-credits", app: app)
 		app.navigationBars.buttons.element(boundBy: 0).tap()
-		TutorialHarness.send(app, "fixture:fail 401")
+		TutorialHarness.exchange(app, "fixture:fail 401")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.accessRejected))
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.turn.restorePurchases").label,
@@ -29,7 +29,7 @@ final class NoticeCopyProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "credits.balance"))
 		TutorialHarness.attach(self, name: "notice-copy-restore-purchases-opens-credits", app: app)
 		app.navigationBars.buttons.element(boundBy: 0).tap()
-		TutorialHarness.send(app, "fixture:memory-then-fail")
+		TutorialHarness.exchange(app, "fixture:memory-then-fail")
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.savedUnverified))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-saved-unverified", app: app)
@@ -40,7 +40,7 @@ final class NoticeCopyProof: XCTestCase {
 final class AccessNoticeProof: XCTestCase {
 	func testNotConfiguredOpensTheConnectStep() {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, keychain: "empty")
+		TutorialHarness.launch(app, keychain: .empty)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.notConfigured))
@@ -57,8 +57,7 @@ final class AccessNoticeProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		app.launchArguments += [TutorialHarness.keychainArgument, "locked"]
-		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.relaunchKeepingStore(app, keychain: .locked)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.locked))
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
@@ -81,14 +80,13 @@ final class StopNoticeProof: XCTestCase {
 		TutorialHarness.send(app, TutorialHarness.draft)
 		TutorialHarness.wait(app.staticTexts[TutorialHarness.draft])
 		let stop = TutorialHarness.named(app, "chat.stop")
-		TutorialHarness.waitUntilHittable(stop)
+		TutorialHarness.wait(stop, until: .hittable)
 		stop.tap()
 		let stopped = app.staticTexts.matching(
 			NSPredicate(
 				format: "identifier == %@ AND label == %@", "chat.turn.notice",
 				TutorialHarness.interruptedNothingChanged))
-		XCTAssertTrue(
-			stopped.element(boundBy: 1).waitForExistence(timeout: 8), "missing the queued notice")
+		TutorialHarness.wait(stopped.element(boundBy: 1))
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		XCTAssertTrue(partial.exists)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.receivedBeforeClose].exists)
@@ -105,7 +103,7 @@ final class RateLimitMinutesProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 90 x4")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitTwoMinutes),
-			timeout: 330)
+			within: .rateLimitMinutes)
 		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
 		XCTAssertTrue(tryAgain.exists)
 		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the 90 second wait")
@@ -121,18 +119,16 @@ final class RateLimitTryAgainOpensProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 6 x4")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSixSeconds),
-			timeout: 40)
+			within: .retry)
 		let shown = Date()
 		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
 		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the wait ended")
 		TutorialHarness.attach(self, name: "rate-limit-waiting", app: app)
-		let enabled = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "enabled == true"), object: tryAgain)
-		XCTAssertEqual(XCTWaiter.wait(for: [enabled], timeout: 15), .completed)
+		TutorialHarness.wait(tryAgain, until: .enabled, within: .turn)
 		XCTAssertGreaterThanOrEqual(Date().timeIntervalSince(shown), 3)
 		TutorialHarness.attach(self, name: "rate-limit-try-again-open", app: app)
 		tryAgain.tap()
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 20)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, within: .turn)
 		TutorialHarness.attach(self, name: "rate-limit-tried-again", app: app)
 	}
 }
@@ -143,7 +139,7 @@ final class FrenchNoticesProof: XCTestCase {
 		let phrasebook = CatalogPhrasebook(tag: .fr)
 		TutorialHarness.launch(app, language: "fr", locale: "fr_FR")
 		TutorialHarness.completeOnboarding(app, language: .fr)
-		TutorialHarness.send(app, "fixture:fail 402")
+		TutorialHarness.exchange(app, "fixture:fail 402")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: phrasebook.say(Catalog.creditsErrorExhausted)))
 		XCTAssertEqual(

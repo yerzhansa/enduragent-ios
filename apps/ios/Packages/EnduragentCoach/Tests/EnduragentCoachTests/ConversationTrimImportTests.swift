@@ -34,17 +34,22 @@ import Testing
 			])
 		store.notifyImport()
 		try await waitUntil { observed.latest?.turns.contains { $0.id == turn } == true }
-		let mailbox = try await coach.mailbox(for: .main)
-		let live = await mailbox.conversation.current.promptHistory(excluding: local)
-		let remoteMessages = live.messages.map(\.text).filter {
-			$0 == "Remote question" || $0 == "Remote answer"
-		}
-		#expect(remoteMessages == ["Remote question", "Remote answer"])
-		#expect(live.summary == "Earlier conversation.")
-		#expect(!live.messages.contains { $0.text == "Question 0" })
 		await coach.stop(.main)
 		#expect(try await settlements(of: local, in: store).count == 1)
 		#expect(sent(.droppedSummary, by: transport).count == 1)
+		let live = await coach.currentSnapshot(.main)
+		let reopened = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		#expect(live == (await reopened.currentSnapshot(.main)))
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saturday too."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		_ = try await coach.sendAndSettle("And Saturday?")
+		let prompt = try #require(sent(.chatAttempt, by: transport).last)
+		#expect(prompt.messages.contains { $0.unstampedContent == "Remote question" })
+		#expect(prompt.messages.contains { $0.content == "Remote answer" })
+		#expect(prompt.messages.contains { $0.content.contains("Earlier conversation.") })
+		#expect(!prompt.messages.contains { $0.unstampedContent == "Question 0" })
+
 	}
 
 	@Test func aRemoteTurnImportedAfterTheTrimStillReachesTheModel() async throws {

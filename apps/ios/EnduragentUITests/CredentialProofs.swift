@@ -5,7 +5,7 @@ final class DifferentAthleteProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.openCredentials(app)
 		let account = TutorialHarness.connectedAccount(app)
@@ -17,7 +17,7 @@ final class DifferentAthleteProof: XCTestCase {
 		TutorialHarness.attach(self, name: "different-athlete", app: app)
 		TutorialHarness.closeMenu(app)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 		TutorialHarness.closeMenu(app)
@@ -43,7 +43,7 @@ final class SameAthleteRotationProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.workout)
+		TutorialHarness.exchange(app, TutorialHarness.workout)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.openCredentials(app)
 		let before = TutorialHarness.connectedAccount(app)
@@ -79,7 +79,7 @@ final class DisconnectProof: XCTestCase {
 		TutorialHarness.waitForIdentifier(app, "credentials.outcome", reading: "Disconnected.")
 		TutorialHarness.waitForIdentifier(app, "credentials.connection", reading: "unconnected")
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), "unconnected")
 		TutorialHarness.attach(self, name: "disconnect", app: app)
@@ -91,7 +91,7 @@ final class ConnectAfterLaunchProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.startUnconnected(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), "unconnected")
 		TutorialHarness.closeMenu(app)
@@ -101,7 +101,7 @@ final class ConnectAfterLaunchProof: XCTestCase {
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
 		let account = TutorialHarness.connectedAccount(app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.remember)
+		TutorialHarness.exchange(app, TutorialHarness.remember)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 		TutorialHarness.attach(self, name: "connect-after-launch", app: app)
@@ -122,7 +122,7 @@ final class FailedWriteRecordsProof: XCTestCase {
 			app, "credentials.outcome", reading: TutorialHarness.previousKeyKept)
 		TutorialHarness.attach(self, name: "failed-write", app: app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 		TutorialHarness.attach(self, name: "failed-write-records", app: app)
@@ -132,35 +132,23 @@ final class FailedWriteRecordsProof: XCTestCase {
 final class UpgradeConnectionProof: XCTestCase {
 	func testConnectionFromBeforeTheVaultReachesTheNextTurn() throws {
 		let app = XCUIApplication()
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
-		app.launch()
-		if TutorialHarness.named(app, "consent.accept").waitForExistence(timeout: 3) {
-			TutorialHarness.agreeToProviderConsent(app)
-		}
-		guard TutorialHarness.named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		TutorialHarness.launchUpgrade(app, store: .preVault)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.sidebar"))
 		TutorialHarness.openRecords(app)
 		let claims = TutorialHarness.recordRowLabels(app).filter { $0.hasPrefix("turnClaim ") }
 		TutorialHarness.closeMenu(app)
-		guard !claims.isEmpty, claims.allSatisfy({ $0.hasSuffix(" unconnected") }) else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		XCTAssertEqual(claims.count, 1)
+		XCTAssertTrue(claims.allSatisfy { $0.hasSuffix(" unconnected") })
 		TutorialHarness.openCredentials(app)
 		let connection = TutorialHarness.named(app, "credentials.connection")
 		TutorialHarness.wait(connection)
-		guard connection.label != "unconnected" else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		XCTAssertNotEqual(connection.label, "unconnected")
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
 		let account = TutorialHarness.connectedAccount(app)
 		XCTAssertTrue(account.hasSuffix(":i1001"), "the upgraded connection reads \(account)")
 		TutorialHarness.attach(self, name: "upgrade-item", app: app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.remember)
+		TutorialHarness.exchange(app, TutorialHarness.remember)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 	}
@@ -194,7 +182,7 @@ final class CredentialTransactionProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.named(app, "credentials.connection").label, connection)
 		TutorialHarness.attach(self, name: "credential-transaction", app: app)
 		TutorialHarness.closeMenu(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.attach(self, name: "credential-transaction-reply", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -206,10 +194,9 @@ final class LockedKeychainProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		app.launchArguments += [TutorialHarness.keychainArgument, "locked"]
-		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.relaunchKeepingStore(app, keychain: .locked)
 		TutorialHarness.waitForIdentifier(
 			app, "chat.composer.notice", reading: TutorialHarness.locked)
 		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
@@ -223,11 +210,7 @@ final class LockedKeychainProof: XCTestCase {
 final class StorageUnavailableProof: XCTestCase {
 	func testUnreadableStoreShowsTheNotice() {
 		let app = XCUIApplication()
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "unreadable",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
-		app.launch()
+		TutorialHarness.launch(app, arguments: FixtureArguments(store: .unreadable))
 		TutorialHarness.wait(TutorialHarness.named(app, "launch.storageUnavailable"))
 		TutorialHarness.waitForLabel(app, "Conversation history is temporarily unavailable.")
 		TutorialHarness.waitForLabel(app, "Quit and reopen Enduragent.")
@@ -237,8 +220,6 @@ final class StorageUnavailableProof: XCTestCase {
 }
 
 extension TutorialHarness {
-	static let connectionBeforeVaultMissing =
-		"needs a store and keychain that a build before M1-11 left after connecting intervals.icu"
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."
 	static let rotatedForAda = "Replaced. Ada Kovač, authority sameAthlete."

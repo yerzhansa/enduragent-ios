@@ -132,6 +132,7 @@ IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchActivities(oldest:newest:)
 IntervalsClient.fetchActivity(id:)
 IntervalsClient.fetchAthlete()
+IntervalsClient.fetchEvent(id:)
 IntervalsClient.fetchStreams(id:)
 IntervalsClient.fetchWellness(oldest:newest:)
 IntervalsClient.listEvents(oldest:newest:)
@@ -154,11 +155,11 @@ JSONValue.object
 JSONValue.parse(_:)
 JSONValue.string
 KeychainStoreError
-KeychainStoreError.keychain
 KeychainStoreError.encoding
 KeychainStoreError.fileSystem
-KeychainStoreError.unexpected
+KeychainStoreError.keychain
 KeychainStoreError.status
+KeychainStoreError.unexpected
 Language
 Language.detectMessageLanguage(_:)
 Language.normalizeLocaleHint(_:)

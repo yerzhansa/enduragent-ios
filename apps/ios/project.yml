@@ -21,6 +21,12 @@ targets:
       - path: Enduragent
         excludes:
           - Info.plist
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade
+        type: folder
+        buildPhase: resources
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/pre-vault-5de5c782
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
@@ -42,7 +48,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
       configs:
         Release:
-          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures*
+          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade pre-vault-5de5c782
     info:
       path: Enduragent/Info.plist
       properties:
@@ -91,6 +97,7 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentUITests
+      - path: Enduragent/Fixtures/FixtureArguments.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.uitests

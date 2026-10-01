@@ -64,7 +64,7 @@ struct IntervalsRESTClientTests {
 		#expect(rows[0].trainingLoad == 120)
 	}
 
-	@Test func listEventsSendsCategoryQuery() async throws {
+	@Test func listEventsDoesNotFilterAwayMovedIdentities() async throws {
 		let client = try makeClient()
 		let events = try await client.listEvents(oldest: "1998-06-14", newest: "1998-06-20")
 		let items =
@@ -73,7 +73,7 @@ struct IntervalsRESTClientTests {
 				resolvingAgainstBaseURL: false
 			)?.queryItems ?? []
 		let categories = items.filter { $0.name == "category" }.compactMap(\.value)
-		#expect(Set(categories) == Set(IntervalsPolicy.eventCategories))
+		#expect(categories.isEmpty)
 		#expect(events[0].coachCreated)
 		#expect(events[0].name == "Endurance")
 		#expect(!events[1].coachCreated)
@@ -122,24 +122,25 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient(
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		)
-		let draft = try CyclingTools.parseCreateWorkout(
+		var draft = try CyclingTools.parseCreateWorkout(
 			try JSONValue.parse(
 				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
 			),
 			today: "1998-06-13"
 		)
+		draft.writeID = CalendarWriteID()
 		let event = try await client.createChatEvent(draft)
 		let request = try #require(IntervalsURLProtocolStub.lastRequest)
 		#expect(request.httpMethod == "POST")
 		#expect(request.url?.path.hasSuffix("/athlete/0/events") == true)
-		#expect(request.url?.query == "upsertOnUid=false")
+		#expect(request.url?.query == "upsertOnUid=true")
 		let data = try #require(IntervalsURLProtocolStub.lastBody)
 		let body = try #require(String(data: data, encoding: .utf8))
 		#expect(body.contains("\"start_date_local\""))
 		#expect(body.contains("\"external_id\""))
 		#expect(!body.contains("moving_time"))
 		#expect(!body.contains("icu_training_load"))
-		#expect(!body.contains("\"uid\""))
+		#expect(body.contains("\"uid\""))
 		#expect(!body.contains("workout_doc"))
 		#expect(event.name == "Endurance")
 	}
@@ -220,10 +221,11 @@ struct IntervalsRESTClientTests {
 			}
 			if path.contains("/events") {
 				if method == "POST" {
-					let created = """
-						{"id":1,"start_date_local":"1998-06-14T00:00:00","name":"Endurance","category":"WORKOUT","external_id":"cycling-coach:1998-06-14:endurance","tags":["cycling-coach"]}
-						"""
-					return (200, Data(created.utf8))
+					let data = try #require(IntervalsURLProtocolStub.lastBody)
+					var fields = try JSONValue.parse(String(decoding: data, as: UTF8.self))
+						.objectFields
+					fields["id"] = .number(1)
+					return (200, Data(JSONValue.object(fields).canonicalDigestInput().utf8))
 				}
 				return (200, try fixtureData("intervals-events"))
 			}

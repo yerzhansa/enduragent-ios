@@ -9,14 +9,12 @@ extension ToolRuntime {
 	) async throws -> ToolOutcome {
 		do {
 			let parsed = try parseGated(gated, arguments: arguments)
-			let proposal = try await ProposalPolicy.propose(
+			let proposal = try await reviews.propose(
 				chatId: chatId,
 				tool: gated,
 				input: parsed.input,
 				summary: parsed.summary,
 				description: parsed.description,
-				now: clock.now,
-				ledger: ledger,
 				scope: scope
 			)
 			return .pending(proposal)

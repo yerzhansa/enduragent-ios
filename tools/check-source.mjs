@@ -12,6 +12,7 @@ const forbiddenPath = /(?:^|\/)(?:docs|node_modules|\.build|build|dist|out|Deriv
 const language = /\b(?:CTL|ATL|TSB|TSS|IF|NP|Normalized\s+Power|[Nn]orm\s+[Pp]ower)\b/;
 const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
 const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
+const upgradeStore = /^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee)\/(?:synced|local)-records\.store$/;
 const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
 const featureFile = /^\.claude\/skills\/verify-ios\/features\/[^/]+\.md$/;
 let violations = 0;
@@ -162,7 +163,7 @@ try {
     }
     const bytes = readFileSync(path);
     if (bytes.includes(0)) {
-      if (!appIcon.test(file)) {
+      if (!appIcon.test(file) && !(upgradeStore.test(file) && bytes.subarray(0, 16).equals(Buffer.from('SQLite format 3\0')))) {
         report(file, 'unexpected-binary');
       }
       continue;
@@ -173,6 +174,11 @@ try {
         || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
           && /\btemporaryDirectory\b|\bAppServices\s*\.\s*fixture\s*\(/.test(text)))) report(file, 'app-fixture-folder-ownership');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
+      && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
+    if (proofFile.test(file)
+      && /\bXCTNSPredicateExpectation\b|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\.wait\s*\(\s*for\s*:/.test(text)) report(file, 'ui-proof-eager-waits');
+    if (proofFile.test(file) && /\bXCTSkip(?:If|Unless)?\b/.test(text)) report(file, 'ui-proof-no-skips');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
