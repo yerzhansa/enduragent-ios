@@ -4,6 +4,42 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct ChatRecordFailureTests {
+	@Test(arguments: [false, true])
+	func fetchFailureAtSettlementStillPersistsTheExactReply(useLocalCopy: Bool) async throws {
+		let store = InMemoryRecordLog()
+		let faults = FaultInjectingRecordLog(wrapping: store)
+		let answer = "Keep this exact reply.\nTwo rides, 3 h 10 min."
+		let transport = FakeModelTransport { _ in
+			faults.failFetches = true
+			faults.failSyncedAppends = useLocalCopy
+			return ScriptedReply([.text(answer), .finish(reason: .stop)])
+		}
+		let coach = await makeCoach(transport: transport, store: faults)
+		let turn = try #require(
+			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
+		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == answer)
+		let synced = try await store.fetch(RecordQuery(scope: .synced([.turnSettled]), turn: turn))
+		let local = try await store.fetch(
+			RecordQuery(scope: .deviceLocal([.pendingSettlement]), turn: turn))
+		#expect(synced.records.count == (useLocalCopy ? 0 : 1))
+		#expect(local.records.count == (useLocalCopy ? 1 : 0))
+		#expect(
+			await coach.currentSnapshot(.main)?.turns.first?.saveFailure
+				== (useLocalCopy ? Catalog.chatNoticeReplyUnsaved : nil))
+		await coach.lifecycle(.willTerminate)
+		faults.failFetches = false
+		let reopened = await makeCoach(transport: FakeModelTransport(), store: faults)
+		#expect(replyText(try #require(await reopened.state(of: turn))) == answer)
+		await reopened.lifecycle(.willTerminate)
+		faults.failSyncedAppends = false
+		let recovered = await makeCoach(transport: FakeModelTransport(), store: faults)
+		#expect(replyText(try #require(await recovered.state(of: turn))) == answer)
+		#expect(try await settlements(of: turn, in: store).count == 1)
+		#expect(await recovered.currentSnapshot(.main)?.turns.first?.saveFailure == nil)
+		#expect(transport.requestCount == 1)
+		await recovered.lifecycle(.willTerminate)
+	}
+
 	@Test(arguments: [false, true], [false, true])
 	func failedSettlementSurvivesRecoveryAndReopening(
 		recoverBeforeReopening: Bool, lostAcknowledgment: Bool
