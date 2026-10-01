@@ -61,6 +61,13 @@ package actor ChatMailbox {
 	var conversation: Conversation { records.conversation }
 	var jobs: [FlushJob] { records.jobs }
 
+	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
+		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
+		return await records.hasLocalWork() || stored || work.phase.running != nil
+			|| work.phase.cause != nil
+			|| work.window != nil || !work.isEmpty || door.held
+	}
+
 	package func observe() async -> AsyncStream<ChatSnapshot> {
 		return feed.subscribe(from: snapshot())
 	}
