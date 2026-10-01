@@ -60,6 +60,12 @@ public struct AthleteProfile: Sendable, Equatable {
 	public var id: String
 	public var name: String
 	public var ftp: Int?
+
+	package init(id: String, name: String, ftp: Int?) {
+		self.id = id
+		self.name = name
+		self.ftp = ftp
+	}
 }
 
 package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
@@ -162,6 +168,20 @@ public struct CalendarEvent: Sendable, Equatable {
 	public var uid: String?
 	public var tags: [String]
 	public var coachCreated: Bool
+
+	package init(
+		id: EventID, startDateLocal: String, name: String, category: String, externalId: String?,
+		uid: String?, tags: [String], coachCreated: Bool
+	) {
+		self.id = id
+		self.startDateLocal = startDateLocal
+		self.name = name
+		self.category = category
+		self.externalId = externalId
+		self.uid = uid
+		self.tags = tags
+		self.coachCreated = coachCreated
+	}
 }
 
 public struct ChatCalendarCreate: Sendable, Equatable {

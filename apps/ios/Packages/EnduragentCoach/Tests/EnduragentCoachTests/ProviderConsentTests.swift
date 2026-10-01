@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import SwiftData
 import Testing
@@ -23,7 +24,8 @@ import Testing
 		#expect(refusal.notice.action == .tryAgain(turn))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		let answered = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(answered) == "Hello.")
@@ -88,7 +90,8 @@ import Testing
 				== .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Hello")) == "Hello.")
 	}
 
@@ -186,7 +189,8 @@ extension SwiftDataSuites {
 		try await coach.recordConsent()
 		let reopened = await makeCoach(transport: transport, store: log, consent: false)
 		#expect(await reopened.status().needsProviderConsent == false)
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		#expect(replyText(try await reopened.sendAndSettle("Hello again")) == "Hello.")
 		#expect(transport.requestCount == 1)
 		let page = try await log.fetch(RecordQuery(scope: .deviceLocal([.providerConsent])))
@@ -202,12 +206,12 @@ extension SwiftDataSuites {
 		let directory = FileManager.default.temporaryDirectory.appending(
 			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
 		let device = DeviceID(rawValue: "consent-test-device")
-		let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+		let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: fixture.store.log, consent: false)
 		try await coach.recordConsent()
 		let consent = try #require(await coach.status().providerConsent)
-		let reopened = try RecordStore.fixture(directory: directory, deviceId: device)
+		let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 		let next = await makeCoach(
 			transport: FakeModelTransport(), store: reopened.store.log, consent: false)
 		#expect(await next.status().providerConsent == consent)

@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -58,6 +59,16 @@ final class FixtureLaunchTests {
 
 	func environment(_ services: AppServices) -> AppEnvironment {
 		AppEnvironment(services: services, language: language, defaults: defaults)
+	}
+
+	func until(
+		within limit: Duration = .seconds(5), _ condition: () -> Bool
+	) async throws {
+		let deadline = ContinuousClock.now + limit
+		while !condition(), ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		try #require(condition())
 	}
 
 	func settledTurn(

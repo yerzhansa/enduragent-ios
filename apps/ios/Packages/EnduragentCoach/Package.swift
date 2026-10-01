@@ -9,7 +9,9 @@ let package = Package(
 		.macOS(.v15),
 	],
 	products: [
-		.library(name: "EnduragentCoach", targets: ["EnduragentCoach"])
+		.library(name: "EnduragentCoach", targets: ["EnduragentCoach"]),
+		.library(
+			name: "EnduragentCoachFixtures", targets: ["EnduragentCoachFixtures"]),
 	],
 	targets: [
 		.target(
@@ -19,9 +21,10 @@ let package = Package(
 				.copy("Loop/PromptResources"),
 			]
 		),
+		.target(name: "EnduragentCoachFixtures", dependencies: ["EnduragentCoach"]),
 		.testTarget(
 			name: "EnduragentCoachTests",
-			dependencies: ["EnduragentCoach"],
+			dependencies: ["EnduragentCoach", "EnduragentCoachFixtures"],
 			resources: [.copy("Fixtures")]
 		),
 	],

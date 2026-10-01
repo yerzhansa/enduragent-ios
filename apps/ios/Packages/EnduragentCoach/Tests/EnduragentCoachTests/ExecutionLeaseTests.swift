@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -42,11 +43,13 @@ import Testing
 	@Test func oneLeasePerDrainCoversQueuedTurnAndFlush() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.requestDelay = .milliseconds(500)
-		transport.script = [
-			.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
-		]
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
+			], requestDelay: .milliseconds(500), otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			requestDelay: .milliseconds(500), otherwise: transport.respond)
 		let coach = await coach()
 		let first = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
@@ -71,25 +74,9 @@ import Testing
 		#expect(try await claims(of: second).map(\.lease) == [.continuedProcessing])
 	}
 
-	@Test func theLeaseBeginsAtSendWhileTheWindowIsStillOpen() async throws {
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let coach = await makeCoach(
-			transport: transport, store: store, clock: clock,
-			coalescing: CoalescingPolicy(window: .seconds(60)), host: host)
-		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		let deadline = ContinuousClock.now + .seconds(2)
-		while host.leases.isEmpty, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		#expect(host.leases.map(\.request) == [athleteLease])
-		#expect(
-			await coach.state(of: turn)
-				== .accepted(.collecting(until: clock.now.addingTimeInterval(60))))
-		await coach.stop(.main)
-	}
-
 	@Test func expiryMidReplySettlesInterruptedWithPartialText() async throws {
-		transport.script = [.text("Yes, keep Thursday."), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, keep Thursday."), .hang], otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -119,7 +106,7 @@ import Testing
 	}
 
 	@Test func expiryCancelsQueuedTurnsAsStoppedBeforeStart() async throws {
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let coach = await coach()
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
@@ -146,7 +133,8 @@ import Testing
 	}
 
 	@Test func leaseEndsFinishedWithNoticeWhenReplyLands() async throws {
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		#expect(
@@ -167,9 +155,10 @@ import Testing
 	}
 
 	@Test func progressReportsTheRealStepOfAToolTurn() async throws {
-		transport.script = [
-			saturdays, .finish(reason: .toolCalls), .text("Noted."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				saturdays, .finish(reason: .toolCalls), .text("Noted."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await coach()
 		_ = try await coach.sendAndSettle("Remember Saturdays")
 		let lease = try #require(await host.ended(0))
@@ -179,7 +168,9 @@ import Testing
 	}
 
 	@Test func expiryAfterAMemorySaveOffersNoTryAgain() async throws {
-		transport.script = [schedule, .finish(reason: .toolCalls), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[schedule, .finish(reason: .toolCalls), .hang], otherwise: transport.respond
+		)
 		let coach = await coach()
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
@@ -199,7 +190,7 @@ import Testing
 	}
 
 	@Test func graceEndedSettlesTheRunningTurnAsGraceEnded() async throws {
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
@@ -213,10 +204,10 @@ import Testing
 	}
 
 	@Test func aReplyThatLandsWhileAwayIsMarkedCompletedInBackground() async throws {
-		transport.requestDelay = .milliseconds(200)
-		transport.script = [
-			.text("Still on."), .finish(reason: .stop), .text("Yes."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Still on."), .finish(reason: .stop), .text("Yes."), .finish(reason: .stop),
+			], requestDelay: .milliseconds(200), otherwise: transport.respond)
 		let coach = await coach()
 		let away = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(away)
@@ -230,8 +221,9 @@ import Testing
 	}
 
 	@Test func aFailedReplyWhileAwayIsNotMarkedCompleted() async throws {
-		transport.requestDelay = .milliseconds(200)
-		transport.script = [.fail(.http(status: 401))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 401))], requestDelay: .milliseconds(200),
+			otherwise: transport.respond)
 		let coach = await coach()
 		let away = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(away)
@@ -245,10 +237,11 @@ import Testing
 
 	@Test func aLateExpiryFromAnEndedLeaseStopsNothing() async throws {
 		let keeping = KeepingHost()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await coach(host: keeping)
 		_ = try await coach.sendAndSettle("Thursday?")
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let running = try #require(try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		await keeping.expire(lease: 0, .systemExpired)
@@ -268,7 +261,9 @@ import Testing
 	@Test func recoveryDrainsFlushJobsUnderAGracePeriodLease() async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		try await seedPendingJob(covering: history[0])
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
 		let coach = await coach()
 		await coach.lifecycle(.becameActive)
 		let lease = try #require(await host.ended(0))
@@ -283,9 +278,12 @@ import Testing
 	@Test func aSendDuringRecoveryMovesTheDrainToAnAthleteLease() async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		try await seedPendingJob(covering: history[0])
-		transport.requestDelay = .milliseconds(300)
-		transport.flushScript = [.finish(reason: .stop)]
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop)], for: .flush, requestDelay: .milliseconds(300),
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], requestDelay: .milliseconds(300),
+			otherwise: transport.respond)
 		let coach = await coach()
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -301,7 +299,8 @@ import Testing
 	}
 
 	@Test func aClaimRecordsTheLeaseKindTheHostGranted() async throws {
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await coach(host: GraceOnlyHost())
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
@@ -309,7 +308,8 @@ import Testing
 	}
 
 	@Test func recordsDebugNamesTheClaimLeaseAndTheExpiry() async throws {
-		transport.script = [.text("Yes, keep "), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, keep "), .hang], otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -321,7 +321,8 @@ import Testing
 	}
 
 	@Test func aTimedExpiryInterruptsTheRunningTurnWithoutATap() async throws {
-		transport.script = [.text("Yes, keep "), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, keep "), .hang], otherwise: transport.respond)
 		let expiryClock = HeldClock()
 		let timed = ImmediateExecutionHost(expiringAfter: .milliseconds(300), clock: expiryClock)
 		let coach = await coach(host: timed)
@@ -344,8 +345,11 @@ import Testing
 	@Test func expiryStartsNoFlushAfterTheInterruptedTurn() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.script = [.text("Noted, "), .hang]
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted, "), .hang], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)

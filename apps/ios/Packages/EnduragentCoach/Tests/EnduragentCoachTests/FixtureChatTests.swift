@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -6,8 +7,8 @@ import Testing
 @Suite struct FixtureChatTests {
 	@Test(arguments: [false, true])
 	func retryAfterRelaunchRecoversAHangingDirective(started: Bool) async throws {
-		let respond: @Sendable (String, Bool) -> ScriptedReply = { _, retry in
-			ScriptedReply(retry ? [.text("Recovered"), .finish(reason: .stop)] : [.hang])
+		let respond: FakeModelTransport.Response = { request in
+			ScriptedReply(request.retry ? [.text("Recovered"), .finish(reason: .stop)] : [.hang])
 		}
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
@@ -31,13 +32,13 @@ import Testing
 	}
 
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
-		let transport = FakeModelTransport { text, _ in
-			ScriptedReply(
+		let clock = HeldClock()
+		let transport = FakeModelTransport(clock: clock) { request in
+			let text = request.text
+			return ScriptedReply(
 				[.text("Reply to " + text), .finish(reason: .stop)],
 				requestDelay: text == "Hold" ? .seconds(1) : nil)
 		}
-		let clock = HeldClock()
-		transport.clock = clock
 		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock, watchdogClock: clock,
 			coalescingClock: clock)
@@ -64,9 +65,10 @@ import Testing
 		#expect(replyText(secondReply) == "Reply to Saturday")
 	}
 	@Test func retryRecoversButANewIdenticalMessageKeepsItsFailure() async throws {
-		let transport = FakeModelTransport { _, retry in
+		let transport = FakeModelTransport { request in
 			ScriptedReply(
-				retry ? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
+				request.retry
+					? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
 		}
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let turn = try #require(try await coach.send(draft("Fail"), to: .main).acceptedTurn)
@@ -80,9 +82,10 @@ import Testing
 	}
 
 	@Test func aNewConversationStartsTheSameDirectiveAgain() async throws {
-		let transport = FakeModelTransport { _, retry in
+		let transport = FakeModelTransport { request in
 			ScriptedReply(
-				retry ? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
+				request.retry
+					? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
 		}
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		#expect(replyText(try await coach.sendAndSettle("Fail")) == nil)
@@ -91,7 +94,7 @@ import Testing
 	}
 
 	@Test func aHangingScriptKeepsHangingAcrossAutomaticRetries() async throws {
-		let transport = FakeModelTransport { _, _ in ScriptedReply([.hang]) }
+		let transport = FakeModelTransport { _ in ScriptedReply([.hang]) }
 		let request = testRequest([
 			WireMessage(role: .system, content: "Test", toolCalls: [], toolCallId: nil),
 			WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil),
