@@ -116,9 +116,12 @@ public actor Coach {
 		} catch {
 			return .storageUnavailable
 		}
+		if case .checkAgain(let ref) = decision {
+			return await mailbox.reviewChanged(ref)
+		}
 		let outcome = await reviews.decide(
 			decision, chat: chat, scope: await mailbox.reviewScope)
-		await mailbox.reviewChanged()
+		_ = await mailbox.reviewChanged()
 		return outcome
 	}
 
@@ -138,7 +141,7 @@ public actor Coach {
 		trainingRefresh = nil
 		trainingStatus = nil
 		for mailbox in mailboxes.values {
-			await mailbox.reviewChanged()
+			_ = await mailbox.reviewChanged()
 		}
 		if statusFeed.isObserved {
 			await refreshTrainingStatus()

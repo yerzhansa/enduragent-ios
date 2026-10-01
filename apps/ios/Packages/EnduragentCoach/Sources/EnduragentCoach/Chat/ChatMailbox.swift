@@ -118,6 +118,7 @@ package actor ChatMailbox {
 			draft, turn: turn, fragment: fragment, chat: chatId, slash: slash)
 		do {
 			let stamp = await stamp(for: turn)
+			await records.retrySettlements()
 			records.apply(try await ledger.commit(synced: [.userMessage(message)], stamp: stamp))
 		} catch {
 			throw AcceptFailure.storageUnavailable
@@ -198,9 +199,9 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package func reviewChanged() async {
-		await records.refreshReview()
-		publish()
+	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
+		defer { publish() }
+		return await records.refreshReview(ref)
 	}
 
 	package func refreshImports() async throws(LedgerFailure) {
@@ -364,7 +365,8 @@ package actor ChatMailbox {
 			conversation: conversation, jobs: records.jobs, phase: work.phase,
 			window: work.window, queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
-			finishedAway: finishedAway, review: records.review,
+			finishedAway: finishedAway, unsavedTurns: records.unsavedTurns,
+			review: records.review,
 			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 

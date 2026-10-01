@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Não foi possível verificar as solicitações salvas do Plano. Reconecte e tente novamente.",
       "protocolFailure": "Não foi possível verificar a resposta do treinador. Tente novamente.",
       "questionSkipped": "Pergunta pulada",
+      "replyUnsaved": "Não foi possível salvar esta resposta. Mantenha o app aberto enquanto uma nova tentativa de salvar é feita.",
       "queueLoadFailure": "Não foi possível verificar suas mensagens salvas. Reconecte e tente novamente.",
       "queueRemoveFailure": "Não foi possível remover essa mensagem salva. Tente novamente.",
       "responseFailure": "O treinador não conseguiu responder. Tente novamente.",
@@ -2910,6 +2911,7 @@
     "add": "Adicionar ao calendário",
     "cannotVerify": "Não consegui verificar sua conexão com {{service}}, então nada foi alterado. Tente novamente daqui a pouco.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser aplicada.",
+    "storageUnavailable": "Não foi possível ler a revisão do treino salva. Sua última revisão continua visível. Tente novamente para restaurar os controles.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isso chegou ao seu calendário no {{service}}. Verifique o calendário antes de pedir novamente.",
     "workout": {

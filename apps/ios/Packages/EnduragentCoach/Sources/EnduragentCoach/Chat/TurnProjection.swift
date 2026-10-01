@@ -8,7 +8,7 @@ struct TurnProjection {
 		in segment: Segment,
 		live: LiveAttempt?, window: OpenWindow? = nil, queued: [TurnID] = [],
 		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
-		device: DeviceID, process: ProcessID, today: CivilDate
+		device: DeviceID, process: ProcessID, unsavedTurns: Set<TurnID> = [], today: CivilDate
 	) -> [TurnView] {
 		var next: [TurnID: ProjectedTurn] = [:]
 		let turns = segment.turns.compactMap { facts -> TurnView? in
@@ -20,6 +20,7 @@ struct TurnProjection {
 					of: facts.turn, window: window, queued: queued, waiting: waiting),
 				hidesQuestion: segment.hidesQuestion(of: facts),
 				completedInBackground: finishedAway.contains(facts.turn),
+				unsaved: unsavedTurns.contains(facts.turn),
 				device: device, process: process,
 				sentOn: facts.fragments.first?.civilDate ?? today)
 			let projected: ProjectedTurn
@@ -47,6 +48,7 @@ struct TurnProjection {
 		let overlay: TurnOverlay
 		let hidesQuestion: Bool
 		let completedInBackground: Bool
+		let unsaved: Bool
 		let device: DeviceID
 		let process: ProcessID
 		let sentOn: CivilDate
@@ -58,7 +60,8 @@ struct TurnProjection {
 				sentOn: sentOn,
 				state: TurnLifecycle.state(
 					of: facts, live: live, overlay: overlay, device: device, process: process),
-				completedInBackground: completedInBackground)
+				completedInBackground: completedInBackground,
+				saveFailure: unsaved ? Catalog.chatNoticeReplyUnsaved : nil)
 		}
 	}
 }
