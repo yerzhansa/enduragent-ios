@@ -93,14 +93,6 @@ public actor Coach {
 		await mailbox(for: chat).reset()
 	}
 
-	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
-		do {
-			return try await ledger.history()
-		} catch {
-			throw .storageUnavailable
-		}
-	}
-
 	public func archivedConversation(_ ref: ArchivedConversationRef)
 		async throws(HistoryUnavailable) -> ArchivedConversation?
 	{
