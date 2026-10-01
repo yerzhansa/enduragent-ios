@@ -65,6 +65,15 @@ extension Conversation {
 				turns[body.turn]?.claims.append(ClaimedAttempt(hlc: record.hlc, body: body))
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
+			case .synced(.reviewWrite(let body)):
+				guard case .operation(.turn(let turn), let attempt) = record.cause else { continue }
+				if let known = turns[turn]?.reviewWrites[attempt]?[body.review],
+					known.hlc >= record.hlc
+				{
+					continue
+				}
+				turns[turn]?.reviewWrites[attempt, default: [:]][body.review] = ReviewWriteFact(
+					hlc: record.hlc, status: body.status)
 			case .synced(.reviewApplied(let body)):
 				if case .operation(.turn(let turn), let attempt) = record.cause {
 					turns[turn]?.appliedReviews[attempt, default: []].insert(record.ulid)

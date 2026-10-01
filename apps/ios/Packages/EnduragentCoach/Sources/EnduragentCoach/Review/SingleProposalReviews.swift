@@ -131,6 +131,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 		guard await scope.beginReview(live) else { return .blocked(.turnStopping) }
 		do {
 			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
+			try await recordWrite(live, status: .unverified, stamp: stamp)
 		} catch {
 			await scope.recordReview(live, outcome: .storageUnavailable)
 			return .storageUnavailable
@@ -154,9 +155,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard let failure = Self.stopped(error) else {
 				return .uncertain(done: [], unresolved: card)
 			}
+			await resolveWrite(live, status: .rejected, stamp: stamp)
 			return .partiallyApplied(done: [], stoppedAt: card, failure: failure)
 		}
-		await note(live, stamp: stamp)
+		await resolveWrite(live, status: .confirmed, stamp: stamp)
 		return .applied([ReviewReceipt(index: card.index, result: .confirmed(eventId: eventId))])
 	}
 
@@ -244,8 +246,19 @@ package actor SingleProposalReviews: WorkoutReviews {
 		)
 	}
 
-	private func note(_ live: LiveProposal, stamp: OperationStamp) async {
-		let body = live.body
+	private func resolveWrite(
+		_ live: LiveProposal, status: ReviewWriteStatus, stamp: OperationStamp
+	) async {
+		do {
+			try await recordWrite(live, status: status, stamp: stamp)
+		} catch {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+		}
+	}
+
+	private func recordWrite(
+		_ live: LiveProposal, status: ReviewWriteStatus, stamp: OperationStamp
+	) async throws(LedgerFailure) {
 		let origin: OperationStamp
 		if case .operation(.turn(let turn), let attempt) = live.cause {
 			origin = OperationStamp(
@@ -253,17 +266,18 @@ package actor SingleProposalReviews: WorkoutReviews {
 		} else {
 			origin = stamp
 		}
-		do {
-			_ = try await ledger.commit(
-				synced: [
-					.reviewApplied(
-						ReviewAppliedBody(
-							chatId: body.chatId, summary: ReviewSummary(body.toolInput)))
-				],
-				stamp: origin)
-		} catch {
-			diagnostics.record(.reviewOutcomeUnsaved(error))
+		var bodies: [SyncedRecordBody] = [
+			.reviewWrite(
+				ReviewWriteBody(
+					chatId: live.body.chatId, review: ChangeSetID(ulid: live.ulid), status: status))
+		]
+		if status == .confirmed {
+			bodies.append(
+				.reviewApplied(
+					ReviewAppliedBody(
+						chatId: live.body.chatId, summary: ReviewSummary(live.body.toolInput))))
 		}
+		_ = try await ledger.commit(synced: bodies, stamp: origin)
 	}
 
 	private func write(_ input: GatedToolInput, on intervals: any IntervalsClient) async throws
@@ -341,54 +355,4 @@ private struct Delivery {
 private enum LiveLookup {
 	case found(LiveProposal)
 	case refused(ReviewOutcome)
-}
-
-extension ReviewCard {
-	fileprivate init(_ body: ProposalBody) {
-		let instructions: ReviewInstructions
-		if case .createWorkout(_, let workout) = body.toolInput {
-			instructions = ReviewInstructions(content: .cycling(workout))
-		} else {
-			instructions = ReviewInstructions(content: .supplied(body.description))
-		}
-		let action: Action
-		let name: ReviewSummary
-		let date: CivilDate?
-		switch body.toolInput {
-		case .createWorkout(let day, let workout):
-			(action, name, date) = (.add, .supplied(workout.name), day)
-		case .createStrengthWorkout(let day, let title, _):
-			(action, name, date) = (.add, .supplied(title), day)
-		case .updateWorkout(let update):
-			(action, name, date) = (
-				.edit(previousName: nil),
-				update.name.map(ReviewSummary.supplied) ?? ReviewSummary(body.toolInput),
-				update.date
-			)
-		case .deleteWorkout:
-			(action, name, date) = (.delete, ReviewSummary(body.toolInput), nil)
-		case .planSave:
-			(action, name, date) = (.add, ReviewSummary(body.toolInput), nil)
-		}
-		self.init(
-			index: 0, action: action, name: name, date: date, chart: nil,
-			instructions: instructions,
-			durationMinutes: nil, estimatedLoad: nil)
-	}
-}
-
-extension ReviewTotals {
-	fileprivate init(_ cards: [ReviewCard]) {
-		var additions = 0
-		var edits = 0
-		var deletions = 0
-		for card in cards {
-			switch card.action {
-			case .add: additions += 1
-			case .edit: edits += 1
-			case .delete: deletions += 1
-			}
-		}
-		self.init(additions: additions, edits: edits, deletions: deletions, durationMinutes: nil)
-	}
 }

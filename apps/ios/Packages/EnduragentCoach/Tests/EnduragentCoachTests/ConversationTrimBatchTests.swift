@@ -54,7 +54,6 @@ import Testing
 		#expect(last.messages.contains { $0.content == "Late remote answer" })
 		#expect(!last.messages.contains { $0.content.contains("Dropped") })
 		#expect(sent(.droppedSummary, by: transport).count == 1)
-
 	}
 
 	private func seedDroppedTurns(count: Int) async throws -> [ULID] {

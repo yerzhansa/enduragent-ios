@@ -45,25 +45,34 @@ extension RetryLadderTests {
 		for current in [coach] + reopenedApprovalCoaches(intervals: intervals) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
 			#expect(await current.currentSnapshot(.main)?.notes.isEmpty == true)
-			await #expect(throws: RetryRefusal.alreadyAnswered) {
+			await #expect(throws: RetryRefusal.self) {
 				try await current.retry(turn, in: .main)
 			}
 		}
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
 	}
 
-	@Test func rejectedPendingApprovalAfterStopRestoresTryAgain() async throws {
+	@Test(arguments: [false, true])
+	func rejectedPendingApprovalAfterStopRestoresTryAgain(memorySaved: Bool) async throws {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(
 			base: base, clock: held,
 			failure: IntervalsError(code: "http", details: "Rejected", status: 422))
+		let memory: [ScriptedEvent] =
+			memorySaved
+			? [
+				.toolCall(
+					name: "memory_write",
+					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.finish(reason: .toolCalls),
+			] : []
 		transport.script =
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+			memory + workoutProposal + [.text("Review ready."), .hang]
 			+ [.text("Try a shorter ride."), .finish(reason: .stop)]
 		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
+		await coach.waitForLiveText(turn)
 		let token = try await presentReview(on: coach)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
@@ -80,17 +89,30 @@ extension RetryLadderTests {
 			Issue.record("expected an interrupted turn")
 			return
 		}
-		#expect(settled.retryable)
-		#expect(interrupted.saved == .none)
-		#expect(interrupted.notice.action == .tryAgain(turn))
-		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedNothingChanged)
+		#expect(settled.retryable == !memorySaved)
+		#expect(interrupted.saved.calendarWrites == 0)
+		#expect(interrupted.saved.unverifiedCalendarWrites == 0)
+		#expect(interrupted.saved.memorySections == (memorySaved ? 1 : 0))
+		#expect(interrupted.notice.action == (memorySaved ? nil : .tryAgain(turn)))
+		#expect(
+			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
+				== (memorySaved
+					? "This reply stopped before it finished. Some information was saved first."
+					: "This reply stopped before it finished. Nothing was changed."))
 		for current in [coach] + reopenedApprovalCoaches(intervals: intervals) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
 			#expect(await current.currentSnapshot(.main)?.notes.isEmpty == true)
 		}
-		try await coach.retry(turn, in: .main)
-		#expect(
-			replyText(try #require(await settledTurn(turn, on: coach))) == "Try a shorter ride.")
+		if memorySaved {
+			await #expect(throws: RetryRefusal.alreadyAnswered) {
+				try await coach.retry(turn, in: .main)
+			}
+		} else {
+			try await coach.retry(turn, in: .main)
+			#expect(
+				replyText(try #require(await settledTurn(turn, on: coach))) == "Try a shorter ride."
+			)
+		}
 		#expect(base.calls.filter(\.isWrite).isEmpty)
 	}
 

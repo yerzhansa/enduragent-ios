@@ -12,6 +12,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
 	package var appliedReviews: [AttemptID: Set<ULID>] = [:]
+	package var reviewWrites: [AttemptID: [ChangeSetID: ReviewWriteFact]] = [:]
 
 	package var requestText: String {
 		fragments.sorted { $0.index < $1.index }.map(\.text).joined(separator: "\n")
@@ -35,8 +36,9 @@ package struct TurnFacts: Sendable, Equatable {
 		else { return nil }
 		return SettledAttempt(
 			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
-			settlement: settled.settlement.confirmingCalendarWrites(
-				appliedReviews[latest, default: []].count))
+			settlement: settled.settlement.resolvingCalendarWrites(
+				confirmed: appliedReviews[latest, default: []].count,
+				reviews: Array(reviewWrites[latest, default: [:]].values)))
 	}
 
 	package var reply: ReplyText? {
@@ -110,15 +112,25 @@ package struct SettledAttempt: Sendable, Equatable {
 	package let settlement: Settlement
 }
 
+package struct ReviewWriteFact: Sendable, Equatable {
+	package let hlc: HybridLogicalClock
+	package let status: ReviewWriteStatus
+}
+
 extension Settlement {
-	fileprivate func confirmingCalendarWrites(_ count: Int) -> Settlement {
-		guard count > 0 else { return self }
+	fileprivate func resolvingCalendarWrites(confirmed: Int, reviews: [ReviewWriteFact])
+		-> Settlement
+	{
+		guard confirmed > 0 || !reviews.isEmpty else { return self }
 		switch self {
 		case .interrupted(let partial, let cause, let saved):
 			return .interrupted(
-				partial: partial, cause: cause, saved: saved.confirmingCalendarWrites(count))
+				partial: partial, cause: cause,
+				saved: saved.resolvingCalendarWrites(confirmed: confirmed, reviews: reviews))
 		case .failed(let failure, let saved):
-			return .failed(failure, saved: saved.confirmingCalendarWrites(count))
+			return .failed(
+				failure,
+				saved: saved.resolvingCalendarWrites(confirmed: confirmed, reviews: reviews))
 		case .replied, .savedWork:
 			return self
 		}
@@ -126,11 +138,20 @@ extension Settlement {
 }
 
 extension WriteSummary {
-	fileprivate func confirmingCalendarWrites(_ count: Int) -> WriteSummary {
-		let total = max(calendarWrites, count)
-		let confirmed = max(calendarWrites - unverifiedCalendarWrites, count)
+	fileprivate func resolvingCalendarWrites(confirmed: Int, reviews: [ReviewWriteFact])
+		-> WriteSummary
+	{
+		let verified: Int
+		let unverified: Int
+		if reviews.isEmpty {
+			verified = max(calendarWrites - unverifiedCalendarWrites, confirmed)
+			unverified = max(calendarWrites, confirmed) - verified
+		} else {
+			verified = max(confirmed, reviews.filter { $0.status == .confirmed }.count)
+			unverified = reviews.filter { $0.status == .unverified }.count
+		}
 		return WriteSummary(
 			memorySections: memorySections, ledgerEvents: ledgerEvents, planSaves: planSaves,
-			calendarWrites: total, unverifiedCalendarWrites: total - confirmed)
+			calendarWrites: verified + unverified, unverifiedCalendarWrites: unverified)
 	}
 }

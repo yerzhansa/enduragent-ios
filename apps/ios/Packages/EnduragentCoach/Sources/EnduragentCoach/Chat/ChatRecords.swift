@@ -71,7 +71,7 @@ final class ChatRecords {
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
-			RecordQuery(scope: .synced([.reviewApplied]), chatId: chat))
+			RecordQuery(scope: .synced([.reviewApplied, .reviewWrite]), chatId: chat))
 		apply(notes.records)
 	}
 
