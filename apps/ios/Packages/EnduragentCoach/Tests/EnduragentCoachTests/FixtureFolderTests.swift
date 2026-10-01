@@ -6,6 +6,37 @@ import Testing
 
 struct FixtureFolderTests {
 	@Test(.timeLimit(.minutes(1)))
+	func cleanupFailsWithinSecondsWhenAStoreOwnerIsNotReleased() async throws {
+		let folder = try FixtureFolder(
+			directory: FileManager.default.temporaryDirectory.appending(
+				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+		let opened = AsyncStream<Void>.makeStream()
+		let owner = Task {
+			try await FixtureFolder.$current.withValue(folder) {
+				let fixture = try FixtureRecordStore(
+					directory: folder.directory, deviceId: DeviceID())
+				opened.continuation.finish()
+				try await Task.sleep(for: .seconds(6))
+				withExtendedLifetime(fixture) {}
+			}
+		}
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				for await _ in opened.stream {}
+				return true
+			} == true,
+			"The fixture store did not open within five seconds")
+		await #expect(throws: (any Error).self) {
+			try await folder.cleanup {}
+		}
+		#expect(FileManager.default.fileExists(atPath: folder.directory.path))
+		try await owner.value
+		if FileManager.default.fileExists(atPath: folder.directory.path) {
+			try await folder.cleanup {}
+		}
+	}
+
+	@Test(.timeLimit(.minutes(1)))
 	func cleanupWaitsForTheStoreOwnerBeforeRemovingItsFolder() async throws {
 		try await checkCleanupWaitsForTheStoreOwner()
 	}
