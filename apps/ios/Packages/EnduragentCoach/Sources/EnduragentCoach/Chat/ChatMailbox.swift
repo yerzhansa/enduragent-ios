@@ -25,7 +25,7 @@ package actor ChatMailbox {
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
-	private let feed = SnapshotFeed()
+	private let feed = SnapshotFeed<ChatSnapshot>()
 
 	package init(
 		chatId: ChatID,
