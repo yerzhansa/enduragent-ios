@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -200,7 +201,7 @@ extension SwiftDataSuites {
 		}
 
 		@Test func syncedFaultsRejectEverySyncedKindAndLeaveLocalRecordsWritable() async throws {
-			let fixture = try RecordStore.fixture(
+			let fixture = try FixtureRecordStore(
 				directory: FileManager.default.temporaryDirectory.appending(
 					path: "enduragent-synced-faults-\(UUID().uuidString)",
 					directoryHint: .isDirectory),

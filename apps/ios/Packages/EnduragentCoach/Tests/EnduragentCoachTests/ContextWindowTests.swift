@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -12,11 +13,14 @@ import Testing
 	@Test func contextWindowOverrideShrinksTheHistoryBudget() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) / 2)
-		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text(earlierSummary), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(sent(.droppedSummary, by: transport).isEmpty)
@@ -29,15 +33,21 @@ import Testing
 
 	@Test func aSmallerContextWindowCompactsBeforeTheCall() async throws {
 		try await seedHistory(store, clock: clock, turns: 5, tokens: 2_500)
-		transport.summaryScript = [.text(earlierSummary), .finish(reason: .stop)]
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text(earlierSummary), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		let window = systemTokens(clock: clock) + TurnPolicy.reserveTokens + 1_500
 		try await coach.setSession(
 			SessionSettings.npmDefaults.replacing(.contextWindowOverride, with: String(window)))
-		transport.script = [.text("Saturday too."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saturday too."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let settled = try await coach.sendAndSettle("And Saturday?")
 		#expect(replyText(settled) == "Saturday too.")
 		#expect(
@@ -48,10 +58,11 @@ import Testing
 
 	@Test func aFinishAtTheOverriddenWindowIsRescuedAsAnOverflow() async throws {
 		transport.finishUsage = Usage(inputTokens: 60_000, outputTokens: 8, cost: nil)
-		transport.script = [
-			.text("truncated"), .finish(reason: .length), .text("after compact"),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("truncated"), .finish(reason: .length), .text("after compact"),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		try await coach.setSession(
 			SessionSettings.npmDefaults.replacing(.contextWindowOverride, with: "50000"))

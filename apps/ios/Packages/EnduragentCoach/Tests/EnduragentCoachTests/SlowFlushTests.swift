@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -11,22 +12,23 @@ import Testing
 		let store = InMemoryRecordLog()
 		let transport = FakeModelTransport()
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
-		transport.flushScript = [
+		var events: [ScriptedEvent] = [
 			.toolCall(
 				name: "memory_write",
 				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
 			.finish(reason: .toolCalls),
 		]
 		if let retryAfter {
-			transport.flushScript.append(
+			events.append(
 				.fail(.http(status: 429, headers: ["Retry-After": retryAfter])))
 		}
-		transport.flushScript += [
+		events += [
 			.toolCall(
 				name: "ledger_append",
 				arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#),
 			.finish(reason: .toolCalls), .finish(reason: .stop),
 		]
+		transport.respond = ScriptedReply.sequence(events, for: .flush)
 		let slow = SlowFlushTransport(inner: transport, clock: clock)
 		let coach = Coach(
 			sport: .cycling,

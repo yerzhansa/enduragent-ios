@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -60,6 +61,16 @@ final class FixtureLaunchTests {
 		AppEnvironment(services: services, language: language, defaults: defaults)
 	}
 
+	func until(
+		within limit: Duration = .seconds(5), _ condition: () -> Bool
+	) async throws {
+		let deadline = ContinuousClock.now + limit
+		while !condition(), ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		try #require(condition())
+	}
+
 	func settledTurn(
 		_ model: ShellModel, after previous: TurnState? = nil, within limit: Duration = .seconds(20)
 	) async throws -> TurnView {
@@ -116,7 +127,7 @@ final class FixtureLaunchTests {
 		#expect(
 			try await #require(services.fixture).intervals.fetchAthlete().name
 				== "Ada Kovač")
-		#expect(await services.coach.status().training == .unconnected)
+		#expect(try await services.coach.observedStatus().training == .unconnected)
 		let model = model(services)
 		#expect(model.route == .onboarding(.notice))
 		#expect(model.chat == nil)
@@ -213,7 +224,7 @@ final class FixtureLaunchTests {
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.chat == .main)
-		#expect(await services.coach.status().setup == .ready)
+		#expect(try await services.coach.observedStatus().setup == .ready)
 		let identity = try await services.coach.creditsIdentity()
 		#expect(
 			identity.appAccountToken
@@ -365,6 +376,8 @@ extension ShellModel {
 		await startChatting()
 		if route == .onboarding(.consent) {
 			await acceptConsent()
+			let deadline = ContinuousClock.now + .seconds(5)
+			while route != .chat, ContinuousClock.now < deadline { await Task.yield() }
 		}
 		#expect(route == .chat)
 	}

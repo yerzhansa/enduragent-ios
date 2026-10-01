@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -10,10 +11,11 @@ import Testing
 	@Test(arguments: [false, true])
 	func aThirteenHourGapKeepsOneConversation(relaunch: Bool) async throws {
 		let clock = FixedClock(now: "1998-06-15T20:00:00+02:00", timeZone: "Europe/Amsterdam")
-		transport.script = [
-			.text("Good, keep them at 105%."), .finish(reason: .stop),
-			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Good, keep them at 105%."), .finish(reason: .stop),
+				.text("Expected after yesterday's intervals."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let evening = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await evening.sendAndSettle("I'm doing intervals today.")
 		clock.advance(by: 13 * 3600)

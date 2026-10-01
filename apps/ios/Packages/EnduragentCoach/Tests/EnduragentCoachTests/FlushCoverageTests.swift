@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -12,11 +13,11 @@ import Testing
 	@Test func aQuestionQueuedBehindAListedReplyIsSavedOnce() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 2, tokens: historyBudget(clock: clock) * 85 / 100)
-		transport.script = [
-			.text("Two"), .text(" rides."), .finish(reason: .stop),
-			.text("Noted."), .finish(reason: .stop),
-		]
-		transport.deltaDelay = .milliseconds(200)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Two"), .text(" rides."), .finish(reason: .stop),
+				.text("Noted."), .finish(reason: .stop),
+			], deltaDelay: .milliseconds(200), otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
@@ -84,12 +85,13 @@ import Testing
 					body: .synced(
 						sampleReply(chatId: .main, turn: turn, text: "Noted on my other phone."))),
 			])
-		transport.flushScript = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
-			.finish(reason: .toolCalls), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.finish(reason: .toolCalls), .finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
@@ -149,19 +151,21 @@ import Testing
 
 	@Test func retryAfterItsPartialWasSavedExtractsOnlyTheReplacementReply() async throws {
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.text("Superseded partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
-		transport.script = [
-			.text("First."), .finish(reason: .stop),
-			.text("Second."), .finish(reason: .stop),
-			.text(longReply), .finish(reason: .stop),
-			.text("Ready."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("First."), .finish(reason: .stop),
+				.text("Second."), .finish(reason: .stop),
+				.text(longReply), .finish(reason: .stop),
+				.text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
 			_ = try await coach.sendAndSettle(question)
 		}
@@ -169,7 +173,9 @@ import Testing
 		let first = try #require(sent(.memoryFlush, by: transport).first)
 		try #require(first.messages.contains { $0.unstampedContent == "Superseded partial" })
 		try #require(first.messages.contains { $0.unstampedContent == "Remember Saturdays" })
-		transport.script = [.text("Replacement reply"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Replacement reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
@@ -184,15 +190,19 @@ import Testing
 
 	@Test func aTrimmedFailedQuestionBecomesEligibleWhenRetried() async throws {
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.fail(.http(status: 400))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
 		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
 		let huge = String(repeating: "w", count: historyBudget(clock: clock) * 5)
-		transport.script = [
-			.text(huge), .finish(reason: .stop), .text("Ready"), .finish(reason: .stop),
-		]
-		transport.summaryScript = [.text("Earlier history"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text(huge), .finish(reason: .stop), .text("Ready"), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier history"), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Force a trim")
 		_ = try await coach.sendAndSettle("After trimming")
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -200,7 +210,9 @@ import Testing
 		try #require(conversation.current.promptWindow.trim != nil)
 		let user = try #require(conversation.turn(turn)?.userRow?.ulid)
 		try #require(!conversation.current.promptHistory(excluding: nil).ulids.contains(user))
-		transport.script = [.text("Recovered reply"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Recovered reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))

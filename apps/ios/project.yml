@@ -45,7 +45,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
       configs:
         Release:
-          EXCLUDED_SOURCE_FILE_NAMES: v1-upgrade
+          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade
     info:
       path: Enduragent/Info.plist
       properties:
@@ -68,6 +68,8 @@ targets:
           - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
   EnduragentTests:
     type: bundle.unit-test
     platform: iOS

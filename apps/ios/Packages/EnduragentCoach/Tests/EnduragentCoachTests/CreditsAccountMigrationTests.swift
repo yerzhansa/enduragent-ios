@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -128,7 +129,7 @@ import Testing
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
-		#expect(await coach.status().setup == .needsAccessMethod)
+		#expect(try await coach.observedStatus().setup == .needsAccessMethod)
 		#expect(
 			try await coach.creditsIdentity()
 				== CreditsIdentity(
@@ -143,7 +144,7 @@ import Testing
 					appAccountToken: token, key: "test-legacy-key"))
 		#expect(memory.writeCount == 1)
 		#expect(try memory.copy(account: "openRouterKey") == nil)
-		#expect(await coach.status().setup == .ready)
+		#expect(try await coach.observedStatus().setup == .ready)
 	}
 
 	@Test func purchasePreparationMintsOnlyWhenRequested() async throws {

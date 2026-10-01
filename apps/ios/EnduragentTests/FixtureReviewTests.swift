@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -88,6 +89,7 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		await model.chooseLanguage(.fixed(.fr))
+		try await model.waitForStatus { $0.language == .fixed(.fr) }
 		#expect(model.phrasebook.say(Catalog.reviewTitle, [:]) == "Vérification de la séance")
 		#expect(model.phrasebook.say(Catalog.reviewAdd, [:]) == "Ajouter au calendrier")
 		_ = await services.coach.changeTraining(

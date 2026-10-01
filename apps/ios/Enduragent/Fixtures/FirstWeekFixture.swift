@@ -1,5 +1,6 @@
 #if DEBUG
 	import EnduragentCoach
+	import EnduragentCoachFixtures
 	import Foundation
 
 	enum FirstWeekFixture {
