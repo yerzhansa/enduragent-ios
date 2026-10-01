@@ -33,7 +33,7 @@ final class ProviderConsentProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "consent.accept").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "consent.resume").exists)
 		TutorialHarness.attach(self, name: "provider-consent-deferred-accepted", app: app)
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "providerConsent", "providerConsent 1")

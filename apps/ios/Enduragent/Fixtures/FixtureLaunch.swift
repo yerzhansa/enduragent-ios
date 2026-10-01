@@ -2,18 +2,6 @@
 	import EnduragentCoach
 	import Foundation
 
-	enum FixtureStorePolicy: String {
-		case fresh
-		case keep
-		case unreadable
-	}
-
-	enum FixtureKeychainPolicy: String {
-		case unlocked
-		case locked
-		case empty
-	}
-
 	enum FixtureHostPolicy: Equatable {
 		case immediate
 		case expireAfter(Duration)
@@ -44,6 +32,7 @@
 		case unknownFixture(String)
 		case unknownArgument(key: String, value: String)
 		case defaultsSuiteUnavailable(String)
+		case upgradeStoreMissing(String)
 	}
 
 	struct FixtureLaunch {
@@ -96,6 +85,7 @@
 			)
 		}
 
+		@MainActor
 		func prepare() throws -> UserDefaults {
 			guard let defaults = UserDefaults(suiteName: defaultsSuiteName) else {
 				throw FixtureLaunchError.defaultsSuiteUnavailable(defaultsSuiteName)
@@ -108,6 +98,19 @@
 				}
 			}
 			try files.createDirectory(at: directory, withIntermediateDirectories: true)
+			if store == .v1History || store == .v1Review {
+				let scenario = store == .v1History ? "history" : "review"
+				guard
+					let source = Bundle.main.url(
+						forResource: scenario, withExtension: nil, subdirectory: "v1-upgrade")
+				else { throw FixtureLaunchError.upgradeStoreMissing(scenario) }
+				for name in ["synced-records.store", "local-records.store"] {
+					try files.copyItem(
+						at: source.appending(path: name), to: directory.appending(path: name))
+				}
+				defaults.set("v1-upgrade-fixture", forKey: AppServices.deviceDefaultsKey)
+				defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+			}
 
 			return defaults
 		}
