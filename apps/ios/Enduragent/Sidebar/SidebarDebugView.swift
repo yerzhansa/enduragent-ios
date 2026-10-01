@@ -9,8 +9,11 @@ import SwiftUI
 		var body: some View {
 			List {
 				NavigationLink("Credits") {
-					CreditsDebugView(coach: model.services.coach)
+					CreditsDebugView(
+						coach: model.services.coach, deviceCheck: model.environment.deviceCheck,
+						phrasebook: model.phrasebook)
 				}
+				.accessibilityIdentifier("debug.credits")
 				NavigationLink("Credentials") {
 					CredentialsDebugView(model: model)
 				}
