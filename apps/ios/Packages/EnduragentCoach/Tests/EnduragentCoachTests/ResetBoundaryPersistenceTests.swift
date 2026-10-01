@@ -23,14 +23,18 @@ extension SwiftDataSuites {
 			transport.respond = ScriptedReply.sequence(
 				[.text("Current answer"), .finish(reason: .stop)], otherwise: transport.respond)
 			let local = await makeCoach(transport: transport, store: localLog, clock: behind)
-			_ = try #require(
+			let turn = try #require(
 				try await local.send(draft("Current question"), to: .main).acceptedTurn)
-			try await waitForRecords(.synced([.turnSettled]), count: 2, in: localLog)
-			#expect(await local.transcript(.main) == ["Current question", "Current answer"])
+			let completed = try #require(
+				await local.settledState(of: turn, in: .main, within: .seconds(5)))
+			#expect(replyText(completed) == "Current answer")
+			let transcript = await local.transcript(.main)
+			#expect(transcript == ["Current question", "Current answer"])
 			await local.lifecycle(.willTerminate)
 			let reopenedLog = try open(root, device: DeviceID(rawValue: "phone-b"))
 			let reopened = await makeCoach(transport: transport, store: reopenedLog, clock: behind)
-			#expect(await reopened.transcript(.main) == ["Current question", "Current answer"])
+			let reopenedTranscript = await reopened.transcript(.main)
+			#expect(reopenedTranscript == ["Current question", "Current answer"])
 			let archive = try #require(try await reopened.history().first?.id)
 			#expect(
 				try await reopened.archivedConversation(archive)?.turns.map(\.athleteText) == [
