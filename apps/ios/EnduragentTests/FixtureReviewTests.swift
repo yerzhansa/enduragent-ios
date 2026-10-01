@@ -8,6 +8,43 @@ import Testing
 
 extension FixtureLaunchTests {
 	@Test(arguments: [false, true])
+	func unknownWriteNoticeAppearsOnlyOnTheCard(failedRead: Bool) async throws {
+		let services = try services()
+		let intervals = try #require(services.fixture?.intervals)
+		let model = model(services)
+		await model.agreeAndStartChatting()
+		model.connectKey = "fixture"
+		await model.connect()
+		try #require(model.didConnect)
+		model.draft.text =
+			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
+		await model.send()
+		try await until { model.chat?.review != nil }
+		let review = try #require(model.chat?.review)
+		await model.decide(.presented(review.ref))
+		try await until { model.chat?.review?.token != nil }
+		let token = try #require(model.chat?.review?.token)
+		intervals.writeFailure = URLError(.timedOut)
+		await model.decide(.approve(token))
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewWritePending }
+		if failedRead {
+			let backing = try #require(services.fixture?.secretBacking)
+			backing.locked = true
+			defer { backing.locked = false }
+			await model.decide(.checkAgain(review.ref))
+			try await until { model.chat?.review?.notice?.key == Catalog.reviewWriteReadFailed }
+		}
+		let notice = try #require(model.chat?.review?.notice)
+		let cardSentence = model.phrasebook.say(notice.key, notice.vars)
+		let transcriptSentence = model.reviewNotice?.sentence(in: model.phrasebook)
+		#expect([cardSentence, transcriptSentence].compactMap { $0 }.count == 1)
+		#expect(
+			cardSentence
+				== model.phrasebook.say(
+					failedRead ? Catalog.reviewWriteReadFailed : Catalog.reviewWritePending))
+	}
+
+	@Test(arguments: [false, true])
 	func unknownWriteCanBeRecoveredThroughTheCard(cancel: Bool) async throws {
 		let services = try services()
 		let intervals = try #require(services.fixture?.intervals)
