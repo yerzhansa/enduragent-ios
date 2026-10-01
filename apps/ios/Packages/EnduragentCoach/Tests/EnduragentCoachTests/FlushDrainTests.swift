@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -64,7 +65,8 @@ import Testing
 	@Test func settledJobIsNotRerun() async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		try await seedJob(covering: history[0], settled: true)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await relaunched().sendAndSettle("Anything else?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
@@ -83,9 +85,10 @@ import Testing
 		let job = try await seedJob(
 			covering: try #require(history.first), settled: false,
 			process: ProcessID(ulid: fixedUlid(60)))
-		transport.flushScript =
+		transport.respond = ScriptedReply.sequence(
 			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
-			+ Array(repeating: .fail(failure), count: 4)
+				+ Array(repeating: .fail(failure), count: 4), for: .flush,
+			otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
@@ -103,8 +106,12 @@ import Testing
 		let original = try #require(sent(.memoryFlush, by: transport).first)
 			.messages.dropFirst().prefix(2)
 
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Anything else?")
 		_ = try #require(await host.ended(1))
 		let flushes = sent(.memoryFlush, by: transport)
@@ -125,7 +132,10 @@ import Testing
 		#expect(jobs.map(\.saved) == [true])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 
-		transport.script = [.text("Still noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Still noted."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("And later?")
 		_ = try #require(await host.ended(2))
 		#expect(sent(.memoryFlush, by: transport).count == flushes.count)
@@ -142,7 +152,8 @@ import Testing
 		try await seedJob(
 			covering: try #require(history.first), settled: false,
 			process: ProcessID(ulid: fixedUlid(60)))
-		transport.flushScript = [.fail(failure)]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(failure)], for: .flush, otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
@@ -152,7 +163,9 @@ import Testing
 		#expect(jobs.map(\.phase) == [.settled(.recorded(.abandoned))])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Anything else?")
 		_ = try #require(await host.ended(1))
 		#expect(sent(.memoryFlush, by: transport).count == 1)
@@ -174,7 +187,8 @@ import Testing
 								garmin: false, nonGarmin: false, unknown: false,
 								contentSha256: "consumed"))))
 			])
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await relaunched().sendAndSettle("Anything else?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -189,14 +203,16 @@ import Testing
 	@Test func partialJobStaysPendingAndRerunDedupesLedgerEvents() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.flushScript = [
-			saturdays, schedule, .finish(reason: .toolCalls), .fail(.http(status: 500)),
-			.fail(.http(status: 500)), .fail(.http(status: 500)), saturdays,
-			.finish(reason: .toolCalls),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				saturdays, schedule, .finish(reason: .toolCalls), .fail(.http(status: 500)),
+				.fail(.http(status: 500)), .fail(.http(status: 500)), saturdays,
+				.finish(reason: .toolCalls),
+				.finish(reason: .stop),
+			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Rest day?")
 		try await waitForDiagnostic(in: coach) { event in
 			if case .memoryFlushFailed(.main, _) = event { return true }
@@ -206,7 +222,10 @@ import Testing
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
 		#expect(try await count(.synced([.memorySection])) == 1)
 
-		transport.script = [.text("Still noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Still noted."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("And Sunday?")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
@@ -230,7 +249,8 @@ import Testing
 		let history = try await seedHistory(store, clock: clock, turns: 2, tokens: 200)
 		try await seedJob(covering: history[0], settled: false)
 		try await seedJob(covering: history[1], settled: false)
-		transport.flushScript = [.hang]
+		transport.respond = ScriptedReply.sequence(
+			[.hang], for: .flush, otherwise: transport.respond)
 		let coach = await relaunched()
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 1 }
 		await coach.lifecycle(.willTerminate)
@@ -241,8 +261,11 @@ import Testing
 	@Test func aKilledFlushIsDrainedAtTheNextLaunch() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[saturdays, .finish(reason: .toolCalls), .hang], for: .flush,
+			otherwise: transport.respond)
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let settled = try await before.sendAndSettle("Remember Saturdays", within: .seconds(5))
@@ -252,7 +275,10 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 
-		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
 		_ = await relaunched()
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
@@ -261,7 +287,7 @@ import Testing
 	@Test func aJobWrittenBeforeAKilledTurnIsDrainedAtTheNextLaunch() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -270,7 +296,7 @@ import Testing
 		try await before.dieWithoutWriting(to: dying)
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 
-		transport.hangUntilCancelled = false
+		transport.respond = { _ in ScriptedReply([]) }
 		let after = await relaunched()
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		guard case .interrupted(let interrupted)? = await after.state(of: turn) else {

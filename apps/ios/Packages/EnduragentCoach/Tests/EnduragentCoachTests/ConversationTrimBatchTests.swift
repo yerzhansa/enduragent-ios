@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -12,14 +13,16 @@ import Testing
 	@Test(arguments: [512, 513])
 	func trimCoverageIsBoundedWithoutResummarizingOrHidingImports(turnCount: Int) async throws {
 		let dropped = try await seedDroppedTurns(count: turnCount)
-		transport.summaryScript = Array(
-			repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 3
-		).flatMap { $0 }
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-			.text("Sunday off."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 3
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+				.text("Sunday off."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		let windows = try await store.fetch(

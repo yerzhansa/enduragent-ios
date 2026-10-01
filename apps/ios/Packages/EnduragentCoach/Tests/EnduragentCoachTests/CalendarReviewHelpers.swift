@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 
 @testable import EnduragentCoach

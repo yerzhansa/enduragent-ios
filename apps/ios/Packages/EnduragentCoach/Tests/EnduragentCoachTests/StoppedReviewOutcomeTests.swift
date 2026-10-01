@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,8 +10,9 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
-		transport.script =
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))],
+			otherwise: transport.respond)
 		let original = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
@@ -25,7 +27,7 @@ extension RetryLadderTests {
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(13))
+		held.advance(by: .seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("expected an uncertain write")
 			return
@@ -68,9 +70,10 @@ extension RetryLadderTests {
 					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
 				.finish(reason: .toolCalls),
 			] : []
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			memory + workoutProposal + [.text("Review ready."), .hang]
-			+ [.text("Try a shorter ride."), .finish(reason: .stop)]
+				+ [.text("Try a shorter ride."), .finish(reason: .stop)],
+			otherwise: transport.respond)
 		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -80,7 +83,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(13))
 		await coach.stop(.main)
 		#expect(await settledTurn(turn, on: coach)?.retryable == false)
-		held.release(.seconds(13))
+		held.advance(by: .seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("a dispatched rejection is not proof of absence")
 			return

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,9 +9,11 @@ extension RetryLadderTests {
 	func approvalDuringRetryModelRequestSettlesSavedWork(proposesAgain: Bool) async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ (proposesAgain ? workoutProposal : []) + [.text("Second."), .finish(reason: .stop)]
+				+ (proposesAgain ? workoutProposal : []) + [
+					.text("Second."), .finish(reason: .stop),
+				], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
@@ -19,10 +22,10 @@ extension RetryLadderTests {
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
-		held.release(.seconds(7))
+		held.advance(by: .seconds(7))
 		try await held.waitUntilHeld(.seconds(11))
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(11))
+		held.advance(by: .seconds(11))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 3)
 	}
@@ -32,9 +35,10 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)],
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
@@ -49,7 +53,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(13))
 		try await expectApprovalBlocked(
 			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
-		held.release(.seconds(13))
+		held.advance(by: checkpoint == .backoff ? .seconds(6) : .seconds(2))
 		let first = await approving.value
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: base,
@@ -61,10 +65,10 @@ extension RetryLadderTests {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let overflow = ScriptedFailure.http(
 			status: 400, body: #"{"error":{"message":"maximum context length exceeded"}}"#)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(overflow)] + workoutProposal + [
 				.text("Second."), .finish(reason: .stop),
-			]
+			], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, request in
 			request.charge == .memoryFlush || request.charge == .compaction ? .seconds(17) : nil
 		}
@@ -74,7 +78,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(17))
 		let token = try await presentReview(on: coach)
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(17))
+		held.advance(by: .seconds(17))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
 	}
@@ -82,9 +86,10 @@ extension RetryLadderTests {
 	@Test func approvalThenStopDuringBackoffWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -100,9 +105,10 @@ extension RetryLadderTests {
 	@Test func stopThenApprovalDuringBackoffWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -118,7 +124,8 @@ extension RetryLadderTests {
 	@Test func approvalAfterTerminalFailureWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script = workoutProposal + [.fail(.http(status: 401))]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.fail(.http(status: 401))], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -133,9 +140,10 @@ extension RetryLadderTests {
 	@Test func approvalBeforeRateLimitSettlesSavedWork() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(19) : nil
 		}
@@ -145,7 +153,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(19))
 		let token = try await presentReview(on: coach)
 		let first = await coach.decide(.approve(token), in: .main)
-		held.release(.seconds(19))
+		held.advance(by: .seconds(19))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
 	}

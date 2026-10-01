@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -10,8 +11,11 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		let transport = FakeModelTransport()
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
-		transport.script = [.text("Thursday is"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
@@ -36,7 +40,9 @@ import Testing
 		let live = await coach.currentSnapshot(.main)
 		let reopened = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		#expect(live == (await reopened.currentSnapshot(.main)))
-		transport.script = [.text("Saturday too."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saturday too."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let prompt = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(prompt.messages.contains { $0.unstampedContent == "Remote question" })
@@ -52,11 +58,14 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		let transport = FakeModelTransport()
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		let windows = try await store.fetch(

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -9,7 +10,7 @@ final class HeldApprovalTransport: ModelTransport {
 	let clock: HeldClock
 	let hold: @Sendable (Int, CompletionRequest) -> Duration?
 	private let counter = ApprovalRequestCounter()
-	private let streamedTools = Mutex<Set<Int>>([])
+	private let streamedTools = Mutex<[Int: Gate]>([:])
 
 	init(
 		base: FakeModelTransport, clock: HeldClock,
@@ -21,10 +22,15 @@ final class HeldApprovalTransport: ModelTransport {
 	}
 
 	func waitForToolCall(in request: Int) async throws {
-		let deadline = ContinuousClock.now + .seconds(5)
-		while !streamedTools.withLock({ $0.contains(request) }) {
-			try #require(ContinuousClock.now < deadline, "Retry tool call never streamed")
-			try await Task.sleep(for: .milliseconds(10))
+		try await toolGate(for: request).waitUnlessCancelled()
+	}
+
+	private func toolGate(for request: Int) -> Gate {
+		streamedTools.withLock {
+			if let gate = $0[request] { return gate }
+			let gate = Gate()
+			$0[request] = gate
+			return gate
 		}
 	}
 
@@ -40,7 +46,7 @@ final class HeldApprovalTransport: ModelTransport {
 					for try await event in source {
 						continuation.yield(event)
 						if case .toolCall = event {
-							streamedTools.withLock { _ = $0.insert(index) }
+							toolGate(for: index).release()
 						}
 					}
 					continuation.finish()

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -10,7 +11,9 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func replyObservedIsWrittenBeforeFirstDeltaIsPublished() async throws {
-		transport.script = [.text("Thursday "), .text("is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday "), .text("is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let gate = HeldAppendLog(inner: store, holding: "replyObserved", occurrence: 1)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: gate, clock: clock)
@@ -37,7 +40,9 @@ import Testing
 	}
 
 	@Test func replyObservedIsFoldedAfterRelaunch() async throws {
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
@@ -53,24 +58,23 @@ import Testing
 		let attempt = try #require(facts.claims.first?.attempt)
 		#expect(facts.replyObserved.map(\.attempt) == [attempt])
 		#expect(
-			TurnLifecycle.writes(
-				for: .observeReply(attempt), on: facts, chat: .main, device: store.deviceId,
-				mint: { turn }) == .success(.nothing))
+			TurnLifecycle.observeReply(attempt, on: facts, chat: .main) == nil)
 	}
 
 	@Test func textThenMemoryWriteThenServerErrorSettlesSavedUnverified() async throws {
-		transport.script = [
-			.text("Noted. "),
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.fail(.http(status: 500)),
-			.text("Never sent."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Noted. "),
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.fail(.http(status: 500)),
+				.text("Never sent."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Remember my Saturday ride")
 		guard case .savedWork(let savedWork) = settled else {
 			Issue.record("expected saved work, got \(settled)")
@@ -85,11 +89,12 @@ import Testing
 	@Test func observedTextBelongsToOneGenerateAttempt() async throws {
 		transport.finishUsage = Usage(
 			inputTokens: TurnPolicy.contextWindowCap, outputTokens: 8, cost: nil)
-		transport.script = [
-			.text("truncated"), .finish(reason: .length),
-			.fail(.http(status: 500)),
-			.text("after compact"), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("truncated"), .finish(reason: .length),
+				.fail(.http(status: 500)),
+				.text("after compact"), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Long history"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
@@ -102,7 +107,9 @@ import Testing
 	}
 
 	@Test func anUnsavedReplyMarkIsReportedOncePerAttempt() async throws {
-		transport.script = [.text("One "), .text("two "), .text("three."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("One "), .text("two "), .text("three."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let faulty = FaultInjectingRecordLog(wrapping: store)
 		try faulty.failAppends(ofKind: "replyObserved")
 		let coach = await EnduragentCoachTests.makeCoach(

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -5,9 +6,30 @@ import Testing
 @testable import EnduragentCoach
 
 extension ChatMailboxTests {
+	@Test func concurrentSendsOnOneChatCompleteInOrder() async throws {
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("first"),
+				.finish(reason: .stop),
+				.text("second"),
+				.finish(reason: .stop),
+			], requestDelay: .milliseconds(40), otherwise: transport.respond)
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let first = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
+		await coach.waitUntilProcessing(first)
+		let second = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
+		#expect(first != second)
+		#expect(replyText(try #require(await coach.settledState(of: first, in: .main))) == "first")
+		#expect(
+			replyText(try #require(await coach.settledState(of: second, in: .main))) == "second")
+		#expect(await coach.transcript(.main) == ["one", "first", "two", "second"])
+	}
+
 	@Test func aTurnThatStartedNeverShowsAsWaitingAgain() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let states = Mutex<[TurnState]>([])
 		let stream = await coach.observe(.main)
@@ -32,7 +54,8 @@ extension ChatMailboxTests {
 
 	@Test func relaunchAfterExpiryMidReplyDoesNotRerunTheModel() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Yes, keep Thursday."), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, keep Thursday."), .hang], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
@@ -57,7 +80,8 @@ extension ChatMailboxTests {
 
 	@Test func retryOfRepliedTurnIsRefusedAlreadyAnswered() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let before = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -73,7 +97,8 @@ extension ChatMailboxTests {
 
 	@Test func enteredBackgroundClosesTheCoalescingWindow() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)))
@@ -86,7 +111,8 @@ extension ChatMailboxTests {
 
 	@Test func enteringTheBackgroundWaitsBehindASendBeingAdmitted() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Joined."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Joined."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock,
@@ -110,7 +136,8 @@ extension ChatMailboxTests {
 	@Test func willTerminateInterruptsTheRunningAttemptAndLeavesQueuedTurnsUnclaimed() async throws
 	{
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is "), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is "), .hang], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -145,7 +172,8 @@ extension ChatMailboxTests {
 
 	@Test func willTerminateStartsNothingThatWasStillJoining() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Still on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock,

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -14,12 +15,14 @@ extension DurableCalendarWriteTests {
 		_ = await fixture.coach.decide(.approve(initial), in: .main)
 		await fixture.coach.stop(.main)
 		server.state.withLock { $0.response = .status(504) }
-		fixture.model.script = [
-			.toolCall(
-				name: deleting ? "intervals_delete_workout" : "intervals_update_workout",
-				arguments: deleting ? #"{"eventId":1}"# : #"{"eventId":1,"name":"Edited workout"}"#),
-			.finish(reason: .toolCalls), .text("Review ready."), .hang,
-		]
+		fixture.model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: deleting ? "intervals_delete_workout" : "intervals_update_workout",
+					arguments: deleting
+						? #"{"eventId":1}"# : #"{"eventId":1,"name":"Edited workout"}"#),
+				.finish(reason: .toolCalls), .text("Review ready."), .hang,
+			], for: .chat, otherwise: fixture.model.respond)
 		let turn = try #require(
 			try await fixture.coach.send(draft("Change the workout"), to: .main).acceptedTurn)
 		await fixture.coach.waitForLiveText(turn)

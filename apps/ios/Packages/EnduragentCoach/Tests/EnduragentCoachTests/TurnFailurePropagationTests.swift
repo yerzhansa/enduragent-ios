@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Synchronization
 import Testing
 
@@ -16,15 +17,17 @@ import Testing
 		let store = InMemoryRecordLog()
 		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 3)
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I could not save that."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#
+				),
+				.finish(reason: .toolCalls),
+				.text("I could not save that."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: failing)
 		let settled = try await coach.sendAndSettle("Remember that I ride on Saturdays")
 		#expect(replyText(settled) == "I could not save that.")
@@ -54,12 +57,13 @@ import Testing
 		var results: [String] = []
 		for arguments in ["{}", ""] {
 			let transport = FakeModelTransport()
-			transport.script = [
-				.toolCall(name: name, arguments: arguments),
-				.finish(reason: .toolCalls),
-				.text("ok"),
-				.finish(reason: .stop),
-			]
+			transport.respond = ScriptedReply.sequence(
+				[
+					.toolCall(name: name, arguments: arguments),
+					.finish(reason: .toolCalls),
+					.text("ok"),
+					.finish(reason: .stop),
+				], otherwise: transport.respond)
 			let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 			let settled = try await coach.sendAndSettle("Read my information")
 			#expect(replyText(settled) == "ok")
@@ -74,12 +78,13 @@ import Testing
 	@Test(arguments: ["", "{}"])
 	func blankToolArgumentsValidateRequiredParameters(arguments: String) async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(name: "calculate_zones", arguments: arguments),
-			.finish(reason: .toolCalls),
-			.text("What is your FTP?"),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "calculate_zones", arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("What is your FTP?"),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let settled = try await coach.sendAndSettle("Calculate my zones")
 		#expect(replyText(settled) == "What is your FTP?")
@@ -98,12 +103,13 @@ import Testing
 	@Test(arguments: ["not-json", " ", "{", "undefined"])
 	func invalidToolArgumentsReturnAToolError(arguments: String) async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(name: "memory_read", arguments: arguments),
-			.finish(reason: .toolCalls),
-			.text("ok"),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "memory_read", arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("ok"),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 		let settled = try await coach.sendAndSettle("read memory")
 		#expect(replyText(settled) == "ok")
@@ -133,7 +139,9 @@ import Testing
 		let store = InMemoryRecordLog()
 		let failing = MemoryReadFailingLog(wrapping: store, failingOn: occurrence)
 		let transport = FakeModelTransport()
-		transport.script = [.text("This response must not be generated."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("This response must not be generated."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: failing)
 		let settled = try await coach.sendAndSettle("Plan my week")
 		#expect(failure(settled) == .local(.recordStorage))

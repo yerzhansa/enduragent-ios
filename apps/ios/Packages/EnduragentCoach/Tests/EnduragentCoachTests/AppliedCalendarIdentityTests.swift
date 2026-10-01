@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -11,18 +12,19 @@ extension DurableCalendarWriteTests {
 		let fixture = await fixture(url: url)
 		let held = HeldClock()
 		defer { held.release(.seconds(11)) }
-		fixture.model.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments:
-					#"{"date":"1998-06-14","name":"Morning","description":"Three sets"}"#),
-			.finish(reason: .toolCalls),
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments:
-					#"{"date":"1998-06-14","name":"Evening","description":"Four sets"}"#),
-			.finish(reason: .toolCalls), .text("Both reviews are ready."), .hang,
-		]
+		fixture.model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Morning","description":"Three sets"}"#),
+				.finish(reason: .toolCalls),
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Evening","description":"Four sets"}"#),
+				.finish(reason: .toolCalls), .text("Both reviews are ready."), .hang,
+			], for: .chat, otherwise: fixture.model.respond)
 		let model = HeldApprovalTransport(base: fixture.model, clock: held) { index, _ in
 			index == 2 ? .seconds(11) : nil
 		}

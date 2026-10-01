@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,10 +10,10 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let intervals = HeldApprovalWrites(
 			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), clock: held)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ (checkpoint == .retryModelRequest ? workoutProposal : [])
-			+ [.text("Rest today."), .finish(reason: .stop)]
+				+ (checkpoint == .retryModelRequest ? workoutProposal : [])
+				+ [.text("Rest today."), .finish(reason: .stop)], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			checkpoint == .retryModelRequest && request.charge == .chatAttempt && index == 3
 				? .seconds(11) : nil

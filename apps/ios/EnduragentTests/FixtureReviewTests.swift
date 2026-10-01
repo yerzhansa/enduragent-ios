@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Observation
 import Testing
@@ -43,7 +44,7 @@ extension FixtureLaunchTests {
 				guard case .checkAgain? = model.chat?.review?.controls else { return false }
 				return true
 			}
-			#expect(!intervals.calls.contains(where: \.isCalendarWrite))
+			#expect(!intervals.calls.contains { $0.isCalendarWrite })
 		} else {
 			#expect(model.reviewNotice == nil)
 			try await waitUntil { model.chat?.review == nil && model.chat?.notes.count == 1 }

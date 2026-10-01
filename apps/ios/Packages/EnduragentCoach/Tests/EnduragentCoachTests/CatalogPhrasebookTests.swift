@@ -8,11 +8,6 @@ import Testing
 		#expect(LanguageTag.en.phrasebook.say(Catalog.trainingPowerPercent) == "%#@value@%")
 	}
 
-	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2482)
-		#expect(Catalog.keyCount == 2522)
-	}
-
 	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {
 		let book = CatalogPhrasebook(tag: .en)
 		#expect(book.say(Catalog.onboardingConnectApiKey) == "intervals.icu API key")

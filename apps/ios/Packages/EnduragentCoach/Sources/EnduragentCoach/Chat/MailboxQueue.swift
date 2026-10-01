@@ -85,7 +85,12 @@ final class MailboxQueue {
 	}
 
 	private func append(_ item: MailboxWork) -> Bool {
-		guard !waiting.contains(item) else { return false }
+		guard
+			!waiting.contains(where: { queued in
+				if let turn = item.turn { return queued.turn == turn }
+				return queued == item
+			})
+		else { return false }
 		waiting.append(item)
 		return true
 	}

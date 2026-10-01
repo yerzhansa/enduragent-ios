@@ -11,7 +11,7 @@ enum ApprovalCheckpoint: CaseIterable, Sendable {
 
 	func reach(using clock: HeldClock) async throws {
 		if self == .retryModelRequest {
-			clock.release(.seconds(7))
+			clock.advance(by: .seconds(7))
 			try await clock.waitUntilHeld(.seconds(11))
 		}
 	}
@@ -22,7 +22,7 @@ extension RetryLadderTests {
 		at checkpoint: ApprovalCheckpoint, turn: TurnID, coach: Coach,
 		model: HeldApprovalTransport, clock: HeldClock
 	) async throws {
-		clock.release(checkpoint == .backoff ? .seconds(7) : .seconds(11))
+		clock.advance(by: checkpoint == .backoff ? .seconds(7) : .seconds(11))
 		if checkpoint == .retryModelRequest { try await model.waitForToolCall(in: 3) }
 		let deadline = ContinuousClock.now + .seconds(1)
 		repeat {
@@ -42,7 +42,8 @@ extension RetryLadderTests {
 				transport.requests.filter { $0.charge == .chatAttempt }.count
 					== checkpoint.requests,
 				"The retry advanced while its calendar write was held")
-			try await Task.sleep(for: .milliseconds(10))
+			try Task.checkCancellation()
+			await Task.yield()
 		} while ContinuousClock.now < deadline
 	}
 }

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -15,13 +16,16 @@ extension DurableCalendarWriteTests {
 		defer { approving.cancel() }
 		try await waitUntil { server.posts.count == 1 }
 		await fixture.coach.stop(.main)
-		fixture.model.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments: #"{"date":"1998-06-14","name":"Replacement","description":"Other sets"}"#
-			),
-			.finish(reason: .toolCalls), .text("Check the existing write."), .finish(reason: .stop),
-		]
+		fixture.model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Replacement","description":"Other sets"}"#
+				),
+				.finish(reason: .toolCalls), .text("Check the existing write."),
+				.finish(reason: .stop),
+			], for: .chat, otherwise: fixture.model.respond)
 		let settled = try await fixture.coach.sendAndSettle("Replace it", within: .seconds(5))
 		#expect(replyText(settled) == "Check the existing write.")
 		#expect(
@@ -105,13 +109,16 @@ extension DurableCalendarWriteTests {
 		_ = await fixture.coach.decide(.approve(token), in: .main)
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		fixture.model.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments: #"{"date":"1998-06-14","name":"Replacement","description":"Other sets"}"#
-			),
-			.finish(reason: .toolCalls), .text("Check the existing write."), .finish(reason: .stop),
-		]
+		fixture.model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Replacement","description":"Other sets"}"#
+				),
+				.finish(reason: .toolCalls), .text("Check the existing write."),
+				.finish(reason: .stop),
+			], for: .chat, otherwise: fixture.model.respond)
 		_ = try await fixture.coach.sendAndSettle("Replace that workout")
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.ref.set == pending.ref.set)
 		#expect(

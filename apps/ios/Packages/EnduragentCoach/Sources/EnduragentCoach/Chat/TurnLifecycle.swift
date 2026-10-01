@@ -1,20 +1,5 @@
 import Foundation
 
-package enum TurnEvent: Sendable, Equatable {
-	case accept(Draft, joining: TurnID?, slash: SlashCommand?)
-	case claim(AttemptID, process: ProcessID, lease: LeaseKind)
-	case observeReply(AttemptID)
-	case settle(AttemptID, Settlement)
-	case stopBeforeStart(AttemptID)
-	case recoverDeadClaim(AttemptID, saved: WriteSummary)
-}
-
-package enum TurnWrites: Sendable, Equatable {
-	case nothing
-	case synced([SyncedRecordBody])
-	case local([DeviceLocalRecordBody])
-}
-
 package enum TurnRefusal: Error, Sendable, Equatable {
 	case unknownTurn
 	case acceptedElsewhere
@@ -25,90 +10,55 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 }
 
 package enum TurnLifecycle {
-	package static func writes(
-		for event: TurnEvent,
-		on facts: TurnFacts?,
-		chat: ChatID,
-		device: DeviceID,
-		mint: () -> TurnID
-	) -> Result<TurnWrites, TurnRefusal> {
-		switch event {
-		case .accept(let draft, let joining, let slash):
-			if let facts, facts.fragments.contains(where: { $0.draft == draft.id }) {
-				return .success(.nothing)
-			}
-			let turn: TurnID
-			let fragment: Int
-			if let joining, let facts, facts.turn == joining {
-				turn = joining
-				fragment = facts.fragments.count
-			} else {
-				turn = mint()
-				fragment = 0
-			}
-			return .success(
-				.synced([
-					.userMessage(
-						UserMessageBody(
-							chatId: chat,
-							turn: turn,
-							fragment: fragment,
-							draft: draft.id,
-							athleteText: draft.text,
-							slash: slash
-						)
-					)
-				]))
-		case .claim(let attempt, let process, let lease):
-			guard let facts else { return .failure(.unknownTurn) }
-			if let refusal = claimRefusal(of: facts, device: device, process: process) {
-				return .failure(refusal)
-			}
-			let claim = TurnClaimBody(
-				chatId: chat, turn: facts.turn, attempt: attempt, process: process, lease: lease)
-			return .success(.local([.turnClaim(claim)]))
-		case .observeReply(let attempt):
-			guard let facts else { return .failure(.unknownTurn) }
-			if facts.replyObserved.contains(where: { $0.attempt == attempt }) {
-				return .success(.nothing)
-			}
-			return .success(
-				.local([
-					.replyObserved(
-						ReplyObservedBody(chatId: chat, turn: facts.turn, attempt: attempt))
-				]))
-		case .settle(let attempt, let settlement):
-			guard let facts else { return .failure(.unknownTurn) }
-			if facts.settlements.contains(where: { $0.attempt == attempt }) {
-				return .success(.nothing)
-			}
-			return .success(
-				.synced([
-					.turnSettled(
-						TurnSettledBody(
-							chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement
-						))
-				]))
-		case .stopBeforeStart(let attempt):
-			guard let facts else { return .failure(.unknownTurn) }
-			guard facts.openClaim == nil else { return .failure(.attemptInFlight) }
-			return .success(
-				.synced([
-					.turnSettled(
-						TurnSettledBody(
-							chatId: chat,
-							turn: facts.turn,
-							attempt: attempt,
-							settlement: .interrupted(
-								partial: "", cause: .stoppedBeforeStart, saved: .none)
-						))
-				]))
-		case .recoverDeadClaim(let attempt, let saved):
-			return writes(
-				for: .settle(
-					attempt, .interrupted(partial: "", cause: .processEnded, saved: saved)),
-				on: facts, chat: chat, device: device, mint: mint)
+	package static func accept(
+		_ draft: Draft, turn: TurnID, fragment: Int, chat: ChatID, slash: SlashCommand?
+	) -> UserMessageBody {
+		UserMessageBody(
+			chatId: chat, turn: turn, fragment: fragment, draft: draft.id,
+			athleteText: draft.text, slash: slash)
+	}
+
+	package static func claim(
+		_ attempt: AttemptID, on facts: TurnFacts?, chat: ChatID,
+		device: DeviceID, process: ProcessID, lease: LeaseKind
+	) -> Result<TurnClaimBody, TurnRefusal> {
+		guard let facts else { return .failure(.unknownTurn) }
+		if let refusal = claimRefusal(of: facts, device: device, process: process) {
+			return .failure(refusal)
 		}
+		return .success(
+			TurnClaimBody(
+				chatId: chat, turn: facts.turn, attempt: attempt, process: process, lease: lease))
+	}
+
+	package static func observeReply(
+		_ attempt: AttemptID, on facts: TurnFacts?, chat: ChatID
+	) -> ReplyObservedBody? {
+		guard let facts,
+			!facts.replyObserved.contains(where: { $0.attempt == attempt })
+		else { return nil }
+		return ReplyObservedBody(chatId: chat, turn: facts.turn, attempt: attempt)
+	}
+
+	package static func settled(
+		_ attempt: AttemptID, _ settlement: Settlement, on facts: TurnFacts?, chat: ChatID
+	) -> TurnSettledBody? {
+		guard let facts,
+			!facts.settlements.contains(where: { $0.attempt == attempt })
+		else { return nil }
+		return TurnSettledBody(
+			chatId: chat, turn: facts.turn, attempt: attempt, settlement: settlement)
+	}
+
+	package static func stopBeforeStart(
+		_ attempt: AttemptID, on facts: TurnFacts?, chat: ChatID
+	) -> Result<TurnSettledBody, TurnRefusal> {
+		guard let facts else { return .failure(.unknownTurn) }
+		guard facts.openClaim == nil else { return .failure(.attemptInFlight) }
+		return .success(
+			TurnSettledBody(
+				chatId: chat, turn: facts.turn, attempt: attempt,
+				settlement: .interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none)))
 	}
 
 	package static func claimRefusal(of facts: TurnFacts, device: DeviceID, process: ProcessID)

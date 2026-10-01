@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -156,13 +157,15 @@ import Testing
 	func proposal(on coach: Coach, model: FakeModelTransport, name: String = "Strength")
 		async throws -> (TurnID, ReviewControlToken)
 	{
-		model.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments:
-					"{\"date\":\"1998-06-14\",\"name\":\"\(name)\",\"description\":\"Three sets\"}"),
-			.finish(reason: .toolCalls), .text("Review ready."), .hang,
-		]
+		model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						"{\"date\":\"1998-06-14\",\"name\":\"\(name)\",\"description\":\"Three sets\"}"
+				),
+				.finish(reason: .toolCalls), .text("Review ready."), .hang,
+			], for: .chat, otherwise: model.respond)
 		let turn = try #require(
 			try await coach.send(draft("Add a workout"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)

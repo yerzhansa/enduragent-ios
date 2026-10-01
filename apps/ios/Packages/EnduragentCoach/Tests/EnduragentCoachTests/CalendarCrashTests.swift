@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -57,13 +58,15 @@ extension DurableCalendarWriteTests {
 		#expect(server.posts.isEmpty)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.token == token)
 		await fixture.coach.stop(.main)
-		fixture.model.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments:
-					#"{"date":"1998-06-14","name":"Revised strength","description":"Four sets"}"#),
-			.finish(reason: .toolCalls), .text("Revised."), .finish(reason: .stop),
-		]
+		fixture.model.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Revised strength","description":"Four sets"}"#
+				),
+				.finish(reason: .toolCalls), .text("Revised."), .finish(reason: .stop),
+			], for: .chat, otherwise: fixture.model.respond)
 		try await fixture.coach.retry(turn, in: .main)
 		_ = try #require(await fixture.coach.settledState(of: turn, in: .main))
 		let revised = try #require(await fixture.coach.currentSnapshot(.main)?.review)

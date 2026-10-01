@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -22,17 +23,27 @@ extension ConversationFoldTests {
 		var preceding: [TurnID] = []
 		let answer = String(repeating: "w", count: historyBudget(clock: clock) * 2)
 		for index in 0..<2 {
-			transport.script = [.text("Answer \(index) " + answer), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Answer \(index) " + answer), .finish(reason: .stop)], for: .chat,
+				otherwise: transport.respond)
 			let turn = try #require(
 				try await coach.send(draft("Question \(index)"), to: .main).acceptedTurn)
 			_ = try #require(await coach.settledState(of: turn, in: .main))
 			preceding.append(turn)
 		}
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
 		switch ending {
-		case .reply: transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
-		case .stop: transport.script = [.text("Thursday is"), .hang]
-		case .failure: transport.script = [.fail(.http(status: 400))]
+		case .reply:
+			transport.respond = ScriptedReply.sequence(
+				[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
+		case .stop:
+			transport.respond = ScriptedReply.sequence(
+				[.text("Thursday is"), .hang], otherwise: transport.respond)
+		case .failure:
+			transport.respond = ScriptedReply.sequence(
+				[.fail(.http(status: 400))], otherwise: transport.respond)
 		}
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)

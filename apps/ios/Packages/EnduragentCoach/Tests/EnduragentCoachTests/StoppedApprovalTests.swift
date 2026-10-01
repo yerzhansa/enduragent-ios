@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,9 +9,10 @@ extension RetryLadderTests {
 	func stoppedCardApprovalRemovesTryAgain(reopenBeforeApproval: Bool) async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Here it is again."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Here it is again."), .finish(reason: .stop)],
+			otherwise: transport.respond)
 		let original = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
@@ -56,8 +58,9 @@ extension RetryLadderTests {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let records = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
 		defer { records.release() }
-		transport.script =
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))],
+			otherwise: transport.respond)
 		let coach = await heldApprovalCoach(
 			held, model: transport, intervals: intervals, records: records)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
@@ -88,8 +91,9 @@ extension RetryLadderTests {
 	@Test func confirmedApprovalThenStopKeepsConfirmedNotice() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))],
+			otherwise: transport.respond)
 		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
