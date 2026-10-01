@@ -191,10 +191,8 @@ extension TurnRunner {
 			await progress(.activity(.compacting))
 			try await scope.chargeCall()
 			do {
-				prompt.summary = try await summarize(
-					PromptAssembly.compactionRequest(
-						previous: prompt.summary, transcript: PromptAssembly.transcript(dropped)),
-					charge: .compaction, attempt: attempt)
+				prompt.summary = try await Compactor(modelCall: modelCall).summarize(
+					dropped, previous: prompt.summary, purpose: .inTurn, attempt: attempt)
 				prompt.wire = Array(prompt.wire.suffix(4))
 			} catch is CancellationError {
 				throw CancellationError()
