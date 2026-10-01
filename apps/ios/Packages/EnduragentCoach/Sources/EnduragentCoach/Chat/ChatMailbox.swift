@@ -391,9 +391,7 @@ package actor ChatMailbox {
 		)
 	}
 
-	private func publish() {
-		feed.publish(snapshot())
-	}
+	private func publish() { feed.publish(snapshot()) }
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
 		if waits.end(turn, attempt: attempt) { publish() }
