@@ -6,12 +6,14 @@ import Testing
 extension FlushCoverageTests {
 	@Test(arguments: [false, true])
 	func resetDoesNotReplayAQuestionFromAPendingSupersededPartial(relaunch: Bool) async throws {
-		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		let host = EndingHost()
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		transport.script = [.text("Pending superseded partial"), .hang]
 		let turn = try #require(
 			try await coach.send(draft("Pending Saturday question"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
+		try await host.waitForEnd(0)
 		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
 		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 20)
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
@@ -21,10 +23,12 @@ extension FlushCoverageTests {
 			.text(longReply), .finish(reason: .stop),
 			.text("Ready."), .finish(reason: .stop),
 		]
-		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
+		let questions = ["First question", "Second question", "Plan the week", "Anything else?"]
+		for (index, question) in questions.enumerated() {
 			_ = try await coach.sendAndSettle(question)
+			try await host.waitForEnd(index + 1)
 		}
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 1 }
+		try #require(sent(.memoryFlush, by: transport).count == 1)
 		let first = try #require(sent(.memoryFlush, by: transport).first)
 		try #require(
 			first.messages.contains { $0.unstampedContent == "Pending superseded partial" })
@@ -33,7 +37,8 @@ extension FlushCoverageTests {
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement after pending")
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
+		try await host.waitForEnd(questions.count + 1)
+		try #require(sent(.memoryFlush, by: transport).count == 2)
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = sent(.memoryFlush, by: transport)

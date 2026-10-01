@@ -86,10 +86,10 @@ import Testing
 		transport.flushScript =
 			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
 			+ Array(repeating: .fail(failure), count: 4)
-		let host = ImmediateExecutionHost()
+		let host = EndingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
-		_ = try #require(await host.ended(0))
+		try await host.waitForEnd(0)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let expectedAttempts: Int
 		switch failure.failure {
@@ -106,7 +106,7 @@ import Testing
 		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)]
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("Anything else?")
-		_ = try #require(await host.ended(1))
+		try await host.waitForEnd(1)
 		let flushes = sent(.memoryFlush, by: transport)
 		#expect(flushes.count == requestsBeforeRecovery + 2)
 		for request in flushes.suffix(2) {
@@ -127,7 +127,7 @@ import Testing
 
 		transport.script = [.text("Still noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("And later?")
-		_ = try #require(await host.ended(2))
+		try await host.waitForEnd(2)
 		#expect(sent(.memoryFlush, by: transport).count == flushes.count)
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
 	}
@@ -143,10 +143,10 @@ import Testing
 			covering: try #require(history.first), settled: false,
 			process: ProcessID(ulid: fixedUlid(60)))
 		transport.flushScript = [.fail(failure)]
-		let host = ImmediateExecutionHost()
+		let host = EndingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
-		_ = try #require(await host.ended(0))
+		try await host.waitForEnd(0)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.map(\.phase) == [.settled(.recorded(.abandoned))])
@@ -154,7 +154,7 @@ import Testing
 
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("Anything else?")
-		_ = try #require(await host.ended(1))
+		try await host.waitForEnd(1)
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 

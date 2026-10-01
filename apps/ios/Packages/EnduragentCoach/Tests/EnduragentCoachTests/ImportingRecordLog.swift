@@ -7,8 +7,7 @@ final class ImportingRecordLog: RecordLog, Sendable {
 	private struct State {
 		var subscriptions = 0
 		var listeners: [UUID: AsyncStream<Void>.Continuation] = [:]
-		var holdNextRead = false
-		var held: CheckedContinuation<Void, Never>?
+		var nextRead: Gate?
 	}
 
 	let inner: any RecordLog
@@ -21,7 +20,6 @@ final class ImportingRecordLog: RecordLog, Sendable {
 	var deviceId: DeviceID { inner.deviceId }
 	var subscriptions: Int { state.withLock { $0.subscriptions } }
 	var listeners: Int { state.withLock { $0.listeners.count } }
-	var readHeld: Bool { state.withLock { $0.held != nil } }
 
 	var imports: AsyncStream<Void> {
 		let id = UUID()
@@ -41,18 +39,10 @@ final class ImportingRecordLog: RecordLog, Sendable {
 		for listener in listeners { listener.yield() }
 	}
 
-	func holdRead() {
-		state.withLock { $0.holdNextRead = true }
-	}
-
-	func releaseRead() {
-		let held = state.withLock {
-			let held = $0.held
-			$0.held = nil
-			$0.holdNextRead = false
-			return held
-		}
-		held?.resume()
+	func holdRead() -> Gate {
+		let gate = Gate()
+		state.withLock { $0.nextRead = gate }
+		return gate
 	}
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
@@ -65,18 +55,12 @@ final class ImportingRecordLog: RecordLog, Sendable {
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let page = try await inner.fetch(query)
-		let hold = state.withLock { current in
-			guard current.holdNextRead, query.scope == ConversationFold.syncedScope else {
-				return false
-			}
-			current.holdNextRead = false
-			return true
+		let gate = state.withLock { current -> Gate? in
+			guard query.scope == ConversationFold.syncedScope else { return nil }
+			defer { current.nextRead = nil }
+			return current.nextRead
 		}
-		if hold {
-			await withCheckedContinuation { continuation in
-				state.withLock { $0.held = continuation }
-			}
-		}
+		try await gate?.waitUnlessCancelled()
 		return page
 	}
 }
