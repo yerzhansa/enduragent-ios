@@ -3,6 +3,52 @@ import Synchronization
 import Testing
 
 @Suite struct DeadlineWaitTests {
+	@Test func heldClockFailsWhenNoSleepArrives() async throws {
+		let clock = HeldClock(within: .zero)
+		let ended = try await beforeDeadline(within: .seconds(1)) {
+			await #expect(throws: TestWaitDeadlineExceeded.self) {
+				try await clock.waitUntilHeld(.seconds(7))
+			}
+			return true
+		}
+		#expect(ended == true)
+	}
+
+	@Test func heldClockFailsWhenASleepIsNeverReleased() async throws {
+		let clock = HeldClock(within: .zero)
+		let ended = try await beforeDeadline(within: .seconds(1)) {
+			await #expect(throws: CancellationError.self) {
+				try await clock.sleep(for: .seconds(7))
+			}
+			return true
+		}
+		#expect(ended == true)
+		#expect(clock.held.isEmpty)
+		#expect(clock.slept.isEmpty)
+		#expect(clock.uptime == .zero)
+	}
+
+	@Test func reviewGateFailsWhenNoRefreshEnters() async throws {
+		let gate = ReviewGate(within: .zero)
+		let entered = try await beforeDeadline(within: .seconds(1)) {
+			try await gate.waitUntilEntered()
+		}
+		#expect(entered == false)
+	}
+
+	@Test func reviewGateFailsWhenARefreshIsNeverReleased() async throws {
+		let gate = ReviewGate(within: .zero)
+		await gate.arm()
+		let rescue = Task {
+			try await Task.sleep(for: .seconds(1))
+			await gate.release()
+		}
+		defer { rescue.cancel() }
+		await #expect(throws: TestWaitDeadlineExceeded.self) {
+			try await gate.pass()
+		}
+	}
+
 	@Test func deadlineReleasesAHeldTaskBeforeJoiningIt() async throws {
 		let gate = Gate()
 		defer { gate.release() }

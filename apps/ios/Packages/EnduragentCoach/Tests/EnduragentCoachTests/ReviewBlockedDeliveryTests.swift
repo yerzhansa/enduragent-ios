@@ -12,7 +12,7 @@ extension SingleProposalReviewsTests {
 		let firstToken = try await presentedToken(on: coach)
 		await staleRead.arm()
 		let first = Task { await coach.decide(.approve(firstToken), in: .main) }
-		#expect(await staleRead.waitUntilEntered())
+		try #require(try await staleRead.waitUntilEntered())
 		secretBacking.locked = true
 		await staleRead.release()
 		#expect(await first.value == .blocked(.cannotVerify))
@@ -22,7 +22,7 @@ extension SingleProposalReviewsTests {
 		let laterToken = try await presentedToken(on: coach)
 		await laterClaim.arm()
 		let laterApproval = Task { await coach.decide(.approve(laterToken), in: .main) }
-		#expect(await laterClaim.waitUntilEntered())
+		try #require(try await laterClaim.waitUntilEntered())
 		#expect(await coach.decide(.approve(firstToken), in: .main) == .staleControl)
 		#expect(await coach.decide(.approve(laterToken), in: .main) == .staleControl)
 		await laterClaim.release()

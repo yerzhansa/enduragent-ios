@@ -31,39 +31,43 @@ import Testing
 
 	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		let pacing = HeldClock()
+		let coalescing = HeldClock()
 		let transport = FakeModelTransport(clock: pacing)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
 			], deltaDelay: .milliseconds(1), otherwise: transport.respond)
 		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock)
+			transport: transport, intervals: intervals, store: store, clock: clock,
+			coalescingClock: coalescing)
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
+		try await coalescing.waitUntilHeld(quickWindow.window)
+		coalescing.advance(by: quickWindow.window)
 		var liveTexts: [String] = []
 		var settled: TurnState?
 		let snapshots = await coach.observe(.main)
 		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
-			let held = try await beforeDeadline(within: .seconds(2)) {
+			let held = try await beforeDeadline(within: .seconds(5)) {
 				try await pacing.waitUntilHeld(.milliseconds(1))
 				return true
 			}
 			try #require(held == true)
 			pacing.advance(by: .milliseconds(1))
 			_ = try #require(
-				try await firstSnapshot(in: snapshots, within: .seconds(2)) { snapshot in
+				try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
 					guard case .processing? = snapshot.turns.first?.state else { return false }
 					return snapshot.liveReply?.text == text
 				})
 			liveTexts.append(text)
 		}
-		let finishing = try await beforeDeadline(within: .seconds(2)) {
+		let finishing = try await beforeDeadline(within: .seconds(5)) {
 			try await pacing.waitUntilHeld(.milliseconds(1))
 			return true
 		}
 		try #require(finishing == true)
 		pacing.advance(by: .milliseconds(1))
-		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(2)))
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(5)))
 		#expect(liveTexts.contains("Your week: "))
 		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)

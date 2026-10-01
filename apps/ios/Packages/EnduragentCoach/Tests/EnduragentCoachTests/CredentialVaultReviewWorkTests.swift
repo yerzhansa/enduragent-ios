@@ -30,7 +30,7 @@ extension CredentialVaultTests {
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
 		await gate.arm()
 		let approval = Task { await coach.decide(.approve(token), in: .main) }
-		#expect(await gate.waitUntilEntered())
+		try #require(try await gate.waitUntilEntered())
 		let rows = try await records.fetch(ProposalPolicy.proposalQuery(.main))
 		#expect(
 			UnionMerge.pendingProposalRecord(rows.records, chatId: .main, now: clock.now) == nil)

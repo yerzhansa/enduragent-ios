@@ -16,28 +16,24 @@ extension ChatMailboxTests {
 		let store = InMemoryRecordLog()
 		_ = try await seedHistory(store, clock: clock, turns: 3, tokens: 60)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		var snapshots = await coach.observe(.main).makeAsyncIterator()
-		let history = try #require(await snapshots.next())
+		let snapshots = await coach.observe(.main)
+		let history = try #require(
+			try await firstSnapshot(in: snapshots, within: .seconds(5)) { _ in true })
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		var previous = history
-		while let snapshot = await snapshots.next() {
-			previous = snapshot
-			if case .processing? = snapshot.turns.last?.state { break }
-		}
+		var previous = try #require(
+			try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
+				if case .processing? = snapshot.turns.last?.state { return true }
+				return false
+			})
 		for text in ["Thursday ", "Thursday is on."] {
 			try await pacing.waitUntilHeld(.milliseconds(1))
 			let readsBeforeDelta = clock.readCount
 			pacing.advance(by: .milliseconds(1))
-			var streamed: ChatSnapshot?
-			while let snapshot = await snapshots.next() {
-				if case .processing? = snapshot.turns.last?.state,
-					snapshot.liveReply?.text == text
-				{
-					streamed = snapshot
-					break
-				}
-			}
-			let snapshot = try #require(streamed)
+			let snapshot = try #require(
+				try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
+					guard case .processing? = snapshot.turns.last?.state else { return false }
+					return snapshot.liveReply?.text == text
+				})
 			if previous.liveReply?.text.isEmpty == false {
 				#expect(
 					clock.readCount == readsBeforeDelta,
@@ -57,7 +53,8 @@ extension ChatMailboxTests {
 		}
 		try await pacing.waitUntilHeld(.milliseconds(1))
 		pacing.advance(by: .milliseconds(1))
-		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		let settled = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(Array(previous.turns.dropLast()) == history.turns)
 		#expect(await coach.currentSnapshot(.main)?.liveReply == nil)
