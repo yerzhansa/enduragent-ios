@@ -107,13 +107,17 @@ import Testing
 	}
 
 	@Test func theSnapshotShowsTheMemoryWarningWhenNewConversationReturns() async throws {
-		let log = SlowScopeLog(
-			inner: store, scope: ConversationFold.flushScope, delay: .milliseconds(300))
+		let log = HeldFlushReadLog(inner: store)
 		let coach = await coach(over: log)
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		log.holdNextChatFlushRead()
+		async let reset = coach.startNewConversation(in: .main)
+		var reached = log.reached.makeAsyncIterator()
+		await reached.next()
+		log.release()
+		#expect(await reset == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
 	}
@@ -223,8 +227,10 @@ import Testing
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		var reached = held.reached.makeAsyncIterator()
 		await reached.next()
+		var snapshots = await coach.observe(.main).makeAsyncIterator()
+		_ = await snapshots.next()
 		let resetting = Task { await coach.startNewConversation(in: .main) }
-		try await Task.sleep(for: .milliseconds(300))
+		_ = try #require(await snapshots.next())
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(try await count(.synced([.windowStart])) == 0)
 		held.release()
@@ -248,8 +254,10 @@ import Testing
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		var reached = held.reached.makeAsyncIterator()
 		await reached.next()
+		var snapshots = await coach.observe(.main).makeAsyncIterator()
+		_ = await snapshots.next()
 		let resetting = Task { await coach.startNewConversation(in: .main) }
-		try await Task.sleep(for: .milliseconds(500))
+		_ = try #require(await snapshots.next())
 		let second = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		held.release()
