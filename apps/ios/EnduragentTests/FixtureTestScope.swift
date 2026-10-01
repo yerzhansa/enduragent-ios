@@ -121,33 +121,15 @@ struct FixtureScopeTests {
 						opened.continuation.finish()
 						group.cancelAll()
 					}
-					group.addTask { @MainActor in
-						let records = try FixtureRecordStore(
-							directory: fixture.launch.directory, deviceId: DeviceID())
-						let services = try fixtureServices(
-							fixture.launch, defaults: fixture.defaults)
-						let model = fixtureModel(
-							environment: AppEnvironment(
-								services: services, language: .en, defaults: fixture.defaults))
-						await model.appear()
-						opened.continuation.finish()
-						for await _ in held.stream {}
-						withExtendedLifetime((model, services.coach, records)) {}
+					group.addTask {
+						try await holdOwners(
+							of: fixture, opened: opened.continuation, until: held.stream)
 						return true
 					}
-					group.addTask { @MainActor in
+					group.addTask {
 						for await _ in opened.stream {}
 						try Task.checkCancellation()
-						let cleanup = Task { try await fixture.cleanup() }
-						defer { cleanup.cancel() }
-						var waiting = fixture.folder.waitingForStores.makeAsyncIterator()
-						try #require(await waiting.next() != nil)
-						#expect(
-							FileManager.default.fileExists(atPath: fixture.launch.directory.path))
-						held.continuation.finish()
-						try await cleanup.value
-						#expect(
-							!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+						try await checkCleanup(of: fixture, releasing: held.continuation)
 						return true
 					}
 					group.addTask {
@@ -162,5 +144,34 @@ struct FixtureScopeTests {
 				}
 			}
 		}
+	}
+
+	private func holdOwners(
+		of fixture: AppTestFixture, opened: AsyncStream<Void>.Continuation,
+		until held: AsyncStream<Void>
+	) async throws {
+		let records = try FixtureRecordStore(
+			directory: fixture.launch.directory, deviceId: DeviceID())
+		let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
+		let model = fixtureModel(
+			environment: AppEnvironment(
+				services: services, language: .en, defaults: fixture.defaults))
+		await model.appear()
+		opened.finish()
+		for await _ in held {}
+		withExtendedLifetime((model, services.coach, records)) {}
+	}
+
+	private func checkCleanup(
+		of fixture: AppTestFixture, releasing held: AsyncStream<Void>.Continuation
+	) async throws {
+		let cleanup = Task { try await fixture.cleanup() }
+		defer { cleanup.cancel() }
+		var waiting = fixture.folder.waitingForStores.makeAsyncIterator()
+		try #require(await waiting.next() != nil)
+		#expect(FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+		held.finish()
+		try await cleanup.value
+		#expect(!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
 	}
 }
