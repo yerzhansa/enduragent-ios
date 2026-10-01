@@ -46,7 +46,10 @@ extension Coach {
 	}
 
 	public func recordConsent() async throws(PreferenceWriteFailure) {
-		guard await providerConsent()?.isCurrent != true else { return }
+		guard await providerConsent()?.isCurrent != true else {
+			await publishStatus()
+			return
+		}
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
 			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
@@ -73,7 +76,10 @@ extension Coach {
 	}
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
-		guard await loadedPreferences().language != preference else { return }
+		guard await loadedPreferences().language != preference else {
+			await publishStatus()
+			return
+		}
 		try await commitPreference(
 			.languagePreference(LanguagePreferenceBody(preference: preference)))
 	}

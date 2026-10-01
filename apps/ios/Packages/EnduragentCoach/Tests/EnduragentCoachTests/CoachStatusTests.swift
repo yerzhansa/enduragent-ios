@@ -65,6 +65,40 @@ import Testing
 		#expect(await second.next()?.session == session)
 	}
 
+	@Test func acceptingStoredConsentRepublishesAfterAReadFailure() async throws {
+		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let coach = await makeCoach(transport: FakeModelTransport(), store: records)
+		records.failFetches = true
+		#expect(try await coach.observedStatus().needsProviderConsent)
+		let snapshots = await coach.observeStatus()
+		records.failFetches = false
+		try await coach.recordConsent()
+		let accepted = await snapshots.status { !$0.needsProviderConsent }
+		#expect(accepted?.providerConsent?.isCurrent == true)
+		#expect(accepted?.setup == .ready)
+		let persisted = try await records.fetch(
+			RecordQuery(scope: .deviceLocal([.providerConsent])))
+		#expect(persisted.records.count == 1)
+	}
+
+	@Test func choosingStoredLanguageRepublishesAfterAReadFailure() async throws {
+		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let first = await makeCoach(transport: FakeModelTransport(), store: records)
+		try await first.setLanguage(.fixed(.es))
+		let reopened = await makeCoach(
+			transport: FakeModelTransport(), store: records, consent: false)
+		records.failFetches = true
+		#expect(try await reopened.observedStatus().language == .automatic)
+		let snapshots = await reopened.observeStatus()
+		records.failFetches = false
+		try await reopened.setLanguage(.fixed(.es))
+		let chosen = await snapshots.status { $0.language == .fixed(.es) }
+		#expect(chosen?.language == .fixed(.es))
+		let persisted = try await records.fetch(
+			RecordQuery(scope: .synced([.languagePreference])))
+		#expect(persisted.records.count == 1)
+	}
+
 	@Test func failedLanguageCommitKeepsThePublishedChoice() async throws {
 		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = await makeCoach(transport: FakeModelTransport(), store: records)
