@@ -1,14 +1,6 @@
 import Foundation
 
 extension Coach {
-	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
-		do {
-			return try await ledger.history()
-		} catch {
-			throw .storageUnavailable
-		}
-	}
-
 	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
 		let feed = snapshotFeed(for: chat)
 		do {

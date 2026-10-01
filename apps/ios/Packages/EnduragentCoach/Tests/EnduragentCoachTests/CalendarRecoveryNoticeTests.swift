@@ -6,6 +6,32 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite(.timeLimit(.minutes(2))) struct CalendarRecoveryNoticeTests {
+	@Test func reopenedUnknownWriteStorageFailureDoesNotInviteRetry() async throws {
+		let server = try CalendarWriteServer()
+		let url = try await server.start()
+		defer { server.stop() }
+		server.state.withLock { $0.response = .status(502) }
+		let helpers = DurableCalendarWriteTests()
+		let fixture = await helpers.fixture(url: url)
+		let (_, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
+		_ = await fixture.coach.decide(.approve(token), in: .main)
+		await fixture.coach.stop(.main)
+		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		let faults = FaultInjectingRecordLog(wrapping: fixture.store)
+		let reopened = await makeCoach(
+			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
+		faults.failFetches = true
+		let outcome = await reopened.decide(.checkAgain(pending.ref), in: .main)
+		#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
+		faults.failFetches = false
+		let restored = try #require(await reopened.currentSnapshot(.main)?.review)
+		#expect(
+			await reopened.decide(.checkAgain(restored.ref), in: .main)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		#expect(server.posts.count == 1)
+		#expect(server.events.count == 1)
+	}
+
 	@Test func lockedRecoveryNeverClaimsNothingChanged() async throws {
 		let server = try CalendarWriteServer()
 		let url = try await server.start()
