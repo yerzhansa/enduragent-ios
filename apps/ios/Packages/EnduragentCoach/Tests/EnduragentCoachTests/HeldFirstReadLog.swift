@@ -5,14 +5,12 @@ import Synchronization
 
 final class HeldFirstReadLog: RecordLog, Sendable {
 	let inner: any RecordLog
-	let reached: AsyncStream<Void>
-	private let continuation: AsyncStream<Void>.Continuation
-	private let state = Mutex<(claimed: Bool, wake: CheckedContinuation<Void, Never>?)>(
-		(false, nil))
+	private let gate = Gate()
+	var reached: AsyncStream<Void> { gate.reached }
+	private let claimed = Mutex(false)
 
 	init(inner: any RecordLog) {
 		self.inner = inner
-		(reached, continuation) = AsyncStream.makeStream()
 	}
 
 	var deviceId: DeviceID { inner.deviceId }
@@ -33,23 +31,13 @@ final class HeldFirstReadLog: RecordLog, Sendable {
 	}
 
 	private func holdIfNeeded() async {
-		let shouldHold = state.withLock { current in
-			guard !current.claimed else { return false }
-			current.claimed = true
+		let shouldHold = claimed.withLock { current in
+			guard !current else { return false }
+			current = true
 			return true
 		}
-		if shouldHold {
-			await withCheckedContinuation { wake in
-				state.withLock { $0.wake = wake }
-				continuation.yield()
-			}
-		}
+		if shouldHold { await gate.wait() }
 	}
 
-	func release() {
-		state.withLock { current in
-			current.wake?.resume()
-			current.wake = nil
-		}
-	}
+	func release() { gate.release() }
 }
