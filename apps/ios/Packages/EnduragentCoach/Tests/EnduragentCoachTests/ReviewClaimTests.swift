@@ -11,7 +11,7 @@ extension SingleProposalReviewsTests {
 		let token = try await presentedToken(on: coach)
 		await firstWrite.arm()
 		let approval = Task { await coach.decide(.approve(token), in: .main) }
-		#expect(await firstWrite.waitUntilEntered())
+		try #require(try await firstWrite.waitUntilEntered())
 		let writes = try await records.fetch(
 			RecordQuery(scope: .synced([.reviewWrite]), chatId: .main)
 		).records

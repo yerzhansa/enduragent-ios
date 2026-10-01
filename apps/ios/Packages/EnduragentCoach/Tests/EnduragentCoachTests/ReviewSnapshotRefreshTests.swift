@@ -14,12 +14,12 @@ extension SingleProposalReviewsTests {
 		_ = await coach.decide(.approve(firstToken), in: .main)
 		await staleRead.arm()
 		let refresh = Task { await coach.decide(.presented(firstToken.ref), in: .main) }
-		#expect(await staleRead.waitUntilEntered())
+		try #require(try await staleRead.waitUntilEntered())
 		_ = try await propose(on: coach)
 		let token = try await presentedToken(on: coach)
 		await claim.arm()
 		let approval = Task { await coach.decide(.approve(token), in: .main) }
-		#expect(await claim.waitUntilEntered())
+		try #require(try await claim.waitUntilEntered())
 		await staleRead.release()
 		_ = await refresh.value
 		let visible = await coach.currentSnapshot(.main)?.review
