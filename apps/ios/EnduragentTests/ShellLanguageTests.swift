@@ -85,11 +85,7 @@ final class ShellLanguageTests {
 
 	@Test func languageChoiceUpdatesWhileTrainingIsBlocked() async throws {
 		let intervals = SlowTrainingClient()
-		let services = try services(intervals: intervals)
-		try await services.coach.recordConsent()
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let model = ShellModel(
-			environment: AppEnvironment(services: services, language: .en, defaults: defaults))
+		let model = try await returningModel(intervals: intervals)
 		await model.appear()
 		await intervals.reads.hold()
 		let refreshing = Task { await model.sceneChanged(.becameActive) }
@@ -111,11 +107,7 @@ final class ShellLanguageTests {
 
 	@Test func activeLaunchRefreshesTrainingOnce() async throws {
 		let intervals = SlowTrainingClient()
-		let services = try services(intervals: intervals)
-		try await services.coach.recordConsent()
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let model = ShellModel(
-			environment: AppEnvironment(services: services, language: .en, defaults: defaults))
+		let model = try await returningModel(intervals: intervals)
 		await model.appear()
 		await model.sceneChanged(.becameActive)
 		#expect(await intervals.reads.calls == [.athlete, .wellness])
@@ -186,6 +178,15 @@ final class ShellLanguageTests {
 		try await model.waitForStatus { $0.language == .fixed(.es) }
 		#expect(model.status?.language == .fixed(.es))
 		#expect(visible() == expected(.es))
+	}
+
+	private func returningModel(intervals: any IntervalsClient) async throws -> ShellModel {
+		await ShellModel(
+			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		).agreeAndStartChatting()
+		return ShellModel(
+			environment: AppEnvironment(
+				services: try services(intervals: intervals), language: .en, defaults: defaults))
 	}
 
 	private func services(
