@@ -106,7 +106,9 @@ package actor ChatMailbox {
 		}
 		let turn: TurnID
 		let fragment: Int
-		if let window = work.window, slash == nil, let facts = conversation.turn(window.turn) {
+		if let window = work.window, slash == nil,
+			let facts = conversation.current.turns.first(where: { $0.turn == window.turn })
+		{
 			turn = facts.turn
 			fragment = facts.fragments.count
 		} else {
@@ -206,6 +208,11 @@ package actor ChatMailbox {
 
 	package func refreshImports() async throws(LedgerFailure) {
 		try await records.refresh()
+		if let window = work.window,
+			!conversation.current.turns.contains(where: { $0.turn == window.turn })
+		{
+			closeWindow()
+		}
 		publish()
 	}
 

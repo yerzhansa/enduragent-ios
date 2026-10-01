@@ -210,7 +210,10 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: next)).records
 				.first)
 		held.release()
-		#expect(try await outcome(resetting) == .started(memory: .saved))
+		let reset = try await beforeDeadline(within: .seconds(5)) {
+			try #require(try await outcome(resetting))
+		}
+		#expect(try #require(reset) == .started(memory: .saved))
 		#expect(
 			replyText(try #require(await coach.settledState(of: next, in: .main))) == "New answer")
 		#expect(await coach.transcript(.main) == ["New question", "New answer"])
