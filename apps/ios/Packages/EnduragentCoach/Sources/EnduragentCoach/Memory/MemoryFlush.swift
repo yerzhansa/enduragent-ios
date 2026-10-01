@@ -46,7 +46,7 @@ extension Memory {
 				role: .system, content: MemoryFlushPrompt.system, toolCalls: [], toolCallId: nil)
 		]
 		messages.append(
-			contentsOf: run.messages.map { PromptAssembly.wireMessage(from: $0, in: run.timeZone) })
+			contentsOf: run.messages.map { PromptAssembly.wireMessage(from: $0) })
 		messages.append(
 			WireMessage(
 				role: .user,

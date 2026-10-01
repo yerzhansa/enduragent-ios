@@ -17,7 +17,7 @@ import Testing
 	var conversation: [ChatMessage] {
 		[
 			ChatMessage(
-				author: .athlete(sent: clock.now.addingTimeInterval(-120)),
+				author: .athlete(sent: clock.now.addingTimeInterval(-120), timeZone: amsterdamZone),
 				text: "Remember that I ride with a group on Saturdays"),
 			ChatMessage(author: .coach, text: "Noted."),
 		]

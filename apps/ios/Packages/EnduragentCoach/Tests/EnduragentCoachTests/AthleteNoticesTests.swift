@@ -144,8 +144,8 @@ private func claimedFacts(by process: ProcessID) -> TurnFacts {
 	facts.fragments.append(
 		Fragment(
 			ulid: fixedUlid(1), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phone),
-			civilDate: "1998-06-16", index: 0, draft: DraftID(), text: "Is Thursday on?",
-			slash: nil))
+			civilDate: "1998-06-16", timeZone: amsterdamZone, index: 0, draft: DraftID(),
+			text: "Is Thursday on?", slash: nil))
 	facts.claims.append(
 		ClaimedAttempt(
 			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
