@@ -140,7 +140,11 @@ extension ChatMailboxTests {
 		let before = observed.latest
 		faults.failFetches = true
 		let remote = try await importTurn(into: store)
-		try await waitUntil { coach.diagnostics.entries.count == 1 }
+		try await waitUntil {
+			coach.diagnostics.entries.contains {
+				$0.event == .importsUnavailable(.main, .unavailable)
+			}
+		}
 		#expect(observed.latest == before)
 		faults.failFetches = false
 		store.notifyImport()

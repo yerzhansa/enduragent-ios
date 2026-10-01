@@ -27,6 +27,7 @@ public struct ScriptedReply: Sendable {
 
 	public static func sequence(
 		_ events: [ScriptedEvent], for purpose: ScriptedRequest.Purpose = .chat,
+		repeatingFailure: ScriptedFailure? = nil,
 		requestDelay: Duration? = nil, deltaDelay: Duration? = nil,
 		otherwise fallback: @escaping FakeModelTransport.Response = { _ in ScriptedReply([]) }
 	) -> FakeModelTransport.Response {
@@ -34,8 +35,12 @@ public struct ScriptedReply: Sendable {
 		return { request in
 			guard request.purpose == purpose else { return fallback(request) }
 			return remaining.withLock {
-				ScriptedReply(
-					takeStep(from: &$0, repeatingHang: false),
+				var step = takeStep(from: &$0, repeatingHang: false)
+				if step.isEmpty, let repeatingFailure {
+					step = [.fail(repeatingFailure)]
+				}
+				return ScriptedReply(
+					step,
 					requestDelay: requestDelay, deltaDelay: deltaDelay)
 			}
 		}

@@ -8,17 +8,18 @@ final class ImportingRecordLog: RecordLog, Sendable {
 	private struct State {
 		var subscriptions = 0
 		var listeners: [UUID: AsyncStream<Void>.Continuation] = [:]
-		var nextRead: Gate?
+		var nextRead: (scope: RecordQuery.Scope, gate: Gate)?
 	}
 
 	let inner: any RecordLog
 	private let state = Mutex(State())
 
-	init(inner: any RecordLog = InMemoryRecordLog()) {
+	init(inner: any RecordLog = InMemoryRecordLog(), deviceId: DeviceID? = nil) {
 		self.inner = inner
+		self.deviceId = deviceId ?? inner.deviceId
 	}
 
-	var deviceId: DeviceID { inner.deviceId }
+	let deviceId: DeviceID
 	var subscriptions: Int { state.withLock { $0.subscriptions } }
 	var listeners: Int { state.withLock { $0.listeners.count } }
 
@@ -40,9 +41,9 @@ final class ImportingRecordLog: RecordLog, Sendable {
 		for listener in listeners { listener.yield() }
 	}
 
-	func holdRead() -> Gate {
+	func holdRead(scope: RecordQuery.Scope = ConversationFold.syncedScope) -> Gate {
 		let gate = Gate()
-		state.withLock { $0.nextRead = gate }
+		state.withLock { $0.nextRead = (scope, gate) }
 		return gate
 	}
 
@@ -57,9 +58,9 @@ final class ImportingRecordLog: RecordLog, Sendable {
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let page = try await inner.fetch(query)
 		let gate = state.withLock { current -> Gate? in
-			guard query.scope == ConversationFold.syncedScope else { return nil }
+			guard let held = current.nextRead, query.scope == held.scope else { return nil }
 			defer { current.nextRead = nil }
-			return current.nextRead
+			return held.gate
 		}
 		try await gate?.waitUnlessCancelled()
 		return page

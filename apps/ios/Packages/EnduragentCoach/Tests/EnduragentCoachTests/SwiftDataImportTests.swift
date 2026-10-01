@@ -23,6 +23,7 @@ extension SwiftDataSuites {
 			let snapshots = ImportSnapshots(await coach.observe(.main))
 			try await waitUntil { snapshots.latest != nil }
 			let reads = log.reads.count
+			let preferenceReads = log.reads.filter { $0 == Preferences.scope }.count
 			let count = snapshots.count
 			let record = remoteQuestion()
 			try await store.append([record], locality: .synced)
@@ -33,6 +34,7 @@ extension SwiftDataSuites {
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
 			try await Task.sleep(for: .milliseconds(500))
 			#expect(log.reads.count - reads == 5)
+			#expect(log.reads.filter { $0 == Preferences.scope }.count - preferenceReads == 1)
 			#expect(snapshots.count - count == 1)
 			await coach.lifecycle(.willTerminate)
 		}
