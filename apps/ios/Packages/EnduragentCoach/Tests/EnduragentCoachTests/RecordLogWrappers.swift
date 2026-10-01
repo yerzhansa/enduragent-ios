@@ -120,6 +120,7 @@ final class HeldAppendLog: RecordLog, Sendable {
 	let reached: AsyncStream<Void>
 	private let reachedContinuation: AsyncStream<Void>.Continuation
 	private let state = Mutex<(seen: Int, held: CheckedContinuation<Void, Never>?)>((0, nil))
+	var isHeld: Bool { state.withLock { $0.held != nil } }
 
 	init(inner: any RecordLog, holding kind: String, occurrence: Int) {
 		self.inner = inner

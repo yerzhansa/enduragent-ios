@@ -50,6 +50,9 @@ extension ConversationFoldTests {
 		case .stop: #expect(isInterrupted(settled))
 		case .failure: #expect(failure(settled) != nil)
 		}
+		let live = await coach.currentSnapshot(.main)
+		let reopened = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		#expect(live == (await reopened.currentSnapshot(.main)))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let reloaded = try await ledger.conversation(.main)
 		let jobs = try await ledger.flushJobs(in: reloaded)

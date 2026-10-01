@@ -157,7 +157,7 @@ import Testing
 		let ladder = RetryLadder(
 			guards: RetryLadder.npm.guards,
 			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })
-		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: clock.uptime)
+		let scope = TurnScope(stamp: testStamp(), policy: .npm, ladder: .npm, uptime: clock.uptime)
 		let result = try await runner(ladder: ladder).run(
 			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
 		) { _ in }
