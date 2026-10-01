@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 public actor Coach {
 	package let memory: Memory
@@ -20,14 +19,21 @@ public actor Coach {
 	let vault: CredentialVault
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
-	private var mailboxes: [ChatID: ChatMailbox]
-	private let lifetime = Lifetime()
+	var mailboxes: [ChatID: ChatMailbox]
+	let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
 	let statusFeed = SnapshotFeed<CoachStatus>()
 	let statusChanges = Turnstile()
 	var trainingStatus: TrainingStatus?
 	var trainingRefresh: Task<TrainingStatus, Never>?
+	var importObservation: Task<Void, Never>?
+	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
+
+	deinit {
+		importObservation?.cancel()
+		pendingImportRefresh?.cancel()
+	}
 
 	public init(
 		sport: SportID,
@@ -107,6 +113,10 @@ public actor Coach {
 			return
 		case .willTerminate:
 			lifetime.terminate()
+			importObservation?.cancel()
+			importObservation = nil
+			pendingImportRefresh?.cancel()
+			pendingImportRefresh = nil
 		case .enteredBackground:
 			break
 		}
@@ -259,6 +269,7 @@ public actor Coach {
 	}
 
 	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
+		observeImports()
 		if let existing = mailboxes[chatId] {
 			return existing
 		}
@@ -291,15 +302,4 @@ public actor Coach {
 		return created
 	}
 
-	package final class Lifetime: Sendable {
-		private let ended = Mutex(false)
-
-		fileprivate init() {}
-
-		var terminating: Bool { ended.withLock { $0 } }
-
-		fileprivate func terminate() {
-			ended.withLock { $0 = true }
-		}
-	}
 }
