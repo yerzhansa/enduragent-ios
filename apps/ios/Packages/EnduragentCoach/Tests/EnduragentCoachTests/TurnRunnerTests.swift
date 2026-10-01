@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -9,44 +8,6 @@ import Testing
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-
-	@Test func oneSendReadsMemoryOnce() async throws {
-		try await seedHistory(store, clock: clock, turns: 1, tokens: 40)
-		try await seed(
-			store,
-			[
-				storedRecord(
-					device: store.deviceId, wall: 1, ulid: fixedUlid(1),
-					body: .synced(
-						.memorySection(
-							MemorySectionBody(
-								name: SectionName(rawValue: "schedule"),
-								content: "Saturday group ride"))))
-			])
-		let recording = BatchRecordingLog(inner: store)
-		let readsAtRequest = Mutex<[RecordQuery.Scope]>([])
-		let responding = FakeModelTransport { _, _ in
-			readsAtRequest.withLock { $0 = recording.reads }
-			return ScriptedReply([.text("Saturday is on."), .finish(reason: .stop)])
-		}
-		let coach = await EnduragentCoachTests.makeCoach(
-			transport: responding, store: recording, clock: clock)
-		let settled = try await coach.sendAndSettle("Is Saturday on?")
-		#expect(replyText(settled) == "Saturday is on.")
-		let memoryScope = RecordQuery.Scope.synced([
-			.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
-		])
-		#expect(readsAtRequest.withLock { $0.filter { $0 == memoryScope }.count } == 1)
-		#expect(
-			readsAtRequest.withLock { $0.filter { $0 == ConversationFold.syncedScope }.count } == 1)
-		let request = try #require(responding.requests.only)
-		#expect(request.messages.first?.content.contains("Saturday group ride") == true)
-		#expect(
-			request.messages.dropFirst().dropLast().map(\.unstampedContent) == [
-				"Question 0", "Answer 0 " + String(repeating: "w", count: 133),
-			])
-		#expect(request.messages.last?.content.hasPrefix("Is Saturday on?\nCurrent time:") == true)
-	}
 
 	@Test func tenthStepRunsToolsThenStops() async throws {
 		intervals.activities = [

@@ -3,6 +3,33 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct CoachLaunchTests {
+	@Test func routingWithoutATurnNeedsNoConversationRead() async throws {
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let transport = FakeModelTransport()
+		let coach = await makeCoach(transport: transport, store: faults)
+		faults.failFetches = true
+		#expect(try await coach.send(draft(" \n"), to: .main) == .ignoredBlank)
+		#expect(try await coach.send(draft("/language"), to: .main) == .showLanguagePicker)
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func failedOpenKeepsTheObserverForTheNextSuccessfulSend() async throws {
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let transport = FakeModelTransport()
+		transport.script = [.text("Recovered answer"), .finish(reason: .stop)]
+		let coach = await makeCoach(transport: transport, store: faults)
+		faults.failFetches = true
+		let observed = ImportSnapshots(await coach.observe(.main))
+		try await waitUntil { observed.latest != nil }
+		#expect(observed.latest?.turns.isEmpty == true)
+		faults.failFetches = false
+		#expect(
+			replyText(try await coach.sendAndSettle("Recovered question")) == "Recovered answer")
+		try await waitUntil { observed.latest?.turns.last?.state.isSettled == true }
+		#expect(observed.latest?.turns.map(\.athleteText) == ["Recovered question"])
+		#expect(observed.latest?.turns.map(\.state).compactMap(replyText) == ["Recovered answer"])
+	}
+
 	@Test func concurrentObservationAndSendShareTheInitialRead() async throws {
 		let inner = InMemoryRecordLog()
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")

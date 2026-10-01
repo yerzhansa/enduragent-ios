@@ -30,7 +30,7 @@ import Testing
 			])
 		store.notifyImport()
 		try await waitUntil { observed.latest?.turns.contains { $0.id == turn } == true }
-		let mailbox = await coach.mailbox(for: .main)
+		let mailbox = try await coach.mailbox(for: .main)
 		let live = await mailbox.conversation.current.promptHistory(excluding: local)
 		let remoteMessages = live.messages.map(\.text).filter {
 			$0 == "Remote question" || $0 == "Remote answer"
@@ -44,7 +44,7 @@ import Testing
 	}
 
 	@Test func aRemoteTurnImportedAfterTheTrimStillReachesTheModel() async throws {
-		let store = InMemoryRecordLog()
+		let store = ImportingRecordLog()
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
@@ -64,6 +64,7 @@ import Testing
 			Issue.record("expected a committed trim")
 			return
 		}
+		let observed = ImportSnapshots(await coach.observe(.main))
 		let remote = DeviceID(rawValue: "remote-phone")
 		let turn = TurnID(ulid: ULID.generate(at: clock.now.addingTimeInterval(-600)))
 		#expect(turn.ulid < trim.firstIncludedUlid)
@@ -78,6 +79,8 @@ import Testing
 					device: remote, wall: 2, ulid: trim.firstIncludedUlid.incremented(),
 					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Remote answer"))),
 			])
+		store.notifyImport()
+		try await waitUntil { observed.latest?.turns.contains { $0.id == turn } == true }
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let prompt = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(prompt.messages.contains { $0.unstampedContent == "Remote question" })

@@ -36,7 +36,7 @@ extension ConversationFoldTests {
 		case .stop: #expect(isInterrupted(settled))
 		case .failure: #expect(failure(settled) != nil)
 		}
-		let mailbox = await coach.mailbox(for: .main)
+		let mailbox = try await coach.mailbox(for: .main)
 		let live = await mailbox.conversation.current.promptHistory(excluding: nil)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let reloaded = try await ledger.conversation(.main).current.promptHistory(excluding: nil)

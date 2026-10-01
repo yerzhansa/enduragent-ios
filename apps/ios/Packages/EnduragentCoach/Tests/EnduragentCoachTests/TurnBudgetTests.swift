@@ -21,11 +21,7 @@ import Testing
 			maxGenerateAttempts: 1, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
-		let result = try await runner().run(
-			attempt("Keep fetching", scope: scope), scope: scope, committed: { _ in }
-		) {
-			_ in
-		}
+		let result = try await run("Keep fetching", scope: scope)
 		#expect(result.replyText == "Ten steps.")
 		#expect(transport.requests.count == 10)
 		await #expect(throws: TurnBudgetExceeded(kind: .generateCalls)) {
@@ -45,11 +41,7 @@ import Testing
 				count: 3)
 			+ [.text("Fits now."), .finish(reason: .stop)]
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
-		let result = try await runner().run(
-			attempt("Is Thursday on?", scope: scope), scope: scope, committed: { _ in }
-		) {
-			_ in
-		}
+		let result = try await run("Is Thursday on?", scope: scope)
 		#expect(result.replyText == "Fits now.")
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 1 + 3)
 		#expect(transport.requests.filter { $0.charge == .droppedSummary }.count == 1)
@@ -64,11 +56,7 @@ import Testing
 			maxGenerateAttempts: 2, maxGenerateCalls: 40, wallClock: .seconds(10),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: tight, uptime: clock.uptime)
-		let result = try await runner().run(
-			attempt("Is Thursday on?", scope: scope), scope: scope, committed: { _ in }
-		) {
-			_ in
-		}
+		let result = try await run("Is Thursday on?", scope: scope)
 		#expect(
 			result == .failed(.model(.budgetExhausted(.wallClock)), saved: .none))
 		#expect(transport.requests.count == 2)
@@ -89,11 +77,7 @@ import Testing
 			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: oneCall, uptime: .zero)
-		let result = try await runner().run(
-			attempt("Remember Saturdays", scope: scope), scope: scope, committed: { _ in }
-		) {
-			_ in
-		}
+		let result = try await run("Remember Saturdays", scope: scope)
 		#expect(
 			result
 				== .failed(
@@ -116,11 +100,7 @@ import Testing
 			maxGenerateAttempts: 4, maxGenerateCalls: 2, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
 		let scope = TurnScope(stamp: testStamp(), policy: twoCalls, uptime: .zero)
-		let result = try await runner().run(
-			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
-		) {
-			_ in
-		}
+		let result = try await run("How was my week?", scope: scope)
 		#expect(result == .failed(.model(.budgetExhausted(.generateCalls)), saved: .none))
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .chatAttempt, .memoryFlush])
 	}
@@ -158,18 +138,20 @@ import Testing
 			guards: RetryLadder.npm.guards,
 			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: clock.uptime)
-		let result = try await runner(ladder: ladder).run(
-			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
-		) { _ in }
+		let result = try await run("How was my week?", scope: scope, ladder: ladder)
 		#expect(result.replyText == "Recovered.")
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 		#expect(clock.slept.isEmpty)
 	}
 
-	private func runner(ladder: RetryLadder = .npm) -> TurnRunner {
+	private func run(_ request: String, scope: TurnScope, ladder: RetryLadder = .npm) async throws
+		-> AttemptResult
+	{
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
-		return TurnRunner(
+		let conversation = try await ledger.conversation(.main)
+		let jobs = try await ledger.flushJobs(in: conversation)
+		let runner = TurnRunner(
 			transport: transport,
 			ledger: ledger,
 			clock: clock,
@@ -177,6 +159,9 @@ import Testing
 			ladder: ladder,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
 		)
+		return try await runner.run(
+			attempt(request, scope: scope), conversation: conversation, jobs: jobs,
+			scope: scope, committed: { _ in }, progress: { _ in })
 	}
 
 	private func attempt(_ request: String, scope: TurnScope) -> TurnAttempt {

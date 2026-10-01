@@ -112,7 +112,7 @@ import Testing
 			reviews: SingleProposalReviews(
 				ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
 				training: { .unconnected }))
-		try await records.load()
+		try await records.refresh()
 		_ = try await ledger.commit(
 			local: [
 				.flushSettled(

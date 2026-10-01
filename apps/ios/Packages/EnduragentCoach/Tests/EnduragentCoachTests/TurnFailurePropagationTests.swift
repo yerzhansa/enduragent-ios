@@ -4,17 +4,24 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct TurnFailurePropagationTests {
-	@Test func memoryContextReadFailureSettlesTheTurnWithoutARequest() async throws {
-		try await expectPromptReadFailure(on: 1)
-	}
-
-	@Test func memoryViewReadFailureSettlesTheTurnWithoutARequest() async throws {
-		try await expectPromptReadFailure(on: 2)
+	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
+		let store = InMemoryRecordLog()
+		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 1)
+		let transport = FakeModelTransport()
+		transport.script = [.text("This response must not be generated."), .finish(reason: .stop)]
+		let coach = await makeCoach(transport: transport, store: failing)
+		let settled = try await coach.sendAndSettle("Plan my week")
+		#expect(failure(settled) == .local(.recordStorage))
+		#expect(transport.requests.isEmpty)
+		#expect(await coach.transcript(.main) == ["Plan my week"])
+		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
+		let persisted = try await settlements(of: turn, in: store)
+		#expect(persisted == [.failed(.local(.recordStorage), saved: .none)])
 	}
 
 	@Test func memorySectionValidationFailureDoesNotWrite() async throws {
 		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 3)
+		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 2)
 		let transport = FakeModelTransport()
 		transport.script = [
 			.toolCall(
@@ -129,20 +136,6 @@ import Testing
 		return store
 	}
 
-	private func expectPromptReadFailure(on occurrence: Int) async throws {
-		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: occurrence)
-		let transport = FakeModelTransport()
-		transport.script = [.text("This response must not be generated."), .finish(reason: .stop)]
-		let coach = await makeCoach(transport: transport, store: failing)
-		let settled = try await coach.sendAndSettle("Plan my week")
-		#expect(failure(settled) == .local(.recordStorage))
-		#expect(transport.requests.isEmpty)
-		#expect(await coach.transcript(.main) == ["Plan my week"])
-		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
-		let persisted = try await settlements(of: turn, in: store)
-		#expect(persisted == [.failed(.local(.recordStorage), saved: .none)])
-	}
 }
 
 private final class MemoryReadFailingLog: RecordLog, Sendable {
