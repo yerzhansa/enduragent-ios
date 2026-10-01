@@ -105,6 +105,62 @@ import Testing
 				== "[Previous conversation summary]\nSummary of the earlier conversation.")
 	}
 
+	@Test(arguments: [FinishReason.error, .contentFilter, .stop], ["", " \t\n "])
+	func emptySummaryKeepsHistoryAndPreviousSummaryAfterReopening(
+		reason: FinishReason, text: String
+	) async throws {
+		try await assertRejectedSummaryKeepsHistory(text: text, reason: reason)
+	}
+
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func failedSummaryKeepsHistoryAndPreviousSummaryAfterReopening(reason: FinishReason)
+		async throws
+	{
+		try await assertRejectedSummaryKeepsHistory(text: "Incomplete summary.", reason: reason)
+	}
+
+	private func assertRejectedSummaryKeepsHistory(text: String, reason: FinishReason) async throws
+	{
+		let previous = seededRecord(
+			store, at: clock.now.addingTimeInterval(-600), ulid: fixedUlid(1),
+			body: .synced(
+				.compactionSummary(
+					CompactionSummaryBody(chatId: .main, markdown: "Previous cycling context."))))
+		try await seed(store, [previous])
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.summaryScript = Array(
+			repeating: [.text(text), .finish(reason: reason)], count: 3
+		).flatMap { $0 }
+		transport.script = [
+			.text("Thursday is on."), .finish(reason: .stop),
+			.text("Saturday too."), .finish(reason: .stop),
+			.text("Sunday is rest."), .finish(reason: .stop),
+		]
+		let coach = await makeCoach()
+		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
+		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
+		#expect(try await chatWindowRecords() == [previous])
+		#expect(compactionFailed(coach))
+		let reopened = await makeCoach()
+		#expect(replyText(try await reopened.sendAndSettle("And Sunday?")) == "Sunday is rest.")
+		#expect(try await chatWindowRecords() == [previous])
+		#expect(compactionFailed(reopened))
+		#expect(sent(.droppedSummary, by: transport).count == 3)
+		let prompts = sent(.chatAttempt, by: transport)
+		#expect(prompts.count == 3)
+		for prompt in prompts {
+			let keepsEarliestQuestion = prompt.messages.contains {
+				$0.unstampedContent == "Question 0"
+			}
+			let keepsPreviousSummary = prompt.messages.contains {
+				$0.content == "[Previous conversation summary]\nPrevious cycling context."
+			}
+			#expect(keepsEarliestQuestion)
+			#expect(keepsPreviousSummary)
+		}
+	}
+
 	@Test func interleavedTrimIsSummarizedOnce() async throws {
 		let droppedReply =
 			"Dropped answer " + String(repeating: "w", count: historyBudget(clock: clock) * 4)
