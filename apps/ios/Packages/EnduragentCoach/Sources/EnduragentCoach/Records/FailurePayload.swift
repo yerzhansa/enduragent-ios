@@ -36,6 +36,8 @@ struct FailurePayload: Codable {
 			return ("budgetExhausted", kind.rawValue)
 		case .accessUnavailable(.notConfigured(let method)):
 			return ("accessUnavailable", Self.notConfiguredPrefix + method.rawValue)
+		case .accessUnavailable(.providerConsentRequired):
+			return ("accessUnavailable", "providerConsentRequired")
 		case .accessUnavailable(.secureStorageLocked):
 			return ("accessUnavailable", "secureStorageLocked")
 		case .accessUnavailable(.secureStorageUnavailable):
@@ -102,6 +104,8 @@ struct FailurePayload: Codable {
 
 	private func accessUnavailable() throws -> AccessUnavailable {
 		switch detail {
+		case "providerConsentRequired":
+			return .providerConsentRequired
 		case "secureStorageLocked":
 			return .secureStorageLocked
 		case "secureStorageUnavailable":

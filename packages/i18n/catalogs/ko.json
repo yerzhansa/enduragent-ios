@@ -2917,12 +2917,20 @@
     },
     "notice": {
       "health": "훈련 제안이며 의학적 조언이 아닙니다. 큰 변화를 주기 전에 의사와 상담하세요."
+    },
+    "consent": {
+      "title": "코치는 AI를 사용해요",
+      "body": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요.",
+      "accept": "동의하고 계속하기",
+      "decline": "나중에",
+      "saveFailed": "동의를 저장하지 못했어요. 다시 시도해 주세요."
     }
   },
   "access": {
     "error": {
       "locked": "계속하려면 iPhone의 잠금을 해제하세요. 메시지는 저장되어 있습니다.",
       "notConfigured": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요.",
+      "providerConsentRequired": "채팅 데이터를 AI 제공업체와 공유하기 전에 동의가 필요합니다.",
       "openRouterFunds": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요."
     }
   },

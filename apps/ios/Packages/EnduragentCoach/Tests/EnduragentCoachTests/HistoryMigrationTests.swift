@@ -27,8 +27,8 @@ import Testing
 			])
 	}
 
-	func coach() -> Coach {
-		makeCoach(transport: transport, store: store, clock: clock)
+	func coach() async -> Coach {
+		await makeCoach(transport: transport, store: store, clock: clock)
 	}
 
 	@Test func v1ChatsBecomeArchivedConversationsAndMainOpensOnWelcome() async throws {
@@ -36,7 +36,7 @@ import Testing
 			firstChat, asking: "How was my week?", reply: "Two rides.", hoursAgo: 48)
 		try await seedV1Chat(
 			secondChat, asking: "Is Thursday still on?", reply: "Yes, keep it.", hoursAgo: 2)
-		let coach = coach()
+		let coach = await coach()
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
 		#expect(snapshot.opening == .welcome)
@@ -81,7 +81,7 @@ extension SwiftDataSuites {
 	@Suite struct HistoryOpenTests {
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-		@Test func fiftyArchivedConversationsReadInUnderOneSecond() async throws {
+		@Test func fiftyArchivedConversationsReadEachRowOnce() async throws {
 			let store = try SwiftDataSuites.makeSwiftDataLog(
 				deviceId: DeviceID(rawValue: "phone-a"))
 			for index in 1...50 {
@@ -109,13 +109,14 @@ extension SwiftDataSuites {
 										reason: .reset(ResetID(ulid: boundary)))))),
 					])
 			}
-			let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
-			let started = ContinuousClock.now
+			let log = BatchRecordingLog(inner: store)
+			let coach = await makeCoach(
+				transport: FakeModelTransport(), store: log, clock: clock, consent: false)
 			let archived = try await coach.history()
-			let elapsed = ContinuousClock.now - started
 			#expect(archived.count == 50)
 			#expect(archived.first?.turns.first?.athleteText == "Archived 50")
-			#expect(elapsed < .seconds(1), "History of 50 took \(elapsed)")
+			#expect(log.reads == [ConversationFold.syncedScope, ConversationFold.localScope])
+			#expect(log.fetchedRecordCount == 150)
 		}
 	}
 }

@@ -144,8 +144,8 @@ private func claimedFacts(by process: ProcessID) -> TurnFacts {
 	facts.fragments.append(
 		Fragment(
 			ulid: fixedUlid(1), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phone),
-			civilDate: "1998-06-16", index: 0, draft: DraftID(), text: "Is Thursday on?",
-			slash: nil))
+			civilDate: "1998-06-16", timeZone: amsterdamZone, index: 0, draft: DraftID(),
+			text: "Is Thursday on?", slash: nil))
 	facts.claims.append(
 		ClaimedAttempt(
 			hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: phone),
@@ -205,6 +205,15 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(shown.action == row.action)
 		#expect(shown.action.map { english.say($0.title) } == row.button)
 		#expect(state.retryable == (row.button == tryAgain))
+	}
+
+	@Test(arguments: LanguageTag.allCases)
+	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
+		for row in NoticeRow.all {
+			let shown = try #require(notice(of: settledState(row.settlement)))
+			let copy = shown.sentence(in: tag.phrasebook)
+			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
+		}
 	}
 
 	@Test func everyFailureCaseHasARowAndNoneIsUnknownExceptTheThree() {

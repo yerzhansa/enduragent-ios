@@ -14,7 +14,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -38,7 +38,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -68,7 +68,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, request in
 			request.charge == .memoryFlush || request.charge == .compaction ? .seconds(17) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(17))
@@ -86,7 +86,7 @@ extension RetryLadderTests {
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -104,7 +104,7 @@ extension RetryLadderTests {
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -120,7 +120,7 @@ extension RetryLadderTests {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		transport.script = workoutProposal + [.fail(.http(status: 401))]
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		_ = await settledTurn(turn, on: coach)
@@ -139,7 +139,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(19) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(19))
@@ -153,8 +153,8 @@ extension RetryLadderTests {
 	func heldApprovalCoach(
 		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
 		records: (any RecordLog)? = nil
-	) -> Coach {
-		Coach(
+	) async -> Coach {
+		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
 				records: RecordStore(log: records ?? store), secrets: keyedSecrets(),
@@ -162,6 +162,7 @@ extension RetryLadderTests {
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
 			builtInModel: testModel, deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .zero))
+		return await consentingCoach(coach)
 	}
 
 	func expectSingleApproval(

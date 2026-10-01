@@ -3,6 +3,7 @@
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
       "notConfigured": "Choose how the coach reaches a model to continue.",
+      "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
       "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
     }
   },
@@ -997,6 +998,13 @@
       "added_one": "Added {{formattedCount}} credit",
       "added_other": "Added {{formattedCount}} credits",
       "alreadyGranted": "This device already used its starter credits."
+    },
+    "consent": {
+      "title": "Your coach uses AI",
+      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
+      "accept": "Agree and continue",
+      "decline": "Not now",
+      "saveFailed": "Couldn't save your agreement. Try again."
     }
   },
   "plan": {

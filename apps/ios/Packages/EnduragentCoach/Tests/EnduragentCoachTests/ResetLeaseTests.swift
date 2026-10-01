@@ -12,8 +12,8 @@ import Testing
 		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
 		language: .en)
 
-	func coach() -> Coach {
-		makeCoach(transport: transport, store: store, clock: clock, host: host)
+	func coach() async -> Coach {
+		await makeCoach(transport: transport, store: store, clock: clock, host: host)
 	}
 
 	func count(_ scope: RecordQuery.Scope) async throws -> Int {
@@ -35,7 +35,7 @@ import Testing
 			])
 		transport.requestDelay = .seconds(2)
 		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
-		let coach = coach()
+		let coach = await coach()
 		await coach.lifecycle(.becameActive)
 		try await waitUntil { host.leases.count == 1 }
 		let resetting = startNewConversation(on: coach)
@@ -51,7 +51,7 @@ import Testing
 
 	@Test func theChatShowsWorkingWhileTheResetSavesMemory() async throws {
 		transport.script = [.text("Two rides."), .finish(reason: .stop)]
-		let coach = coach()
+		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.requestDelay = .milliseconds(500)
 		let published = Task {
@@ -78,7 +78,7 @@ import Testing
 
 	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
 		transport.script = [.text("Thursday is"), .hang]
-		let coach = coach()
+		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
@@ -93,7 +93,7 @@ import Testing
 	@Test func aNewConversationTappedDuringStopRunsAfterTheStopSettles() async throws {
 		transport.script = [.text("Thursday is"), .hang]
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
-		let coach = makeCoach(transport: transport, store: held, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: held, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		async let stopped: Void = coach.stop(.main)
@@ -117,7 +117,7 @@ import Testing
 
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
 		transport.script = [.text("Thursday is"), .hang]
-		let coach = coach()
+		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
@@ -138,7 +138,7 @@ import Testing
 
 	@Test func expiryDuringTheResetFlushStartsTheConversationAndKeepsTheJob() async throws {
 		transport.script = [.text("Two rides."), .finish(reason: .stop)]
-		let coach = coach()
+		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = [.hang]
 		let resetting = startNewConversation(on: coach)

@@ -2957,12 +2957,20 @@
     },
     "notice": {
       "health": "Træningsforslag, ikke lægelig rådgivning. Tal med en læge før større ændringer."
+    },
+    "consent": {
+      "title": "Din coach bruger AI",
+      "body": "For at svare sender Enduragent dine beskeder, din coachs hukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til udbyderen af AI-modellen (DeepSeek). De bruger kun disse data til at generere din coachs svar. Intet sendes, før du giver samtykke.",
+      "accept": "Acceptér og fortsæt",
+      "decline": "Ikke nu",
+      "saveFailed": "Dit samtykke kunne ikke gemmes. Prøv igen."
     }
   },
   "access": {
     "error": {
       "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
       "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
+      "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
       "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
     }
   },

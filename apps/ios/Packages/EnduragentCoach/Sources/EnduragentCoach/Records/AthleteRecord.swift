@@ -24,6 +24,7 @@ package enum SyncedKind: String, Sendable, CaseIterable {
 }
 
 package enum DeviceLocalKind: String, Sendable, CaseIterable {
+	case providerConsent
 	case turnClaim
 	case replyObserved
 	case pendingProposal
@@ -107,6 +108,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 }
 
 package enum DeviceLocalRecordBody: Sendable, Equatable {
+	case providerConsent(ProviderConsent)
 	case turnClaim(TurnClaimBody)
 	case replyObserved(ReplyObservedBody)
 	case pendingProposal(ProposalBody)
@@ -121,6 +123,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 
 	package var kind: DeviceLocalKind {
 		switch self {
+		case .providerConsent: .providerConsent
 		case .turnClaim: .turnClaim
 		case .replyObserved: .replyObserved
 		case .pendingProposal: .pendingProposal
@@ -143,7 +146,9 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .proposalCleared(let body): body.chatId
 		case .flushPending(let body): body.chatId
 		case .flushSettled(let body): body.chatId
-		case .planningCommand, .planRevision, .mirrorJob, .workoutMatch, .workoutDrift: nil
+		case .providerConsent, .planningCommand, .planRevision, .mirrorJob, .workoutMatch,
+			.workoutDrift:
+			nil
 		}
 	}
 
@@ -151,7 +156,8 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		switch self {
 		case .turnClaim(let body): body.turn
 		case .replyObserved(let body): body.turn
-		case .pendingProposal, .proposalCleared, .flushPending, .flushSettled, .planningCommand,
+		case .providerConsent, .pendingProposal, .proposalCleared, .flushPending, .flushSettled,
+			.planningCommand,
 			.planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
 			nil
 		}

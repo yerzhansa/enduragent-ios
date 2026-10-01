@@ -2957,12 +2957,20 @@
     },
     "notice": {
       "health": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+    },
+    "consent": {
+      "title": "Valmentajasi käyttää tekoälyä",
+      "body": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi.",
+      "accept": "Hyväksy ja jatka",
+      "decline": "Ei nyt",
+      "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
     }
   },
   "access": {
     "error": {
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
       "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
       "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
     }
   },

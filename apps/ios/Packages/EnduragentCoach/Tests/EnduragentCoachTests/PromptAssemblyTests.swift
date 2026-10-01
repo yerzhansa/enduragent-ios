@@ -74,13 +74,13 @@ import Testing
 	}
 
 	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() throws {
-		let amsterdam = try #require(TimeZone(identifier: "Europe/Amsterdam"))
 		let dropped = [
 			ChatMessage(
-				author: .athlete(sent: Date(timeIntervalSince1970: 897_717_600)),
+				author: .athlete(
+					sent: Date(timeIntervalSince1970: 897_717_600), timeZone: amsterdamZone),
 				text: "FTP 262W now"),
 			ChatMessage(author: .coach, text: "Noted, 262W."),
-		].map { PromptAssembly.wireMessage(from: $0, in: amsterdam) }
+		].map { PromptAssembly.wireMessage(from: $0) }
 		#expect(
 			PromptAssembly.droppedSummaryRequest(
 				previous: "## Athlete Profile\n- FTP 255W",

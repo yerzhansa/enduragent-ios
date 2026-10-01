@@ -18,7 +18,7 @@ extension ConversationFoldTests {
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		let flush = HeldAppendLog(inner: faults, holding: "flushPending", occurrence: 1)
 		defer { flush.release() }
-		let coach = makeCoach(transport: transport, store: flush, clock: clock)
+		let coach = await makeCoach(transport: transport, store: flush, clock: clock)
 		var preceding: [TurnID] = []
 		let answer = String(repeating: "w", count: historyBudget(clock: clock) * 2)
 		for index in 0..<2 {

@@ -91,6 +91,9 @@ enum TutorialHarness {
 			] + arguments
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		if named(app, "consent.accept").waitForExistence(timeout: 3) {
+			agreeToProviderConsent(app)
+		}
 		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
 			throw XCTSkip(v1StoreMissing)
 		}

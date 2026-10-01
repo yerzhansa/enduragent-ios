@@ -12,8 +12,8 @@ import Testing
 		name: "memory_write",
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 
-	func coach(over log: (any RecordLog)? = nil) -> Coach {
-		makeCoach(transport: transport, store: log ?? store, clock: clock)
+	func coach(over log: (any RecordLog)? = nil) async -> Coach {
+		await makeCoach(transport: transport, store: log ?? store, clock: clock)
 	}
 
 	func answer(_ replies: String...) {
@@ -32,7 +32,7 @@ import Testing
 	}
 
 	@Test func resetFlushesThenCommitsBoundaryThenSettlesFlush() async throws {
-		let coach = coach()
+		let coach = await coach()
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
@@ -53,7 +53,7 @@ import Testing
 
 	@Test func deathBeforeBoundaryLeavesConversationAndJobPending() async throws {
 		let log = FaultInjectingRecordLog(wrapping: store)
-		let coach = coach(over: log)
+		let coach = await coach(over: log)
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
@@ -79,7 +79,7 @@ import Testing
 					ulid: ULID.generate(at: clock.now.addingTimeInterval(-10)),
 					body: .deviceLocal(.pendingProposal(proposal)))
 			])
-		let coach = coach()
+		let coach = await coach()
 		answer("Here is Thursday.")
 		_ = try await coach.sendAndSettle("Plan Thursday")
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
@@ -90,7 +90,7 @@ import Testing
 	}
 
 	@Test func resetWithPartialFlushReportsPartiallySaved() async throws {
-		let coach = coach()
+		let coach = await coach()
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript =
@@ -109,23 +109,23 @@ import Testing
 	@Test func theSnapshotShowsTheMemoryWarningWhenNewConversationReturns() async throws {
 		let log = SlowScopeLog(
 			inner: store, scope: ConversationFold.flushScope, delay: .milliseconds(300))
-		let coach = coach(over: log)
+		let coach = await coach(over: log)
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
 	}
 
 	@Test func anAbandonedResetFlushKeepsTheMemoryWarningAfterRelaunch() async throws {
-		let coach = coach()
+		let coach = await coach()
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 8)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 8)
-		let reopened = self.coach()
+		let reopened = await self.coach()
 		await reopened.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let snapshot = try #require(await reopened.currentSnapshot(.main))
@@ -133,11 +133,11 @@ import Testing
 	}
 
 	@Test func aTransientResetFlushRecoversTheMemorySavedOpeningAfterRelaunch() async throws {
-		let coach = coach()
+		let coach = await coach()
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		let offline = ScriptedEvent.fail(.connection(.notConnectedToInternet))
-		transport.flushScript = [offline, offline]
+		transport.flushScript = [offline, offline, offline]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		#expect(
 			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: false)
@@ -145,9 +145,9 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let original = try #require(sent(.memoryFlush, by: transport).first).messages
 
-		transport.flushScript = [offline, offline]
+		transport.flushScript = [offline, offline, offline]
 		let offlineHost = ImmediateExecutionHost()
-		let reopened = makeCoach(
+		let reopened = await makeCoach(
 			transport: transport, store: store, clock: clock, host: offlineHost)
 		await reopened.lifecycle(.becameActive)
 		_ = try #require(await offlineHost.ended(0))
@@ -156,11 +156,11 @@ import Testing
 				== .afterNewConversation(memorySaved: false))
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
-		#expect(sent(.memoryFlush, by: transport).count == 4)
+		#expect(sent(.memoryFlush, by: transport).count == 6)
 
 		transport.flushScript = [schedule, .finish(reason: .toolCalls), .finish(reason: .stop)]
 		let healthyHost = ImmediateExecutionHost()
-		let recovered = makeCoach(
+		let recovered = await makeCoach(
 			transport: transport, store: store, clock: clock, host: healthyHost)
 		await recovered.lifecycle(.becameActive)
 		_ = try #require(await healthyHost.ended(0))
@@ -171,8 +171,8 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 		let flushes = sent(.memoryFlush, by: transport)
-		#expect(flushes.count == 6)
-		#expect(flushes.dropFirst(4).first?.messages == original)
+		#expect(flushes.count == 8)
+		#expect(flushes.dropFirst(6).first?.messages == original)
 		#expect(
 			await self.coach().currentSnapshot(.main)?.opening
 				== .afterNewConversation(memorySaved: true))
@@ -196,7 +196,7 @@ import Testing
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
-			diagnostics: DiagnosticsLog(clock: clock))
+			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
 		let reset = ResetID(ulid: await ledger.nextULID())
 		let result = await ConversationReset(
@@ -217,7 +217,7 @@ import Testing
 
 	@Test func resetQueuesBehindRunningTurn() async throws {
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
-		let coach = coach(over: held)
+		let coach = await coach(over: held)
 		answer("Two rides.")
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
@@ -241,7 +241,7 @@ import Testing
 
 	@Test func messageSentWhileResetWaitsOpensTheNewConversation() async throws {
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
-		let coach = coach(over: held)
+		let coach = await coach(over: held)
 		answer("Two rides.", "Noted.")
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)

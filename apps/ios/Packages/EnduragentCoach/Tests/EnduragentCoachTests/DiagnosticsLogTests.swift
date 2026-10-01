@@ -110,11 +110,11 @@ import Testing
 								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		let transport = FakeModelTransport()
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = !keyStored
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
 		let deadline = ContinuousClock.now + .seconds(5)
@@ -129,7 +129,7 @@ import Testing
 		let expected = keyStored ? "providerDown" : "secureStorageLocked"
 		#expect(flushFailures.count == 1)
 		#expect(flushFailures.first?.contains(expected) == true)
-		#expect(transport.requestCount == (keyStored ? 2 : 0))
+		#expect(transport.requestCount == (keyStored ? 3 : 0))
 	}
 }
 
@@ -144,7 +144,7 @@ extension SwiftDataSuites {
 				kind: "userMessage", bodyVersion: 1, ulid: "01MALFRMD00000000000000000")
 			let transport = FakeModelTransport()
 			transport.script = [.text("Noted."), .finish(reason: .stop)]
-			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			let before = await coach.transcript(.main)
 			_ = try await coach.sendAndSettle("Still on for Saturday?")
 			let after = await coach.transcript(.main)
@@ -184,6 +184,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
+		.importsUnavailable,
 		.preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil

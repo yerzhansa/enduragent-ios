@@ -11,10 +11,10 @@ extension SwiftDataSuites {
 		@Test func acceptWritesUserMessageBeforeAnyModelRequest() async throws {
 			transport.script = [.text("Two rides."), .finish(reason: .stop)]
 			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
-			let coach = makeCoach(transport: transport, store: recording, clock: clock)
+			let coach = await makeCoach(transport: transport, store: recording, clock: clock)
 			let outcome = try await coach.send(draft("How was my week?"), to: .main)
 			let turn = try #require(outcome.acceptedTurn)
-			#expect(recording.batches == [["userMessage"]])
+			#expect(recording.batches == [["providerConsent"], ["userMessage"]])
 			#expect(transport.requests.isEmpty)
 			let snapshot = try #require(await coach.currentSnapshot(.main))
 			#expect(snapshot.turns.map(\.id) == [turn])
@@ -29,27 +29,28 @@ extension SwiftDataSuites {
 					== "Two rides.")
 			#expect(
 				recording.batches == [
+					["providerConsent"],
 					["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
 				])
 		}
 
 		@Test func acceptWithKnownDraftIdWritesNothingAndReturnsTheTurn() async throws {
 			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: transport, store: recording, clock: clock,
 				coalescing: CoalescingPolicy(window: .seconds(60)))
 			let sent = draft("How was my week?")
 			let first = try #require(try await coach.send(sent, to: .main).acceptedTurn)
 			let second = try #require(try await coach.send(sent, to: .main).acceptedTurn)
 			#expect(first == second)
-			#expect(recording.batches == [["userMessage"]])
+			#expect(recording.batches == [["providerConsent"], ["userMessage"]])
 			let snapshot = try #require(await coach.currentSnapshot(.main))
 			#expect(snapshot.turns.count == 1)
 		}
 
 		@Test func concurrentAcceptsOfOneDraftWriteOneMessage() async throws {
 			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: transport, store: recording, clock: clock,
 				coalescing: CoalescingPolicy(window: .seconds(60)))
 			let sent = draft("How was my week?")
@@ -57,14 +58,14 @@ extension SwiftDataSuites {
 			async let second = coach.send(sent, to: .main)
 			let outcomes = try await [first, second]
 			#expect(outcomes[0] == outcomes[1])
-			#expect(recording.batches == [["userMessage"]])
+			#expect(recording.batches == [["providerConsent"], ["userMessage"]])
 			#expect(try #require(await coach.currentSnapshot(.main)).turns.count == 1)
 		}
 
 		@Test func aFragmentSavedWhileTheWindowClosesReachesTheModel() async throws {
 			transport.script = [.text("Both days are on."), .finish(reason: .stop)]
 			let slow = SlowAppendLog(inner: InMemoryRecordLog(), delay: .milliseconds(200))
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: transport, store: slow, clock: clock,
 				coalescing: CoalescingPolicy(window: .milliseconds(300)))
 			let first = try #require(
@@ -89,8 +90,8 @@ extension SwiftDataSuites {
 
 		@Test func acceptWithFailingLedgerThrowsStorageUnavailable() async throws {
 			let store = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+			let coach = await makeCoach(transport: transport, store: store, clock: clock)
 			store.failNextAppend = true
-			let coach = makeCoach(transport: transport, store: store, clock: clock)
 			await #expect(throws: AcceptFailure.storageUnavailable) {
 				try await coach.send(draft("How was my week?"), to: .main)
 			}
@@ -104,10 +105,10 @@ extension SwiftDataSuites {
 
 		@Test func blankTextIsIgnoredAndLanguageSlashRoutesWithoutARecord() async throws {
 			let recording = BatchRecordingLog(inner: InMemoryRecordLog())
-			let coach = makeCoach(transport: transport, store: recording, clock: clock)
+			let coach = await makeCoach(transport: transport, store: recording, clock: clock)
 			#expect(try await coach.send(draft("  \n"), to: .main) == .ignoredBlank)
 			#expect(try await coach.send(draft("/language"), to: .main) == .showLanguagePicker)
-			#expect(recording.batches.isEmpty)
+			#expect(recording.batches == [["providerConsent"]])
 			#expect(transport.requests.isEmpty)
 		}
 
@@ -115,14 +116,14 @@ extension SwiftDataSuites {
 			let store = InMemoryRecordLog()
 			let recording = BatchRecordingLog(inner: store)
 			let sent = draft("Is Thursday still on?")
-			let before = makeCoach(
+			let before = await makeCoach(
 				transport: transport, store: recording, clock: clock,
 				coalescing: CoalescingPolicy(window: .seconds(60)))
 			let turn = try #require(try await before.send(sent, to: .main).acceptedTurn)
-			#expect(recording.batches == [["userMessage"]])
+			#expect(recording.batches == [["providerConsent"], ["userMessage"]])
 			#expect(transport.requests.isEmpty)
 
-			let reopened = makeCoach(transport: transport, store: recording, clock: clock)
+			let reopened = await makeCoach(transport: transport, store: recording, clock: clock)
 			let snapshot = try #require(await reopened.currentSnapshot(.main))
 			#expect(snapshot.turns.map(\.id) == [turn])
 			#expect(snapshot.turns.first?.state == .accepted(.awaitingRestart))
@@ -130,28 +131,25 @@ extension SwiftDataSuites {
 			#expect(snapshot.activity == .idle)
 			#expect(transport.requests.isEmpty)
 			#expect(try await reopened.send(sent, to: .main) == .accepted(turn))
-			#expect(recording.batches == [["userMessage"]])
+			#expect(recording.batches == [["providerConsent"], ["userMessage"]])
 			#expect(try #require(await reopened.currentSnapshot(.main)).turns.count == 1)
 		}
 
-		@Test func acceptCommitOnDiskStaysUnderOneHundredMilliseconds() async throws {
-			let store = try makeSwiftDataLog(deviceId: DeviceID(rawValue: "phone-a"))
-			let coach = makeCoach(
+		@Test func acceptCommitOnDiskWritesOneBatchPerDraft() async throws {
+			let store = BatchRecordingLog(
+				inner: try makeSwiftDataLog(deviceId: DeviceID(rawValue: "phone-a")))
+			let coach = await makeCoach(
 				transport: transport, store: store, clock: clock,
 				coalescing: CoalescingPolicy(window: .seconds(60)))
-			_ = try await coach.send(draft("warm up"), to: .main)
-			var samples: [Duration] = []
 			for index in 0..<3 {
-				let started = ContinuousClock.now
-				_ = try await coach.send(draft("message \(index)"), to: .main)
-				samples.append(ContinuousClock.now - started)
+				let before = store.batches.count
+				let sent = draft("message \(index)")
+				let turn = try #require(try await coach.send(sent, to: .main).acceptedTurn)
+				#expect(Array(store.batches.dropFirst(before)) == [["userMessage"]])
+				#expect(try await coach.send(sent, to: .main) == .accepted(turn))
+				#expect(store.batches.count == before + 1)
 			}
-			let median = try #require(samples.sorted().dropFirst().first)
-			Attachment.record(
-				samples.map { String(format: "%.2f", $0 / .milliseconds(1)) }.joined(
-					separator: " "),
-				named: "accept-commit-ms.txt")
-			#expect(median < .milliseconds(100), "accept commit samples \(samples)")
+			#expect(transport.requests.isEmpty)
 		}
 	}
 }

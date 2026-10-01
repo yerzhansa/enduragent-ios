@@ -13,7 +13,7 @@ extension TurnRunnerTests {
 			.toolCall(name: name, arguments: "{}"), .finish(reason: .toolCalls),
 			.text("That tool is unavailable."), .finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "That tool is unavailable.")
 		#expect(transport.requests.count == 2)

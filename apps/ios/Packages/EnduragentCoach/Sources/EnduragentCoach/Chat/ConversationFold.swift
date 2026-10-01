@@ -22,11 +22,15 @@ package enum ConversationFold {
 
 extension Ledger {
 	package func conversation(_ chat: ChatID) async throws(LedgerFailure) -> Conversation {
+		let records = try await conversationRecords(chat)
+		return ConversationFold.fold(chat: chat, synced: records, device: deviceId)
+	}
+
+	func conversationRecords(_ chat: ChatID) async throws(LedgerFailure) -> [AthleteRecord] {
 		let synced = try await read(
 			RecordQuery(scope: ConversationFold.syncedScope, chatId: chat))
 		let local = try await read(RecordQuery(scope: ConversationFold.localScope, chatId: chat))
-		return ConversationFold.fold(
-			chat: chat, synced: synced.records, local: local.records, device: deviceId)
+		return synced.records + local.records
 	}
 }
 
@@ -34,6 +38,7 @@ package struct Conversation: Sendable, Equatable {
 	package let chat: ChatID
 	package var segments: [Segment]
 	package var legacyMessageUlids: Set<ULID> = []
+	var appliedRecordIDs: Set<ULID> = []
 
 	package var current: Segment {
 		guard let last = segments.last else {
@@ -66,7 +71,10 @@ package struct Conversation: Sendable, Equatable {
 		return nil
 	}
 
-	package mutating func observeInMemory(_ turn: TurnID, attempt: AttemptID, device: DeviceID) {
+	@discardableResult
+	package mutating func observeInMemory(_ turn: TurnID, attempt: AttemptID, device: DeviceID)
+		-> AthleteRecord?
+	{
 		applyInMemory(
 			.deviceLocal(
 				.replyObserved(ReplyObservedBody(chatId: chat, turn: turn, attempt: attempt))),
@@ -74,10 +82,11 @@ package struct Conversation: Sendable, Equatable {
 		)
 	}
 
+	@discardableResult
 	package mutating func settleInMemory(
 		_ turn: TurnID, attempt: AttemptID, _ settlement: Settlement, ulid: ULID, now: Date,
 		device: DeviceID
-	) {
+	) -> AthleteRecord? {
 		applyInMemory(
 			.synced(
 				.turnSettled(
@@ -89,18 +98,17 @@ package struct Conversation: Sendable, Equatable {
 	private mutating func applyInMemory(
 		_ body: RecordBody, turn id: TurnID, attempt: AttemptID, ulid: ULID, now: Date,
 		device: DeviceID
-	) {
-		guard let facts = turn(id) else { return }
+	) -> AthleteRecord? {
+		guard let facts = turn(id) else { return nil }
 		let last =
 			(facts.fragments.map(\.hlc) + facts.claims.map(\.hlc)
 			+ facts.settlements.map(\.hlc)).max()
-		apply(
-			[
-				AthleteRecord(
-					ulid: ulid, deviceId: device,
-					hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
-					timeZone: .gmt, civilDate: CivilDate(date: now, timeZone: .gmt),
-					cause: .operation(.turn(id), attempt), account: .unconnected, body: body)
-			], device: device)
+		let record = AthleteRecord(
+			ulid: ulid, deviceId: device,
+			hlc: HybridLogicalClock.tick(now: now, deviceId: device, last: last),
+			timeZone: .gmt, civilDate: CivilDate(date: now, timeZone: .gmt),
+			cause: .operation(.turn(id), attempt), account: .unconnected, body: body)
+		apply([record], device: device)
+		return record
 	}
 }

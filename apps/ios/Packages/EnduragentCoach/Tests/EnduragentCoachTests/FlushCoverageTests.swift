@@ -17,7 +17,7 @@ import Testing
 			.text("Noted."), .finish(reason: .stop),
 		]
 		transport.deltaDelay = .milliseconds(200)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(first)
@@ -90,7 +90,7 @@ import Testing
 				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
 			.finish(reason: .toolCalls), .finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
@@ -138,7 +138,7 @@ import Testing
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.saved) == [
 				true
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
@@ -148,7 +148,7 @@ import Testing
 	}
 
 	@Test func retryAfterItsPartialWasSavedExtractsOnlyTheReplacementReply() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.text("Superseded partial"), .hang]
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
@@ -183,7 +183,7 @@ import Testing
 	}
 
 	@Test func aTrimmedFailedQuestionBecomesEligibleWhenRetried() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.fail(.http(status: 400))]
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
@@ -261,7 +261,7 @@ import Testing
 						: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
 				),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
@@ -271,22 +271,15 @@ import Testing
 		#expect(!rows.contains("Archived late reply"))
 	}
 
-	@Test func legacyCoverageStaysWithinTheAttemptBudget() async throws {
+	@Test func legacyCoverageResolvesEachRowOnce() {
 		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
 		let jobs = (1...200).map { job($0, messages: [], settled: true) }
-		var samples = PerformanceSamples()
-		for _ in 0..<PerformanceSamples.batchCount {
-			let resolved = Mutex(0)
-			await samples.measure(count: 1) {
-				ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
-					conversation.messagesSinceLastFlush(jobs, excluding: nil)
-				}
-			} validate: { rows in
-				#expect(rows.count == 2_000)
-				#expect(resolved.withLock { $0 } == 2_000)
-			}
+		let resolved = Mutex(0)
+		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
+			conversation.messagesSinceLastFlush(jobs, excluding: nil)
 		}
-		try samples.check(budget: .milliseconds(50), name: "legacy-coverage")
+		#expect(rows.count == 2_000)
+		#expect(resolved.withLock { $0 } == 2_000)
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {

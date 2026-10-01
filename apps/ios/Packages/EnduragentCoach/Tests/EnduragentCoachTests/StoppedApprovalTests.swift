@@ -11,7 +11,7 @@ extension RetryLadderTests {
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 			+ workoutProposal + [.text("Here it is again."), .finish(reason: .stop)]
-		let original = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let original = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -20,7 +20,8 @@ extension RetryLadderTests {
 		#expect(before.retryable)
 		let coach =
 			reopenBeforeApproval
-			? heldApprovalCoach(HeldClock(), model: transport, intervals: intervals) : original
+			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
+			: original
 		let token = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
@@ -38,7 +39,7 @@ extension RetryLadderTests {
 		#expect(
 			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
 				== "This reply stopped before it finished. Some information was saved first.")
-		let reopened = heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
+		let reopened = await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 		#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
 		for current in [coach, reopened] {
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
@@ -57,7 +58,7 @@ extension RetryLadderTests {
 		defer { records.release() }
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-		let coach = heldApprovalCoach(
+		let coach = await heldApprovalCoach(
 			held, model: transport, intervals: intervals, records: records)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -89,7 +90,7 @@ extension RetryLadderTests {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
@@ -109,7 +110,7 @@ extension RetryLadderTests {
 				== "This reply stopped before it finished. Some information was saved first.")
 		#expect(interrupted.notice.action == nil)
 		#expect(!settled.retryable)
-		let reopened = heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
+		let reopened = await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 		#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
 	}
 }

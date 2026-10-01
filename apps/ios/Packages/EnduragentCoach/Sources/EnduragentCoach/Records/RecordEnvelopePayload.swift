@@ -121,6 +121,7 @@ enum SyncedPayload: Encodable {
 }
 
 enum DeviceLocalPayload: Encodable {
+	case providerConsent(ProviderConsentPayload)
 	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
 	case pendingProposal(ProposalPayload)
@@ -135,6 +136,7 @@ enum DeviceLocalPayload: Encodable {
 
 	init(_ body: DeviceLocalRecordBody) {
 		switch body {
+		case .providerConsent(let value): self = .providerConsent(ProviderConsentPayload(value))
 		case .turnClaim(let value):
 			self = .turnClaim(
 				TurnClaimPayload(
@@ -232,6 +234,7 @@ enum DeviceLocalPayload: Encodable {
 
 	func encode(to encoder: Encoder) throws {
 		switch self {
+		case .providerConsent(let payload): try payload.encode(to: encoder)
 		case .turnClaim(let payload): try payload.encode(to: encoder)
 		case .replyObserved(let payload): try payload.encode(to: encoder)
 		case .pendingProposal(let payload): try payload.encode(to: encoder)

@@ -9,7 +9,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:teach"
 		await model.send()
 		let settled = try await settledTurn(model)
@@ -22,7 +22,7 @@ extension FixtureLaunchTests {
 		let records = services.coach.recordSyncProbe()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		try await exchange(model, ["fixture:flush-partial"] + longs(5) + ["How was my week?"])
 		try await waitUntil { transport.requestCount == 7 + 3 }
 		#expect(try await count("flushPending", in: records) == 1)
@@ -43,7 +43,7 @@ extension FixtureLaunchTests {
 		let records = services.coach.recordSyncProbe()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		try await exchange(model, longs(6) + ["How was my week?", "And Saturday?"])
 		#expect(try await count("compactionSummary", in: records) == 1)
 		#expect(try await count("windowStart", in: records) == 1)

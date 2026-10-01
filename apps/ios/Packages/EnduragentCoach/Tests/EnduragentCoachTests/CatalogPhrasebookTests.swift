@@ -9,8 +9,8 @@ import Testing
 	}
 
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2476)
-		#expect(Catalog.keyCount == 2516)
+		#expect(Catalog.englishLeafCount == 2482)
+		#expect(Catalog.keyCount == 2522)
 	}
 
 	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {
@@ -137,6 +137,7 @@ import Testing
 			let copy = book.say(key, ["service": "intervals.icu"])
 			#expect(copy != english.say(key, ["service": "intervals.icu"]))
 			#expect(!copy.contains("{{"))
+			#expect(!copy.contains("%#@"))
 		}
 	}
 

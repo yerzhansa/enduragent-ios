@@ -11,7 +11,7 @@ extension RetryLadderTests {
 		let intervals = HeldApprovalWrites(base: base, clock: held, failure: URLError(.timedOut))
 		transport.script =
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-		let original = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let original = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -19,7 +19,8 @@ extension RetryLadderTests {
 		#expect(await settledTurn(turn, on: original)?.retryable == true)
 		let coach =
 			reopenBeforeApproval
-			? heldApprovalCoach(HeldClock(), model: transport, intervals: intervals) : original
+			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
+			: original
 		let token = try await presentReview(on: coach)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
@@ -42,7 +43,7 @@ extension RetryLadderTests {
 			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
 				== "The calendar change may have been saved. Check your calendar before asking again."
 		)
-		for current in [coach] + reopenedApprovalCoaches(intervals: intervals) {
+		for current in [coach] + (await reopenedApprovalCoaches(intervals: intervals)) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
 			#expect(await current.currentSnapshot(.main)?.notes.isEmpty == true)
 			await #expect(throws: RetryRefusal.self) {
@@ -70,7 +71,7 @@ extension RetryLadderTests {
 		transport.script =
 			memory + workoutProposal + [.text("Review ready."), .hang]
 			+ [.text("Try a shorter ride."), .finish(reason: .stop)]
-		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let token = try await presentReview(on: coach)
@@ -99,7 +100,7 @@ extension RetryLadderTests {
 				== (memorySaved
 					? "This reply stopped before it finished. Some information was saved first."
 					: "This reply stopped before it finished. Nothing was changed."))
-		for current in [coach] + reopenedApprovalCoaches(intervals: intervals) {
+		for current in [coach] + (await reopenedApprovalCoaches(intervals: intervals)) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
 			#expect(await current.currentSnapshot(.main)?.notes.isEmpty == true)
 		}
@@ -116,12 +117,16 @@ extension RetryLadderTests {
 		#expect(base.calls.filter(\.isWrite).isEmpty)
 	}
 
-	func reopenedApprovalCoaches(intervals: any IntervalsClient) -> [Coach] {
+	func reopenedApprovalCoaches(intervals: any IntervalsClient) async -> [Coach] {
 		let logs: [any RecordLog] = [
 			store, DeviceAliasLog(inner: store, deviceId: DeviceID(rawValue: "second-phone")),
 		]
-		return logs.map {
-			heldApprovalCoach(HeldClock(), model: transport, intervals: intervals, records: $0)
+		var coaches: [Coach] = []
+		for log in logs {
+			coaches.append(
+				await heldApprovalCoach(
+					HeldClock(), model: transport, intervals: intervals, records: log))
 		}
+		return coaches
 	}
 }

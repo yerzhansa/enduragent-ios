@@ -15,7 +15,7 @@ extension CredentialVaultTests {
 		let padConnection = try #require(try pad.intervalsConnection())
 		#expect(phoneConnection.id == padConnection.id)
 		let pending = try await proposeRide(on: coach(phone))
-		let peer = coach(pad)
+		let peer = await coach(pad)
 		let review = try #require(await peer.currentSnapshot(.main)?.review)
 		#expect(review.ref.set == pending.ref.set)
 		#expect(await peer.decide(.presented(review.ref), in: .main) == .presentationRecorded)
@@ -40,7 +40,7 @@ extension CredentialVaultTests {
 		let backing = legacyIntervalsBacking(legacy)
 		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
 		let store = ICloudKeychainStore(backing: backing)
-		let coach = coach(store)
+		let coach = await coach(store)
 		guard case .connected(let summary, let account) = await coach.status().training else {
 			Issue.record("expected the legacy connection to remain readable when writes fail")
 			return

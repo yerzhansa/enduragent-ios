@@ -4,10 +4,12 @@ extension Conversation {
 	package mutating func apply(_ records: [AthleteRecord], device: DeviceID) {
 		let ordered = records.filter {
 			$0.chatId == chat && ($0.locality != .deviceLocal || $0.deviceId == device)
+				&& appliedRecordIDs.insert($0.ulid).inserted
 		}.sorted { $0.hlc < $1.hlc }
 		if segments.isEmpty {
 			segments = [Segment(id: SegmentID(boundary: nil), openedBy: .chatStart)]
 		}
+		guard !ordered.isEmpty else { return }
 		var turns = Dictionary(
 			uniqueKeysWithValues: segments.flatMap(\.turns).map { ($0.turn, $0) })
 		for record in ordered {
@@ -20,6 +22,7 @@ extension Conversation {
 				turns[body.turn]?.fragments.append(
 					Fragment(
 						ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+						timeZone: record.timeZone,
 						index: body.fragment, draft: body.draft, text: body.athleteText,
 						slash: body.slash))
 			case .legacy(.userMessageV1(_, let text, let slash)):
@@ -30,6 +33,7 @@ extension Conversation {
 					fragments: [
 						Fragment(
 							ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+							timeZone: record.timeZone,
 							index: 0, draft: nil, text: text, slash: slash)
 					])
 			case .legacy(.assistantMessage):
@@ -79,13 +83,11 @@ extension Conversation {
 					turns[turn]?.appliedReviews[attempt, default: []].insert(record.ulid)
 				}
 				let index = segmentIndex(for: record.ulid)
-				if !segments[index].notes.contains(where: { $0.ulid == record.ulid }) {
-					segments[index].notes.append(
-						ReviewNote(
-							ulid: record.ulid, hlc: record.hlc,
-							date: record.civilDate, summary: body.summary))
-					segments[index].notes.sort { $0.hlc < $1.hlc }
-				}
+				segments[index].notes.append(
+					ReviewNote(
+						ulid: record.ulid, hlc: record.hlc,
+						date: record.civilDate, summary: body.summary))
+				segments[index].notes.sort { $0.hlc < $1.hlc }
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessageUlids.contains(firstIncluded) {
 					segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
