@@ -14,7 +14,7 @@ import Testing
 			.finish(reason: .toolCalls),
 			.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
 		]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("Read my notes")
 		#expect(replyText(settled) == "Please use YYYY-MM-DD dates.")

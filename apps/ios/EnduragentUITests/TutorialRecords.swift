@@ -1,9 +1,30 @@
 import XCTest
 
 extension TutorialHarness {
-	static func recordCount(_ app: XCUIApplication, _ kind: String) -> String? {
+	static func recordCount(
+		_ app: XCUIApplication, _ kind: String, file: StaticString = #filePath, line: UInt = #line
+	) -> String? {
 		let element = named(app, "records.count.\(kind)")
-		return element.exists ? element.label : nil
+		if element.exists { return element.label }
+		let list = named(app, "records.list")
+		let deadline = ContinuousClock.now + .seconds(15)
+		while !named(app, "records.device").isHittable {
+			guard ContinuousClock.now < deadline else {
+				XCTFail(
+					"Could not reach the top of Records to find \(kind)", file: file, line: line)
+				return nil
+			}
+			list.swipeDown()
+		}
+		while !element.exists {
+			if named(app, "records.entries").isHittable { return nil }
+			guard ContinuousClock.now < deadline else {
+				XCTFail("Could not finish searching Records for \(kind)", file: file, line: line)
+				return nil
+			}
+			list.swipeUp()
+		}
+		return element.label
 	}
 
 	static func waitForRecordCount(

@@ -13,7 +13,7 @@ extension FixtureLaunchTests {
 	func failedNotice(_ model: ShellModel, after text: String) async throws -> (
 		TurnView, AthleteNotice
 	) {
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = text
 		await model.send()
 		let turn = try await settledTurn(model)
@@ -44,7 +44,7 @@ extension FixtureLaunchTests {
 
 	@Test func signInToOpenRouterOpensTheConnectStep() async throws {
 		let model = model(try services())
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		await model.perform(.signInToOpenRouter)
 		#expect(model.route == .onboarding(.connect))
 	}

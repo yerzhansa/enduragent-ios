@@ -162,7 +162,8 @@ extension SwiftDataSuites {
 			.accessExhausted(.credits), .rateLimited(retryAfter: .milliseconds(1_500)),
 			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
 			.generationFailed(.malformedStream), .accessUnavailable(.notConfigured(.credits)),
-			.accessUnavailable(.secureStorageLocked), .accessUnavailable(.secureStorageUnavailable),
+			.accessUnavailable(.providerConsentRequired), .accessUnavailable(.secureStorageLocked),
+			.accessUnavailable(.secureStorageUnavailable),
 			.accessUnavailable(.malformedStoredCredential(.creditsAccount)),
 			.accessUnavailable(.malformedStoredCredential(.intervalsConnection)),
 		])
@@ -317,6 +318,7 @@ extension SwiftDataSuites {
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [
+				.providerConsent(ProviderConsent(at: Date(timeIntervalSince1970: 899_164_800))),
 				.turnClaim(
 					TurnClaimBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),

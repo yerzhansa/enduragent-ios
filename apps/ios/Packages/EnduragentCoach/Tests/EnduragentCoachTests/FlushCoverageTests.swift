@@ -17,7 +17,7 @@ import Testing
 			.text("Noted."), .finish(reason: .stop),
 		]
 		transport.deltaDelay = .milliseconds(200)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(first)
@@ -90,7 +90,7 @@ import Testing
 				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
 			.finish(reason: .toolCalls), .finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
@@ -138,7 +138,7 @@ import Testing
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.saved) == [
 				true
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
@@ -148,7 +148,7 @@ import Testing
 	}
 
 	@Test func retryAfterItsPartialWasSavedExtractsOnlyTheReplacementReply() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.text("Superseded partial"), .hang]
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
@@ -183,7 +183,7 @@ import Testing
 	}
 
 	@Test func aTrimmedFailedQuestionBecomesEligibleWhenRetried() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.fail(.http(status: 400))]
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
@@ -261,7 +261,7 @@ import Testing
 						: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
 				),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)

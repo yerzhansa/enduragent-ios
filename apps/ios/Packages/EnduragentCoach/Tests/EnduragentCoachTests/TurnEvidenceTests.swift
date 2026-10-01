@@ -14,7 +14,7 @@ import Testing
 			WellnessDay(date: "1998-06-13", fitness: value, fatigue: value, form: value)
 		]
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("How is my form?")
 		#expect(replyText(settled) == "Easy spin today.")
@@ -27,7 +27,7 @@ import Testing
 		let failure = IntervalsError(code: "http", details: "status 503", status: 503)
 		intervals.loadFailure = failure
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
 		let settled = try await coach.sendAndSettle("How is my form?")
@@ -51,7 +51,7 @@ import Testing
 			WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 13.1),
 		]
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
 		_ = try await coach.sendAndSettle("How is my form?")
@@ -67,7 +67,7 @@ import Testing
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock,
 			secrets: secrets)
 
