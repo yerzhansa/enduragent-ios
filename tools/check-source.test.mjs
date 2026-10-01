@@ -30,6 +30,79 @@ const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/R
 const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 
+for (const source of [
+  'app.launchArguments = ["-EnduragentFixture", "first-week"]',
+  'element.waitForExistence(timeout: 8)',
+  'XCTWaiter.wait(for: [ready], timeout: 30)',
+  'TutorialHarness.wait(element, timeout: 5)',
+]) {
+  test(`rejects UI proof configuration outside shared helpers: ${source}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/ExampleProof.swift': source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ui-proof-shared-helpers/);
+  });
+}
+
+test('accepts UI proofs using the argument builder and named waits', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/ExampleProof.swift': 'TutorialHarness.launch(app, arguments: FixtureArguments(store: .keep))\nTutorialHarness.wait(element, until: .hittable, within: .turn)' });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('rejects delayed predicate expectations in the shared UI wait helper', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ui-proof-eager-waits/);
+});
+
+for (const source of [
+  'element.waitForExistence(timeout: limit.rawValue)',
+  'element.waitForNonExistence(timeout: limit.rawValue)',
+  'app.wait(for: .runningForeground, timeout: limit.rawValue)',
+  'XCTWaiter.wait(for: [ready], timeout: limit.rawValue)',
+]) {
+  test(`rejects deferred XCTest waiters in the shared helper: ${source}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ui-proof-eager-waits/);
+  });
+}
+
+test('accepts immediate bounded polling in the shared helper', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let deadline = ProcessInfo.processInfo.systemUptime + limit.rawValue\nvar completed = condition()\nwhile !completed && ProcessInfo.processInfo.systemUptime < deadline {\nRunLoop.current.run(until: Date(timeIntervalSinceNow: 0.02))\ncompleted = condition()\n}' });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('rejects skipped UI proofs', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/ExampleProof.swift': 'throw XCTSkip("missing old store")' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ui-proof-no-skips/);
+});
+
+const upgradeStore = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade/history/synced-records.store';
+test('accepts committed upgrade SQLite stores', () => {
+  const result = run({ [upgradeStore]: Buffer.from('SQLite format 3\0fixture') });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const folder of ['pre-vault-5de5c782', 'build-2bbe2ee']) {
+  test(`accepts committed historical SQLite stores from ${folder}`, () => {
+    const result = run({ [upgradeStore.replace('v1-upgrade/history', folder)]: Buffer.from('SQLite format 3\0fixture') });
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
+test('rejects other binary files in upgrade resources', () => {
+  const result = run({ [upgradeStore]: Buffer.from('arbitrary\0binary') });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /unexpected-binary/);
+});
+
+test('rejects SQLite stores outside the two upgrade scenarios', () => {
+  const result = run({ [upgradeStore.replace('/history/', '/other/')]: Buffer.from('SQLite format 3\0fixture') });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /unexpected-binary/);
+});
+
 for (const indexes of [
   String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical])`,
   String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcLogical, \.hlcWallMs], [\.kind, \.chatId])`,

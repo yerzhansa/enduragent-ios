@@ -51,6 +51,7 @@ Preconditions:
 | The same `LanguagePickerProof` run sends the week question and taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
 | `sim.mjs test <run id> AutomaticFrenchPhoneProof` | A French phone with Automatic shows French app text. Its English week question produces a reply instruction ending `reply in English (English).`; `m1-12-automatic-fr-phone` shows the conversation. |
 | `sim.mjs test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
+| `sim.mjs test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
 | `sim.mjs test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
 | `sim.mjs test <run id> ReviewLanguageProof` | French review title, controls, and saved Done line, before and after relaunch, `review-french`, `review-french-relaunch`. |
 
@@ -67,3 +68,4 @@ Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and
 - Fixture replies are scripted. `fixture.replyLanguage`, the instruction supplied to the model, proves reply-language selection more reliably than the fixture reply text.
 - `-AppleLanguages` changes the phone language for Automatic. A saved fixed preference overrides it.
 - The language switch timing includes XCUITest settling time. Compare it with the already-selected row tap from the same run.
+- `TutorialHarness.wait` uses native existence and foreground waits. Custom conditions, including first-frame snapshots, run immediately and at 10 ms intervals. A matching reply label can appear while a turn is streaming. Wait for `chat.working` to be absent before asserting settlement, or use `exchange` for a completed turn.

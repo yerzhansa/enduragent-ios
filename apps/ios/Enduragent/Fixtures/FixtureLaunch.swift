@@ -2,18 +2,6 @@
 	import EnduragentCoach
 	import Foundation
 
-	enum FixtureStorePolicy: String {
-		case fresh
-		case keep
-		case unreadable
-	}
-
-	enum FixtureKeychainPolicy: String {
-		case unlocked
-		case locked
-		case empty
-	}
-
 	enum FixtureHostPolicy: Equatable {
 		case immediate
 		case expireAfter(Duration)
@@ -44,6 +32,7 @@
 		case unknownFixture(String)
 		case unknownArgument(key: String, value: String)
 		case defaultsSuiteUnavailable(String)
+		case upgradeStoreMissing(String)
 	}
 
 	struct FixtureLaunch {
@@ -96,6 +85,7 @@
 			)
 		}
 
+		@MainActor
 		func prepare() throws -> UserDefaults {
 			guard let defaults = UserDefaults(suiteName: defaultsSuiteName) else {
 				throw FixtureLaunchError.defaultsSuiteUnavailable(defaultsSuiteName)
@@ -108,6 +98,23 @@
 				}
 			}
 			try files.createDirectory(at: directory, withIntermediateDirectories: true)
+			if let resource = store.upgradeResource {
+				guard
+					let source = Bundle.main.url(
+						forResource: resource.name, withExtension: nil,
+						subdirectory: resource.folder)
+				else { throw FixtureLaunchError.upgradeStoreMissing(resource.name) }
+				for name in ["synced-records.store", "local-records.store"] {
+					try files.copyItem(
+						at: source.appending(path: name), to: directory.appending(path: name))
+				}
+				if store == .preVault {
+					try Data(#"{"intervalsApiKey":"fixture-pre-vault-key"}"#.utf8).write(
+						to: directory.appending(path: "secrets.json"), options: .atomic)
+				}
+				defaults.set(resource.device, forKey: AppServices.deviceDefaultsKey)
+				defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+			}
 
 			return defaults
 		}
