@@ -18,9 +18,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Three."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Three."), .finish(reason: .stop)])
 		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(150))
 		store.release()
@@ -86,9 +85,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Recovered."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Recovered."), .finish(reason: .stop)])
 		async let retried: Void = coach.retry(failed, in: .main)
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
@@ -114,9 +112,8 @@ import Testing
 		await reached.next()
 		async let stopped: Void = coach.stop(.main)
 		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Again."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Again."), .finish(reason: .stop)])
 		async let retried: Void = coach.retry(running, in: .main)
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
@@ -201,9 +198,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Three."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Three."), .finish(reason: .stop)])
 		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(50))
 		async let expired: Void = host.expire(lease: 0, .systemExpired)
@@ -242,11 +238,10 @@ import Testing
 
 	@Test func aTurnStillCollectingKeepsTheLeaseAfterAnEarlierTurnSettles() async throws {
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(200)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
-			], otherwise: transport.respond)
+			], requestDelay: .milliseconds(200), otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
 		let coach = makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock,

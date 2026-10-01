@@ -26,7 +26,7 @@
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 			FirstWeekFixture.install(on: intervals)
-			let transport = FakeModelTransport(respond: FirstWeekFixture.respond)
+			let transport = FakeModelTransport(respond: FirstWeekFixture.responses())
 			let fixture = try FixtureRecordStore(
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)

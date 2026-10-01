@@ -218,10 +218,8 @@ import Testing
 		faulty.failNextAppend = true
 		await coach.stop(.main)
 		#expect(await coach.state(of: turn)?.retryable == true)
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		try await coach.retry(turn, in: .main)
 		let replied = try await coach.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(replied.flatMap(replyText) == "Thursday is on.")
@@ -256,8 +254,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		transport.requestDelay = .milliseconds(500)
+			requestDelay: .milliseconds(500), otherwise: transport.respond)
 		let inner = InMemoryRecordLog()
 		let log = FaultInjectingRecordLog(wrapping: inner)
 		log.failRecoveryReads = true

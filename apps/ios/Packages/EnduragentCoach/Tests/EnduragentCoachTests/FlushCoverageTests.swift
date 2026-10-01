@@ -17,8 +17,7 @@ import Testing
 			[
 				.text("Two"), .text(" rides."), .finish(reason: .stop),
 				.text("Noted."), .finish(reason: .stop),
-			], otherwise: transport.respond)
-		transport.deltaDelay = .milliseconds(200)
+			], deltaDelay: .milliseconds(200), otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)

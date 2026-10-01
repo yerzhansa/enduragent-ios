@@ -232,9 +232,8 @@ import Testing
 		await coach.stop(.main)
 		#expect(await host.ended(0)?.ending == .interrupted)
 		#expect(host.leases.count == 1)
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Three."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Three."), .finish(reason: .stop)])
 		let third = try #require(try await coach.send(draft("three"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: third, in: .main))
 		#expect(
@@ -249,13 +248,12 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(300)
 		transport.respond = ScriptedReply.sequence(
 			[.text("First."), .finish(reason: .stop), .hang], for: .chat,
-			otherwise: transport.respond)
+			requestDelay: .milliseconds(300), otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
-			otherwise: transport.respond)
+			requestDelay: .milliseconds(300), otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
 		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let first = try #require(
@@ -275,7 +273,6 @@ import Testing
 		await coach.stop(.main)
 		try await Task.sleep(for: .milliseconds(300))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
-		transport.requestDelay = nil
 		transport.respond = ScriptedReply.sequence(
 			[.text("Third."), .finish(reason: .stop)], otherwise: transport.respond)
 		let third = try #require(try await coach.send(draft("Third?"), to: .main).acceptedTurn)
@@ -294,13 +291,12 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(300)
 		transport.respond = ScriptedReply.sequence(
 			[.text("First."), .finish(reason: .stop), .hang], for: .chat,
-			otherwise: transport.respond)
+			requestDelay: .milliseconds(300), otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
-			otherwise: transport.respond)
+			requestDelay: .milliseconds(300), otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)

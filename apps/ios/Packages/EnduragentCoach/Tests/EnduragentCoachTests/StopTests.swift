@@ -129,9 +129,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Three."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Three."), .finish(reason: .stop)])
 		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(transport.requestCount == 1, "a send started while Stop was still settling")

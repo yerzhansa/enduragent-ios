@@ -43,14 +43,13 @@ import Testing
 	@Test func oneLeasePerDrainCoversQueuedTurnAndFlush() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.requestDelay = .milliseconds(500)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
-			], otherwise: transport.respond)
+			], requestDelay: .milliseconds(500), otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
-			otherwise: transport.respond)
+			requestDelay: .milliseconds(500), otherwise: transport.respond)
 		let coach = coach()
 		let first = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
@@ -208,11 +207,10 @@ import Testing
 	}
 
 	@Test func aReplyThatLandsWhileAwayIsMarkedCompletedInBackground() async throws {
-		transport.requestDelay = .milliseconds(200)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Still on."), .finish(reason: .stop), .text("Yes."), .finish(reason: .stop),
-			], otherwise: transport.respond)
+			], requestDelay: .milliseconds(200), otherwise: transport.respond)
 		let coach = coach()
 		let away = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(away)
@@ -226,9 +224,9 @@ import Testing
 	}
 
 	@Test func aFailedReplyWhileAwayIsNotMarkedCompleted() async throws {
-		transport.requestDelay = .milliseconds(200)
 		transport.respond = ScriptedReply.sequence(
-			[.fail(.http(status: 401))], otherwise: transport.respond)
+			[.fail(.http(status: 401))], requestDelay: .milliseconds(200),
+			otherwise: transport.respond)
 		let coach = coach()
 		let away = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(away)
@@ -283,11 +281,12 @@ import Testing
 	@Test func aSendDuringRecoveryMovesTheDrainToAnAthleteLease() async throws {
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		try await seedPendingJob(covering: history[0])
-		transport.requestDelay = .milliseconds(300)
 		transport.respond = ScriptedReply.sequence(
-			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
+			[.finish(reason: .stop)], for: .flush, requestDelay: .milliseconds(300),
+			otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
-			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
+			[.text("Still on."), .finish(reason: .stop)], requestDelay: .milliseconds(300),
+			otherwise: transport.respond)
 		let coach = coach()
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)

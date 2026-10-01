@@ -88,10 +88,8 @@ import Testing
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		let after = await relaunched()
 		let state = try #require(await after.state(of: turn))
 		#expect(state != .accepted(.awaitingRestart))

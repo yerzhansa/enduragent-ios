@@ -52,7 +52,6 @@ import Testing
 					reason: .toolCalls, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)))
 
 		#expect(transport.requests == [firstRequest, secondRequest])
-
 	}
 
 	@Test func hangingStreamFinishesWhenCancelled() async throws {
@@ -100,10 +99,9 @@ import Testing
 	@Test func deltaDelayPausesBeforeEachEvent() async throws {
 		let delay = Duration.milliseconds(60)
 		let transport = FakeModelTransport()
-		transport.deltaDelay = delay
 		transport.respond = ScriptedReply.sequence(
 			[.text("one"), .text("two"), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
+			deltaDelay: delay, otherwise: transport.respond)
 		let clock = ContinuousClock()
 		let started = clock.now
 		var arrivals: [ContinuousClock.Instant] = []
@@ -126,7 +124,6 @@ import Testing
 		}
 		let second = try await collect(transport.stream(request("Second")))
 		#expect(textDeltas(in: second) == ["after"])
-
 		#expect(transport.requestCount == 2)
 	}
 

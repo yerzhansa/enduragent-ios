@@ -27,12 +27,17 @@ public struct ScriptedReply: Sendable {
 
 	public static func sequence(
 		_ events: [ScriptedEvent], for purpose: ScriptedRequest.Purpose = .chat,
+		requestDelay: Duration? = nil, deltaDelay: Duration? = nil,
 		otherwise fallback: @escaping FakeModelTransport.Response = { _ in ScriptedReply([]) }
 	) -> FakeModelTransport.Response {
 		let remaining = Mutex(events)
 		return { request in
 			guard request.purpose == purpose else { return fallback(request) }
-			return remaining.withLock { ScriptedReply(takeStep(from: &$0, repeatingHang: false)) }
+			return remaining.withLock {
+				ScriptedReply(
+					takeStep(from: &$0, repeatingHang: false),
+					requestDelay: requestDelay, deltaDelay: deltaDelay)
+			}
 		}
 	}
 

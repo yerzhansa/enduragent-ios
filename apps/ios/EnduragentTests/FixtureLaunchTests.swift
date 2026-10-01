@@ -61,6 +61,16 @@ final class FixtureLaunchTests {
 		AppEnvironment(services: services, language: language, defaults: defaults)
 	}
 
+	func until(
+		within limit: Duration = .seconds(5), _ condition: () -> Bool
+	) async throws {
+		let deadline = ContinuousClock.now + limit
+		while !condition(), ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		try #require(condition())
+	}
+
 	func settledTurn(
 		_ model: ShellModel, after previous: TurnState? = nil, within limit: Duration = .seconds(20)
 	) async throws -> TurnView {

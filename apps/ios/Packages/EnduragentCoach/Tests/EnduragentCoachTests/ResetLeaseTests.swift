@@ -34,10 +34,9 @@ import Testing
 							FlushPendingBody(
 								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
-		transport.requestDelay = .seconds(2)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop), .finish(reason: .stop)], for: .flush,
-			otherwise: transport.respond)
+			requestDelay: .seconds(2), otherwise: transport.respond)
 		let coach = coach()
 		await coach.lifecycle(.becameActive)
 		try await waitUntil { host.leases.count == 1 }
@@ -57,7 +56,8 @@ import Testing
 			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = coach()
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.requestDelay = .milliseconds(500)
+		transport.respond = ScriptedReply.sequence(
+			[], for: .flush, requestDelay: .milliseconds(500), otherwise: transport.respond)
 		let published = Task {
 			var seen: [ChatSnapshot] = []
 			for await snapshot in await coach.observe(.main) {

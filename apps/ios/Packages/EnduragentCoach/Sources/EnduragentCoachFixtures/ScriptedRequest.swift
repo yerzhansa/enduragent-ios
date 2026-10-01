@@ -17,11 +17,13 @@ public struct ScriptedRequest: Sendable {
 	}
 
 	public let text: String
+	public let userMessages: [String]
 	public let retry: Bool
 	public let purpose: Purpose
 	public let step: Int
 
 	package init(request: CompletionRequest, purpose: Purpose, step: Int) {
+		self.userMessages = request.messages.filter { $0.role == .user }.map(\.content)
 		self.text =
 			request.messages.last { $0.role == .user }?.content
 			.components(separatedBy: "\nCurrent time:")[0] ?? ""

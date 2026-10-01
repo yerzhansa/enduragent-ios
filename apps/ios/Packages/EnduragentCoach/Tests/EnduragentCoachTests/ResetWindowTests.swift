@@ -27,8 +27,7 @@ import Testing
 	@Test func aReplyStreamingAtTheTapIsSavedWithItsQuestion() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Two"), .text(" rides."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		transport.deltaDelay = .milliseconds(300)
+			deltaDelay: .milliseconds(300), otherwise: transport.respond)
 		let coach = coach()
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
@@ -44,8 +43,8 @@ import Testing
 
 	@Test func aTurnStillInTheJoinWindowAtTheTapIsSavedWithItsReply() async throws {
 		transport.respond = ScriptedReply.sequence(
-			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
-		transport.requestDelay = .milliseconds(400)
+			[.text("Two rides."), .finish(reason: .stop)], requestDelay: .milliseconds(400),
+			otherwise: transport.respond)
 		let coach = coach(window: .seconds(1))
 		_ = try #require(try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		let resetting = startNewConversation(on: coach)

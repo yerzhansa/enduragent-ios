@@ -2,26 +2,47 @@
 	import EnduragentCoach
 	import EnduragentCoachFixtures
 	import Foundation
+	import Synchronization
 
 	extension FirstWeekFixture {
 		static let slowFirstWordDelay: Duration = .seconds(2)
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func respond(to request: ScriptedRequest) -> ScriptedReply {
-			switch request.purpose {
-			case .summary:
-				return ScriptedReply(summaryReply)
-			case .flush:
-				let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
-				return ScriptedReply(
-					text == "fixture:flush-partial" && !request.retry ? flushPartial : [],
-					requestDelay: text == "fixture:slow-flush" && !request.retry
-						? slowFlushDelay : nil
-				).step(request.step)
-			case .chat:
-				return reply(to: request.text, retry: request.retry).step(
-					request.step, repeatingHang: true)
+		static func responses() -> FakeModelTransport.Response {
+			let flushes = Mutex<[String: FakeModelTransport.Response]>([:])
+			return { request in
+				switch request.purpose {
+				case .summary:
+					return ScriptedReply(summaryReply)
+				case .flush:
+					return flushes.withLock { scripts in
+						for message in request.userMessages.reversed() {
+							for (directive, respond) in scripts
+							where message == directive || message.hasSuffix("] " + directive) {
+								return respond(request)
+							}
+						}
+						return ScriptedReply([])
+					}
+				case .chat:
+					if request.step == 0, !request.retry {
+						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
+						if text == "fixture:flush-partial" {
+							flushes.withLock {
+								$0[text] = ScriptedReply.sequence(flushPartial, for: .flush)
+							}
+						} else if text == "fixture:slow-flush" {
+							flushes.withLock {
+								$0[text] = ScriptedReply.sequence(
+									[.finish(reason: .stop)], for: .flush,
+									requestDelay: slowFlushDelay)
+							}
+						}
+					}
+					return reply(to: request.text, retry: request.retry).step(
+						request.step, repeatingHang: true)
+				}
 			}
 		}
 

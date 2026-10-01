@@ -8,14 +8,13 @@ import Testing
 extension ChatMailboxTests {
 	@Test func concurrentSendsOnOneChatCompleteInOrder() async throws {
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(40)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("first"),
 				.finish(reason: .stop),
 				.text("second"),
 				.finish(reason: .stop),
-			], otherwise: transport.respond)
+			], requestDelay: .milliseconds(40), otherwise: transport.respond)
 		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let first = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)

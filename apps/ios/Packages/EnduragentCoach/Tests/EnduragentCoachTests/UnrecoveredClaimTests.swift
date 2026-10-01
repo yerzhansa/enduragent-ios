@@ -16,10 +16,8 @@ import Testing
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
-		transport.respond = { _ in ScriptedReply([]) }
 		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		let requestsBefore = transport.requests.count
 		let log = FaultInjectingRecordLog(wrapping: store)
 		log.failRecoveryReads = true

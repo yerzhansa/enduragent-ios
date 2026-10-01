@@ -195,9 +195,14 @@ extension FixtureLaunchTests {
 		}
 		model.draft.text = "Remember that Saturdays are group rides"
 		await model.send()
-		try await Task.sleep(for: .milliseconds(250))
+		try await until {
+			model.chat?.turns.last?.state == .accepted(.queued(position: 2))
+		}
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
+		try await until {
+			model.chat?.turns.last?.state == .accepted(.queued(position: 3))
+		}
 		#expect(
 			replyText(try await settledTurn(model, at: 1).state) == FirstWeekFixture.rememberReply)
 		#expect(
