@@ -37,6 +37,19 @@ package enum TurnRecovery {
 			drain: drain)
 	}
 
+	static func plans(
+		in conversations: [ChatID: Conversation], jobs: [ChatID: [FlushJob]],
+		writes: [AttemptID: WriteSummary], device: DeviceID, process: ProcessID
+	) -> [ChatID: RecoveryPlan] {
+		conversations.compactMapValues { conversation in
+			let drain = FlushJob.outstanding(jobs[conversation.chat] ?? [], in: conversation)
+			let plan = plan(
+				turns: conversation.segments.flatMap(\.turns), drain: drain.map(\.id),
+				writes: writes, device: device, process: process)
+			return plan.isEmpty ? nil : plan
+		}
+	}
+
 	package static func writes(of attempts: Set<AttemptID>, in records: [AthleteRecord])
 		-> [AttemptID: WriteSummary]
 	{

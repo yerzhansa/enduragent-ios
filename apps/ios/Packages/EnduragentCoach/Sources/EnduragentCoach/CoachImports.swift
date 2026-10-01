@@ -30,7 +30,7 @@ extension Coach {
 	private func refreshImports() async {
 		pendingImportRefresh = nil
 		guard !lifetime.terminating else { return }
-		for mailbox in mailboxes.values {
+		for mailbox in await openedMailboxes() {
 			do {
 				try await mailbox.refreshImports()
 			} catch {

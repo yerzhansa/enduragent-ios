@@ -109,18 +109,26 @@ package struct Memory: Sendable {
 		}.map(\.hit)
 	}
 
+	package func prompt() async throws -> (context: String, view: MemoryView) {
+		let snapshot = try await loadSnapshot()
+		return (renderContext(snapshot, excluding: hiddenSections), view(snapshot))
+	}
+
+	private var hiddenSections: [String] {
+		SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue)
+	}
+
 	package func context() async throws -> String {
-		try await renderContext(
-			excluding: SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue))
+		renderContext(try await loadSnapshot(), excluding: hiddenSections)
 	}
 
 	package func fullContext() async throws -> String {
-		try await renderContext(excluding: [])
+		renderContext(try await loadSnapshot(), excluding: [])
 	}
 
 	package func complementContext() async throws -> String {
 		let injected = SectionName.cyclingEffective.filter(\.inject).map(\.rawValue)
-		return try await renderContext(excluding: injected)
+		return renderContext(try await loadSnapshot(), excluding: injected)
 	}
 
 	package func writeSection(
@@ -203,7 +211,10 @@ package struct Memory: Sendable {
 	}
 
 	package func view() async throws -> MemoryView {
-		let snapshot = try await loadSnapshot()
+		view(try await loadSnapshot())
+	}
+
+	private func view(_ snapshot: MemorySnapshot) -> MemoryView {
 		var sections: [String: String] = [:]
 		for name in SectionName.cyclingEffective {
 			if let content = UnionMerge.sectionText(snapshot.sections, name: name) {
@@ -240,8 +251,7 @@ package struct Memory: Sendable {
 		return false
 	}
 
-	private func renderContext(excluding: [String]) async throws -> String {
-		let snapshot = try await loadSnapshot()
+	private func renderContext(_ snapshot: MemorySnapshot, excluding: [String]) -> String {
 		let exclude = Set(excluding)
 		var parts: [String] = []
 		var blocks: [String] = []

@@ -37,8 +37,10 @@ import Testing
 					device: inner.deviceId, wall: Int64(offset), ulid: fixedUlid(offset), body: body
 				)
 			})
-		let transcript = try await ledger.loadTranscript(
-			chatId: .main, excluding: TurnID(ulid: fixedUlid(90)))
+		let conversation = try await ledger.conversation(.main)
+		let jobs = try await ledger.flushJobs(in: conversation)
+		let transcript = Transcript(
+			conversation: conversation, jobs: jobs, excluding: TurnID(ulid: fixedUlid(90)))
 		#expect(transcript.history.messages.isEmpty)
 		#expect(transcript.unflushed.isEmpty)
 		#expect(transcript.pending.map(\.ulid) == [fixedUlid(1)])

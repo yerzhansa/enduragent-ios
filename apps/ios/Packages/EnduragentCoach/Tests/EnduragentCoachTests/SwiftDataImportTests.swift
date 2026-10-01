@@ -50,7 +50,7 @@ extension SwiftDataSuites {
 			try await store.append([question, question, reply, reply], locality: .synced)
 			store.notifyImport()
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
-			let mailbox = await coach.mailbox(for: .main)
+			let mailbox = try await coach.mailbox(for: .main)
 			let live = await mailbox.conversation
 			let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let cold = try await ledger.conversation(.main)
