@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -16,7 +17,8 @@ import Testing
 			("How was my training week and what should I do today?", .en),
 			("123", .nl),
 		] {
-			transport.script = [.text("Reply"), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)
 			_ = try await coach.sendAndSettle(message)
 			let system = try #require(
 				sent(.chatAttempt, by: transport).last?.messages.first?.content)

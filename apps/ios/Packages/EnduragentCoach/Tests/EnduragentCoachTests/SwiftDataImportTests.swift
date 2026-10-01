@@ -1,4 +1,5 @@
 import CoreData
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -90,7 +91,8 @@ extension SwiftDataSuites {
 			let log = BatchRecordingLog(
 				inner: observingImports ? store : ImportingRecordLog(inner: store))
 			let transport = FakeModelTransport()
-			transport.script = [.text("Local answer"), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
 			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			_ = await coach.currentSnapshot(.main)
 			try await Task.sleep(for: .milliseconds(500))

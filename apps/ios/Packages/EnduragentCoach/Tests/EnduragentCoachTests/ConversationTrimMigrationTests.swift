@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -33,14 +34,16 @@ import Testing
 			zip(stamps, bodies).map { stamp, body in
 				storedRecord(device: store.deviceId, wall: stamp.wall, ulid: stamp.ulid, body: body)
 			})
-		transport.summaryScript = Array(
-			repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 4
-		).flatMap { $0 }
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-			.text("Sunday off."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 4
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+				.text("Sunday off."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: clock)
 		let firstPrompt = try await sendCapturing("Is Thursday on?", coach)

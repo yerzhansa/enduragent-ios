@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -16,7 +17,8 @@ import Testing
 			script.append(.finish(reason: .toolCalls))
 		}
 		script.append(contentsOf: [.text("Ten steps."), .finish(reason: .stop)])
-		transport.script = script
+		transport.respond = ScriptedReply.sequence(
+			script, otherwise: transport.respond)
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 1, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
@@ -35,15 +37,17 @@ import Testing
 
 	@Test func preemptiveCompactionIsNotAnOverflowRetry() async throws {
 		try await seedReplies(tokens: [100_000, 100_000, 50, 50])
-		transport.summaryScript = [
-			.fail(.http(status: 500)), .text("Short."), .finish(reason: .stop),
-		]
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 500)), .text("Short."), .finish(reason: .stop),
+			], for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
 			Array(
 				repeating: .fail(
 					.http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#)),
 				count: 3)
-			+ [.text("Fits now."), .finish(reason: .stop)]
+				+ [.text("Fits now."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
 		let result = try await runner().run(
 			attempt("Is Thursday on?", scope: scope), scope: scope, committed: { _ in }
@@ -57,9 +61,10 @@ import Testing
 	}
 
 	@Test func waitThatPassesTheWallClockEndsTheTurnBeforeTheNextAttempt() async throws {
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 429, headers: ["retry-after": "7"])), count: 2)
-			+ [.text("Too late."), .finish(reason: .stop)]
+				+ [.text("Too late."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let tight = TurnBudgetPolicy(
 			maxGenerateAttempts: 2, maxGenerateCalls: 40, wallClock: .seconds(10),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
@@ -76,15 +81,16 @@ import Testing
 	}
 
 	@Test func budgetFailureAfterAMemoryWriteKeepsTheWriteInTheSettlement() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.finish(reason: .toolCalls),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.finish(reason: .toolCalls),
+			], otherwise: transport.respond)
 		let oneCall = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 1, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
@@ -105,13 +111,15 @@ import Testing
 	}
 
 	@Test func inTurnFlushIsChargedAgainstTheTurnsCalls() async throws {
-		transport.script = [.text("Yes, rest."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, rest."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock
 		).sendAndSettle("Rest day?")
-		transport.script = [
-			.fail(.http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#))
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 400, body: #"{"error":{"message":"maximum context length"}}"#))
+			], otherwise: transport.respond)
 		let twoCalls = TurnBudgetPolicy(
 			maxGenerateAttempts: 4, maxGenerateCalls: 2, wallClock: .seconds(600),
 			maxStepsPerInvocation: 10, perCallDeadline: .seconds(600))
@@ -149,11 +157,14 @@ import Testing
 
 	@Test func inTurnFlushUsesTheTurnsLadder() async throws {
 		try await seedReplies(tokens: [200])
-		transport.script = [
-			.fail(.http(status: 400, body: "maximum context length")),
-			.text("Recovered."), .finish(reason: .stop),
-		]
-		transport.flushScript = [.fail(.http(status: 429)), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 400, body: "maximum context length")),
+				.text("Recovered."), .finish(reason: .stop),
+			], for: .chat, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 429)), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
 		let ladder = RetryLadder(
 			guards: RetryLadder.npm.guards,
 			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })

@@ -33,6 +33,10 @@ public struct CoachPorts: Sendable {
 public struct RecordStore: Sendable {
 	package let log: any RecordLog
 
+	package init(log: any RecordLog) {
+		self.log = log
+	}
+
 	public static func onDevice(deviceId: DeviceID) throws -> RecordStore {
 		let directory = try ModelContainerHandle.applicationSupportDirectory()
 		return RecordStore(
@@ -40,22 +44,6 @@ public struct RecordStore: Sendable {
 				deviceId: deviceId,
 				synced: try ModelContainerHandle.syncedCloudKit(directory: directory),
 				local: try ModelContainerHandle.deviceLocal(directory: directory)))
-	}
-
-	public static func inMemory(deviceId: DeviceID) -> RecordStore {
-		RecordStore(log: InMemoryRecordLog(deviceId: deviceId))
-	}
-
-	public static func fixture(
-		directory: URL, deviceId: DeviceID, unreadable: Bool = false
-	) throws -> (store: RecordStore, faults: RecordFaults) {
-		if unreadable {
-			try FileManager.default.createDirectory(
-				at: directory.appending(path: ModelContainerHandle.syncedStoreFileName),
-				withIntermediateDirectories: true)
-		}
-		let faults = try RecordFaults(directory: directory, deviceId: deviceId)
-		return (RecordStore(log: faults.log), faults)
 	}
 }
 
@@ -69,13 +57,13 @@ public struct ModelService: Sendable {
 
 	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
 
+	package init(makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport) {
+		self.makeTransport = makeTransport
+	}
+
 	public static func openRouter(baseURL: URL) -> ModelService {
 		ModelService { diagnostics in
 			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
 		}
-	}
-
-	public static func scripted(_ fake: FakeModelTransport) -> ModelService {
-		ModelService { _ in fake }
 	}
 }
