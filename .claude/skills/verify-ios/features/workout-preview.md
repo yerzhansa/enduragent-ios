@@ -20,7 +20,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - Send `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks` from the conversation.
 - Choose Cancel or Add to calendar on the resulting review.
 - Change the connected athlete through Menu, Debug, Credentials while a review exists.
-- Reopen a kept v1 store containing an unexpired workout review, once connected and once disconnected, to inspect the earlier-version notice.
+- Launch the committed `.v1Review` fixture with `TutorialHarness.launchUpgrade`, then inspect the earlier-version notice while disconnected and connected.
 
 ## Driving it with sim.mjs and XCUITest
 
@@ -38,14 +38,14 @@ Preconditions:
 | `sim.mjs test <run id> ReviewLanguageProof` | French title, controls, and durable outcome before and after relaunch, `review-french`, `review-french-relaunch`. |
 | `sim.mjs test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
 | `sim.mjs test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
-| `sim.mjs test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | A seeded v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
+| `sim.mjs test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | The committed v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
 | `sim.mjs test <run id> ConfirmedPreviewDarkProof` | Dark review capture with an asserted luminance bound, `07-confirmed-preview-dark`. |
 | `sim.mjs test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete`, `switch-confirmed`. |
 | `sim.mjs test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-rotation-added`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
 | `sim.mjs test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
 
-For the v1 notice, follow the second recipe under [Upgrade proofs](../SKILL.md#upgrade-proofs). Seed a v1 add, edit, and deletion in turn, and run `LegacyReviewNoticeProof` after each. Keep the fixture clock within the review's lifetime. If the required stores are unavailable, record those cases as unverified.
+For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyReviewNoticeProof` copies the committed `.v1Review` stores before launch and must pass with zero skips. It checks the create review while disconnected, connected, and in German. Package migration tests cover v1 edit and deletion reviews. Keep the fixture clock within the review's lifetime. A missing committed store is a failure.
 
 ## Gotchas
 

@@ -9,38 +9,25 @@ final class LaunchLatencyProbe: XCTestCase {
 		TutorialHarness.launch(app, coalescingMilliseconds: 1)
 		TutorialHarness.completeOnboarding(app)
 		for index in 1...Self.seeds {
-			TutorialHarness.send(app, "Seed \(index)")
-			TutorialHarness.wait(app.staticTexts["Seed \(index)"], timeout: 30)
+			TutorialHarness.exchange(app, "Seed \(index)")
+			TutorialHarness.wait(app.staticTexts["Seed \(index)"], within: .turn)
 		}
 		let working = TutorialHarness.named(app, "chat.working")
-		let settled = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "exists == false"), object: working)
-		XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 600), .completed)
+		TutorialHarness.wait(working, until: .absent, within: .bulk)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled \(Self.seeds)")
 		TutorialHarness.attach(self, name: "seeded-records", app: app)
 	}
 
 	func testLaunchWithTwoHundredTurns() {
-		let app = keptApp()
+		let app = XCUIApplication()
 		let started = Date()
-		app.launch()
+		TutorialHarness.launch(app, arguments: FixtureArguments(store: .keep))
 		let last = app.staticTexts[Self.lastSeed]
-		while !last.exists, Date().timeIntervalSince(started) < 60 {
-			continue
-		}
+		TutorialHarness.wait(last, within: .longTurn)
 		record(Date().timeIntervalSince(started), name: "launch-latency-ms")
 		XCTAssertTrue(last.exists)
 		TutorialHarness.attach(self, name: "launch-with-two-hundred-turns", app: app)
-	}
-
-	private func keptApp() -> XCUIApplication {
-		let app = XCUIApplication()
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
-		return app
 	}
 
 	private func record(_ seconds: TimeInterval, name: String) {
@@ -59,9 +46,9 @@ final class HistoryOpenProbe: XCTestCase {
 		TutorialHarness.launch(app, coalescingMilliseconds: 1)
 		TutorialHarness.completeOnboarding(app)
 		for index in 1...Self.resets {
-			TutorialHarness.send(app, "Archived \(index)")
+			TutorialHarness.exchange(app, "Archived \(index)")
 			TutorialHarness.wait(
-				TutorialHarness.text(app, containing: TutorialHarness.weekReply), timeout: 30)
+				TutorialHarness.text(app, containing: TutorialHarness.weekReply), within: .turn)
 			TutorialHarness.startNewConversation(app)
 		}
 		TutorialHarness.openRecords(app)
@@ -71,11 +58,7 @@ final class HistoryOpenProbe: XCTestCase {
 
 	func testHistoryOpenWithFiftyArchived() {
 		let app = XCUIApplication()
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", TutorialHarness.storeArgument, "keep",
-			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-		]
-		app.launch()
+		TutorialHarness.launch(app, arguments: FixtureArguments(store: .keep))
 		XCTAssertTrue(
 			stampHistoryOpen(
 				app, until: app.staticTexts["Archived \(Self.resets)"], name: "history-open-ms"))
@@ -98,9 +81,7 @@ final class HistoryOpenProbe: XCTestCase {
 		TutorialHarness.openSidebar(app)
 		let started = Date()
 		TutorialHarness.named(app, "sidebar.history").tap()
-		while !shown.exists, Date().timeIntervalSince(started) < 30 {
-			continue
-		}
+		TutorialHarness.wait(shown, within: .turn)
 		let sample = XCTAttachment(
 			string: String(format: "%.0f", Date().timeIntervalSince(started) * 1_000))
 		sample.name = name

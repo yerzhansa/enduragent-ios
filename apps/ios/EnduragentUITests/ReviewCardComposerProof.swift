@@ -8,9 +8,9 @@ final class ReviewCardComposerProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.waitUntilEnabled(add)
+		TutorialHarness.wait(add, until: .enabled)
 		TutorialHarness.waitForLabel(app, "Workout review")
-		TutorialHarness.waitForAbsence(app.keyboards.firstMatch)
+		TutorialHarness.wait(app.keyboards.firstMatch, until: .absent)
 		let input = TutorialHarness.named(app, "chat.composer")
 		input.tap()
 		input.typeText(TutorialHarness.draft)
@@ -20,8 +20,8 @@ final class ReviewCardComposerProof: XCTestCase {
 		let composer = TutorialHarness.named(app, "chat.composer.container")
 		TutorialHarness.wait(composer)
 		let send = TutorialHarness.named(app, "chat.send")
-		TutorialHarness.waitUntilHittable(send)
-		TutorialHarness.waitUntilHittable(add)
+		TutorialHarness.wait(send, until: .hittable)
+		TutorialHarness.wait(add, until: .hittable)
 		let composerFrame = composer.frame
 		let transcript = TutorialHarness.named(app, "chat.transcript")
 		XCTAssertTrue(
