@@ -1,14 +1,33 @@
+import Foundation
+
 struct Compactor: Sendable {
 	enum Purpose: Sendable {
 		case droppedHistory
 		case inTurn
 	}
 
+	struct Summary: Sendable {
+		let markdown: String
+
+		fileprivate init(_ step: GenerateStep) throws(Failure) {
+			guard step.reason != .error, step.reason != .contentFilter,
+				!step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+			else {
+				throw Failure(reason: step.reason)
+			}
+			markdown = step.text
+		}
+	}
+
+	struct Failure: Error, Sendable {
+		let reason: FinishReason
+	}
+
 	let modelCall: ModelCall
 
 	func summarize(
 		_ messages: [WireMessage], previous: String?, purpose: Purpose, attempt: TurnAttempt
-	) async throws -> String {
+	) async throws -> Summary {
 		let transcript = PromptAssembly.transcript(messages)
 		let request: String
 		let charge: GenerateCharge
@@ -21,7 +40,7 @@ struct Compactor: Sendable {
 			request = PromptAssembly.compactionRequest(previous: previous, transcript: transcript)
 			charge = .compaction
 		}
-		return try await modelCall.run(
+		let step = try await modelCall.run(
 			request: CompletionRequest(
 				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,
@@ -35,6 +54,7 @@ struct Compactor: Sendable {
 				tools: [],
 				deadline: TurnPolicy.compactionTimeout
 			)
-		).text
+		)
+		return try Summary(step)
 	}
 }

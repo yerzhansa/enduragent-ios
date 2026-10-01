@@ -535,7 +535,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Wcześniejsze rozmowy są tymczasowo niedostępne.",
-    "loadEarlier": "Wczytaj wcześniejsze wiadomości",
     "loading": "Wczytywanie wcześniejszych rozmów…",
     "pageFailure": "Ta rozmowa jest tymczasowo niedostępna.",
     "readOnly": "Wcześniejsze rozmowy są tylko do odczytu.",
@@ -1000,7 +999,6 @@
     },
     "history": {
       "failure": "Historia rozmowy jest tymczasowo niedostępna.",
-      "loadEarlier": "Wczytaj wcześniejsze wiadomości",
       "retry": "Ponów wczytywanie historii"
     },
     "newConversation": {

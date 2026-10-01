@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Eerdere gesprekken zijn tijdelijk niet beschikbaar.",
-    "loadEarlier": "Eerdere berichten laden",
     "loading": "Eerdere gesprekken laden…",
     "pageFailure": "Dit gesprek is tijdelijk niet beschikbaar.",
     "readOnly": "Je kunt eerdere gesprekken alleen lezen.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "De gespreksgeschiedenis is tijdelijk niet beschikbaar.",
-      "loadEarlier": "Eerdere berichten laden",
       "retry": "Geschiedenis opnieuw laden"
     },
     "newConversation": {

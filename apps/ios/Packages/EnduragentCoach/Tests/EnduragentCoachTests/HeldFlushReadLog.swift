@@ -5,19 +5,18 @@ import Synchronization
 
 final class HeldFlushReadLog: RecordLog, Sendable {
 	let inner: any RecordLog
-	let reached: AsyncStream<Void>
-	private let reachedContinuation: AsyncStream<Void>.Continuation
-	private let state = Mutex<(armed: Bool, held: CheckedContinuation<Void, Never>?)>((false, nil))
+	private let gate = Gate()
+	var reached: AsyncStream<Void> { gate.reached }
+	private let armed = Mutex(false)
 
 	init(inner: any RecordLog) {
 		self.inner = inner
-		(reached, reachedContinuation) = AsyncStream.makeStream()
 	}
 
 	var deviceId: DeviceID { inner.deviceId }
 
 	func holdNextChatFlushRead() {
-		state.withLock { $0.armed = true }
+		armed.withLock { $0 = true }
 	}
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
@@ -29,27 +28,17 @@ final class HeldFlushReadLog: RecordLog, Sendable {
 	}
 
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		let hold = state.withLock { current -> Bool in
-			guard current.armed, query.scope == ConversationFold.flushScope, query.chatId != nil
+		let hold = armed.withLock { current -> Bool in
+			guard current, query.scope == ConversationFold.flushScope, query.chatId != nil
 			else { return false }
-			current.armed = false
+			current = false
 			return true
 		}
-		if hold {
-			await withCheckedContinuation { continuation in
-				state.withLock { $0.held = continuation }
-				reachedContinuation.yield()
-			}
-		}
+		if hold { await gate.wait() }
 		return try await inner.fetch(query)
 	}
 
-	func release() {
-		state.withLock { current in
-			current.held?.resume()
-			current.held = nil
-		}
-	}
+	func release() { gate.release() }
 
 	var imports: AsyncStream<Void> { inner.imports }
 }

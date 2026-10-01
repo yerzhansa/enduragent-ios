@@ -10,6 +10,7 @@ public actor Coach {
 	let ledger: Ledger
 	let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
 	private let deviceLanguage: LanguageTag
 	var preferenceRecords: [AthleteRecord] = []
@@ -57,17 +58,15 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
+		self.coalescingSleep = ports.coalescingSleep
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
-		self.memory = Memory(ledger: ledger, clock: clock)
+		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
 		self.runner = TurnRunner(
-			transport: transport,
-			ledger: ledger,
-			clock: clock,
-			diagnostics: diagnostics,
-			ladder: .npm,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
-		)
+			transport: transport, ledger: ledger, clock: clock,
+			diagnostics: diagnostics, ladder: .npm,
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
+			watchdogSleep: ports.watchdogSleep)
 		self.reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
@@ -96,10 +95,20 @@ public actor Coach {
 		await mailbox(for: chat).reset()
 	}
 
-	public func history() async throws(HistoryUnavailable) -> [ArchivedConversation] {
+	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
 		do {
-			return try await ledger.archivedConversations(
-				process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
+			return try await ledger.history()
+		} catch {
+			throw .storageUnavailable
+		}
+	}
+
+	public func archivedConversation(_ ref: ArchivedConversationRef)
+		async throws(HistoryUnavailable) -> ArchivedConversation?
+	{
+		do {
+			return try await ledger.archivedConversation(
+				ref, process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
 		} catch {
 			throw .storageUnavailable
 		}
@@ -288,6 +297,7 @@ public actor Coach {
 				diagnostics: diagnostics, ladder: runner.ladder),
 			clock: clock,
 			coalescing: coalescing,
+			coalescingSleep: coalescingSleep,
 			environment: EnvironmentResolver(
 				preferences: { await self.loadedPreferences() }, access: access,
 				training: { () async throws(AccessUnavailable) in
@@ -301,5 +311,4 @@ public actor Coach {
 		mailboxes[chatId] = created
 		return created
 	}
-
 }

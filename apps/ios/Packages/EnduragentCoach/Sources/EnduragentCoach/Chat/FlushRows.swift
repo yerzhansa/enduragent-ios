@@ -24,35 +24,44 @@ struct ConversationRows {
 		self.segments = segments
 	}
 
-	func ulids(for job: FlushJob) -> [ULID] {
-		guard job.messages.isEmpty else { return job.messages.filter { byUlid[$0] != nil } }
-		let segment = segments.last { $0.id.boundary.map { $0 <= job.id.ulid } ?? true }
-		return (segment?.ulids ?? []).filter { $0 < job.id.ulid }
+	func coverage(
+		for id: FlushJobID, messages: [ULID], origin: FlushJob.Origin, consumed: Bool = false
+	) -> FlushJob.Coverage {
+		let legacy: FlushJob.Coverage.Legacy? =
+			if origin != .beforeUpgrade {
+				nil
+			} else if messages.isEmpty {
+				.before(id.ulid)
+			} else if consumed, let through = messages.max() {
+				.through(through)
+			} else {
+				nil
+			}
+		return FlushJob.Coverage(
+			listed: messages, resolved: Set(ulids(for: id, messages: messages)), legacy: legacy)
+	}
+
+	func resolving(_ job: FlushJob) -> FlushJob {
+		FlushJob(
+			id: job.id, origin: job.origin,
+			coverage: .init(
+				listed: job.coverage.listed,
+				resolved: Set(ulids(for: job.id, messages: job.coverage.listed)),
+				legacy: job.coverage.legacy), phase: job.phase, reset: job.reset)
+	}
+
+	func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
+		let pending = jobs.filter { $0.phase == .pending }.map(resolving)
+		return pending.filter { job in !pending.contains { $0.covers(job) } }
+	}
+
+	func ulids(for id: FlushJobID, messages: [ULID]) -> [ULID] {
+		guard messages.isEmpty else { return messages.filter { byUlid[$0] != nil } }
+		let segment = segments.last { $0.id.boundary.map { $0 <= id.ulid } ?? true }
+		return (segment?.ulids ?? []).filter { $0 < id.ulid }
 	}
 
 	func messages(for ulids: [ULID]) -> [(ulid: ULID, message: ChatMessage)] {
 		ulids.compactMap { ulid in byUlid[ulid].map { (ulid, $0) } }
-	}
-}
-
-struct FlushRows {
-	private let rows: ConversationRows
-	let byJob: [FlushJobID: Set<ULID>]
-
-	init(_ jobs: [FlushJob], in conversation: Conversation) {
-		let rows = ConversationRows(conversation)
-		self.rows = rows
-		byJob = Dictionary(
-			jobs.map { ($0.id, Set(rows.ulids(for: $0))) }, uniquingKeysWith: { $0.union($1) })
-	}
-
-	func outstanding(_ jobs: [FlushJob]) -> [FlushJob] {
-		let pending = jobs.filter { !$0.settled }
-		return pending.filter { job in !pending.contains { $0.covers(job, resolved: byJob) } }
-	}
-
-	func messages(for jobs: [FlushJob]) -> [(ulid: ULID, message: ChatMessage)] {
-		let ulids = jobs.reduce(into: Set<ULID>()) { $0.formUnion(byJob[$1.id, default: []]) }
-		return rows.messages(for: ulids.sorted())
 	}
 }

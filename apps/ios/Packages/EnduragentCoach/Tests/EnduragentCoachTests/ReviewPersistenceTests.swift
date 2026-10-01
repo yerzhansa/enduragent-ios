@@ -53,10 +53,13 @@ extension TurnRunnerTests {
 		#expect(later.notes.first?.after == proposing)
 		#expect(await reopened.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(await reopened.currentSnapshot(.main)?.notes.isEmpty == true)
-		let archived = try #require(try await reopened.history().first)
+		let archivedRef = try #require(try await reopened.history().first?.id)
+		let archived = try #require(try await reopened.archivedConversation(archivedRef))
 		#expect(archived.notes.map { $0.sentence(in: french) } == [frenchDone])
 		#expect(archived.notes.first?.after == proposing)
-		let archivedAfterRelaunch = try #require(try await makeCoach().history().first)
+		let archivedAfterRelaunchRef = try #require(try await makeCoach().history().first?.id)
+		let archivedAfterRelaunch = try #require(
+			try await makeCoach().archivedConversation(archivedAfterRelaunchRef))
 		#expect(archivedAfterRelaunch.notes.map { $0.sentence(in: french) } == [frenchDone])
 	}
 
@@ -81,8 +84,11 @@ extension SingleProposalReviewsTests {
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let history = try await coach.history()
 		#expect(history.count == 2)
-		#expect(history.first?.turns.isEmpty == true)
-		#expect(history.first?.notes == shown.notes)
-		#expect(try await self.coach().history().first?.notes == shown.notes)
+		let ref = try #require(history.first?.id)
+		#expect(history.first?.firstQuestion == nil)
+		let archived = try #require(try await coach.archivedConversation(ref))
+		#expect(archived.turns.isEmpty)
+		#expect(archived.notes == shown.notes)
+		#expect(try await self.coach().archivedConversation(ref)?.notes == shown.notes)
 	}
 }
