@@ -54,9 +54,34 @@ actor SlowTrainingReads {
 	}
 
 	private(set) var calls: [Call] = []
+	private var held = false
+	private var blocked: [CheckedContinuation<Void, Never>] = []
+	private var waiters: [CheckedContinuation<Void, Never>] = []
+
+	func hold() {
+		held = true
+	}
+
+	func waitUntilBlocked() async {
+		guard blocked.isEmpty else { return }
+		await withCheckedContinuation { waiters.append($0) }
+	}
+
+	func release() {
+		held = false
+		for continuation in blocked { continuation.resume() }
+		blocked.removeAll()
+	}
 
 	func recordAndDelay(_ call: Call) async throws {
 		calls.append(call)
+		if held {
+			await withCheckedContinuation { continuation in
+				blocked.append(continuation)
+				for waiter in waiters { waiter.resume() }
+				waiters.removeAll()
+			}
+		}
 		try await Task.sleep(for: .milliseconds(100))
 	}
 }
