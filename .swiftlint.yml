@@ -21,6 +21,11 @@ force_unwrapping:
   ignored_literal_argument_functions: []
 
 custom_rules:
+  starter_policy_in_package:
+    included: 'apps/ios/Enduragent/.*\.swift$'
+    regex: '\.\s*grant\s*\(\s*deviceCheck\s*:'
+    message: 'Claim starter credits through Coach.claimStarter(deviceCheck:) so the package owns the grant policy.'
+    severity: error
   one_session_factory:
     included: 'apps/ios/(?:Enduragent|Packages/EnduragentCoach/Sources)/'
     excluded: 'Packages/EnduragentCoach/Sources/EnduragentCoach/Transport/HTTPSession\.swift$'

@@ -126,34 +126,12 @@ final class ShellModel {
 		starterLoaded = true
 		do {
 			let token = try await environment.deviceCheck.token()
-			let outcome = try await services.coach.credits.grant(deviceCheck: token)
-			switch outcome {
-			case .minted(let credits):
-				starterLine = phrasebook.say(
-					Catalog.creditsBalance, count: credits.units,
-					["formattedCount": String(credits.units)])
-			case .toppedUp(let added):
-				starterLine = phrasebook.say(
-					Catalog.onboardingStarterAdded, count: added.units,
-					["formattedCount": String(added.units)])
-			case .alreadyGranted:
-				starterLine =
-					try await existingBalanceLine()
-					?? phrasebook.say(Catalog.onboardingStarterAlreadyGranted, [:])
-			}
+			let notice = await services.coach.claimStarter(deviceCheck: token)
+			starterLine = notice.sentence(in: phrasebook)
 		} catch {
 			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
 		}
 		starterResolved = true
-	}
-
-	private func existingBalanceLine() async throws -> String? {
-		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
-		let scale = try await services.coach.credits.catalog().scale
-		let balance = try await services.coach.credits.balance(scale: scale)
-		return phrasebook.say(
-			Catalog.creditsBalance, count: balance.credits.units,
-			["formattedCount": String(balance.credits.units)])
 	}
 
 	func appear() async {
@@ -244,7 +222,7 @@ final class ShellModel {
 		do {
 			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
-			let held = try await services.coach.credits.balance(scale: loaded.scale)
+			let held = try await services.coach.credits.balance()
 			balance = held.credits
 			creditsNotice = nil
 			packPrices = try await services.packPrices(loaded.packs.map(\.id))
