@@ -43,6 +43,7 @@ package struct PromptHistory: Sendable, Equatable {
 package struct Segment: Sendable, Equatable {
 	package let id: SegmentID
 	package let openedBy: SegmentOpening
+	package var boundary: SegmentBoundary? = nil
 	package var turns: [TurnFacts] = []
 	package var notes: [ReviewNote] = []
 	package var promptWindow = PromptWindow()
