@@ -146,14 +146,16 @@ import Testing
 		try await seed(store, [previous])
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
-		transport.summaryScript = Array(
-			repeating: [.text(text), .finish(reason: reason)], count: 3
-		).flatMap { $0 }
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-			.text("Sunday is rest."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text(text), .finish(reason: reason)], count: 3
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+				.text("Sunday is rest."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
