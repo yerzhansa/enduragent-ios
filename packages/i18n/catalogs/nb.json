@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidligere samtaler er midlertidig utilgjengelige.",
-    "loadEarlier": "Last inn tidligere meldinger",
     "loading": "Laster inn tidligere samtaler…",
     "pageFailure": "Denne samtalen er midlertidig utilgjengelig.",
     "readOnly": "Tidligere samtaler kan bare leses.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "Samtalehistorikken er midlertidig utilgjengelig.",
-      "loadEarlier": "Last inn tidligere meldinger",
       "retry": "Prøv å laste inn historikken igjen"
     },
     "newConversation": {

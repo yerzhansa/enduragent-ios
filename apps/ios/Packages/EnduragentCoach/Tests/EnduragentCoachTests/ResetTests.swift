@@ -233,7 +233,8 @@ import Testing
 			try await written(["turnSettled", "windowStart"]) == ["turnSettled", "windowStart"])
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
 		#expect(flushed.messages.contains { $0.unstampedContent == "Two rides." })
-		let archived = try #require(try await coach.history().first)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(archived.reason == .newConversation)
 		#expect(replyText(try #require(archived.turns.first?.state)) == "Two rides.")
@@ -256,7 +257,10 @@ import Testing
 		#expect(
 			replyText(try #require(await coach.settledState(of: second, in: .main))) == "Noted.")
 		#expect(await coach.transcript(.main) == ["Remember Saturdays", "Noted."])
-		#expect(try await coach.history().map { $0.turns.map(\.id) } == [[first]])
+		let history = try await coach.history()
+		#expect(history.count == 1)
+		let ref = try #require(history.first?.id)
+		#expect(try await coach.archivedConversation(ref)?.turns.map(\.id) == [first])
 		#expect(await self.coach().transcript(.main) == ["Remember Saturdays", "Noted."])
 	}
 }
