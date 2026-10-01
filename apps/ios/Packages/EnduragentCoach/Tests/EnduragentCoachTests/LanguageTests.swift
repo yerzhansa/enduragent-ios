@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -102,10 +103,11 @@ import Testing
 
 	@Test func fixedPreferenceChangesAppTextAndReplySection() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("Two rides."), .finish(reason: .stop), .text("Deux sorties."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Two rides."), .finish(reason: .stop), .text("Deux sorties."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: transport, store: store)
 		let automatic = await coach.status().language
@@ -140,7 +142,8 @@ import Testing
 
 	@Test func automaticPreferenceRepliesInTheMessageLanguage() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Bene."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Bene."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		_ = try await coach.sendAndSettle("Come è andata la mia settimana di allenamento oggi?")
 		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
@@ -158,7 +161,8 @@ import Testing
 			("123", .fr),
 		]
 		for (message, language) in messages {
-			transport.script = [.text("Reply"), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)
 			_ = try await coach.sendAndSettle(message)
 			let system = try #require(
 				sent(.chatAttempt, by: transport).last?.messages.first?.content)
@@ -197,7 +201,9 @@ import Testing
 		let store = InMemoryRecordLog()
 		try await seed(store, [italian])
 		let transport = FakeModelTransport()
-		transport.script = [.text("Due uscite."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Due uscite."), .finish(reason: .stop)], otherwise: transport.respond
+		)
 		let coach = await makeCoach(transport: transport, store: store)
 		#expect(await coach.status().language == .fixed(.it))
 		_ = try await coach.sendAndSettle("How was my week?")
@@ -240,10 +246,11 @@ import Testing
 	@Test func leaseTitlesFollowTheAppLanguage() async throws {
 		let host = ImmediateExecutionHost()
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("Dos salidas."), .finish(reason: .stop), .text("Two rides."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Dos salidas."), .finish(reason: .stop), .text("Two rides."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), host: host)
 		try await coach.setLanguage(.fixed(.es))
 		_ = try await coach.sendAndSettle("How was my week?")
@@ -266,7 +273,9 @@ import Testing
 	@Test func completionTitleFollowsAChoiceMadeDuringTheReply() async throws {
 		let host = ImmediateExecutionHost()
 		let transport = FakeModelTransport()
-		transport.script = [.text("One more ride."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("One more ride."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let coach = await makeCoach(transport: transport, store: store, host: host)
 		let turn = try #require(

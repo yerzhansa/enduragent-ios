@@ -85,6 +85,12 @@ package struct WireToolCall: Sendable, Equatable {
 	package var name: String
 	package var arguments: String
 
+	package init(id: String, name: String, arguments: String) {
+		self.id = id
+		self.name = name
+		self.arguments = arguments
+	}
+
 	package func parseArguments() throws(DecodingError) -> JSONValue {
 		try JSONValue.parse(arguments.isEmpty ? "{}" : arguments)
 	}
@@ -101,6 +107,12 @@ package struct Usage: Sendable, Equatable {
 	package var inputTokens: Int
 	package var outputTokens: Int
 	package var cost: Double?
+
+	package init(inputTokens: Int, outputTokens: Int, cost: Double?) {
+		self.inputTokens = inputTokens
+		self.outputTokens = outputTokens
+		self.cost = cost
+	}
 }
 
 package protocol ModelTransport: Sendable {

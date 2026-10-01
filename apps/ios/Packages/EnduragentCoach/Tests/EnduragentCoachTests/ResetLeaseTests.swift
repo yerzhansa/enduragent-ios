@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -33,8 +34,9 @@ import Testing
 							FlushPendingBody(
 								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
-		transport.requestDelay = .seconds(2)
-		transport.flushScript = [.finish(reason: .stop), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop), .finish(reason: .stop)], for: .flush,
+			requestDelay: .seconds(2), otherwise: transport.respond)
 		let coach = await coach()
 		await coach.lifecycle(.becameActive)
 		try await waitUntil { host.leases.count == 1 }
@@ -50,10 +52,12 @@ import Testing
 	}
 
 	@Test func theChatShowsWorkingWhileTheResetSavesMemory() async throws {
-		transport.script = [.text("Two rides."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.requestDelay = .milliseconds(500)
+		transport.respond = ScriptedReply.sequence(
+			[], for: .flush, requestDelay: .milliseconds(500), otherwise: transport.respond)
 		let published = Task {
 			var seen: [ChatSnapshot] = []
 			for await snapshot in await coach.observe(.main) {
@@ -77,7 +81,8 @@ import Testing
 	}
 
 	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
-		transport.script = [.text("Thursday is"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -91,7 +96,8 @@ import Testing
 	}
 
 	@Test func aNewConversationTappedDuringStopRunsAfterTheStopSettles() async throws {
-		transport.script = [.text("Thursday is"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
 		let coach = await makeCoach(transport: transport, store: held, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -117,7 +123,8 @@ import Testing
 	}
 
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
-		transport.script = [.text("Thursday is"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -139,10 +146,12 @@ import Testing
 	}
 
 	@Test func expiryDuringTheResetFlushStartsTheConversationAndKeepsTheJob() async throws {
-		transport.script = [.text("Two rides."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.flushScript = [.hang]
+		transport.respond = ScriptedReply.sequence(
+			[.hang], for: .flush, otherwise: transport.respond)
 		let resetting = startNewConversation(on: coach)
 		try await waitUntil { !sent(.memoryFlush, by: transport).isEmpty }
 		await host.expire(.systemExpired)

@@ -2,6 +2,7 @@ import Foundation
 
 struct AttemptStart {
 	let chat: ChatID
+	let ledger: Ledger
 	let records: ChatRecords
 	let environment: EnvironmentResolver
 	let process: ProcessID
@@ -13,11 +14,12 @@ struct AttemptStart {
 	) async -> TurnAttempt? {
 		let attempt = stamp.attempt
 		guard
-			case .success(let claim) = records.writes(
-				.claim(attempt, process: process, lease: lease), for: facts.turn)
+			case .success(let claim) = TurnLifecycle.claim(
+				attempt, on: records.conversation.turn(facts.turn), chat: chat,
+				device: ledger.deviceId, process: process, lease: lease)
 		else { return nil }
 		do {
-			try await records.commit(claim, stamp: stamp)
+			records.apply(try await ledger.commit(local: [.turnClaim(claim)], stamp: stamp))
 		} catch {
 			await records.settleUnsaved(
 				facts.turn, attempt: attempt, .failed(.local(.recordStorage), saved: .none))
@@ -26,7 +28,10 @@ struct AttemptStart {
 		switch resolution {
 		case .failure(let error):
 			let unavailable = Settlement.failed(.model(.accessUnavailable(error)), saved: .none)
-			await records.settle(facts.turn, .settle(attempt, unavailable), stamp: stamp)
+			await records.settle(
+				TurnLifecycle.settled(
+					attempt, unavailable, on: records.conversation.turn(facts.turn), chat: chat),
+				stamp: stamp)
 			return nil
 		case .success(let resolved):
 			return environment.attempt(

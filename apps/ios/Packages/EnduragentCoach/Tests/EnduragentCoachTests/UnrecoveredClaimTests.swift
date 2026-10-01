@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,15 +9,15 @@ import Testing
 
 	@Test func aDeadClaimShowsHistoryUnavailableWhileRecoveryCannotRead() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		let requestsBefore = transport.requests.count
 		let log = FaultInjectingRecordLog(wrapping: store)
 		log.failRecoveryReads = true
@@ -50,15 +51,16 @@ import Testing
 
 	@Test func aSavedDeadClaimWhileRecoveryCannotReadOffersNoReplay() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-			),
-			.finish(reason: .toolCalls),
-			.hang,
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
+				),
+				.finish(reason: .toolCalls),
+				.hang,
+			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
@@ -67,7 +69,9 @@ import Testing
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
 		try await before.dieWithoutWriting(to: dying)
 		let requestsBefore = transport.requests.count
-		transport.script = [.text("Noted again."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted again."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let log = FaultInjectingRecordLog(wrapping: store)
 		log.failRecoveryReads = true
 		let after = await makeCoach(transport: transport, store: log, clock: clock)

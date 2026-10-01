@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,9 +9,10 @@ extension RetryLadderTests {
 	func proposalEntryPointsRespectApprovedRetry(entry: ProposalEntryPoint) async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ [.text("Second."), .finish(reason: .stop)]
+				+ [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}

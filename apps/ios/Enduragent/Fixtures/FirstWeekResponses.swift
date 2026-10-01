@@ -1,13 +1,52 @@
 #if DEBUG
 	import EnduragentCoach
+	import EnduragentCoachFixtures
 	import Foundation
+	import Synchronization
 
 	extension FirstWeekFixture {
 		static let slowFirstWordDelay: Duration = .seconds(2)
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func respond(to text: String, retry: Bool) -> ScriptedReply {
+		static func responses() -> FakeModelTransport.Response {
+			let flushes = Mutex<[String: FakeModelTransport.Response]>([:])
+			return { request in
+				switch request.purpose {
+				case .summary:
+					return ScriptedReply(summaryReply)
+				case .flush:
+					return flushes.withLock { scripts in
+						for message in request.userMessages.reversed() {
+							for (directive, respond) in scripts
+							where message == directive || message.hasSuffix("] " + directive) {
+								return respond(request)
+							}
+						}
+						return ScriptedReply([])
+					}
+				case .chat:
+					if request.step == 0, !request.retry {
+						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
+						if text == "fixture:flush-partial" {
+							flushes.withLock {
+								$0[text] = ScriptedReply.sequence(flushPartial, for: .flush)
+							}
+						} else if text == "fixture:slow-flush" {
+							flushes.withLock {
+								$0[text] = ScriptedReply.sequence(
+									[.finish(reason: .stop)], for: .flush,
+									requestDelay: slowFlushDelay)
+							}
+						}
+					}
+					return reply(to: request.text, retry: request.retry).step(
+						request.step, repeatingHang: true)
+				}
+			}
+		}
+
+		private static func reply(to text: String, retry: Bool) -> ScriptedReply {
 			let normal = script(for: text)
 			guard !retry, text.hasPrefix("fixture:") else { return ScriptedReply(normal) }
 			let words = text.dropFirst("fixture:".count).split(separator: " ").map(String.init)
@@ -19,7 +58,7 @@
 				)
 			case "slow-flush" where arguments.isEmpty:
 				return ScriptedReply(
-					normal, requestDelay: slowFlushDelay, flushDelay: slowFlushDelay)
+					normal, requestDelay: slowFlushDelay)
 			case "hang" where arguments.isEmpty:
 				return ScriptedReply([.hang])
 			case "fail":
@@ -38,7 +77,7 @@
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:
-				return ScriptedReply(normal, flush: flushPartial)
+				return ScriptedReply(normal)
 			default:
 				return unknown(text)
 			}

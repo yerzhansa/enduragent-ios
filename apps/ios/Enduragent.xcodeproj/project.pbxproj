@@ -29,6 +29,7 @@
 		33656175197B5D6BEBD8F82E /* StoreKitPurchaseCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A01881C067E5015D548E353 /* StoreKitPurchaseCoordinator.swift */; };
 		3770B936C14C45953BB0BCF6 /* CreditsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E71DA5CFEA7DE78161D632B2 /* CreditsView.swift */; };
 		3DDB9A3AE6D9264D6AA313EA /* SlashListTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEA0399B8EE30AFDF2D4D3BB /* SlashListTests.swift */; };
+		44DE77758F8DFB6919982D9C /* EnduragentCoachFixtures in Frameworks */ = {isa = PBXBuildFile; productRef = 5006BDEE16FFDA7B73A08DAF /* EnduragentCoachFixtures */; };
 		4640224852C51101C71F4F01 /* FakeDeviceCheckTokenProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D421467341DE1693F4BFA33E /* FakeDeviceCheckTokenProvider.swift */; };
 		468F0B548FF44D5CA24BD1F8 /* RetryProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1E8EB2C3AB6B75EBB31C9A /* RetryProofs.swift */; };
 		499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */; };
@@ -212,6 +213,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				28115121B0FED40730769B04 /* EnduragentCoach in Frameworks */,
+				44DE77758F8DFB6919982D9C /* EnduragentCoachFixtures in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,6 +434,7 @@
 			name = Enduragent;
 			packageProductDependencies = (
 				E957E38AABE221883FA39FAE /* EnduragentCoach */,
+				5006BDEE16FFDA7B73A08DAF /* EnduragentCoachFixtures */,
 			);
 			productName = Enduragent;
 			productReference = 7D3959BCDD350AB804E93846 /* Enduragent.app */;
@@ -749,6 +752,7 @@
 				CREDITS_WORKER_BASE = "https://enduragent-credits-testflight.yerzhan-st.workers.dev";
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = FA494ACVTF;
+				EXCLUDED_SOURCE_FILE_NAMES = "$(inherited) *EnduragentCoachFixtures*";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Enduragent/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Enduragent;
@@ -970,6 +974,10 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5006BDEE16FFDA7B73A08DAF /* EnduragentCoachFixtures */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = EnduragentCoachFixtures;
+		};
 		61B66D1BD5941B9122D258E5 /* EnduragentCoach */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = EnduragentCoach;
