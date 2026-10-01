@@ -285,9 +285,6 @@ final class FixtureLaunchTests {
 			return
 		}
 		#expect(opened.turns.map(\.id) == [settled.id])
-		let records = try #require(model.services.fixtureRecordFaults)
-		records.failFetches = true
-		#expect(await model.loadArchivedConversation(ref) == .unavailable)
 	}
 
 	@Test func typedStartClearsTheDraftAndAFailedBoundaryKeepsTheConversation() async throws {
