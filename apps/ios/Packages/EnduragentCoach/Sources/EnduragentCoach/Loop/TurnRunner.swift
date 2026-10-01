@@ -233,7 +233,7 @@ package struct TurnRunner: Sendable {
 		)
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
-		let past = history.messages.map { PromptAssembly.wireMessage(from: $0, in: zone) }
+		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
 		let trim = HistoryWindow.trim(
 			messages: past, systemTokens: estimateTokens(system),
 			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)

@@ -10,7 +10,7 @@ package struct ChatMessage: Sendable, Equatable {
 	}
 
 	package enum Author: Sendable, Equatable {
-		case athlete(sent: Date)
+		case athlete(sent: Date, timeZone: IANATimeZone)
 		case coach
 	}
 }

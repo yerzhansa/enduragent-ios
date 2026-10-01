@@ -18,7 +18,8 @@ import Testing
 			Fragment(
 				ulid: fixedUlid(1),
 				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phoneA),
-				civilDate: "1998-06-13", index: 0, draft: draft, text: "hi", slash: nil))
+				civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: draft,
+				text: "hi", slash: nil))
 		return facts
 	}
 

@@ -52,7 +52,8 @@ private func facts(_ settlement: Settlement, wallMs: Int64) -> TurnFacts {
 	facts.fragments.append(
 		Fragment(
 			ulid: fixedUlid(40), hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phone),
-			civilDate: "1998-06-13", index: 0, draft: DraftID(), text: "How was my week?",
+			civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: DraftID(),
+			text: "How was my week?",
 			slash: nil))
 	facts.settlements.append(
 		SettledAttempt(
