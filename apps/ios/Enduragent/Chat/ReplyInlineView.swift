@@ -33,8 +33,7 @@ struct ReplyInlineView: View {
 
 	private static func attributed(_ text: StyledText, font: Font) -> AttributedString {
 		var result = AttributedString(text.text)
-		var styledFont =
-			text.styles.contains(.inlineCode) ? Font.system(.body, design: .monospaced) : font
+		var styledFont = text.styles.contains(.inlineCode) ? font.monospaced() : font
 		if text.styles.contains(.bold) { styledFont = styledFont.bold() }
 		if text.styles.contains(.italic) { styledFont = styledFont.italic() }
 		result.font = styledFont

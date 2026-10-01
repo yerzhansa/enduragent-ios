@@ -88,7 +88,7 @@ extension FixtureLaunchTests {
 		#expect(rendered.runs.contains { $0.font == .body.bold() })
 		#expect(rendered.runs.contains { $0.font == .body.italic() })
 		#expect(rendered.runs.contains { $0.strikethroughStyle == .single })
-		#expect(rendered.runs.contains { $0.font == .system(.body, design: .monospaced) })
+		#expect(rendered.runs.contains { $0.font == .body.monospaced() })
 		#expect(rendered.runs.compactMap(\.link).map(\.absoluteString) == ["https://example.com"])
 	}
 
