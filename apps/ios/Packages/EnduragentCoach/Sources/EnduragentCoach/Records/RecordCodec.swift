@@ -131,16 +131,9 @@ enum RecordCodec {
 				)
 			)
 		case .turnSettled:
-			let payload = try payload(
-				TurnSettledPayload.self, version: version, kind: name, data: data)
 			return .turnSettled(
-				TurnSettledBody(
-					chatId: try decodeChatID(payload.chatId),
-					turn: TurnID(ulid: try decodeULID(payload.turn)),
-					attempt: AttemptID(ulid: try decodeULID(payload.attempt)),
-					settlement: try payload.settlement.settlement()
-				)
-			)
+				try payload(TurnSettledPayload.self, version: version, kind: name, data: data)
+					.body())
 		case .windowStart:
 			let payload = try payload(
 				WindowStartPayload.self, version: version, kind: name, data: data)

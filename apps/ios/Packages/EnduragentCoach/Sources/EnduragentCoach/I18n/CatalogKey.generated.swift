@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2479
-	public static let keyCount = 2519
+	public static let englishLeafCount = 2481
+	public static let keyCount = 2521
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -165,6 +165,7 @@ public enum Catalog {
 	public static let chatNoticeQuestionSkipped = CatalogKey(rawValue: "chat.notice.questionSkipped")
 	public static let chatNoticeQueueLoadFailure = CatalogKey(rawValue: "chat.notice.queueLoadFailure")
 	public static let chatNoticeQueueRemoveFailure = CatalogKey(rawValue: "chat.notice.queueRemoveFailure")
+	public static let chatNoticeReplyUnsaved = CatalogKey(rawValue: "chat.notice.replyUnsaved")
 	public static let chatNoticeResponseFailure = CatalogKey(rawValue: "chat.notice.responseFailure")
 	public static let chatNoticeResponseStopped = CatalogKey(rawValue: "chat.notice.responseStopped")
 	public static let chatNoticeRetryMessage = CatalogKey(rawValue: "chat.notice.retryMessage")
@@ -1413,6 +1414,7 @@ public enum Catalog {
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
+	public static let reviewStorageUnavailable = CatalogKey(rawValue: "review.storageUnavailable")
 	public static let reviewTitle = CatalogKey(rawValue: "review.title")
 	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")
 	public static let reviewWorkoutCooldown = CatalogKey(rawValue: "review.workout.cooldown")

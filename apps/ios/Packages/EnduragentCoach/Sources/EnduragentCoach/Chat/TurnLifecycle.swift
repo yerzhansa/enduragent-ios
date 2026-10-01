@@ -110,7 +110,7 @@ package enum TurnLifecycle {
 		{
 			return .processing(
 				TurnState.Processing(
-					attempt: live.attempt, liveText: live.text, activity: live.activity))
+					attempt: live.attempt, activity: live.activity))
 		}
 		switch overlay {
 		case .collecting(let until):
@@ -161,7 +161,7 @@ package enum TurnLifecycle {
 			}
 			return .processing(
 				TurnState.Processing(
-					attempt: open.attempt, liveText: "", activity: .generating(step: 1)))
+					attempt: open.attempt, activity: .generating(step: 1)))
 		}
 		return .accepted(.awaitingRestart)
 	}

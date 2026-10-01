@@ -48,7 +48,6 @@ public enum TurnState: Sendable, Equatable {
 
 	public struct Processing: Sendable, Equatable {
 		public let attempt: AttemptID
-		public let liveText: String
 		public let activity: TurnActivity
 	}
 

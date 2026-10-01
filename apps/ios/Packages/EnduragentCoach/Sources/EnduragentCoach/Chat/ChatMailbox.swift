@@ -10,7 +10,6 @@ package actor ChatMailbox {
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
-
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
@@ -19,13 +18,15 @@ package actor ChatMailbox {
 	private let work = MailboxQueue()
 	private let door = Turnstile()
 	private let lifetime: Coach.Lifetime
-	private var foreground = true
 	private var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
 	private let feed: SnapshotFeed<ChatSnapshot>
+	private var projection = TurnProjection()
+	private var latest: ChatSnapshot?
+	private var revision: UInt64 = 0
 
 	init(
 		chatId: ChatID,
@@ -61,8 +62,17 @@ package actor ChatMailbox {
 	var conversation: Conversation { records.conversation }
 	var jobs: [FlushJob] { records.jobs }
 
+	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
+		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
+		return await records.hasLocalWork() || stored || work.phase.running != nil
+			|| work.phase.cause != nil
+			|| work.window != nil || !work.isEmpty || door.held
+	}
+
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		return feed.subscribe(from: snapshot())
+		let current = snapshot()
+		latest = current
+		return feed.subscribe(from: current)
 	}
 
 	package func accept(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
@@ -108,6 +118,7 @@ package actor ChatMailbox {
 			draft, turn: turn, fragment: fragment, chat: chatId, slash: slash)
 		do {
 			let stamp = await stamp(for: turn)
+			await records.retrySettlements()
 			records.apply(try await ledger.commit(synced: [.userMessage(message)], stamp: stamp))
 		} catch {
 			throw AcceptFailure.storageUnavailable
@@ -133,50 +144,44 @@ package actor ChatMailbox {
 		}
 	}
 
-	package func interrupt(_ cause: InterruptionCause) async {
-		guard work.phase.cause == nil else { return await work.joinInterruption() }
-		guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held else {
-			return
+	package func cancelInFlight(cause: InterruptionCause) async {
+		let terminating = cause == .appTerminating
+		let owned = work.phase.cause == nil
+		if !terminating {
+			guard owned else { return await work.joinInterruption() }
+			guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held
+			else { return }
 		}
-		work.beginInterruption(cause)
+		if owned { work.beginInterruption(cause) }
 		publish()
 		work.phase.running?.task.cancel()
-		await door.pass {
-			await work.phase.running?.task.value
-			let unstarted = work.dropWaiting() + [work.closeWindow()].compactMap { $0 }
-			for turn in unstarted {
-				let stamp = await stamp(for: turn)
-				let stopped = TurnLifecycle.stopBeforeStart(
-					stamp.attempt, on: conversation.turn(turn), chat: chatId)
-				guard case .success(let settled) = stopped else { continue }
-				await records.settle(settled, stamp: stamp)
+		let settle = {
+			await self.work.phase.running?.task.value
+			if !terminating {
+				let unstarted =
+					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
+				for turn in unstarted {
+					let stamp = await self.stamp(for: turn)
+					let stopped = TurnLifecycle.stopBeforeStart(
+						stamp.attempt, on: self.conversation.turn(turn), chat: self.chatId)
+					guard case .success(let settled) = stopped else { continue }
+					await self.records.settle(settled, stamp: stamp)
+				}
 			}
-			work.endInterruption()
-			leases.end { $0.interrupt() }
+			self.leases.end { $0.interrupt() }
+			if owned { self.work.endInterruption() }
+		}
+		if terminating {
+			await settle()
+		} else {
+			await door.pass(settle)
 		}
 		publish()
-		drainIfIdle()
+		if !terminating { drainIfIdle() }
 	}
 
-	package func lifecycle(_ event: AppLifecycleEvent) async {
-		switch event {
-		case .becameActive:
-			foreground = true
-		case .willResignActive:
-			return
-		case .enteredBackground:
-			foreground = false
-			await door.pass { closeWindow() }
-		case .willTerminate:
-			let owned = work.phase.cause == nil
-			if owned { work.beginInterruption(.appTerminating) }
-			publish()
-			work.phase.running?.task.cancel()
-			await work.phase.running?.task.value
-			leases.end { $0.interrupt() }
-			if owned { work.endInterruption() }
-			publish()
-		}
+	package func enteredBackground() async {
+		await door.pass { closeWindow() }
 	}
 
 	package func recover(_ plan: RecoveryPlan) async {
@@ -194,9 +199,9 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package func reviewChanged() async {
-		await records.refreshReview()
-		publish()
+	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
+		defer { publish() }
+		return await records.refreshReview(ref)
 	}
 
 	package func refreshImports() async throws(LedgerFailure) {
@@ -204,9 +209,7 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package var reviewScope: TurnScope? {
-		work.phase.running?.attempt?.scope
-	}
+	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
@@ -281,7 +284,7 @@ package actor ChatMailbox {
 
 	private func expire(_ cause: ExpiryCause, lease generation: Int) async {
 		guard leases.holds(generation) else { return }
-		await interrupt(InterruptionCause(cause))
+		await cancelInFlight(cause: InterruptionCause(cause))
 	}
 
 	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
@@ -296,11 +299,9 @@ package actor ChatMailbox {
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		work.show(
-			RunningAttempt(
-				live: LiveAttempt(
-					turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)),
-				scope: scope))
+		let live = LiveAttempt(
+			turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
+		work.show(RunningAttempt(live: live, scope: scope))
 		publish()
 		let settlement: Settlement
 		do {
@@ -334,7 +335,7 @@ package actor ChatMailbox {
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		work.finishTurn()
 		let reply = conversation.turn(turn)?.reply
-		if reply != nil, !foreground {
+		if reply != nil, !lifetime.foreground {
 			finishedAway.insert(turn)
 		}
 		lease.settle(turn, reply: reply)
@@ -349,28 +350,39 @@ package actor ChatMailbox {
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
 		await records.apply(progress, turn: turn, stamp: stamp)
 		work.apply(progress, attempt: stamp.attempt)
-		publish()
+		switch progress {
+		case .textDelta, .attemptRestarted:
+			publishLiveText()
+		case .activity, .proposalPending:
+			publish()
+		}
 	}
 
 	private func snapshot() -> ChatSnapshot {
-		ChatSnapshot(
-			chat: chatId,
-			conversation: conversation,
-			jobs: records.jobs,
-			phase: work.phase,
-			window: work.window,
-			queued: work.waiting,
+		revision += 1
+		return ChatSnapshot(
+			chat: chatId, revision: revision, projection: &projection,
+			conversation: conversation, jobs: records.jobs, phase: work.phase,
+			window: work.window, queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
-			finishedAway: finishedAway,
+			finishedAway: finishedAway, unsavedTurns: records.unsavedTurns,
 			review: records.review,
-			device: ledger.deviceId,
-			process: process,
-			now: clock.now, zone: clock.timeZone
-		)
+			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 
 	private func publish() {
-		feed.publish(snapshot())
+		let current = snapshot()
+		latest = current
+		feed.publish(current)
+	}
+
+	private func publishLiveText() {
+		guard var current = latest else { return publish() }
+		current.liveReply = LiveReply(work.phase.running?.live)
+		revision += 1
+		current.revision = revision
+		latest = current
+		feed.publish(current)
 	}
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
