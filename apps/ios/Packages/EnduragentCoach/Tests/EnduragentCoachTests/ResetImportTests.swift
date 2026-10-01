@@ -5,6 +5,42 @@ import Testing
 @testable import EnduragentCoach
 
 extension ResetWindowTests {
+	@Test func aSendAfterAnImportedResetDoesNotJoinAnArchivedTurn() async throws {
+		let importing = ImportingRecordLog(inner: store)
+		let held = HeldClock(calendar: clock)
+		defer { held.release(.seconds(1)) }
+		let coach = await makeCoach(
+			transport: transport, store: importing, clock: clock,
+			coalescing: CoalescingPolicy(window: .seconds(1)), coalescingClock: held)
+		let earlier = try #require(
+			try await coach.send(draft("Before reset"), to: .main).acceptedTurn)
+		let parked = try await beforeDeadline(within: .seconds(5)) {
+			try await held.waitUntilHeld(.seconds(1))
+			return true
+		}
+		try #require(parked == true)
+		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
+		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
+		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)
+		#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
+		importing.notifyImport()
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+				$0.opening == .afterNewConversation(memorySaved: true)
+			} != nil)
+		let later = try #require(try await coach.send(draft("After reset"), to: .main).acceptedTurn)
+		#expect(later != earlier)
+		#expect(await coach.transcript(.main) == ["After reset"])
+		let archive = try #require(try await coach.history().first?.id)
+		#expect(
+			try await coach.archivedConversation(archive)?.turns.map(\.athleteText) == [
+				"Before reset"
+			])
+		let reopened = await self.coach()
+		#expect(await reopened.transcript(.main) == ["After reset"])
+	}
+
 	@Test(arguments: [false, true])
 	func skewedSendAfterObservedResetStaysCurrent(importBeforeLoad: Bool) async throws {
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
