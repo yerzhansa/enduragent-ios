@@ -184,6 +184,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
+		.importsUnavailable,
 		.preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil

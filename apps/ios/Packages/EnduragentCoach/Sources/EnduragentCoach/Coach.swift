@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 public actor Coach {
 	package let memory: Memory
@@ -8,7 +7,7 @@ public actor Coach {
 
 	private let sport: SportID
 	private let transport: any ModelTransport
-	private let ledger: Ledger
+	let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let host: any ExecutionHost
@@ -20,10 +19,17 @@ public actor Coach {
 	private let vault: CredentialVault
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
-	private var mailboxes: [ChatID: ChatMailbox]
-	private let lifetime = Lifetime()
+	var mailboxes: [ChatID: ChatMailbox]
+	let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
+	var importObservation: Task<Void, Never>?
+	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
+
+	deinit {
+		importObservation?.cancel()
+		pendingImportRefresh?.cancel()
+	}
 
 	public init(
 		sport: SportID,
@@ -103,6 +109,10 @@ public actor Coach {
 			return
 		case .willTerminate:
 			lifetime.terminate()
+			importObservation?.cancel()
+			importObservation = nil
+			pendingImportRefresh?.cancel()
+			pendingImportRefresh = nil
 		case .enteredBackground:
 			break
 		}
@@ -345,6 +355,7 @@ public actor Coach {
 	}
 
 	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
+		observeImports()
 		if let existing = mailboxes[chatId] {
 			return existing
 		}
@@ -377,15 +388,4 @@ public actor Coach {
 		return created
 	}
 
-	package final class Lifetime: Sendable {
-		private let ended = Mutex(false)
-
-		fileprivate init() {}
-
-		var terminating: Bool { ended.withLock { $0 } }
-
-		fileprivate func terminate() {
-			ended.withLock { $0 = true }
-		}
-	}
 }

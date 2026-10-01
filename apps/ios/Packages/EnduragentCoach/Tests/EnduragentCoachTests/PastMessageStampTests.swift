@@ -72,7 +72,7 @@ import Testing
 		_ = try await makeCoach(transport: transport, store: store, clock: amsterdam)
 			.sendAndSettle("I'm doing intervals today.")
 		let tokyo = FixedClock(now: "1998-06-16T03:10:00+09:00", timeZone: "Asia/Tokyo")
-		let coach = makeCoach(transport: transport, store: store, clock: tokyo)
+		let coach = await makeCoach(transport: transport, store: store, clock: tokyo)
 		_ = try await coach.sendAndSettle("My legs are sore.")
 		let chat = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(
