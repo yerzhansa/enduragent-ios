@@ -58,13 +58,17 @@ import Testing
 		#expect(server.posts.count == 1)
 	}
 
-	@Test func cancelingAnAbsentWriteStopsRepetitionWithoutErasingDispatch() async throws {
+	@Test(arguments: [false, true])
+	func cancelingAnAbsentWriteStopsRepetitionWithoutErasingDispatch(storageReadFails: Bool)
+		async throws
+	{
 		let server = try CalendarWriteServer()
 		let url = try await server.start()
 		defer { server.stop() }
 		server.state.withLock { $0.response = .heldBeforeCommit }
 		let helpers = DurableCalendarWriteTests()
-		let fixture = await helpers.fixture(url: url)
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let fixture = await helpers.fixture(url: url, store: faults)
 		let (turn, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
 		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try await waitUntil { server.posts.count == 1 }
@@ -77,6 +81,12 @@ import Testing
 		guard case .retryRemainingOrCancel(let token) = absent.controls else {
 			Issue.record("expected approved-write recovery controls")
 			return
+		}
+		if storageReadFails {
+			faults.failFetches = true
+			let outcome = await fixture.coach.decide(.cancel(token), in: .main)
+			#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
+			faults.failFetches = false
 		}
 		let canceled = await fixture.coach.decide(.cancel(token), in: .main)
 		#expect(canceled.notice?.key == Catalog.reviewWritePending)
