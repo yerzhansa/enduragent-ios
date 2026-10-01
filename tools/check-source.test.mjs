@@ -184,7 +184,41 @@ test('does not inspect untracked credentials', () => {
 });
 
 const mailbox = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift';
+const mailboxLifecycleMembers = [
+  'let clock: any Clock',
+  'let records: ChatRecords',
+  'let work = MailboxQueue()',
+  'let door = Turnstile()',
+  'let lifetime: Coach.Lifetime',
+  'var leases: LeaseSlot',
+];
+
+test('accepts internal mailbox lifecycle dependencies', () => {
+  for (const access of ['', 'internal ']) {
+    const declarations = mailboxLifecycleMembers.map(member => access + member).join('\n');
+    const result = run({ [mailbox]: `package actor ChatMailbox {\n${declarations}\n}` });
+    assert.equal(result.status, 0, result.output);
+  }
+});
+
+for (const access of ['package', 'public', 'fileprivate']) {
+  for (const declaration of mailboxLifecycleMembers) {
+    test(`rejects wider mailbox lifecycle dependency: ${access} ${declaration}`, () => {
+      const result = run({ [mailbox]: `package actor ChatMailbox {\n${access} ${declaration}\n}` });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /\[mailbox-private-state\]/);
+    });
+  }
+}
+
 for (const declaration of [
+  'var clock: any Clock',
+  'var records: ChatRecords',
+  'var work = MailboxQueue()',
+  'var door = Turnstile()',
+  'var lifetime: Coach.Lifetime',
+  'var leases: LeaseSlot { didSet { replace(oldValue) } }',
+  'var leases: LeaseSlot { get { slot } set { slot = newValue } }',
   'var runner: TurnRunner',
   'let renamed: Ledger',
   'private(set) var runner: TurnRunner',

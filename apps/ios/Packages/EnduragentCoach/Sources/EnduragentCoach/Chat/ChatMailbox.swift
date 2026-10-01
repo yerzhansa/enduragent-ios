@@ -5,21 +5,21 @@ package actor ChatMailbox {
 	private let ledger: Ledger
 	private let runner: TurnRunner
 	private let flushes: FlushWork
-	private let clock: any Clock
+	let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
-	private let records: ChatRecords
+	let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
 		chat: chatId, ledger: ledger, records: records, environment: environment, process: process)
-	private let work = MailboxQueue()
-	private let door = Turnstile()
-	private let lifetime: Coach.Lifetime
+	let work = MailboxQueue()
+	let door = Turnstile()
+	let lifetime: Coach.Lifetime
 	private var finishedAway: Set<TurnID> = []
-	private var leases: LeaseSlot
+	var leases: LeaseSlot
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
@@ -146,61 +146,6 @@ package actor ChatMailbox {
 		}
 	}
 
-	package func cancelInFlight(cause: InterruptionCause) async {
-		let terminating = cause == .appTerminating
-		let owned = work.phase.cause == nil
-		if !terminating {
-			guard owned else { return await work.joinInterruption() }
-			guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held
-			else { return }
-		}
-		if owned { work.beginInterruption(cause) }
-		publish()
-		work.phase.running?.task.cancel()
-		let settle = {
-			await self.work.phase.running?.task.value
-			if !terminating {
-				let unstarted =
-					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
-				for turn in unstarted {
-					let stamp = await self.stamp(for: turn)
-					let stopped = TurnLifecycle.stopBeforeStart(
-						stamp.attempt, on: self.conversation.turn(turn), chat: self.chatId)
-					guard case .success(let settled) = stopped else { continue }
-					await self.records.settle(settled, stamp: stamp)
-				}
-			}
-			self.leases.end { $0.interrupt() }
-			if owned { self.work.endInterruption() }
-		}
-		if terminating {
-			await settle()
-		} else {
-			await door.pass(settle)
-		}
-		publish()
-		if !terminating { drainIfIdle() }
-	}
-
-	package func enteredBackground() async {
-		await door.pass { closeWindow() }
-	}
-
-	package func recover(_ plan: RecoveryPlan) async {
-		for dead in plan.interrupt {
-			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
-			await records.settle(
-				TurnLifecycle.settled(
-					dead.attempt,
-					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
-					on: conversation.turn(dead.turn), chat: chatId), stamp: stamp)
-		}
-		for job in plan.drain {
-			if work.add(job) { workAdded() }
-		}
-		publish()
-	}
-
 	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }
 
 	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
@@ -220,11 +165,11 @@ package actor ChatMailbox {
 
 	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
-	private func stamp(for turn: TurnID) async -> OperationStamp {
+	func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
 	}
 
-	private func closeWindow(ifArmed armed: Int? = nil) {
+	func closeWindow(ifArmed armed: Int? = nil) {
 		guard let turn = work.closeWindow(ifArmed: armed) else { return }
 		if work.add(turn, origin: .send) { workAdded() }
 	}
@@ -243,12 +188,12 @@ package actor ChatMailbox {
 		}
 	}
 
-	private func workAdded() {
+	func workAdded() {
 		publish()
 		drainIfIdle()
 	}
 
-	private func drainIfIdle() {
+	func drainIfIdle() {
 		guard case .idle = work.phase, let initiator = work.next?.initiator,
 			let lease = holdLease(initiator)
 		else { return }
@@ -282,18 +227,6 @@ package actor ChatMailbox {
 		} else {
 			drainIfIdle()
 		}
-	}
-
-	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease? {
-		guard !lifetime.terminating else { return nil }
-		return leases.hold(initiator) { [weak self] generation, cause in
-			await self?.expire(cause, lease: generation)
-		}
-	}
-
-	private func expire(_ cause: ExpiryCause, lease generation: Int) async {
-		guard leases.holds(generation) else { return }
-		await cancelInFlight(cause: InterruptionCause(cause))
 	}
 
 	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
@@ -382,7 +315,7 @@ package actor ChatMailbox {
 			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 
-	private func publish() {
+	func publish() {
 		let current = snapshot()
 		latest = current
 		feed.publish(current)
