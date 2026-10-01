@@ -24,13 +24,15 @@ import Testing
 				FixtureLaunch.recoveryArgumentKey: "readable",
 				"enduragent.onboardingCompleted": false,
 			], forName: otherSuite)
-		let defaults = try #require(UserDefaults(suiteName: "enduragent.fixture.arguments.test"))
+		let suite = "enduragent.fixture.arguments.test.\(UUID().uuidString)"
+		let defaults = try #require(UserDefaults(suiteName: suite))
+		defer { defaults.removePersistentDomain(forName: suite) }
 		var values: [String: String] = [:]
 		for index in stride(from: 0, to: expected.launchArguments.count, by: 2) {
 			values[String(expected.launchArguments[index].dropFirst())] =
 				expected.launchArguments[index + 1]
 		}
-		defaults.setVolatileDomain(values, forName: UserDefaults.argumentDomain)
+		defaults.setPersistentDomain(values, forName: suite)
 		let parsed = try #require(try FixtureLaunch.fromArguments(defaults))
 		#expect(parsed.name == FixtureLaunch.firstWeekName)
 		#expect(parsed.store.rawValue == store.rawValue)
