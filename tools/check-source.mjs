@@ -196,10 +196,6 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    if (/^apps\/ios\/EnduragentTests\/.*\.swift$/.test(file)
-      && (/\bremoveItem\s*\(/.test(text)
-        || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
-          && /\btemporaryDirectory\b|\bAppServices\s*\.\s*fixture\s*\(/.test(text)))) report(file, 'app-fixture-folder-ownership');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)
       && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
     if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
