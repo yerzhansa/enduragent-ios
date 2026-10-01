@@ -19,7 +19,7 @@ final class FailureCopyProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:fail 429 7 x4")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
-			timeout: rateLimitWait)
+			within: .turn)
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-copy-rate-limited", app: app)
@@ -85,9 +85,7 @@ final class FailNoticeLatencyProbe: XCTestCase {
 		let failure = TutorialHarness.named(app, "chat.turn.notice")
 		let tapped = Date()
 		send.tap()
-		while !failure.exists, Date().timeIntervalSince(tapped) < 15 {
-			continue
-		}
+		TutorialHarness.wait(failure, within: .turn)
 		let latency = Date().timeIntervalSince(tapped)
 		XCTAssertTrue(failure.exists)
 		let sample = XCTAttachment(string: String(format: "%.0f", latency * 1_000))
@@ -108,7 +106,7 @@ final class RetryLadderProof: XCTestCase {
 		let weekReply = app.staticTexts.containing(
 			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply)
 		).firstMatch
-		TutorialHarness.wait(weekReply, timeout: 20)
+		TutorialHarness.wait(weekReply, within: .turn)
 		let reply = XCTAttachment(
 			string: String(format: "send-to-reply %.2f s", Date().timeIntervalSince(sent)))
 		reply.name = "retry-ladder-send-to-reply"
@@ -120,7 +118,7 @@ final class RetryLadderProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"))
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitSevenSeconds),
-			timeout: rateLimitWait)
+			within: .turn)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
@@ -148,7 +146,7 @@ final class SavedUnverifiedProof: XCTestCase {
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 2")
 		TutorialHarness.closeMenu(app)
 		let stop = TutorialHarness.named(app, "chat.stop")
-		TutorialHarness.waitUntilHittable(stop)
+		TutorialHarness.wait(stop, until: .hittable)
 		stop.tap()
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
@@ -157,8 +155,6 @@ final class SavedUnverifiedProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
-
-private let rateLimitWait: TimeInterval = 40
 
 func assertNoWireDetail(_ app: XCUIApplication) {
 	for raw in ["ProviderFailure", "statusCode", "URLError", "retry-after", "error\":"] {

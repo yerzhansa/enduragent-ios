@@ -7,7 +7,7 @@ extension TutorialHarness {
 		let element = named(app, "records.count.\(kind)")
 		if element.exists { return element.label }
 		let list = named(app, "records.list")
-		let deadline = ContinuousClock.now + .seconds(15)
+		let deadline = ContinuousClock.now + .seconds(ProofTimeout.interface.rawValue)
 		while !named(app, "records.device").isHittable {
 			guard ContinuousClock.now < deadline else {
 				XCTFail(
@@ -28,9 +28,10 @@ extension TutorialHarness {
 	}
 
 	static func waitForRecordCount(
-		_ app: XCUIApplication, _ kind: String, _ expected: String, timeout: TimeInterval = 10
+		_ app: XCUIApplication, _ kind: String, _ expected: String,
+		within timeout: ProofTimeout = .interface
 	) {
-		let deadline = Date().addingTimeInterval(timeout)
+		let deadline = Date().addingTimeInterval(timeout.rawValue)
 		while recordCount(app, kind) != expected, Date() < deadline {
 			app.navigationBars.buttons["records.refresh"].tap()
 		}

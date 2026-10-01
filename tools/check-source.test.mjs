@@ -396,3 +396,23 @@ test('accepts checked app conversions and string parsing', () => {
   });
   assert.equal(result.status, 0, result.output);
 });
+
+test('allows SQLite stores only in the committed v1 upgrade scenarios', () => {
+  const sqlite = Buffer.from('SQLite format 3\0fixture');
+  const base = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade';
+  for (const scenario of ['history', 'review']) {
+    for (const name of ['synced', 'local']) {
+      const result = run({ [`${base}/${scenario}/${name}-records.store`]: sqlite });
+      assert.equal(result.status, 0, result.output);
+    }
+  }
+  for (const [file, bytes] of [
+    [`${base}/other/synced-records.store`, sqlite],
+    [`${base}/history/arbitrary.store`, sqlite],
+    [`${base}/history/synced-records.store`, Buffer.from('arbitrary\0binary')],
+  ]) {
+    const result = run({ [file]: bytes });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /unexpected-binary/);
+  }
+});

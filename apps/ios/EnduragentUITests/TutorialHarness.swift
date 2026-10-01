@@ -50,87 +50,46 @@ enum TutorialHarness {
 	static let draft = "Is Thursday still on?"
 	static let saturday = "How did Saturday go"
 	static let finishedWhileLocked = "Finished while the phone was locked."
-	static let storeArgument = "-EnduragentFixtureStore"
-	static let keychainArgument = "-EnduragentFixtureKeychain"
-	static let coalescingArgument = "-EnduragentFixtureCoalescing"
-	static let recoveryArgument = "-EnduragentFixtureRecovery"
-	static let hostArgument = "-EnduragentFixtureHost"
-	static let clockArgument = "-EnduragentFixtureClock"
-
 	static func launch(
 		_ app: XCUIApplication, keychain: String? = nil,
 		coalescingMilliseconds: Int? = nil, host: String? = nil, language: String = "en",
 		locale: String = "en_US", clock: String? = nil
 	) {
-		app.launchArguments = [
-			"-EnduragentFixture", "first-week", storeArgument, "fresh",
-			"-AppleLanguages", "(\(language))", "-AppleLocale", locale,
-		]
-		if let keychain {
-			app.launchArguments += [keychainArgument, keychain]
-		}
-		if let coalescingMilliseconds {
-			app.launchArguments += [coalescingArgument, String(coalescingMilliseconds)]
-		}
-		if let host {
-			app.launchArguments += [hostArgument, host]
-		}
-		if let clock {
-			app.launchArguments += [clockArgument, clock]
-		}
+		var fixture = FixtureArguments(language: language, locale: locale)
+		fixture[.keychain] = keychain
+		fixture[.coalescing] = coalescingMilliseconds.map(String.init)
+		fixture[.host] = host
+		fixture[.clock] = clock
+		app.launchArguments = fixture.arguments
 		app.launch()
 	}
 
-	static func launchKeepingStore(
-		_ app: XCUIApplication, expecting element: XCUIElement, arguments: [String] = []
-	) throws {
-		app.launchArguments =
-			[
-				"-EnduragentFixture", "first-week", storeArgument, "keep",
-				"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
-			] + arguments
+	static func launchUpgrade(_ app: XCUIApplication, store: String, bundle: Bundle) throws {
+		var fixture = FixtureArguments()
+		try fixture.seed(store, in: bundle)
+		app.launchArguments = fixture.arguments
 		app.launch()
-		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
-		if named(app, "consent.accept").waitForExistence(timeout: 3) {
-			agreeToProviderConsent(app)
-		}
-		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
-			throw XCTSkip(v1StoreMissing)
-		}
-		openRecords(app)
-		let written = recordCount(app, "assistantMessage") != nil
-		closeMenu(app)
-		guard written else { throw XCTSkip(v1StoreMissing) }
-		wait(element)
+		agreeToProviderConsent(app)
 	}
-
-	private static let v1StoreMissing =
-		"needs a fixture store a v1 build left; see Upgrade proofs in the verify skill"
 
 	static func relaunchKeepingStore(
-		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil
+		_ app: XCUIApplication, recovery: String = "readable", clock: String? = nil,
+		keychain: String? = nil, language: String? = nil, locale: String? = nil
 	) {
 		app.terminate()
 		XCTAssertEqual(app.state, .notRunning)
-		guard let index = app.launchArguments.firstIndex(of: storeArgument),
-			app.launchArguments.indices.contains(index + 1)
-		else {
-			XCTFail("launch arguments carry no \(storeArgument)")
-			return
-		}
-		app.launchArguments[index + 1] = "keep"
-		if let flag = app.launchArguments.firstIndex(of: recoveryArgument) {
-			app.launchArguments.removeSubrange(flag...(flag + 1))
-		}
-		app.launchArguments += [recoveryArgument, recovery]
-		if let clock {
-			if let flag = app.launchArguments.firstIndex(of: clockArgument) {
-				app.launchArguments.removeSubrange(flag...(flag + 1))
-			}
-			app.launchArguments += [clockArgument, clock]
-		}
+		var fixture = FixtureArguments(arguments: app.launchArguments)
+		fixture[.store] = "keep"
+		fixture[.syncedSeed] = nil
+		fixture[.localSeed] = nil
+		fixture[.recovery] = recovery
+		if let clock { fixture[.clock] = clock }
+		if let keychain { fixture[.keychain] = keychain }
+		if let language { fixture[.languages] = "(\(language))" }
+		if let locale { fixture[.locale] = locale }
+		app.launchArguments = fixture.arguments
 		app.launch()
-		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		wait(app, until: .foreground)
 	}
 
 	static func attach(_ test: XCTestCase, name: String, app: XCUIApplication) {
@@ -156,33 +115,6 @@ enum TutorialHarness {
 		app.staticTexts.matching(
 			NSPredicate(format: "identifier == %@ AND label == %@", "chat.turn.notice", sentence)
 		).firstMatch
-	}
-
-	static func wait(_ element: XCUIElement, timeout: TimeInterval = 8) {
-		XCTAssertTrue(element.waitForExistence(timeout: timeout), "missing \(element)")
-	}
-
-	static func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 8) {
-		let hittable = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "hittable == true"), object: element)
-		XCTAssertEqual(
-			XCTWaiter.wait(for: [hittable], timeout: timeout), .completed, "not hittable \(element)"
-		)
-	}
-
-	static func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval = 8) {
-		wait(element, timeout: timeout)
-		let enabled = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "enabled == true"), object: element)
-		XCTAssertEqual(
-			XCTWaiter.wait(for: [enabled], timeout: timeout), .completed, "not enabled \(element)")
-	}
-
-	static func waitForAbsence(_ element: XCUIElement, timeout: TimeInterval = 8) {
-		let gone = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "exists == false"), object: element)
-		XCTAssertEqual(
-			XCTWaiter.wait(for: [gone], timeout: timeout), .completed, "still on screen \(element)")
 	}
 
 	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
@@ -214,19 +146,15 @@ enum TutorialHarness {
 		return total / Double(side * side) / 255
 	}
 
-	static func waitForLabel(_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 10) {
-		let exact = app.staticTexts[text]
-		if exact.waitForExistence(timeout: timeout) {
-			return
-		}
-		let partial = app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", text))
-			.firstMatch
-		XCTAssertTrue(partial.waitForExistence(timeout: 2), "missing text \(text)")
+	static func waitForLabel(
+		_ app: XCUIApplication, _ text: String, within timeout: ProofTimeout = .interface
+	) {
+		wait(self.text(app, containing: text), within: timeout)
 	}
 
-	static func waitForWelcome(_ app: XCUIApplication, timeout: TimeInterval = 10) {
+	static func waitForWelcome(_ app: XCUIApplication, within timeout: ProofTimeout = .interface) {
 		let welcome = named(app, "chat.welcome")
-		wait(welcome, timeout: timeout)
+		wait(welcome, within: timeout)
 		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
 		let phrasebook = CatalogPhrasebook(tag: .en)
 		let commands = welcome.label.split(separator: "\n").filter { $0.hasPrefix("/") }
@@ -244,7 +172,7 @@ enum TutorialHarness {
 
 	static func startNewConversation(_ app: XCUIApplication) {
 		let button = named(app, "chat.newConversation")
-		waitUntilHittable(button)
+		wait(button, until: .hittable)
 		button.tap()
 		waitForWelcome(app)
 	}
@@ -270,7 +198,7 @@ enum TutorialHarness {
 	}
 
 	static func exchange(
-		_ app: XCUIApplication, _ text: String, timeout: TimeInterval = 30
+		_ app: XCUIApplication, _ text: String, within timeout: ProofTimeout = .turn
 	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
@@ -284,12 +212,7 @@ enum TutorialHarness {
 		}
 		send(app, text)
 		let expected = "turns \(count + 1) settled \(count + 1)"
-		let settled = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "value == %@", expected), object: progress)
-		XCTAssertEqual(
-			XCTWaiter.wait(for: [settled], timeout: timeout), .completed,
-			"\(text) never settled: expected \(expected), got \(progress.value as? String ?? "missing")"
-		)
+		wait(progress, until: .value(expected), within: timeout)
 	}
 
 	static func sendLong(_ app: XCUIApplication) {
@@ -299,7 +222,7 @@ enum TutorialHarness {
 
 	static func openSidebar(_ app: XCUIApplication) {
 		let sidebar = named(app, "chat.sidebar")
-		waitUntilHittable(sidebar)
+		wait(sidebar, until: .hittable)
 		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
 	}
@@ -308,7 +231,7 @@ enum TutorialHarness {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
 		let control = named(app, identifier)
-		waitUntilHittable(control)
+		wait(control, until: .hittable)
 		control.tap()
 		closeMenu(app)
 	}
@@ -334,34 +257,24 @@ enum TutorialHarness {
 
 	static func waitForIdentifier(
 		_ app: XCUIApplication, _ identifier: String, reading label: String,
-		timeout: TimeInterval = 8
+		within timeout: ProofTimeout = .interface
 	) {
 		let element = app.descendants(matching: .any).matching(
 			NSPredicate(format: "identifier == %@ AND label == %@", identifier, label)
 		).firstMatch
-		XCTAssertTrue(
-			element.waitForExistence(timeout: timeout),
-			"\(identifier) never read \(label); it reads \(named(app, identifier).label)")
+		wait(element, within: timeout)
 	}
 
 	static func closeMenu(_ app: XCUIApplication) {
 		let sidebar = named(app, "chat.sidebar")
 		for _ in 0..<3 {
 			app.swipeDown(velocity: .fast)
-			if becomesHittable(sidebar, within: 2) {
+			if wait(sidebar, until: .hittable, within: .transition, required: false) {
 				break
 			}
 		}
-		waitUntilHittable(sidebar)
+		wait(sidebar, until: .hittable)
 		wait(named(app, "chat.composer"))
-	}
-
-	private static func becomesHittable(_ element: XCUIElement, within timeout: TimeInterval)
-		-> Bool
-	{
-		let hittable = XCTNSPredicateExpectation(
-			predicate: NSPredicate(format: "hittable == true"), object: element)
-		return XCTWaiter.wait(for: [hittable], timeout: timeout) == .completed
 	}
 
 	static func historyHead(_ app: XCUIApplication) -> String {

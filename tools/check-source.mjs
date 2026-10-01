@@ -11,6 +11,7 @@ const root = realpathSync(resolve(args[1] ?? process.cwd()));
 const forbiddenPath = /(?:^|\/)(?:docs|node_modules|\.build|build|dist|out|DerivedData|\.wrangler|\.swiftpm|xcuserdata|\.idea)(?:\/|$)|(?:^|\/)(?:\.env(?:\.[^/]*)?|\.dev\.vars(?:\.[^/]*)?|credentials(?:\.[^/]*)?|[^/]+\.(?:p12|p8|mobileprovision|keychain|keychain-db|ipa|xcarchive))$/i;
 const language = /\b(?:CTL|ATL|TSB|TSS|IF|NP|Normalized\s+Power|[Nn]orm\s+[Pp]ower)\b/;
 const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
+const upgradeStore = /^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/v1-upgrade\/(?:history|review)\/(?:synced|local)-records\.store$/;
 const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
 const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
 const featureFile = /^\.claude\/skills\/verify-ios\/features\/[^/]+\.md$/;
@@ -162,7 +163,7 @@ try {
     }
     const bytes = readFileSync(path);
     if (bytes.includes(0)) {
-      if (!appIcon.test(file)) {
+      if (!appIcon.test(file) && !(upgradeStore.test(file) && bytes.subarray(0, 16).equals(Buffer.from('SQLite format 3\0')))) {
         report(file, 'unexpected-binary');
       }
       continue;

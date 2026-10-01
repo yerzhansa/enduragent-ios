@@ -78,7 +78,7 @@ final class LanguagePickerProof: XCTestCase {
 	private func timedChoice(_ choice: XCUIElement, until title: XCUIElement) -> TimeInterval {
 		let tapped = Date()
 		choice.tap()
-		XCTAssertTrue(title.waitForExistence(timeout: 5))
+		TutorialHarness.wait(title)
 		return Date().timeIntervalSince(tapped)
 	}
 
@@ -100,7 +100,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		let phrasebook = CatalogPhrasebook(tag: .fr)
 		let button = TutorialHarness.named(app, "chat.newConversation")
-		TutorialHarness.waitUntilHittable(button)
+		TutorialHarness.wait(button, until: .hittable)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
 		XCTAssertEqual(button.elementType, .button)
 		TutorialHarness.assertIconButtonWidth(button)
@@ -233,7 +233,7 @@ final class SessionRejectionProof: XCTestCase {
 			}
 		}
 		TutorialHarness.attach(self, name: "m1-12-rejected-last", app: app)
-		app.navigationBars.buttons.element(boundBy: 0).tap()
+		app.navigationBars["Session"].buttons["Debug"].tap()
 		TutorialHarness.named(app, "debug.records").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
@@ -267,7 +267,7 @@ final class RatioAppliesProof: XCTestCase {
 			TutorialHarness.closeMenu(app)
 		}
 		for turn in 1...9 {
-			TutorialHarness.exchange(app, "fixture:long", timeout: 60)
+			TutorialHarness.exchange(app, "fixture:long", within: .watchdog)
 			TutorialHarness.openRecords(app)
 			let written = TutorialHarness.recordCount(app, "compactionSummary") != nil
 			if written, ratio != nil {
@@ -309,6 +309,6 @@ enum SessionDebug {
 		for _ in 0..<12 where !element.isHittable {
 			from.press(forDuration: 0.05, thenDragTo: to)
 		}
-		TutorialHarness.waitUntilHittable(element)
+		TutorialHarness.wait(element, until: .hittable)
 	}
 }

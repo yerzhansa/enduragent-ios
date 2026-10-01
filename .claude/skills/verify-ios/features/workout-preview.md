@@ -20,7 +20,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - Send `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks` from the conversation.
 - Choose Cancel or Add to calendar on the resulting review.
 - Change the connected athlete through Menu, Debug, Credentials while a review exists.
-- Reopen a kept v1 store containing an unexpired workout review, once connected and once disconnected, to inspect the earlier-version notice.
+- Run `LegacyReviewNoticeProof` with its committed v1 store to inspect the earlier-version notice while disconnected, connected, and after a German relaunch.
 
 ## Driving it with sim.mjs and XCUITest
 

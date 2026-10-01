@@ -69,6 +69,7 @@
 		var recovery = FixtureRecoveryPolicy.readable
 		var host = FixtureHostPolicy.immediate
 		var clock = FixtureLaunch.defaultClock
+		var seed: FixtureStoreSeed?
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -82,7 +83,8 @@
 				recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
 				host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
 					?? .immediate,
-				clock: try clock(arguments) ?? defaultClock
+				clock: try clock(arguments) ?? defaultClock,
+				seed: try FixtureStoreSeed.fromArguments(arguments)
 			)
 		}
 
@@ -109,6 +111,9 @@
 			}
 			try files.createDirectory(at: directory, withIntermediateDirectories: true)
 
+			if store == .fresh {
+				try seed?.install(in: directory)
+			}
 			return defaults
 		}
 

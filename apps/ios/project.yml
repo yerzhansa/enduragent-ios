@@ -68,6 +68,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentTests
+      - path: TestSupport
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.tests
@@ -86,6 +90,10 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentUITests
+      - path: TestSupport
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.uitests
