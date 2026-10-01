@@ -138,6 +138,30 @@ final class ChatRecords {
 		}
 	}
 
+	func stopBeforeStart(
+		_ turns: [TurnID], isolation: isolated (any Actor)? = #isolation
+	) async {
+		for turn in turns {
+			let stamp = OperationStamp.turn(
+				turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
+			let stopped = TurnLifecycle.stopBeforeStart(
+				stamp.attempt, on: conversation.turn(turn), chat: chat)
+			guard case .success(let settled) = stopped else { continue }
+			await settle(settled, stamp: stamp)
+		}
+	}
+
+	func recover(_ claims: [DeadClaim], isolation: isolated (any Actor)? = #isolation) async {
+		for dead in claims {
+			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
+			await settle(
+				TurnLifecycle.settled(
+					dead.attempt,
+					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
+					on: conversation.turn(dead.turn), chat: chat), stamp: stamp)
+		}
+	}
+
 	private func saveSettlement(
 		_ record: AthleteRecord, mode: Ledger.CommitMode,
 		isolation: isolated (any Actor)? = #isolation

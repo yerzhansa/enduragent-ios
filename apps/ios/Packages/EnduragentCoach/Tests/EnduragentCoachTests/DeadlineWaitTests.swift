@@ -2,7 +2,7 @@ import Foundation
 import Synchronization
 import Testing
 
-@Suite struct DeadlineWaitTests {
+@Suite(.timeLimit(.minutes(1))) struct DeadlineWaitTests {
 	@Test func heldClockFailsWhenNoSleepArrives() async throws {
 		let clock = HeldClock(within: .zero)
 		await #expect(throws: TestWaitDeadlineExceeded.self) {

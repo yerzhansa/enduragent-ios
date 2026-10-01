@@ -74,7 +74,7 @@ extension Conversation {
 				let known = turns[turn]?.reviewWrites[body.key] ?? .notSent
 				turns[turn]?.reviewWrites[body.key] = known.merging(body.evidence)
 			case .synced(.reviewApplied(let body)):
-				let index = segmentIndex(for: record.ulid)
+				let index = segmentIndex(for: record.ulid, at: record.hlc)
 				segments[index].notes.append(
 					ReviewNote(
 						ulid: record.ulid, hlc: record.hlc,
@@ -82,15 +82,20 @@ extension Conversation {
 				segments[index].notes.sort { $0.hlc < $1.hlc }
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessageUlids.contains(firstIncluded) {
-					segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
+					let hlc =
+						turns.values.flatMap(\.fragments).first { $0.ulid == firstIncluded }?.hlc
+						?? record.hlc
+					segments[segmentIndex(for: firstIncluded, at: hlc)].legacyTrim = firstIncluded
 				} else {
-					openSegment(at: firstIncluded, openedBy: .legacyBoundary)
+					openSegment(
+						at: firstIncluded, boundary: .legacy(firstIncluded, recorded: record.hlc),
+						openedBy: .legacyBoundary)
 				}
 			case .synced(.windowStart(let body)):
 				switch body.reason {
 				case .trim, .compaction:
 					guard record.deviceId == device else { continue }
-					let index = segmentIndex(for: record.ulid)
+					let index = segmentIndex(for: record.ulid, at: record.hlc)
 					let dropped =
 						body.droppedMessageUlids
 						?? turns.values.filter {
@@ -103,24 +108,28 @@ extension Conversation {
 					segments[index].promptWindow = PromptWindow(
 						trim: .init(messageUlids: covered, opened: record.ulid))
 				case .reset(let reset):
-					openSegment(at: body.firstIncludedUlid, openedBy: .reset(reset))
+					let boundary =
+						body.boundaryClock.map(SegmentBoundary.observed)
+						?? .legacy(body.firstIncludedUlid, recorded: record.hlc)
+					openSegment(
+						at: body.firstIncludedUlid, boundary: boundary, openedBy: .reset(reset))
 				}
 			case .synced(.compactionSummary(let body)) where record.deviceId == device:
-				segments[segmentIndex(for: record.ulid)].promptWindow.summarize(
+				segments[segmentIndex(for: record.ulid, at: record.hlc)].promptWindow.summarize(
 					body, at: record.ulid)
 			default: break
 			}
 		}
 		for index in segments.indices { segments[index].turns = [] }
 		let orderedTurns = turns.values.compactMap { facts in
-			facts.fragments.first.map { (facts: facts, first: $0) }
+			facts.fragments.min(by: { $0.index < $1.index }).map { (facts: facts, first: $0) }
 		}.sorted { $0.first.hlc < $1.first.hlc }
 		for (facts, first) in orderedTurns {
-			segments[segmentIndex(for: first.ulid)].turns.append(facts)
+			segments[segmentIndex(for: first.ulid, at: first.hlc)].turns.append(facts)
 		}
 	}
 
-	func segmentIndex(for ulid: ULID) -> Int {
-		segments.lastIndex { $0.id.boundary.map { $0 <= ulid } ?? true } ?? 0
+	func segmentIndex(for ulid: ULID, at hlc: HybridLogicalClock) -> Int {
+		segments.lastIndex { $0.boundary.map { $0.includes(ulid, at: hlc) } ?? true } ?? 0
 	}
 }
