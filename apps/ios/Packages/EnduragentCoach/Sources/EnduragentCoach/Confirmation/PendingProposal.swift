@@ -36,7 +36,8 @@ package enum ProposalPolicy {
 
 	package static func save(
 		chatId: ChatID, tool: GatedToolName, input: GatedToolInput, summary: String,
-		description: String, now: Date, ledger: Ledger, stamp: OperationStamp
+		description: String, now: Date, ledger: Ledger, stamp: OperationStamp,
+		appliedWrites: Set<CalendarWriteID>
 	) async throws -> PendingProposal {
 		let records = try await ledger.read(proposalQuery(chatId)).records
 		var bodies: [DeviceLocalRecordBody] = []
@@ -55,7 +56,7 @@ package enum ProposalPolicy {
 		}
 		let writeID: CalendarWriteID
 		if let previous, case .deviceLocal(.pendingProposal(let body)) = previous.body,
-			let retained = body.writeID
+			let retained = body.writeID, !appliedWrites.contains(retained)
 		{
 			writeID = retained
 		} else {

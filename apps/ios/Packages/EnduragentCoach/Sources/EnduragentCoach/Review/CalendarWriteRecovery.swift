@@ -104,7 +104,9 @@ extension SingleProposalReviews {
 				return try await ProposalPolicy.save(
 					chatId: chatId, tool: tool, input: input, summary: summary,
 					description: description, now: self.clock.now, ledger: self.ledger,
-					stamp: scope.stamp)
+					stamp: scope.stamp,
+					appliedWrites: Set(
+						writes.filter { $0.body.evidence.applied }.compactMap(\.body.writeID)))
 			}
 		}
 	}
