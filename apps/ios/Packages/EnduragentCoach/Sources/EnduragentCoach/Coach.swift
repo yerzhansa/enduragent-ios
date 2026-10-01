@@ -92,10 +92,20 @@ public actor Coach {
 		await mailbox(for: chat).reset()
 	}
 
-	public func history() async throws(HistoryUnavailable) -> [ArchivedConversation] {
+	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
 		do {
-			return try await ledger.archivedConversations(
-				process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
+			return try await ledger.history()
+		} catch {
+			throw .storageUnavailable
+		}
+	}
+
+	public func archivedConversation(_ ref: ArchivedConversationRef)
+		async throws(HistoryUnavailable) -> ArchivedConversation?
+	{
+		do {
+			return try await ledger.archivedConversation(
+				ref, process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
 		} catch {
 			throw .storageUnavailable
 		}
@@ -387,5 +397,4 @@ public actor Coach {
 		mailboxes[chatId] = created
 		return created
 	}
-
 }

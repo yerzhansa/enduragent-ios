@@ -149,7 +149,7 @@ import Testing
 		_ = try #require(await host.ended(0))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
-		#expect(jobs.map(\.abandoned) == [true])
+		#expect(jobs.map(\.phase) == [.settled(.recorded(.abandoned))])
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
@@ -179,7 +179,9 @@ import Testing
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		#expect(
-			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.settled) == [
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map {
+				$0.phase != .pending
+			} == [
 				true
 			])
 	}
