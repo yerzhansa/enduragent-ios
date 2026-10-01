@@ -75,7 +75,7 @@ extension TurnRunnerTests {
 		}
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
@@ -87,7 +87,7 @@ extension TurnRunnerTests {
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled]))).records.isEmpty
 		)
 		try await coach.recordConsent()
-		#expect(await coach.status().needsProviderConsent == false)
+		#expect(try await coach.observedStatus().needsProviderConsent == false)
 		let reply = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(reply) == "Thursday is on.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
