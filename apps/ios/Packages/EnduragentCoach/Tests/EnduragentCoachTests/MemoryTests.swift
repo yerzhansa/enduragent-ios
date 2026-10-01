@@ -156,7 +156,8 @@ import Testing
 	}
 
 	@Test func writeSectionPropagatesJournalAppendFailure() async throws {
-		let store = JournalRejectingLog()
+		let store = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		try store.failAppends(ofKind: "journal")
 		let memory = Memory(
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
@@ -183,28 +184,4 @@ import Testing
 		}
 		#expect(body.content == "_updated: 1998-06-13\n- Name: Ada")
 	}
-}
-
-private struct JournalAppendRejected: Error, Equatable {}
-
-private final class JournalRejectingLog: RecordLog, @unchecked Sendable {
-	let inner = InMemoryRecordLog()
-	var deviceId: DeviceID { inner.deviceId }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		if batch.contains(where: { if case .synced(.journal) = $0.body { true } else { false } }) {
-			throw JournalAppendRejected()
-		}
-		try await inner.append(batch, locality: locality)
-	}
-
-	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
-		try await inner.latest(locality: locality, writtenBy: writtenBy)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	var imports: AsyncStream<Void> { inner.imports }
 }

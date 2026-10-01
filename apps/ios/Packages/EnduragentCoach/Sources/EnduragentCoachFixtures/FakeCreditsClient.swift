@@ -98,7 +98,7 @@ public final class FakeCreditsClient: CreditsClient, @unchecked Sendable {
 		return try result.get()
 	}
 
-	public func balance(scale _: CreditScale) async throws -> CreditBalance {
+	public func balance() async throws -> CreditBalance {
 		let result = state.withLock { current in
 			current.calls.append(.balance)
 			return current.balanceResult

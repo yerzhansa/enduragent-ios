@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidigare samtal är tillfälligt otillgängliga.",
-    "loadEarlier": "Läs in äldre meddelanden",
     "loading": "Läser in tidigare samtal…",
     "pageFailure": "Det här samtalet är tillfälligt otillgängligt.",
     "readOnly": "Tidigare samtal går bara att läsa.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "Samtalshistoriken är tillfälligt otillgänglig.",
-      "loadEarlier": "Läs in tidigare meddelanden",
       "retry": "Försök läsa in historiken igen"
     },
     "newConversation": {

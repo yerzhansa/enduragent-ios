@@ -123,9 +123,9 @@ import Testing
 				.records.first?.ulid)
 		try #require(jobs.count == 1)
 		try #require(saved.saved)
-		let newest = try #require(saved.messages.max())
+		let newest = try #require(saved.coverage.listed.max())
 		try #require(user < newest)
-		#expect(!saved.messages.contains(user))
+		#expect(!saved.coverage.listed.contains(user))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
@@ -138,6 +138,6 @@ import Testing
 		#expect(!window.contains("First question"))
 		let reset = try #require(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
-		#expect(reset.messages.contains(user))
+		#expect(reset.coverage.listed.contains(user))
 	}
 }

@@ -86,8 +86,8 @@ extension FlushCoverageTests {
 		let ledger = try await seedSupersededJobs(
 			pending: implicit ? [] : [1, 2, 4, 5], newer: [1, 3], settled: newerSettled)
 		#expect(
-			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.settled
-				== false)
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.phase
+				== .pending)
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 400)), .fail(.http(status: 400))], for: .flush,
 			otherwise: transport.respond)
@@ -101,8 +101,8 @@ extension FlushCoverageTests {
 			#expect(!rows.contains("Superseded partial"))
 		}
 		#expect(
-			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.settled
-				== false)
+			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.phase
+				== .pending)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -137,8 +137,8 @@ extension FlushCoverageTests {
 		#expect(settlements.records.count == 1)
 		let pending = try #require(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
-		#expect(!pending.settled)
-		#expect(pending.messages.count == 3)
+		#expect(pending.phase == .pending)
+		#expect(pending.coverage.listed.count == 3)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))

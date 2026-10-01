@@ -20,7 +20,7 @@ extension Ledger {
 			history: conversation.current.promptHistory(excluding: turn),
 			pending: conversation.outstandingRows(jobs),
 			unflushed: conversation.messagesSinceLastFlush(jobs, excluding: turn),
-			flushPending: jobs.contains { !$0.settled },
+			flushPending: jobs.contains { $0.phase == .pending },
 			current: conversation.turn(turn)?.userRow
 		)
 	}

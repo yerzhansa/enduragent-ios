@@ -102,7 +102,8 @@ import Testing
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("How am I recovering?")
 		#expect(replyText(settled) == "Easy spin today.")
-		let request = try #require(transport.requests.only)
+		try #require(transport.requests.count == 1)
+		let request = try #require(transport.requests.first)
 		#expect(
 			request.messages.first?.content.contains(PromptStaticBlocks.snapshotFallback) == true)
 		#expect(request.messages.first?.content.contains("private upstream detail") == false)
@@ -225,11 +226,16 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.hang, .text("Back on track."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = await makeCoach()
+		let clock = HeldClock()
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, store: store, clock: clock, watchdogClock: clock)
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		try await clock.waitUntilHeld(.seconds(30))
+		clock.advance(by: .seconds(30))
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
 		#expect(replyText(settled) == "Back on track.")
+		#expect(clock.slept == [.seconds(30)])
 		#expect(transport.requests.count == 2)
 		let claim = try #require(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
@@ -391,9 +397,3 @@ import Testing
 
 private let english = CatalogPhrasebook(tag: .en)
 private let earlierSummary = "## Athlete Profile\n- Rides Saturdays with a group"
-
-extension Array {
-	fileprivate var only: Element? {
-		count == 1 ? first : nil
-	}
-}

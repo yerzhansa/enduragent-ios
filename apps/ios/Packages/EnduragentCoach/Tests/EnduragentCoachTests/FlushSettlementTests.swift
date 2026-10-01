@@ -7,6 +7,29 @@ import Testing
 	let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 	let store = InMemoryRecordLog()
 
+	@Test func pendingCoverageIncludesRowsImportedAfterJobsWereRead() async throws {
+		let question = storedRecord(
+			device: store.deviceId, wall: 1, ulid: fixedUlid(1),
+			body: legacyUser(chatId: .main, text: "Earlier question"))
+		let pending = storedRecord(
+			device: store.deviceId, wall: 6, ulid: fixedUlid(6),
+			body: .deviceLocal(.flushPending(FlushPendingBody(chatId: .main, messageUlids: []))))
+		try await seed(store, [question, pending])
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
+		let job = try #require(jobs.first)
+		try await seed(
+			store,
+			[
+				storedRecord(
+					device: store.deviceId, wall: 2, ulid: fixedUlid(2),
+					body: legacyReply(chatId: .main, text: "Imported reply"))
+			])
+		let conversation = try await ledger.conversation(.main)
+		#expect(conversation.outstandingRows(jobs).map(\.ulid) == [fixedUlid(1), fixedUlid(2)])
+		#expect(conversation.flushRows(for: job).map(\.ulid) == [fixedUlid(1), fixedUlid(2)])
+	}
+
 	@Test func repeatedPendingRecordKeepsItsOutstandingRows() async throws {
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let history = try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
@@ -22,7 +45,7 @@ import Testing
 		let conversation = try await ledger.conversation(.main)
 		let jobs = try await ledger.flushJobs(in: conversation)
 		#expect(Set(jobs.map(\.id)) == [FlushJobID(ulid: try #require(pending.first?.ulid))])
-		#expect(jobs.allSatisfy { !$0.settled })
+		#expect(jobs.allSatisfy { $0.phase == .pending })
 		#expect(conversation.outstandingRows(jobs).map(\.ulid) == [turn.user, turn.reply])
 	}
 
@@ -61,7 +84,8 @@ import Testing
 			}
 		#expect(jobs.map(\.id) == [older, newer])
 		#expect(try #require(jobs.first { $0.id == older }).saved)
-		#expect(try #require(jobs.first { $0.id == newer }).consumedInV1)
+		#expect(
+			try #require(jobs.first { $0.id == newer }).phase == .settled(.consumedBeforeUpgrade))
 		#expect(FlushJob.outstanding(jobs, in: conversation).isEmpty)
 	}
 
@@ -101,7 +125,7 @@ import Testing
 			clock: clock, diagnostics: diagnostics, ladder: .npm)
 		#expect(await records.refreshJobs(from: flushes) == [older])
 		let outstanding = try #require(records.jobs.first { $0.id == older })
-		#expect(!outstanding.settled)
+		#expect(outstanding.phase == .pending)
 		#expect(try #require(records.jobs.first { $0.id == newer }).saved)
 		#expect(
 			records.conversation.outstandingRows(records.jobs).map(\.ulid)

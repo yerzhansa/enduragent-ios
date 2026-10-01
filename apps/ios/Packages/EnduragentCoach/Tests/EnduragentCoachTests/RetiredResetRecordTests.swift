@@ -162,7 +162,9 @@ extension SwiftDataSuites {
 			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
 			let archived = try await coach.history()
 			#expect(archived.map(\.reason) == [.newConversation])
-			#expect(archived.first?.turns.compactMap(\.athleteText) == ["A?", "B?"])
+			let ref = try #require(archived.first?.id)
+			let opened = try #require(try await coach.archivedConversation(ref))
+			#expect(opened.turns.compactMap(\.athleteText) == ["A?", "B?"])
 			let skipped = coach.diagnostics.entries.compactMap { entry -> String? in
 				guard case .skippedRecord(.malformed(kind: "windowStart", let ulid)) = entry.event
 				else { return nil }

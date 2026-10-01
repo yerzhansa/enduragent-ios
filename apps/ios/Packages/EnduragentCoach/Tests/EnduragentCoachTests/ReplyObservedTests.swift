@@ -14,11 +14,11 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday "), .text("is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let gate = ReplyMarkGate(inner: store)
+		let gate = HeldAppendLog(inner: store, holding: "replyObserved", occurrence: 1)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: gate, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		var held = gate.held.makeAsyncIterator()
+		var held = gate.reached.makeAsyncIterator()
 		_ = await held.next()
 		let whileHeld = try #require(await coach.currentSnapshot(.main))
 		guard case .processing(let processing)? = whileHeld.turns.first?.state else {
@@ -26,7 +26,7 @@ import Testing
 			return
 		}
 		#expect(processing.liveText.isEmpty)
-		gate.open()
+		gate.release()
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Thursday is on.")
 		let marks = try await store.fetch(
@@ -128,59 +128,5 @@ import Testing
 	private func makeCoach() async -> Coach {
 		await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
-	}
-}
-
-private final class ReplyMarkGate: RecordLog, @unchecked Sendable {
-	let inner: any RecordLog
-	let held: AsyncStream<Void>
-	private let entered: AsyncStream<Void>.Continuation
-	private let lock = NSLock()
-	private var waiting: CheckedContinuation<Void, Never>?
-	private var opened = false
-
-	init(inner: any RecordLog) {
-		self.inner = inner
-		(held, entered) = AsyncStream<Void>.makeStream()
-	}
-
-	var deviceId: DeviceID { inner.deviceId }
-
-	var imports: AsyncStream<Void> { inner.imports }
-
-	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		if batch.contains(where: { $0.body.kind == DeviceLocalKind.replyObserved.rawValue }) {
-			entered.yield()
-			await withCheckedContinuation { continuation in
-				let proceed = lock.withLock {
-					if opened {
-						return true
-					}
-					waiting = continuation
-					return false
-				}
-				if proceed {
-					continuation.resume()
-				}
-			}
-		}
-		try await inner.append(batch, locality: locality)
-	}
-
-	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
-		try await inner.latest(locality: locality, writtenBy: writtenBy)
-	}
-
-	func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		try await inner.fetch(query)
-	}
-
-	func open() {
-		let parked = lock.withLock {
-			opened = true
-			defer { waiting = nil }
-			return waiting
-		}
-		parked?.resume()
 	}
 }

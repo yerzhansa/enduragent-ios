@@ -71,7 +71,11 @@ import Testing
 		let first = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
 		let second = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
-		try await Task.sleep(for: .milliseconds(60))
+		try #require(
+			try await coach.waitForState(of: second) {
+				guard case .accepted(.queued)? = $0 else { return false }
+				return true
+			} != nil)
 		await coach.stop(.main)
 		let firstState = try #require(await coach.settledState(of: first, in: .main))
 		let secondState = try #require(await coach.settledState(of: second, in: .main))
@@ -117,13 +121,14 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let inner = InMemoryRecordLog()
-		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500))
+		let store = HeldConversationReadLog(inner: inner)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		let turn = try #require(
-			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
+		async let sending = coach.send(draft("Is Thursday on?"), to: .main)
+		store.gate.release()
+		let turn = try #require(try await sending.acceptedTurn)
 		_ = await observed
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
@@ -140,16 +145,20 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let inner = InMemoryRecordLog()
-		let store = SlowConversationReadLog(inner: inner, delay: .milliseconds(500), fails: true)
+		let faulty = FaultInjectingRecordLog(wrapping: inner)
+		let store = HeldConversationReadLog(inner: faulty)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
+		faulty.failFetches = true
 		async let observed = coach.currentSnapshot(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
+		store.gate.release()
 		let sent = draft("Is Thursday on?")
 		await #expect(throws: AcceptFailure.storageUnavailable) {
 			try await coach.send(sent, to: .main)
 		}
 		_ = await observed
+		faulty.failFetches = false
 		let outcome = try await coach.send(sent, to: .main)
 		let turn = try #require(outcome.acceptedTurn)
 		let settled = try #require(

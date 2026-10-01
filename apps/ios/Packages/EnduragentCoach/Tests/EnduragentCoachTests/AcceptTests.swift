@@ -69,15 +69,23 @@ extension SwiftDataSuites {
 			transport.respond = ScriptedReply.sequence(
 				[.text("Both days are on."), .finish(reason: .stop)], for: .chat,
 				otherwise: transport.respond)
-			let slow = SlowAppendLog(inner: InMemoryRecordLog(), delay: .milliseconds(200))
+			let slow = HeldAppendLog(
+				inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+			let timer = HeldClock()
 			let coach = await makeCoach(
 				transport: transport, store: slow, clock: clock,
-				coalescing: CoalescingPolicy(window: .milliseconds(300)))
+				coalescing: CoalescingPolicy(window: .milliseconds(300)), coalescingClock: timer)
 			let first = try #require(
 				try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-			try await Task.sleep(for: .milliseconds(200))
-			let second = try #require(
-				try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
+			async let sending = coach.send(draft("Friday?"), to: .main)
+			var reached = slow.reached.makeAsyncIterator()
+			await reached.next()
+			try await timer.waitUntilHeld(.milliseconds(300))
+			timer.advance(by: .milliseconds(300))
+			slow.release()
+			let second = try #require(try await sending.acceptedTurn)
+			try await timer.waitUntilHeld(.milliseconds(300))
+			timer.advance(by: .milliseconds(300))
 			_ = try #require(await coach.settledState(of: first, in: .main))
 			_ = try #require(await coach.settledState(of: second, in: .main))
 			let snapshot = try #require(await coach.currentSnapshot(.main))

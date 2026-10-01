@@ -20,29 +20,21 @@ extension SingleProposalReviewsTests {
 
 actor ReviewGate {
 	private var armed = false
-	private var entered = false
-	private var waiters: [CheckedContinuation<Void, Never>] = []
+	private var gate = Gate()
 
-	func arm() { armed = true }
+	func arm() {
+		armed = true
+		gate = Gate()
+	}
 	func pass() async {
 		guard armed else { return }
 		armed = false
-		entered = true
-		await withCheckedContinuation { waiters.append($0) }
+		await gate.wait()
 	}
-	func release() {
-		for waiter in waiters { waiter.resume() }
-		waiters = []
-	}
+	func release() { gate.release() }
 	func waitUntilEntered() async -> Bool {
-		let deadline = ContinuousClock.now + .seconds(5)
-		while !entered, ContinuousClock.now < deadline {
-			do { try await Task.sleep(for: .milliseconds(5)) } catch {
-				Issue.record(error)
-				return false
-			}
-		}
-		return entered
+		await gate.waitUntilParked()
+		return true
 	}
 }
 

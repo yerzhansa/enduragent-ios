@@ -21,33 +21,6 @@ private func action(in snapshot: ChatSnapshot?) -> RecoveryAction? {
 	return failed.notice.action
 }
 
-private func first(
-	in stream: AsyncStream<ChatSnapshot>, within limit: Duration,
-	where matches: @escaping @Sendable (ChatSnapshot) -> Bool
-) async -> ChatSnapshot? {
-	await withTaskGroup(of: ChatSnapshot?.self) { group in
-		group.addTask {
-			for await snapshot in stream where matches(snapshot) {
-				return snapshot
-			}
-			return nil
-		}
-		group.addTask {
-			do {
-				try await Task.sleep(for: limit)
-			} catch is CancellationError {
-				return nil
-			} catch {
-				fatalError("Task.sleep failed: \(error)")
-			}
-			return nil
-		}
-		let found = await group.next() ?? nil
-		group.cancelAll()
-		return found
-	}
-}
-
 private func facts(_ settlement: Settlement, wallMs: Int64) -> TurnFacts {
 	var facts = TurnFacts(turn: rateLimitedTurn, chat: .main, origin: phone)
 	facts.fragments.append(
@@ -98,7 +71,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(7))
 		let stream = await coach.observe(.main)
 		clock.release(.seconds(7))
-		let opened = await first(in: stream, within: .seconds(2)) {
+		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
@@ -139,11 +112,12 @@ private func milliseconds(_ date: Date) -> Int64 {
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
-		let deadline = ContinuousClock.now + .seconds(5)
-		while transport.requestCount < 4, ContinuousClock.now < deadline {
+		for count in 1...3 {
+			try await waitUntil { transport.requestCount == count }
+			try await clock.waitUntilHeld(.seconds(3))
 			clock.release(.seconds(3))
-			try await Task.sleep(for: .milliseconds(5))
 		}
+		try await waitUntil { transport.requestCount == 4 }
 		try await clock.waitUntilHeld(.seconds(3))
 		#expect(clock.held == [.seconds(3)])
 		let failedAgain = try #require(
@@ -165,7 +139,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
 		clock.release(wait)
-		let opened = await first(in: stream, within: .seconds(2)) {
+		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")

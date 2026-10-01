@@ -33,8 +33,8 @@ import Testing
 		let question = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: queued))
 				.records.first?.ulid)
-		try #require(!soft.messages.contains(question))
-		try #require(question < (soft.messages.max() ?? question))
+		try #require(!soft.coverage.listed.contains(question))
+		try #require(question < (soft.coverage.listed.max() ?? question))
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
@@ -103,7 +103,7 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let fresh = try #require(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
-		#expect(fresh.messages == [question, reply])
+		#expect(fresh.coverage.listed == [question, reply])
 		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
 	}
 
@@ -285,7 +285,7 @@ import Testing
 
 	@Test func legacyCoverageResolvesEachRowOnce() {
 		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
-		let jobs = (1...200).map { job($0, messages: [], settled: true) }
+		let jobs = (1...200).map { job($0, messages: [], settled: true, in: conversation) }
 		let resolved = Mutex(0)
 		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
 			conversation.messagesSinceLastFlush(jobs, excluding: nil)
@@ -296,7 +296,7 @@ import Testing
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
 		let conversation = conversation(turns: 3, legacy: true)
-		let legacy = job(6, messages: [], settled: true)
+		let legacy = job(6, messages: [], settled: true, in: conversation)
 		#expect(
 			conversation.flushRows(for: legacy).map(\.ulid) == [1, 2, 4, 5].map(fixedUlid))
 		#expect(
@@ -306,12 +306,14 @@ import Testing
 
 	@Test func coverageIncludesSavedAbandonedOutstandingAndSupersededJobs() {
 		let conversation = conversation(turns: 5)
-		var abandoned = job(21, messages: [4, 5], settled: true)
-		abandoned.abandoned = true
+		let abandoned = FlushWork.transition(
+			job(21, messages: [4, 5], settled: false, in: conversation),
+			after: .settled(.recorded(.abandoned)))
 		let jobs = [
-			job(20, messages: [1, 2], settled: true), abandoned,
-			job(22, messages: [7], settled: false), job(23, messages: [7, 8], settled: false),
-			job(24, messages: [10, 11], settled: true),
+			job(20, messages: [1, 2], settled: true, in: conversation), abandoned,
+			job(22, messages: [7], settled: false, in: conversation),
+			job(23, messages: [7, 8], settled: false, in: conversation),
+			job(24, messages: [10, 11], settled: true, in: conversation),
 		]
 		#expect(!abandoned.saved)
 		#expect(FlushJob.outstanding(jobs, in: conversation).map(\.id) == [jobs[3].id])
@@ -329,7 +331,7 @@ import Testing
 		#expect(
 			conversation.messagesSinceLastFlush([], excluding: running).map(\.ulid)
 				== [4, 5].map(fixedUlid))
-		let pending = job(20, messages: [1, 2], settled: false)
+		let pending = job(20, messages: [1, 2], settled: false, in: conversation)
 		#expect(conversation.outstandingRows([pending]).map(\.ulid) == [1, 2].map(fixedUlid))
 	}
 
@@ -355,11 +357,18 @@ import Testing
 		return ConversationFold.fold(chat: .main, synced: records, device: store.deviceId)
 	}
 
-	private func job(_ offset: Int, messages: [Int], settled: Bool) -> FlushJob {
-		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)),
-			messages: messages.map(fixedUlid),
-			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: settled)
+	private func job(
+		_ offset: Int, messages: [Int], settled: Bool, in conversation: Conversation
+	) -> FlushJob {
+		let id = FlushJobID(ulid: fixedUlid(offset))
+		let origin: FlushJob.Origin =
+			messages.isEmpty ? .beforeUpgrade : .process(ProcessID(ulid: fixedUlid(60)))
+		return
+			FlushJob(
+				id: id, origin: origin,
+				coverage: ConversationRows(conversation).coverage(
+					for: id, messages: messages.map(fixedUlid), origin: origin),
+				phase: settled ? .settled(.recorded(.nothingToSave)) : .pending, reset: nil)
 	}
 
 	private func record(

@@ -74,8 +74,7 @@ import Testing
 					ConversationFold.consumedMarkerScope
 				])
 		let legacy = try #require(jobs.first { $0.id == older })
-		#expect(legacy.settled == hasMarker)
-		#expect(legacy.consumedInV1 == hasMarker)
+		#expect(legacy.phase == (hasMarker ? .settled(.consumedBeforeUpgrade) : .pending))
 		#expect(
 			FlushJob.outstanding(jobs, in: conversation).map(\.id) == (hasMarker ? [] : [older]))
 	}

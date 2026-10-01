@@ -53,7 +53,7 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.count == 1)
-		#expect(jobs.allSatisfy { $0.settled && !$0.abandoned })
+		#expect(jobs.allSatisfy { $0.saved })
 	}
 }
 

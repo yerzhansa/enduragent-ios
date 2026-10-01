@@ -195,7 +195,7 @@ import Testing
 		let recordsBefore = recording.fetchedRecordCount
 		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(Set(read.map(\.id)) == Set(jobs))
-		#expect(read.allSatisfy { $0.saved && $0.process == nil })
+		#expect(read.allSatisfy { $0.saved && $0.origin == .beforeUpgrade })
 		let reads = recording.reads.dropFirst(before)
 		#expect(reads.count == (oneUnsettled ? 4 : 3))
 		#expect(

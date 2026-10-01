@@ -248,7 +248,7 @@ import Testing
 	}
 
 	@Test func waitShowsTheWorkingStateWithItsReason() async throws {
-		let paused = PausingClock(calendar: clock)
+		let paused = HeldClock(calendar: clock)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.fail(.http(status: 429, headers: ["retry-after": "7"])),
@@ -259,8 +259,7 @@ import Testing
 			transport: transport, store: store, clock: paused)
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
-		var sleeping = paused.sleeping.makeAsyncIterator()
-		#expect(await sleeping.next() == .seconds(7))
+		try await paused.waitUntilHeld(.seconds(7))
 		let waiting = try #require(await coach.currentSnapshot(.main))
 		guard case .processing(let processing)? = waiting.turns.first?.state else {
 			Issue.record("expected processing, got \(String(describing: waiting.turns.first))")
@@ -272,7 +271,7 @@ import Testing
 				== .waiting(RetryWait(until: clock.now.addingTimeInterval(7), reason: .rateLimited))
 		)
 		#expect(waiting.activity == .working(label: Catalog.chatNoticeWorking))
-		paused.resume()
+		paused.release(.seconds(7))
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Thursday is on.")
 	}
@@ -336,36 +335,4 @@ struct RateLimitRow: Sendable, CustomTestStringConvertible {
 	let waits: [Duration]
 
 	var testDescription: String { headers.isEmpty ? "no hint" : "\(headers)" }
-}
-
-private final class PausingClock: Clock, @unchecked Sendable {
-	let calendar: FixedClock
-	let sleeping: AsyncStream<Duration>
-	private let started: AsyncStream<Duration>.Continuation
-	private let lock = NSLock()
-	private var parked: CheckedContinuation<Void, Never>?
-
-	init(calendar: FixedClock) {
-		self.calendar = calendar
-		(sleeping, started) = AsyncStream<Duration>.makeStream()
-	}
-
-	var now: Date { calendar.now }
-	var timeZone: TimeZone { calendar.timeZone }
-	var uptime: Duration { calendar.uptime }
-
-	func sleep(for duration: Duration) async throws {
-		started.yield(duration)
-		await withCheckedContinuation { continuation in
-			lock.withLock { parked = continuation }
-		}
-	}
-
-	func resume() {
-		let waiting = lock.withLock {
-			defer { parked = nil }
-			return parked
-		}
-		waiting?.resume()
-	}
 }

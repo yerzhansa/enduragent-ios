@@ -8,6 +8,8 @@ public struct CoachPorts: Sendable {
 	public let credits: CreditsService
 	public let host: any ExecutionHost
 	public let clock: any Clock
+	package var watchdogSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
+	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 
 	public init(
 		records: RecordStore,

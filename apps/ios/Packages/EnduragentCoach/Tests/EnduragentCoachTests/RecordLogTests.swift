@@ -77,6 +77,16 @@ extension SwiftDataSuites {
 			let byTurn = try await log.fetch(RecordQuery(scope: messages, turn: turn)).records
 			#expect(byTurn.map(messageText) == ["main 13", "reply 14"])
 
+			let otherTurn = try #require(all.last?.body.turn)
+			let byTurns = try await log.fetch(
+				RecordQuery(scope: messages, chatId: .main, turns: [turn, otherTurn])
+			).records
+			#expect(byTurns.map(messageText) == ["main 13", "reply 14"])
+			let noTurns = try await log.fetch(
+				RecordQuery(scope: messages, chatId: .main, turns: [])
+			).records
+			#expect(noTurns.isEmpty)
+
 			let mid = try await log.fetch(
 				RecordQuery(scope: messages, from: "1998-06-14", to: "1998-06-14")
 			).records

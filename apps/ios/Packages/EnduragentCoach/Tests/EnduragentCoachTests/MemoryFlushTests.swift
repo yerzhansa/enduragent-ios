@@ -25,7 +25,10 @@ import Testing
 	}
 
 	func job() -> FlushJob {
-		FlushJob(id: FlushJobID(ulid: fixedUlid(40)), messages: [fixedUlid(41)], settled: false)
+		FlushJob(
+			id: FlushJobID(ulid: fixedUlid(40)), origin: .beforeUpgrade,
+			coverage: .init(listed: [fixedUlid(41)], resolved: [fixedUlid(41)], legacy: nil),
+			reset: nil)
 	}
 
 	func run(
