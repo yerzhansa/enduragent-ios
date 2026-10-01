@@ -38,6 +38,22 @@
 				])
 		}
 
+		@Test(arguments: [
+			#"{"name":"probe","printedName":"probe()","declKind":"Func","moduleName":"EnduragentCoach","static":true}"#,
+			#"{"name":"probe","printedName":"probe","declKind":"Var","moduleName":"EnduragentCoach","static":true}"#,
+			#"{"name":"probe","printedName":"probe","declKind":"Var","moduleName":"EnduragentCoach","static":true,"isLet":true}"#,
+		])
+		func handwrittenCatalogMembersStillChangeTheBoundary(_ member: String) throws {
+			let catalog = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Catalog","printedName":"Catalog","declKind":"Enum","moduleName":"EnduragentCoach","children":[\(member)]}
+					""".utf8))
+			#expect(catalog.publicNames().count == 1)
+			#expect(catalog.publicNames().first?.hasPrefix("Catalog.probe") == true)
+		}
+
 		private func symbols(in resource: String) throws -> [String] {
 			let url = try #require(
 				Bundle.module.url(

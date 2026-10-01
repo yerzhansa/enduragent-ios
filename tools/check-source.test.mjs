@@ -343,7 +343,7 @@ test('accepts checked app conversions and string parsing', () => {
   assert.equal(result.status, 0, result.output);
 });
 
-for (const name of ['FakeModelTransport', 'FixedClock', 'InMemoryRecordLog', 'FixtureSecretStoreBacking']) {
+for (const name of ['FakeModelTransport', 'FixedClock', 'InMemoryRecordLog', 'FixtureSecretStoreBacking', 'FixtureRecordStore', 'ScriptedRequest']) {
   test(`rejects ${name} in production coach sources`, () => {
     const result = run({
       'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Example.swift': `public final class ${name} {}`,

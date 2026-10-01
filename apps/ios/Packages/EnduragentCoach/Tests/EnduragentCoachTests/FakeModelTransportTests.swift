@@ -181,6 +181,22 @@ import Testing
 		#expect(textDeltas(in: try await collect(transport.stream(second))) == ["Thursday?:1"])
 	}
 
+	@Test func aLaterFlushReadsItsOwnMessagesInsteadOfTheLatestChat() async throws {
+		let transport = FakeModelTransport { request in
+			ScriptedReply([.text(request.text), .finish(reason: .stop)])
+		}
+		_ = try await collect(transport.stream(request("A later chat")))
+		let flush = CompletionRequest(
+			access: testAccess, attempt: AttemptID(ulid: fixedUlid(902)), charge: .memoryFlush,
+			messages: [
+				WireMessage(
+					role: .user, content: "The rows being flushed", toolCalls: [], toolCallId: nil)
+			], tools: [], deadline: .seconds(30))
+		#expect(
+			textDeltas(in: try await collect(transport.stream(flush)))
+				== ["The rows being flushed"])
+	}
+
 	private func maintenance(_ charge: GenerateCharge) -> CompletionRequest {
 		CompletionRequest(
 			access: testAccess, attempt: AttemptID(ulid: fixedUlid(901)), charge: charge,
