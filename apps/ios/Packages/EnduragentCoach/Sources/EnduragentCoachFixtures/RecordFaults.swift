@@ -37,4 +37,10 @@ public final class RecordFaults: Sendable {
 	public func failAppends(ofKind kind: String) throws {
 		try log.failAppends(ofKind: kind)
 	}
+
+	#if DEBUG
+		public func failNextReviewRead() {
+			log.failNextFetch(in: .synced([.reviewWrite]))
+		}
+	#endif
 }

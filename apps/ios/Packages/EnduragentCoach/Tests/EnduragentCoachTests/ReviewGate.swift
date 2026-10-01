@@ -19,22 +19,33 @@ extension SingleProposalReviewsTests {
 }
 
 actor ReviewGate {
+	private let waitLimit: Duration
 	private var armed = false
 	private var gate = Gate()
+
+	init(within waitLimit: Duration = .seconds(5)) {
+		self.waitLimit = waitLimit
+	}
 
 	func arm() {
 		armed = true
 		gate = Gate()
 	}
-	func pass() async {
+	func pass() async throws {
 		guard armed else { return }
 		armed = false
-		await gate.wait()
+		let gate = gate
+		let released: Void? = try await beforeDeadline(within: waitLimit) {
+			try await gate.waitUnlessCancelled()
+		}
+		guard released != nil else { throw TestWaitDeadlineExceeded() }
 	}
 	func release() { gate.release() }
-	func waitUntilEntered() async -> Bool {
-		await gate.waitUntilParked()
-		return true
+	func waitUntilEntered() async throws -> Bool {
+		let gate = gate
+		return try await beforeDeadline(within: waitLimit) {
+			await gate.waitUntilParked()
+		} != nil
 	}
 }
 
@@ -51,7 +62,7 @@ struct GatedReviewLog: RecordLog {
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let page = try await inner.fetch(query)
 		if query.scope == .deviceLocal([.pendingProposal, .proposalCleared]) {
-			await readGate?.pass()
+			try await readGate?.pass()
 		}
 		return page
 	}
@@ -62,7 +73,7 @@ struct GatedReviewLog: RecordLog {
 			}
 			return false
 		}) {
-			await gate.pass()
+			try await gate.pass()
 		}
 		try await inner.append(batch, locality: locality)
 	}
@@ -89,7 +100,7 @@ struct GatedReviewIntervals: IntervalsClient {
 		try await base.listEvents(oldest: oldest, newest: newest)
 	}
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		await gate.pass()
+		try await gate.pass()
 		return try await base.createChatEvent(draft)
 	}
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
