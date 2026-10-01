@@ -115,36 +115,28 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 
 The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
-The run passes with zero failures and exactly two skips, `UpgradeHistoryProof` and `LegacyReviewNoticeProof`. Each opens the kept store, and each skips with `needs a fixture store a v1 build left` unless Records lists `assistantMessage`, a kind only a v1 build writes. Inside one run the kept store holds whatever the previous proof left, so a week question on screen proves nothing about an upgrade. A plan lane that asks for every proof class with zero failures is this run plus the upgrade steps below. On 2026-09-26 the run took 41 minutes.
+The history and legacy-review upgrade proofs use committed v1 stores and must pass with zero skips. Each proof copies a fresh store set before launch, so data left by another proof does not supply its upgrade precondition. A missing fixture resource is a failure.
 
-**Upgrade proofs.** `UpgradeHistoryProof` proves that the app opens a store the last v1 build wrote with two chats: the chat opens on the welcome, and History lists both chats as `Earlier chat`. That build is `82254bb` on `milestone/m1`, the merge of M1-01 just before the record ledger. No v1 proof creates two chats, so copy `helpers/V1TwoChatsSeedProof.swift` into the v1 checkout's UI tests before its build. Check it out as a detached worktree inside the repository and build it once, after the head build has finished. `sim.mjs test` installs its own checkout's build, and an install over another build keeps the app's data, so the trunk proof leaves its state for the head proof that follows:
-
-```sh
-git worktree add --detach .worktrees/v1-trunk 82254bb
-cp .claude/skills/verify-ios/helpers/V1TwoChatsSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
-TRUNK=.worktrees/v1-trunk/.claude/skills/verify-ios/helpers/sim.mjs
-SIM=.claude/skills/verify-ios/helpers/sim.mjs
-$TRUNK build
-$TRUNK test <run id> V1TwoChatsSeedProof
-$SIM test <run id> UpgradeHistoryProof
-```
-
-Each step prints `Passed: 1 passed, 0 failed, 0 skipped`. A skip means the trunk step before it did not run on this simulator.
-
-`LegacyReviewNoticeProof` needs a different v1 store: a pending workout review in the `main` chat, the only chat the upgraded app shows. A v1 build opens `main` only when onboarding is marked complete and no chat exists yet, so the seed proof launches with `-enduragent.onboardingCompleted YES` and skips onboarding. The v1 fixture scripts only a new workout, so `helpers/V1ReviewActionsFixture.patch` adds two requests to the v1 checkout's `FirstWeekFixture`: `Rename my Thursday ride to Recovery spin` proposes an edit and `Delete my Thursday ride` proposes a deletion. Apply the patch and copy `helpers/V1PendingReviewSeedProof.swift` beside the two-chats seed before the v1 build. Run each seed and the head proof as a pair after the two-chats pair, because each v1 seed starts from a fresh store:
+**Upgrade proofs.** Build the current checkout and run both proofs together:
 
 ```sh
-git -C .worktrees/v1-trunk apply "$PWD/.claude/skills/verify-ios/helpers/V1ReviewActionsFixture.patch"
-cp .claude/skills/verify-ios/helpers/V1PendingReviewSeedProof.swift .worktrees/v1-trunk/apps/ios/EnduragentUITests/
-$TRUNK test <run id> V1PendingReviewSeedProof
-$SIM test <run id> LegacyReviewNoticeProof
-$TRUNK test <run id> V1PendingEditSeedProof
-$SIM test <run id> LegacyReviewNoticeProof
-$TRUNK test <run id> V1PendingDeleteSeedProof
-$SIM test <run id> LegacyReviewNoticeProof
+.claude/skills/verify-ios/helpers/sim.mjs build
+.claude/skills/verify-ios/helpers/sim.mjs test <run id> UpgradeHistoryProof LegacyReviewNoticeProof
 ```
 
-The seeded review expires ten minutes after the fixture clock's `1998-06-15T08:00:00Z`, and both builds start at that time, so the head reads it as pending. The head proof reads the notice with intervals.icu disconnected, connects `fixture` from Debug, Credentials and reads it again, relaunches in German, and checks that Records lists no `proposalCleared` and no `reviewApplied` after each view. Remove the worktree with `git worktree remove --force .worktrees/v1-trunk` when the run is done; `--force` drops the copied seed proof.
+Require `2 passed, 0 failed, 0 skipped`. `TutorialHarness.launchUpgrade` uses `FixtureArguments` with `.v1History` or `.v1Review` and completed onboarding, then accepts AI-provider consent. Debug fixture preparation copies the corresponding synced and local databases from `apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade` into the app's fixture directory before the store opens.
+
+`UpgradeHistoryProof` opens the history fixture on the welcome and asserts two archived conversations labeled `Earlier chat`. It opens an archive and checks the saved question and reply, the read-only notice, and the absence of composer controls.
+
+`LegacyReviewNoticeProof` opens the review fixture with one pending workout review in `main`. It reads the earlier-version notice while disconnected from intervals.icu, connects the fixture athlete through Debug, Credentials, and reads the notice again. It relaunches in German and checks the localized notice. Approval and cancel controls stay absent, and Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`. The fixture clock stays at `1998-06-15T08:00:00Z`, within the review's ten-minute lifetime. The committed fixture covers a create review. Package migration tests cover v1 edit and deletion reviews.
+
+The stores were generated through the frozen v1 code at `82254bbda75ba79b0156d7efd3deac223489b2b0`. To regenerate them on macOS with that code's compatible Swift toolchain, run:
+
+```sh
+caffeinate -i node tools/generate-v1-upgrade-stores.mjs
+```
+
+The generator archives the frozen package and its unchanged `FirstWeekFixture` into a temporary directory, adds `tools/fixtures/V1UpgradeStoreSeed.swift` to the test target, and drives the v1 `Coach.send` and `SwiftDataRecordLog`. It checkpoints the generated SQLite databases and copies them into the two committed fixture folders. Do not hand-edit database rows or the frozen schema. CI and UI proof runs consume the committed stores and need no v1 installation or detached worktree.
 
 ## Compare with the prototype
 

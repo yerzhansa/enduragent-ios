@@ -33,16 +33,16 @@ final class SummaryFirstProof: XCTestCase {
 		for _ in 1...6 {
 			TutorialHarness.sendLong(app)
 		}
-		TutorialHarness.send(app, TutorialHarness.weekQuestion)
-		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, timeout: 30)
+		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply, within: .turn)
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "compactionSummary", "compactionSummary 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "summary-records", app: app)
 		TutorialHarness.closeMenu(app)
 		XCTAssertEqual(TutorialHarness.historyHead(app), TutorialHarness.summaryHead)
-		TutorialHarness.send(app, TutorialHarness.remember)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply, timeout: 30)
+		TutorialHarness.exchange(app, TutorialHarness.remember)
+		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply, within: .turn)
 		XCTAssertEqual(TutorialHarness.historyHead(app), TutorialHarness.summaryHead)
 		XCTAssertTrue(
 			TutorialHarness.text(app, containing: TutorialHarness.rememberReply).isHittable,
