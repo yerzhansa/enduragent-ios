@@ -19,9 +19,9 @@ struct TurnRowView: View {
 				EmptyView()
 			case .accepted(.collecting), .accepted(.queued):
 				working
-			case .processing(let processing):
-				if !processing.liveText.isEmpty {
-					Text(processing.liveText)
+			case .processing:
+				if let reply = model.chat?.liveReply, reply.turn == turn.id, !reply.text.isEmpty {
+					Text(reply.text)
 				}
 				working
 			case .completed(let completed):
@@ -47,6 +47,11 @@ struct TurnRowView: View {
 				notice(interrupted.notice)
 			case .unrecovered(let unrecovered):
 				notice(unrecovered.notice)
+			}
+			if let failure = turn.saveFailure {
+				Text(say(failure))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.turn.saveFailure")
 			}
 		}
 		.fixedSize(horizontal: false, vertical: true)

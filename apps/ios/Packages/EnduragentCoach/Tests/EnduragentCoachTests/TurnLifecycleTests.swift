@@ -199,7 +199,7 @@ import Testing
 			processing
 				== .processing(
 					TurnState.Processing(
-						attempt: attempt, liveText: "Thursday", activity: .generating(step: 1))))
+						attempt: attempt, activity: .generating(step: 1))))
 		let done = TurnLifecycle.state(
 			of: settled(.replied(.model("Thursday is on."), lineage: nil)), live: live,
 			overlay: .notInThisProcess, device: phoneA, process: process)

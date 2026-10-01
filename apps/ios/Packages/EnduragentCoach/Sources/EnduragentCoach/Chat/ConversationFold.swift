@@ -9,7 +9,9 @@ package enum ConversationFold {
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
 
-	package static let localScope: RecordQuery.Scope = .deviceLocal([.turnClaim, .replyObserved])
+	package static let localScope: RecordQuery.Scope = .deviceLocal([
+		.turnClaim, .replyObserved, .pendingSettlement,
+	])
 
 	package static func fold(
 		chat: ChatID, synced: [AthleteRecord], local: [AthleteRecord] = [], device: DeviceID

@@ -38,8 +38,8 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		var sawText = false
 		for await snapshot in await coach.observe(.main) {
-			if case .processing(let processing)? = snapshot.turns.first?.state,
-				!processing.liveText.isEmpty
+			if case .processing? = snapshot.turns.first?.state,
+				snapshot.liveReply?.text.isEmpty == false
 			{
 				sawText = true
 				break

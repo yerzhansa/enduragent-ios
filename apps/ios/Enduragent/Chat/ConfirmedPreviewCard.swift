@@ -26,6 +26,15 @@ struct ConfirmedPreviewCard: View {
 						VStack(alignment: .leading) { buttons }
 					}
 				}
+				if review.notice?.kind == .storageUnavailable, review.authority == .thisDevice {
+					HStack {
+						Button(say(Catalog.commonCancel)) {}
+							.accessibilityIdentifier("chat.preview.cancel")
+						Button(say(Catalog.reviewAdd)) {}
+							.accessibilityIdentifier("chat.preview.add")
+					}
+					.disabled(true)
+				}
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
 		}
@@ -37,6 +46,13 @@ struct ConfirmedPreviewCard: View {
 	}
 
 	var actions: [ConfirmedPreviewAction] {
+		if review.notice?.kind == .storageUnavailable {
+			return [
+				ConfirmedPreviewAction(
+					id: "chat.preview.retryRead", title: Catalog.settingsCredentialsRetry,
+					decision: .checkAgain(review.ref))
+			]
+		}
 		guard review.authority == .thisDevice, review.notice?.kind != .accountChanged else {
 			return []
 		}

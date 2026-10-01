@@ -23,7 +23,6 @@ AccountAuthority.unverifiable
 AppLifecycleEvent
 AppLifecycleEvent.becameActive
 AppLifecycleEvent.enteredBackground
-AppLifecycleEvent.willResignActive
 AppLifecycleEvent.willTerminate
 ArchiveReason
 ArchiveReason.earlierChat
@@ -68,9 +67,11 @@ ChatActivity.working
 ChatSnapshot
 ChatSnapshot.activity
 ChatSnapshot.chat
+ChatSnapshot.liveReply
 ChatSnapshot.notes
 ChatSnapshot.opening
 ChatSnapshot.review
+ChatSnapshot.revision
 ChatSnapshot.turns
 CivilDate
 CivilDate.<(_:_:)
@@ -266,6 +267,9 @@ LeaseRequest.initiatedBy
 LeaseRequest.language
 LeaseRequest.title
 LeaseRequest.titleText
+LiveReply
+LiveReply.text
+LiveReply.turn
 LocalFailure
 LocalFailure.recordStorage
 MemorySaveResult
@@ -378,6 +382,7 @@ ReviewNotice.Kind.earlierVersion
 ReviewNotice.Kind.partialFailure
 ReviewNotice.Kind.proposedRevision
 ReviewNotice.Kind.refreshedAfterStaleTarget
+ReviewNotice.Kind.storageUnavailable
 ReviewNotice.key
 ReviewNotice.kind
 ReviewNotice.vars
@@ -508,7 +513,6 @@ TurnState.Interrupted.saved
 TurnState.Processing
 TurnState.Processing.activity
 TurnState.Processing.attempt
-TurnState.Processing.liveText
 TurnState.SavedWork
 TurnState.SavedWork.notice
 TurnState.SavedWork.outcome
@@ -528,6 +532,7 @@ TurnView
 TurnView.athleteText
 TurnView.completedInBackground
 TurnView.id
+TurnView.saveFailure
 TurnView.sentOn
 TurnView.state
 ULID

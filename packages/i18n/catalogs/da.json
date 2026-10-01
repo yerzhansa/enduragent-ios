@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Vi kunne ikke kontrollere gemte anmodninger til Plan. Opret forbindelse igen, og prøv igen.",
       "protocolFailure": "Trænerens svar kunne ikke bekræftes. Prøv igen.",
       "questionSkipped": "Spørgsmålet blev sprunget over",
+      "replyUnsaved": "Dette svar kunne ikke gemmes. Hold appen åben, mens der forsøges at gemme igen.",
       "queueLoadFailure": "Vi kunne ikke kontrollere dine gemte beskeder. Opret forbindelse igen, og prøv igen.",
       "queueRemoveFailure": "Vi kunne ikke fjerne den gemte besked. Prøv igen.",
       "responseFailure": "Træneren kunne ikke svare. Prøv igen.",
@@ -2911,6 +2912,7 @@
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
     "turnStopping": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset.",
     "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
+    "storageUnavailable": "Den gemte træningsgennemgang kunne ikke læses. Din seneste gennemgang vises stadig. Prøv igen for at gendanne betjeningen.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
     "workout": {

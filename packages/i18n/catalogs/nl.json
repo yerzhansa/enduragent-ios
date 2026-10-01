@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Opgeslagen verzoeken voor Plan konden niet worden gecontroleerd. Maak opnieuw verbinding en probeer het opnieuw.",
       "protocolFailure": "Het antwoord van de coach kon niet worden geverifieerd. Probeer het opnieuw.",
       "questionSkipped": "Vraag overgeslagen",
+      "replyUnsaved": "Dit antwoord kon niet worden opgeslagen. Houd de app open terwijl het opslaan opnieuw wordt geprobeerd.",
       "queueLoadFailure": "Je opgeslagen berichten konden niet worden gecontroleerd. Maak opnieuw verbinding en probeer het opnieuw.",
       "queueRemoveFailure": "Dat opgeslagen bericht kon niet worden verwijderd. Probeer het opnieuw.",
       "responseFailure": "De coach kon niet antwoorden. Probeer het opnieuw.",
@@ -2911,6 +2912,7 @@
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
     "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
     "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
+    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen.",
     "title": "Training controleren",
     "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
     "workout": {

@@ -29,26 +29,41 @@ import Testing
 		}
 	}
 
-	@Test func replyStreamsTextThenFinishes() async throws {
+	@Test func replyFinishesWithTheAssembledRequest() async throws {
+		let pacing = HeldClock()
+		let transport = FakeModelTransport(clock: pacing)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await makeCoach()
+			], deltaDelay: .milliseconds(1), otherwise: transport.respond)
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
 		var liveTexts: [String] = []
 		var settled: TurnState?
-		for await snapshot in await coach.observe(.main) {
-			guard let state = snapshot.turns.first?.state else { continue }
-			if case .processing(let processing) = state {
-				liveTexts.append(processing.liveText)
+		let snapshots = await coach.observe(.main)
+		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
+			let held = try await beforeDeadline(within: .seconds(2)) {
+				try await pacing.waitUntilHeld(.milliseconds(1))
+				return true
 			}
-			if state.isSettled {
-				settled = state
-				break
-			}
+			try #require(held == true)
+			pacing.advance(by: .milliseconds(1))
+			_ = try #require(
+				try await firstSnapshot(in: snapshots, within: .seconds(2)) { snapshot in
+					guard case .processing? = snapshot.turns.first?.state else { return false }
+					return snapshot.liveReply?.text == text
+				})
+			liveTexts.append(text)
 		}
+		let finishing = try await beforeDeadline(within: .seconds(2)) {
+			try await pacing.waitUntilHeld(.milliseconds(1))
+			return true
+		}
+		try #require(finishing == true)
+		pacing.advance(by: .milliseconds(1))
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(2)))
 		#expect(liveTexts.contains("Your week: "))
 		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)

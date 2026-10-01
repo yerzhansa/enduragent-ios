@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Det gick inte att kontrollera sparade planförfrågningar. Anslut på nytt och försök igen.",
       "protocolFailure": "Tränarens svar kunde inte verifieras. Försök igen.",
       "questionSkipped": "Frågan hoppades över",
+      "replyUnsaved": "Det gick inte att spara svaret. Håll appen öppen medan ett nytt försök att spara görs.",
       "queueLoadFailure": "Det gick inte att kontrollera dina sparade meddelanden. Anslut på nytt och försök igen.",
       "queueRemoveFailure": "Det sparade meddelandet kunde inte tas bort. Försök igen.",
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
@@ -2911,6 +2912,7 @@
     "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
     "turnStopping": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset.",
     "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
+    "storageUnavailable": "Det gick inte att läsa den sparade träningsgranskningen. Din senaste granskning visas fortfarande. Försök igen för att återställa kontrollerna.",
     "title": "Granskning av träningspass",
     "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
     "workout": {

@@ -6,7 +6,26 @@ public struct ChatSnapshot: Sendable, Equatable {
 	public let turns: [TurnView]
 	public let activity: ChatActivity
 	public let review: ReviewSnapshot?
-	public let notes: [TranscriptNote]
+	public let notes: [TurnID?: [TranscriptNote]]
+	public internal(set) var liveReply: LiveReply?
+	public internal(set) var revision: UInt64
+
+	public static func == (lhs: Self, rhs: Self) -> Bool {
+		lhs.chat == rhs.chat && lhs.opening == rhs.opening && lhs.turns == rhs.turns
+			&& lhs.activity == rhs.activity && lhs.review == rhs.review && lhs.notes == rhs.notes
+			&& lhs.liveReply == rhs.liveReply
+	}
+}
+
+public struct LiveReply: Sendable, Equatable {
+	public let turn: TurnID
+	public let text: String
+
+	init?(_ live: LiveAttempt?) {
+		guard let live else { return nil }
+		self.turn = live.turn
+		self.text = live.text
+	}
 }
 
 public struct TurnView: Sendable, Equatable, Identifiable {
@@ -15,6 +34,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let sentOn: CivilDate
 	public let state: TurnState
 	public let completedInBackground: Bool
+	public let saveFailure: CatalogKey?
 }
 
 public enum ChatActivity: Sendable, Equatable {
@@ -144,6 +164,8 @@ public enum RetryRefusal: Error, Sendable, Equatable {
 extension ChatSnapshot {
 	init(
 		chat: ChatID,
+		revision: UInt64,
+		projection: inout TurnProjection,
 		conversation: Conversation,
 		jobs: [FlushJob],
 		phase: MailboxPhase,
@@ -151,6 +173,7 @@ extension ChatSnapshot {
 		queued: [MailboxWork],
 		waiting: Set<TurnID>,
 		finishedAway: Set<TurnID>,
+		unsavedTurns: Set<TurnID> = [],
 		review: ReviewSnapshot?,
 		device: DeviceID,
 		process: ProcessID,
@@ -158,13 +181,17 @@ extension ChatSnapshot {
 		zone: TimeZone
 	) {
 		self.chat = chat
+		self.revision = revision
+		self.liveReply = LiveReply(phase.running?.live)
 		let current = conversation.current
 		let items = phase.items(queued: queued)
 		self.opening = ConversationOpening(current, jobs: jobs)
-		self.turns = current.turnViews(
+		self.turns = projection.turns(
+			in: current,
 			live: phase.running?.live, window: window, queued: items.compactMap(\.turn),
 			waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
+			unsavedTurns: unsavedTurns,
 			today: CivilDate(date: now, timeZone: zone))
 		if phase.cause != nil {
 			self.activity = .stopping
@@ -176,7 +203,7 @@ extension ChatSnapshot {
 			self.activity = .idle
 		}
 		self.review = review
-		self.notes = current.transcriptNotes(among: turns)
+		self.notes = Dictionary(grouping: current.transcriptNotes(among: turns), by: \.after)
 	}
 }
 
@@ -186,29 +213,6 @@ extension Segment {
 			TranscriptNote(
 				id: note.ulid, after: turns.last { $0.id.ulid < note.ulid }?.id,
 				summary: note.summary)
-		}
-	}
-
-	func turnViews(
-		live: LiveAttempt?, window: OpenWindow? = nil, queued: [TurnID] = [],
-		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
-		device: DeviceID, process: ProcessID, today: CivilDate
-	) -> [TurnView] {
-		turns.compactMap { facts -> TurnView? in
-			if hidesWholly(facts) {
-				return nil
-			}
-			let overlay = TurnOverlay(
-				of: facts.turn, window: window, queued: queued, waiting: waiting)
-			return TurnView(
-				id: facts.turn,
-				athleteText: hidesQuestion(of: facts) ? nil : facts.requestText,
-				sentOn: facts.fragments.first?.civilDate ?? today,
-				state: TurnLifecycle.state(
-					of: facts, live: live, overlay: overlay, device: device,
-					process: process),
-				completedInBackground: finishedAway.contains(facts.turn)
-			)
 		}
 	}
 }

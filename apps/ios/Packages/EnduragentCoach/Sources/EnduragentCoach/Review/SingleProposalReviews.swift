@@ -19,6 +19,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 		self.training = training
 	}
 
+	package func isExecuting(in chat: ChatID) -> Bool {
+		deliveries[chat]?.busy == true
+	}
+
 	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
 		let previous = deliveries[chat]?.ref
 		let intents = try await ledger.calendarWrites(chat)
@@ -68,6 +72,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 		case .presentationFailed:
 			delivery.secret = nil
 		case .showAgain:
+			guard !delivery.busy else { return .staleControl }
 			delivery.ref = ReviewRef(
 				chat: chat, set: delivery.ref.set, revision: delivery.ref.revision, delivery: UUID()
 			)
@@ -167,6 +172,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 			body.evidence = .unknown(.dispatched)
 			_ = try await ledger.commit(synced: [.reviewWrite(body)], stamp: stamp)
 			await scope?.recordReview(live, evidence: body.evidence)
+			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
 			return .ready(
 				CalendarWriteIntent(record: record, body: body, proposal: live), operation,
 				connection)

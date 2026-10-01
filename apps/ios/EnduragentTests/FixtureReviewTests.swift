@@ -50,8 +50,44 @@ extension FixtureLaunchTests {
 			try await waitUntil { model.chat?.review == nil && model.chat?.notes.count == 1 }
 			#expect(intervals.calls.filter(\.isCalendarWrite).count == 1)
 			#expect(
-				model.chat?.notes.first?.sentence(in: model.phrasebook).hasPrefix("Done") == true)
+				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
+					.hasPrefix("Done") == true)
 		}
+	}
+
+	@Test func failedRecoveryReadOffersOnlyRetryOnTheCard() async throws {
+		let services = try services()
+		let intervals = try #require(services.fixture?.intervals)
+		let faults = try #require(services.fixture?.records)
+		let model = model(services)
+		await model.agreeAndStartChatting()
+		let token = try await presentedReview(on: model)
+		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
+		await model.decide(.approve(token))
+		try await waitUntil {
+			guard case .checkAgain? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		faults.failFetches = true
+		await model.decide(.presented(token.ref))
+		try await waitUntil { model.chat?.review?.notice?.kind == .storageUnavailable }
+		let failed = try #require(model.chat?.review)
+		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
+		#expect(actions.map(\.id) == ["chat.preview.retryRead"])
+		let retry = try #require(actions.first)
+		#expect(model.phrasebook.say(retry.title) == "Retry")
+		#expect(failed.controls == .none)
+		faults.failFetches = false
+		await model.decide(retry.decision)
+		try await waitUntil {
+			guard case .checkAgain? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		let recovered = try #require(model.chat?.review)
+		#expect(
+			ConfirmedPreviewCard(model: model, review: recovered).actions.map(\.id)
+				== ["chat.preview.checkAgain"])
+		#expect(!intervals.calls.contains { $0.isCalendarWrite })
 	}
 
 	@Test(arguments: [false, true])
@@ -125,9 +161,9 @@ extension FixtureLaunchTests {
 		backing.locked = false
 		await model.decide(.approve(token))
 		#expect(model.reviewNotice == nil)
-		try await waitUntil { model.chat?.notes.count == 1 }
+		try await waitUntil { model.chat?.notes.values.flatMap { $0 }.count == 1 }
 		#expect(
-			model.chat?.notes.first?.sentence(in: model.phrasebook)
+			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
 				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
 	}
 

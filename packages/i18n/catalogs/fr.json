@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Impossible de vérifier les demandes de plan enregistrées. Reconnecte et réessaie.",
       "protocolFailure": "La réponse du coach n’a pas pu être vérifiée. Réessaie.",
       "questionSkipped": "Question passée",
+      "replyUnsaved": "Impossible d'enregistrer cette réponse. Garde l'app ouverte pendant la nouvelle tentative d'enregistrement.",
       "queueLoadFailure": "Impossible de vérifier tes messages enregistrés. Reconnecte et réessaie.",
       "queueRemoveFailure": "Impossible de supprimer ce message enregistré. Réessaie.",
       "responseFailure": "Le coach n’a pas pu répondre. Réessaie.",
@@ -2911,6 +2912,7 @@
     "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
     "turnStopping": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance.",
     "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
+    "storageUnavailable": "Impossible de lire la révision de séance enregistrée. Ta dernière révision reste affichée. Réessaie pour rétablir ses commandes.",
     "title": "Vérification de la séance",
     "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
     "workout": {

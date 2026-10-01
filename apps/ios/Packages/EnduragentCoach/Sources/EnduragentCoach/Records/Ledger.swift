@@ -1,6 +1,11 @@
 import Foundation
 
 package actor Ledger {
+	enum CommitMode {
+		case initial
+		case retry
+	}
+
 	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
 
 	private let log: any RecordLog
@@ -10,6 +15,7 @@ package actor Ledger {
 	private var lastUlid: ULID?
 	private var opened = false
 	private var reportedSkips: Set<SkippedRow> = []
+	private let preparedCommits = Turnstile()
 
 	package init(log: any RecordLog, clock: any Clock, diagnostics: DiagnosticsLog) {
 		self.log = log
@@ -108,26 +114,45 @@ package actor Ledger {
 		async throws(LedgerFailure) -> [AthleteRecord]
 	{
 		try await openIfNeeded()
-		let zone = stamp.binding.zone
-		let civilDate = CivilDate(date: clock.now, timeZone: zone.timeZone)
-		let records = bodies.map { body in
-			AthleteRecord(
-				ulid: nextULID(),
-				deviceId: deviceId,
-				hlc: nextClock(),
-				timeZone: zone,
-				civilDate: civilDate,
-				cause: .operation(stamp.operation, stamp.attempt),
-				account: stamp.binding.account,
-				body: body
-			)
+		let records = bodies.map { prepare($0, stamp: stamp) }
+		try await append(records, locality: locality)
+		return records
+	}
+
+	func prepare(_ body: RecordBody, stamp: OperationStamp) -> AthleteRecord {
+		AthleteRecord(
+			ulid: nextULID(), deviceId: deviceId, hlc: nextClock(),
+			timeZone: stamp.binding.zone,
+			civilDate: CivilDate(date: clock.now, timeZone: stamp.binding.zone.timeZone),
+			cause: .operation(stamp.operation, stamp.attempt), account: stamp.binding.account,
+			body: body)
+	}
+
+	func commit(_ record: AthleteRecord, mode: CommitMode) async throws(LedgerFailure) {
+		try await preparedCommits.pass { () throws(LedgerFailure) in
+			if case .retry = mode {
+				let scope: RecordQuery.Scope
+				switch record.body {
+				case .synced(let body): scope = .synced([body.kind])
+				case .deviceLocal(let body): scope = .deviceLocal([body.kind])
+				case .legacy: throw LedgerFailure.rejectedBatch
+				}
+				let saved = try await read(
+					RecordQuery(scope: scope, chatId: record.chatId, turn: record.body.turn))
+				guard !saved.records.contains(where: { $0.ulid == record.ulid }) else { return }
+			}
+			try await append([record], locality: record.locality)
 		}
+	}
+
+	private func append(_ records: [AthleteRecord], locality: RecordLocality)
+		async throws(LedgerFailure)
+	{
 		do {
 			try await log.append(records, locality: locality)
 		} catch {
 			throw LedgerFailure.rejectedBatch
 		}
-		return records
 	}
 
 	private func nextClock() -> HybridLogicalClock {

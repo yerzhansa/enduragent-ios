@@ -7,7 +7,7 @@ extension ChatRecords {
 			await observeReply(turn, stamp: stamp)
 		}
 		if case .proposalPending = progress {
-			await refreshReview()
+			_ = await refreshReview()
 		}
 	}
 }

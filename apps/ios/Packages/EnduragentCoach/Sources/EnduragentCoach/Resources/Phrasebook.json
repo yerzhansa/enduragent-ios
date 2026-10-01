@@ -20459,6 +20459,112 @@
         }
       }
     },
+    "chat.notice.replyUnsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save this reply. Keep the app open while saving is retried."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar esta respuesta. Mantén la app abierta mientras se vuelve a intentar guardarla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'enregistrer cette réponse. Garde l'app ouverte pendant la nouvelle tentative d'enregistrement."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile salvare questa risposta. Tieni aperta l'app mentre si riprova a salvarla."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Antwort konnte nicht gespeichert werden. Lass die App geöffnet, während das Speichern erneut versucht wird."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit antwoord kon niet worden opgeslagen. Houd de app open terwijl het opslaan opnieuw wordt geprobeerd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svar kunne ikke gemmes. Hold appen åben, mens der forsøges at gemme igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att spara svaret. Håll appen öppen medan ett nytt försök att spara görs."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svaret kunne ikke lagres. Hold appen åpen mens lagringen forsøkes på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tätä vastausta ei voitu tallentaa. Pidä sovellus auki, kun tallennusta yritetään uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível guardar esta resposta. Mantém a aplicação aberta enquanto se tenta guardar novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar esta resposta. Mantenha o app aberto enquanto uma nova tentativa de salvar é feita."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać tej odpowiedzi. Pozostaw aplikację otwartą podczas ponownej próby zapisu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 답변을 저장하지 못했습니다. 저장을 다시 시도하는 동안 앱을 열어 두세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この返信を保存できませんでした。保存を再試行する間、アプリを開いたままにしてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存此回复。重新尝试保存时，请保持应用打开。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存此回覆。重新嘗試儲存時，請保持應用程式開啟。"
+          }
+        }
+      }
+    },
     "chat.notice.responseFailure": {
       "localizations": {
         "en": {
@@ -200125,6 +200231,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新儲存已核准的訓練"
+          }
+        }
+      }
+    },
+    "review.storageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la revisión del entrenamiento guardada. Se sigue mostrando tu última revisión. Vuelve a intentarlo para recuperar los controles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de lire la révision de séance enregistrée. Ta dernière révision reste affichée. Réessaie pour rétablir ses commandes."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile leggere la revisione salvata dell’allenamento. La tua ultima revisione resta visibile. Riprova per ripristinare i comandi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Deine letzte Prüfung bleibt sichtbar. Versuche es erneut, um die Bedienelemente wieder zu aktivieren."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den gemte træningsgennemgang kunne ikke læses. Din seneste gennemgang vises stadig. Prøv igen for at gendanne betjeningen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att läsa den sparade träningsgranskningen. Din senaste granskning visas fortfarande. Försök igen för att återställa kontrollerna."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den lagrede treningsgjennomgangen kunne ikke leses. Den siste gjennomgangen din vises fortsatt. Prøv igjen for å gjenopprette kontrollene."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Viimeisin tarkistuksesi näkyy edelleen. Yritä uudelleen palauttaaksesi painikkeet käyttöön."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a revisão do treino guardada. A tua última revisão continua visível. Tenta novamente para restaurar os controlos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a revisão do treino salva. Sua última revisão continua visível. Tente novamente para restaurar os controles."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odczytać zapisanego przeglądu treningu. Ostatni przegląd jest nadal widoczny. Spróbuj ponownie, aby przywrócić przyciski."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 운동 검토를 읽지 못했습니다. 마지막 검토가 계속 표시됩니다. 버튼을 다시 사용하려면 재시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存済みのワークアウト確認を読み取れませんでした。前回の確認を引き続き表示しています。操作ボタンを有効にするには再試行してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取已保存的训练审核。仍显示上次的审核。请重试以恢复操作按钮。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取已儲存的訓練審核。仍顯示上次的審核。請重試以恢復操作按鈕。"
           }
         }
       }

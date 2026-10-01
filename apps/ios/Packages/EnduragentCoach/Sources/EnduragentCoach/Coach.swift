@@ -88,22 +88,22 @@ public actor Coach {
 	}
 
 	public func lifecycle(_ event: AppLifecycleEvent) async {
+		lifetime.apply(event)
 		switch event {
 		case .becameActive:
 			await recoverOnce()
-		case .willResignActive:
-			return
 		case .willTerminate:
-			lifetime.terminate()
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
+			for mailbox in mailboxes.values {
+				await mailbox.cancelInFlight(cause: .appTerminating)
+			}
 		case .enteredBackground:
-			break
-		}
-		for mailbox in mailboxes.values {
-			await mailbox.lifecycle(event)
+			for mailbox in mailboxes.values {
+				await mailbox.enteredBackground()
+			}
 		}
 		if event == .becameActive {
 			await refreshTrainingStatus()
@@ -118,10 +118,13 @@ public actor Coach {
 			diagnostics.record(.recoveryUnavailable(error))
 			return await reviews.unresolved(.unknown(.readFailed))
 		}
+		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
+			return await mailbox.reviewChanged(ref)
+		}
 		let outcome = await reviews.decide(
 			decision, chat: chat, scope: await mailbox.reviewScope,
-			changed: { await mailbox.reviewChanged() })
-		await mailbox.reviewChanged()
+			changed: { _ = await mailbox.reviewChanged() })
+		_ = await mailbox.reviewChanged()
 		return outcome
 	}
 
@@ -135,12 +138,13 @@ public actor Coach {
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
-		let outcome = await vault.change(change) { await self.holdsBoundWork() }
+		let clock = self.clock
+		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
 		trainingRefresh?.cancel()
 		trainingRefresh = nil
 		trainingStatus = nil
 		for mailbox in mailboxes.values {
-			await mailbox.reviewChanged()
+			_ = await mailbox.reviewChanged()
 		}
 		if statusFeed.isObserved {
 			await refreshTrainingStatus()
@@ -169,19 +173,6 @@ public actor Coach {
 			try await vault.replaceAppAccountToken()
 		}
 	#endif
-
-	private func holdsBoundWork() async -> Bool {
-		for mailbox in mailboxes.values {
-			var snapshots = await mailbox.observe().makeAsyncIterator()
-			guard let snapshot = await snapshots.next() else { continue }
-			if snapshot.review != nil
-				|| snapshot.turns.contains(where: { !$0.state.isSettled })
-			{
-				return true
-			}
-		}
-		return false
-	}
 
 	#if DEBUG
 		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
