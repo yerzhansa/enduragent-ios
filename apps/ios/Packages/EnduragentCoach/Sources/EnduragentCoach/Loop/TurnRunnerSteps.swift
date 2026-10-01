@@ -218,11 +218,11 @@ func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 			"pendingConfirmation": .bool(true),
 			"summary": .string(proposal.summary),
 		]).canonicalDigestInput()
-	case .truncated(let notice, let tokens):
+	case .truncated(let notice, let tokens, let omittedRecords):
 		return JSONValue.object([
 			"truncated": .bool(true),
 			"notice": .string(notice),
-			"omittedSamples": .number(0),
+			"omittedSamples": .number(Double(omittedRecords)),
 			"estimatedTokens": .number(Double(tokens)),
 		]).canonicalDigestInput()
 	}
