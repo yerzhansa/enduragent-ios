@@ -1,10 +1,58 @@
 import EnduragentCoach
 import Foundation
+import Observation
 import Testing
 
 @testable import Enduragent
 
 extension FixtureLaunchTests {
+	@Test(arguments: [false, true])
+	func unknownWriteCanBeRecoveredThroughTheCard(cancel: Bool) async throws {
+		let services = try services()
+		let intervals = try #require(services.fixture?.intervals)
+		let model = model(services)
+		await model.agreeAndStartChatting()
+		let token = try await presentedReview(on: model)
+		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
+		await model.decide(.approve(token))
+		try await waitUntil {
+			guard case .checkAgain? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		let pending = try #require(model.chat?.review)
+		let check = try #require(
+			ConfirmedPreviewCard(model: model, review: pending).actions.first {
+				$0.id == "chat.preview.checkAgain"
+			})
+		#expect(model.phrasebook.say(check.title) == "Check again")
+		intervals.writeFailure = nil
+		await model.decide(check.decision)
+		try await waitUntil {
+			guard case .retryRemainingOrCancel? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		let absent = try #require(model.chat?.review)
+		let actions = ConfirmedPreviewCard(model: model, review: absent).actions
+		#expect(actions.contains { $0.id == "chat.preview.checkAgain" })
+		let action = try #require(
+			actions.first { $0.id == (cancel ? "chat.preview.cancel" : "chat.preview.saveAgain") })
+		await model.decide(action.decision)
+		if cancel {
+			#expect(model.reviewNotice?.key == Catalog.reviewWritePending)
+			try await waitUntil {
+				guard case .checkAgain? = model.chat?.review?.controls else { return false }
+				return true
+			}
+			#expect(!intervals.calls.contains(where: \.isCalendarWrite))
+		} else {
+			#expect(model.reviewNotice == nil)
+			try await waitUntil { model.chat?.review == nil && model.chat?.notes.count == 1 }
+			#expect(intervals.calls.filter(\.isCalendarWrite).count == 1)
+			#expect(
+				model.chat?.notes.first?.sentence(in: model.phrasebook).hasPrefix("Done") == true)
+		}
+	}
+
 	@Test(arguments: [false, true])
 	func reviewNoticeClearsWhenContinuingOrStartingANewConversation(newConversation: Bool)
 		async throws
@@ -117,10 +165,15 @@ extension FixtureLaunchTests {
 		return token
 	}
 
-	private func waitUntil(_ condition: () -> Bool) async throws {
-		let deadline = ContinuousClock.now + .seconds(20)
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
+	private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async throws {
+		while !condition() {
+			await withCheckedContinuation { continuation in
+				withObservationTracking {
+					if condition() { continuation.resume() }
+				} onChange: {
+					continuation.resume()
+				}
+			}
 		}
 		try #require(condition())
 	}

@@ -22,16 +22,13 @@ struct ConfirmedPreviewCard: View {
 				}
 				if review.authority == .thisDevice, review.notice?.kind != .accountChanged {
 					HStack {
-						Button(say(Catalog.commonCancel)) {
-							decide(ReviewDecision.cancel)
+						ForEach(actions, id: \.id) { action in
+							Button(say(action.title)) {
+								Task { await model.decide(action.decision) }
+							}
+							.accessibilityIdentifier(action.id)
 						}
-						.accessibilityIdentifier("chat.preview.cancel")
-						Button(say(Catalog.reviewAdd)) {
-							decide(ReviewDecision.approve)
-						}
-						.accessibilityIdentifier("chat.preview.add")
 					}
-					.disabled(token == nil)
 				}
 			}
 			.frame(maxWidth: .infinity, alignment: .leading)
@@ -43,9 +40,18 @@ struct ConfirmedPreviewCard: View {
 		}
 	}
 
-	private var token: ReviewControlToken? {
-		guard case .approveOrCancel(let token) = review.controls else { return nil }
-		return token
+	var actions: [ConfirmedPreviewAction] {
+		switch review.controls {
+		case .approveOrCancel(let token):
+			[
+				ConfirmedPreviewAction(
+					id: "chat.preview.cancel", title: Catalog.commonCancel, decision: .cancel(token)
+				),
+				ConfirmedPreviewAction(
+					id: "chat.preview.add", title: Catalog.reviewAdd, decision: .approve(token)),
+			]
+		case .none, .checkAgain, .retryRemainingOrCancel: []
+		}
 	}
 
 	private var presentable: Bool {
@@ -56,12 +62,13 @@ struct ConfirmedPreviewCard: View {
 			}
 	}
 
-	private func decide(_ intent: @escaping (ReviewControlToken) -> ReviewDecision) {
-		guard let token else { return }
-		Task { await model.decide(intent(token)) }
-	}
-
 	private func say(_ key: CatalogKey) -> String {
 		model.phrasebook.say(key, [:])
 	}
+}
+
+struct ConfirmedPreviewAction {
+	let id: String
+	let title: CatalogKey
+	let decision: ReviewDecision
 }
