@@ -110,7 +110,8 @@ extension SwiftDataSuites {
 					])
 			}
 			let log = BatchRecordingLog(inner: store)
-			let coach = await makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+			let coach = await makeCoach(
+				transport: FakeModelTransport(), store: log, clock: clock, consent: false)
 			let archived = try await coach.history()
 			#expect(archived.count == 50)
 			#expect(archived.first?.turns.first?.athleteText == "Archived 50")
