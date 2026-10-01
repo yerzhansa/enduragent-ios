@@ -101,6 +101,7 @@ extension ChatMailboxTests {
 		let inner = InMemoryRecordLog()
 		let faults = FaultInjectingRecordLog(wrapping: inner)
 		try faults.failAppends(ofKind: "turnSettled")
+		try faults.failAppends(ofKind: "replyObserved")
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
 		transport.script = [.text("Unsaved answer"), .finish(reason: .stop)]
@@ -116,6 +117,42 @@ extension ChatMailboxTests {
 		#expect(try await settlements(of: local, in: store).isEmpty)
 		let mailbox = await coach.mailbox(for: .main)
 		#expect(await mailbox.conversation.turn(local)?.settlements.count == 1)
+		#expect(await mailbox.conversation.turn(local)?.replyObserved.count == 1)
+	}
+
+	@Test func failedImportKeepsTheConversationAndRetriesTheNextNotification() async throws {
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let store = ImportingRecordLog(inner: faults)
+		let transport = FakeModelTransport()
+		transport.script = [.text("Local answer"), .finish(reason: .stop)]
+		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		_ = try await coach.sendAndSettle("Local question")
+		let observed = ImportSnapshots(await coach.observe(.main))
+		try await waitUntil { observed.latest != nil }
+		let before = observed.latest
+		faults.failFetches = true
+		let remote = try await importTurn(into: store)
+		try await waitUntil { coach.diagnostics.entries.count == 1 }
+		#expect(observed.latest == before)
+		faults.failFetches = false
+		store.notifyImport()
+		try await waitUntil { observed.latest?.turns.contains { $0.id == remote } == true }
+		#expect(observed.latest?.turns.map(\.athleteText) == ["Local question", "Remote question"])
+		#expect(store.subscriptions == 1)
+	}
+
+	@Test func importDuringTheInitialReadReachesTheExistingObserver() async throws {
+		let store = ImportingRecordLog()
+		store.holdRead()
+		defer { store.releaseRead() }
+		let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		async let stream = coach.observe(.main)
+		try await waitUntil { store.readHeld }
+		let remote = try await importTurn(into: store)
+		store.releaseRead()
+		let observed = ImportSnapshots(await stream)
+		try await waitUntil { observed.latest?.turns.map(\.id) == [remote] }
+		#expect(observed.latest?.turns.map(\.athleteText) == ["Remote question"])
 	}
 
 	@Test func importSubscriptionStopsOnTermination() async throws {
@@ -126,6 +163,8 @@ extension ChatMailboxTests {
 		#expect(store.subscriptions == 1)
 		await coach.lifecycle(.willTerminate)
 		try await waitUntil { store.listeners == 0 }
+		_ = await coach.currentSnapshot(.main)
+		#expect(store.subscriptions == 1)
 	}
 
 	@discardableResult
