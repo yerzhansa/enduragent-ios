@@ -44,14 +44,62 @@ import Testing
 		#expect(archived.map(\.reason) == [.earlierChat, .earlierChat])
 		#expect(archived.map(\.id.rawValue) == [secondChat.rawValue, firstChat.rawValue])
 		#expect(
-			archived.map { $0.turns.map(\.athleteText) }
-				== [["Is Thursday still on?"], ["How was my week?"]])
+			archived.map(\.firstQuestion)
+				== ["Is Thursday still on?", "How was my week?"])
+		var opened: [ArchivedConversation] = []
+		for summary in archived {
+			opened.append(try #require(try await coach.archivedConversation(summary.id)))
+		}
 		#expect(
-			archived.map { $0.turns.compactMap { replyText($0.state) } } == [
+			opened.map { $0.turns.compactMap { replyText($0.state) } } == [
 				["Yes, keep it."], ["Two rides."],
 			])
 		#expect(archived.map(\.startedOn) == ["1998-06-13", "1998-06-13"])
 		#expect(try await store.fetch(RecordQuery(scope: .everySynced)).records.count == 4)
+		#expect(transport.requests.isEmpty)
+	}
+
+	@Test func legacyAssistantTrimKeepsTheFirstVisibleQuestionAndReply() async throws {
+		let boundary = fixedUlid(40)
+		let bodies: [(Int, CivilDate, RecordBody)] = [
+			(10, "1998-06-11", legacyUser(chatId: .main, text: "Hidden question")),
+			(11, "1998-06-11", legacyReply(chatId: .main, text: "Kept first reply")),
+			(20, "1998-06-12", legacyUser(chatId: .main, text: "Visible question")),
+			(21, "1998-06-12", legacyReply(chatId: .main, text: "Kept second reply")),
+			(
+				30, "1998-06-12",
+				.legacy(.windowStartV1(chatId: .main, firstIncludedUlid: fixedUlid(11)))
+			),
+			(
+				40, "1998-06-13",
+				.synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: boundary,
+							reason: .reset(ResetID(ulid: boundary)))))
+			),
+		]
+		try await seed(
+			store,
+			bodies.map { index, date, body in
+				storedRecord(
+					device: store.deviceId, wall: Int64(index), date: date,
+					ulid: fixedUlid(index), body: body)
+			})
+		let coach = await coach()
+		let history = try await coach.history()
+		#expect(history.count == 1)
+		let summary = try #require(history.first)
+		#expect(summary.firstQuestion == "Visible question")
+		#expect(summary.startedOn == "1998-06-11")
+		#expect(summary.reason == .newConversation)
+		let opened = try #require(try await coach.archivedConversation(summary.id))
+		#expect(opened.turns.map(\.athleteText) == [nil, "Visible question"])
+		#expect(
+			opened.turns.compactMap { replyText($0.state) } == [
+				"Kept first reply", "Kept second reply",
+			])
+		#expect(opened.startedOn == summary.startedOn)
 		#expect(transport.requests.isEmpty)
 	}
 
@@ -114,9 +162,9 @@ extension SwiftDataSuites {
 				transport: FakeModelTransport(), store: log, clock: clock, consent: false)
 			let archived = try await coach.history()
 			#expect(archived.count == 50)
-			#expect(archived.first?.turns.first?.athleteText == "Archived 50")
-			#expect(log.reads == [ConversationFold.syncedScope, ConversationFold.localScope])
-			#expect(log.fetchedRecordCount == 150)
+			#expect(archived.first?.firstQuestion == "Archived 50")
+			#expect(log.reads.count == 1)
+			#expect(log.fetchedRecordCount == 100)
 		}
 	}
 }
