@@ -4,6 +4,46 @@ import Testing
 @testable import EnduragentCoach
 
 extension DurableCalendarWriteTests {
+	@Test func failedImportReviewReadDisablesThePresentedReviewAndRestoresOnTheNextImport()
+		async throws
+	{
+		let server = try CalendarWriteServer()
+		let url = try await server.start()
+		defer { server.stop() }
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let store = ImportingRecordLog(inner: faults)
+		let fixture = await fixture(url: url, store: store)
+		let (_, token) = try await proposal(on: fixture.coach, model: fixture.model)
+		await fixture.coach.stop(.main)
+		_ = await fixture.coach.decide(.presented(token.ref), in: .main)
+		let ready = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		let observed = ImportSnapshots(await fixture.coach.observe(.main))
+		try await waitUntil { observed.latest?.review == ready }
+		faults.failNextFetch(in: ProposalPolicy.proposalQuery(.main).scope)
+		store.notifyImport()
+		try await waitUntil {
+			fixture.coach.diagnostics.entries.contains {
+				$0.event == .importsUnavailable(.main, .unavailable)
+			}
+		}
+		let failed = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		#expect(failed.ref == ready.ref)
+		#expect(failed.state == .storageUnavailable(try #require(ready.content), .approveOrCancel))
+		#expect(failed.controls == .none)
+		#expect(failed.notice?.key == Catalog.reviewStorageUnavailable)
+		#expect(
+			fixture.coach.diagnostics.entries.contains {
+				$0.event == .reviewUnavailable(.main, .unavailable)
+			})
+		try await waitUntil { observed.latest?.review == failed }
+		#expect(observed.latest?.review?.state == failed.state)
+		store.notifyImport()
+		try await waitUntil { observed.latest?.review == ready }
+		#expect(await fixture.coach.currentSnapshot(.main)?.review == ready)
+		#expect(server.posts.isEmpty)
+		await fixture.coach.lifecycle(.willTerminate)
+	}
+
 	@Test(arguments: [false, true])
 	func failedRefreshRestoresRecoveryWithoutRepeatingTheWrite(repeatAvailable: Bool) async throws {
 		let server = try CalendarWriteServer()

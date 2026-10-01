@@ -161,7 +161,12 @@ package actor ChatMailbox {
 	}
 
 	package func refreshImports() async throws(LedgerFailure) {
-		try await records.refresh()
+		do {
+			try await records.refresh()
+		} catch {
+			if reviewReadUnavailable { publish() }
+			throw error
+		}
 		if let window = work.window,
 			!conversation.current.turns.contains(where: { $0.turn == window.turn })
 		{

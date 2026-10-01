@@ -61,7 +61,13 @@ final class ChatRecords {
 		} else {
 			jobs = try await ledger.flushJobs(in: folded)
 		}
-		let review = try await reviews.snapshot(chat: chat, records: imported)
+		let review: ReviewSnapshot?
+		do {
+			review = try await reviews.snapshot(chat: chat, records: imported)
+		} catch {
+			reviewUnavailable(error)
+			throw error
+		}
 		folded.apply(Array(applied.values), device: ledger.deviceId)
 		conversation = folded
 		self.review = activeReview(review)
