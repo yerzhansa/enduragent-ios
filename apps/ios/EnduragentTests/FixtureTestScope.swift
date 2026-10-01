@@ -1,0 +1,137 @@
+import EnduragentCoach
+import EnduragentCoachFixtures
+import Foundation
+import Testing
+
+@testable import Enduragent
+
+struct FixtureTestScope: SuiteTrait, TestScoping {
+	@TaskLocal static var current: AppTestFixture?
+	let isRecursive = true
+
+	func provideScope(
+		for test: Test, testCase: Test.Case?, performing function: @Sendable () async throws -> Void
+	) async throws {
+		guard !test.isSuite else {
+			try await function()
+			return
+		}
+		let fixture = try await AppTestFixture()
+		try await FixtureFolder.$current.withValue(fixture.folder) {
+			try await FixtureTestScope.$current.withValue(fixture) {
+				do {
+					try await function()
+				} catch {
+					Issue.record(error)
+				}
+				try await fixture.cleanup()
+			}
+		}
+	}
+}
+
+@MainActor
+final class AppTestFixture {
+	static var active: AppTestFixture {
+		guard let current = FixtureTestScope.current else {
+			preconditionFailure("The app test needs FixtureTestScope")
+		}
+		return current
+	}
+
+	let launch: FixtureLaunch
+	let defaults: UserDefaults
+	let folder: FixtureFolder
+	private var models: [ShellModel] = []
+	private var coaches: [Coach] = []
+	private var memoryRecords: RecordStore?
+
+	init() throws {
+		let id = UUID().uuidString
+		launch = FixtureLaunch(
+			name: FixtureLaunch.firstWeekName, store: .fresh, keychain: .unlocked,
+			directory: FileManager.default.temporaryDirectory.appending(
+				path: "enduragent-app-test-\(id)", directoryHint: .isDirectory),
+			defaultsSuiteName: "enduragent.app.test.\(id)")
+		defaults = try launch.prepare()
+		folder = try FixtureFolder(directory: launch.directory)
+	}
+
+	var records: RecordStore {
+		if let memoryRecords { return memoryRecords }
+		let records = RecordStore.inMemory(deviceId: DeviceID())
+		memoryRecords = records
+		return records
+	}
+
+	func own(_ services: AppServices) -> AppServices {
+		coaches.append(services.coach)
+		return services
+	}
+
+	func own(_ model: ShellModel) -> ShellModel {
+		models.append(model)
+		coaches.append(model.services.coach)
+		return model
+	}
+
+	func releaseOwners() async {
+		for coach in coaches { await coach.lifecycle(.willTerminate) }
+		models.removeAll()
+		coaches.removeAll()
+		memoryRecords = nil
+	}
+
+	func cleanup() async throws {
+		try await folder.cleanup { await self.releaseOwners() }
+		defaults.removePersistentDomain(forName: launch.defaultsSuiteName)
+	}
+}
+
+@MainActor
+func fixtureServices(_ launch: FixtureLaunch, defaults: UserDefaults) throws -> AppServices {
+	AppTestFixture.active.own(try AppServices.fixture(launch, defaults: defaults))
+}
+
+@MainActor
+func fixtureModel(
+	environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic
+) -> ShellModel {
+	AppTestFixture.active.own(
+		ShellModel(environment: environment, initialLanguage: initialLanguage))
+}
+
+@MainActor
+struct FixtureScopeTests {
+	@Test(.timeLimit(.minutes(1)))
+	func cleanupWaitsForTheAppModelCoachAndRecordStore() async throws {
+		let fixture = try AppTestFixture()
+		let held = AsyncStream<Void>.makeStream()
+		let opened = AsyncStream<Void>.makeStream()
+		try await FixtureFolder.$current.withValue(fixture.folder) {
+			try await FixtureTestScope.$current.withValue(fixture) {
+				let owner = Task {
+					let records = try FixtureRecordStore(
+						directory: fixture.launch.directory, deviceId: DeviceID())
+					let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
+					let model = fixtureModel(
+						environment: AppEnvironment(
+							services: services, language: .en, defaults: fixture.defaults))
+					await model.appear()
+					opened.continuation.finish()
+					for await _ in held.stream {}
+					withExtendedLifetime((model, services.coach, records)) {}
+				}
+				for await _ in opened.stream {}
+				let cleanup = Task { try await fixture.cleanup() }
+				var waiting = fixture.folder.waitingForStores.makeAsyncIterator()
+				try #require(await waiting.next() != nil)
+				#expect(FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+				held.continuation.finish()
+				try await owner.value
+				try await cleanup.value
+				#expect(!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+			}
+		}
+	}
+}

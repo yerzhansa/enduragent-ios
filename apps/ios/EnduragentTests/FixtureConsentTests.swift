@@ -35,7 +35,7 @@ extension FixtureLaunchTests {
 
 	@Test func existingInstallIsAskedForConsentOnNextLaunch() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let (services, kept) = try relaunch(.keep)
+		let (services, kept) = try await relaunch(.keep)
 		let launched = await AppLaunch.open(language: language) { (services, kept) }
 		guard case .ready(let model) = launched else {
 			Issue.record("Expected the existing install to open")
@@ -47,8 +47,8 @@ extension FixtureLaunchTests {
 		#expect(model.chat == nil)
 		model.declineConsent()
 		#expect(model.route != .chat)
-		let (next, nextDefaults) = try relaunch(.keep)
-		let reopened = ShellModel(
+		let (next, nextDefaults) = try await relaunch(.keep)
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: next, language: language, defaults: nextDefaults))
 		await reopened.appear()
 		#expect(reopened.route == .onboarding(.consent))
@@ -83,7 +83,7 @@ extension FixtureLaunchTests {
 
 	@Test func existingInstallCanDeferConsentWithoutRepeatingStarterCredits() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let (services, _) = try relaunch(.keep)
+		let (services, _) = try await relaunch(.keep)
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
@@ -128,7 +128,7 @@ extension FixtureLaunchTests {
 		#expect(failure.notice.key == Catalog.accessErrorProviderConsentRequired)
 		#expect(failure.notice.action == .tryAgain(refused.id))
 		#expect(seeded.fixtureTransport?.requestCount == 0)
-		let (services, _) = try relaunch(.keep)
+		let (services, _) = try await relaunch(.keep)
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))

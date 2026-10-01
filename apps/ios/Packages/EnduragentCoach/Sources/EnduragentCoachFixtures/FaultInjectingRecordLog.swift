@@ -29,12 +29,26 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	}
 
 	package let deviceId: DeviceID
-	private let wrapped: any RecordLog
+	private let storage: Mutex<(any RecordLog)?>
+	private let release: FixtureStoreRelease?
 	private let faults = Mutex(Faults())
 
-	package init(wrapping wrapped: any RecordLog) {
+	package init(wrapping wrapped: any RecordLog, release: FixtureStoreRelease? = nil) {
 		self.deviceId = wrapped.deviceId
-		self.wrapped = wrapped
+		self.storage = Mutex(wrapped)
+		self.release = release
+	}
+
+	deinit {
+		autoreleasepool { storage.withLock { $0 = nil } }
+		release?.finish()
+	}
+
+	private var wrapped: any RecordLog {
+		storage.withLock {
+			guard let log = $0 else { preconditionFailure("The record log has been released") }
+			return log
+		}
 	}
 
 	package var failNextAppend: Bool {

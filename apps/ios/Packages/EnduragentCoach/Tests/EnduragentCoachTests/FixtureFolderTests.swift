@@ -43,4 +43,36 @@ struct FixtureFolderTests {
 			try await folder.cleanup {}
 		}
 	}
+
+	@Test(.timeLimit(.minutes(1)))
+	func cleanupWaitsForEveryStoreOpenedInTheFolder() async throws {
+		let folder = try FixtureFolder(
+			directory: FileManager.default.temporaryDirectory.appending(
+				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+		let first = Gate()
+		let second = Gate()
+		let owner = Task {
+			try await FixtureFolder.$current.withValue(folder) {
+				var stores = try (0..<2).map { _ in
+					try FixtureRecordStore(directory: folder.directory, deviceId: DeviceID())
+				}
+				await first.wait()
+				stores.removeFirst()
+				await second.wait()
+				withExtendedLifetime(stores) {}
+			}
+		}
+		await first.waitUntilParked()
+		let cleanup = Task { try await folder.cleanup {} }
+		var waiting = folder.waitingForStores.makeAsyncIterator()
+		try #require(await waiting.next() != nil)
+		#expect(FileManager.default.fileExists(atPath: folder.directory.path))
+		first.release()
+		try #require(await waiting.next() != nil)
+		#expect(FileManager.default.fileExists(atPath: folder.directory.path))
+		second.release()
+		try await owner.value
+		try await cleanup.value
+		#expect(!FileManager.default.fileExists(atPath: folder.directory.path))
+	}
 }

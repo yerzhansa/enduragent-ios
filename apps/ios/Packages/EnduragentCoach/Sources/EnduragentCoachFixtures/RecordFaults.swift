@@ -3,15 +3,23 @@ import Foundation
 
 public final class RecordFaults: Sendable {
 	package let log: FaultInjectingRecordLog
+	package let released: FixtureStoreRelease
 
 	package init(directory: URL, deviceId: DeviceID) throws {
-		log = FaultInjectingRecordLog(
-			wrapping: SwiftDataRecordLog(
-				deviceId: deviceId,
-				synced: try ModelContainerHandle.withoutCloudKit(
-					storeURL: directory.appending(path: ModelContainerHandle.syncedStoreFileName)),
-				local: try ModelContainerHandle.withoutCloudKit(
-					storeURL: directory.appending(path: ModelContainerHandle.localStoreFileName))))
+		let release = FixtureStoreRelease()
+		released = release
+		log = try autoreleasepool {
+			FaultInjectingRecordLog(
+				wrapping: SwiftDataRecordLog(
+					deviceId: deviceId,
+					synced: try ModelContainerHandle.withoutCloudKit(
+						storeURL: directory.appending(
+							path: ModelContainerHandle.syncedStoreFileName)),
+					local: try ModelContainerHandle.withoutCloudKit(
+						storeURL: directory.appending(path: ModelContainerHandle.localStoreFileName)
+					)),
+				release: release)
+		}
 	}
 
 	public var failNextAppend: Bool {

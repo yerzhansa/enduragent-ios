@@ -5,10 +5,13 @@ public final class FixtureFolder: Sendable {
 	@TaskLocal public static var current: FixtureFolder?
 
 	public let directory: URL
+	public let waitingForStores: AsyncStream<Void>
+	private let waiting: AsyncStream<Void>.Continuation
 	private let stores = Mutex<[FixtureStoreRelease]>([])
 
 	public init(directory: URL) throws {
 		self.directory = directory
+		(waitingForStores, waiting) = AsyncStream.makeStream()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 	}
 
@@ -18,9 +21,14 @@ public final class FixtureFolder: Sendable {
 	}
 
 	public func cleanup(releasing owners: @Sendable () async throws -> Void) async throws {
-		try FileManager.default.removeItem(at: directory)
 		try await owners()
+		await waitUntilUnused()
+		try FileManager.default.removeItem(at: directory)
+	}
+
+	public func waitUntilUnused() async {
 		for store in stores.withLock({ $0 }) {
+			waiting.yield()
 			await store.wait()
 		}
 	}
@@ -28,12 +36,6 @@ public final class FixtureFolder: Sendable {
 
 package final class FixtureStoreRelease: Sendable {
 	private let waiters = Mutex<[CheckedContinuation<Void, Never>]?>([])
-	package let waiting: AsyncStream<Void>
-	private let entered: AsyncStream<Void>.Continuation
-
-	package init() {
-		(waiting, entered) = AsyncStream.makeStream()
-	}
 
 	package func wait() async {
 		await withCheckedContinuation { continuation in
@@ -42,7 +44,6 @@ package final class FixtureStoreRelease: Sendable {
 				waiters?.append(continuation)
 				return false
 			}
-			entered.yield()
 			if released { continuation.resume() }
 		}
 	}
@@ -54,6 +55,5 @@ package final class FixtureStoreRelease: Sendable {
 			return pending
 		}
 		for waiter in pending { waiter.resume() }
-		entered.finish()
 	}
 }

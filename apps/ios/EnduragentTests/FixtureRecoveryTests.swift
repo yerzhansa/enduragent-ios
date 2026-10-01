@@ -11,7 +11,7 @@ extension FixtureLaunchTests {
 	func retryAfterRelaunchAnswersAHangingDirective(started: Bool) async throws {
 		var launch = launch
 		launch.coalescing = CoalescingPolicy(window: started ? .milliseconds(100) : .seconds(60))
-		let first = model(try AppServices.fixture(launch, defaults: defaults))
+		let first = model(try fixtureServices(launch, defaults: defaults))
 		await first.agreeAndStartChatting()
 		first.draft.text = "fixture:hang"
 		await first.send()
@@ -19,7 +19,7 @@ extension FixtureLaunchTests {
 		if started {
 			_ = try await turn(accepted.id, in: first, where: isProcessing)
 		}
-		let reopened = model(try relaunch(.keep).0)
+		let reopened = model(try await relaunch(.keep).0)
 		await reopened.appear()
 		await reopened.lifecycle.forward(.becameActive)
 		let recovered = try await turn(accepted.id, in: reopened) { $0.retryable }
@@ -37,7 +37,7 @@ extension FixtureLaunchTests {
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
-		let relaunched = model(try relaunch(.keep).0)
+		let relaunched = model(try await relaunch(.keep).0)
 		await relaunched.appear()
 		await relaunched.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
@@ -68,7 +68,7 @@ extension FixtureLaunchTests {
 		killed.draft.text = "fixture:hang"
 		await killed.send()
 		let dead = try await turn(in: killed, where: isProcessing)
-		let (unreadableServices, _) = try relaunch(.keep, recovery: parsed.recovery)
+		let (unreadableServices, _) = try await relaunch(.keep, recovery: parsed.recovery)
 		let unreadable = model(unreadableServices)
 		await unreadable.appear()
 		await unreadable.lifecycle.forward(.becameActive)
@@ -85,7 +85,7 @@ extension FixtureLaunchTests {
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(transport.requestCount == 0)
 		#expect(unreadable.chat?.turns.first { $0.id == dead.id }?.state == held.state)
-		let readable = model(try relaunch(.keep).0)
+		let readable = model(try await relaunch(.keep).0)
 		await readable.appear()
 		await readable.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
@@ -109,7 +109,7 @@ extension FixtureLaunchTests {
 		NotificationCenter.default.post(name: UIApplication.willTerminateNotification, object: nil)
 		records.failSyncedAppends = true
 		let reopened = try #require(
-			await firstSnapshot(try relaunch(.keep).0, chat: .main))
+			await firstSnapshot(try await relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == streaming.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -138,7 +138,7 @@ extension FixtureLaunchTests {
 			try await Task.sleep(for: .milliseconds(20))
 		}
 		let reopened = try #require(
-			await firstSnapshot(try relaunch(.keep).0, chat: .main))
+			await firstSnapshot(try await relaunch(.keep).0, chat: .main))
 		let state = try #require(reopened.turns.first { $0.id == dead.id }?.state)
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -155,7 +155,7 @@ extension FixtureLaunchTests {
 	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {
 		var quick = launch
 		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
-		let seeded = model(try AppServices.fixture(quick, defaults: defaults))
+		let seeded = model(try fixtureServices(quick, defaults: defaults))
 		await seeded.agreeAndStartChatting()
 		for index in 1...200 {
 			seeded.draft.text = "Seed \(index)"
@@ -165,7 +165,7 @@ extension FixtureLaunchTests {
 		seeded.draft.text = "fixture:hang"
 		await seeded.send()
 		let dead = try await turn(in: seeded, where: isProcessing)
-		let (recovering, _) = try relaunch(.keep)
+		let (recovering, _) = try await relaunch(.keep)
 		await recovering.coach.lifecycle(.becameActive)
 		let snapshot = try #require(await firstSnapshot(recovering, chat: .main))
 		#expect(snapshot.turns.count == 201)
@@ -175,7 +175,7 @@ extension FixtureLaunchTests {
 		#expect(snapshot.turns.filter { cause($0.state) == .processEnded }.map(\.id) == [dead.id])
 		let transport = try #require(recovering.fixtureTransport)
 		#expect(transport.requestCount == 0)
-		let (clean, _) = try relaunch(.keep)
+		let (clean, _) = try await relaunch(.keep)
 		await clean.coach.lifecycle(.becameActive)
 		let reopened = try #require(await firstSnapshot(clean, chat: .main))
 		#expect(reopened.turns == snapshot.turns)

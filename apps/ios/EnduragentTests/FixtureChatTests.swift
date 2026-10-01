@@ -112,12 +112,12 @@ extension FixtureLaunchTests {
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
 		var held = launch
 		held.coalescing = CoalescingPolicy(window: .seconds(60))
-		let first = model(try AppServices.fixture(held, defaults: defaults))
+		let first = model(try fixtureServices(held, defaults: defaults))
 		await first.agreeAndStartChatting()
 		first.draft.text = "fixture:hang"
 		await first.send()
 		let accepted = try await firstTurn(first)
-		let (second, _) = try relaunch(.keep)
+		let (second, _) = try await relaunch(.keep)
 		let reopened = try #require(await firstSnapshot(second, chat: .main))
 		#expect(reopened.turns.map(\.id) == [accepted.id])
 		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
@@ -184,7 +184,7 @@ extension FixtureLaunchTests {
 	@Test func queuedRequestsKeepTheirOwnReplies() async throws {
 		var launch = launch
 		launch.coalescing = CoalescingPolicy(window: .milliseconds(100))
-		let services = try AppServices.fixture(launch, defaults: defaults)
+		let services = try fixtureServices(launch, defaults: defaults)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"

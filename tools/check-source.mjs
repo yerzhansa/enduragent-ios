@@ -168,6 +168,10 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (/^apps\/ios\/EnduragentTests\/.*\.swift$/.test(file)
+      && (/\bremoveItem\s*\(/.test(text)
+        || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
+          && /\btemporaryDirectory\b|\bAppServices\s*\.\s*fixture\s*\(/.test(text)))) report(file, 'app-fixture-folder-ownership');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');

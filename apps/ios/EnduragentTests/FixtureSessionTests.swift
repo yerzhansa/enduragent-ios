@@ -19,7 +19,7 @@ extension FixtureLaunchTests {
 		var moved = launch
 		moved.clock = parsed.clock
 		#expect(
-			try AppServices.fixture(moved, defaults: defaults).clock.now == instant(parsed.clock))
+			try fixtureServices(moved, defaults: defaults).clock.now == instant(parsed.clock))
 		#expect(try services().clock.now == instant(FixtureLaunch.defaultClock))
 	}
 
@@ -46,8 +46,8 @@ extension FixtureLaunchTests {
 		#expect(
 			services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
 				"The athlete chose French (Français).") == true)
-		let (kept, keptDefaults) = try relaunch(.keep)
-		let reopened = ShellModel(
+		let (kept, keptDefaults) = try await relaunch(.keep)
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		#expect(reopened.route == .loading)
 		await reopened.appear()
@@ -82,7 +82,7 @@ extension FixtureLaunchTests {
 		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
 		try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
 		#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
-		let (kept, _) = try relaunch(.keep)
+		let (kept, _) = try await relaunch(.keep)
 		#expect(
 			try await kept.coach.observedStatus().session.text(for: .contextWindowOverride)
 				== "64000")
@@ -91,7 +91,7 @@ extension FixtureLaunchTests {
 	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
 		var evening = launch
 		evening.clock = "1998-06-15T18:00:00Z"
-		let first = model(try AppServices.fixture(evening, defaults: defaults))
+		let first = model(try fixtureServices(evening, defaults: defaults))
 		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
@@ -100,9 +100,9 @@ extension FixtureLaunchTests {
 		morning.store = .keep
 		morning.clock = "1998-06-16T07:00:00Z"
 		let keptDefaults = try morning.prepare()
-		let second = ShellModel(
+		let second = fixtureModel(
 			environment: AppEnvironment(
-				services: try AppServices.fixture(morning, defaults: keptDefaults),
+				services: try fixtureServices(morning, defaults: keptDefaults),
 				language: language,
 				defaults: keptDefaults))
 		try await observed(second)
