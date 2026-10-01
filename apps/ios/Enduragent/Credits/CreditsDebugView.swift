@@ -5,6 +5,8 @@
 
 	struct CreditsDebugView: View {
 		let coach: Coach
+		let deviceCheck: any DeviceCheckTokenProviding
+		let phrasebook: CatalogPhrasebook
 		@State private var session: CreditsDebugSession?
 		@State private var balanceText = "—"
 		@State private var starterMessage = ""
@@ -24,8 +26,10 @@
 						Button("Get starter credits") {
 							Task { await grantStarter() }
 						}
+						.accessibilityIdentifier("debug.credits.claimStarter")
 						if !starterMessage.isEmpty {
 							Text(starterMessage)
+								.accessibilityIdentifier("debug.credits.starterNotice")
 						}
 					}
 					Section {
@@ -117,12 +121,8 @@
 
 		@MainActor
 		private func refreshBalance() async {
-			guard let scale = catalog?.scale else {
-				balanceText = "—"
-				return
-			}
 			do {
-				let balance = try await coach.credits.balance(scale: scale)
+				let balance = try await coach.credits.balance()
 				balanceText = "\(balance.credits.units) credits"
 			} catch CreditsFailure.noAthleteKey {
 				balanceText = "—"
@@ -134,22 +134,10 @@
 
 		@MainActor
 		private func grantStarter() async {
-			guard let session else { return }
 			do {
-				let token = try await session.deviceCheck.token()
-				let outcome = try await coach.credits.grant(deviceCheck: token)
-				let hasKey = try await coach.creditsIdentity().hasCreditsKey
-				switch outcome {
-				case .minted:
-					starterMessage = "Start chatting"
-				case .alreadyGranted:
-					starterMessage =
-						hasKey
-						? "Start chatting"
-						: "This device already used its starter credits."
-				case .toppedUp(let added):
-					starterMessage = "Added \(added.units) credits"
-				}
+				let token = try await deviceCheck.token()
+				let notice = await coach.claimStarter(deviceCheck: token)
+				starterMessage = notice.sentence(in: phrasebook)
 				errorText = nil
 				await refreshBalance()
 			} catch {
@@ -213,7 +201,6 @@
 	@MainActor
 	private final class CreditsDebugSession {
 		let purchases: StoreKitPurchaseCoordinator
-		let deviceCheck = DeviceCheckTokenProvider()
 
 		init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
 			self.purchases = StoreKitPurchaseCoordinator(

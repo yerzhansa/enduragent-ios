@@ -9,6 +9,7 @@ public actor Coach {
 	let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
 	private let deviceLanguage: LanguageTag
 	private var preferenceRecords: [AthleteRecord] = []
@@ -52,9 +53,10 @@ public actor Coach {
 		self.ledger = ledger
 		self.clock = clock
 		self.coalescing = coalescing
+		self.coalescingSleep = ports.coalescingSleep
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
-		self.memory = Memory(ledger: ledger, clock: clock)
+		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
 		let reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
@@ -64,7 +66,7 @@ public actor Coach {
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			reviews: reviews
+			reviews: reviews, watchdogSleep: ports.watchdogSleep
 		)
 
 		self.mailboxes = [:]
@@ -384,6 +386,7 @@ public actor Coach {
 				diagnostics: diagnostics, ladder: runner.ladder),
 			clock: clock,
 			coalescing: coalescing,
+			coalescingSleep: coalescingSleep,
 			environment: EnvironmentResolver(
 				preferences: { await self.loadedPreferences() }, access: access,
 				training: { () async throws(AccessUnavailable) in

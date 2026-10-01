@@ -13,7 +13,7 @@ extension DurableCalendarWriteTests {
 		let fixture = await fixture(url: url, store: store)
 		let (_, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let stopping = Task { await fixture.coach.stop(.main) }
-		try await waitUntil { store.isHeld }
+		_ = await store.reached.first { _ in true }
 		#expect(await fixture.coach.decide(.approve(token), in: .main) == .blocked(.turnStopping))
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(server.posts.isEmpty)
@@ -36,7 +36,7 @@ extension DurableCalendarWriteTests {
 		let fixture = await fixture(url: url, store: store)
 		let (turn, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
-		try await waitUntil { store.isHeld }
+		_ = await store.reached.first { _ in true }
 		faults.failNextAppend = true
 		store.release()
 		#expect(await approving.value == .storageUnavailable)

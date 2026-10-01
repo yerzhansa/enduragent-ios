@@ -7,6 +7,7 @@ package actor ChatMailbox {
 	private let flushes: FlushWork
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
 
@@ -33,6 +34,7 @@ package actor ChatMailbox {
 		flushes: FlushWork,
 		clock: any Clock,
 		coalescing: CoalescingPolicy,
+		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
 		environment: EnvironmentResolver,
 		reviews: any WorkoutReviews,
 		process: ProcessID,
@@ -44,6 +46,7 @@ package actor ChatMailbox {
 		self.flushes = flushes
 		self.clock = clock
 		self.coalescing = coalescing
+		self.coalescingSleep = coalescingSleep
 		self.environment = environment
 		self.process = process
 		self.lifetime = lifetime
@@ -241,11 +244,11 @@ package actor ChatMailbox {
 		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
 		Task {
 			do {
-				try await Task.sleep(for: coalescing.window)
+				try await coalescingSleep(coalescing.window)
 			} catch is CancellationError {
 				return
 			} catch {
-				fatalError("Task.sleep failed: \(error)")
+				fatalError("Coalescing sleep failed: \(error)")
 			}
 			await door.pass { closeWindow(ifArmed: armed) }
 		}
@@ -384,8 +387,7 @@ package actor ChatMailbox {
 			review: records.review,
 			device: ledger.deviceId,
 			process: process,
-			now: clock.now,
-			zone: clock.timeZone
+			now: clock.now, zone: clock.timeZone
 		)
 	}
 

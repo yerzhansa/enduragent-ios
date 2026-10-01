@@ -58,6 +58,7 @@ package struct TurnRunner: Sendable {
 	let transport: any ModelTransport
 	private let ledger: Ledger
 	let clock: any Clock
+	let watchdogSleep: @Sendable (Duration) async throws -> Void
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
 	let reviews: SingleProposalReviews
@@ -70,11 +71,13 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		evidence: any TurnEvidence,
-		reviews: SingleProposalReviews
+		reviews: SingleProposalReviews,
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
 	) {
 		self.transport = transport
 		self.ledger = ledger
 		self.clock = clock
+		self.watchdogSleep = watchdogSleep
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
@@ -205,7 +208,7 @@ package struct TurnRunner: Sendable {
 	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
-			memory: Memory(ledger: ledger, clock: clock),
+			memory: Memory(ledger: ledger, clock: clock, watchdogSleep: watchdogSleep),
 			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
