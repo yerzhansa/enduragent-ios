@@ -220,19 +220,14 @@ import Testing
 		#expect(
 			plan == RecoveryPlan(interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)])
 		)
-		let settle = TurnLifecycle.writes(
-			for: .recoverDeadClaim(attempt, saved: .none), on: facts, chat: .main, device: device,
-			mint: { turn })
+		let settle = TurnLifecycle.settled(
+			attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
+			on: facts, chat: .main)
 		#expect(
 			settle
-				== .success(
-					.synced([
-						.turnSettled(
-							TurnSettledBody(
-								chatId: .main, turn: turn, attempt: attempt,
-								settlement: .interrupted(
-									partial: "", cause: .processEnded, saved: .none)))
-					])))
+				== TurnSettledBody(
+					chatId: .main, turn: turn, attempt: attempt,
+					settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
 		var settledFacts = facts
 		settledFacts.settlements.append(
 			SettledAttempt(
@@ -241,9 +236,9 @@ import Testing
 				attempt: attempt,
 				settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
 		#expect(
-			TurnLifecycle.writes(
-				for: .recoverDeadClaim(attempt, saved: .none), on: settledFacts, chat: .main,
-				device: device, mint: { turn }) == .success(.nothing))
+			TurnLifecycle.settled(
+				attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
+				on: settledFacts, chat: .main) == nil)
 		#expect(
 			TurnRecovery.plan(
 				turns: [settledFacts], writes: [:], device: device, process: current)

@@ -90,32 +90,15 @@ final class ChatRecords {
 		apply(notes.records)
 	}
 
-	func writes(_ event: TurnEvent, for turn: TurnID) -> Result<TurnWrites, TurnRefusal> {
-		TurnLifecycle.writes(
-			for: event, on: conversation.turn(turn), chat: chat, device: ledger.deviceId,
-			mint: { turn })
-	}
-
-	func commit(
-		_ writes: TurnWrites, stamp: OperationStamp, isolation: isolated (any Actor)? = #isolation
-	) async throws(LedgerFailure) {
-		let records = try await ledger.commit(writes, stamp: stamp)
-		apply(records)
-	}
-
 	func settle(
-		_ turn: TurnID, _ event: TurnEvent, stamp: OperationStamp,
+		_ settled: TurnSettledBody?, stamp: OperationStamp,
 		isolation: isolated (any Actor)? = #isolation
 	) async {
-		guard case .success(let planned) = writes(event, for: turn),
-			case .synced(let bodies) = planned, case .turnSettled(let settled)? = bodies.first
-		else {
-			return
-		}
+		guard let settled else { return }
 		do {
-			try await commit(planned, stamp: stamp)
+			apply(try await ledger.commit(synced: [.turnSettled(settled)], stamp: stamp))
 		} catch {
-			await settleUnsaved(turn, attempt: settled.attempt, settled.settlement)
+			await settleUnsaved(settled.turn, attempt: settled.attempt, settled.settlement)
 		}
 	}
 
@@ -134,11 +117,14 @@ final class ChatRecords {
 	func observeReply(
 		_ turn: TurnID, stamp: OperationStamp, isolation: isolated (any Actor)? = #isolation
 	) async {
-		guard case .success(let mark) = writes(.observeReply(stamp.attempt), for: turn) else {
+		guard
+			let mark = TurnLifecycle.observeReply(
+				stamp.attempt, on: conversation.turn(turn), chat: chat)
+		else {
 			return
 		}
 		do {
-			try await commit(mark, stamp: stamp)
+			apply(try await ledger.commit(local: [.replyObserved(mark)], stamp: stamp))
 		} catch {
 			if let record = conversation.observeInMemory(
 				turn, attempt: stamp.attempt, device: ledger.deviceId)

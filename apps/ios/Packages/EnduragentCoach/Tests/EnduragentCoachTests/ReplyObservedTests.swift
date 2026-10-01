@@ -58,9 +58,7 @@ import Testing
 		let attempt = try #require(facts.claims.first?.attempt)
 		#expect(facts.replyObserved.map(\.attempt) == [attempt])
 		#expect(
-			TurnLifecycle.writes(
-				for: .observeReply(attempt), on: facts, chat: .main, device: store.deviceId,
-				mint: { turn }) == .success(.nothing))
+			TurnLifecycle.observeReply(attempt, on: facts, chat: .main) == nil)
 	}
 
 	@Test func textThenMemoryWriteThenServerErrorSettlesSavedUnverified() async throws {

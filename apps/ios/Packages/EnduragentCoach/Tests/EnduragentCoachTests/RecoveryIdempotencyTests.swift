@@ -124,10 +124,9 @@ import Testing
 		#expect(
 			TurnLifecycle.claimRefusal(of: dead, device: device, process: current) == .unrecovered)
 		#expect(
-			TurnLifecycle.writes(
-				for: .claim(second, process: current, lease: .continuedProcessing), on: dead,
-				chat: .main, device: device,
-				mint: { turn }) == .failure(.unrecovered))
+			TurnLifecycle.claim(
+				second, on: dead, chat: .main, device: device, process: current,
+				lease: .continuedProcessing) == .failure(.unrecovered))
 	}
 
 	@Test func aDeadClaimShowsInterruptedOnceRecoveryWrites() {
