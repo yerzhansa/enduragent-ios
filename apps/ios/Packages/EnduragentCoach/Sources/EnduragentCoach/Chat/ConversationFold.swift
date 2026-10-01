@@ -35,6 +35,7 @@ package struct Conversation: Sendable, Equatable {
 	package let chat: ChatID
 	package var segments: [Segment]
 	package var legacyMessageUlids: Set<ULID> = []
+	var appliedRecordIDs: Set<ULID> = []
 
 	package var current: Segment {
 		guard let last = segments.last else {

@@ -45,13 +45,13 @@ final class ChatRecords {
 		defer { loading = nil }
 		do {
 			let imported = try await ledger.conversationRecords(chat)
-			let folded = ConversationFold.fold(
-				chat: chat, synced: imported, device: ledger.deviceId)
+			for record in imported { applied[record.ulid] = record }
+			var folded = ConversationFold.fold(
+				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
 			let jobs = try await ledger.flushJobs(in: folded)
 			let review = try await reviews.snapshot(chat: chat)
-			for record in imported { applied[record.ulid] = record }
-			conversation = ConversationFold.fold(
-				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
+			folded.apply(Array(applied.values), device: ledger.deviceId)
+			conversation = folded
 			self.review = review
 			self.jobs = jobs
 			loaded = true
@@ -80,9 +80,8 @@ final class ChatRecords {
 	}
 
 	func apply(_ committed: [AthleteRecord]) {
-		let unseen = committed.filter { applied[$0.ulid] == nil }
-		for record in unseen { applied[record.ulid] = record }
-		conversation.apply(unseen, device: ledger.deviceId)
+		for record in committed { applied[record.ulid] = record }
+		conversation.apply(committed, device: ledger.deviceId)
 	}
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {

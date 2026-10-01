@@ -1,4 +1,6 @@
+import CoreData
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -94,9 +96,17 @@ extension SwiftDataSuites {
 			try await Task.sleep(for: .milliseconds(500))
 			let reads = log.reads.count
 			let rows = log.fetchedRecordCount
+			let notifications = Mutex(0)
+			let observation = NotificationCenter.default.addObserver(
+				forName: .NSPersistentStoreRemoteChange, object: nil, queue: nil
+			) { _ in
+				notifications.withLock { $0 += 1 }
+			}
+			defer { NotificationCenter.default.removeObserver(observation) }
 			let state = try await coach.sendAndSettle("Local question")
 			#expect(replyText(state) == "Local answer")
 			try await Task.sleep(for: .seconds(2))
+			#expect(notifications.withLock { $0 } > 0)
 			let cost = ReadCost(reads: log.reads.count - reads, rows: log.fetchedRecordCount - rows)
 			await coach.lifecycle(.willTerminate)
 			return cost

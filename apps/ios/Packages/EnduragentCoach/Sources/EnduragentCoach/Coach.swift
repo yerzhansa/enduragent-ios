@@ -1,5 +1,4 @@
 import Foundation
-import Synchronization
 
 public actor Coach {
 	package let memory: Memory
@@ -24,9 +23,13 @@ public actor Coach {
 	private let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
 	private var importObservation: Task<Void, Never>?
+	private var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
-	deinit { importObservation?.cancel() }
+	deinit {
+		importObservation?.cancel()
+		pendingImportRefresh?.cancel()
+	}
 
 	public init(
 		sport: SportID,
@@ -108,6 +111,8 @@ public actor Coach {
 			lifetime.terminate()
 			importObservation?.cancel()
 			importObservation = nil
+			pendingImportRefresh?.cancel()
+			pendingImportRefresh = nil
 		case .enteredBackground:
 			break
 		}
@@ -353,12 +358,30 @@ public actor Coach {
 		importObservation = Task { [weak self, imports = ledger.imports] in
 			for await _ in imports {
 				guard !Task.isCancelled else { return }
-				await self?.refreshImports()
+				await self?.scheduleImportRefresh()
 			}
 		}
 	}
 
+	private func scheduleImportRefresh() {
+		guard !lifetime.terminating else { return }
+		pendingImportRefresh?.cancel()
+		pendingImportRefresh = Task { [weak self] in
+			do {
+				try await Task.sleep(for: .milliseconds(200))
+			} catch is CancellationError {
+				return
+			} catch {
+				fatalError("Import coalescing sleep failed: \(error)")
+			}
+			guard !Task.isCancelled else { return }
+			await self?.refreshImports()
+		}
+	}
+
 	private func refreshImports() async {
+		pendingImportRefresh = nil
+		guard !lifetime.terminating else { return }
 		for mailbox in mailboxes.values {
 			do {
 				try await mailbox.refreshImports()
@@ -368,15 +391,4 @@ public actor Coach {
 		}
 	}
 
-	package final class Lifetime: Sendable {
-		private let ended = Mutex(false)
-
-		fileprivate init() {}
-
-		var terminating: Bool { ended.withLock { $0 } }
-
-		fileprivate func terminate() {
-			ended.withLock { $0 = true }
-		}
-	}
 }
