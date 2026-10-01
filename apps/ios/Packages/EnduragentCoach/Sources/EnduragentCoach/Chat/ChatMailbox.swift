@@ -87,12 +87,12 @@ package actor ChatMailbox {
 		do {
 			let reset = try await door.pass { () throws(LedgerFailure) in
 				closeWindow()
-				let reset = ResetID(ulid: await ledger.nextULID())
+				let reset = try await ledger.reserveReset()
 				_ = holdLease(.athlete)
 				if work.add(reset) { workAdded() }
 				return reset
 			}
-			return await resets.outcome(of: reset)
+			return await resets.outcome(of: reset.id)
 		} catch {
 			return .notStarted(.local(.recordStorage))
 		}
@@ -106,7 +106,9 @@ package actor ChatMailbox {
 		}
 		let turn: TurnID
 		let fragment: Int
-		if let window = work.window, slash == nil, let facts = conversation.turn(window.turn) {
+		if let window = work.window, slash == nil,
+			let facts = conversation.current.turns.first(where: { $0.turn == window.turn })
+		{
 			turn = facts.turn
 			fragment = facts.fragments.count
 		} else {
@@ -160,13 +162,7 @@ package actor ChatMailbox {
 			if !terminating {
 				let unstarted =
 					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
-				for turn in unstarted {
-					let stamp = await self.stamp(for: turn)
-					let stopped = TurnLifecycle.stopBeforeStart(
-						stamp.attempt, on: self.conversation.turn(turn), chat: self.chatId)
-					guard case .success(let settled) = stopped else { continue }
-					await self.records.settle(settled, stamp: stamp)
-				}
+				await self.records.stopBeforeStart(unstarted)
 			}
 			self.leases.end { $0.interrupt() }
 			if owned { self.work.endInterruption() }
@@ -185,14 +181,7 @@ package actor ChatMailbox {
 	}
 
 	package func recover(_ plan: RecoveryPlan) async {
-		for dead in plan.interrupt {
-			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
-			await records.settle(
-				TurnLifecycle.settled(
-					dead.attempt,
-					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
-					on: conversation.turn(dead.turn), chat: chatId), stamp: stamp)
-		}
+		await records.recover(plan.interrupt)
 		for job in plan.drain {
 			if work.add(job) { workAdded() }
 		}
@@ -208,6 +197,11 @@ package actor ChatMailbox {
 
 	package func refreshImports() async throws(LedgerFailure) {
 		try await records.refresh()
+		if let window = work.window,
+			!conversation.current.turns.contains(where: { $0.turn == window.turn })
+		{
+			closeWindow()
+		}
 		publish()
 	}
 

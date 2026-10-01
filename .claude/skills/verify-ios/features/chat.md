@@ -114,6 +114,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | Command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> StopProof` | Stop preserves partial text with the nothing-changed notice; Records says `interrupted athleteStopped`, `stop`, `stop-records`. |
+| `sim.mjs test <run id> ComposerIconButtonsProof ComposerIconButtonsDarkProof` | On a 390 pt wide iPhone, English and Brazilian Portuguese keep the full placeholder beside single-line Stop and Send icons while a reply hangs. Frames do not overlap and button labels match the catalogs, `composer-icons-en-light`, `composer-icons-pt-BR-light`, `composer-icons-en-dark`, `composer-icons-pt-BR-dark`. |
 | `sim.mjs test <run id> StopNoticeProof` | Stop settles running and queued turns with two Try again actions, `stop-running-and-queued`. |
 | `sim.mjs test <run id> StopTryAgainProof` | Try again after Stop produces one completed reply and a second claim, `retry-after-stop`, `retry-after-stop-records`. |
 | `sim.mjs test <run id> ExpiryProof` | An `expire-after 3` lease interrupts without a tap; Records says `interrupted systemExpired`, `expiry`, `expiry-timing`, `expiry-records`. |
