@@ -295,6 +295,13 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		return streams
 	}
 
+	public func fetchEvent(id: EventID) async throws -> CalendarEvent {
+		guard let event = events.first(where: { $0.id == id }) else {
+			throw IntervalsError(code: "http", details: "Missing event", status: 404)
+		}
+		return event
+	}
+
 	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		calls.append(.events(oldest: oldest, newest: newest))
 		return events.filter { event in

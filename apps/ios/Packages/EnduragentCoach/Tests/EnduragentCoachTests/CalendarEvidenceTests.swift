@@ -120,3 +120,34 @@ extension DurableCalendarWriteTests {
 		#expect(server.posts.count == 1)
 	}
 }
+
+extension DurableCalendarWriteTests {
+	@Test func repeatingAnApprovalRechecksAnEarlierEmptyRead() async throws {
+		let server = try CalendarWriteServer()
+		let url = try await server.start()
+		defer { server.stop() }
+		server.state.withLock { $0.response = .status(500) }
+		let fixture = await fixture(url: url)
+		let (_, token) = try await proposal(on: fixture.coach, model: fixture.model)
+		_ = await fixture.coach.decide(.approve(token), in: .main)
+		await fixture.coach.stop(.main)
+		server.state.withLock { $0.readResponse = .body("[]") }
+		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+		let checked = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		guard case .retryRemainingOrCancel(let repeatToken) = checked.controls else {
+			Issue.record("expected repetition after an empty read")
+			return
+		}
+		server.state.withLock {
+			$0.readResponse = .success
+			$0.response = .success
+			$0.events[0]["name"] = .string("Edited elsewhere")
+		}
+		_ = await fixture.coach.decide(.retryRemaining(repeatToken), in: .main)
+		#expect(server.posts.count == 1)
+		#expect(server.events.first?["name"]?.stringValue == "Edited elsewhere")
+		let unresolved = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		#expect(unresolved.controls == .checkAgain(unresolved.ref))
+	}
+}

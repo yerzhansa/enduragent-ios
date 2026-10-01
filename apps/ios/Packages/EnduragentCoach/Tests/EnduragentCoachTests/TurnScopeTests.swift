@@ -9,7 +9,7 @@ import Testing
 
 	@Test func memoIsPerAttemptNotPerRuntime() async throws {
 		let store = InMemoryRecordLog()
-		let tools = ToolRuntime(
+		let tools = makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
@@ -36,10 +36,10 @@ import Testing
 		let readClock = HeldClock()
 		let ledger = Ledger(
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let heldTools = ToolRuntime(
+		let heldTools = makeToolRuntime(
 			intervals: HeldReadIntervals(clock: readClock), ledger: ledger,
 			clock: clock)
-		let tools = ToolRuntime(
+		let tools = makeToolRuntime(
 			intervals: intervals, ledger: ledger, clock: clock)
 		let turn = scope()
 		let week = try JSONValue.parse(#"{"days":7}"#)

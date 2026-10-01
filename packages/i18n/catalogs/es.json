@@ -2918,7 +2918,9 @@
       "mainSet": "Bloque principal",
       "cooldown": "Enfriamiento",
       "ramp": "rampa"
-    }
+    },
+    "writePending": "Puede que este entrenamiento se haya guardado. Revisa el calendario antes de continuar.",
+    "writeReadFailed": "No se pudo comprobar el calendario. Tu entrenamiento aprobado sigue pendiente."
   },
   "credits": {
     "buy": "Comprar",

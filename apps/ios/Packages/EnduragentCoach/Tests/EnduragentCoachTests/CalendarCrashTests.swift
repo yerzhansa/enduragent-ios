@@ -47,7 +47,7 @@ extension DurableCalendarWriteTests {
 		let store = HeldAppendLog(inner: faults, holding: "reviewWrite", occurrence: 2)
 		defer { store.release() }
 		let fixture = await fixture(url: url, store: store)
-		let (_, token) = try await proposal(on: fixture.coach, model: fixture.model)
+		let (turn, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
 		try await waitUntil { store.isHeld }
@@ -57,5 +57,27 @@ extension DurableCalendarWriteTests {
 		#expect(server.posts.isEmpty)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.token == token)
 		await fixture.coach.stop(.main)
+		fixture.model.script = [
+			.toolCall(
+				name: "intervals_create_strength_workout",
+				arguments:
+					#"{"date":"1998-06-14","name":"Revised strength","description":"Four sets"}"#),
+			.finish(reason: .toolCalls), .text("Revised."), .finish(reason: .stop),
+		]
+		try await fixture.coach.retry(turn, in: .main)
+		_ = try #require(await fixture.coach.settledState(of: turn, in: .main))
+		let revised = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		_ = await fixture.coach.decide(.presented(revised.ref), in: .main)
+		let revisedToken = try #require(await fixture.coach.currentSnapshot(.main)?.review?.token)
+		server.state.withLock { $0.response = .status(500) }
+		_ = await fixture.coach.decide(.approve(revisedToken), in: .main)
+		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		#expect(pending.controls == .checkAgain(pending.ref))
+		#expect(
+			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
+		#expect(server.posts.count == 1)
+		#expect(server.events.first?["name"]?.stringValue == "Revised strength")
 	}
 }

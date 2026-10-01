@@ -34,24 +34,7 @@ package struct LiveProposal: Sendable, Equatable {
 package enum ProposalPolicy {
 	package static let ttlSeconds: TimeInterval = 10 * 60
 
-	package static func propose(
-		chatId: ChatID,
-		tool: GatedToolName,
-		input: GatedToolInput,
-		summary: String,
-		description: String,
-		now: Date,
-		ledger: Ledger,
-		scope: TurnScope
-	) async throws -> PendingProposal {
-		try await scope.proposing {
-			try await save(
-				chatId: chatId, tool: tool, input: input, summary: summary,
-				description: description, now: now, ledger: ledger, stamp: scope.stamp)
-		}
-	}
-
-	private static func save(
+	package static func save(
 		chatId: ChatID, tool: GatedToolName, input: GatedToolInput, summary: String,
 		description: String, now: Date, ledger: Ledger, stamp: OperationStamp
 	) async throws -> PendingProposal {
@@ -64,7 +47,22 @@ package enum ProposalPolicy {
 		}
 		let nonce = Nonce()
 		let expiresAt = now.addingTimeInterval(ttlSeconds)
+		let previous = records.sorted { $0.hlc < $1.hlc }.last {
+			guard case .deviceLocal(.pendingProposal) = $0.body,
+				case .operation(let origin, _) = $0.cause
+			else { return false }
+			return origin == stamp.operation
+		}
+		let writeID: CalendarWriteID
+		if let previous, case .deviceLocal(.pendingProposal(let body)) = previous.body,
+			let retained = body.writeID
+		{
+			writeID = retained
+		} else {
+			writeID = CalendarWriteID()
+		}
 		let body = ProposalBody(
+			writeID: writeID,
 			chatId: chatId,
 			nonce: nonce,
 			tool: tool,

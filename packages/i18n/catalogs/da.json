@@ -2918,7 +2918,9 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedkøling",
       "ramp": "gradvis stigning"
-    }
+    },
+    "writePending": "Denne træning er muligvis blevet gemt. Tjek kalenderen, før du fortsætter.",
+    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig."
   },
   "credits": {
     "buy": "Køb",

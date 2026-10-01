@@ -54,7 +54,7 @@ extension RetryLadderTests {
 	}
 
 	@Test(arguments: [false, true])
-	func rejectedPendingApprovalAfterStopRestoresTryAgain(memorySaved: Bool) async throws {
+	func dispatchedRejectionAfterStopKeepsUnknownEvidence(memorySaved: Bool) async throws {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(
@@ -81,8 +81,8 @@ extension RetryLadderTests {
 		await coach.stop(.main)
 		#expect(await settledTurn(turn, on: coach)?.retryable == false)
 		held.release(.seconds(13))
-		guard case .partiallyApplied = await approving.value else {
-			Issue.record("expected a rejected write")
+		guard case .uncertain = await approving.value else {
+			Issue.record("a dispatched rejection is not proof of absence")
 			return
 		}
 		let settled = try #require(await settledTurn(turn, on: coach))
@@ -90,30 +90,16 @@ extension RetryLadderTests {
 			Issue.record("expected an interrupted turn")
 			return
 		}
-		#expect(settled.retryable == !memorySaved)
-		#expect(interrupted.saved.calendarWrites == 0)
-		#expect(interrupted.saved.unverifiedCalendarWrites == 0)
+		#expect(!settled.retryable)
+		#expect(interrupted.saved.calendarWrites == 1)
+		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(interrupted.saved.memorySections == (memorySaved ? 1 : 0))
-		#expect(interrupted.notice.action == (memorySaved ? nil : .tryAgain(turn)))
-		#expect(
-			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
-				== (memorySaved
-					? "This reply stopped before it finished. Some information was saved first."
-					: "This reply stopped before it finished. Nothing was changed."))
+		#expect(interrupted.notice.action == nil)
 		for current in [coach] + (await reopenedApprovalCoaches(intervals: intervals)) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
-			#expect(await current.currentSnapshot(.main)?.notes.isEmpty == true)
+			await #expect(throws: RetryRefusal.self) { try await current.retry(turn, in: .main) }
 		}
-		if memorySaved {
-			await #expect(throws: RetryRefusal.alreadyAnswered) {
-				try await coach.retry(turn, in: .main)
-			}
-		} else {
-			try await coach.retry(turn, in: .main)
-			#expect(
-				replyText(try #require(await settledTurn(turn, on: coach))) == "Try a shorter ride."
-			)
-		}
+
 		#expect(base.calls.filter(\.isWrite).isEmpty)
 	}
 

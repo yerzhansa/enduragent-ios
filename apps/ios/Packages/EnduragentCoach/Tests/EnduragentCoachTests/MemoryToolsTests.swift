@@ -168,7 +168,7 @@ import Testing
 	}
 
 	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {
-		ToolRuntime(
+		makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock

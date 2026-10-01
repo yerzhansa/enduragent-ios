@@ -2918,7 +2918,9 @@
       "mainSet": "Bloc principal",
       "cooldown": "Retour au calme",
       "ramp": "progressif"
-    }
+    },
+    "writePending": "Cet entraînement a peut-être été enregistré. Vérifie le calendrier avant de continuer.",
+    "writeReadFailed": "Impossible de vérifier le calendrier. Ton entraînement approuvé est toujours en attente."
   },
   "credits": {
     "buy": "Acheter",

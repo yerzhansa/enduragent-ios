@@ -160,7 +160,7 @@ struct GatedToolsTests {
 
 	private func runtime() -> ToolRuntime {
 		let store = InMemoryRecordLog()
-		return ToolRuntime(
+		return makeToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock

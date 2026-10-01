@@ -47,7 +47,8 @@ extension RetryLadderTests {
 				== "The calendar change may have been saved. Check your calendar before asking again."
 		)
 		#expect(!settled.retryable)
-		#expect(await coach.currentSnapshot(.main)?.review == nil)
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
 		#expect(
 			transport.requests.filter { $0.charge == .chatAttempt }.count == checkpoint.requests)
 		#expect(
@@ -85,7 +86,7 @@ extension RetryLadderTests {
 		#expect(base.calls.filter(\.isWrite).count == 1)
 	}
 
-	@Test func rejectedApprovalDuringBackoffAllowsRetry() async throws {
+	@Test func dispatchedRejectionDuringBackoffBlocksRegeneration() async throws {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(
@@ -103,20 +104,17 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(13))
 		held.release(.seconds(7))
 		held.release(.seconds(13))
-		guard case .partiallyApplied = await approving.value else {
-			Issue.record("expected a definite rejection")
+		guard case .uncertain = await approving.value else {
+			Issue.record("a dispatched rejection stays unknown")
 			return
 		}
-		#expect(replyText(try #require(await settledTurn(turn, on: coach))) == "Second.")
+		let settled = try #require(await settledTurn(turn, on: coach))
+		#expect(!settled.retryable)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
-				.count == 2)
+				.count == 1)
 		#expect(base.calls.filter(\.isWrite).isEmpty)
-		let retryToken = try await presentReview(on: coach)
-		#expect(
-			await coach.decide(.approve(retryToken), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(base.calls.filter(\.isWrite).count == 1)
+
 	}
 
 	@Test(arguments: ApprovalCheckpoint.allCases)

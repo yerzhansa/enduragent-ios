@@ -4,7 +4,6 @@ public actor Coach {
 	package let memory: Memory
 	public nonisolated let credits: any CreditsClient
 	package nonisolated let diagnostics: DiagnosticsLog
-
 	private let sport: SportID
 	private let transport: any ModelTransport
 	let ledger: Ledger
@@ -56,18 +55,18 @@ public actor Coach {
 		self.host = ports.host
 		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock)
-		self.runner = TurnRunner(
-			transport: transport,
-			ledger: ledger,
-			clock: clock,
-			diagnostics: diagnostics,
-			ladder: .npm,
-			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
-		)
-		self.reviews = SingleProposalReviews(
+		let reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
 		)
+		self.reviews = reviews
+		self.runner = TurnRunner(
+			transport: transport, ledger: ledger, clock: clock,
+			diagnostics: diagnostics, ladder: .npm,
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
+			reviews: reviews
+		)
+
 		self.mailboxes = [:]
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
@@ -134,7 +133,8 @@ public actor Coach {
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
 		let mailbox = await mailbox(for: chat)
 		let outcome = await reviews.decide(
-			decision, chat: chat, scope: await mailbox.reviewScope)
+			decision, chat: chat, scope: await mailbox.reviewScope,
+			changed: { await mailbox.reviewChanged() })
 		await mailbox.reviewChanged()
 		return outcome
 	}

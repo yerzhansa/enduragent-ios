@@ -2882,7 +2882,9 @@
       "mainSet": "主要訓練",
       "cooldown": "緩和",
       "ramp": "漸增"
-    }
+    },
+    "writePending": "此訓練可能已儲存。請先檢查行事曆再繼續。",
+    "writeReadFailed": "無法檢查行事曆。你已核准的訓練仍在等待確認。"
   },
   "credits": {
     "buy": "購買",

@@ -2918,7 +2918,9 @@
       "mainSet": "Série principal",
       "cooldown": "Desaquecimento",
       "ramp": "rampa"
-    }
+    },
+    "writePending": "Este treino pode ter sido salvo. Confira o calendário antes de continuar.",
+    "writeReadFailed": "Não foi possível verificar o calendário. Seu treino aprovado continua pendente."
   },
   "credits": {
     "buy": "Comprar",

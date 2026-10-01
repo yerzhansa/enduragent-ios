@@ -12,13 +12,16 @@ package struct ToolRuntime: Sendable {
 	private let intervals: any IntervalsClient
 	let ledger: Ledger
 	let clock: any Clock
+	let reviews: SingleProposalReviews
 
 	package init(
-		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock
+		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock,
+		reviews: SingleProposalReviews
 	) {
 		self.intervals = intervals
 		self.ledger = ledger
 		self.clock = clock
+		self.reviews = reviews
 	}
 
 	package func execute(

@@ -64,8 +64,8 @@ struct GatedReviewLog: RecordLog {
 	}
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		if batch.contains(where: {
-			if case .deviceLocal(.proposalCleared(let body)) = $0.body {
-				return body.reason == .executed
+			if case .synced(.reviewWrite(let body)) = $0.body {
+				return body.evidence == .unknown(.dispatched)
 			}
 			return false
 		}) {
@@ -91,6 +91,7 @@ struct GatedReviewIntervals: IntervalsClient {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchStreams(id: id)
 	}
+	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try await base.listEvents(oldest: oldest, newest: newest)
 	}

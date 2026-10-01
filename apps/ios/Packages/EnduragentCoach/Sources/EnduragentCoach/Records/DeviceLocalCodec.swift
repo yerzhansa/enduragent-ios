@@ -48,6 +48,7 @@ extension RecordCodec {
 			}
 			return .pendingProposal(
 				ProposalBody(
+					writeID: payload.writeID.map(CalendarWriteID.init(rawValue:)),
 					chatId: try decodeChatID(payload.chatId),
 					nonce: Nonce(rawValue: payload.nonce),
 					tool: tool,

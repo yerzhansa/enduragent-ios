@@ -5,7 +5,8 @@ import Testing
 
 @Suite(.timeLimit(.minutes(2))) struct DurableCalendarWriteTests {
 	enum LostResponse: Sendable, CaseIterable {
-		case http500, http502, http503, http504, http422, malformed, timeout, cancellation
+		case http500, http502, http503, http504, http422, malformed, mismatched, timeout,
+			cancellation
 
 		var response: CalendarWriteServer.Response {
 			switch self {
@@ -15,6 +16,10 @@ import Testing
 			case .http504: .status(504)
 			case .http422: .status(422)
 			case .malformed: .malformed
+			case .mismatched:
+				.body(
+					#"{"id":99,"name":"Other","category":"WORKOUT","start_date_local":"1998-06-14T00:00:00"}"#
+				)
 			case .timeout, .cancellation: .heldAfterCommit
 			}
 		}
@@ -37,7 +42,7 @@ import Testing
 		#expect(!state.retryable)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		#expect(pending.notice?.key.rawValue == "chat.review.writePending")
+		#expect(pending.notice?.key.rawValue == "review.writePending")
 		#expect(
 			await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
@@ -113,7 +118,7 @@ import Testing
 		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		#expect(pending.notice?.key.rawValue == "chat.review.writeReadFailed")
+		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")
 		#expect(await fixture.coach.state(of: turn)?.retryable == false)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)

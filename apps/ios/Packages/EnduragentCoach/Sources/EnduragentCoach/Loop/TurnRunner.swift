@@ -60,6 +60,7 @@ package struct TurnRunner: Sendable {
 	let clock: any Clock
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
+	let reviews: SingleProposalReviews
 	private let evidence: any TurnEvidence
 
 	package init(
@@ -68,7 +69,8 @@ package struct TurnRunner: Sendable {
 		clock: any Clock,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
-		evidence: any TurnEvidence
+		evidence: any TurnEvidence,
+		reviews: SingleProposalReviews
 	) {
 		self.transport = transport
 		self.ledger = ledger
@@ -76,6 +78,7 @@ package struct TurnRunner: Sendable {
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
+		self.reviews = reviews
 	}
 
 	package func run(
@@ -315,7 +318,7 @@ package struct TurnRunner: Sendable {
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, clock: clock)
+			intervals: attempt.training.client, ledger: ledger, clock: clock, reviews: reviews)
 	}
 
 }

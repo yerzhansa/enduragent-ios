@@ -292,7 +292,8 @@ extension SwiftDataSuites {
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
 				.reviewWrite(
 					ReviewWriteBody(
-						chatId: .main, review: ChangeSetID(ulid: ulid), status: .unverified)),
+						chatId: .main, review: ChangeSetID(ulid: ulid), writeID: nil, target: nil,
+						evidence: .unknown(.dispatched))),
 				.reviewApplied(
 					ReviewAppliedBody(
 						chatId: .main,

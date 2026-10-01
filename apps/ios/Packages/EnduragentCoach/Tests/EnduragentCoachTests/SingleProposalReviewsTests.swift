@@ -98,16 +98,15 @@ import Testing
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		#expect(ada.calls.filter(\.isWrite).count == 1)
-		let clears = try await records.fetch(
-			RecordQuery(scope: .deviceLocal([.proposalCleared]), chatId: "main")
+		let writes = try await records.fetch(
+			RecordQuery(scope: .synced([.reviewWrite]), chatId: .main)
 		).records
-		guard
-			case .operation(.workoutChangeSet(token.ref.set, token.ref.revision), _)? =
-				clears.first?.cause
-		else {
-			Issue.record("expected the change-set stamp on the clear, got \(clears)")
+		guard case .synced(.reviewWrite(let applied)) = writes.last?.body else {
+			Issue.record("expected durable applied evidence")
 			return
 		}
+		#expect(applied.evidence == .applied(eventID: 1))
+
 	}
 
 	@Test func presentationFailedWithdrawsTheControl() async throws {
@@ -180,7 +179,7 @@ import Testing
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 	}
 
-	@Test func rejectedWriteSettlesPartiallyAppliedWithACatalogSentence() async throws {
+	@Test func dispatchedRejectionKeepsPendingReviewWithACatalogSentence() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
@@ -189,12 +188,13 @@ import Testing
 		let outcome = await coach.decide(.approve(token), in: .main)
 
 		#expect(
-			outcome == .partiallyApplied(done: [], stoppedAt: card, failure: .requestRejected))
+			outcome == .uncertain(done: [], unresolved: card))
 		#expect(
 			outcome.notice?.sentence(in: phrasebook)
-				== "intervals.icu rejected the request — check your intervals.icu connection or API key."
+				== "Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
 		)
-		#expect(await coach.currentSnapshot(.main)?.review == nil)
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
 		#expect(
 			coach.diagnostics.entries.contains {
 				if case .toolFailed(_, .intervalsCreateWorkout, _) = $0.event {

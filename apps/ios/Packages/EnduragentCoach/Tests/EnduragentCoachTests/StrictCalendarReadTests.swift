@@ -33,7 +33,7 @@ extension DurableCalendarWriteTests {
 		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		#expect(pending.notice?.key.rawValue == "chat.review.writeReadFailed")
+		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")
 		#expect(await fixture.coach.state(of: turn)?.retryable == false)
 		#expect(server.posts.count == 1)
 	}

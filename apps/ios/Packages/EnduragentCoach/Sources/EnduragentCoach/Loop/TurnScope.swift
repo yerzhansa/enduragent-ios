@@ -108,12 +108,8 @@ package actor TurnScope {
 		await reviewGate.pass { await run() }
 	}
 
-	package func beginReview(_ proposal: LiveProposal) -> Bool {
+	package func beginReview() -> Bool {
 		guard !interrupted else { return false }
-		guard proposal.cause == .operation(stamp.operation, stamp.attempt) else { return true }
-		reviewWrites[proposal.body.nonce] = ReviewWrite(
-			invocation: proposalInvocations[proposal.body.nonce] ?? 0,
-			commit: CommittedWrite(applied: proposal.body.tool, verified: false))
 		return true
 	}
 
@@ -122,19 +118,15 @@ package actor TurnScope {
 		return summary
 	}
 
-	package func recordReview(_ proposal: LiveProposal, outcome: ReviewOutcome) {
-		guard let pending = reviewWrites[proposal.body.nonce] else { return }
-		switch outcome {
-		case .applied:
-			reviewWrites[proposal.body.nonce] = ReviewWrite(
-				invocation: pending.invocation,
-				commit: CommittedWrite(applied: proposal.body.tool, verified: true))
-		case .uncertain:
-			break
-		case .partiallyApplied, .blocked, .storageUnavailable, .staleControl, .canceled,
-			.changedSinceReview, .presentationRecorded:
-			reviewWrites[proposal.body.nonce] = nil
-		}
+	package func recordReview(_ proposal: LiveProposal, evidence: CalendarWriteEvidence) {
+		guard proposal.cause == .operation(stamp.operation, stamp.attempt), evidence.dispatched
+		else { return }
+		let pending = reviewWrites[proposal.body.nonce]
+		reviewWrites[proposal.body.nonce] = ReviewWrite(
+			invocation: pending?.invocation ?? proposalInvocations[proposal.body.nonce] ?? 0,
+			commit: CommittedWrite(
+				applied: proposal.body.tool,
+				verified: pending?.commit.verified == true || evidence.applied))
 	}
 
 	package func proposing(

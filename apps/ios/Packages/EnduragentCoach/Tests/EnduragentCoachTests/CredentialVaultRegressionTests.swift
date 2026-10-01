@@ -358,6 +358,7 @@ private struct GatedProfileIntervals: IntervalsClient {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchStreams(id: id)
 	}
+	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try await base.listEvents(oldest: oldest, newest: newest)
 	}

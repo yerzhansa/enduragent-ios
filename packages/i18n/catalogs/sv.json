@@ -2918,7 +2918,9 @@
       "mainSet": "Huvuddel",
       "cooldown": "Nedvarvning",
       "ramp": "gradvis ökning"
-    }
+    },
+    "writePending": "Det här träningspasset kan ha sparats. Kontrollera kalendern innan du fortsätter.",
+    "writeReadFailed": "Kalendern kunde inte kontrolleras. Ditt godkända träningspass väntar fortfarande på bekräftelse."
   },
   "credits": {
     "buy": "Köp",

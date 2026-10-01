@@ -2918,7 +2918,9 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedtrapping",
       "ramp": "gradvis økning"
-    }
+    },
+    "writePending": "Denne treningsøkten kan ha blitt lagret. Sjekk kalenderen før du fortsetter.",
+    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Den godkjente treningsøkten din venter fortsatt."
   },
   "credits": {
     "buy": "Kjøp",

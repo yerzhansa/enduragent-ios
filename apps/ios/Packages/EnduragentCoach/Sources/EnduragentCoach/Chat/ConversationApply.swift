@@ -70,18 +70,10 @@ extension Conversation {
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
 			case .synced(.reviewWrite(let body)):
-				guard case .operation(.turn(let turn), let attempt) = record.cause else { continue }
-				if let known = turns[turn]?.reviewWrites[attempt]?[body.review],
-					known.hlc >= record.hlc
-				{
-					continue
-				}
-				turns[turn]?.reviewWrites[attempt, default: [:]][body.review] = ReviewWriteFact(
-					hlc: record.hlc, status: body.status)
+				guard case .operation(.turn(let turn), _) = record.cause else { continue }
+				let known = turns[turn]?.reviewWrites[body.key] ?? .notSent
+				turns[turn]?.reviewWrites[body.key] = known.merging(body.evidence)
 			case .synced(.reviewApplied(let body)):
-				if case .operation(.turn(let turn), let attempt) = record.cause {
-					turns[turn]?.appliedReviews[attempt, default: []].insert(record.ulid)
-				}
 				let index = segmentIndex(for: record.ulid)
 				segments[index].notes.append(
 					ReviewNote(

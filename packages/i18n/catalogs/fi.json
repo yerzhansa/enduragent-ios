@@ -2918,7 +2918,9 @@
       "mainSet": "Pääsarja",
       "cooldown": "Jäähdyttely",
       "ramp": "tehon nousu"
-    }
+    },
+    "writePending": "Tämä harjoitus on ehkä tallennettu. Tarkista kalenteri ennen jatkamista.",
+    "writeReadFailed": "Kalenteria ei voitu tarkistaa. Hyväksymäsi harjoitus odottaa yhä vahvistusta."
   },
   "credits": {
     "buy": "Osta",

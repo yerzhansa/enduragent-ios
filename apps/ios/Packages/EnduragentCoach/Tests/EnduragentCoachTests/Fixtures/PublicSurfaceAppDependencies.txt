@@ -165,6 +165,7 @@ Catalog.chatNewConversationHydrated
 Catalog.chatNewConversationLabel
 Catalog.chatNewConversationTitle
 Catalog.chatNoticeAttachmentFailure
+Catalog.chatNoticeCalendarUnverified
 Catalog.chatNoticeCheckingTraining
 Catalog.chatNoticeChoiceUnchanged
 Catalog.chatNoticeConnectionInterrupted
@@ -190,7 +191,6 @@ Catalog.chatNoticeResponseFailure
 Catalog.chatNoticeResponseStopped
 Catalog.chatNoticeRetryMessage
 Catalog.chatNoticeSavedChoice
-Catalog.chatNoticeCalendarUnverified
 Catalog.chatNoticeSavedUnverified
 Catalog.chatNoticeWorking
 Catalog.chatPlanChangeActivePlan
@@ -1444,6 +1444,8 @@ Catalog.reviewWorkoutCooldown
 Catalog.reviewWorkoutMainSet
 Catalog.reviewWorkoutRamp
 Catalog.reviewWorkoutWarmup
+Catalog.reviewWritePending
+Catalog.reviewWriteReadFailed
 Catalog.settingsAppearanceDark
 Catalog.settingsAppearanceDetail
 Catalog.settingsAppearanceLight
@@ -2660,6 +2662,7 @@ FakeIntervalsClient.events
 FakeIntervalsClient.fetchActivities(oldest:newest:)
 FakeIntervalsClient.fetchActivity(id:)
 FakeIntervalsClient.fetchAthlete()
+FakeIntervalsClient.fetchEvent(id:)
 FakeIntervalsClient.fetchStreams(id:)
 FakeIntervalsClient.fetchWellness(oldest:newest:)
 FakeIntervalsClient.ftp
@@ -2727,6 +2730,7 @@ IntervalsClient.deleteEvent(id:)
 IntervalsClient.fetchActivities(oldest:newest:)
 IntervalsClient.fetchActivity(id:)
 IntervalsClient.fetchAthlete()
+IntervalsClient.fetchEvent(id:)
 IntervalsClient.fetchStreams(id:)
 IntervalsClient.fetchWellness(oldest:newest:)
 IntervalsClient.listEvents(oldest:newest:)
@@ -2749,11 +2753,11 @@ JSONValue.object
 JSONValue.parse(_:)
 JSONValue.string
 KeychainStoreError
-KeychainStoreError.keychain
 KeychainStoreError.encoding
 KeychainStoreError.fileSystem
-KeychainStoreError.unexpected
+KeychainStoreError.keychain
 KeychainStoreError.status
+KeychainStoreError.unexpected
 Language
 Language.detectMessageLanguage(_:)
 Language.normalizeLocaleHint(_:)

@@ -158,6 +158,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let value):
 			self = .pendingProposal(
 				ProposalPayload(
+					writeID: value.writeID?.rawValue,
 					chatId: value.chatId.rawValue,
 					nonce: value.nonce.rawValue,
 					tool: value.tool.rawValue,

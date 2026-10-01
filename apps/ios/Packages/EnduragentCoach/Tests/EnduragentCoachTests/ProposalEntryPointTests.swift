@@ -11,7 +11,7 @@ extension RetryLadderTests {
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let scope = TurnScope(
 			stamp: testStamp(account: account), policy: .npm, ladder: .npm, uptime: clock.uptime)
-		let runtime = ToolRuntime(intervals: intervals, ledger: ledger, clock: clock)
+		let runtime = makeToolRuntime(intervals: intervals, ledger: ledger, clock: clock)
 		let arguments = try JSONValue.parse(
 			#"{"date":"1998-06-16","name":"Strength","description":"Three sets"}"#)
 		try await scope.chargeAttempt()
@@ -41,11 +41,11 @@ extension RetryLadderTests {
 					.intervalsCreateStrengthWorkout,
 					arguments: arguments, chatId: .main, scope: scope)
 			case .proposalPolicy:
-				_ = try await ProposalPolicy.propose(
+				_ = try await reviews.propose(
 					chatId: .main, tool: .intervalsCreateStrengthWorkout,
 					input: .createStrengthWorkout(
 						date: "1998-06-16", name: "Strength", description: "Three sets"),
-					summary: "Strength", description: "Three sets", now: clock.now, ledger: ledger,
+					summary: "Strength", description: "Three sets",
 					scope: scope)
 			}
 		}

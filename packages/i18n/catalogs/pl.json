@@ -2990,7 +2990,9 @@
       "mainSet": "Seria główna",
       "cooldown": "Schłodzenie",
       "ramp": "narastająco"
-    }
+    },
+    "writePending": "Ten trening mógł zostać zapisany. Sprawdź kalendarz, zanim przejdziesz dalej.",
+    "writeReadFailed": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie."
   },
   "credits": {
     "buy": "Kup",

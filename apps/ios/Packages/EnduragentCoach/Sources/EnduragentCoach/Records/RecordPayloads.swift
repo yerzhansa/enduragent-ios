@@ -189,6 +189,7 @@ struct ProvenancePayload: Codable {
 }
 
 struct ProposalPayload: Codable {
+	var writeID: UUID? = nil
 	var chatId: String
 	var nonce: UUID
 	var tool: String

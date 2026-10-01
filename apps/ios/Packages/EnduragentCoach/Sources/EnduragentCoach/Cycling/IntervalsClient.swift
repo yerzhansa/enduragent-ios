@@ -154,6 +154,8 @@ public struct ActivitySummary: Sendable, Equatable {
 }
 
 public struct CalendarEvent: Sendable, Equatable {
+	package var description: String? = nil
+	package var type: String? = nil
 	public var id: EventID
 	public var startDateLocal: String
 	public var name: String
@@ -165,6 +167,7 @@ public struct CalendarEvent: Sendable, Equatable {
 }
 
 public struct ChatCalendarCreate: Sendable, Equatable {
+	package var writeID: CalendarWriteID? = nil
 	public var date: CivilDate
 	public var name: String
 	public var description: String
@@ -184,6 +187,7 @@ public protocol IntervalsClient: Sendable {
 	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary]
 	func fetchActivity(id: ActivityID) async throws -> JSONValue
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
+	func fetchEvent(id: EventID) async throws -> CalendarEvent
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
@@ -229,18 +233,19 @@ package enum IntervalsPolicy {
 	package static let ftpRange = 50...600
 	package static let requestTimeout: TimeInterval = 30
 	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
-	package static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
 
 	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
-		.object([
+		var fields: [String: JSONValue] = [
 			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
 			"category": .string("WORKOUT"),
 			"type": .string(draft.type.rawValue),
 			"name": .string(draft.name),
 			"description": .string(draft.description),
-			"external_id": .string(draft.externalId.rawValue),
+			"external_id": .string(draft.writeID?.externalID ?? draft.externalId.rawValue),
 			"tags": .array(draft.tags.map { .string($0) }),
-		])
+		]
+		if let writeID = draft.writeID { fields["uid"] = .string(writeID.uid) }
+		return .object(fields)
 	}
 
 	package static func today(now: Date, timeZone: TimeZone) -> CivilDate {

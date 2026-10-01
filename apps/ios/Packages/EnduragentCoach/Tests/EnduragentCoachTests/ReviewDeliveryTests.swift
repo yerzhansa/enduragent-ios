@@ -35,70 +35,24 @@ extension SingleProposalReviewsTests {
 		#expect(ada.calls.filter(\.isWrite).count == 2)
 	}
 
-	@Test func earlierApprovalCannotUnlockLaterApproval() async throws {
+	@Test(arguments: [false, true])
+	func unresolvedApprovalCannotBeReplacedOrCanceled(cancel: Bool) async throws {
 		let firstWrite = ReviewGate()
-		let secondClaim = ReviewGate()
-		let log = GatedReviewLog(inner: records, gate: secondClaim)
 		let client = GatedReviewIntervals(base: ada, gate: firstWrite)
-		let coach = await gatedCoach(log: log, client: client)
-		let firstToken = try await presentedToken(on: coach)
+		let coach = await gatedCoach(log: records, client: client)
+		let token = try await presentedToken(on: coach)
 		await firstWrite.arm()
-		let first = Task { await coach.decide(.approve(firstToken), in: .main) }
-		let firstHeld = await firstWrite.waitUntilEntered()
-		#expect(firstHeld)
-		let laterReview = try await propose(on: coach)
-		#expect(laterReview.ref.set != firstToken.ref.set)
-		let laterToken = try await presentedToken(on: coach)
-		await secondClaim.arm()
-		let later = Task { await coach.decide(.approve(laterToken), in: .main) }
-		let claimHeld = await secondClaim.waitUntilEntered()
-		#expect(claimHeld)
+		let approval = Task { await coach.decide(.approve(token), in: .main) }
+		#expect(await firstWrite.waitUntilEntered())
+		let later = try await propose(on: coach)
+		#expect(later.ref.set == token.ref.set)
+		#expect(later.controls == .none)
+		#expect(
+			await coach.decide(cancel ? .cancel(token) : .approve(token), in: .main)
+				== .staleControl)
 		await firstWrite.release()
-		_ = await first.value
-		let redisplayed = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.decide(.presented(redisplayed.ref), in: .main) == .presentationRecorded)
-		let refreshed = try #require(await coach.currentSnapshot(.main)?.review)
-		if let duplicateToken = refreshed.token {
-			let duplicate = await coach.decide(.approve(duplicateToken), in: .main)
-			#expect(duplicate == .staleControl)
-		}
-		await secondClaim.release()
-		_ = await later.value
-		#expect(ada.calls.filter(\.isWrite).count == 2)
+		_ = await approval.value
+		#expect(await coach.currentSnapshot(.main)?.review == nil)
+		#expect(ada.calls.filter(\.isWrite).count == 1)
 	}
-
-	@Test func finishingOldApprovalCannotEnableCancelDuringNewApproval() async throws {
-		let firstWrite = ReviewGate()
-		let secondClaim = ReviewGate()
-		let log = GatedReviewLog(inner: records, gate: secondClaim)
-		let client = GatedReviewIntervals(base: ada, gate: firstWrite)
-		let coach = await gatedCoach(log: log, client: client)
-		let firstToken = try await presentedToken(on: coach)
-		await firstWrite.arm()
-		let first = Task { await coach.decide(.approve(firstToken), in: .main) }
-		let firstHeld = await firstWrite.waitUntilEntered()
-		#expect(firstHeld)
-		let laterReview = try await propose(on: coach)
-		#expect(laterReview.ref.set != firstToken.ref.set)
-		let laterToken = try await presentedToken(on: coach)
-		await secondClaim.arm()
-		let later = Task { await coach.decide(.approve(laterToken), in: .main) }
-		let claimHeld = await secondClaim.waitUntilEntered()
-		#expect(claimHeld)
-		await firstWrite.release()
-		_ = await first.value
-		let redisplayed = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(await coach.decide(.presented(redisplayed.ref), in: .main) == .presentationRecorded)
-		let refreshed = try #require(await coach.currentSnapshot(.main)?.review)
-		var acceptedCancel = false
-		if let duplicateToken = refreshed.token {
-			let cancellation = await coach.decide(.cancel(duplicateToken), in: .main)
-			acceptedCancel = cancellation == .canceled(kept: [])
-			#expect(!acceptedCancel)
-		}
-		await secondClaim.release()
-		_ = await later.value
-		#expect(ada.calls.filter(\.isWrite).count == (acceptedCancel ? 1 : 2))
-	}
-
 }
