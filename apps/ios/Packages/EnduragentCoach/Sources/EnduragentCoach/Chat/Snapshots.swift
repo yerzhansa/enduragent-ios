@@ -9,6 +9,12 @@ public struct ChatSnapshot: Sendable, Equatable {
 	public let notes: [TurnID?: [TranscriptNote]]
 	public internal(set) var liveReply: LiveReply?
 	public internal(set) var revision: UInt64
+
+	public static func == (lhs: Self, rhs: Self) -> Bool {
+		lhs.chat == rhs.chat && lhs.opening == rhs.opening && lhs.turns == rhs.turns
+			&& lhs.activity == rhs.activity && lhs.review == rhs.review && lhs.notes == rhs.notes
+			&& lhs.liveReply == rhs.liveReply
+	}
 }
 
 public struct LiveReply: Sendable, Equatable {

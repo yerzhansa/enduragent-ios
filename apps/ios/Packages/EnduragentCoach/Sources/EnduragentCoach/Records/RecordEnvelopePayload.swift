@@ -13,6 +13,7 @@ enum SyncedPayload: Encodable {
 	case coachReplyLanguage(CoachReplyLanguagePayload)
 	case planningDevice(PlanningDevicePayload)
 	case reviewApplied(ReviewAppliedPayload)
+	case reviewWrite(ReviewWritePayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
 
@@ -83,6 +84,8 @@ enum SyncedPayload: Encodable {
 		case .reviewApplied(let value):
 			self = .reviewApplied(
 				ReviewAppliedPayload(value))
+		case .reviewWrite(let value):
+			self = .reviewWrite(ReviewWritePayload(value))
 		case .sessionSettings(let value):
 			self = .sessionSettings(SessionSettingsPayload(value))
 		case .languagePreference(let value):
@@ -104,6 +107,7 @@ enum SyncedPayload: Encodable {
 		case .coachReplyLanguage(let payload): try payload.encode(to: encoder)
 		case .planningDevice(let payload): try payload.encode(to: encoder)
 		case .reviewApplied(let payload): try payload.encode(to: encoder)
+		case .reviewWrite(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
 		}
@@ -151,6 +155,7 @@ enum DeviceLocalPayload: Encodable {
 		case .pendingProposal(let value):
 			self = .pendingProposal(
 				ProposalPayload(
+					writeID: value.writeID?.rawValue,
 					chatId: value.chatId.rawValue,
 					nonce: value.nonce.rawValue,
 					tool: value.tool.rawValue,

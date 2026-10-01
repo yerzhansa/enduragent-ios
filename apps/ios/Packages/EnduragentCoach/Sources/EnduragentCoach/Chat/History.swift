@@ -138,3 +138,14 @@ extension Conversation {
 			turns: segments.flatMap(\.turns), notes: segments.flatMap(\.notes))
 	}
 }
+
+extension Coach {
+	public func history() async throws(HistoryUnavailable) -> [ArchivedConversationSummary] {
+		do {
+			return try await ledger.history()
+		} catch {
+			throw .storageUnavailable
+		}
+	}
+
+}

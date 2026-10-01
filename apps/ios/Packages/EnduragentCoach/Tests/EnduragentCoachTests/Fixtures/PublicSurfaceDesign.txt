@@ -65,6 +65,7 @@ ChatActivity.startingNewConversation
 ChatActivity.stopping
 ChatActivity.working
 ChatSnapshot
+ChatSnapshot.==(_:_:)
 ChatSnapshot.activity
 ChatSnapshot.chat
 ChatSnapshot.liveReply
@@ -344,6 +345,7 @@ ReviewBlock.accountChanged
 ReviewBlock.cannotVerify
 ReviewBlock.coachOnly
 ReviewBlock.pastProtected
+ReviewBlock.turnStopping
 ReviewBlock.workoutOnly
 ReviewCard
 ReviewCard.Action
@@ -553,9 +555,10 @@ WorkoutChartModel.segments
 WorkoutChartModel.unit
 WriteSummary
 WriteSummary.calendarWrites
-WriteSummary.init(memorySections:ledgerEvents:planSaves:calendarWrites:)
+WriteSummary.init(memorySections:ledgerEvents:planSaves:calendarWrites:unverifiedCalendarWrites:)
 WriteSummary.isEmpty
 WriteSummary.ledgerEvents
 WriteSummary.memorySections
 WriteSummary.none
 WriteSummary.planSaves
+WriteSummary.unverifiedCalendarWrites

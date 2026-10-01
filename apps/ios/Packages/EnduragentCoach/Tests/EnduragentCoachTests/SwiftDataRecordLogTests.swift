@@ -291,6 +291,10 @@ extension SwiftDataSuites {
 						chatId: .main, firstIncludedUlid: ulid,
 						reason: .reset(ResetID(ulid: ulid)))),
 				.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: "sum")),
+				.reviewWrite(
+					ReviewWriteBody(
+						chatId: .main, review: ChangeSetID(ulid: ulid), writeID: nil, target: nil,
+						evidence: .unknown(.dispatched))),
 				.reviewApplied(
 					ReviewAppliedBody(
 						chatId: .main,

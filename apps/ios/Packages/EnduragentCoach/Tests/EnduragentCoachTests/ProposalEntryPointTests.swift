@@ -7,28 +7,30 @@ import Testing
 extension RetryLadderTests {
 	@Test(.timeLimit(.minutes(1)), arguments: ProposalEntryPoint.allCases)
 	func proposalEntryPointsRespectApprovedRetry(entry: ProposalEntryPoint) async throws {
-		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.respond = ScriptedReply.sequence(
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ [.text("Second."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
-			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
-		}
-		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
-		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
-		let token = try await presentReview(on: coach)
-		held.release(.seconds(7))
-		try await held.waitUntilHeld(.seconds(11))
-		let scope = try #require(try await coach.mailbox(for: .main).reviewScope)
-		let first = await coach.decide(.approve(token), in: .main)
-		let probeStore = InMemoryRecordLog()
-		let ledger = Ledger(log: probeStore, clock: held, diagnostics: DiagnosticsLog(clock: held))
-		let runtime = ToolRuntime(intervals: intervals, ledger: ledger, clock: held)
+		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
+		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let scope = TurnScope(
+			stamp: testStamp(account: account), policy: .npm, ladder: .npm, uptime: clock.uptime)
+		let runtime = makeToolRuntime(intervals: intervals, ledger: ledger, clock: clock)
 		let arguments = try JSONValue.parse(
 			#"{"date":"1998-06-16","name":"Strength","description":"Three sets"}"#)
+		try await scope.chargeAttempt()
+		_ = try await runtime.execute(
+			name: .intervalsCreateStrengthWorkout, arguments: arguments, chatId: .main, scope: scope
+		)
+		let reviews = SingleProposalReviews(
+			ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
+			training: { TrainingConnection(account: account, client: intervals) })
+		let review = try #require(try await reviews.snapshot(chat: .main))
+		#expect(
+			await reviews.decide(.presented(review.ref), chat: .main, scope: scope)
+				== .presentationRecorded)
+		let token = try #require(try await reviews.snapshot(chat: .main)?.token)
+		#expect(
+			await reviews.decide(.approve(token), chat: .main, scope: scope)
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+		try await scope.chargeAttempt()
 		await #expect(throws: SavedWorkReached.self) {
 			switch entry {
 			case .runtime:
@@ -40,21 +42,19 @@ extension RetryLadderTests {
 					.intervalsCreateStrengthWorkout,
 					arguments: arguments, chatId: .main, scope: scope)
 			case .proposalPolicy:
-				_ = try await ProposalPolicy.propose(
+				_ = try await reviews.propose(
 					chatId: .main, tool: .intervalsCreateStrengthWorkout,
 					input: .createStrengthWorkout(
 						date: "1998-06-16", name: "Strength", description: "Three sets"),
-					summary: "Strength", description: "Three sets", now: held.now, ledger: ledger,
+					summary: "Strength", description: "Three sets",
 					scope: scope)
 			}
 		}
 		#expect(
-			try await probeStore.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
-				.isEmpty)
-		held.release(.seconds(11))
-		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach,
-			intervals: intervals, savedRequests: 3)
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
+		#expect(intervals.calls.filter(\.isWrite).count == 1)
+		#expect(try await reviews.snapshot(chat: .main) == nil)
 	}
 }
 

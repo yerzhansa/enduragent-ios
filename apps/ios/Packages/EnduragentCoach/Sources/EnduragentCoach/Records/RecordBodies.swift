@@ -91,6 +91,7 @@ package struct ProvenanceBody: Sendable, Equatable {
 }
 
 package struct ProposalBody: Sendable, Equatable {
+	package var writeID: CalendarWriteID? = nil
 	package var chatId: ChatID
 	package var nonce: Nonce
 	package var tool: GatedToolName

@@ -69,6 +69,10 @@ extension Conversation {
 				turns[body.turn]?.claims.append(ClaimedAttempt(hlc: record.hlc, body: body))
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
+			case .synced(.reviewWrite(let body)):
+				guard case .operation(.turn(let turn), _) = record.cause else { continue }
+				let known = turns[turn]?.reviewWrites[body.key] ?? .notSent
+				turns[turn]?.reviewWrites[body.key] = known.merging(body.evidence)
 			case .synced(.reviewApplied(let body)):
 				let index = segmentIndex(for: record.ulid, at: record.hlc)
 				segments[index].notes.append(

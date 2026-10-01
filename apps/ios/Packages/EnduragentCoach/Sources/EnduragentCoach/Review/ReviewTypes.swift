@@ -49,7 +49,7 @@ public enum ReviewDecision: Sendable, Equatable {
 public enum ReviewOutcome: Sendable, Equatable {
 	case applied([ReviewReceipt])
 	case partiallyApplied(done: [ReviewReceipt], stoppedAt: ReviewCard, failure: TrainingFailure)
-	case uncertain(done: [ReviewReceipt], unresolved: ReviewCard)
+	case uncertain(ReviewNotice)
 	case canceled(kept: [ReviewReceipt])
 	case changedSinceReview(ReviewNotice)
 	case blocked(ReviewBlock)
@@ -59,6 +59,7 @@ public enum ReviewOutcome: Sendable, Equatable {
 }
 
 public enum ReviewBlock: Sendable, Equatable {
+	case turnStopping
 	case cannotVerify
 	case accountChanged
 	case pastProtected

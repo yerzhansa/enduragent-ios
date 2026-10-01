@@ -24,19 +24,19 @@ import Testing
 	}
 
 	@Test func languagePublishesWhileTrainingIsBlocked() async throws {
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let client = GatedProfileIntervals(
 			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), gate: gate)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
 		let snapshots = await coach.observeStatus()
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		try await coach.setLanguage(.fixed(.es))
 		let chosen = await snapshots.status { $0.language == .fixed(.es) }
 		#expect(chosen?.language == .fixed(.es))
 		#expect(client.base.calls.isEmpty)
-		await gate.release()
+		gate.release()
 		await refreshing.value
 		let refreshed = try await coach.observedStatus()
 		#expect(refreshed.language == .fixed(.es))
@@ -115,15 +115,15 @@ import Testing
 	}
 
 	@Test func aLateTrainingRefreshCannotRestoreADisconnectedAccount() async throws {
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let client = GatedProfileIntervals(
 			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), gate: gate)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
-		await gate.release()
+		gate.release()
 		await refreshing.value
 		#expect(try await coach.observedStatus().training == .unconnected)
 	}

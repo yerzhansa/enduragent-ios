@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2481
-	public static let keyCount = 2521
+	public static let englishLeafCount = 2485
+	public static let keyCount = 2525
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -1414,13 +1414,17 @@ public enum Catalog {
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
+	public static let reviewSaveApprovedAgain = CatalogKey(rawValue: "review.saveApprovedAgain")
 	public static let reviewStorageUnavailable = CatalogKey(rawValue: "review.storageUnavailable")
 	public static let reviewTitle = CatalogKey(rawValue: "review.title")
+	public static let reviewTurnStopping = CatalogKey(rawValue: "review.turnStopping")
 	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")
 	public static let reviewWorkoutCooldown = CatalogKey(rawValue: "review.workout.cooldown")
 	public static let reviewWorkoutMainSet = CatalogKey(rawValue: "review.workout.mainSet")
 	public static let reviewWorkoutRamp = CatalogKey(rawValue: "review.workout.ramp")
 	public static let reviewWorkoutWarmup = CatalogKey(rawValue: "review.workout.warmup")
+	public static let reviewWritePending = CatalogKey(rawValue: "review.writePending")
+	public static let reviewWriteReadFailed = CatalogKey(rawValue: "review.writeReadFailed")
 	public static let settingsAppearanceDark = CatalogKey(rawValue: "settings.appearance.dark")
 	public static let settingsAppearanceDetail = CatalogKey(rawValue: "settings.appearance.detail")
 	public static let settingsAppearanceLight = CatalogKey(rawValue: "settings.appearance.light")
