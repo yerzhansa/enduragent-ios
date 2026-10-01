@@ -6,7 +6,8 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite(.timeLimit(.minutes(2))) struct CalendarRecoveryNoticeTests {
-	@Test func reopenedUnknownWriteStorageFailureDoesNotInviteRetry() async throws {
+	@Test(arguments: [false, true])
+	func reopenedUnknownWriteStorageFailureDoesNotInviteRetry(approving: Bool) async throws {
 		let server = try CalendarWriteServer()
 		let url = try await server.start()
 		defer { server.stop() }
@@ -21,7 +22,8 @@ import Testing
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
 		faults.failFetches = true
-		let outcome = await reopened.decide(.checkAgain(pending.ref), in: .main)
+		let decision: ReviewDecision = approving ? .approve(token) : .checkAgain(pending.ref)
+		let outcome = await reopened.decide(decision, in: .main)
 		#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
 		faults.failFetches = false
 		let restored = try #require(await reopened.currentSnapshot(.main)?.review)

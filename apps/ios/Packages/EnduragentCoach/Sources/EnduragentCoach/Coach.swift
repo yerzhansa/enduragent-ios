@@ -116,7 +116,6 @@ public actor Coach {
 			mailbox = try await self.mailbox(for: chat)
 		} catch {
 			diagnostics.record(.recoveryUnavailable(error))
-			if case .approve = decision { return .storageUnavailable }
 			return await reviews.unresolved(.unknown(.readFailed))
 		}
 		let outcome = await reviews.decide(
