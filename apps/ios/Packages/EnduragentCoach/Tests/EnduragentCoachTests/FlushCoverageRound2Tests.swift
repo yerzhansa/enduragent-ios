@@ -11,8 +11,8 @@ import Testing
 		let older = job(6, messages: [1, 2, 4, 5])
 		let newer = job(9, messages: [])
 
-		#expect(newer.process == nil)
-		#expect(newer.messages.isEmpty)
+		#expect(newer.origin == .beforeUpgrade)
+		#expect(newer.coverage.listed.isEmpty)
 		#expect(
 			conversation.flushRows(for: newer).map(\.ulid)
 				== [1, 2, 4, 5, 7, 8].map(fixedUlid))
@@ -24,16 +24,52 @@ import Testing
 	func anOlderV1EmptyListKeepsRowsMissingFromANewerJob(newerSettled: Bool) {
 		let conversation = legacyConversation(turns: 3)
 		let older = job(6, messages: [])
-		var newer = job(9, messages: [7, 8])
-		newer.settled = newerSettled
+		let newer = job(9, messages: [7, 8], settled: newerSettled)
 		let jobs = [older, newer]
-		let resolved = FlushRows(jobs, in: conversation)
-		let settled = FlushJob.settling(jobs, resolved: resolved.byJob)
-		#expect(!settled[0].settled)
+		#expect(older.phase == .pending)
+		#expect(!newer.covers(older))
 		#expect(conversation.flushRows(for: older).map(\.ulid) == [1, 2, 4, 5].map(fixedUlid))
 		#expect(
-			FlushJob.outstanding(settled, in: conversation).map(\.id)
+			FlushJob.outstanding(jobs, in: conversation).map(\.id)
 				== (newerSettled ? [older.id] : [older.id, newer.id]))
+	}
+
+	@Test func aLegacyJobWithNoMessagesCoversItsSegmentBeforeIt() throws {
+		let archived = TurnID(ulid: fixedUlid(1))
+		let current = TurnID(ulid: fixedUlid(5))
+		let records = [
+			storedRecord(
+				device: device, wall: 1, ulid: fixedUlid(1),
+				body: .synced(sampleUser(chatId: .main, text: "archived", turn: archived))),
+			storedRecord(
+				device: device, wall: 2, ulid: fixedUlid(2),
+				body: .synced(sampleReply(chatId: .main, turn: archived, text: "archived reply"))),
+			storedRecord(
+				device: device, wall: 4, ulid: fixedUlid(4),
+				body: .synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: fixedUlid(4),
+							reason: .reset(ResetID(ulid: fixedUlid(4))))))),
+			storedRecord(
+				device: device, wall: 5, ulid: fixedUlid(5),
+				body: .synced(sampleUser(chatId: .main, text: "new", turn: current))),
+			storedRecord(
+				device: device, wall: 6, ulid: fixedUlid(6),
+				body: .synced(sampleReply(chatId: .main, turn: current, text: "new reply"))),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: device)
+		let legacy = FlushJob(
+			id: FlushJobID(ulid: fixedUlid(3)), origin: .beforeUpgrade,
+			coverage: ConversationRows(conversation).coverage(
+				for: FlushJobID(ulid: fixedUlid(3)), messages: [], origin: .beforeUpgrade),
+			reset: nil)
+		#expect(
+			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
+		#expect(
+			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
+				fixedUlid(5), fixedUlid(6),
+			])
 	}
 
 	private func legacyConversation(turns count: Int, startingAt: Int = 1) -> Conversation {
@@ -51,11 +87,16 @@ import Testing
 		return ConversationFold.fold(chat: .main, synced: records, device: device)
 	}
 
-	private func job(_ offset: Int, messages: [Int]) -> FlushJob {
-		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)),
-			messages: messages.map(fixedUlid),
-			process: messages.isEmpty ? nil : ProcessID(ulid: fixedUlid(60)), settled: false)
+	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
+		let id = FlushJobID(ulid: fixedUlid(offset))
+		let origin: FlushJob.Origin =
+			messages.isEmpty ? .beforeUpgrade : .process(ProcessID(ulid: fixedUlid(60)))
+		return
+			FlushJob(
+				id: id, origin: origin,
+				coverage: ConversationRows(legacyConversation(turns: 3)).coverage(
+					for: id, messages: messages.map(fixedUlid), origin: origin),
+				phase: settled ? .settled(.recorded(.nothingToSave)) : .pending, reset: nil)
 	}
 }
 
