@@ -77,8 +77,8 @@ package struct MemoryQueryFailure: Error, Equatable, Sendable {
 }
 
 package enum MemoryFlushPolicy {
+	package static let retryWaitAllowance: Duration = .seconds(10)
 	package static let maxSteps = 5
-	package static let maxAttempts = 2
 	package static let sectionSoftWarnChars = 4000
 	package static let flushShrinkMinChars = 200
 	package static let flushShrinkRatio = 0.7
