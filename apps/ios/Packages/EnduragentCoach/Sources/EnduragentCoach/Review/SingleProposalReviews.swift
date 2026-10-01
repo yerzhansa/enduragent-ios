@@ -250,7 +250,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 					account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
 			try await ProposalPolicy.clear(live, reason: .canceled, ledger: ledger, stamp: stamp)
 			return .canceled(kept: [])
-		} catch { return .storageUnavailable }
+		} catch {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return unresolved(.unknown(.readFailed))
+		}
 	}
 
 	func finish(_ ref: ReviewRef, outcome: ReviewOutcome) {
