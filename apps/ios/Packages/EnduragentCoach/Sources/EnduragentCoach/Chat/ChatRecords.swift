@@ -29,6 +29,11 @@ final class ChatRecords {
 		}
 	}
 
+	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
+		let reviewing = await reviews.isExecuting(in: chat)
+		return reviewing || conversation.hasLocalWork(on: ledger.deviceId)
+	}
+
 	func loadForObservation(isolation: isolated (any Actor)? = #isolation) async {
 		do {
 			try await load()

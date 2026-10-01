@@ -58,9 +58,9 @@ package actor ChatMailbox {
 
 	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
 		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
-		return stored || work.phase.running != nil || work.phase.cause != nil
+		return await records.hasLocalWork() || stored || work.phase.running != nil
+			|| work.phase.cause != nil
 			|| work.window != nil || !work.isEmpty || door.held
-			|| conversation.hasLocalWork(on: ledger.deviceId)
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
