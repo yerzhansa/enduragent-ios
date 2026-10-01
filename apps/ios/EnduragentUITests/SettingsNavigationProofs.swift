@@ -136,8 +136,14 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.openSettings(app)
 		TutorialHarness.wait(app.navigationBars[phrasebook.say(Catalog.settingsTitle)])
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsModelAccessTitle))
-		XCTAssertTrue(TutorialHarness.named(app, "settings.debug").exists)
-		XCTAssertEqual(app.cells.count, 2, "only Credits and Debug have Settings rows")
+		let list = app.collectionViews.firstMatch
+		let rows = list.buttons.allElementsBoundByIndex
+		XCTAssertEqual(rows.map(\.identifier), ["settings.credits", "settings.debug"])
+		let rowLabels = rows.flatMap { $0.staticTexts.allElementsBoundByIndex.map(\.label) }
+		let sections = list.staticTexts.allElementsBoundByIndex.map(\.label).filter {
+			!rowLabels.contains($0)
+		}
+		XCTAssertEqual(sections, [phrasebook.say(Catalog.settingsModelAccessTitle)])
 	}
 
 	private static func openHistory(_ app: XCUIApplication, phrasebook: CatalogPhrasebook) {

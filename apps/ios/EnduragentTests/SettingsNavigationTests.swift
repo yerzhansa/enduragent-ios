@@ -5,6 +5,36 @@ import Testing
 
 extension FixtureLaunchTests {
 	@Test(arguments: [false, true])
+	func restoredSlashDraftShowsCommandsAfterSettingsRelaunch(connected: Bool) async throws {
+		let first = model(try services())
+		first.continueNotice()
+		if connected {
+			first.connectKey = "fixture"
+			await first.connect()
+			try #require(first.didConnect)
+			first.continueConnect()
+		} else {
+			first.skipConnect()
+		}
+		await first.agreeAndStartChatting()
+		first.draft.text = "/"
+		first.draftChanged(from: "")
+		try #require(first.slashListVisible)
+		first.open(.settings)
+		let (kept, keptDefaults) = try relaunch(.keep)
+		let reopened = ShellModel(
+			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
+		try await observed(reopened)
+		#expect(reopened.route == .chat)
+		#expect(reopened.navigation.isEmpty)
+		#expect(reopened.draft == first.draft)
+		try #require(reopened.slashListVisible)
+		reopened.fillSlash(.review)
+		#expect(reopened.draft.text == "/review ")
+		#expect(!reopened.slashListVisible)
+	}
+
+	@Test(arguments: [false, true])
 	func settingsAndHistoryKeepConversationDraftAndSetupAfterRelaunch(connected: Bool) async throws
 	{
 		let services = try services()
