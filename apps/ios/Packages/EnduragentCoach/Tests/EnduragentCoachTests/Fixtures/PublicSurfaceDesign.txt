@@ -363,7 +363,6 @@ ReplyParseFailure
 ReplyParseFailure.documentStructure
 ReplyParseFailure.foundation
 ReplyParseFailure.injected
-ReplyParseFailure.sourceMapping
 ReplyParser
 ReplyParser.document(_:)
 ReplyParser.failingForProof

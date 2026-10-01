@@ -120,10 +120,18 @@ import Testing
 		#expect(HTTPLink(validating: try #require(URL(string: "https:relative"))) == nil)
 	}
 
-	@Test func supportedLinksUseParsedLabelsWithoutReparsingMarkdown() {
+	@Test func supportedLinksUseParsedLabelsWithoutReparsingMarkdown() throws {
+		let url = try #require(URL(string: "https://example.com"))
+		let target = try #require(HTTPLink(validating: url))
 		#expect(
 			ReplyParser.foundation.document("[plain **bold** *ital*](https://example.com)")
-				.accessibilityText == "plain bold ital")
+				== .blocks([
+					.paragraph([
+						.link(
+							label: [StyledText(text: "plain bold ital", styles: [])], target: target
+						)
+					])
+				]))
 		#expect(
 			ReplyParser.foundation.document("<https://example.com/a*b*c>").accessibilityText
 				== "https://example.com/a*b*c")

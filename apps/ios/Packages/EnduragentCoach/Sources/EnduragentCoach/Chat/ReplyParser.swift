@@ -11,16 +11,14 @@ public struct ReplyParser: Sendable {
 		Self { source in
 			try AttributedString(
 				markdown: source,
-				options: .init(
-					interpretedSyntax: .full, failurePolicy: .throwError,
-					appliesSourcePositionAttributes: true))
+				options: .init(interpretedSyntax: .full, failurePolicy: .throwError))
 		}
 	}
 
 	public func document(_ source: String) -> ReplyDocument {
 		do {
 			let parsed = try decode(source)
-			var builder = ReplyBlockBuilder(parsed: parsed, source: source)
+			let builder = ReplyBlockBuilder(parsed: parsed)
 			return .blocks(try builder.document())
 		} catch let failure as ReplyParseFailure {
 			return .plainText(source: source, failure: failure)
@@ -42,7 +40,6 @@ private struct ReplyToken {
 	let text: String
 	let inline: InlinePresentationIntent
 	let link: URL?
-	let position: AttributedString.MarkdownSourcePosition?
 	let path: [PresentationIntent.IntentType]
 }
 
@@ -54,31 +51,18 @@ private struct ReplyNode {
 
 private struct ReplyBlockBuilder {
 	let tokens: [ReplyToken]
-	var spans: ReplySourceSpans
 
-	init(parsed: AttributedString, source: String) {
+	init(parsed: AttributedString) {
 		tokens = parsed.runs.map { run in
 			ReplyToken(
 				text: String(parsed[run.range].characters),
 				inline: run.inlinePresentationIntent ?? [], link: run.link,
-				position: run.markdownSourcePosition,
 				path: Array((run.presentationIntent?.components ?? []).reversed()))
 		}
-		spans = ReplySourceSpans(source: source, positions: tokens.map(\.position))
 	}
 
-	mutating func document() throws -> [ReplyBlock] {
-		if tokens.isEmpty {
-			let omitted = try spans.omittedLinks(after: nil, before: nil)
-			guard omitted.isEmpty || omitted.map(\.accessibilityText).joined() == spans.source
-			else {
-				throw ReplyParseFailure.sourceMapping
-			}
-			return omitted.isEmpty ? [] : [.paragraph(omitted)]
-		}
-		let result = try blocks(nodes(in: tokens.indices, depth: 0))
-		try spans.validateOmittedLinks(in: ReplyDocument.blocks(result).accessibilityText)
-		return result
+	func document() throws -> [ReplyBlock] {
+		try blocks(nodes(in: tokens.indices, depth: 0))
 	}
 
 	private func nodes(in indices: Range<Int>, depth: Int) -> [ReplyNode] {
@@ -106,20 +90,18 @@ private struct ReplyBlockBuilder {
 		return result
 	}
 
-	private mutating func blocks(_ nodes: [ReplyNode]) throws -> [ReplyBlock] {
-		var result: [ReplyBlock] = []
-		for node in nodes { result.append(try block(node)) }
-		return result
+	private func blocks(_ nodes: [ReplyNode]) throws -> [ReplyBlock] {
+		try nodes.map(block)
 	}
 
-	private mutating func block(_ node: ReplyNode) throws -> ReplyBlock {
+	private func block(_ node: ReplyNode) throws -> ReplyBlock {
 		switch node.kind {
-		case .paragraph: return .paragraph(try runs(node.indices))
+		case .paragraph: return .paragraph(runs(node.indices))
 		case .header(let level):
 			guard let heading = HeadingLevel(rawValue: level) else {
 				throw ReplyParseFailure.documentStructure
 			}
-			return .heading(heading, try runs(node.indices))
+			return .heading(heading, runs(node.indices))
 		case .codeBlock(let language):
 			return .codeBlock(text: tokens[node.indices].map(\.text).joined(), language: language)
 		case .orderedList:
@@ -142,15 +124,26 @@ private struct ReplyBlockBuilder {
 			}
 			return .list(.unordered(try NonEmpty(validating: items)))
 		case .table(let columns): return .table(try table(node, columns: columns))
-		case .thematicBreak:
-			return .paragraph([.literal(try spans.rule(at: node.indices.lowerBound))])
-		case .blockQuote: return .paragraph([.literal(try spans.block(node.indices))])
-		case nil:
-			return .paragraph([.literal(tokens[node.indices].map(\.text).joined())])
+		case .thematicBreak, .blockQuote, nil:
+			return .paragraph([.literal(literalText(node))])
 		case .listItem, .tableHeaderRow, .tableRow, .tableCell:
 			throw ReplyParseFailure.documentStructure
 		@unknown default:
-			return .paragraph([.literal(try spans.block(node.indices))])
+			return .paragraph([.literal(literalText(node))])
+		}
+	}
+
+	private func literalText(_ node: ReplyNode) -> String {
+		switch node.kind {
+		case .thematicBreak: return "---"
+		case .blockQuote:
+			return node.children.map { child in
+				"> " + literalText(child).replacingOccurrences(of: "\n", with: "\n> ")
+			}.joined(separator: "\n\n")
+		default:
+			return node.children.isEmpty
+				? runs(node.indices).map(\.accessibilityText).joined()
+				: node.children.map(literalText).joined(separator: "\n\n")
 		}
 	}
 
@@ -173,7 +166,7 @@ private struct ReplyBlockBuilder {
 				guard case .tableCell(let index) = cell.kind, cells.indices.contains(index) else {
 					throw ReplyParseFailure.documentStructure
 				}
-				cells[index] = try runs(cell.indices)
+				cells[index] = runs(cell.indices)
 			}
 			switch row.kind {
 			case .tableHeaderRow: header = cells
@@ -188,34 +181,15 @@ private struct ReplyBlockBuilder {
 			validating: NonEmpty(validating: alignments), header: header, rows: rows)
 	}
 
-	private func runs(_ indices: Range<Int>) throws -> [ReplyRun] {
+	private func runs(_ indices: Range<Int>) -> [ReplyRun] {
 		var result: [ReplyRun] = []
-		var cursor: String.Index?
-		let inTableCell =
-			tokens[indices].first?.path.contains { intent in
-				if case .tableCell = intent.kind { return true }
-				return false
-			} ?? false
 		for token in tokens[indices] {
-			if token.position != nil {
-				let coverage = try spans.coverage(token.position, isLink: token.link != nil)
-				result += try spans.omittedLinks(
-					after: cursor, before: coverage.lowerBound,
-					inTableCell: inTableCell)
-				cursor = coverage.upperBound
-			} else if let start = cursor,
-				token.inline.contains(.softBreak) || token.inline.contains(.lineBreak)
-			{
-				let lineBreak = try spans.lineBreak(after: start)
-				result += try spans.omittedLinks(after: start, before: lineBreak.lowerBound)
-				cursor = lineBreak.upperBound
-			}
 			let run: ReplyRun
 			if let url = token.link {
 				if let target = HTTPLink(validating: url) {
-					run = .link(label: try styledLabel(token), target: target)
+					run = .link(label: [styled(token.text, intent: token.inline)], target: target)
 				} else {
-					run = .literal(try spans.link(token.position))
+					run = .literal("[\(token.text)](\(url.absoluteString))")
 				}
 			} else if token.inline.contains(.inlineHTML) || token.inline.contains(.blockHTML) {
 				run = .literal(token.text)
@@ -234,22 +208,7 @@ private struct ReplyBlockBuilder {
 				result.append(run)
 			}
 		}
-		result += try spans.omittedLinks(
-			after: cursor, before: nil,
-			inTableCell: inTableCell)
 		return result
-	}
-
-	private func styledLabel(_ token: ReplyToken) throws -> [StyledText] {
-		let source = try spans.label(token.position)
-		let label = try AttributedString(
-			markdown: source,
-			options: .init(
-				interpretedSyntax: .inlineOnlyPreservingWhitespace, failurePolicy: .throwError))
-		return label.runs.map { run in
-			let text = String(label[run.range].characters)
-			return styled(text, intent: (run.inlinePresentationIntent ?? []).union(token.inline))
-		}
 	}
 
 	private func styled(_ text: String, intent: InlinePresentationIntent) -> StyledText {
