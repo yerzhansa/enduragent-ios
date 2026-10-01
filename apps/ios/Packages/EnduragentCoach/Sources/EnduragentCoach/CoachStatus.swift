@@ -2,7 +2,8 @@ import Foundation
 
 extension Coach {
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
-		await statusChanges.pass {
+		observeImports()
+		return await statusChanges.pass {
 			await statusFeed.subscribe(from: statusSnapshot())
 		}
 	}
@@ -109,24 +110,22 @@ extension Coach {
 		await publishStatus()
 	}
 
-	func loadedPreferences() async -> Preferences {
-		guard !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
-		let reading = preferencesRead ?? Task { await self.readPreferences() }
+	func loadedPreferences(reload: Bool = false) async -> Preferences {
+		guard reload || !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
+		let reading = (reload ? nil : preferencesRead) ?? Task { await self.readPreferences() }
 		preferencesRead = reading
 		let result = await reading.value
 		if preferencesRead == reading {
 			preferencesRead = nil
 		}
 		switch result {
-		case .success(let stored) where !preferencesLoaded:
+		case .success(let stored):
 			preferenceRecords =
 				stored
 				+ preferenceRecords.filter { written in
 					!stored.contains { $0.ulid == written.ulid }
 				}
 			preferencesLoaded = true
-		case .success:
-			break
 		case .failure(let error):
 			diagnostics.record(.preferencesUnavailable(error))
 		}
