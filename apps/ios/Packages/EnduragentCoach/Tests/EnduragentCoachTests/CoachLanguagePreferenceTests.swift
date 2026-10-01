@@ -43,7 +43,9 @@ import Testing
 			transport: FakeModelTransport(), intervals: intervals, store: store)
 		#expect(await reopened.languagePreference() == .fixed(.es))
 		#expect(intervals.calls.isEmpty)
-		#expect(await reopened.status().language == .fixed(.es))
+		#expect(try await reopened.observedStatus().language == .fixed(.es))
+		#expect(intervals.calls.isEmpty)
+		await reopened.lifecycle(.becameActive)
 		#expect(!intervals.calls.isEmpty)
 	}
 }

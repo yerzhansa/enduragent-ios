@@ -38,6 +38,8 @@ final class ShellModel {
 	private let initialLanguage: LanguagePreference
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
+	private var statusStart: Task<Void, Never>?
+	private var statusObservation: Task<Void, Never>?
 
 	init(environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic) {
 		self.initialLanguage = initialLanguage
@@ -49,6 +51,12 @@ final class ShellModel {
 			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
+	}
+
+	isolated deinit {
+		observation?.cancel()
+		statusStart?.cancel()
+		statusObservation?.cancel()
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
@@ -101,7 +109,6 @@ final class ShellModel {
 			connectKey = ""
 			connectError = nil
 			didConnect = true
-			await refreshStatus()
 		case .kept, .disconnected, .refused, .failedPreviousKept:
 			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
@@ -135,32 +142,55 @@ final class ShellModel {
 	}
 
 	func appear() async {
-		await refreshStatus()
+		let coach = services.coach
+		let starting =
+			statusStart
+			?? Task { [weak self] in
+				var snapshots = await coach.observeStatus().makeAsyncIterator()
+				guard let first = await snapshots.next(), let self, !Task.isCancelled else {
+					return
+				}
+				self.receiveStatus(first)
+				self.statusObservation = Task { [weak self] in
+					while let snapshot = await snapshots.next(isolation: MainActor.shared) {
+						guard let self, !Task.isCancelled else { return }
+						self.receiveStatus(snapshot)
+					}
+				}
+			}
+		statusStart = starting
+		await starting.value
 	}
 
-	@discardableResult
-	func refreshStatus() async -> CoachStatus {
-		let current = await services.coach.status()
+	private func receiveStatus(_ current: CoachStatus) {
 		status = current
-		if route == .loading || route == .chat {
-			route = current.setup == .needsProviderConsent ? .onboarding(.consent) : .chat
-			if route == .chat {
+		updateRoute()
+	}
+
+	private func updateRoute() {
+		guard let status else { return }
+		switch route {
+		case .loading, .chat, .onboarding(.consent), .onboarding(.consentDeferred):
+			if status.needsProviderConsent {
+				if route == .loading || route == .chat { route = .onboarding(.consent) }
+			} else {
+				route = .chat
 				observeChat()
 			}
+		case .onboarding(.notice), .onboarding(.connect), .onboarding(.starter):
+			break
 		}
-		return current
 	}
 
 	func sceneChanged(_ event: AppLifecycleEvent) async {
 		await lifecycle.forward(event)
-		guard event == .becameActive, route == .chat else { return }
-		await refreshStatus()
 	}
 
 	func startChatting() async {
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
 		route = .loading
-		await refreshStatus()
+		await appear()
+		updateRoute()
 	}
 
 	func acceptConsent() async {
@@ -301,12 +331,10 @@ final class ShellModel {
 				languageNotSaved = preference
 			}
 		}
-		await refreshStatus()
 	}
 
 	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
 		try await services.coach.setSession(settings)
-		await refreshStatus()
 	}
 
 	func decide(_ decision: ReviewDecision) async {

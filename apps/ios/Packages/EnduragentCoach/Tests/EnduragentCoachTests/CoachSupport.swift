@@ -128,7 +128,8 @@ extension Coach {
 		of turn: TurnID, within limit: Duration = .seconds(5),
 		until matches: @escaping @Sendable (TurnState?) -> Bool
 	) async throws -> TurnState? {
-		let snapshot = await firstSnapshot(in: await observe(.main), within: limit) { snapshot in
+		let snapshot = try await firstSnapshot(in: await observe(.main), within: limit) {
+			snapshot in
 			matches(snapshot.turns.first { $0.id == turn }?.state)
 		}
 		return snapshot?.turns.first { $0.id == turn }?.state
