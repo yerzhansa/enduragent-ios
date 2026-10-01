@@ -3,7 +3,7 @@ import SwiftUI
 
 enum HistoryList: Equatable {
 	case loading
-	case loaded([ArchivedConversation])
+	case loaded([ArchivedConversationSummary])
 	case unavailable
 }
 
@@ -22,7 +22,7 @@ struct HistoryView: View {
 			case .loaded(let conversations):
 				List(conversations) { conversation in
 					NavigationLink {
-						ArchivedConversationView(model: model, conversation: conversation)
+						ArchivedConversationView(model: model, ref: conversation.id)
 					} label: {
 						row(conversation)
 					}
@@ -36,9 +36,9 @@ struct HistoryView: View {
 		}
 	}
 
-	private func row(_ conversation: ArchivedConversation) -> some View {
+	private func row(_ conversation: ArchivedConversationSummary) -> some View {
 		VStack(alignment: .leading, spacing: 4) {
-			if let question = conversation.turns.lazy.compactMap(\.athleteText).first {
+			if let question = conversation.firstQuestion {
 				Text(question)
 					.lineLimit(2)
 			}
