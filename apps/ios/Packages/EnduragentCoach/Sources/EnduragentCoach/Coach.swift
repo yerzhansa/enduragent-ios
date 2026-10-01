@@ -84,7 +84,7 @@ public actor Coach {
 	}
 
 	public func stop(_ chat: ChatID) async {
-		await mailbox(for: chat).interrupt(.athleteStopped)
+		await mailbox(for: chat).cancelInFlight(cause: .athleteStopped)
 	}
 
 	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
@@ -111,22 +111,22 @@ public actor Coach {
 	}
 
 	public func lifecycle(_ event: AppLifecycleEvent) async {
+		lifetime.apply(event)
 		switch event {
 		case .becameActive:
 			await recoverOnce()
-		case .willResignActive:
-			return
 		case .willTerminate:
-			lifetime.terminate()
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
+			for mailbox in mailboxes.values {
+				await mailbox.cancelInFlight(cause: .appTerminating)
+			}
 		case .enteredBackground:
-			break
-		}
-		for mailbox in mailboxes.values {
-			await mailbox.lifecycle(event)
+			for mailbox in mailboxes.values {
+				await mailbox.enteredBackground()
+			}
 		}
 	}
 

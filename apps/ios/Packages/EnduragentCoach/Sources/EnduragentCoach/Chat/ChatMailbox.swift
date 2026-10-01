@@ -19,7 +19,6 @@ package actor ChatMailbox {
 	private let work = MailboxQueue()
 	private let door = Turnstile()
 	private let lifetime: Coach.Lifetime
-	private var foreground = true
 	private var finishedAway: Set<TurnID> = []
 	private var leases: LeaseSlot
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
@@ -161,47 +160,41 @@ package actor ChatMailbox {
 		}
 	}
 
-	package func interrupt(_ cause: InterruptionCause) async {
-		guard work.phase.cause == nil else { return await work.joinInterruption() }
-		guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held else {
-			return
+	package func cancelInFlight(cause: InterruptionCause) async {
+		let terminating = cause == .appTerminating
+		let owned = work.phase.cause == nil
+		if !terminating {
+			guard owned else { return await work.joinInterruption() }
+			guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held
+			else { return }
 		}
-		work.beginInterruption(cause)
+		if owned { work.beginInterruption(cause) }
 		publish()
 		work.phase.running?.task.cancel()
-		await door.pass {
-			await work.phase.running?.task.value
-			let unstarted = work.dropWaiting() + [work.closeWindow()].compactMap { $0 }
-			for turn in unstarted {
-				let stamp = await stamp(for: turn)
-				await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
+		let settle = {
+			await self.work.phase.running?.task.value
+			if !terminating {
+				let unstarted =
+					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
+				for turn in unstarted {
+					let stamp = await self.stamp(for: turn)
+					await self.records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
+				}
 			}
-			work.endInterruption()
-			leases.end { $0.interrupt() }
+			self.leases.end { $0.interrupt() }
+			if owned { self.work.endInterruption() }
+		}
+		if terminating {
+			await settle()
+		} else {
+			await door.pass(settle)
 		}
 		publish()
-		drainIfIdle()
+		if !terminating { drainIfIdle() }
 	}
 
-	package func lifecycle(_ event: AppLifecycleEvent) async {
-		switch event {
-		case .becameActive:
-			foreground = true
-		case .willResignActive:
-			return
-		case .enteredBackground:
-			foreground = false
-			await door.pass { closeWindow() }
-		case .willTerminate:
-			let owned = work.phase.cause == nil
-			if owned { work.beginInterruption(.appTerminating) }
-			publish()
-			work.phase.running?.task.cancel()
-			await work.phase.running?.task.value
-			leases.end { $0.interrupt() }
-			if owned { work.endInterruption() }
-			publish()
-		}
+	package func enteredBackground() async {
+		await door.pass { closeWindow() }
 	}
 
 	package func recover(_ plan: RecoveryPlan) async throws(LedgerFailure) {
@@ -304,7 +297,7 @@ package actor ChatMailbox {
 
 	private func expire(_ cause: ExpiryCause, lease generation: Int) async {
 		guard leases.holds(generation) else { return }
-		await interrupt(InterruptionCause(cause))
+		await cancelInFlight(cause: InterruptionCause(cause))
 	}
 
 	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
@@ -355,7 +348,7 @@ package actor ChatMailbox {
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		work.finishTurn()
 		let reply = conversation.turn(turn)?.reply
-		if reply != nil, !foreground {
+		if reply != nil, !lifetime.foreground {
 			finishedAway.insert(turn)
 		}
 		lease.settle(turn, reply: reply)
