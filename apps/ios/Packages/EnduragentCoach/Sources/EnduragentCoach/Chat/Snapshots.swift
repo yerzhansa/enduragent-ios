@@ -211,8 +211,10 @@ extension Segment {
 	package func transcriptNotes(among turns: [TurnView]) -> [TranscriptNote] {
 		notes.map { note in
 			TranscriptNote(
-				id: note.ulid, after: turns.last { $0.id.ulid < note.ulid }?.id,
-				summary: note.summary)
+				id: note.ulid,
+				after: note.after.flatMap { anchor in turns.first { $0.id == anchor }?.id }
+					?? turns.last { $0.id.ulid < note.ulid }?.id,
+				content: note.content)
 		}
 	}
 }
@@ -233,10 +235,20 @@ extension RetryRefusal {
 public struct TranscriptNote: Sendable, Equatable, Identifiable {
 	public let id: ULID
 	public let after: TurnID?
-	public let summary: ReviewSummary
+	public let content: Content
+
+	public enum Content: Sendable, Equatable {
+		case applied(ReviewSummary)
+		case cancelledUnknown(CancelledUnknownReview)
+	}
 
 	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
-		phrasebook.say(
-			Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
+		switch content {
+		case .applied(let summary):
+			phrasebook.say(
+				Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
+		case .cancelledUnknown:
+			phrasebook.say(Catalog.reviewCancelledUnknown)
+		}
 	}
 }

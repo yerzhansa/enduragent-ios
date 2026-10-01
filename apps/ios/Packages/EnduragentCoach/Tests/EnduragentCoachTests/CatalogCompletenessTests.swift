@@ -17,6 +17,21 @@ import Testing
 		}
 	}
 
+	@Test(arguments: LanguageTag.allCases)
+	func cancellationAndReadFailureAreTranslated(_ tag: LanguageTag) throws {
+		let english = try leaves(in: catalogs.appending(path: "en.json"))
+		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
+		for key in ["review.cancelledUnknown", "review.storageUnavailable"] {
+			let text = try #require(localized[key])
+			#expect(!text.isEmpty)
+			if tag != .en { #expect(text != english[key]) }
+		}
+		#expect(english["review.cancelledUnknown"] == CancelUnknownSaveTests.sentence)
+		#expect(
+			english["review.storageUnavailable"]
+				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
+	}
+
 	@Test(arguments: ["", " \n\t"])
 	func emptyTranslationsAreRejected(_ value: String) {
 		#expect(

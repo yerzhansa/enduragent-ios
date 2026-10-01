@@ -50,7 +50,7 @@ public enum HistoryUnavailable: Error, Sendable, Equatable {
 
 extension Ledger {
 	private static let archiveMetadataScope: RecordQuery.Scope = .synced(
-		[.userMessage, .windowStart, .reviewApplied],
+		[.userMessage, .windowStart, .reviewApplied, .reviewWrite, .reviewCancelledUnknown],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart])
 
 	package func history() async throws(LedgerFailure) -> [ArchivedConversationSummary] {

@@ -26,7 +26,15 @@ extension DurableCalendarWriteTests {
 		#expect(failed.ref == ready.ref)
 		#expect(failed.cards == ready.cards)
 		#expect(failed.controls == .none)
+		#expect(
+			failed.state
+				== .storageUnavailable(
+					try #require(ready.content),
+					repeatAvailable ? .retryRemainingOrCancel : .checkAgain))
 		#expect(failed.notice?.key == Catalog.reviewStorageUnavailable)
+		#expect(
+			failed.notice.map { LanguageTag.en.phrasebook.say($0.key, $0.vars) }
+				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
 		#expect(
 			await fixture.coach.decide(.checkAgain(failed.ref), in: .main) == .storageUnavailable)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == failed)
@@ -45,4 +53,39 @@ extension DurableCalendarWriteTests {
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}
+	@Test func failedReadPreservesCancelOnlyButtonsOnAnAthleteMismatch() async throws {
+		let server = try CalendarWriteServer()
+		let url = try await server.start()
+		defer { server.stop() }
+		server.state.withLock { $0.response = .status(502) }
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let fixture = await fixture(url: url, store: faults)
+		let secrets = keyedSecrets()
+		let coach = await makeCoach(
+			transport: fixture.model, intervals: fixture.client, store: faults, secrets: secrets)
+		let (_, token) = try await proposal(on: coach, model: fixture.model)
+		_ = await coach.decide(.approve(token), in: .main)
+		await coach.stop(.main)
+		try secrets.storeIntervalsConnection(
+			IntervalsConnection(
+				id: ConnectionID(), credential: .apiKey("test-athlete-b"), selection: .keyOwner,
+				resolvedAthlete: IntervalsAthleteID(rawValue: "i2002")))
+		_ = await coach.decide(.presented(token.ref), in: .main)
+		let ready = try #require(await coach.currentSnapshot(.main)?.review)
+		guard case .cancelOnly = ready.controls else {
+			Issue.record("Expected Cancel only for a different athlete")
+			return
+		}
+		faults.failFetches = true
+		_ = await coach.decide(.presented(ready.ref), in: .main)
+		let failed = try #require(await coach.currentSnapshot(.main)?.review)
+		#expect(failed.state == .storageUnavailable(try #require(ready.content), .cancelOnly))
+		#expect(failed.controls == .none)
+		let calls = server.state.withLock { $0.requests.count }
+		faults.failFetches = false
+		#expect(await coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
+		#expect(await coach.currentSnapshot(.main)?.review == ready)
+		#expect(server.state.withLock { $0.requests.count } == calls)
+	}
+
 }

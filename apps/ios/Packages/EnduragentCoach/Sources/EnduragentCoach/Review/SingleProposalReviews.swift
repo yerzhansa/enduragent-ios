@@ -30,8 +30,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 		let intents = try await ledger.calendarWrites(chat, synced: records)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
 		if let intent = intents.first(where: {
-			$0.body.evidence.dispatched && !$0.body.evidence.applied
-				&& !closed.contains($0.body.review)
+			$0.blocksNewWork && !closed.contains($0.body.review)
 		}) {
 			return try await recoverySnapshot(intent, chat: chat)
 		}
@@ -39,11 +38,19 @@ package actor SingleProposalReviews: WorkoutReviews {
 			let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now),
 			!closed.contains(ChangeSetID(ulid: live.ulid)),
 			!intents.contains(where: {
-				$0.body.review.ulid == live.ulid && $0.body.evidence.applied
+				$0.body.review.ulid == live.ulid
+					&& ($0.body.evidence.applied || $0.cancellation != nil)
 			})
 		else {
 			deliveries[chat] = nil
-			return nil
+			guard let body = intents.last(where: { $0.cancellation != nil })?.cancellation else {
+				return nil
+			}
+			return ReviewSnapshot(
+				ref: ReviewRef(
+					chat: chat, set: body.review, revision: ChangeSetRevision(rawValue: 1),
+					delivery: UUID()),
+				state: .cancelledUnknown(CancelledUnknownReview(body)))
 		}
 		let block = await accountBlock(live.account)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
@@ -52,12 +59,15 @@ package actor SingleProposalReviews: WorkoutReviews {
 			authority: live.cause == .legacy ? .readOnly : .thisDevice)
 		let card = ReviewCard(live.body)
 		return ReviewSnapshot(
-			ref: delivery.ref, cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
-			notice: delivery.authority == .readOnly
-				? AthleteNotices.earlierVersion
-				: block == .accountChanged ? AthleteNotices.accountChanged : nil,
-			controls: block == .accountChanged ? .none : delivery.controls,
-			authority: delivery.authority)
+			ref: delivery.ref,
+			state: .available(
+				ReviewContent(
+					cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
+					notice: delivery.authority == .readOnly
+						? AthleteNotices.earlierVersion
+						: block == .accountChanged ? AthleteNotices.accountChanged : nil,
+					authority: delivery.authority),
+				block == .accountChanged ? .none : delivery.controls))
 	}
 
 	package func decide(
@@ -84,7 +94,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard !delivery.busy, delivery.secret == token.secret else { return .staleControl }
 			delivery.busy = true
 			deliveries[chat] = delivery
-			await changed()
+			switch decision {
+			case .cancel: break
+			default: await changed()
+			}
 			let outcome: ReviewOutcome
 			switch decision {
 			case .approve: outcome = await approve(token, scope: scope, changed: changed)
@@ -231,37 +244,36 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	private func cancel(_ token: ReviewControlToken) async -> ReviewOutcome {
-		do {
-			let writes = try await ledger.calendarWrites(token.ref.chat)
-			if let intent = writes.first(where: {
-				$0.body.review == token.ref.set && $0.body.evidence.dispatched
-			}) {
-				guard canRepeat(intent), let live = intent.proposal, let stamp = intent.stamp else {
-					return unresolved(intent.body.evidence)
+		await registration.pass {
+			do throws(LedgerFailure) {
+				let writes = try await ledger.calendarWrites(token.ref.chat)
+				if let intent = writes.first(where: { $0.body.review == token.ref.set }) {
+					guard intent.blocksNewWork, let stamp = intent.stamp else {
+						return .staleControl
+					}
+					let body = try ReviewCancelledUnknownBody.cancelling(
+						intent, on: ledger.deviceId)
+					_ = try await ledger.commit(
+						synced: [.reviewCancelledUnknown(body)], stamp: stamp)
+					return .canceled(kept: [])
 				}
-				do {
-					try await ProposalPolicy.clear(
-						live, reason: .canceled, ledger: ledger, stamp: stamp)
-				} catch {
-					diagnostics.record(.reviewOutcomeUnsaved(error))
-				}
-				return unresolved(intent.body.evidence)
+				guard
+					let live = try await ProposalPolicy.live(
+						chatId: token.ref.chat, ledger: ledger, now: clock.now),
+					live.ulid == token.ref.set.ulid
+				else { return .staleControl }
+				let stamp = OperationStamp(
+					operation: .workoutChangeSet(token.ref.set, token.ref.revision),
+					attempt: AttemptID(ulid: await ledger.nextULID()),
+					binding: ActionBinding(
+						account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
+				try await ProposalPolicy.clear(
+					live, reason: .canceled, ledger: ledger, stamp: stamp)
+				return .canceled(kept: [])
+			} catch {
+				diagnostics.record(.reviewOutcomeUnsaved(error))
+				return .storageUnavailable
 			}
-			guard
-				let live = try await ProposalPolicy.live(
-					chatId: token.ref.chat, ledger: ledger, now: clock.now),
-				live.ulid == token.ref.set.ulid
-			else { return .staleControl }
-			let stamp = OperationStamp(
-				operation: .workoutChangeSet(token.ref.set, token.ref.revision),
-				attempt: AttemptID(ulid: await ledger.nextULID()),
-				binding: ActionBinding(
-					account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
-			try await ProposalPolicy.clear(live, reason: .canceled, ledger: ledger, stamp: stamp)
-			return .canceled(kept: [])
-		} catch {
-			diagnostics.record(.reviewOutcomeUnsaved(error))
-			return unresolved(.unknown(.readFailed))
 		}
 	}
 

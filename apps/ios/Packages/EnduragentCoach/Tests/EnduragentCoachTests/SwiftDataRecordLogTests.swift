@@ -383,7 +383,13 @@ extension SwiftDataSuites {
 						planWorkoutId: ulid, activityId: "123456", decision: .confirmed)),
 				.workoutDrift(WorkoutDriftBody(planWorkoutId: ulid, askedAt: expires)),
 			]
-			return synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
+			let cancelled = try RecordCodec.decode(
+				kind: "reviewCancelledUnknown", version: 2,
+				data: Data(try fixture("review-cancelled-unknown", ext: "json").utf8),
+				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue
+			).get()
+			return [(kind: cancelled.kind, body: cancelled)]
+				+ synced.map { (kind: $0.kind.rawValue, body: RecordBody.synced($0)) }
 				+ local.map { (kind: $0.kind.rawValue, body: RecordBody.deviceLocal($0)) }
 		}
 	}

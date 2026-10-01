@@ -81,11 +81,10 @@ extension FixtureLaunchTests {
 			actions.first { $0.id == (cancel ? "chat.preview.cancel" : "chat.preview.saveAgain") })
 		await model.decide(action.decision)
 		if cancel {
-			try await waitUntil {
-				guard case .checkAgain? = model.chat?.review?.controls else { return false }
-				return true
-			}
-			#expect(model.chat?.review?.notice?.key == Catalog.reviewWritePending)
+			try await until { model.chat?.review == nil && model.chat?.notes.count == 1 }
+			#expect(
+				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
+					== "Cancelled. This workout may still have been saved. Check your calendar.")
 			#expect(model.reviewNotice == nil)
 			#expect(!intervals.calls.contains { $0.isCalendarWrite })
 		} else {
@@ -98,7 +97,7 @@ extension FixtureLaunchTests {
 		}
 	}
 
-	@Test func failedRecoveryReadOffersOnlyRetryOnTheCard() async throws {
+	@Test func failedRecoveryReadKeepsOnlyDisabledPreviousButtons() async throws {
 		let services = try services()
 		let intervals = try #require(services.fixture?.intervals)
 		let faults = try #require(services.fixture?.records)
@@ -116,12 +115,11 @@ extension FixtureLaunchTests {
 		try await waitUntil { model.chat?.review?.notice?.kind == .storageUnavailable }
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
-		#expect(actions.map(\.id) == ["chat.preview.retryRead"])
-		let retry = try #require(actions.first)
-		#expect(model.phrasebook.say(retry.title) == "Retry")
+		#expect(actions.isEmpty)
+		#expect(ConfirmedPreviewCard(model: model, review: failed).disabledButtons == [.checkAgain])
 		#expect(failed.controls == .none)
 		faults.failFetches = false
-		await model.decide(retry.decision)
+		await model.decide(.checkAgain(failed.ref))
 		try await waitUntil {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
 			return true

@@ -64,7 +64,7 @@ final class ChatRecords {
 		let review = try await reviews.snapshot(chat: chat, records: imported)
 		folded.apply(Array(applied.values), device: ledger.deviceId)
 		conversation = folded
-		self.review = review
+		self.review = activeReview(review)
 		self.jobs = jobs
 	}
 
@@ -79,7 +79,7 @@ final class ChatRecords {
 		if let ref, review?.ref != ref { return .staleControl }
 		do {
 			try await refreshNotes()
-			review = try await reviews.snapshot(chat: chat, records: nil)
+			review = activeReview(try await reviews.snapshot(chat: chat, records: nil))
 			return .presentationRecorded
 		} catch {
 			reviewUnavailable(error)
@@ -87,15 +87,13 @@ final class ChatRecords {
 		}
 	}
 
+	private func activeReview(_ snapshot: ReviewSnapshot?) -> ReviewSnapshot? {
+		if case .cancelledUnknown? = snapshot?.state { return nil }
+		return snapshot
+	}
+
 	private func reviewUnavailable(_ failure: LedgerFailure) {
-		if let previous = review {
-			review = ReviewSnapshot(
-				ref: previous.ref, cards: previous.cards, kept: previous.kept,
-				totals: previous.totals, receipts: previous.receipts,
-				notice: ReviewNotice(
-					kind: .storageUnavailable, key: Catalog.reviewStorageUnavailable, vars: [:]),
-				controls: .none, authority: previous.authority)
-		}
+		review = review?.disablingButtons()
 		ledger.report(.reviewUnavailable(chat, failure))
 	}
 
@@ -118,7 +116,9 @@ final class ChatRecords {
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
-			RecordQuery(scope: .synced([.reviewApplied, .reviewWrite]), chatId: chat))
+			RecordQuery(
+				scope: .synced([.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+				chatId: chat))
 		apply(notes.records)
 	}
 

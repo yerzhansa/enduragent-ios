@@ -40,7 +40,7 @@ public final class RecordFaults: Sendable {
 
 	#if DEBUG
 		public func failNextReviewRead() {
-			log.failNextFetch(in: .synced([.reviewWrite]))
+			log.failNextFetch(in: .synced([.reviewWrite, .reviewCancelledUnknown]))
 		}
 	#endif
 }
