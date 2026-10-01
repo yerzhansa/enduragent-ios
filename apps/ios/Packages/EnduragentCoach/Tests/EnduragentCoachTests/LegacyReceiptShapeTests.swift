@@ -23,7 +23,7 @@ import Testing
 							FlushPendingBody(
 								chatId: .main, messageUlids: [fixedUlid(4), fixedUlid(6)])))),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
@@ -65,7 +65,7 @@ import Testing
 									settlement: .nothingToSave))))
 				])
 		}
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let rows = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)

@@ -33,7 +33,7 @@ import Testing
 
 	@Test func aConversationAcrossMidnightReachesTheModelWithDatedAthleteMessages() async throws {
 		let clock = FixedClock(now: "1998-06-15T23:50:00+02:00", timeZone: "Europe/Amsterdam")
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [
 			.text("Good, keep them at 105%."), .finish(reason: .stop),
 			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
@@ -72,7 +72,7 @@ import Testing
 		_ = try await makeCoach(transport: transport, store: store, clock: amsterdam)
 			.sendAndSettle("I'm doing intervals today.")
 		let tokyo = FixedClock(now: "1998-06-16T03:10:00+09:00", timeZone: "Asia/Tokyo")
-		let coach = makeCoach(transport: transport, store: store, clock: tokyo)
+		let coach = await makeCoach(transport: transport, store: store, clock: tokyo)
 		_ = try await coach.sendAndSettle("My legs are sore.")
 		let chat = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(
@@ -110,7 +110,7 @@ import Testing
 		transport.script = [
 			.text("Good."), .finish(reason: .stop), .text("Rest."), .finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		_ = try await coach.sendAndSettle("Legs sore?")
 		let chat = try #require(sent(.chatAttempt, by: transport).last)

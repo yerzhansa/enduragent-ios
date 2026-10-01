@@ -20,7 +20,7 @@ import Testing
 			.text("Saturday too."), .finish(reason: .stop),
 			.text("Sunday off."), .finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		let windows = try await store.fetch(
 			RecordQuery(scope: .synced([.windowStart]), chatId: .main)

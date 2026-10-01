@@ -12,7 +12,7 @@ extension TurnEvidenceTests {
 			))
 		intervals.loadFailure = URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		_ = try await coach.sendAndSettle("How is my form?")
 		let entry = try #require(coach.diagnostics.entries.first)

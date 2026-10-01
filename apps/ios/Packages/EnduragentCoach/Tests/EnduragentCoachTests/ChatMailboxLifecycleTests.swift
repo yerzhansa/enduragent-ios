@@ -8,7 +8,7 @@ extension ChatMailboxTests {
 	@Test func aTurnThatStartedNeverShowsAsWaitingAgain() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let states = Mutex<[TurnState]>([])
 		let stream = await coach.observe(.main)
 		let watching = Task {
@@ -35,12 +35,12 @@ extension ChatMailboxTests {
 		transport.script = [.text("Yes, keep Thursday."), .hang]
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitForLiveText(turn)
 		try await waitForRecords(.deviceLocal([.replyObserved]), count: 1, in: store)
 		try await before.dieWithoutWriting(to: dying)
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		try await Task.sleep(for: .milliseconds(100))
 		#expect(transport.requests.count == 1)
@@ -59,10 +59,10 @@ extension ChatMailboxTests {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
-		let before = makeCoach(transport: transport, store: store, clock: clock)
+		let before = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await before.settledState(of: turn, in: .main))
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await reopened.retry(turn, in: .main)
@@ -74,7 +74,7 @@ extension ChatMailboxTests {
 	@Test func enteredBackgroundClosesTheCoalescingWindow() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -88,7 +88,7 @@ extension ChatMailboxTests {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Joined."), .finish(reason: .stop)]
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let first = try #require(try await coach.send(draft("a"), to: .main).acceptedTurn)
@@ -112,7 +112,7 @@ extension ChatMailboxTests {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Thursday is "), .hang]
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(first)
 		let second = try #require(try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
@@ -137,7 +137,7 @@ extension ChatMailboxTests {
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: second)
 		).records
 		#expect(secondClaims.isEmpty)
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: second) == .accepted(.awaitingRestart))
 		#expect(await reopened.state(of: first) == running)
@@ -147,7 +147,7 @@ extension ChatMailboxTests {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -158,7 +158,7 @@ extension ChatMailboxTests {
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		).records
 		#expect(claims.isEmpty)
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
 	}

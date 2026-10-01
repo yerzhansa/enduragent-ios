@@ -11,7 +11,7 @@ import Testing
 		transport.hangUntilCancelled = true
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
@@ -20,7 +20,7 @@ import Testing
 		let requestsBefore = transport.requests.count
 		let log = FaultInjectingRecordLog(wrapping: store)
 		log.failRecoveryReads = true
-		let after = makeCoach(transport: transport, store: log, clock: clock)
+		let after = await makeCoach(transport: transport, store: log, clock: clock)
 		await after.lifecycle(.becameActive)
 		#expect(
 			await after.state(of: turn)
@@ -61,7 +61,7 @@ import Testing
 		]
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
@@ -70,7 +70,7 @@ import Testing
 		transport.script = [.text("Noted again."), .finish(reason: .stop)]
 		let log = FaultInjectingRecordLog(wrapping: store)
 		log.failRecoveryReads = true
-		let after = makeCoach(transport: transport, store: log, clock: clock)
+		let after = await makeCoach(transport: transport, store: log, clock: clock)
 		await after.lifecycle(.becameActive)
 		let state = try #require(await after.state(of: turn))
 		#expect(!state.retryable)

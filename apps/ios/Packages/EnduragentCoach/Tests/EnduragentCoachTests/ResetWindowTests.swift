@@ -13,8 +13,10 @@ import Testing
 		name: "memory_write",
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 
-	func coach(over log: (any RecordLog)? = nil, window: Duration = .milliseconds(20)) -> Coach {
-		makeCoach(
+	func coach(over log: (any RecordLog)? = nil, window: Duration = .milliseconds(20)) async
+		-> Coach
+	{
+		await makeCoach(
 			transport: transport, store: log ?? store, clock: clock,
 			coalescing: CoalescingPolicy(window: window), host: host)
 	}
@@ -26,7 +28,7 @@ import Testing
 	@Test func aReplyStreamingAtTheTapIsSavedWithItsQuestion() async throws {
 		transport.script = [.text("Two"), .text(" rides."), .finish(reason: .stop)]
 		transport.deltaDelay = .milliseconds(300)
-		let coach = coach()
+		let coach = await coach()
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
@@ -42,7 +44,7 @@ import Testing
 	@Test func aTurnStillInTheJoinWindowAtTheTapIsSavedWithItsReply() async throws {
 		transport.script = [.text("Two rides."), .finish(reason: .stop)]
 		transport.requestDelay = .milliseconds(400)
-		let coach = coach(window: .seconds(1))
+		let coach = await coach(window: .seconds(1))
 		_ = try #require(try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		let resetting = startNewConversation(on: coach)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
@@ -53,7 +55,7 @@ import Testing
 
 	@Test func aSendAheadInTheDoorBelongsToTheArchivedConversation() async throws {
 		let held = HeldAppendLog(inner: store, holding: "userMessage", occurrence: 2)
-		let coach = coach(over: held)
+		let coach = await coach(over: held)
 		transport.script = [.text("Two rides."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
@@ -106,7 +108,8 @@ import Testing
 	@Test(arguments: [false, true])
 	func aLateReplyMustNotCoverTheNextConversationsQuestion(relaunch: Bool) async throws {
 		let (coach, user) = try await resetAcrossLateReply()
-		let next = relaunch ? makeCoach(transport: transport, store: store, clock: clock) : coach
+		let next =
+			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : coach
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		try #require(requests.count == 2)
@@ -153,7 +156,7 @@ import Testing
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let turns = try await seedHistory(foreign, clock: ahead, turns: 1, tokens: 40)
 		try await seed(store, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
-		let coach = coach()
+		let coach = await coach()
 		let before = await coach.transcript(.main)
 		try #require(before.count == 2)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -169,7 +172,7 @@ import Testing
 
 	private func resetAcrossLateReply() async throws -> (Coach, ULID) {
 		let held = HeldAppendLog(inner: store, holding: "replyObserved", occurrence: 1)
-		let coach = coach(over: held)
+		let coach = await coach(over: held)
 		transport.script = [
 			.text("Two rides."), .finish(reason: .stop),
 			.text("Noted."), .finish(reason: .stop),

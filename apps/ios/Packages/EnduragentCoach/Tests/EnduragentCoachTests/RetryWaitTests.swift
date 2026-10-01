@@ -91,7 +91,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 
 	@Test func tryAgainOpensOnlyWhenTheRateLimitWaitEnds() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
-		let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		let waiting = await coach.currentSnapshot(.main)
 		#expect(action(in: waiting) == .wait(thenTryAgain: rateLimitedTurn))
 		try await clock.waitUntilHeld(.seconds(7))
@@ -108,7 +108,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
 		transport.script = [.text("Back on track."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}
@@ -131,7 +131,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		let transport = FakeModelTransport()
 		transport.script = Array(
 			repeating: .fail(.http(status: 429, headers: ["retry-after": "3"])), count: 4)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
 		let deadline = ContinuousClock.now + .seconds(5)
@@ -193,7 +193,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 
 	@Test func aWaitThatEndedBeforeTheChatOpenedOffersTryAgainAtOnce() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now.addingTimeInterval(-10))
-		let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		#expect(action(in: await coach.currentSnapshot(.main)) == .tryAgain(rateLimitedTurn))
 		#expect(clock.held.isEmpty)
 	}

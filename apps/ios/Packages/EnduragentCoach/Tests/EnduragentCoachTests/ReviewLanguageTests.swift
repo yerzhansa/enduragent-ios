@@ -41,7 +41,7 @@ extension FirstTurnTests {
 			),
 			.finish(reason: .toolCalls), .text("Ready."), .finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		let card = try #require(review.cards.first)
 		try await coach.setLanguage(.fixed(.fr))
