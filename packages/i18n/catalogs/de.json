@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Frühere Gespräche sind vorübergehend nicht verfügbar.",
-    "loadEarlier": "Frühere Nachrichten laden",
     "loading": "Frühere Gespräche werden geladen…",
     "pageFailure": "Dieses Gespräch ist vorübergehend nicht verfügbar.",
     "readOnly": "Frühere Gespräche können nur gelesen werden.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "Der Gesprächsverlauf ist vorübergehend nicht verfügbar.",
-      "loadEarlier": "Frühere Nachrichten laden",
       "retry": "Verlauf erneut laden"
     },
     "newConversation": {

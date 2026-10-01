@@ -35,7 +35,8 @@ import Testing
 		let window = try #require(flushed().first)
 		#expect(window.contains("How was my week?"))
 		#expect(window.contains("Two rides."))
-		let archived = try #require(try await coach.history().first)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(replyText(try #require(archived.turns.first?.state)) == "Two rides.")
 	}
 
@@ -65,7 +66,8 @@ import Testing
 		held.release()
 		_ = try await sending.value
 		#expect(try await outcome(resetting) == .started(memory: .saved))
-		let archived = try #require(try await coach.history().first)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(archived.turns.compactMap { replyText($0.state) } == ["Two rides.", "Noted."])
 		#expect(await coach.transcript(.main).isEmpty)
 		let window = try #require(flushed().first)

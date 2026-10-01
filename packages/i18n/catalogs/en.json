@@ -22,7 +22,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Past conversations are temporarily unavailable.",
-    "loadEarlier": "Load earlier messages",
     "loading": "Loading past conversations…",
     "pageFailure": "This conversation is temporarily unavailable.",
     "readOnly": "Past conversations are read-only.",
@@ -156,7 +155,6 @@
     },
     "history": {
       "failure": "Conversation history is temporarily unavailable.",
-      "loadEarlier": "Load earlier messages",
       "retry": "Retry history"
     },
     "newConversation": {

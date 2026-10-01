@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Les conversations passées sont temporairement indisponibles.",
-    "loadEarlier": "Charger les messages précédents",
     "loading": "Chargement des conversations passées…",
     "pageFailure": "Cette conversation est temporairement indisponible.",
     "readOnly": "Les conversations passées sont en lecture seule.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "L’historique de conversation est temporairement indisponible.",
-      "loadEarlier": "Charger les messages précédents",
       "retry": "Réessayer de charger l’historique"
     },
     "newConversation": {

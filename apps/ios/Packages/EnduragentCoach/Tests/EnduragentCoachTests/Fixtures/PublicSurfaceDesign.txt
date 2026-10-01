@@ -36,6 +36,11 @@ ArchivedConversation.startedOn
 ArchivedConversation.turns
 ArchivedConversationRef
 ArchivedConversationRef.rawValue
+ArchivedConversationSummary
+ArchivedConversationSummary.firstQuestion
+ArchivedConversationSummary.id
+ArchivedConversationSummary.reason
+ArchivedConversationSummary.startedOn
 AthleteNotice
 AthleteNotice.action
 AthleteNotice.count
@@ -82,6 +87,7 @@ Clock.sleep(for:)
 Clock.timeZone
 Clock.uptime
 Coach
+Coach.archivedConversation(_:)
 Coach.changeModelAccess(_:)
 Coach.changeTraining(_:)
 Coach.credits

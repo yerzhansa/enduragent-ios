@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2475
-	public static let keyCount = 2515
+	public static let englishLeafCount = 2473
+	public static let keyCount = 2513
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -18,7 +18,6 @@ public enum Catalog {
 	public static let archiveEntryLabel = CatalogKey(rawValue: "archive.entryLabel")
 	public static let archiveHistory = CatalogKey(rawValue: "archive.history")
 	public static let archiveListFailure = CatalogKey(rawValue: "archive.listFailure")
-	public static let archiveLoadEarlier = CatalogKey(rawValue: "archive.loadEarlier")
 	public static let archiveLoading = CatalogKey(rawValue: "archive.loading")
 	public static let archivePageFailure = CatalogKey(rawValue: "archive.pageFailure")
 	public static let archiveReadOnly = CatalogKey(rawValue: "archive.readOnly")
@@ -133,7 +132,6 @@ public enum Catalog {
 	public static let chatFirstSyncSyncingDetail = CatalogKey(rawValue: "chat.firstSync.syncingDetail")
 	public static let chatFirstSyncSyncingTitle = CatalogKey(rawValue: "chat.firstSync.syncingTitle")
 	public static let chatHistoryFailure = CatalogKey(rawValue: "chat.history.failure")
-	public static let chatHistoryLoadEarlier = CatalogKey(rawValue: "chat.history.loadEarlier")
 	public static let chatHistoryRetry = CatalogKey(rawValue: "chat.history.retry")
 	public static let chatMenu = CatalogKey(rawValue: "chat.menu")
 	public static let chatNewConversationAttachmentDraft = CatalogKey(rawValue: "chat.newConversation.attachmentDraft")

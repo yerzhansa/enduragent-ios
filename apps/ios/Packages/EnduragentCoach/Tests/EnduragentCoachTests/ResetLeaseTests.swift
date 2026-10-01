@@ -109,7 +109,8 @@ import Testing
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
 		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday?" })
 		#expect(flushed.messages.contains { $0.unstampedContent == "Thursday is" })
-		let archived = try #require(try await coach.history().first)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(
 			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: true))
@@ -124,7 +125,8 @@ import Testing
 		try await Task.sleep(for: .milliseconds(200))
 		await coach.stop(.main)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
-		let archived = try #require(try await coach.history().first)
+		let archivedRef = try #require(try await coach.history().first?.id)
+		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(archived.turns.map(\.id) == [turn])
 		guard case .interrupted(let stopped)? = archived.turns.first?.state else {
 			Issue.record("the stopped reply is not archived as interrupted")

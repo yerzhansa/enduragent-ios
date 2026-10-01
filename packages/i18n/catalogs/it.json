@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Le conversazioni passate sono temporaneamente non disponibili.",
-    "loadEarlier": "Carica messaggi precedenti",
     "loading": "Caricamento delle conversazioni passate…",
     "pageFailure": "Questa conversazione è temporaneamente non disponibile.",
     "readOnly": "Le conversazioni passate sono di sola lettura.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "La cronologia della conversazione è temporaneamente non disponibile.",
-      "loadEarlier": "Carica messaggi precedenti",
       "retry": "Riprova a caricare la cronologia"
     },
     "newConversation": {

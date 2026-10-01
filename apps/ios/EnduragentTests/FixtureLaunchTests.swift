@@ -278,7 +278,16 @@ final class FixtureLaunchTests {
 			return
 		}
 		#expect(archived.map(\.reason) == [.newConversation])
-		#expect(archived.first?.turns.map(\.id) == [settled.id])
+		#expect(archived.first?.firstQuestion == TutorialCopy.weekQuestion)
+		let ref = try #require(archived.first?.id)
+		guard case .loaded(let opened) = await model.loadArchivedConversation(ref) else {
+			Issue.record("Archived conversation did not load")
+			return
+		}
+		#expect(opened.turns.map(\.id) == [settled.id])
+		let records = try #require(model.services.fixtureRecordFaults)
+		records.failFetches = true
+		#expect(await model.loadArchivedConversation(ref) == .unavailable)
 	}
 
 	@Test func typedStartClearsTheDraftAndAFailedBoundaryKeepsTheConversation() async throws {
