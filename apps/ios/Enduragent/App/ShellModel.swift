@@ -12,31 +12,20 @@ final class ShellModel {
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
-	private(set) var consentNotSaved = false
-	private(set) var isRecordingConsent = false
 	var slashListVisible = false
 	private(set) var status: CoachStatus?
-	var starterLine: String?
-	var starterResolved = false
-	var balance: Credits?
-	var catalog: PackCatalog?
-	var creditsNotice: AthleteNotice?
-	private(set) var history: HistoryList = .loading
 	private(set) var newConversationUncertain = false
-	var connectKey = ""
-	var connectError: String?
-	var didConnect = false
 	private var reviewOutcomeNotice: AthleteNotice?
 	var showSidebar = false
 	var showCredits = false
-	var packPrices: [String: String] = [:]
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
 	let drafts: DraftStore
-	private let defaults: UserDefaults
+	private let onboarding: OnboardingModel
+	private let credits: CreditsModel
+	private let archive: HistoryModel
 	private let initialLanguage: LanguagePreference
-	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
 	private var statusStart: Task<Void, Never>?
 	private var statusObservation: Task<Void, Never>?
@@ -45,9 +34,11 @@ final class ShellModel {
 		self.initialLanguage = initialLanguage
 		self.environment = environment
 		self.lifecycle = AppLifecycle(environment: environment)
-		self.defaults = environment.defaults
+		self.onboarding = OnboardingModel(environment: environment)
+		self.credits = CreditsModel(services: environment.services)
+		self.archive = HistoryModel(coach: environment.services.coach)
 		self.drafts = DraftStore(defaults: environment.defaults)
-		if defaults.bool(forKey: Self.onboardingCompletedKey) {
+		if onboarding.isCompleted {
 			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
@@ -59,7 +50,24 @@ final class ShellModel {
 		statusObservation?.cancel()
 	}
 
-	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
+	static let onboardingCompletedKey = OnboardingModel.completedKey
+
+	var connectKey: String {
+		get { onboarding.connectKey }
+		set { onboarding.connectKey = newValue }
+	}
+
+	var connectError: String? { onboarding.connectError }
+	var didConnect: Bool { onboarding.didConnect }
+	var starterLine: String? { onboarding.starterLine }
+	var starterResolved: Bool { onboarding.starterResolved }
+	var consentNotSaved: Bool { onboarding.consentNotSaved }
+	var isRecordingConsent: Bool { onboarding.isRecordingConsent }
+	var balance: Credits? { credits.balance }
+	var catalog: PackCatalog? { credits.catalog }
+	var creditsNotice: AthleteNotice? { credits.notice }
+	var packPrices: [String: String] { credits.packPrices }
+	var history: HistoryList { archive.list }
 
 	var services: AppServices {
 		environment.services
@@ -114,43 +122,21 @@ final class ShellModel {
 	}
 
 	func connect() async {
-		let outcome = await services.coach.changeTraining(
-			.replace(apiKey: connectKey, athlete: .keyOwner))
-		switch outcome {
-		case .replaced:
-			connectKey = ""
-			connectError = nil
-			didConnect = true
-		case .kept, .disconnected, .refused, .failedPreviousKept:
-			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
-			didConnect = false
-		}
+		await onboarding.connect { phrasebook }
 	}
 
 	func continueConnect() {
-		guard didConnect else { return }
-		connectKey = ""
+		guard onboarding.continueConnect() else { return }
 		route = .onboarding(.starter)
 	}
 
 	func skipConnect() {
-		connectKey = ""
-		didConnect = false
-		connectError = nil
+		onboarding.skipConnect()
 		route = .onboarding(.starter)
 	}
 
 	func loadStarter() async {
-		guard !starterLoaded else { return }
-		starterLoaded = true
-		do {
-			let token = try await environment.deviceCheck.token()
-			let notice = await services.coach.claimStarter(deviceCheck: token)
-			starterLine = notice.sentence(in: phrasebook)
-		} catch {
-			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
-		}
-		starterResolved = true
+		await onboarding.loadStarter { phrasebook }
 	}
 
 	func appear() async {
@@ -199,35 +185,22 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
-		defaults.set(true, forKey: Self.onboardingCompletedKey)
+		onboarding.complete()
 		route = .loading
 		await appear()
 		updateRoute()
 	}
 
 	func acceptConsent() async {
-		guard
-			route == .onboarding(.consent) || route == .onboarding(.consentDeferred),
-			!isRecordingConsent
-		else { return }
-		isRecordingConsent = true
-		defer { isRecordingConsent = false }
-		consentNotSaved = false
-		do {
-			try await services.coach.recordConsent()
-		} catch {
-			switch error {
-			case .notSaved:
-				consentNotSaved = true
-			}
+		guard route == .onboarding(.consent) || route == .onboarding(.consentDeferred) else {
 			return
 		}
-		await startChatting()
+		await onboarding.acceptConsent { await startChatting() }
 	}
 
 	func declineConsent() {
 		guard route == .onboarding(.consent), !isRecordingConsent else { return }
-		consentNotSaved = false
+		onboarding.declineConsent()
 		route = .onboarding(.consentDeferred)
 	}
 
@@ -237,40 +210,17 @@ final class ShellModel {
 	}
 
 	func loadHistory() async {
-		do {
-			history = .loaded(try await services.coach.history())
-		} catch {
-			switch error {
-			case .storageUnavailable:
-				history = .unavailable
-			}
-		}
+		await archive.load()
 	}
 
 	func loadArchivedConversation(_ ref: ArchivedConversationRef) async
 		-> ArchivedConversationContent
 	{
-		do {
-			guard let conversation = try await services.coach.archivedConversation(ref) else {
-				return .missing
-			}
-			return .loaded(conversation)
-		} catch {
-			return .unavailable
-		}
+		await archive.loadArchivedConversation(ref)
 	}
 
 	func loadCredits() async {
-		do {
-			let loaded = try await services.coach.credits.catalog()
-			catalog = loaded
-			let held = try await services.coach.credits.balance()
-			balance = held.credits
-			creditsNotice = nil
-			packPrices = try await services.packPrices(loaded.packs.map(\.id))
-		} catch {
-			creditsNotice = AthleteNotice.credits(failure: error)
-		}
+		await credits.load()
 	}
 
 	func draftChanged(from previous: String) {
