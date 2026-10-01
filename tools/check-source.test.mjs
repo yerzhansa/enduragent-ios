@@ -55,6 +55,30 @@ const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcW
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 
 for (const source of [
+  'while !ready { try await changed.waitUnlessCancelled() }',
+  'try await beforeDeadline(within: .seconds(5)) { return true }; while !ready { try await changed.waitUnlessCancelled() }',
+  'while !ready { try await changed . waitUnlessCancelled () }',
+  'while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() }',
+]) {
+  test(`rejects an unbounded cancellable gate loop: ${source}`, () => {
+    const result = run({ 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WaitSupport.swift': source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /test-wait-deadline/);
+  });
+}
+
+for (const source of [
+  'try await beforeDeadline(within: .seconds(5)) { while !ready { try await changed.waitUnlessCancelled() } }',
+  'try await beforeDeadline(within: .seconds(5), onTimeout: { gate.release() }) { while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() } }',
+  'while !ready, ContinuousClock.now < deadline { await Task.yield() }',
+]) {
+  test(`accepts a bounded gate loop: ${source}`, () => {
+    const result = run({ 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WaitSupport.swift': source });
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
+for (const source of [
   'app.launchArguments = ["-EnduragentFixture", "first-week"]',
   'element.waitForExistence(timeout: 8)',
   'XCTWaiter.wait(for: [ready], timeout: 30)',
@@ -518,3 +542,33 @@ test('rejects the fixtures import outside DEBUG', () => {
   assert.equal(result.status, 1, result.output);
   assert.match(result.output, /fixture-launch-debug-only/);
 });
+
+for (const source of [
+  'var loseCalendarSaveAnswerOnce = false',
+  'var failCalendarReadOnce = false',
+  'func failNextReviewRead() {}',
+  'func consumeCalendarReadFault() {}',
+  'var calendarSaveFault: Fault?',
+  'var calendarReadFault: Fault?',
+  'var recordReadFault: Fault?',
+  'let reviewProofDriver = driver',
+  'let value = "-EnduragentFixtureCalendarSave"',
+  'let value = "-EnduragentFixtureCalendarRead"',
+  'let value = "-EnduragentFixtureRecordRead"',
+  'enum FixtureCalendarSaveFault {}',
+  'enum FixtureCalendarReadFault {}',
+  'enum FixtureRecordReadFault {}',
+  'final class FixtureReviewProofDriver {}',
+]) {
+  for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
+    test(`rejects calendar proof hooks outside DEBUG: ${wrapped}`, () => {
+      const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': wrapped });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /calendar-proof-hooks-debug-only/);
+    });
+  }
+  test(`accepts calendar proof hooks under nested DEBUG: ${source}`, () => {
+    const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
+    assert.equal(result.status, 0, result.output);
+  });
+}

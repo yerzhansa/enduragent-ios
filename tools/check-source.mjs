@@ -49,7 +49,7 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
-function hasReleaseFixtureLaunch(text) {
+function hasReleaseReference(text, reference) {
   const guards = [];
   for (const line of text.split(/\r?\n/)) {
     if (/^\s*#if\b/.test(line)) {
@@ -58,7 +58,7 @@ function hasReleaseFixtureLaunch(text) {
       if (guards.length) guards.at(-1).alternate = true;
     } else if (/^\s*#endif\b/.test(line)) {
       guards.pop();
-    } else if (/\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+    } else if (reference.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
       return true;
     }
   }
@@ -96,6 +96,33 @@ function hasExposedMailboxState(text) {
     if (depth === 1 && boundary === '}') projection = false;
   }
   return false;
+}
+function trailingBlocks(code, pattern) {
+  return [...code.matchAll(pattern)].flatMap(match => {
+    let parentheses = 0;
+    let depth = 0;
+    let start;
+    for (let index = match.index + match[0].length; index < code.length; index++) {
+      const token = code[index];
+      if (start === undefined) {
+        if (token === '(') parentheses++;
+        if (token === ')') parentheses--;
+        if (token !== '{' || parentheses !== 0) continue;
+        start = index;
+      }
+      if (token === '{') depth++;
+      if (token === '}' && --depth === 0) return [[start, index]];
+    }
+    return [];
+  });
+}
+function hasUnboundedTestWait(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  const loops = trailingBlocks(code, /\bwhile\b/g);
+  const deadlines = trailingBlocks(code, /\bbeforeDeadline\b/g);
+  return [...code.matchAll(/\bawait\s+[\w.]+\s*\.\s*waitUnlessCancelled\s*\(/g)]
+    .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
+      && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
 }
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
@@ -173,7 +200,10 @@ try {
       && (/\bremoveItem\s*\(/.test(text)
         || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
           && /\btemporaryDirectory\b|\bAppServices\s*\.\s*fixture\s*\(/.test(text)))) report(file, 'app-fixture-folder-ownership');
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)
+      && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
+      && hasReleaseReference(text, /\b(?:FixtureCalendarSaveFault|FixtureCalendarReadFault|FixtureRecordReadFault|FixtureReviewProofDriver|loseCalendarSaveAnswerOnce|failCalendarReadOnce|consumeCalendarReadFault|failNextReviewRead|calendarSaveFault|calendarReadFault|recordReadFault|reviewProofDriver|EnduragentFixtureCalendarSave|EnduragentFixtureCalendarRead|EnduragentFixtureRecordRead)\b/)) report(file, 'calendar-proof-hooks-debug-only');
     if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
     if (proofFile.test(file)
@@ -182,6 +212,8 @@ try {
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
+    if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
+      && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');

@@ -13,8 +13,14 @@ import Testing
 
 	@Test func distinctMaintenanceWorkRemainsQueued() {
 		let queue = MailboxQueue()
-		let first = ResetID(ulid: fixedUlid(1))
-		let second = ResetID(ulid: fixedUlid(2))
+		let first = ReservedReset(
+			id: ResetID(ulid: fixedUlid(1)),
+			boundary: HybridLogicalClock(
+				wallMs: 1, logical: 0, deviceId: DeviceID(rawValue: "phone-a")))
+		let second = ReservedReset(
+			id: ResetID(ulid: fixedUlid(2)),
+			boundary: HybridLogicalClock(
+				wallMs: 2, logical: 0, deviceId: DeviceID(rawValue: "phone-a")))
 		#expect(queue.add(first))
 		#expect(queue.add(second))
 		#expect(!queue.add(first))

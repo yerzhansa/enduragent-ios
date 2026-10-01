@@ -5,11 +5,11 @@ description: Drive the Enduragent iPhone app, the SwiftUI app in apps/ios, on a 
 
 # Verify the Enduragent iPhone app
 
-The surface is the iPhone app built from `apps/ios/project.yml`. Every verification run creates its own simulator, `enduragent-verify-<run id>`, from the newest iOS 26 runtime. The default device is iPhone 17e, which is 390 × 844 points, the same viewport as the prototype captures. Never drive a simulator the run did not create. Never drive a physical device.
+The surface is the iPhone app built from `apps/ios/project.yml`. Every simulator verification run creates its own simulator, `enduragent-verify-<run id>`, from the newest iOS 26 runtime. The default device is iPhone 17e, which is 390 × 844 points, the same viewport as the prototype captures. Never drive a simulator the run did not create. Physical-device verification uses only the separate real-phone procedure below.
 
-The app always runs in fixture mode, `-EnduragentFixture first-week`. `AppServices.fixture` swaps intervals.icu, credits, the model transport, the keychain, and the record store for fakes. The fakes keep their state on disk under the app's `Application Support/fixture/` and in the `UserDefaults` suite `icu.enduragent.fixture`, so a relaunch can either wipe it (`-EnduragentFixtureStore fresh`, the default) or reuse it (`-EnduragentFixtureStore keep`). `FixtureBlockingURLProtocol` fails and counts every `URLSession` request. No API key, account, or network is needed.
+Simulator proofs run in fixture mode, `-EnduragentFixture first-week`. `AppServices.fixture` swaps intervals.icu, credits, the model transport, the keychain, and the record store for fakes. The fakes keep their state on disk under the app's `Application Support/fixture/` and in the `UserDefaults` suite `icu.enduragent.fixture`, so a relaunch can either wipe it (`-EnduragentFixtureStore fresh`, the default) or reuse it (`-EnduragentFixtureStore keep`). `FixtureBlockingURLProtocol` fails and counts every `URLSession` request. No API key, account, or network is needed.
 
-Every step goes through one helper. Run it by path from the checkout you are verifying. It resolves that checkout from its own location, so it also works when your shell starts somewhere else.
+Every simulator step goes through one helper. Run it by path from the checkout you are verifying. It resolves the source tree from its own location, without git, so an exported tree and a shell started elsewhere both work. Source manifests walk `apps/ios` and omit generated projects and build caches. An export needs no symlink or temporary git repository. Set `ENDURAGENT_VERIFY_REVISION` to the exported commit SHA to record its provenance. Without it, `run.json` says `exported-tree` and records a source digest.
 
 ```sh
 .claude/skills/verify-ios/helpers/sim.mjs build
@@ -20,13 +20,15 @@ Every step goes through one helper. Run it by path from the checkout you are ver
 .claude/skills/verify-ios/helpers/sim.mjs cleanup <run id>
 ```
 
-Below, `sim.mjs` means `.claude/skills/verify-ios/helpers/sim.mjs`. `create` prints the run id, for example `2026-09-25-213318-onboarding`. Every later command takes it.
+Every command accepts `--build-folder <path>`. The flag overrides `ENDURAGENT_VERIFY_BUILD`; both default to `<tree>/DerivedData`. Use the same folder for build, doctor, install, and test. Milestone 2 builds go under `/tmp/enduragent-dd/`, for example `ENDURAGENT_VERIFY_BUILD=/tmp/enduragent-dd/VSKILL`.
+
+Below, `sim.mjs` means `.claude/skills/verify-ios/helpers/sim.mjs`. `create` prints the run id, for example `2026-10-01-120000-a1b2c3d4-onboarding`. Commands for that simulator take its run id.
 
 The feature map in [features/README.md](features/README.md) is the recipe for each feature. A proof that drives one convenient entry point is incomplete when the feature file lists others.
 
 ## Launch
 
-1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. Before it builds, it records the SHA-256 of every source under `apps/ios`, and after a successful build it writes them to `DerivedData/verify-ios-sources.json`. A clean build took 36 seconds on 2026-09-25. If XcodeGen changes `apps/ios/Enduragent.xcodeproj`, the change belongs in your commit, because `project.yml` changed.
+1. Build once per checkout with `sim.mjs build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. The build-folder option replaces `DerivedData` in those paths. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. Before it builds, it records the SHA-256 of every source under `apps/ios`, and after a successful build it writes them to `DerivedData/verify-ios-sources.json`. A clean build took 36 seconds on 2026-09-25. Commit generated-project changes when sources or `project.yml` change.
 2. Create the run with `sim.mjs create <kebab-slug>`. It creates and boots the simulator, waits for `simctl bootstatus`, sets the status bar to 9:41 with full signal and battery like the prototype captures, sets light appearance, and writes `run.json` into the evidence folder. The first boot takes about a minute.
 3. Install with `sim.mjs install <run id>`. Install again after every build.
 4. Launch with `sim.mjs launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim.mjs shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim.mjs launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would, `-EnduragentFixtureKeychain empty`, which leaves the fixture keychain without a Credits key, `-EnduragentFixtureStore unreadable`, which wipes the fixture and makes the record store fail to open so the app shows `launch.storageUnavailable` instead of the notice, `-EnduragentFixtureCoalescing <milliseconds>`, which replaces the 1.5 second window in which a second message joins the first, `-EnduragentFixtureRecovery unreadable`, which makes the launch recovery's read of earlier claims fail so a reply cut off by a kill stays unsettled, `-EnduragentFixtureHost "expire-after 3"`, which makes the fixture's execution host expire every lease three seconds after it begins, as iOS would when it stops the app's background work, and `-EnduragentFixtureClock 1998-06-16T04:20:00Z`, which starts the fixed clock at that ISO 8601 instant instead of `1998-06-15T08:00:00Z`. XCUITest needs about two seconds between two Send taps, so proofs that need a joined turn, a shot before the reply, or a kill before the claim pass `TutorialHarness.launch(app, coalescingMilliseconds:)`.
@@ -46,7 +48,7 @@ Run `sim.mjs doctor [<run id>]` first, and again whenever a screen or command lo
 
 XCUITest finds controls by accessibility identifier. The interactive tool taps by coordinates, so find each control in a fresh screenshot by its visible label and name its identifier from the table below in your report.
 
-**XCUITest proofs.** This is the scripted harness and the default. In `apps/ios/EnduragentUITests/`, the 13 `*Proofs.swift` files and `ReviewLanguageProof.swift` hold one `XCTestCase` per proof. `LaunchProbes.swift` holds the timing probes. `TutorialHarness.swift` holds the launch arguments and the shared steps `completeOnboarding`, `send`, `openSidebar`, and `assertZeroFixtureRequests`. Each feature file names the proofs that cover it. Run them with `sim.mjs test`, described in **UI test run**. A state that no proof reaches gets a new proof in the file for its feature, reviewed with the change it proves. It is Swift, so `pnpm lint:swift` and `pnpm check:format` apply.
+**XCUITest proofs.** This is the scripted harness and the default. In `apps/ios/EnduragentUITests/`, classes ending in `Proof` hold the UI proofs. `sim.mjs suite` discovers them from the Swift sources. `LaunchProbes.swift` holds the timing probes. `TutorialHarness.swift` holds the launch arguments and the shared steps `completeOnboarding`, `send`, `openSidebar`, and `assertZeroFixtureRequests`. Each feature file names the proofs that cover it. Run them with `sim.mjs test`, described in **UI test run**. A state that no proof reaches gets a new proof in the file for its feature, reviewed with the change it proves. It is Swift, so `pnpm lint:swift` and `pnpm check:format` apply.
 
 **Interactive.** Use this for exploration, paths no proof covers, and parity captures. After `launch`, drive with the Claude Code iOS Simulator `control` tool and pass `device: <udid>` on every call. Its default target is the first booted simulator, which can be the operator's own. `screenshot` returns an image 924 pixels wide, and `tap` takes device points, so multiply a position in that image by 0.422. `text` types into the focused field. The simulator uses the Mac keyboard as a hardware keyboard, so no on-screen keyboard appears. Without that tool there is no tap path outside XCUITest, so write a proof.
 
@@ -103,17 +105,23 @@ Pass one or more proof classes, or `Class/testMethod`. The helper runs `test-wit
 xcodebuild test-without-building -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -destination id=<udid> -derivedDataPath DerivedData -parallel-testing-enabled NO -resultBundlePath <evidence>/uitest-<stamp>.xcresult -only-testing:EnduragentUITests/FirstConversationProof
 ```
 
-The helper first terminates a running copy of the app, because XCUITest cannot terminate an app that `sim.mjs launch` started and the proof would fail with `Failed to terminate icu.enduragent.app`. `-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On failure it prints the tail of the log and exits 1. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
+The helper first terminates a running copy of the app, because XCUITest cannot terminate an app that `sim.mjs launch` started and the proof would fail with `Failed to terminate icu.enduragent.app`. `-parallel-testing-enabled NO` stops xcodebuild from cloning the simulator, because a clone would escape cleanup. The result bundle lands at `~/Library/Logs/enduragent-verify/<run id>/uitest-<stamp>.xcresult`. Beside it the helper writes the xcodebuild log `uitest-<stamp>.log`, the summary `uitest-<stamp>-summary.json`, and the exported screenshots in `uitest-<stamp>-attachments/` with `manifest.json`. It prints `Passed` or `Failed` with counts, then one `attachment <test> <name> <path>` line per screenshot, where `<name>` is the name the proof gave `TutorialHarness.attach`. On an xcodebuild failure it prints the tail of the log and exits 1. Failed, skipped, or missing test results also exit 1, even when xcodebuild exits 0. It saves the result tree as `uitest-<stamp>-tests.json` and the per-class counts as `uitest-<stamp>-classes.json`. On 2026-09-25 all eleven proofs passed, `FirstConversationProof` alone in 82 seconds and the other ten together in 4 minutes 20 seconds.
 
 To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingStore(app)` inside one proof. It terminates the app, asserts `.notRunning`, swaps `fresh` for `keep` in the launch arguments, launches, and waits for `.runningForeground`. `RelaunchKeepsChatProof` is the model: onboard, send the week question, relaunch, then assert the question and the reply are back and the notice is not. Assert the screen and content the athlete sees, never only that the app came back. `XCUIDevice.shared.press(.home)` followed by `app.activate()` backgrounds and resumes the app without a kill. The interactive equivalent is `sim.mjs launch <run id> --keep`; without `--keep` the launch wipes the fixture store and opens on the notice.
 
-**Every proof in one run.** Pass every proof class at once:
+**Every proof split across owned simulators.** One command builds once, discovers every UI proof class, splits them across two simulators, and deletes both after the run:
 
 ```sh
-.claude/skills/verify-ios/helpers/sim.mjs test <run id> $(sed -n 's/^final class \([A-Za-z]*Proof\): XCTestCase.*/\1/p' apps/ios/EnduragentUITests/*.swift)
+caffeinate -i env ENDURAGENT_VERIFY_RUNS=/Users/yerzhansagyt/Library/Logs/enduragent-m2/VSKILL/simulator-proof node .claude/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/VSKILL --shards 2
 ```
 
-The pattern takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
+Change `--shards` to choose N simulators. Append class names to run a subset, for example `suite --shards 2 FirstConversationProof ConfirmedPreviewDarkProof`. A suite takes classes, not individual methods. Each shard runs light proofs first and `DarkProof` classes second, with `-parallel-testing-enabled NO` on every xcodebuild call. Its `finally` cleanup also runs after a failed proof or boot. The coordinator waits for every shard and checks cleanup again before reporting.
+
+Each shard has its own `<suite id>-shard-N/` folder with `run.json`, xcodebuild logs, result bundles, exported attachments, and `summary.json`. The `<suite id>/` folder holds `plan.json`, each worker's log, a combined `summary.json`, a per-class table in `summary.md`, and `timings.json`. Counts include passed, failed, skipped, and missing results. Any failed shard, failed test, skipped test, or missing class makes the command exit 1. An infrastructure failure before testing can leave a shard without a result bundle; its summary still names every unverified class.
+
+Without timings, the planner distributes classes evenly. If `<evidence root>/timings.json` exists, or you pass `--timings <file>`, it assigns the longest measured classes first to the least-loaded shard. The file is a JSON map from class names to positive seconds, for example `{"FirstConversationProof": 82}`. New classes use the mean of known durations. A completed suite writes an updated timing file into its own folder; pass that file to the next run to reuse measurements. An explicitly requested missing or malformed timing file fails before simulator creation.
+
+Discovery takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
 The history and legacy-review upgrade proofs use committed v1 stores and must pass with zero skips. Each proof copies a fresh store set before launch, so data left by another proof does not supply its upgrade precondition. A missing fixture resource is a failure.
 
@@ -137,6 +145,49 @@ caffeinate -i node tools/generate-v1-upgrade-stores.mjs
 ```
 
 The generator archives the frozen package and its unchanged `FirstWeekFixture` into a temporary directory, adds `tools/fixtures/V1UpgradeStoreSeed.swift` to the test target, and drives the v1 `Coach.send` and `SwiftDataRecordLog`. It checkpoints the generated SQLite databases and copies them into the two committed fixture folders. Do not hand-edit database rows or the frozen schema. CI and UI proof runs consume the committed stores and need no v1 installation or detached worktree.
+
+## Verify on the real phone
+
+This is the saved procedure for the 2026-10-01 run on build `2bbe2ee`. The phone runner lives in `apps/ios/EnduragentPhoneTests/PhoneRun.swift`. Only the `EnduragentPhone` scheme includes that target. The Swift file also compiles out on simulators. The normal `Enduragent` scheme and `sim.mjs` never execute it, and it uses no `XCTSkip`.
+
+Before **every** invocation, ask the operator for that invocation's message budget. Explain that live Send and Try again actions spend Credits or use the connected OpenRouter account. Each Send or Try again consumes one budget slot. The full procedure needs seven Sends and two Try again taps, so its minimum is nine slots. New conversation can also save memory through the model. Do not infer a new budget from a previous run. If a run fails or stops, report the actions already taken and ask for a new budget before another invocation.
+
+Ask the operator to provide the connected, unlocked iPhone and approve the single calendar Add for this run. Never enter a passcode, password, API key, or any other credential. Never accept a consent, terms, or login screen. Never tap purchases, sign out, disconnect intervals.icu, delete the app, or erase its data. Never send or tap Try again beyond the approved budget. The runner refuses a missing budget before launch, checks the budget before every message action, and permits one Add only.
+
+1. Build and install in place with the command below. The device identifier is an argument supplied for this run, never a committed value. Keep build products under `/tmp` and logs and result bundles outside the tree.
+2. Launch plainly, with no fixture arguments and no launch environment. Capture the first screen. If the phone is locked or shows consent, terms, login, onboarding, or any system alert, stop without tapping it. The operator handles the screen. The runner fails with `PhoneRunBlocked`, preserves its attachments, and sends no message. Ask for a fresh budget before restarting.
+3. On the conversation screen, check the earlier conversation, open History and a read-only archived conversation, and record Credits before the run.
+4. Send `What should I focus on in training this week?`. Capture partial text while working and the settled reply.
+5. Send the eight-week base-training question in the script. Stop during partial text, check the dimmed partial reply, notice, and Try again, then tap Try again once. A missed Stop is a failed proof. Do not resend without another budget.
+6. Send the short tempo-ride question, press Home for twenty seconds, and return. Check the complete reply and the finished-while-locked line. The 2026-10-01 run pressed Home; it did not lock the phone. An actual lock and unlock is an operator action.
+7. Send the 100 km pacing question, terminate during partial text, and relaunch plainly. Check the interrupted turn and Try again, then tap Try again once. Partial text lost on a hard kill is accepted for Milestone 2 under G16.
+8. Request one 45-minute endurance ride for tomorrow. Capture the review and tap Add exactly once. Capture the Done line. The operator checks intervals.icu for exactly one matching event on that date. The UI's Done line alone cannot prove the server count. Do not repeat Add if its outcome is uncertain.
+9. Request one recovery spin for the day after tomorrow. Cancel once and relaunch. Check that the review stays gone.
+10. Start New conversation with the compose icon in the top bar, check the composer, send the warm-up question, and open the previous conversation in History. Record Credits afterward and leave the app in the foreground. The 2026-10-01 run did not exercise a second device or purchases.
+
+Run only after the operator has answered the budget question. Supply `DEVICE_ID`, `MESSAGE_BUDGET`, and a new `PHONE_RUN` evidence folder in the shell:
+
+```sh
+xcodegen generate --spec apps/ios/project.yml
+caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentPhone -configuration Debug -sdk iphoneos -destination "platform=iOS,id=$DEVICE_ID" -derivedDataPath /tmp/enduragent-dd/VSKILL-phone -parallel-testing-enabled NO -resultBundlePath "$PHONE_RUN/phone.xcresult" -only-testing:EnduragentPhoneTests/PhoneRun ENDURAGENT_PHONE_MESSAGE_BUDGET="$MESSAGE_BUDGET" > "$PHONE_RUN/phone.log" 2>&1
+```
+
+The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
+
+## States fixture hooks cannot reach
+
+These gaps were checked against `FixtureArguments`, `FirstWeekFixture`, Debug controls, and the Milestone 1 close-out backlog. A package result proves its contract, not pixels. Do not claim a missing screen proof as passed.
+
+| State without a UI hook | Evidence to use instead |
+| --- | --- |
+| A calendar write loses its response in the running session | `SingleProposalReviewsTests.lostResponseSettlesUncertain` proves the current package outcome through `Coach.decide`. Pending unknown-write recovery and read-back need the 0.4b hooks and proofs before their screens can be called verified. |
+| A lost-response write is found on a later calendar read, or a calendar network read fails | The P51 report records `DurableCalendarWriteTests.committedWriteWithLostResponseIsConfirmedByReading(response:)` and `unreadableCalendarKeepsTheWriteUnknown(malformed:)` on PR #84. They are evidence for that pending change, not tests on this tree. Unit 0.4b supplies the UI hooks. A Keychain lock follows a different branch and cannot prove a network read failure. |
+| A workout review's record refresh fails and later succeeds | `FirstTurnTests.failedReviewRefreshKeepsTheCardUntilASuccessfulRead` proves retention and recovery. Unit 0.4b supplies a record-read failure hook and proves disabled controls on screen. |
+| Stop while the fixture turn is still proposing its workout | `RetryLadderTests.approvalDuringBackoffSettlesSavedWork`, `RetryLadderTests.approvalBeforeTimeoutFailureSettlesSavedWork`, and `RetryLadderTests.hungApprovalDoesNotBlockStopOrNewSend` cover the package boundaries. The fixture proposing turn finishes at once; Stop during `fixture:slow` does not prove this state. |
+| Real continued-processing banners, OS suspension or expiry, lock and unlock, and a hard kill losing partial text | The real-phone procedure and its screenshots. Home proves backgrounding only. The operator performs an actual lock and unlock. Fixture host expiry proves the package's expiry response, not when iOS expires a real lease. A device run must capture an actual OS expiry before claiming that part. |
+| Live networking, real Keychain access or sync, CloudKit imports, and a second device's consent or conversation | The closing real-phone run plus an operator-assisted second-device check on the same Apple ID. The one-phone script does not cover the second device. Fixture stores have CloudKit off. |
+| Exactly one intervals.icu event, including UID upsert after an uncertain write | The operator reads the real calendar after the single Add. Repeated-write UID-upsert evidence belongs to unit 0.4's authorized live check; this phone script never repeats Add. |
+| StoreKit prices, purchases, and Restore | Operator-approved store-release testing. G12 excludes purchases and Restore from Milestone 2, so neither this suite nor the phone script claims that proof. |
 
 ## Compare with the prototype
 
@@ -172,12 +223,12 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 Each run writes to `~/Library/Logs/enduragent-verify/<run id>/`. Set `ENDURAGENT_VERIFY_RUNS` to move the root. The folder is outside the repository, so no screenshot or result bundle can be committed, and it survives cleanup and worktree removal. It holds:
 
-- `run.json` with the run id, simulator name, udid, device type, runtime, checkout, and `git describe --always --dirty` of the checkout;
+- `run.json` with the run id, simulator name, udid, device type, runtime, checkout, revision, build folder, and source digest; git checkouts use `git describe --always --dirty`, and exports use `ENDURAGENT_VERIFY_REVISION` or `exported-tree`;
 - `<label>.png` from `sim.mjs shot <run id> <label>`;
 - the UI test files described in **UI test run**;
 - `parity/<prototype>-<state>-<theme>/` from `sim.mjs parity`.
 
-The helper never overwrites a file in this folder. Never copy evidence into the repository.
+The helper uses unique run and result names. Cleanup keeps the evidence. The suite coordinator finalizes each shard summary after checking the worker exit status. Never copy evidence into the repository.
 
 Proof standards:
 
@@ -191,7 +242,7 @@ Proof standards:
 
 Run `sim.mjs cleanup <run id>` when the run ends, and after every failed attempt before the next one. It shuts down and deletes `enduragent-verify-<run id>`, which removes the installed app and its data. It confirms the simulator is gone and lists the evidence it kept. Running it twice is safe.
 
-Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never quit Simulator.app or kill CoreSimulatorService, and never kill a process by name. The operator keeps their own simulators booted, and a parallel run owns its own. `DerivedData/` is a build cache, not evidence.
+Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never quit Simulator.app or kill CoreSimulatorService, and never kill a process by name. The operator keeps their own simulators booted, and a parallel run owns its own. The selected build folder is a build cache, not evidence.
 
 ## Helpers
 
@@ -200,14 +251,17 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 | Command | Does |
 | --- | --- |
 | `doctor [<run id>]` | Read-only readiness check described in **Doctor** |
-| `build` | XcodeGen, then `build-for-testing` into `DerivedData` |
+| `build` | XcodeGen, then `build-for-testing` into the selected build folder |
 | `create <kebab-slug>` | New run id, evidence folder, and booted simulator |
 | `install <run id>` | Installs the built app on the run's simulator |
 | `launch <run id> [--keep] [app arguments]` | Kills and opens the app in fixture mode; `--keep` reuses the fixture state instead of wiping it |
 | `shot <run id> <kebab-label>` | Screenshot to `<evidence>/<label>.png` |
 | `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported; `DarkProof` classes run in dark appearance |
+| `suite [<proof class>...] --shards <N> [--timings <json>]` | Build once, run owned simulator shards, clean up, and combine per-class results |
 | `parity <run id> <prototype>-<state> <light\|dark> [--from <png>]` | Prototype capture beside a simulator screenshot |
 | `cleanup <run id>` | Deletes the run's simulator and keeps the evidence |
+
+Run the helper tests with `node --test tools/verify-ios.test.mjs`. They also run in `pnpm check:source`. The command tests use fake executables and never touch a simulator.
 
 `ENDURAGENT_SIM_DEVICE` changes the device type. Parity comparisons assume the default iPhone 17e.
 

@@ -91,6 +91,20 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+  EnduragentPhoneTests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: EnduragentPhoneTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.phonetests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Enduragent
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - target: Enduragent
   EnduragentUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -111,6 +125,17 @@ targets:
       - target: Enduragent
       - package: EnduragentCoach
 schemes:
+  EnduragentPhone:
+    build:
+      targets:
+        Enduragent: all
+        EnduragentPhoneTests: [test]
+    test:
+      config: Debug
+      environmentVariables:
+        ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
+      targets:
+        - EnduragentPhoneTests
   Enduragent:
     build:
       targets:
