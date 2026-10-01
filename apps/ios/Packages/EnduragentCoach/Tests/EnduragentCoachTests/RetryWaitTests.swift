@@ -71,7 +71,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(7))
 		let stream = await coach.observe(.main)
 		clock.release(.seconds(7))
-		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
@@ -139,7 +139,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
 		clock.release(wait)
-		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")

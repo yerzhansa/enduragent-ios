@@ -1,6 +1,7 @@
 import EnduragentCoachFixtures
 import Foundation
 import Synchronization
+import Testing
 
 @testable import EnduragentCoach
 
@@ -59,7 +60,12 @@ actor EndingHost: ExecutionHost {
 	}
 
 	func waitForEnd(_ index: Int) async throws {
-		try await ending(index).waitUnlessCancelled()
+		let ended = ending(index)
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				try await ended.waitUnlessCancelled()
+			} != nil,
+			"Lease \(index) did not end within five seconds")
 	}
 
 	private func ending(_ index: Int) -> Gate {
