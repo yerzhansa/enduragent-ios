@@ -13,7 +13,9 @@ extension SingleProposalReviews {
 		var delivery = delivery(set: intent.body.review, chat: chat, authority: authority)
 		let cards = intent.proposal.map { [ReviewCard($0.body)] } ?? []
 		let controls: ReviewControls
-		if authority != .thisDevice || block != nil || delivery.busy || intent.proposal == nil {
+		if authority != .thisDevice || block == .accountChanged || delivery.busy
+			|| intent.proposal == nil
+		{
 			controls = .none
 		} else if canRepeat(intent) {
 			let secret = delivery.secret ?? UUID()

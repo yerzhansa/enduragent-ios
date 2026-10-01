@@ -35,7 +35,8 @@ extension Ledger {
 			})
 		for (chat, conversation) in conversations {
 			if try await calendarWrites(chat).contains(where: {
-				$0.body.evidence.dispatched && !$0.body.evidence.applied
+				$0.record.deviceId == deviceId
+					&& $0.body.evidence.dispatched && !$0.body.evidence.applied
 			}) {
 				return true
 			}

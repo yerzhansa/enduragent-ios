@@ -54,7 +54,8 @@ package actor SingleProposalReviews: WorkoutReviews {
 		return ReviewSnapshot(
 			ref: delivery.ref, cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
 			notice: delivery.authority == .readOnly
-				? AthleteNotices.earlierVersion : block.map(accountNotice),
+				? AthleteNotices.earlierVersion
+				: block == .accountChanged ? AthleteNotices.accountChanged : nil,
 			controls: block == .accountChanged ? .none : delivery.controls,
 			authority: delivery.authority)
 	}

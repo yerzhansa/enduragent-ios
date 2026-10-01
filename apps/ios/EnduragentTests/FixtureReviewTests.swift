@@ -156,6 +156,13 @@ extension FixtureLaunchTests {
 			model.reviewNotice?.sentence(in: model.phrasebook)
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
+		var snapshots = await services.coach.observe(.main).makeAsyncIterator()
+		let unsent = try #require(await snapshots.next()?.review)
+		#expect(unsent.notice == nil)
+		#expect(unsent.controls == .approveOrCancel(token))
+		#expect(
+			ConfirmedPreviewCard(model: model, review: unsent).actions.map(\.id)
+				== ["chat.preview.cancel", "chat.preview.add"])
 		await model.decide(.presented(token.ref))
 		#expect(model.reviewNotice?.key == Catalog.reviewCannotVerify)
 		backing.locked = false
@@ -165,6 +172,53 @@ extension FixtureLaunchTests {
 		#expect(
 			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
 				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
+	}
+
+	@Test(arguments: [false, true])
+	func failedConnectionCheckKeepsTheCardsRecoveryActions(absent: Bool) async throws {
+		let services = try services()
+		let fixture = try #require(services.fixture)
+		let model = model(services)
+		await model.agreeAndStartChatting()
+		let token = try await presentedReview(on: model)
+		fixture.intervals.writeFailure = URLError(.timedOut)
+		await model.decide(.approve(token))
+		try await until {
+			guard case .checkAgain? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		if absent {
+			await model.decide(.checkAgain(token.ref))
+			try await until {
+				guard case .retryRemainingOrCancel? = model.chat?.review?.controls else {
+					return false
+				}
+				return true
+			}
+		}
+		let pending = try #require(model.chat?.review)
+		let expected = ConfirmedPreviewCard(model: model, review: pending).actions.map(\.id)
+		#expect(
+			expected
+				== (absent
+					? ["chat.preview.checkAgain", "chat.preview.cancel", "chat.preview.saveAgain"]
+					: ["chat.preview.checkAgain"]))
+		fixture.secretBacking.locked = true
+		defer { fixture.secretBacking.locked = false }
+		await model.decide(.checkAgain(pending.ref))
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewWriteReadFailed }
+		let failed = try #require(model.chat?.review)
+		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
+		#expect(actions.map(\.id) == expected)
+		#expect(model.reviewNotice?.key == Catalog.reviewWriteReadFailed)
+		fixture.secretBacking.locked = false
+		let check = try #require(actions.first { $0.id == "chat.preview.checkAgain" })
+		await model.decide(check.decision)
+		try await until {
+			guard case .retryRemainingOrCancel? = model.chat?.review?.controls else { return false }
+			return true
+		}
+		#expect(!fixture.intervals.calls.contains { $0.isCalendarWrite })
 	}
 
 	@Test func reviewUsesTheChosenLanguageAfterAnAccountChange() async throws {

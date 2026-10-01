@@ -65,6 +65,39 @@ extension CredentialVaultTests {
 }
 
 extension CredentialVaultTests {
+	@Test(arguments: [false, true], [false, true])
+	func unresolvedCalendarWriteBlocksOnlyItsOwningDevice(opened: Bool, owned: Bool) async throws {
+		let writer = owned ? records.deviceId : DeviceID(rawValue: "other-phone")
+		let body = ReviewWriteBody(
+			chatId: .main, review: ChangeSetID(ulid: fixedUlid(2)), writeID: CalendarWriteID(),
+			target: .create(date: "1998-06-14"), evidence: .unknown(.dispatched))
+		try await seed(
+			records,
+			[
+				storedRecord(
+					device: writer, wall: 1,
+					body: .synced(sampleUser(chatId: .main, text: "Thursday?"))),
+				storedRecord(device: writer, wall: 2, body: .synced(.reviewWrite(body))),
+			])
+		let secrets = keyedSecrets()
+		let coach = await coach(secrets)
+		if opened { _ = await coach.currentSnapshot(.main) }
+		let outcome = await coach.changeTraining(
+			.replace(apiKey: "other-athlete", athlete: .keyOwner))
+		if owned {
+			let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
+			let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
+			#expect(outcome == .refused(.differentAthlete(current: current, new: new)))
+			#expect(try secrets.intervalsConnection() == testConnection)
+		} else {
+			guard case .replaced(_, .changed?) = outcome else {
+				Issue.record("other-device unresolved write blocked replacement: \(outcome)")
+				return
+			}
+			#expect(try secrets.intervalsConnection()?.credential == .apiKey("other-athlete"))
+		}
+	}
+
 	@Test(arguments: [false, true])
 	func unresolvedApprovedWriteBlocksAthleteSwitchAfterReopening(opened: Bool) async throws {
 		let secrets = keyedSecrets()

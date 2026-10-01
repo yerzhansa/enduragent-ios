@@ -176,6 +176,11 @@ import Testing
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
+		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == .approveOrCancel(token))
+		#expect(
+			try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]), chatId: .main))
+				.records.isEmpty)
 		secretBacking.locked = false
 		#expect(
 			await coach.decide(.approve(token), in: .main)
