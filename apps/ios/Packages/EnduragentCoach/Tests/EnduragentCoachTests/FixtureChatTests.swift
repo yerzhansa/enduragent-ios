@@ -36,17 +36,28 @@ import Testing
 				[.text("Reply to " + text), .finish(reason: .stop)],
 				requestDelay: text == "Hold" ? .seconds(1) : nil)
 		}
-		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
+		let clock = HeldClock()
+		transport.clock = clock
+		let coach = await makeCoach(
+			transport: transport, store: InMemoryRecordLog(), clock: clock, watchdogClock: clock,
+			coalescingClock: clock)
 		let held = try #require(try await coach.send(draft("Hold"), to: .main).acceptedTurn)
+		try await clock.waitUntilHeld(quickWindow.window)
+		clock.advance(by: quickWindow.window)
 		await coach.waitUntilProcessing(held)
-		let deadline = ContinuousClock.now + .seconds(5)
-		while transport.requestCount == 0, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		try #require(transport.requestCount == 1)
+		try await clock.waitUntilHeld(.seconds(1))
 		let first = try #require(try await coach.send(draft("Thursday"), to: .main).acceptedTurn)
-		try await Task.sleep(for: .milliseconds(40))
+		try await clock.waitUntilHeld(quickWindow.window)
+		clock.advance(by: quickWindow.window)
+		try #require(
+			try await coach.waitForState(of: first) {
+				guard case .accepted(.queued)? = $0 else { return false }
+				return true
+			} != nil)
 		let second = try #require(try await coach.send(draft("Saturday"), to: .main).acceptedTurn)
+		try await clock.waitUntilHeld(quickWindow.window)
+		clock.advance(by: quickWindow.window)
+		clock.release(.seconds(1))
 		let firstReply = try #require(await coach.settledState(of: first, in: .main))
 		let secondReply = try #require(await coach.settledState(of: second, in: .main))
 		#expect(replyText(firstReply) == "Reply to Thursday")
@@ -85,12 +96,12 @@ import Testing
 			WireMessage(role: .system, content: "Test", toolCalls: [], toolCallId: nil),
 			WireMessage(role: .user, content: "Hang", toolCalls: [], toolCallId: nil),
 		])
-		for _ in 0..<2 {
+		for count in 1...2 {
 			let reading = Task {
 				for try await _ in transport.stream(request) {}
 				return Task.isCancelled
 			}
-			try await Task.sleep(for: .milliseconds(50))
+			try await waitUntil { transport.requestCount == count }
 			reading.cancel()
 			#expect(try await reading.value)
 		}

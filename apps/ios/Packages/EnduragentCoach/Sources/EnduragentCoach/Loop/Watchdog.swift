@@ -11,7 +11,11 @@ package actor ChatWatchdog {
 	private var outcome: TimeoutKind?
 	private var waiters: [CheckedContinuation<TimeoutKind?, Never>] = []
 
-	package init() {}
+	private let sleep: @Sendable (Duration) async throws -> Void
+
+	package init(sleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep) {
+		self.sleep = sleep
+	}
 
 	package func arm() {
 		stopped = false
@@ -83,11 +87,11 @@ package actor ChatWatchdog {
 		let kind: TimeoutKind = seenText ? .interChunk : .firstToken
 		timer = Task {
 			do {
-				try await Task.sleep(for: delay)
+				try await sleep(delay)
 			} catch is CancellationError {
 				return
 			} catch {
-				fatalError("Task.sleep failed: \(error)")
+				fatalError("Watchdog sleep failed: \(error)")
 			}
 			guard !Task.isCancelled else { return }
 			self.fire(kind)
