@@ -57,7 +57,7 @@ function hasReleaseFixtureLaunch(text) {
       if (guards.length) guards.at(-1).alternate = true;
     } else if (/^\s*#endif\b/.test(line)) {
       guards.pop();
-    } else if (/\bFixtureLaunch\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+    } else if (/\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
       return true;
     }
   }
@@ -169,6 +169,8 @@ try {
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
+      && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');

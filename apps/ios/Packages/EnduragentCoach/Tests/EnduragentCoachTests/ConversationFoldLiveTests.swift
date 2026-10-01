@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -17,11 +18,19 @@ extension ConversationFoldTests {
 		let seeded = try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		let transport = FakeModelTransport()
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
 		switch ending {
-		case .reply: transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
-		case .stop: transport.script = [.text("Thursday is"), .hang]
-		case .failure: transport.script = [.fail(.http(status: 400))]
+		case .reply:
+			transport.respond = ScriptedReply.sequence(
+				[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
+		case .stop:
+			transport.respond = ScriptedReply.sequence(
+				[.text("Thursday is"), .hang], otherwise: transport.respond)
+		case .failure:
+			transport.respond = ScriptedReply.sequence(
+				[.fail(.http(status: 400))], otherwise: transport.respond)
 		}
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -16,7 +17,8 @@ import Testing
 	@Test func failedOpenKeepsTheObserverForTheNextSuccessfulSend() async throws {
 		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let transport = FakeModelTransport()
-		transport.script = [.text("Recovered answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Recovered answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: faults)
 		faults.failFetches = true
 		let observed = ImportSnapshots(await coach.observe(.main))
@@ -38,11 +40,15 @@ import Testing
 		let held = HeldConversationReadLog(inner: recording)
 		defer { held.gate.release() }
 		let transport = FakeModelTransport()
-		transport.script = [.text("New answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("New answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: held, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await held.reached.first { _ in true }
+			} != nil,
+			"Conversation read did not park within five seconds")
 		let message = draft("New question")
 		async let first = coach.send(message, to: .main)
 		async let second = coach.send(message, to: .main)
@@ -60,10 +66,11 @@ import Testing
 	@Test func launchFoldsTheChatOnce() async throws {
 		let inner = InMemoryRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [
-			.text("Stored answer"), .finish(reason: .stop),
-			.text("Second answer"), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Stored answer"), .finish(reason: .stop),
+				.text("Second answer"), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let prior = await makeCoach(transport: transport, store: inner)
 		_ = try await prior.sendAndSettle("Stored question")
 		_ = try await prior.sendAndSettle("Second question")

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -16,7 +17,8 @@ import Testing
 			("How was my training week and what should I do today?", .en),
 			("123", .nl),
 		] {
-			transport.script = [.text("Reply"), .finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)
 			_ = try await coach.sendAndSettle(message)
 			let system = try #require(
 				sent(.chatAttempt, by: transport).last?.messages.first?.content)
@@ -41,7 +43,9 @@ import Testing
 			transport: FakeModelTransport(), intervals: intervals, store: store)
 		#expect(await reopened.languagePreference() == .fixed(.es))
 		#expect(intervals.calls.isEmpty)
-		#expect(await reopened.status().language == .fixed(.es))
+		#expect(try await reopened.observedStatus().language == .fixed(.es))
+		#expect(intervals.calls.isEmpty)
+		await reopened.lifecycle(.becameActive)
 		#expect(!intervals.calls.isEmpty)
 	}
 }

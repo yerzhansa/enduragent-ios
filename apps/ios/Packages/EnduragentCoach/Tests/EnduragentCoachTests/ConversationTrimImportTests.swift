@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -10,8 +11,11 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		let transport = FakeModelTransport()
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
-		transport.script = [.text("Thursday is"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
@@ -49,11 +53,14 @@ import Testing
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
 		let transport = FakeModelTransport()
-		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier conversation."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		let windows = try await store.fetch(

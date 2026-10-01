@@ -8,22 +8,26 @@ public actor Coach {
 	private let sport: SportID
 	private let transport: any ModelTransport
 	let ledger: Ledger
-	private let clock: any Clock
+	let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
 	private let deviceLanguage: LanguageTag
-	private var preferenceRecords: [AthleteRecord] = []
-	private var preferencesLoaded = false
-	private var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
-	private let builtInModel: ModelID
-	private let vault: CredentialVault
+	var preferenceRecords: [AthleteRecord] = []
+	var preferencesLoaded = false
+	var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
+	let builtInModel: ModelID
+	let vault: CredentialVault
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
 	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
 	var mailboxes: [ChatID: ChatMailbox] { mailboxSlots.compactMapValues(\.mailbox) }
 	let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
+	let statusFeed = SnapshotFeed<CoachStatus>()
+	let statusChanges = Turnstile()
+	var trainingStatus: TrainingStatus?
+	var trainingRefresh: Task<TrainingStatus, Never>?
 	var importObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
@@ -100,6 +104,9 @@ public actor Coach {
 		for mailbox in mailboxes.values {
 			await mailbox.lifecycle(event)
 		}
+		if event == .becameActive {
+			await refreshTrainingStatus()
+		}
 	}
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
@@ -115,45 +122,6 @@ public actor Coach {
 		return outcome
 	}
 
-	public func languagePreference() async -> LanguagePreference {
-		await loadedPreferences().language
-	}
-
-	public func status() async -> CoachStatus {
-		let consent = await providerConsent()
-		return CoachStatus(
-			setup: consent?.isCurrent == true
-				? await vault.setup(builtInModel: builtInModel) : .needsProviderConsent,
-			training: await vault.trainingStatus(), preferences: await loadedPreferences(),
-			providerConsent: consent)
-	}
-
-	public func recordConsent() async throws(PreferenceWriteFailure) {
-		guard await providerConsent()?.isCurrent != true else { return }
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
-		do {
-			_ = try await ledger.commit(
-				local: [.providerConsent(ProviderConsent(at: clock.now))], stamp: stamp)
-		} catch {
-			throw .notSaved
-		}
-	}
-
-	private func providerConsent() async -> ProviderConsent? {
-		do {
-			let page = try await ledger.read(
-				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
-			guard case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
-			else { return nil }
-			return consent
-		} catch {
-			diagnostics.record(.preferencesUnavailable(error))
-			return nil
-		}
-	}
-
 	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
 		guard await providerConsent()?.isCurrent == true else {
 			throw .providerConsentRequired
@@ -161,22 +129,18 @@ public actor Coach {
 		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
-	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
-		guard await loadedPreferences().language != preference else { return }
-		try await commitPreference(
-			.languagePreference(LanguagePreferenceBody(preference: preference)))
-	}
-
-	public func setSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
-		try await commitPreference(.sessionSettings(SessionSettingsBody(settings: settings)))
-	}
-
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
 		let outcome = await vault.change(change) { await self.holdsBoundWork() }
+		trainingRefresh?.cancel()
+		trainingRefresh = nil
+		trainingStatus = nil
 		for mailbox in mailboxes.values {
 			await mailbox.reviewChanged()
+		}
+		if statusFeed.isObserved {
+			await refreshTrainingStatus()
 		}
 		return outcome
 	}
@@ -184,7 +148,9 @@ public actor Coach {
 	public func changeModelAccess(_ change: ModelAccessChange) async
 		-> CredentialOutcome<AccessSummary>
 	{
-		await vault.change(change)
+		let outcome = await vault.change(change)
+		await publishStatus()
+		return outcome
 	}
 
 	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
@@ -219,58 +185,6 @@ public actor Coach {
 			RecordSyncProbe(ledger: ledger, clock: clock)
 		}
 	#endif
-
-	private var binding: ActionBinding {
-		ActionBinding(account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-	}
-
-	private func commitPreference(_ body: SyncedRecordBody) async throws(PreferenceWriteFailure) {
-		_ = await loadedPreferences()
-		let stamp = OperationStamp(
-			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: binding
-		)
-		let committed: [AthleteRecord]
-		do {
-			committed = try await ledger.commit(synced: [body], stamp: stamp)
-		} catch {
-			throw .notSaved
-		}
-		preferenceRecords += committed
-	}
-
-	private func loadedPreferences() async -> Preferences {
-		guard !preferencesLoaded else { return Preferences.fold(preferenceRecords) }
-		let reading = preferencesRead ?? Task { await self.readPreferences() }
-		preferencesRead = reading
-		let result = await reading.value
-		if preferencesRead == reading {
-			preferencesRead = nil
-		}
-		switch result {
-		case .success(let stored) where !preferencesLoaded:
-			preferenceRecords =
-				stored
-				+ preferenceRecords.filter { written in
-					!stored.contains { $0.ulid == written.ulid }
-				}
-			preferencesLoaded = true
-		case .success:
-			break
-		case .failure(let error):
-			diagnostics.record(.preferencesUnavailable(error))
-		}
-		return Preferences.fold(preferenceRecords)
-	}
-
-	private func readPreferences() async -> Result<[AthleteRecord], LedgerFailure> {
-		do {
-			return .success(try await ledger.read(RecordQuery(scope: Preferences.scope)).records)
-		} catch {
-			return .failure(error)
-		}
-	}
 
 	private func recoverOnce() async {
 		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
@@ -328,7 +242,7 @@ public actor Coach {
 		return try await makeMailbox(for: chatId)
 	}
 
-	func snapshotFeed(for chat: ChatID) -> SnapshotFeed {
+	func snapshotFeed(for chat: ChatID) -> SnapshotFeed<ChatSnapshot> {
 		if let slot = mailboxSlots[chat] { return slot.feed }
 		let slot = MailboxSlot()
 		mailboxSlots[chat] = slot

@@ -49,6 +49,19 @@ package actor CredentialVault {
 		}
 	}
 
+	package func storedTrainingStatus() -> TrainingStatus {
+		do {
+			guard let active = try activeConnection() else { return .unconnected }
+			return .connected(
+				IntervalsSummary(
+					keySuffix: active.credential.keySuffix, athleteName: nil, today: nil,
+					displayUnavailable: nil),
+				account: active.account)
+		} catch {
+			return .unavailable(error)
+		}
+	}
+
 	package func trainingStatus() async -> TrainingStatus {
 		let active: IntervalsConnection?
 		do {

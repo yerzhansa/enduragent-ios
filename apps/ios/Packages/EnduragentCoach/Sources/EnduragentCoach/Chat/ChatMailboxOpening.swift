@@ -6,7 +6,7 @@ extension ChatMailbox {
 		clock: any Clock, coalescing: CoalescingPolicy,
 		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
 		environment: EnvironmentResolver, reviews: any WorkoutReviews, process: ProcessID,
-		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed,
+		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed<ChatSnapshot>,
 		recoveryRecords: [AthleteRecord]? = nil
 	) async throws(LedgerFailure) -> ChatMailbox {
 		try await ChatMailbox(

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -119,7 +120,7 @@ extension CredentialVaultTests {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		let coach = await coach(store)
-		#expect(await coach.status().setup == .needsAccessMethod)
+		#expect(try await coach.observedStatus().setup == .needsAccessMethod)
 		#expect(try await coach.creditsIdentity().hasCreditsKey == false)
 		#expect(try await vault(store).creditsKey() == nil)
 		#expect(memory.writeCount == 0)

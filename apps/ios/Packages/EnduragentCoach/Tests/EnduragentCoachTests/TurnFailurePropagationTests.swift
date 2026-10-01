@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Synchronization
 import Testing
 
@@ -5,33 +6,24 @@ import Testing
 
 @Suite struct TurnFailurePropagationTests {
 	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
-		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 1)
-		let transport = FakeModelTransport()
-		transport.script = [.text("This response must not be generated."), .finish(reason: .stop)]
-		let coach = await makeCoach(transport: transport, store: failing)
-		let settled = try await coach.sendAndSettle("Plan my week")
-		#expect(failure(settled) == .local(.recordStorage))
-		#expect(transport.requests.isEmpty)
-		#expect(await coach.transcript(.main) == ["Plan my week"])
-		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
-		let persisted = try await settlements(of: turn, in: store)
-		#expect(persisted == [.failed(.local(.recordStorage), saved: .none)])
+		try await expectPromptReadFailure(on: 1)
 	}
 
 	@Test func memorySectionValidationFailureDoesNotWrite() async throws {
 		let store = InMemoryRecordLog()
 		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 2)
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I could not save that."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Rides on Saturdays"}"#
+				),
+				.finish(reason: .toolCalls),
+				.text("I could not save that."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: failing)
 		let settled = try await coach.sendAndSettle("Remember that I ride on Saturdays")
 		#expect(replyText(settled) == "I could not save that.")
@@ -61,12 +53,13 @@ import Testing
 		var results: [String] = []
 		for arguments in ["{}", ""] {
 			let transport = FakeModelTransport()
-			transport.script = [
-				.toolCall(name: name, arguments: arguments),
-				.finish(reason: .toolCalls),
-				.text("ok"),
-				.finish(reason: .stop),
-			]
+			transport.respond = ScriptedReply.sequence(
+				[
+					.toolCall(name: name, arguments: arguments),
+					.finish(reason: .toolCalls),
+					.text("ok"),
+					.finish(reason: .stop),
+				], otherwise: transport.respond)
 			let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 			let settled = try await coach.sendAndSettle("Read my information")
 			#expect(replyText(settled) == "ok")
@@ -81,12 +74,13 @@ import Testing
 	@Test(arguments: ["", "{}"])
 	func blankToolArgumentsValidateRequiredParameters(arguments: String) async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(name: "calculate_zones", arguments: arguments),
-			.finish(reason: .toolCalls),
-			.text("What is your FTP?"),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "calculate_zones", arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("What is your FTP?"),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let settled = try await coach.sendAndSettle("Calculate my zones")
 		#expect(replyText(settled) == "What is your FTP?")
@@ -105,12 +99,13 @@ import Testing
 	@Test(arguments: ["not-json", " ", "{", "undefined"])
 	func invalidToolArgumentsReturnAToolError(arguments: String) async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(name: "memory_read", arguments: arguments),
-			.finish(reason: .toolCalls),
-			.text("ok"),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "memory_read", arguments: arguments),
+				.finish(reason: .toolCalls),
+				.text("ok"),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 		let settled = try await coach.sendAndSettle("read memory")
 		#expect(replyText(settled) == "ok")
@@ -136,6 +131,22 @@ import Testing
 		return store
 	}
 
+	private func expectPromptReadFailure(on occurrence: Int) async throws {
+		let store = InMemoryRecordLog()
+		let failing = MemoryReadFailingLog(wrapping: store, failingOn: occurrence)
+		let transport = FakeModelTransport()
+		transport.respond = ScriptedReply.sequence(
+			[.text("This response must not be generated."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		let coach = await makeCoach(transport: transport, store: failing)
+		let settled = try await coach.sendAndSettle("Plan my week")
+		#expect(failure(settled) == .local(.recordStorage))
+		#expect(transport.requests.isEmpty)
+		#expect(await coach.transcript(.main) == ["Plan my week"])
+		let turn = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
+		let persisted = try await settlements(of: turn, in: store)
+		#expect(persisted == [.failed(.local(.recordStorage), saved: .none)])
+	}
 }
 
 private final class MemoryReadFailingLog: RecordLog, Sendable {

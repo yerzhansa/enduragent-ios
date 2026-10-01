@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -15,13 +16,14 @@ extension RetryLadderTests {
 	private func approvalDuringWaitSettlesSavedWork(timeout: Bool) async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [
 				.fail(
 					timeout
 						? .connection(.timedOut) : .http(status: 429, headers: ["retry-after": "7"])
 				)
-			] + workoutProposal + [.text("A second workout is ready."), .finish(reason: .stop)]
+			] + workoutProposal + [.text("A second workout is ready."), .finish(reason: .stop)],
+			for: .chat, otherwise: transport.respond)
 		let coach = await approvalCoach(held, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
@@ -72,18 +74,20 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = await approvalCoach(held, intervals: intervals)
-		transport.script =
-			workoutProposal + [.text("Please review the ride."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.text("Please review the ride."), .finish(reason: .stop)],
+			for: .chat, otherwise: transport.respond)
 		let earlier = try #require(
 			try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		#expect(
 			replyText(try #require(await settledTurn(earlier, on: coach)))
 				== "Please review the ride.")
 		let token = try await presentReview(on: coach)
-		transport.script = [
-			.fail(.http(status: 429, headers: ["retry-after": "7"])),
-			.text("Rest today."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 429, headers: ["retry-after": "7"])),
+				.text("Rest today."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let waiting = try #require(
 			try await coach.send(draft("What about today?"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -100,11 +104,11 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = await approvalCoach(held, intervals: intervals)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [
 				.fail(.http(status: 429, headers: ["retry-after": "7"])),
 				.text("Rest today."), .finish(reason: .stop),
-			]
+			], otherwise: transport.respond)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)

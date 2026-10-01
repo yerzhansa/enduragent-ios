@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -6,14 +7,15 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test func theNextSendReadsMemoryWrittenByATool() async throws {
-		transport.script = [
-			.toolCall(
-				name: "memory_write",
-				arguments:
-					#"{"type":"memory","section":"schedule","content":"Saturday group ride"}"#),
-			.finish(reason: .toolCalls), .text("Saved."), .finish(reason: .stop),
-			.text("Saturday is on."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_write",
+					arguments:
+						#"{"type":"memory","section":"schedule","content":"Saturday group ride"}"#),
+				.finish(reason: .toolCalls), .text("Saved."), .finish(reason: .stop),
+				.text("Saturday is on."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: clock)
 		#expect(replyText(try await coach.sendAndSettle("Remember Saturdays")) == "Saved.")
@@ -43,7 +45,7 @@ extension TurnRunnerTests {
 			])
 		let recording = BatchRecordingLog(inner: store)
 		let readsAtRequest = Mutex<[RecordQuery.Scope]>([])
-		let responding = FakeModelTransport { _, _ in
+		let responding = FakeModelTransport { _ in
 			readsAtRequest.withLock { $0 = recording.reads }
 			return ScriptedReply([.text("Saturday is on."), .finish(reason: .stop)])
 		}

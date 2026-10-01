@@ -55,7 +55,6 @@ AthleteSelection.athlete
 AthleteSelection.keyOwner
 AttemptID
 AttemptID.ulid
-Catalog.accessErrorProviderConsentRequired
 ChangeSetID
 ChangeSetID.ulid
 ChangeSetRevision
@@ -110,7 +109,7 @@ Coach.send(_:to:)
 Coach.setLanguage(_:)
 Coach.setSession(_:)
 Coach.startNewConversation(in:)
-Coach.status()
+Coach.observeStatus()
 Coach.stop(_:)
 CoachFailure
 CoachFailure.local
@@ -296,7 +295,6 @@ ModelID.rawValue
 ModelService
 ModelService.openRouter(baseURL:)
 ModelService.openRouterAPI
-ModelService.scripted(_:)
 PreferenceWriteFailure
 PreferenceWriteFailure.notSaved
 ProviderConsent
@@ -474,7 +472,6 @@ TrainingFailure.credentialRejected
 TrainingFailure.requestRejected
 TrainingFailure.temporarilyUnavailable
 TrainingService
-TrainingService.fake(_:)
 TrainingService.intervalsREST
 TrainingStatus
 TrainingStatus.connected

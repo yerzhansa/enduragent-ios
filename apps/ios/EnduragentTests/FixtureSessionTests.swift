@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -31,8 +32,9 @@ extension FixtureLaunchTests {
 		await model.send()
 		#expect(model.showLanguage)
 		#expect(model.draft.text.isEmpty)
-		#expect(await model.refreshStatus().language == .automatic)
+		#expect(model.status?.language == .automatic)
 		await model.chooseLanguage(.fixed(.fr))
+		try await model.waitForStatus { $0.language == .fixed(.fr) }
 		#expect(model.status?.language == .fixed(.fr))
 		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 		#expect(
@@ -58,7 +60,6 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let model = model(services)
 		await model.agreeAndStartChatting()
-		await model.refreshStatus()
 		let records = try #require(services.fixtureRecordFaults)
 		try records.failAppends(ofKind: "languagePreference")
 		await model.chooseLanguage(.fixed(.de))
@@ -76,12 +77,15 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let model = model(services)
 		await model.agreeAndStartChatting()
-		let stored = await model.refreshStatus().session
+		let stored = try #require(model.status).session
 		#expect(stored.text(for: .contextWindowOverride) == "")
 		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
+		try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
 		#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
 		let (kept, _) = try relaunch(.keep)
-		#expect(await kept.coach.status().session.text(for: .contextWindowOverride) == "64000")
+		#expect(
+			try await kept.coach.observedStatus().session.text(for: .contextWindowOverride)
+				== "64000")
 	}
 
 	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
@@ -121,15 +125,5 @@ extension FixtureLaunchTests {
 		let formatter = ISO8601DateFormatter()
 		formatter.formatOptions = [.withInternetDateTime]
 		return try #require(formatter.date(from: text))
-	}
-
-	private func until(
-		within limit: Duration = .seconds(5), _ condition: () -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
-		try #require(condition())
 	}
 }

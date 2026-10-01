@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -70,7 +71,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(7))
 		let stream = await coach.observe(.main)
 		clock.release(.seconds(7))
-		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
@@ -80,7 +81,9 @@ private func milliseconds(_ date: Date) -> Int64 {
 	@Test func aRetryDuringTheWaitIsRefusedWithoutAModelRequest() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
-		transport.script = [.text("Back on track."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Back on track."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
@@ -102,8 +105,10 @@ private func milliseconds(_ date: Date) -> Int64 {
 	@Test func aClaimAfterTheWaitDropsItAndANewRateLimitWaitsItsOwnHint() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
-		transport.script = Array(
-			repeating: .fail(.http(status: 429, headers: ["retry-after": "3"])), count: 4)
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: .fail(.http(status: 429, headers: ["retry-after": "3"])), count: 4),
+			for: .chat, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
@@ -134,7 +139,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
 		clock.release(wait)
-		let opened = await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")

@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -13,10 +14,13 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		model.draft.text = "Give me a ride for tomorrow"
 		await model.send()
-		transport.script = Array(
-			repeating: .fail(
-				.http(status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#)),
-			count: 3)
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: .fail(
+					.http(
+						status: 500, body: #"{"error":{"message":"upstream exploded at 10.0.0.7"}}"#
+					)),
+				count: 3), otherwise: transport.respond)
 		let turn = try await settledTurn(model)
 		guard case .failed(let failed) = turn.state else {
 			Issue.record("expected a failed turn, got \(turn.state)")
