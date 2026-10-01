@@ -1023,7 +1023,8 @@
       "working": "O treinador está trabalhando…",
       "responseStopped": "Resposta interrompida. A resposta parcial foi preservada.",
       "calendarUnverified": "A alteração no calendário pode ter sido salva. Confira seu calendário antes de pedir novamente.",
-      "savedUnverified": "Salvei suas informações, mas não consegui verificar minha resposta. Tente novamente."
+      "savedUnverified": "Salvei suas informações, mas não consegui verificar minha resposta. Tente novamente.",
+      "settlementUnsaved": "Sua resposta ainda não terminou de ser salva. Mantenha o app aberto e tente salvar novamente."
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -1467,7 +1468,8 @@
       "signInAgain": "Entrar novamente"
     },
     "welcome": "Boas-vindas ao {{product}}!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de {{service}}.\n\nComandos:\n{{commands}}\n\nOu converse comigo sobre seu treinamento!",
-    "welcomeCommand": "{{command}} : {{description}}"
+    "welcomeCommand": "{{command}} : {{description}}",
+    "retryStorage": "Tentar salvar novamente"
   },
   "plan": {
     "details": {
@@ -2917,7 +2919,8 @@
       "mainSet": "Série principal",
       "cooldown": "Desaquecimento",
       "ramp": "rampa"
-    }
+    },
+    "readFailure": "Não foi possível atualizar esta revisão de treinos. Tente novamente antes de adicionar ou cancelar treinos."
   },
   "credits": {
     "buy": "Comprar",

@@ -1,6 +1,10 @@
 import Foundation
 
 extension Coach {
+	public func retryRecordStorage(in chat: ChatID) async {
+		await mailbox(for: chat).reviewChanged()
+	}
+
 	func observeImports() {
 		guard importObservation == nil, !lifetime.terminating else { return }
 		importObservation = Task { [weak self, imports = ledger.imports] in

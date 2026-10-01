@@ -72,6 +72,7 @@ ChatSnapshot.chat
 ChatSnapshot.notes
 ChatSnapshot.opening
 ChatSnapshot.review
+ChatSnapshot.storageNotice
 ChatSnapshot.turns
 CivilDate
 CivilDate.<(_:_:)
@@ -105,6 +106,7 @@ Coach.recordConsent()
 Coach.recordSyncProbe()
 Coach.replaceAppAccountToken()
 Coach.retry(_:in:)
+Coach.retryRecordStorage(in:)
 Coach.send(_:to:)
 Coach.setLanguage(_:)
 Coach.setSession(_:)
@@ -378,6 +380,7 @@ ReviewNotice.Kind.earlierVersion
 ReviewNotice.Kind.partialFailure
 ReviewNotice.Kind.proposedRevision
 ReviewNotice.Kind.refreshedAfterStaleTarget
+ReviewNotice.Kind.storageUnavailable
 ReviewNotice.key
 ReviewNotice.kind
 ReviewNotice.vars

@@ -108,26 +108,47 @@ package actor Ledger {
 		async throws(LedgerFailure) -> [AthleteRecord]
 	{
 		try await openIfNeeded()
+		let records = bodies.map { prepare($0, stamp: stamp) }
+		try await persist(records, locality: locality)
+		return records
+	}
+
+	func prepare(_ body: RecordBody, stamp: OperationStamp) -> AthleteRecord {
 		let zone = stamp.binding.zone
 		let civilDate = CivilDate(date: clock.now, timeZone: zone.timeZone)
-		let records = bodies.map { body in
-			AthleteRecord(
-				ulid: nextULID(),
-				deviceId: deviceId,
-				hlc: nextClock(),
-				timeZone: zone,
-				civilDate: civilDate,
-				cause: .operation(stamp.operation, stamp.attempt),
-				account: stamp.binding.account,
-				body: body
-			)
-		}
+		return AthleteRecord(
+			ulid: nextULID(),
+			deviceId: deviceId,
+			hlc: nextClock(),
+			timeZone: zone,
+			civilDate: civilDate,
+			cause: .operation(stamp.operation, stamp.attempt),
+			account: stamp.binding.account,
+			body: body
+		)
+	}
+
+	private func persist(_ records: [AthleteRecord], locality: RecordLocality)
+		async throws(LedgerFailure)
+	{
 		do {
 			try await log.append(records, locality: locality)
 		} catch {
 			throw LedgerFailure.rejectedBatch
 		}
-		return records
+	}
+
+	func persistOnce(_ record: AthleteRecord) async throws(LedgerFailure) {
+		let scope: RecordQuery.Scope
+		switch record.body {
+		case .synced(let body): scope = .synced([body.kind])
+		case .deviceLocal(let body): scope = .deviceLocal([body.kind])
+		case .legacy: throw .rejectedBatch
+		}
+		let existing = try await read(
+			RecordQuery(scope: scope, chatId: record.chatId, turn: record.body.turn))
+		guard !existing.records.contains(where: { $0.ulid == record.ulid }) else { return }
+		try await persist([record], locality: record.locality)
 	}
 
 	private func nextClock() -> HybridLogicalClock {

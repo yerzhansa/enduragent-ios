@@ -1039,7 +1039,8 @@
       "working": "Trener pracuje…",
       "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
       "calendarUnverified": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie.",
-      "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
+      "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie.",
+      "settlementUnsaved": "Zapisywanie odpowiedzi nie zostało zakończone. Pozostaw aplikację otwartą i spróbuj zapisać ponownie."
     },
     "planChange": {
       "activePlan": "Aktywny plan",
@@ -1493,7 +1494,8 @@
       "signInAgain": "Zaloguj się ponownie"
     },
     "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "Spróbuj zapisać ponownie"
   },
   "plan": {
     "details": {
@@ -2989,7 +2991,8 @@
       "mainSet": "Seria główna",
       "cooldown": "Schłodzenie",
       "ramp": "narastająco"
-    }
+    },
+    "readFailure": "Nie udało się odświeżyć tego przeglądu treningów. Spróbuj ponownie, zanim dodasz lub anulujesz treningi."
   },
   "credits": {
     "buy": "Kup",

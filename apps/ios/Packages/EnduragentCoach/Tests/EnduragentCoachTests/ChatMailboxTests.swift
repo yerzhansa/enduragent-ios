@@ -75,7 +75,8 @@ import Testing
 		#expect(
 			recording.batches == [
 				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["pendingSettlement"],
+				["turnSettled"],
 			])
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.activity == .idle)
@@ -125,7 +126,10 @@ import Testing
 		#expect(stopped.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(stopped.notice.action == .tryAgain(turn))
 		#expect(snapshot.activity == .idle)
-		#expect(recording.batches == [["providerConsent"], ["userMessage"], ["turnSettled"]])
+		#expect(
+			recording.batches == [
+				["providerConsent"], ["userMessage"], ["pendingSettlement"], ["turnSettled"],
+			])
 		#expect(transport.requests.isEmpty)
 	}
 
@@ -225,7 +229,8 @@ import Testing
 		#expect(
 			recording.batches == [
 				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["pendingSettlement"],
+				["turnSettled"],
 			])
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)

@@ -1015,7 +1015,8 @@
       "working": "コーチが処理中…",
       "responseStopped": "回答を停止しました。途中までの回答は残っています。",
       "calendarUnverified": "カレンダーの変更は保存されている可能性があります。もう一度依頼する前に、カレンダーを確認してください。",
-      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。"
+      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。",
+      "settlementUnsaved": "返信の保存が完了していません。アプリを開いたまま、もう一度保存してください。"
     },
     "planChange": {
       "activePlan": "有効なプラン",
@@ -1454,7 +1455,8 @@
       "signInAgain": "再度サインイン"
     },
     "welcome": "{{product}}へようこそ！\n\nAIサイクリングコーチです。{{service}}のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n{{commands}}\n\nトレーニングについて、気軽に話しかけてください！",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "もう一度保存"
   },
   "plan": {
     "details": {
@@ -2881,7 +2883,8 @@
       "mainSet": "メインセット",
       "cooldown": "クールダウン",
       "ramp": "ランプ"
-    }
+    },
+    "readFailure": "このワークアウトの確認内容を更新できませんでした。ワークアウトを追加またはキャンセルする前に、もう一度お試しください。"
   },
   "credits": {
     "buy": "購入",

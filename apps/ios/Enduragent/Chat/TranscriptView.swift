@@ -17,6 +17,14 @@ struct TranscriptView: View {
 							newConversationNotice(notice)
 						}
 					}
+					if let notice = model.chat?.storageNotice {
+						Text(model.phrasebook.say(notice, [:]))
+							.accessibilityIdentifier("chat.storage.notice")
+						Button(model.phrasebook.say(Catalog.chatRetryStorage, [:])) {
+							Task { await model.retryRecordStorage() }
+						}
+						.accessibilityIdentifier("chat.storage.retry")
+					}
 					notes(after: nil)
 					ForEach(model.chat?.turns ?? []) { turn in
 						TurnRowView(model: model, turn: turn)

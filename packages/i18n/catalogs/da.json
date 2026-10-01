@@ -1023,7 +1023,8 @@
       "working": "Træneren arbejder…",
       "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
       "calendarUnverified": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen.",
-      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
+      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen.",
+      "settlementUnsaved": "Dit svar er ikke færdigt med at blive gemt. Hold appen åben, og prøv at gemme igen."
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -1467,7 +1468,8 @@
       "signInAgain": "Log ind igen"
     },
     "welcome": "Velkommen til {{product}}!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nEller skriv bare til mig om din træning!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "Prøv at gemme igen"
   },
   "plan": {
     "details": {
@@ -2917,7 +2919,8 @@
       "mainSet": "Hoveddel",
       "cooldown": "Nedkøling",
       "ramp": "gradvis stigning"
-    }
+    },
+    "readFailure": "Denne træningsgennemgang kunne ikke opdateres. Prøv igen, før du tilføjer eller annullerer træninger."
   },
   "credits": {
     "buy": "Køb",

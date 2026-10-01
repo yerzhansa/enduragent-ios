@@ -1023,7 +1023,8 @@
       "working": "Der Coach arbeitet…",
       "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
-      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
+      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut.",
+      "settlementUnsaved": "Deine Antwort wurde noch nicht vollständig gespeichert. Lass die App geöffnet und versuche erneut zu speichern."
     },
     "planChange": {
       "activePlan": "Aktiver Plan",
@@ -1467,7 +1468,8 @@
       "signInAgain": "Erneut anmelden"
     },
     "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "Erneut speichern"
   },
   "plan": {
     "details": {
@@ -2917,7 +2919,8 @@
       "mainSet": "Hauptteil",
       "cooldown": "Cooldown",
       "ramp": "Rampe"
-    }
+    },
+    "readFailure": "Diese Trainingsübersicht konnte nicht aktualisiert werden. Versuche es erneut, bevor du Trainings hinzufügst oder abbrichst."
   },
   "credits": {
     "buy": "Kaufen",

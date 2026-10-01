@@ -65,6 +65,10 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		faults.withLock { _ = $0.appendKinds.insert(kind) }
 	}
 
+	package func allowAppends(ofKind kind: String) {
+		faults.withLock { _ = $0.appendKinds.remove(kind) }
+	}
+
 	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
 		let kinds = batch.map(\.body.kind)
 		let fails = faults.withLock { current -> Bool in

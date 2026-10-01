@@ -40,6 +40,10 @@ extension RecordCodec {
 					attempt: AttemptID(ulid: try decodeULID(payload.attempt))
 				)
 			)
+		case .pendingSettlement:
+			return .pendingSettlement(
+				try payload(PendingSettlementPayload.self, version: version, kind: name, data: data)
+					.body())
 		case .pendingProposal:
 			let payload = try payload(
 				ProposalPayload.self, version: version, kind: name, data: data)

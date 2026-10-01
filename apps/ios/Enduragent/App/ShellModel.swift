@@ -331,6 +331,10 @@ final class ShellModel {
 		await refreshStatus()
 	}
 
+	func retryRecordStorage() async {
+		await services.coach.retryRecordStorage(in: .main)
+	}
+
 	func decide(_ decision: ReviewDecision) async {
 		let outcome = await services.coach.decide(decision, in: .main)
 		switch decision {

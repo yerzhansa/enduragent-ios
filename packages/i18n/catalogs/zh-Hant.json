@@ -1015,7 +1015,8 @@
       "working": "教練正在處理…",
       "responseStopped": "已停止回覆。已產生的部分回覆已保留。",
       "calendarUnverified": "行事曆變更可能已儲存。再次提出要求前，請先檢查行事曆。",
-      "savedUnverified": "我已儲存你的資訊，但無法驗證我的回覆。請重試。"
+      "savedUnverified": "我已儲存你的資訊，但無法驗證我的回覆。請重試。",
+      "settlementUnsaved": "回覆尚未儲存完成。請保持應用程式開啟並重試儲存。"
     },
     "planChange": {
       "activePlan": "目前啟用的計畫",
@@ -1454,7 +1455,8 @@
       "signInAgain": "重新登入"
     },
     "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "重試儲存"
   },
   "plan": {
     "details": {
@@ -2881,7 +2883,8 @@
       "mainSet": "主要訓練",
       "cooldown": "緩和",
       "ramp": "漸增"
-    }
+    },
+    "readFailure": "無法重新整理此訓練審核。請先重試，再新增或取消訓練。"
   },
   "credits": {
     "buy": "購買",

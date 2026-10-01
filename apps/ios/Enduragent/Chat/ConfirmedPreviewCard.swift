@@ -20,6 +20,12 @@ struct ConfirmedPreviewCard: View {
 					Text(model.phrasebook.say(notice.key, notice.vars))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
+				if review.notice?.kind == .storageUnavailable {
+					Button(say(Catalog.planViewReadinessRetryRefresh)) {
+						Task { await model.retryRecordStorage() }
+					}
+					.accessibilityIdentifier("chat.preview.retryRead")
+				}
 				if review.authority == .thisDevice, review.notice?.kind != .accountChanged {
 					HStack {
 						Button(say(Catalog.commonCancel)) {

@@ -1023,7 +1023,8 @@
       "working": "Tränaren arbetar…",
       "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
       "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
-      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
+      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen.",
+      "settlementUnsaved": "Ditt svar har inte sparats färdigt. Håll appen öppen och försök spara igen."
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1467,7 +1468,8 @@
       "signInAgain": "Logga in igen"
     },
     "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "Försök spara igen"
   },
   "training": {
     "export": {
@@ -2917,7 +2919,8 @@
       "mainSet": "Huvuddel",
       "cooldown": "Nedvarvning",
       "ramp": "gradvis ökning"
-    }
+    },
+    "readFailure": "Den här träningsgranskningen kunde inte uppdateras. Försök igen innan du lägger till eller avbryter träningspass."
   },
   "credits": {
     "buy": "Köp",

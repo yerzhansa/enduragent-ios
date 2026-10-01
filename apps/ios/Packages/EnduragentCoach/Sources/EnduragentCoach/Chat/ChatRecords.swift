@@ -11,6 +11,12 @@ final class ChatRecords {
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private var applied: [ULID: AthleteRecord] = [:]
+	private var pendingSettlements: [ULID: AthleteRecord] = [:]
+	private var saving: Task<Void, Never>?
+
+	var storageNotice: CatalogKey? {
+		pendingSettlements.isEmpty ? nil : Catalog.chatNoticeSettlementUnsaved
+	}
 
 	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
 		self.chat = chat
@@ -46,6 +52,14 @@ final class ChatRecords {
 		do {
 			let imported = try await ledger.conversationRecords(chat)
 			for record in imported { applied[record.ulid] = record }
+			let saved = Set(imported.filter { $0.locality == .synced }.map(\.ulid))
+			for record in imported {
+				if let settlement = record.pendingSettlement, !saved.contains(settlement.ulid) {
+					pendingSettlements[settlement.ulid] = record
+				}
+			}
+			for id in saved { pendingSettlements[id] = nil }
+			await retrySettlements()
 			var folded = ConversationFold.fold(
 				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
 			let jobs = try await ledger.flushJobs(in: folded)
@@ -66,9 +80,8 @@ final class ChatRecords {
 			try await refreshNotes()
 			review = try await reviews.snapshot(chat: chat)
 		} catch {
-			switch error {
-			case .unavailable, .rejectedBatch: review = nil
-			}
+			review = review?.unavailable()
+			ledger.report(.reviewReadFailed(chat, error))
 		}
 	}
 
@@ -99,6 +112,7 @@ final class ChatRecords {
 	func commit(
 		_ writes: TurnWrites, stamp: OperationStamp, isolation: isolated (any Actor)? = #isolation
 	) async throws(LedgerFailure) {
+		await retrySettlements()
 		let records = try await ledger.commit(writes, stamp: stamp)
 		apply(records)
 	}
@@ -112,11 +126,35 @@ final class ChatRecords {
 		else {
 			return
 		}
-		do {
-			try await commit(planned, stamp: stamp)
-		} catch {
-			await settleUnsaved(turn, attempt: settled.attempt, settled.settlement)
+		let identity = await ledger.nextULID()
+		let journal = await ledger.prepare(
+			.deviceLocal(
+				.pendingSettlement(PendingSettlementBody(identity: identity, settled: settled))),
+			stamp: stamp)
+		pendingSettlements[identity] = journal
+		if let settlement = journal.pendingSettlement { apply([settlement]) }
+		await retrySettlements()
+	}
+
+	func retrySettlements(isolation: isolated (any Actor)? = #isolation) async {
+		guard saving == nil, !pendingSettlements.isEmpty else { return }
+		let pending = pendingSettlements
+		let task = Task {
+			_ = isolation
+			for (identity, journal) in pending {
+				guard let settlement = journal.pendingSettlement else { continue }
+				do throws(LedgerFailure) {
+					try await self.ledger.persistOnce(journal)
+					try await self.ledger.persistOnce(settlement)
+					self.pendingSettlements[identity] = nil
+				} catch {
+					self.ledger.report(.settlementUnsaved(identity, error))
+				}
+			}
 		}
+		saving = task
+		await task.value
+		if saving == task { saving = nil }
 	}
 
 	func settleUnsaved(

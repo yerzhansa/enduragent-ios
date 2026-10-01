@@ -1015,7 +1015,8 @@
       "working": "教练正在处理…",
       "responseStopped": "已停止回复。已生成的部分回复已保留。",
       "calendarUnverified": "日历更改可能已保存。再次请求前，请先检查日历。",
-      "savedUnverified": "我已保存你的信息，但未能验证我的回复。请重试。"
+      "savedUnverified": "我已保存你的信息，但未能验证我的回复。请重试。",
+      "settlementUnsaved": "回复尚未保存完成。请保持应用打开并重试保存。"
     },
     "planChange": {
       "activePlan": "当前启用的计划",
@@ -1454,7 +1455,8 @@
       "signInAgain": "重新登录"
     },
     "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "重试保存"
   },
   "plan": {
     "details": {
@@ -2881,7 +2883,8 @@
       "mainSet": "主训练",
       "cooldown": "放松",
       "ramp": "渐增"
-    }
+    },
+    "readFailure": "无法刷新此训练审核。请先重试，再添加或取消训练。"
   },
   "credits": {
     "buy": "购买",

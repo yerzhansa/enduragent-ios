@@ -184,6 +184,7 @@ package actor ChatMailbox {
 		switch event {
 		case .becameActive:
 			foreground = true
+			await reviewChanged()
 		case .willResignActive:
 			return
 		case .enteredBackground:
@@ -215,6 +216,7 @@ package actor ChatMailbox {
 	}
 
 	package func reviewChanged() async {
+		await records.retrySettlements()
 		await records.refreshReview()
 		publish()
 	}
@@ -380,7 +382,7 @@ package actor ChatMailbox {
 			queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
 			finishedAway: finishedAway,
-			review: records.review,
+			review: records.review, storageNotice: records.storageNotice,
 			device: ledger.deviceId,
 			process: process,
 			now: clock.now,

@@ -192,6 +192,7 @@ Catalog.chatNoticeRetryMessage
 Catalog.chatNoticeSavedChoice
 Catalog.chatNoticeCalendarUnverified
 Catalog.chatNoticeSavedUnverified
+Catalog.chatNoticeSettlementUnsaved
 Catalog.chatNoticeWorking
 Catalog.chatPlanChangeActivePlan
 Catalog.chatPlanChangeAffectedWorkouts
@@ -492,6 +493,7 @@ Catalog.chatQueuedRemoveLabel
 Catalog.chatQueuedRetry
 Catalog.chatQueuedRun
 Catalog.chatQueuedTitle
+Catalog.chatRetryStorage
 Catalog.chatSlashPopupChoose
 Catalog.chatSlashPopupClose
 Catalog.chatSlashPopupInsert
@@ -1437,6 +1439,7 @@ Catalog.reviewAccountChanged
 Catalog.reviewAdd
 Catalog.reviewCannotVerify
 Catalog.reviewEarlierVersion
+Catalog.reviewReadFailure
 Catalog.reviewTitle
 Catalog.reviewUncertain
 Catalog.reviewWorkoutCooldown

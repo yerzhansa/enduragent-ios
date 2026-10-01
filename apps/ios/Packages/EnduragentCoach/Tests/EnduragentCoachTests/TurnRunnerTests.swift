@@ -26,7 +26,7 @@ import Testing
 		#expect(transport.requests.count == 10)
 	}
 
-	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
+	@Test func lifecycleRecordsJournalTheSettlementBeforeSavingIt() async throws {
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		let recording = BatchRecordingLog(inner: store)
 		let coach = await EnduragentCoachTests.makeCoach(
@@ -37,7 +37,8 @@ import Testing
 		#expect(
 			recording.batches == [
 				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				["userMessage"], ["turnClaim"], ["replyObserved"], ["pendingSettlement"],
+				["turnSettled"],
 			])
 		let everyKind: [String] = recording.batches.flatMap { $0 }
 		#expect(!everyKind.contains("assistantMessage"))

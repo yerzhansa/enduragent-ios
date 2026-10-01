@@ -124,9 +124,19 @@ public struct ReviewReceipt: Sendable, Equatable {
 public struct ReviewNotice: Sendable, Equatable {
 	public enum Kind: Sendable, Equatable {
 		case proposedRevision, refreshedAfterStaleTarget, partialFailure, accountChanged,
-			earlierVersion
+			earlierVersion, storageUnavailable
 	}
 	public let kind: Kind
 	public let key: CatalogKey
 	public let vars: [String: String]
+}
+
+extension ReviewSnapshot {
+	func unavailable() -> ReviewSnapshot {
+		ReviewSnapshot(
+			ref: ref, cards: cards, kept: kept, totals: totals, receipts: receipts,
+			notice: ReviewNotice(
+				kind: .storageUnavailable, key: Catalog.reviewReadFailure, vars: [:]),
+			controls: .none, authority: authority)
+	}
 }

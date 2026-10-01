@@ -3,6 +3,8 @@ import Foundation
 extension Conversation {
 	package mutating func apply(_ records: [AthleteRecord], device: DeviceID) {
 		let ordered = records.filter {
+			$0.locality != .deviceLocal || $0.deviceId == device
+		}.map { $0.pendingSettlement ?? $0 }.filter {
 			$0.chatId == chat && ($0.locality != .deviceLocal || $0.deviceId == device)
 				&& appliedRecordIDs.insert($0.ulid).inserted
 		}.sorted { $0.hlc < $1.hlc }

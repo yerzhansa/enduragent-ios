@@ -7,6 +7,7 @@ public struct ChatSnapshot: Sendable, Equatable {
 	public let activity: ChatActivity
 	public let review: ReviewSnapshot?
 	public let notes: [TranscriptNote]
+	public var storageNotice: CatalogKey? = nil
 }
 
 public struct TurnView: Sendable, Equatable, Identifiable {
@@ -152,6 +153,7 @@ extension ChatSnapshot {
 		waiting: Set<TurnID>,
 		finishedAway: Set<TurnID>,
 		review: ReviewSnapshot?,
+		storageNotice: CatalogKey? = nil,
 		device: DeviceID,
 		process: ProcessID,
 		now: Date,
@@ -176,6 +178,7 @@ extension ChatSnapshot {
 			self.activity = .idle
 		}
 		self.review = review
+		self.storageNotice = storageNotice
 		self.notes = current.transcriptNotes(among: turns)
 	}
 }

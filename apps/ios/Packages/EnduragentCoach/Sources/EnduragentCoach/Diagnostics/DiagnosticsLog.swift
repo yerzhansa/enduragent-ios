@@ -38,6 +38,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case memoryFlushFailed(ChatID, detail: String)
 	case compactionFailed(ChatID, detail: String)
 	case replyObservedUnsaved(AttemptID, detail: String)
+	case settlementUnsaved(ULID, LedgerFailure)
+	case reviewReadFailed(ChatID, LedgerFailure)
 	case skippedRecord(SkippedRow)
 	case recoveryUnavailable(LedgerFailure)
 	case importsUnavailable(ChatID, LedgerFailure)
@@ -56,7 +58,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
 			.recoveryUnavailable, .importsUnavailable,
-			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved:
+			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved,
+			.settlementUnsaved, .reviewReadFailed:
 			return self
 		}
 	}

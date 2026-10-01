@@ -20989,6 +20989,112 @@
         }
       }
     },
+    "chat.notice.settlementUnsaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your reply has not finished saving. Keep the app open and try saving again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu respuesta aún no se ha terminado de guardar. Mantén la app abierta e intenta guardarla de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre réponse n’a pas fini d’être enregistrée. Gardez l’app ouverte et réessayez de l’enregistrer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il salvataggio della risposta non è ancora terminato. Tieni aperta l’app e riprova a salvare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Antwort wurde noch nicht vollständig gespeichert. Lass die App geöffnet und versuche erneut zu speichern."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je antwoord is nog niet volledig opgeslagen. Houd de app open en probeer opnieuw op te slaan."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit svar er ikke færdigt med at blive gemt. Hold appen åben, og prøv at gemme igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ditt svar har inte sparats färdigt. Håll appen öppen och försök spara igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Svaret ditt er ikke ferdig lagret. Hold appen åpen og prøv å lagre på nytt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vastauksesi tallennus ei ole vielä valmis. Pidä sovellus auki ja yritä tallentaa uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tua resposta ainda não foi totalmente guardada. Mantém a aplicação aberta e tenta guardar novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua resposta ainda não terminou de ser salva. Mantenha o app aberto e tente salvar novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisywanie odpowiedzi nie zostało zakończone. Pozostaw aplikację otwartą i spróbuj zapisać ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "답변 저장이 아직 완료되지 않았습니다. 앱을 열어 둔 상태에서 다시 저장해 주세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返信の保存が完了していません。アプリを開いたまま、もう一度保存してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回复尚未保存完成。请保持应用打开并重试保存。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回覆尚未儲存完成。請保持應用程式開啟並重試儲存。"
+          }
+        }
+      }
+    },
     "chat.notice.working": {
       "localizations": {
         "en": {
@@ -60321,6 +60427,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "佇列訊息"
+          }
+        }
+      }
+    },
+    "chat.retryStorage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try saving again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a guardar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer l’enregistrement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riprova a salvare"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut speichern"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opnieuw opslaan"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prøv at gemme igen"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Försök spara igen"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prøv å lagre på nytt"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yritä tallentaa uudelleen"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar guardar novamente"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tentar salvar novamente"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spróbuj zapisać ponownie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 저장"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もう一度保存"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试保存"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重試儲存"
           }
         }
       }
@@ -200019,6 +200231,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "此訓練審核來自舊版 App，已無法套用。"
+          }
+        }
+      }
+    },
+    "review.readFailure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout review could not be refreshed. Try again before adding or canceling workouts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo actualizar esta revisión de entrenamientos. Inténtalo de nuevo antes de añadir o cancelar entrenamientos."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’actualiser cette proposition d’entraînements. Réessayez avant d’ajouter ou d’annuler des entraînements."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile aggiornare questa revisione degli allenamenti. Riprova prima di aggiungere o annullare allenamenti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Trainingsübersicht konnte nicht aktualisiert werden. Versuche es erneut, bevor du Trainings hinzufügst oder abbrichst."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit trainingsoverzicht kon niet worden vernieuwd. Probeer het opnieuw voordat je trainingen toevoegt of annuleert."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne træningsgennemgang kunne ikke opdateres. Prøv igen, før du tilføjer eller annullerer træninger."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den här träningsgranskningen kunde inte uppdateras. Försök igen innan du lägger till eller avbryter träningspass."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne treningsgjennomgangen kunne ikke oppdateres. Prøv igjen før du legger til eller avbryter treningsøkter."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tätä harjoitusten tarkistusta ei voitu päivittää. Yritä uudelleen ennen harjoitusten lisäämistä tai peruuttamista."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível atualizar esta revisão de treinos. Tenta novamente antes de adicionar ou cancelar treinos."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível atualizar esta revisão de treinos. Tente novamente antes de adicionar ou cancelar treinos."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odświeżyć tego przeglądu treningów. Spróbuj ponownie, zanim dodasz lub anulujesz treningi."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 운동 검토 내용을 새로고침하지 못했습니다. 운동을 추가하거나 취소하기 전에 다시 시도해 주세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このワークアウトの確認内容を更新できませんでした。ワークアウトを追加またはキャンセルする前に、もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法刷新此训练审核。请先重试，再添加或取消训练。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法重新整理此訓練審核。請先重試，再新增或取消訓練。"
           }
         }
       }

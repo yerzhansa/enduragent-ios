@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2479
-	public static let keyCount = 2519
+	public static let englishLeafCount = 2482
+	public static let keyCount = 2522
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -170,6 +170,7 @@ public enum Catalog {
 	public static let chatNoticeRetryMessage = CatalogKey(rawValue: "chat.notice.retryMessage")
 	public static let chatNoticeSavedChoice = CatalogKey(rawValue: "chat.notice.savedChoice")
 	public static let chatNoticeSavedUnverified = CatalogKey(rawValue: "chat.notice.savedUnverified")
+	public static let chatNoticeSettlementUnsaved = CatalogKey(rawValue: "chat.notice.settlementUnsaved")
 	public static let chatNoticeWorking = CatalogKey(rawValue: "chat.notice.working")
 	public static let chatPlanChangeActivePlan = CatalogKey(rawValue: "chat.planChange.activePlan")
 	public static let chatPlanChangeAffectedWorkouts = CatalogKey(rawValue: "chat.planChange.affectedWorkouts")
@@ -470,6 +471,7 @@ public enum Catalog {
 	public static let chatQueuedRetry = CatalogKey(rawValue: "chat.queued.retry")
 	public static let chatQueuedRun = CatalogKey(rawValue: "chat.queued.run")
 	public static let chatQueuedTitle = CatalogKey(rawValue: "chat.queued.title")
+	public static let chatRetryStorage = CatalogKey(rawValue: "chat.retryStorage")
 	public static let chatSlashPopupChoose = CatalogKey(rawValue: "chat.slashPopup.choose")
 	public static let chatSlashPopupClose = CatalogKey(rawValue: "chat.slashPopup.close")
 	public static let chatSlashPopupInsert = CatalogKey(rawValue: "chat.slashPopup.insert")
@@ -1413,6 +1415,7 @@ public enum Catalog {
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
+	public static let reviewReadFailure = CatalogKey(rawValue: "review.readFailure")
 	public static let reviewTitle = CatalogKey(rawValue: "review.title")
 	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")
 	public static let reviewWorkoutCooldown = CatalogKey(rawValue: "review.workout.cooldown")

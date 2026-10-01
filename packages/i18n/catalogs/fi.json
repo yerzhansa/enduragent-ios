@@ -1023,7 +1023,8 @@
       "working": "Valmentaja työskentelee…",
       "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
-      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen.",
+      "settlementUnsaved": "Vastauksesi tallennus ei ole vielä valmis. Pidä sovellus auki ja yritä tallentaa uudelleen."
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -1467,7 +1468,8 @@
       "signInAgain": "Kirjaudu uudelleen"
     },
     "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
-    "welcomeCommand": "{{command}}: {{description}}"
+    "welcomeCommand": "{{command}}: {{description}}",
+    "retryStorage": "Yritä tallentaa uudelleen"
   },
   "plan": {
     "details": {
@@ -2917,7 +2919,8 @@
       "mainSet": "Pääsarja",
       "cooldown": "Jäähdyttely",
       "ramp": "tehon nousu"
-    }
+    },
+    "readFailure": "Tätä harjoitusten tarkistusta ei voitu päivittää. Yritä uudelleen ennen harjoitusten lisäämistä tai peruuttamista."
   },
   "credits": {
     "buy": "Osta",

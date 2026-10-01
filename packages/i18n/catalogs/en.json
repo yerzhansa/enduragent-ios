@@ -196,7 +196,8 @@
       "calendarUnverified": "The calendar change may have been saved. Check your calendar before asking again.",
       "savedUnverified": "I saved your information, but couldn't verify my response. Please try again.",
       "working": "Coach is working…",
-      "responseStopped": "Response stopped. Your partial response is preserved."
+      "responseStopped": "Response stopped. Your partial response is preserved.",
+      "settlementUnsaved": "Your reply has not finished saving. Keep the app open and try saving again."
     },
     "planChange": {
       "activePlan": "Active Plan",
@@ -640,7 +641,8 @@
     },
     "menu": "Menu",
     "welcome": "Welcome to {{product}}!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using {{service}} data.\n\nCommands:\n{{commands}}\n\nOr just chat with me about your training!",
-    "welcomeCommand": "{{command}} — {{description}}"
+    "welcomeCommand": "{{command}} — {{description}}",
+    "retryStorage": "Try saving again"
   },
   "cli": {
     "language": {
@@ -1637,7 +1639,8 @@
       "mainSet": "Main set",
       "cooldown": "Cooldown",
       "ramp": "ramp"
-    }
+    },
+    "readFailure": "This workout review could not be refreshed. Try again before adding or canceling workouts."
   },
   "settings": {
     "appearance": {
