@@ -14,7 +14,7 @@ extension SwiftDataSuites {
 			#expect(fixture.log.fetchedRecordCount - before.1 == (settled ? 400 : 5_400))
 			#expect(read.count == fixture.jobs.count)
 			#expect(Set(read.map(\.id)) == Set(fixture.jobs))
-			#expect(read.allSatisfy { $0.settled })
+			#expect(read.allSatisfy { $0.phase != .pending })
 		}
 	}
 }
