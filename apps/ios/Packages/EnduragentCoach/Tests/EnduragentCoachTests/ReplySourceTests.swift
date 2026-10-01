@@ -15,6 +15,66 @@ import Testing
 		#expect(ReplyParser.foundation.document(source).accessibilityText == source)
 	}
 
+	@Test(arguments: [0, 5_000]) func angleDelimitedUnsafeLinksKeepClosingParentheses(
+		prefixLength: Int
+	) {
+		let prefix = String(repeating: "x", count: prefixLength)
+		let source = prefix + "[app](<custom://a)b>)"
+		let runs: [ReplyRun] =
+			(prefix.isEmpty ? [] : [.text(StyledText(text: prefix, styles: []))])
+			+ [.literal("[app](<custom://a)b>)")]
+		let document = ReplyParser.foundation.document(source)
+		#expect(document == .blocks([.paragraph(runs)]))
+		#expect(document.accessibilityText == source)
+	}
+
+	@Test(arguments: ["> text\n>\n> ---", "> text\n>\n> ---\n\nafter"])
+	func quoteEndingWithARuleKeepsEverySourceLine(source: String) {
+		let quote = ReplyBlock.paragraph([.literal("> text\n>\n> ---")])
+		let blocks: [ReplyBlock] =
+			source.hasSuffix("after")
+			? [quote, .paragraph([.text(StyledText(text: "after", styles: []))])] : [quote]
+		#expect(ReplyParser.foundation.document(source) == .blocks(blocks))
+	}
+
+	@Test(arguments: ["before [](tel:1) after", "[](tel:1) after", "before [](tel:1)", "[](tel:1)"])
+	func emptyUnsafeLinkLabelKeepsTheLiteralTokenBetweenSurroundingText(source: String) {
+		let parts = source.components(separatedBy: "[](tel:1)")
+		let before: [ReplyRun] =
+			parts[0].isEmpty ? [] : [.text(StyledText(text: parts[0], styles: []))]
+		let after: [ReplyRun] =
+			parts[1].isEmpty ? [] : [.text(StyledText(text: parts[1], styles: []))]
+		let document = ReplyParser.foundation.document(source)
+		#expect(
+			document == .blocks([.paragraph(before + [.literal("[](tel:1)")] + after)]))
+		#expect(document.accessibilityText == source)
+	}
+
+	@Test(arguments: [
+		("before [](tel:1)\nafter", "before [](tel:1)\nafter"),
+		("before\n[](tel:1) after", "before\n[](tel:1) after"),
+		("**before [](tel:1) after**", "before [](tel:1) after"),
+		("before [][phone] after\n\n[phone]: tel:1", "before [][phone] after"),
+		(
+			"| a | b |\n|---|---|\n| first | before [](tel:1) after |",
+			"a\tb\nfirst\tbefore [](tel:1) after"
+		),
+	]) func omittedUnsafeLinksKeepTheirOrderAndFormatting(source: String, expected: String) {
+		let document = ReplyParser.foundation.document(source)
+		guard case .blocks = document else {
+			Issue.record("Expected a formatted document with recovered literal links")
+			return
+		}
+		#expect(document.accessibilityText == expected)
+	}
+
+	@Test func anOmittedUnsafeLinkWithoutABlockAnchorFallsBackInsteadOfLosingSource() {
+		let source = "| a | b |\n|---|---|\n| [](tel:1) | second |"
+		#expect(
+			ReplyParser.foundation.document(source)
+				== .plainText(source: source, failure: .sourceMapping))
+	}
+
 	@Test func safeLabelsKeepTheirStylesAndAutolinksKeepLiteralURLCharacters() {
 		let parsed = ReplyParser.foundation.document("[plain **bold** *ital*](https://example.com)")
 		guard case .blocks(let blocks) = parsed, case .paragraph(let runs) = blocks.first,

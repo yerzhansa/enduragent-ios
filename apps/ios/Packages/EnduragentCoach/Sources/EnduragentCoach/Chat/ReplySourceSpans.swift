@@ -17,6 +17,12 @@ struct ReplySourceSpans {
 	}
 
 	func link(_ position: AttributedString.MarkdownSourcePosition?) throws -> String {
+		String(source[try linkRange(position)])
+	}
+
+	private func linkRange(_ position: AttributedString.MarkdownSourcePosition?) throws
+		-> Range<String.Index>
+	{
 		let label = try range(position)
 		guard label.lowerBound > source.startIndex else { throw ReplyParseFailure.sourceMapping }
 		let opening = source.index(before: label.lowerBound)
@@ -24,7 +30,7 @@ struct ReplySourceSpans {
 			guard label.upperBound < source.endIndex, source[label.upperBound] == ">" else {
 				throw ReplyParseFailure.sourceMapping
 			}
-			return String(source[opening...label.upperBound])
+			return opening..<source.index(after: label.upperBound)
 		}
 		guard source[opening] == "[", label.upperBound < source.endIndex,
 			source[label.upperBound] == "]"
@@ -38,15 +44,97 @@ struct ReplySourceSpans {
 		} else {
 			end = after
 		}
-		return String(source[opening..<end])
+		return opening..<end
 	}
 
 	func block(_ indices: Range<Int>) throws -> String {
 		let anchors = positions[indices].compactMap { $0 }
 		guard let first = anchors.map(\.startLine).min(),
-			let last = anchors.map(\.endLine).max(), first > 0, last <= lines.count
+			var last = anchors.map(\.endLine).max(), first > 0, last <= lines.count
 		else { throw ReplyParseFailure.sourceMapping }
+		let next =
+			positions[indices.upperBound...].compactMap { $0 }.first?.startLine
+			?? (lines.count + 1)
+		while last < next - 1, lines[last].drop(while: { $0.isWhitespace }).hasPrefix(">") {
+			last += 1
+		}
 		return lines[(first - 1)..<last].joined(separator: "\n")
+	}
+
+	func omittedLinks(
+		after previous: String.Index?, before next: String.Index?,
+		inTableCell: Bool = false
+	) throws -> [ReplyRun] {
+		let start: String.Index
+		if let previous {
+			start = previous
+		} else if let next {
+			let separator: Character = inTableCell ? "|" : "\n"
+			start =
+				source[..<next].lastIndex(of: separator).map { source.index(after: $0) }
+				?? source.startIndex
+		} else {
+			start = source.startIndex
+		}
+		let end: String.Index
+		if let next {
+			end = next
+		} else if previous != nil {
+			let separator: Character = inTableCell ? "|" : "\n"
+			end = source[start...].firstIndex(of: separator) ?? source.endIndex
+		} else {
+			end = source.endIndex
+		}
+		guard start <= end else { return [] }
+		var cursor = start
+		var result: [ReplyRun] = []
+		while let label = source.range(of: "[]", range: cursor..<end) {
+			cursor = label.upperBound
+			guard cursor < end, source[cursor] == "(" || source[cursor] == "[" else { continue }
+			let prefix = String(source[..<label.lowerBound]) + "["
+			let probe = prefix + "link]" + String(source[label.upperBound...])
+			let labelStart = probe.index(probe.startIndex, offsetBy: prefix.count)
+			let labelRange = labelStart..<probe.index(labelStart, offsetBy: 4)
+			let parsed = try AttributedString(
+				markdown: probe,
+				options: .init(
+					interpretedSyntax: .full, failurePolicy: .throwError,
+					appliesSourcePositionAttributes: true))
+			let url = parsed.runs.first { run in
+				run.markdownSourcePosition.flatMap { Range<String.Index>($0, in: probe) }
+					== labelRange
+			}?.link
+			guard let url, HTTPLink(validating: url) == nil else { continue }
+			let closing: Character = source[cursor] == "(" ? ")" : "]"
+			let tokenEnd = try balancedEnd(start: cursor, opening: source[cursor], closing: closing)
+			guard tokenEnd <= end else { continue }
+			result.append(.literal(String(source[label.lowerBound..<tokenEnd])))
+			cursor = tokenEnd
+		}
+		return result
+	}
+
+	func validateOmittedLinks(in text: String) throws {
+		let omitted = try omittedLinks(after: nil, before: nil)
+		for literal in Set(omitted.map(\.accessibilityText)) {
+			guard
+				text.components(separatedBy: literal).count
+					>= source.components(separatedBy: literal).count
+			else { throw ReplyParseFailure.sourceMapping }
+		}
+	}
+
+	func coverage(_ position: AttributedString.MarkdownSourcePosition?, isLink: Bool) throws
+		-> Range<String.Index>
+	{
+		try isLink ? linkRange(position) : range(position)
+	}
+
+	func lineBreak(after cursor: String.Index) throws -> Range<String.Index> {
+		guard let newline = source[cursor...].firstIndex(of: "\n") else {
+			throw ReplyParseFailure.sourceMapping
+		}
+		return newline..<source.index(after: newline)
 	}
 
 	mutating func rule(at index: Int) throws -> String {
@@ -82,6 +170,7 @@ struct ReplySourceSpans {
 		var index = start
 		var depth = 0
 		var quote: Character?
+		var angleDestination = false
 		while index < source.endIndex {
 			let character = source[index]
 			let followsWhitespace =
@@ -95,7 +184,13 @@ struct ReplySourceSpans {
 				if character == activeQuote { quote = nil }
 				continue
 			}
-			if opening == "(", followsWhitespace, character == "\"" || character == "'" {
+			if angleDestination {
+				if character == ">" { angleDestination = false }
+				continue
+			}
+			if opening == "(", depth == 1, character == "<" {
+				angleDestination = true
+			} else if opening == "(", followsWhitespace, character == "\"" || character == "'" {
 				quote = character
 			} else if character == opening {
 				depth += 1

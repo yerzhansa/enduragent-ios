@@ -68,7 +68,17 @@ private struct ReplyBlockBuilder {
 	}
 
 	mutating func document() throws -> [ReplyBlock] {
-		try blocks(nodes(in: tokens.indices, depth: 0))
+		if tokens.isEmpty {
+			let omitted = try spans.omittedLinks(after: nil, before: nil)
+			guard omitted.isEmpty || omitted.map(\.accessibilityText).joined() == spans.source
+			else {
+				throw ReplyParseFailure.sourceMapping
+			}
+			return omitted.isEmpty ? [] : [.paragraph(omitted)]
+		}
+		let result = try blocks(nodes(in: tokens.indices, depth: 0))
+		try spans.validateOmittedLinks(in: ReplyDocument.blocks(result).accessibilityText)
+		return result
 	}
 
 	private func nodes(in indices: Range<Int>, depth: Int) -> [ReplyNode] {
@@ -180,7 +190,26 @@ private struct ReplyBlockBuilder {
 
 	private func runs(_ indices: Range<Int>) throws -> [ReplyRun] {
 		var result: [ReplyRun] = []
+		var cursor: String.Index?
+		let inTableCell =
+			tokens[indices].first?.path.contains { intent in
+				if case .tableCell = intent.kind { return true }
+				return false
+			} ?? false
 		for token in tokens[indices] {
+			if token.position != nil {
+				let coverage = try spans.coverage(token.position, isLink: token.link != nil)
+				result += try spans.omittedLinks(
+					after: cursor, before: coverage.lowerBound,
+					inTableCell: inTableCell)
+				cursor = coverage.upperBound
+			} else if let start = cursor,
+				token.inline.contains(.softBreak) || token.inline.contains(.lineBreak)
+			{
+				let lineBreak = try spans.lineBreak(after: start)
+				result += try spans.omittedLinks(after: start, before: lineBreak.lowerBound)
+				cursor = lineBreak.upperBound
+			}
 			let run: ReplyRun
 			if let url = token.link {
 				if let target = HTTPLink(validating: url) {
@@ -205,6 +234,9 @@ private struct ReplyBlockBuilder {
 				result.append(run)
 			}
 		}
+		result += try spans.omittedLinks(
+			after: cursor, before: nil,
+			inTableCell: inTableCell)
 		return result
 	}
 
