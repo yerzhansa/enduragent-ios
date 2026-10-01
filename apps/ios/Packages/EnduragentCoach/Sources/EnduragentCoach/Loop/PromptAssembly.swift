@@ -138,12 +138,13 @@ package enum PromptAssembly {
 			label: "Messages to summarize:", previous: previous, transcript: transcript)
 	}
 
-	package static func wireMessage(from message: ChatMessage, in zone: TimeZone) -> WireMessage {
+	package static func wireMessage(from message: ChatMessage) -> WireMessage {
 		switch message.author {
-		case .athlete(let sent):
+		case .athlete(let sent, let zone):
 			WireMessage(
 				role: .user,
-				content: "[" + GregorianStamp.weekdayMinute(sent, in: zone) + "] " + message.text,
+				content: "[" + GregorianStamp.weekdayMinute(sent, in: zone.timeZone) + "] "
+					+ message.text,
 				toolCalls: [], toolCallId: nil)
 		case .coach:
 			WireMessage(role: .assistant, content: message.text, toolCalls: [], toolCallId: nil)

@@ -8,9 +8,9 @@ extension FixtureLaunchTests {
 	@Test func providerFailureNoticeCarriesNoServerBody() async throws {
 		var services = try services()
 		let transport = FakeModelTransport()
-		services.coach = try failureCoach(transport, fixture: #require(services.fixture))
+		services.coach = try await failureCoach(transport, fixture: #require(services.fixture))
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "Give me a ride for tomorrow"
 		await model.send()
 		transport.script = Array(
@@ -47,7 +47,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = directive
 		await model.send()
 		let failed = try await settledTurn(model)
@@ -64,7 +64,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500"
 		await model.send()
 		let answered = try await settledTurn(model)
@@ -75,7 +75,7 @@ extension FixtureLaunchTests {
 	@Test func memoryThenFailSettlesSavedWorkWithoutTryAgain() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-fail"
 		await model.send()
 		let settled = try await settledTurn(model)
@@ -92,7 +92,7 @@ extension FixtureLaunchTests {
 
 	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
 		let model = model(try services())
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-hang"
 		await model.send()
 		let deadline = ContinuousClock.now + .seconds(10)
@@ -118,7 +118,7 @@ extension FixtureLaunchTests {
 	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail 500 x3"
 		await model.send()
 		let failed = try await settledTurn(model)
@@ -133,20 +133,26 @@ extension FixtureLaunchTests {
 		#expect(retried.id == failed.id)
 		#expect(replyText(retried.state) == FirstWeekFixture.weekSummary)
 	}
-	private func failureCoach(_ transport: FakeModelTransport, fixture: FixtureServices) throws
+	private func failureCoach(_ transport: FakeModelTransport, fixture: FixtureServices)
+		async throws
 		-> Coach
 	{
-		return Coach(
+		let clock = FixtureClock(
+			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
+		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
 				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
 				models: .scripted(transport),
 				training: FirstWeekFixture.training(fixture.intervals),
-				credits: .fake(fixture.credits), host: fixture.host,
-				clock: FixtureClock(
-					calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))),
+				credits: .fake(fixture.credits), host: fixture.host, clock: clock),
 			builtInModel: AppServices.builtInModel, deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
+		let services = AppServices(
+			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+			leases: { fixture.host.leases }, packPrices: { _ in [:] })
+		await model(services).agreeAndStartChatting()
+		return coach
 	}
 
 }

@@ -8,21 +8,21 @@ import Testing
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	func makeCoach() -> Coach {
-		EnduragentCoachTests.makeCoach(
+	func makeCoach() async -> Coach {
+		await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 
 	@Test func coachStartsWithNoHistory() async throws {
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		#expect(await coach.transcript(.main).isEmpty)
 	}
 
 	@Test func historyPropagatesARecordReadFailure() async {
 		let failing = FaultInjectingRecordLog(wrapping: store)
-		failing.failFetches = true
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: failing, clock: clock)
+		failing.failFetches = true
 		await #expect(throws: HistoryUnavailable.storageUnavailable) {
 			try await coach.history()
 		}
@@ -32,7 +32,7 @@ import Testing
 		transport.script = [
 			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
@@ -54,7 +54,7 @@ import Testing
 
 	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
 		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .error)]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 		#expect(
@@ -66,14 +66,14 @@ import Testing
 
 	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
 		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 	}
 
 	@Test func emptyProviderErrorFinishFailsWithoutAReply() async throws {
 		transport.script = [.finish(reason: .error)]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(failure(settled) == .model(.generationFailed(.emptyAfterError)))
 		guard case .failed(let failed) = settled else { return }
@@ -96,7 +96,7 @@ import Testing
 			.text("Sunday long ride, 2 h, load 120."),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("Review my last ride"), to: .main).acceptedTurn)
 		var activities: [TurnActivity] = []
@@ -127,7 +127,7 @@ import Testing
 			.text("I've prepared the ride. Confirm to add it."),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(review.ref.chat == "main")
 		let card = try #require(review.cards.first)
@@ -163,7 +163,7 @@ import Testing
 			.text("I've prepared the ride. Confirm to add it."),
 			.finish(reason: .error),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(
 			review.cards.map { $0.name.sentence(in: LanguageTag.en.phrasebook) } == ["Endurance"])

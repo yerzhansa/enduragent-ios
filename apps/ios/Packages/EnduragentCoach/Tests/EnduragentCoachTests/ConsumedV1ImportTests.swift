@@ -85,7 +85,7 @@ import Testing
 							sampleReply(
 								chatId: .main, turn: turn, text: "Never extracted imported reply"))),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == (belowListedMaximum ? 10 : 8))
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
@@ -126,7 +126,7 @@ import Testing
 								garmin: false, nonGarmin: false, unknown: false,
 								contentSha256: sha256Hex(job.ulid.rawValue))))),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 6)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)

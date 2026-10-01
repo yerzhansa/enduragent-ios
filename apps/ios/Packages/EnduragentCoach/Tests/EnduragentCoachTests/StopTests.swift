@@ -11,7 +11,7 @@ import Testing
 		transport.script = [.text("Thursday is "), .hang]
 		let store = InMemoryRecordLog()
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
@@ -42,7 +42,7 @@ import Testing
 	@Test func aStoppedReplyNeverShowsAsQueuedAfterItStops() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Thursday is "), .hang]
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let stream = await coach.observe(.main)
@@ -80,7 +80,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		_ = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -115,7 +115,7 @@ import Testing
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)

@@ -218,6 +218,11 @@ package actor ChatMailbox {
 		publish()
 	}
 
+	package func refreshImports() async throws(LedgerFailure) {
+		try await records.refresh()
+		publish()
+	}
+
 	package var reviewScope: TurnScope? {
 		work.phase.running?.attempt?.scope
 	}

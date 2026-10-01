@@ -12,7 +12,7 @@ import Testing
 		let store = InMemoryRecordLog()
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let transport = FakeModelTransport(respond: respond)
-		let before = makeCoach(
+		let before = await makeCoach(
 			transport: transport, store: dying,
 			coalescing: started ? quickWindow : CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(
@@ -21,7 +21,7 @@ import Testing
 			try await waitUntil { transport.requestCount == 1 }
 		}
 		try await before.dieWithoutWriting(to: dying)
-		let after = makeCoach(transport: FakeModelTransport(respond: respond), store: store)
+		let after = await makeCoach(transport: FakeModelTransport(respond: respond), store: store)
 		await after.lifecycle(.becameActive)
 		try #require(await after.state(of: turn)?.retryable == true)
 		try await after.retry(turn, in: .main)
@@ -36,7 +36,7 @@ import Testing
 				[.text("Reply to " + text), .finish(reason: .stop)],
 				requestDelay: text == "Hold" ? .seconds(1) : nil)
 		}
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let held = try #require(try await coach.send(draft("Hold"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(held)
 		let deadline = ContinuousClock.now + .seconds(5)
@@ -57,7 +57,7 @@ import Testing
 			ScriptedReply(
 				retry ? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
 		}
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let turn = try #require(try await coach.send(draft("Fail"), to: .main).acceptedTurn)
 		let first = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(first) == nil)
@@ -73,7 +73,7 @@ import Testing
 			ScriptedReply(
 				retry ? [.text("Recovered"), .finish(reason: .stop)] : [.fail(.http(status: 401))])
 		}
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		#expect(replyText(try await coach.sendAndSettle("Fail")) == nil)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(replyText(try await coach.sendAndSettle("Fail")) == nil)

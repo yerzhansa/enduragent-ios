@@ -14,7 +14,7 @@ import Testing
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		transport.flushScript = failures(retryAfter: retryAfter)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
 		transport.script = [.text("Second reply."), .hang]
 		let next = try #require(try await coach.send(draft("Next?"), to: .main).acceptedTurn)
@@ -42,7 +42,7 @@ import Testing
 		let transport = FakeModelTransport()
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		transport.flushScript = failures(retryAfter: retryAfter)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let reset = Task {
 			let outcome = await coach.startNewConversation(in: .main)
 			waits.continuation.finish()

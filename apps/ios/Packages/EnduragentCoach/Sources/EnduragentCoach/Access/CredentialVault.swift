@@ -24,7 +24,7 @@ package actor CredentialVault {
 			return try resolve(.creditsAccount, .credits, builtInModel) {
 				try store.creditsAccount()?.key
 			}
-		case .openRouterAccount(let model, _)?:
+		case .openRouterAccount(let model)?:
 			return try resolve(.openRouterAccountKey, .openRouterAccount, model) {
 				try store.openRouterAccountKey()
 			}

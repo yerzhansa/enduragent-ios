@@ -34,7 +34,7 @@
 							Text("No records")
 						}
 					}
-					Section("Records") {
+					Section {
 						ForEach(snapshot?.rows ?? []) { row in
 							VStack(alignment: .leading, spacing: 4) {
 								Text(row.kind)
@@ -60,6 +60,9 @@
 							)
 							.accessibilityIdentifier("records.row.\(row.id)")
 						}
+					} header: {
+						Text("Records")
+							.accessibilityIdentifier("records.entries")
 					}
 					if let skipped = snapshot?.skipped, skipped > 0 {
 						Section("Skipped rows") {
@@ -84,6 +87,7 @@
 						}
 					}
 				}
+				.accessibilityIdentifier("records.list")
 				.navigationTitle("Record Sync")
 				.toolbar {
 					ToolbarItem(placement: .topBarTrailing) {

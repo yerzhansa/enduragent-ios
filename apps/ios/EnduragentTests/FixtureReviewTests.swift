@@ -12,7 +12,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		backing.locked = true
@@ -40,7 +40,7 @@ extension FixtureLaunchTests {
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 
 		await model.decide(.cancel(token))
@@ -61,7 +61,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		backing.locked = true
 
@@ -85,7 +85,7 @@ extension FixtureLaunchTests {
 	@Test func reviewUsesTheChosenLanguageAfterAnAccountChange() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		await model.chooseLanguage(.fixed(.fr))
 		#expect(model.phrasebook.say(Catalog.reviewTitle, [:]) == "Vérification de la séance")

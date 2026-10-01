@@ -1,6 +1,6 @@
 # Onboarding and connection
 
-The athlete accepts the health notice, connects intervals.icu or skips it, receives starter Credits, and enters the one ongoing conversation. A kept store reopens that conversation. Debug, Credentials provides the existing controls for replacing or disconnecting the training connection.
+The athlete accepts the health notice, connects intervals.icu or skips it, receives starter Credits, agrees to sharing with the AI providers, and enters the one ongoing conversation. A kept store without current consent opens the same consent screen before chat. Debug, Credentials provides the existing controls for replacing or disconnecting the training connection.
 
 ## Sub-features
 
@@ -9,6 +9,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - `onboarding-connect-empty` keeps the connect screen and shows `intervals.icu did not accept that key.` in `connect.error`.
 - `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected.
 - `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
+- `onboarding-consent` names OpenRouter and DeepSeek and the data shared. `consent.accept` saves permission and opens chat. `consent.decline` keeps chat locked and shows the same disclosure with `consent.resume` labeled Agree and continue. One tap saves permission and opens chat without repeating the choice or requesting starter Credits. Relaunching before agreement asks again.
 - `onboarding-credentials` keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
 - `onboarding-unavailable` shows `launch.storageUnavailable` when the record store cannot open. A locked keychain on a kept store preserves the transcript and shows `chat.composer.notice`.
 
@@ -17,6 +18,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - Open the app with a fresh store and choose Continue.
 - Enter an intervals.icu key and choose Connect, or choose Skip for now.
 - Choose Continue after connection, then Start chatting after starter Credits.
+- Read Your coach uses AI, then choose Agree and continue or Not now. After Not now, tap Agree and continue once to open chat. A saved turn refused for missing consent stays unchanged after agreement until the athlete taps Try again.
 - From the conversation, choose Menu, Debug, Credentials. The controls are Replace, Blank key, Cancel, Switch athlete, and Disconnect. Fixture builds also offer Lock keychain and Fail next write.
 - Choose access method under a turn notice returns to the connect step; finishing it returns to the existing conversation.
 
@@ -32,6 +34,7 @@ Preconditions:
 | `sim.mjs test <run id> InstallOpenProof` | Health notice and Continue, `01-install-open`. |
 | `sim.mjs test <run id> ConnectIntervalsProof` | `connect.athleteName`, `.fitness`, `.fatigue`, and `.form` show the fixture values, `02-connect-intervals`. |
 | `sim.mjs test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
+| `sim.mjs test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after one Agree tap, `provider-consent`, `provider-consent-deferred`, and `provider-consent-deferred-accepted`. |
 | `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
 | `sim.mjs test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
 | `sim.mjs test <run id> CredentialTransactionProof` | Blank key, Cancel, and a failed replacement preserve Ada's key; the next reply succeeds, `credential-blank`, `credential-transaction`, `credential-transaction-reply`. |
@@ -49,6 +52,7 @@ For the empty-key path, launch fresh, tap `notice.continue`, leave `connect.apiK
 
 ## Gotchas
 
+- Consent is never seeded by fixtures. The shared onboarding helpers tap Agree. App tests cover a failed consent write and retrying a refused turn; those paths still need their hosted tests to run.
 - Use fixture launches. A launch without `-EnduragentFixture first-week` uses live services.
 - Any non-empty fixture key connects. This proves the connection transaction, not validation against the real intervals.icu service.
 - `credentials.apiKey`, `.replace`, `.replaceBlank`, `.cancel`, `.switchAthlete`, `.disconnect`, `.lock`, and `.failNextWrite` identify the Debug controls. Read `.outcome`, `.athlete`, `.connection`, and `.keySuffix` afterwards.

@@ -11,7 +11,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let stopped: Void = coach.stop(.main)
@@ -34,7 +34,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let sent = coach.send(draft("two"), to: .main)
@@ -54,7 +54,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.script = [.text("Ran."), .finish(reason: .stop)]
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 1)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		async let sent = coach.send(draft("only"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
@@ -72,7 +72,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
 		transport.hangUntilCancelled = true
@@ -100,7 +100,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let sent = coach.send(draft("two"), to: .main)
@@ -128,7 +128,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
 		transport.script = [.text("Should not run."), .finish(reason: .stop)]
@@ -155,7 +155,7 @@ import Testing
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let sent = coach.send(draft("two"), to: .main)
@@ -184,7 +184,7 @@ import Testing
 		transport.hangUntilCancelled = true
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let stopped: Void = coach.stop(.main)
@@ -213,7 +213,7 @@ import Testing
 		let store = HeldAppendLog(
 			inner: InMemoryRecordLog(), holding: "replyObserved", occurrence: 1)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
@@ -234,7 +234,7 @@ import Testing
 			.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
 		]
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)), host: host)
 		let first = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)

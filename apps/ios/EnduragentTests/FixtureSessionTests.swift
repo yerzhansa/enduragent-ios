@@ -25,7 +25,7 @@ extension FixtureLaunchTests {
 	@Test func languageChoiceRewritesTheChatAndTheNextReplyRequest() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
 		model.draft.text = "/language"
 		await model.send()
@@ -47,8 +47,9 @@ extension FixtureLaunchTests {
 		let (kept, keptDefaults) = try relaunch(.keep)
 		let reopened = ShellModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
-		#expect(reopened.route == .chat)
+		#expect(reopened.route == .loading)
 		await reopened.appear()
+		#expect(reopened.route == .chat)
 		#expect(reopened.status?.language == .fixed(.fr))
 		#expect(reopened.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 	}
@@ -56,7 +57,7 @@ extension FixtureLaunchTests {
 	@Test func aLanguageThatCannotBeSavedKeepsTheCurrentChoice() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		await model.refreshStatus()
 		let records = try #require(services.fixtureRecordFaults)
 		try records.failAppends(ofKind: "languagePreference")
@@ -74,7 +75,7 @@ extension FixtureLaunchTests {
 	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let stored = await model.refreshStatus().session
 		#expect(stored.text(for: .contextWindowOverride) == "")
 		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
@@ -87,7 +88,7 @@ extension FixtureLaunchTests {
 		var evening = launch
 		evening.clock = "1998-06-15T18:00:00Z"
 		let first = model(try AppServices.fixture(evening, defaults: defaults))
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		let earlier = try await settledTurn(first)

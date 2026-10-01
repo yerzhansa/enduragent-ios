@@ -28,7 +28,7 @@ import Testing
 		try Data(legacy.utf8).write(to: directory.appending(path: "secrets.json"))
 		let keychain = ICloudKeychainStore(backing: FixtureSecretStoreBacking(items: items))
 		let file = try ICloudKeychainStore.fixture(directory: directory).store
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: file)
 		let expected = CreditsAccount(appAccountToken: token, key: "test-legacy-key")
 
@@ -70,7 +70,7 @@ import Testing
 		let (store, backing) = try ICloudKeychainStore.fixture(directory: directory)
 		let before = try Data(contentsOf: file)
 		backing.failNextWrite = true
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
@@ -95,7 +95,7 @@ import Testing
 			"appAccountToken": Data(token.uuidString.utf8),
 		])
 		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 
 		let identity = try await coach.creditsIdentity()
@@ -111,7 +111,7 @@ import Testing
 			memory.fail(legacy, with: errSecNotAvailable)
 		}
 		let reads = memory.readCount
-		let peer = makeCoach(
+		let peer = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(),
 			secrets: ICloudKeychainStore(backing: memory))
 		#expect(try await peer.creditsIdentity() == identity)
@@ -126,7 +126,7 @@ import Testing
 		]
 		)
 		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(await coach.status().setup == .needsAccessMethod)
 		#expect(
@@ -149,7 +149,7 @@ import Testing
 	@Test func purchasePreparationMintsOnlyWhenRequested() async throws {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(
 			try await coach.creditsIdentity()
@@ -168,9 +168,9 @@ import Testing
 		let interleaved = PeerInitializationBeforeAddBacking(base: memory)
 		let firstStore = ICloudKeychainStore(backing: interleaved)
 		let secondStore = ICloudKeychainStore(backing: memory)
-		let first = makeCoach(
+		let first = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: firstStore)
-		let second = makeCoach(
+		let second = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: secondStore)
 
 		let firstToken = try await first.prepareCreditsPurchase()
@@ -195,7 +195,7 @@ import Testing
 			CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
 				CreditsAccount(appAccountToken: token, key: "test-credits-key"))
 		])
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(),
 			secrets: ICloudKeychainStore(backing: memory))
 
@@ -213,7 +213,7 @@ import Testing
 					CreditsAccount(appAccountToken: token, key: "test-credits-key"))
 			])
 			let store = ICloudKeychainStore(backing: memory)
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 
 			try await coach.replaceAppAccountToken()

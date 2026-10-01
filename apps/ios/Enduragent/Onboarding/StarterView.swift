@@ -13,7 +13,7 @@ struct StarterView: View {
 				}
 				if model.starterResolved {
 					Button(model.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
-						model.startChatting()
+						Task { await model.startChatting() }
 					}
 					.accessibilityIdentifier("starter.start")
 				} else {

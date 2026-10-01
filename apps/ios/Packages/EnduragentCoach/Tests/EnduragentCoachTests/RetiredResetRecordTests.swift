@@ -156,7 +156,7 @@ extension SwiftDataSuites {
 				local: try ModelContainerHandle.withoutCloudKit(
 					storeURL: root.appending(path: "local.store")))
 			let transport = FakeModelTransport()
-			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			#expect(await coach.transcript(.main) == ["C?", "C.", "D?", "D."])
 			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
 			let archived = try await coach.history()

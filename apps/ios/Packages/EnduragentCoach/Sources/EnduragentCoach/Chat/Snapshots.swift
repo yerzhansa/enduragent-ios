@@ -99,14 +99,20 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 }
 
 public struct CoachStatus: Sendable, Equatable {
+	public let providerConsent: ProviderConsent?
+	public var needsProviderConsent: Bool {
+		setup == .needsProviderConsent
+	}
 	public let setup: SetupState
 	public let training: TrainingStatus
 	public let language: LanguagePreference
 	public let session: SessionSettings
 
 	package init(
-		setup: SetupState, training: TrainingStatus, preferences: Preferences
+		setup: SetupState, training: TrainingStatus, preferences: Preferences,
+		providerConsent: ProviderConsent? = nil
 	) {
+		self.providerConsent = providerConsent
 		self.setup = setup
 		self.training = training
 		self.language = preferences.language
@@ -127,6 +133,7 @@ public struct CoachStatus: Sendable, Equatable {
 }
 
 public enum SetupState: Sendable, Equatable {
+	case needsProviderConsent
 	case needsAccessMethod
 	case ready
 	case accessTemporarilyUnavailable(AccessUnavailable)
