@@ -49,7 +49,7 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
-function hasReleaseFixtureLaunch(text) {
+function hasReleaseReference(text, reference) {
   const guards = [];
   for (const line of text.split(/\r?\n/)) {
     if (/^\s*#if\b/.test(line)) {
@@ -58,7 +58,7 @@ function hasReleaseFixtureLaunch(text) {
       if (guards.length) guards.at(-1).alternate = true;
     } else if (/^\s*#endif\b/.test(line)) {
       guards.pop();
-    } else if (/\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+    } else if (reference.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
       return true;
     }
   }
@@ -196,7 +196,10 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)
+      && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
+      && hasReleaseReference(text, /\b(?:FixtureCalendarSaveFault|FixtureCalendarReadFault|FixtureRecordReadFault|FixtureReviewProofDriver|loseCalendarSaveAnswerOnce|failCalendarReadOnce|consumeCalendarReadFault|failNextReviewRead|calendarSaveFault|calendarReadFault|recordReadFault|reviewProofDriver|EnduragentFixtureCalendarSave|EnduragentFixtureCalendarRead|EnduragentFixtureRecordRead)\b/)) report(file, 'calendar-proof-hooks-debug-only');
     if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
     if (proofFile.test(file)

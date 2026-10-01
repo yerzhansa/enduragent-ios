@@ -25,6 +25,18 @@
 		case empty
 	}
 
+	enum FixtureCalendarSaveFault: String {
+		case loseAnswerOnce = "lose-answer-once"
+	}
+
+	enum FixtureCalendarReadFault: String {
+		case failOnce = "fail-once"
+	}
+
+	enum FixtureRecordReadFault: String {
+		case failAfterPresentedOnce = "fail-after-presented-once"
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -35,6 +47,9 @@
 		var locale = "en_US"
 		var clock: String?
 		var onboarded = false
+		var calendarSaveFault: FixtureCalendarSaveFault?
+		var calendarReadFault: FixtureCalendarReadFault?
+		var recordReadFault: FixtureRecordReadFault?
 
 		var launchArguments: [String] {
 			var values = [
@@ -49,6 +64,15 @@
 			if let host { values += ["-EnduragentFixtureHost", host] }
 			if let clock { values += ["-EnduragentFixtureClock", clock] }
 			if onboarded { values += ["-enduragent.onboardingCompleted", "YES"] }
+			if let calendarSaveFault {
+				values += ["-EnduragentFixtureCalendarSave", calendarSaveFault.rawValue]
+			}
+			if let calendarReadFault {
+				values += ["-EnduragentFixtureCalendarRead", calendarReadFault.rawValue]
+			}
+			if let recordReadFault {
+				values += ["-EnduragentFixtureRecordRead", recordReadFault.rawValue]
+			}
 			return values
 		}
 
@@ -61,9 +85,8 @@
 			for index in stride(from: 0, to: arguments.count, by: 2) {
 				values[arguments[index]] = arguments[index + 1]
 			}
-			store = try policy(values, "-EnduragentFixtureStore", default: FixtureStorePolicy.fresh)
-			keychain = try policy(
-				values, "-EnduragentFixtureKeychain", default: FixtureKeychainPolicy.unlocked)
+			store = try policy(values, "-EnduragentFixtureStore") ?? .fresh
+			keychain = try policy(values, "-EnduragentFixtureKeychain") ?? .unlocked
 			coalescingMilliseconds = try values["-EnduragentFixtureCoalescing"].map { raw in
 				guard let value = Int(raw) else {
 					throw DecodingError.dataCorrupted(
@@ -78,12 +101,15 @@
 			locale = values["-AppleLocale"] ?? "en_US"
 			clock = values["-EnduragentFixtureClock"]
 			onboarded = values["-enduragent.onboardingCompleted"] == "YES"
+			calendarSaveFault = try policy(values, "-EnduragentFixtureCalendarSave")
+			calendarReadFault = try policy(values, "-EnduragentFixtureCalendarRead")
+			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
 		}
 
 		private func policy<Policy: RawRepresentable>(
-			_ values: [String: String], _ key: String, default fallback: Policy
-		) throws -> Policy where Policy.RawValue == String {
-			guard let raw = values[key] else { return fallback }
+			_ values: [String: String], _ key: String
+		) throws -> Policy? where Policy.RawValue == String {
+			guard let raw = values[key] else { return nil }
 			guard let value = Policy(rawValue: raw) else {
 				throw DecodingError.dataCorrupted(
 					.init(codingPath: [], debugDescription: "invalid \(key): \(raw)"))

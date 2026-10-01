@@ -351,6 +351,14 @@ final class ShellModel {
 
 	func decide(_ decision: ReviewDecision) async {
 		let outcome = await services.coach.decide(decision, in: .main)
+		#if DEBUG
+			if case .presented(let ref) = decision, outcome == .presentationRecorded,
+				let fixture = services.fixture, let driver = fixture.reviewProofDriver
+			{
+				await driver.didPresent(ref)
+				await driver.refreshIfReady(chat, coach: services.coach, records: fixture.records)
+			}
+		#endif
 		switch decision {
 		case .approve, .cancel, .retryRemaining, .checkAgain:
 			reviewOutcomeNotice = outcome.notice
@@ -375,6 +383,12 @@ final class ShellModel {
 			for await snapshot in await coach.observe(.main) {
 				guard let self, !Task.isCancelled else { return }
 				self.chat = snapshot
+				#if DEBUG
+					if let fixture = services.fixture, let driver = fixture.reviewProofDriver {
+						await driver.refreshIfReady(
+							snapshot, coach: coach, records: fixture.records)
+					}
+				#endif
 			}
 		}
 	}

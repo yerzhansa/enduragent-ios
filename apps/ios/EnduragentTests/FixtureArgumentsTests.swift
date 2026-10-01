@@ -10,7 +10,9 @@ import Testing
 		let expected = FixtureArguments(
 			store: store, keychain: .locked, coalescingMilliseconds: 1,
 			recovery: "unreadable", host: "expire-after 3", language: "de", locale: "de_DE",
-			clock: "1998-06-16T07:00:00Z", onboarded: true)
+			clock: "1998-06-16T07:00:00Z", onboarded: true,
+			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
+			recordReadFault: .failAfterPresentedOnce)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -41,6 +43,9 @@ import Testing
 		#expect(parsed.recovery == .unreadable)
 		#expect(parsed.host == .expireAfter(.seconds(3)))
 		#expect(parsed.clock == expected.clock)
+		#expect(parsed.calendarSaveFault == expected.calendarSaveFault)
+		#expect(parsed.calendarReadFault == expected.calendarReadFault)
+		#expect(parsed.recordReadFault == expected.recordReadFault)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -62,5 +67,42 @@ import Testing
 		arguments.language = "de"
 		arguments.locale = "de_DE"
 		#expect(kept == arguments)
+	}
+
+	@Test(arguments: [
+		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
+		FixtureLaunch.recordReadArgumentKey,
+	])
+	func rejectsUnknownCalendarProofFaults(key: String) throws {
+		var builder = FixtureArguments()
+		#expect(throws: DecodingError.self) {
+			try builder.update(from: ["-\(key)", "unknown"])
+		}
+		let suite = "enduragent.fixture.invalid-fault.\(UUID().uuidString)"
+		let defaults = try #require(UserDefaults(suiteName: suite))
+		defer { defaults.removePersistentDomain(forName: suite) }
+		defaults.setPersistentDomain(
+			[FixtureLaunch.nameArgumentKey: FixtureLaunch.firstWeekName, key: "unknown"],
+			forName: suite)
+		#expect(throws: FixtureLaunchError.self) {
+			try FixtureLaunch.fromArguments(defaults)
+		}
+	}
+
+	@Test func calendarProofFaultsAreOptIn() throws {
+		let expected = FixtureArguments()
+		var restored = FixtureArguments(
+			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
+			recordReadFault: .failAfterPresentedOnce)
+		try restored.update(from: expected.launchArguments)
+		#expect(restored == expected)
+		let suite = "enduragent.fixture.no-fault.\(UUID().uuidString)"
+		let defaults = try #require(UserDefaults(suiteName: suite))
+		defer { defaults.removePersistentDomain(forName: suite) }
+		defaults.set(FixtureLaunch.firstWeekName, forKey: FixtureLaunch.nameArgumentKey)
+		let parsed = try #require(try FixtureLaunch.fromArguments(defaults))
+		#expect(parsed.calendarSaveFault == nil)
+		#expect(parsed.calendarReadFault == nil)
+		#expect(parsed.recordReadFault == nil)
 	}
 }
