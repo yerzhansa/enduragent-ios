@@ -3,7 +3,7 @@ import Foundation
 package enum ToolOutcome: Sendable, Equatable {
 	case result(JSONValue)
 	case pending(PendingProposal)
-	case truncated(notice: String, estimatedTokens: Int)
+	case truncated(notice: String, estimatedTokens: Int, omittedRecords: Int)
 }
 
 package struct ToolRuntime: Sendable {
@@ -66,12 +66,24 @@ package struct ToolRuntime: Sendable {
 					notice:
 						"Tool result too large (~\(estimated) tokens) and was omitted to protect context. "
 						+ "Rerun with narrower arguments (e.g. a smaller date range, fewer stream types, or a shorter activity).",
-					estimatedTokens: estimated
+					estimatedTokens: estimated,
+					omittedRecords: omittedRecordCount(in: data)
 				),
 				commit: raw.commit
 			)
 		}
 		return ToolExecution(outcome: .result(enveloped), commit: raw.commit)
+	}
+
+	private func omittedRecordCount(in payload: JSONValue) -> Int {
+		switch payload {
+		case .array(let rows):
+			return rows.count
+		case .object(let fields):
+			return fields.values.compactMap { $0.arrayValue?.count }.max() ?? 0
+		case .null, .bool, .number, .string:
+			return 0
+		}
 	}
 
 	private func executeBody(
