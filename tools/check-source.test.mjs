@@ -494,3 +494,33 @@ test('rejects the fixtures import outside DEBUG', () => {
   assert.equal(result.status, 1, result.output);
   assert.match(result.output, /fixture-launch-debug-only/);
 });
+
+for (const source of [
+  'var loseCalendarSaveAnswerOnce = false',
+  'var failCalendarReadOnce = false',
+  'func failNextReviewRead() {}',
+  'func consumeCalendarReadFault() {}',
+  'var calendarSaveFault: Fault?',
+  'var calendarReadFault: Fault?',
+  'var recordReadFault: Fault?',
+  'let reviewProofDriver = driver',
+  'let value = "-EnduragentFixtureCalendarSave"',
+  'let value = "-EnduragentFixtureCalendarRead"',
+  'let value = "-EnduragentFixtureRecordRead"',
+  'enum FixtureCalendarSaveFault {}',
+  'enum FixtureCalendarReadFault {}',
+  'enum FixtureRecordReadFault {}',
+  'final class FixtureReviewProofDriver {}',
+]) {
+  for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
+    test(`rejects calendar proof hooks outside DEBUG: ${wrapped}`, () => {
+      const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': wrapped });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /calendar-proof-hooks-debug-only/);
+    });
+  }
+  test(`accepts calendar proof hooks under nested DEBUG: ${source}`, () => {
+    const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
+    assert.equal(result.status, 0, result.output);
+  });
+}
