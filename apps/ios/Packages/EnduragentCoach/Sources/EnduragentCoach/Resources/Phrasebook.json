@@ -200023,6 +200023,16 @@
         }
       }
     },
+    "review.saveApprovedAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save approved workout again"
+          }
+        }
+      }
+    },
     "review.title": {
       "localizations": {
         "en": {

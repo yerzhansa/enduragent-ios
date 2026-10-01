@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2482
-	public static let keyCount = 2522
+	public static let englishLeafCount = 2483
+	public static let keyCount = 2523
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -1413,6 +1413,7 @@ public enum Catalog {
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
+	public static let reviewSaveApprovedAgain = CatalogKey(rawValue: "review.saveApprovedAgain")
 	public static let reviewTitle = CatalogKey(rawValue: "review.title")
 	public static let reviewTurnStopping = CatalogKey(rawValue: "review.turnStopping")
 	public static let reviewUncertain = CatalogKey(rawValue: "review.uncertain")

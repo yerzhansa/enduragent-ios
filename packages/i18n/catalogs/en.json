@@ -1640,7 +1640,8 @@
       "ramp": "ramp"
     },
     "writePending": "This workout may have been saved. Check the calendar before continuing.",
-    "writeReadFailed": "The calendar could not be checked. Your approved workout is still pending."
+    "writeReadFailed": "The calendar could not be checked. Your approved workout is still pending.",
+    "saveApprovedAgain": "Save approved workout again"
   },
   "settings": {
     "appearance": {
