@@ -13,6 +13,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-language` localizes the title, buttons, notices, and saved Done line.
 - `preview-dark` keeps the review legible in dark appearance.
 - `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
+- `preview-unknown-save` shows one pending-save sentence and only Check again. An absent observation adds Cancel and Save approved workout again. A failed calendar read keeps Check again in the same session. A never-approved card has neither approved-save sentence.
 - `preview-expired` omits an expired review after relaunch without writing a review outcome or clearing record.
 
 ## How to get to it (user POV)
@@ -31,6 +32,8 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
+| `sim.mjs test <run id> UnknownCalendarSaveProof` | Light proofs assert exact sentence counts and review button identifiers and labels for unknown, absent, failed-read, and never-approved states. Attachments start with `calendar-`. |
+| `sim.mjs test <run id> UnknownCalendarSaveDarkProof` | The same proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim.mjs test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
 | `sim.mjs test <run id> AddedToCalendarProof` | `Done — Create workout "Endurance with tempo" on 1998-06-16.`, `07b-added-to-calendar`; `add-to-done-ms` records the delay. |
 | `sim.mjs test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
@@ -50,6 +53,7 @@ For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyR
 ## Gotchas
 
 - The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
+- `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read hook has no screen proof until the disabled-controls state exists.
 - The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.
 - A review expires after ten minutes. A later launch omits the expired review, while a decision on a stale on-screen review shows the expiry notice.
 - A review can survive New conversation. It is not a second ongoing conversation.

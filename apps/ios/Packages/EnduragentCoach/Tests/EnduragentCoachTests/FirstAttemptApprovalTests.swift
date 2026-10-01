@@ -60,7 +60,9 @@ extension RetryLadderTests {
 		let second = try await presentReview(on: coach)
 		#expect(
 			await coach.decide(.approve(second), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "2"))]))
 		#expect(intervals.calls.filter(\.isWrite).count == 2)
+		#expect(intervals.events.count == 2)
+		#expect(Set(intervals.events.compactMap(\.uid)).count == 2)
 	}
 }

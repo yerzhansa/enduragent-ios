@@ -43,6 +43,9 @@
 		static let recoveryArgumentKey = "EnduragentFixtureRecovery"
 		static let hostArgumentKey = "EnduragentFixtureHost"
 		static let clockArgumentKey = "EnduragentFixtureClock"
+		static let calendarSaveArgumentKey = "EnduragentFixtureCalendarSave"
+		static let calendarReadArgumentKey = "EnduragentFixtureCalendarRead"
+		static let recordReadArgumentKey = "EnduragentFixtureRecordRead"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -58,6 +61,9 @@
 		var recovery = FixtureRecoveryPolicy.readable
 		var host = FixtureHostPolicy.immediate
 		var clock = FixtureLaunch.defaultClock
+		var calendarSaveFault: FixtureCalendarSaveFault?
+		var calendarReadFault: FixtureCalendarReadFault?
+		var recordReadFault: FixtureRecordReadFault?
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -71,7 +77,10 @@
 				recovery: try policy(arguments, key: recoveryArgumentKey) ?? .readable,
 				host: try arguments.string(forKey: hostArgumentKey).map(FixtureHostPolicy.init)
 					?? .immediate,
-				clock: try clock(arguments) ?? defaultClock
+				clock: try clock(arguments) ?? defaultClock,
+				calendarSaveFault: try policy(arguments, key: calendarSaveArgumentKey),
+				calendarReadFault: try policy(arguments, key: calendarReadArgumentKey),
+				recordReadFault: try policy(arguments, key: recordReadArgumentKey)
 			)
 		}
 
