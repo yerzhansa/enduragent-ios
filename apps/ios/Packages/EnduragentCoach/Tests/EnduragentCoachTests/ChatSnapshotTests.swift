@@ -22,7 +22,7 @@ struct ChatSnapshotTests {
 					body: .synced(body)))
 		}
 		try await seed(store, records)
-		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.notes[nil]?.map(\.id) == [fixedUlid(1)])
 		#expect(snapshot.notes[first]?.map(\.id) == [fixedUlid(3), fixedUlid(4)])
@@ -39,8 +39,8 @@ struct ChatSnapshotTests {
 					device: store.deviceId, wall: 1, ulid: turn.ulid,
 					body: .synced(sampleUser(chatId: .main, text: "Thursday?", turn: turn)))
 			])
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
 		store.failFetches = true
-		let coach = makeCoach(transport: FakeModelTransport(), store: store)
 		let failed = try #require(await coach.currentSnapshot(.main))
 		#expect(failed.turns.isEmpty)
 		store.failFetches = false

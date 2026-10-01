@@ -6,7 +6,7 @@ struct SnapshotFeedTests {
 	@Test func slowSubscriberSeesNewestOnly() async throws {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let first = try #require(await coach.currentSnapshot(.main))
 		let feed = SnapshotFeed()
 		var slow = feed.subscribe(from: first).makeAsyncIterator()

@@ -9,7 +9,6 @@ package actor ChatMailbox {
 	private let coalescing: CoalescingPolicy
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
-
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
@@ -55,11 +54,10 @@ package actor ChatMailbox {
 			try await records.load()
 		} catch {
 			switch error {
-			case .unavailable, .rejectedBatch:
-				return feed.subscribe(from: snapshot())
+			case .unavailable, .rejectedBatch: return feed.subscribe(from: snapshot())
 			}
 		}
-		let current = latest ?? snapshot()
+		let current = snapshot()
 		latest = current
 		return feed.subscribe(from: current)
 	}
@@ -223,9 +221,7 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package var reviewScope: TurnScope? {
-		work.phase.running?.attempt?.scope
-	}
+	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)

@@ -206,7 +206,6 @@ extension Segment {
 				summary: note.summary)
 		}
 	}
-
 }
 
 extension RetryRefusal {

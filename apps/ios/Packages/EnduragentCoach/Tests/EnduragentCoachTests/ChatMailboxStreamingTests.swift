@@ -1,9 +1,12 @@
+import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
 
 extension ChatMailboxTests {
 	@Test func streamingPublishesLiveTextOnly() async throws {
+		let clock = CountingSnapshotClock(base: clock)
 		let pacing = HeldClock()
 		let transport = FakeModelTransport()
 		transport.clock = pacing
@@ -11,7 +14,7 @@ extension ChatMailboxTests {
 		transport.script = [.text("Thursday "), .text("is on."), .finish(reason: .stop)]
 		let store = InMemoryRecordLog()
 		_ = try await seedHistory(store, clock: clock, turns: 3, tokens: 60)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let history = try #require(await snapshots.next())
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
@@ -22,6 +25,7 @@ extension ChatMailboxTests {
 		}
 		for text in ["Thursday ", "Thursday is on."] {
 			try await pacing.waitUntilHeld(.milliseconds(1))
+			let readsBeforeDelta = clock.readCount
 			pacing.release(.milliseconds(1))
 			var streamed: ChatSnapshot?
 			while let snapshot = await snapshots.next() {
@@ -33,6 +37,11 @@ extension ChatMailboxTests {
 				}
 			}
 			let snapshot = try #require(streamed)
+			if previous.liveReply?.text.isEmpty == false {
+				#expect(
+					clock.readCount == readsBeforeDelta,
+					"A text delta must skip snapshot projection")
+			}
 			#expect(snapshot.liveReply?.turn == turn)
 			#expect(snapshot.revision > previous.revision)
 			#expect(snapshot.notes == previous.notes)
@@ -52,5 +61,26 @@ extension ChatMailboxTests {
 		#expect(Array(previous.turns.dropLast()) == history.turns)
 		#expect(await coach.currentSnapshot(.main)?.liveReply == nil)
 	}
+}
 
+private final class CountingSnapshotClock: Clock {
+	private let base: any Clock
+	private let reads = Mutex(0)
+
+	init(base: any Clock) {
+		self.base = base
+	}
+
+	var now: Date {
+		reads.withLock { $0 += 1 }
+		return base.now
+	}
+
+	var readCount: Int { reads.withLock { $0 } }
+	var timeZone: TimeZone { base.timeZone }
+	var uptime: Duration { base.uptime }
+
+	func sleep(for duration: Duration) async throws {
+		try await base.sleep(for: duration)
+	}
 }
