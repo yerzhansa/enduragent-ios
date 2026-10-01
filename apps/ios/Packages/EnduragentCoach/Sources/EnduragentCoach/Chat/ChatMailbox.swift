@@ -56,15 +56,15 @@ package actor ChatMailbox {
 
 	var conversation: Conversation { records.conversation }
 
+	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
+		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
+		return stored || work.phase.running != nil || work.phase.cause != nil
+			|| work.window != nil || !work.isEmpty || door.held
+			|| conversation.hasLocalWork(on: ledger.deviceId)
+	}
+
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		do {
-			try await records.load()
-		} catch {
-			switch error {
-			case .unavailable, .rejectedBatch:
-				break
-			}
-		}
+		await records.loadForObservation()
 		return feed.subscribe(from: snapshot())
 	}
 

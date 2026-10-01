@@ -29,6 +29,17 @@ final class ChatRecords {
 		}
 	}
 
+	func loadForObservation(isolation: isolated (any Actor)? = #isolation) async {
+		do {
+			try await load()
+		} catch {
+			switch error {
+			case .unavailable, .rejectedBatch:
+				break
+			}
+		}
+	}
+
 	func refresh(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		if let loading { try await loading.value.get() }
 		let reading = Task {

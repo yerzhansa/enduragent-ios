@@ -197,7 +197,8 @@ public actor Coach {
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
-		let outcome = await vault.change(change) { await self.holdsBoundWork() }
+		let clock = self.clock
+		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
 		for mailbox in mailboxes.values {
 			await mailbox.reviewChanged()
 		}
@@ -223,19 +224,6 @@ public actor Coach {
 			try await vault.replaceAppAccountToken()
 		}
 	#endif
-
-	private func holdsBoundWork() async -> Bool {
-		for mailbox in mailboxes.values {
-			var snapshots = await mailbox.observe().makeAsyncIterator()
-			guard let snapshot = await snapshots.next() else { continue }
-			if snapshot.review != nil
-				|| snapshot.turns.contains(where: { !$0.state.isSettled })
-			{
-				return true
-			}
-		}
-		return false
-	}
 
 	#if DEBUG
 		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
