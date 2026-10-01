@@ -20,12 +20,13 @@ extension FixtureLaunchTests {
 	@Test func flushPartialLeavesTheJobPendingUntilTheNextLaunchDrainsIt() async throws {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
-		let transport = try #require(services.fixtureTransport)
 		let model = model(services)
 		await model.agreeAndStartChatting()
-		try await exchange(model, ["fixture:flush-partial"] + longs(5) + ["How was my week?"])
-		try await waitUntil { transport.requestCount == 7 + 4 }
-		try await waitUntil { await services.leases().last?.ending != nil }
+		try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
+		try await waitUntil {
+			let leases = await services.leases()
+			return leases.count == 2 && leases.allSatisfy { $0.ending != nil }
+		}
 		#expect(try await count("flushPending", in: records) == 1)
 		#expect(try await count("flushSettled", in: records) == 0)
 		#expect(try await count("memorySection", in: records) == 1)
