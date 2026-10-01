@@ -67,8 +67,11 @@ extension ResetWindowTests {
 			otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Behind question"), to: .main).acceptedTurn)
-		try await waitForRecords(.synced([.turnSettled]), count: 2, in: store)
-		#expect(await coach.transcript(.main) == ["Behind question", "Behind answer"])
+		let completed = try #require(
+			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		#expect(replyText(completed) == "Behind answer")
+		let transcript = await coach.transcript(.main)
+		#expect(transcript == ["Behind question", "Behind answer"])
 		let user = try #require(
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: turn)).records
 				.first)
@@ -80,11 +83,15 @@ extension ResetWindowTests {
 		#expect(user.ulid < body.firstIncludedUlid)
 		#expect(user.hlc > window.hlc)
 		let reopened = await self.coach()
-		#expect(await reopened.transcript(.main) == ["Behind question", "Behind answer"])
+		let reopenedTranscript = await reopened.transcript(.main)
+		#expect(reopenedTranscript == ["Behind question", "Behind answer"])
 		let archive = try #require(try await reopened.history().first?.id)
 		#expect(try await reopened.archivedConversation(archive)?.turns.map(\.id) == [old.turn])
-		_ = try #require(try await reopened.send(draft("Next question"), to: .main).acceptedTurn)
-		try await waitForRecords(.synced([.turnSettled]), count: 3, in: store)
+		let next = try #require(
+			try await reopened.send(draft("Next question"), to: .main).acceptedTurn)
+		let nextCompleted = try #require(
+			await reopened.settledState(of: next, in: .main, within: .seconds(5)))
+		#expect(replyText(nextCompleted) == "Next answer")
 		let prompt = try #require(sent(.chatAttempt, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(prompt.dropLast().suffix(2) == ["Behind question", "Behind answer"])
