@@ -105,7 +105,48 @@ final class FinishedWhileAwayProof: XCTestCase {
 		XCTAssertLessThanOrEqual(line.frame.maxY, composer.frame.minY)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "finished-while-away", app: app)
+		transcript.swipeDown(velocity: .slow)
+		transcript.swipeDown(velocity: .slow)
+		let reading = TutorialHarness.text(app, containing: "Day 1. This week has")
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "scrolling up must leave the completion line off screen")
+		let readingFrame = reading.frame
+		let composerFrame = composer.frame
+		TutorialHarness.attach(self, name: "finished-while-away-reading-position", app: app)
+		XCUIDevice.shared.press(.home)
+		Thread.sleep(forTimeInterval: 2)
+		app.activate()
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-second-return", app: app)
+		let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+		app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.01))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.6)))
+		TutorialHarness.wait(system.buttons["Airplane Mode"], until: .hittable)
+		TutorialHarness.attach(self, name: "finished-while-away-control-center", app: system)
+		system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-after-inactive", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+
+	private func assertReadingPosition(
+		_ reading: XCUIElement, frame readingFrame: CGRect, line: XCUIElement,
+		composer: XCUIElement, frame composerFrame: CGRect
+	) {
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "an old completion moved the transcript back to the tail")
+		XCTAssertEqual(reading.frame.minY, readingFrame.minY, accuracy: 2)
+		XCTAssertEqual(reading.frame.maxY, readingFrame.maxY, accuracy: 2)
+		XCTAssertEqual(composer.frame, composerFrame)
 	}
 }
 
