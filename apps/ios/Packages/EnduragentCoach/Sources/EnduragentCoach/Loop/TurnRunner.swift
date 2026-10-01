@@ -219,7 +219,7 @@ package struct TurnRunner: Sendable {
 		let memory = Memory(ledger: ledger, clock: clock)
 		let context = try await memory.context()
 		let view = try await memory.view()
-		let schemas = tools(for: attempt).toolsForTurn(chatId: chatId, memory: view)
+		let schemas = ToolCatalog.schemas(memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
@@ -294,10 +294,8 @@ package struct TurnRunner: Sendable {
 	) async throws -> (summary: String, records: [AthleteRecord]) {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
-		let summary = try await summarize(
-			PromptAssembly.droppedSummaryRequest(
-				previous: previous, transcript: PromptAssembly.transcript(dropped)),
-			charge: .droppedSummary, attempt: attempt)
+		let summary = try await Compactor(modelCall: modelCall).summarize(
+			dropped, previous: previous, purpose: .droppedHistory, attempt: attempt)
 		let windows = stride(from: 0, to: droppedUlids.count, by: Self.droppedMessageLimit).map {
 			start in
 			SyncedRecordBody.windowStart(
@@ -313,27 +311,6 @@ package struct TurnRunner: Sendable {
 			],
 			stamp: scope.stamp)
 		return (summary, records)
-	}
-
-	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
-		async throws -> String
-	{
-		try await modelCall.run(
-			request: CompletionRequest(
-				access: attempt.access.using(model: attempt.models.compaction),
-				attempt: attempt.attempt,
-				charge: charge,
-				messages: [
-					WireMessage(
-						role: .system, content: PromptAssembly.compactionSystem, toolCalls: [],
-						toolCallId: nil),
-					WireMessage(role: .user, content: request, toolCalls: [], toolCallId: nil),
-				],
-				tools: [],
-				deadline: TurnPolicy.compactionTimeout
-			),
-			progress: { _ in }
-		).text
 	}
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
