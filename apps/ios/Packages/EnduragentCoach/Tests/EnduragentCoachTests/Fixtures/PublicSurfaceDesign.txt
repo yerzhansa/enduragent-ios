@@ -103,7 +103,7 @@ Coach.send(_:to:)
 Coach.setLanguage(_:)
 Coach.setSession(_:)
 Coach.startNewConversation(in:)
-Coach.status()
+Coach.observeStatus()
 Coach.stop(_:)
 CoachFailure
 CoachFailure.local

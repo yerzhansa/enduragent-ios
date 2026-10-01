@@ -108,12 +108,12 @@ import Testing
 		]
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: transport, store: store)
-		let automatic = await coach.status().language
+		let automatic = try await coach.observedStatus().language
 		#expect(automatic == .automatic)
 		#expect(automatic.phrasebook(device: .en).say(Catalog.chatViewTitle) == "Chat")
 		_ = try await coach.sendAndSettle("How was my week?")
 		try await coach.setLanguage(.fixed(.fr))
-		let chosen = await coach.status().language
+		let chosen = try await coach.observedStatus().language
 		#expect(chosen == .fixed(.fr))
 		let french = chosen.phrasebook(device: .en)
 		#expect(french.say(Catalog.chatViewTitle) == "Conversation")
@@ -131,7 +131,8 @@ import Testing
 		#expect(systems[0].contains("reply in English (English)."))
 		#expect(systems[1].contains("The athlete chose French (Français)."))
 		#expect(
-			await makeCoach(transport: FakeModelTransport(), store: store).status().language
+			try await makeCoach(transport: FakeModelTransport(), store: store).observedStatus()
+				.language
 				== .fixed(.fr))
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.languagePreference]))).records
@@ -169,10 +170,10 @@ import Testing
 	}
 
 	@Test(arguments: [LanguageTag.es, .fr])
-	func automaticAppTextFollowsANonEnglishPhone(device: LanguageTag) async {
+	func automaticAppTextFollowsANonEnglishPhone(device: LanguageTag) async throws {
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), deviceLanguage: device)
-		let preference = await coach.status().language
+		let preference = try await coach.observedStatus().language
 		#expect(preference == .automatic)
 		#expect(
 			preference.phrasebook(device: device).say(Catalog.chatComposerMessagePlaceholder)
@@ -199,23 +200,24 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.script = [.text("Due uscite."), .finish(reason: .stop)]
 		let coach = await makeCoach(transport: transport, store: store)
-		#expect(await coach.status().language == .fixed(.it))
+		#expect(try await coach.observedStatus().language == .fixed(.it))
 		_ = try await coach.sendAndSettle("How was my week?")
 		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
 		#expect(system.contains("The athlete chose Italian (Italiano)."))
 		try await coach.setLanguage(.automatic)
 		#expect(
-			await makeCoach(transport: transport, store: store).status().language == .automatic)
+			try await makeCoach(transport: transport, store: store).observedStatus().language
+				== .automatic)
 	}
 
 	@Test func statusCarriesEachChoice() async throws {
 		let coach = await makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
-		#expect(await coach.status().language == .automatic)
+		#expect(try await coach.observedStatus().language == .automatic)
 		try await coach.setLanguage(.fixed(.ja))
-		#expect(await coach.status().language == .fixed(.ja))
+		#expect(try await coach.observedStatus().language == .fixed(.ja))
 		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
 		try await coach.setSession(ratio)
-		let status = await coach.status()
+		let status = try await coach.observedStatus()
 		#expect(status.session == ratio)
 		#expect(status.language == .fixed(.ja))
 		#expect(status.setup == .ready)
@@ -225,16 +227,17 @@ import Testing
 		let store = InMemoryRecordLog()
 		let held = HeldAppendLog(inner: store, holding: "languagePreference", occurrence: 1)
 		let coach = await makeCoach(transport: FakeModelTransport(), store: held)
-		#expect(await coach.status().language == .automatic)
+		#expect(try await coach.observedStatus().language == .automatic)
 		let first = Task { try await coach.setLanguage(.fixed(.fr)) }
 		var reached = held.reached.makeAsyncIterator()
 		await reached.next()
 		try await coach.setLanguage(.fixed(.de))
 		held.release()
 		try await first.value
-		let stored = await makeCoach(transport: FakeModelTransport(), store: store).status()
+		let stored = try await makeCoach(transport: FakeModelTransport(), store: store)
+			.observedStatus()
 		#expect(stored.language == .fixed(.de))
-		#expect(await coach.status().language == .fixed(.de))
+		#expect(try await coach.observedStatus().language == .fixed(.de))
 	}
 
 	@Test func leaseTitlesFollowTheAppLanguage() async throws {
@@ -274,7 +277,7 @@ import Testing
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
 		try await coach.setLanguage(.fixed(.es))
-		#expect(await coach.status().language == .fixed(.es))
+		#expect(try await coach.observedStatus().language == .fixed(.es))
 		store.release()
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		let ended = try #require(await host.ended(0))
@@ -296,7 +299,7 @@ import Testing
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.languagePreference]))).records
 				.count == 1)
-		#expect(await coach.status().language == .fixed(.fr))
+		#expect(try await coach.observedStatus().language == .fixed(.fr))
 	}
 
 	@Test func failedWriteKeepsThePreviousPreference() async throws {
@@ -307,6 +310,6 @@ import Testing
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setLanguage(.fixed(.fr))
 		}
-		#expect(await coach.status().language == .fixed(.de))
+		#expect(try await coach.observedStatus().language == .fixed(.de))
 	}
 }

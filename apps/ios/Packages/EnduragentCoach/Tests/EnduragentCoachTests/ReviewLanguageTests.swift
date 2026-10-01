@@ -45,7 +45,7 @@ extension FirstTurnTests {
 		let review = try await proposeEnduranceRide(coach)
 		let card = try #require(review.cards.first)
 		try await coach.setLanguage(.fixed(.fr))
-		let french = await coach.status().language.phrasebook(device: .en)
+		let french = try await coach.observedStatus().language.phrasebook(device: .en)
 		#expect(
 			card.lines(in: french) == [
 				"Échauffement", "- 10m 50%", "", "Bloc principal",

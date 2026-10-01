@@ -19,6 +19,8 @@ extension FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.notice?.key == Catalog.coachErrorIntervalsTransient }
 		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
@@ -136,6 +138,7 @@ extension FixtureLaunchTests {
 		await model.sceneChanged(.enteredBackground)
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.setup == .ready }
 		#expect(model.status?.setup == .ready)
 		#expect(model.status?.notice == nil)
 	}

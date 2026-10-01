@@ -21,7 +21,7 @@ extension CredentialVaultTests {
 		let client = GatedProfileIntervals(base: ada, gate: gate)
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
-		let status = Task { await coach.status() }
+		let status = Task { try await coach.refreshedStatus() }
 		await gate.waitUntilEntered()
 		if failingWrite {
 			memory.failWrites("intervalsCredential", with: statusCode)
@@ -29,7 +29,7 @@ extension CredentialVaultTests {
 			memory.fail("intervalsCredential", with: statusCode)
 		}
 		await gate.release()
-		let training = await status.value.training
+		let training = try await status.value.training
 		#expect(training == .connected(adaSummary, account: account(unresolved)))
 		if statusCode != errSecInteractionNotAllowed {
 			#expect(
@@ -44,7 +44,7 @@ extension CredentialVaultTests {
 		memory.fail("intervalsCredential", with: nil)
 		memory.failWrites("intervalsCredential", with: nil)
 		#expect(try secrets.intervalsConnection() == unresolved)
-		guard case .connected = await coach.status().training else {
+		guard case .connected = try await coach.refreshedStatus().training else {
 			Issue.record("expected the connection to resolve after unlock")
 			return
 		}
@@ -66,12 +66,12 @@ extension CredentialVaultTests {
 		let client = GatedProfileIntervals(base: ada, gate: gate)
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
-		let status = Task { await coach.status() }
+		let status = Task { try await coach.refreshedStatus() }
 		await gate.waitUntilEntered()
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
 		await gate.release()
 		#expect(
-			await status.value.training == .connected(adaSummary, account: account(unresolved)))
+			try await status.value.training == .connected(adaSummary, account: account(unresolved)))
 		#expect(
 			coach.diagnostics.entries.map(\.event) == [
 				.secureStorageFailed(
@@ -106,7 +106,7 @@ extension CredentialVaultTests {
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		_ = await coach.status()
+		_ = try await coach.refreshedStatus()
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		_ = await coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
@@ -155,7 +155,7 @@ extension CredentialVaultTests {
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
 		let original = try #require(try secrets.intervalsConnection())
-		_ = await coach.status()
+		_ = try await coach.refreshedStatus()
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id == testConnection.id)
 		#expect(current.resolvedAthlete != nil)
@@ -203,10 +203,12 @@ extension CredentialVaultTests {
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = true
 		let coach = await coach(secrets)
-		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(
+			try await coach.refreshedStatus().setup
+				== .accessTemporarilyUnavailable(.secureStorageLocked))
 		backing.locked = false
 		await coach.lifecycle(.becameActive)
-		#expect(await coach.status().setup == .ready)
+		#expect(try await coach.refreshedStatus().setup == .ready)
 	}
 
 	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
@@ -228,7 +230,7 @@ extension CredentialVaultTests {
 		_ = await replacement.value
 		#expect(await disconnect.value == .disconnected)
 		#expect(try secrets.intervalsConnection() == nil)
-		#expect(await coach.status().training == .unconnected)
+		#expect(try await coach.refreshedStatus().training == .unconnected)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
 	}
 
@@ -245,12 +247,12 @@ extension CredentialVaultTests {
 			return self.bo
 		}
 		let coach = await coachWithTraining(secrets, training: service)
-		let status = Task { await coach.status() }
+		let status = Task { try await coach.refreshedStatus() }
 		await gate.waitUntilEntered()
 		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
 		let replacement = try #require(try secrets.intervalsConnection())
 		await gate.release()
-		_ = await status.value
+		_ = try await status.value
 		#expect(try secrets.intervalsConnection() == replacement)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
 	}
@@ -312,62 +314,4 @@ private final class RecoveryResponseStub: URLProtocol, @unchecked Sendable {
 		client?.urlProtocolDidFinishLoading(self)
 	}
 	override func stopLoading() {}
-}
-
-private actor CredentialProfileGate {
-	private var entered = false
-	private var released = false
-	private var waiters: [CheckedContinuation<Void, Never>] = []
-	private var blocked: [CheckedContinuation<Void, Never>] = []
-
-	func pause() async {
-		entered = true
-		for waiter in waiters { waiter.resume() }
-		waiters.removeAll()
-		if !released { await withCheckedContinuation { blocked.append($0) } }
-	}
-
-	func waitUntilEntered() async {
-		if !entered { await withCheckedContinuation { waiters.append($0) } }
-	}
-
-	func release() {
-		released = true
-		for waiter in blocked { waiter.resume() }
-		blocked.removeAll()
-	}
-}
-
-private struct GatedProfileIntervals: IntervalsClient {
-	let base: FakeIntervalsClient
-	let gate: CredentialProfileGate
-
-	func fetchAthlete() async throws -> AthleteProfile {
-		await gate.pause()
-		return try await base.fetchAthlete()
-	}
-	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		try await base.fetchWellness(oldest: oldest, newest: newest)
-	}
-	func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws -> [ActivitySummary] {
-		try await base.fetchActivities(oldest: oldest, newest: newest)
-	}
-	func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		try await base.fetchActivity(id: id)
-	}
-	func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		try await base.fetchStreams(id: id)
-	}
-	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		try await base.listEvents(oldest: oldest, newest: newest)
-	}
-	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
-		try await base.createChatEvent(draft)
-	}
-	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
-		async throws -> CalendarEvent
-	{
-		try await base.updateEvent(id: id, name: name, description: description, date: date)
-	}
-	func deleteEvent(id: EventID) async throws { try await base.deleteEvent(id: id) }
 }

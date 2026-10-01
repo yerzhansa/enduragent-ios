@@ -166,7 +166,8 @@ import Testing
 		#expect(active.credential == .apiKey("icu-offline"))
 		#expect(active.resolvedAthlete == nil)
 		#expect(active.id != testConnection.id)
-		#expect(await coach.status().notice?.key == Catalog.coachErrorIntervalsTransient)
+		#expect(
+			try await coach.refreshedStatus().notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(active))
 	}
 
@@ -197,7 +198,7 @@ import Testing
 		}
 		#expect(try secrets.intervalsConnection()?.resolvedAthlete == nil)
 		offline.loadFailure = nil
-		let status = await coach.status()
+		let status = try await coach.refreshedStatus()
 		let resolved = try #require(try secrets.intervalsConnection())
 		let athlete = try #require(IntervalsAthleteID(rawValue: "i3003"))
 		#expect(resolved.resolvedAthlete == athlete)
@@ -238,7 +239,7 @@ import Testing
 					authority: .changed))
 		let active = try #require(try secrets.intervalsConnection())
 		#expect(active.resolvedAthlete?.rawValue == "i2002")
-		let status = await coach.status()
+		let status = try await coach.refreshedStatus()
 		guard case .connected(let summary, let switched) = status.training else {
 			Issue.record("expected a connected account, got \(status.training)")
 			return
@@ -263,7 +264,7 @@ import Testing
 		let coach = await coach(secrets)
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
 		#expect(try secrets.intervalsConnection() == nil)
-		#expect(await coach.status().training == .unconnected)
+		#expect(try await coach.refreshedStatus().training == .unconnected)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
 	}
 
@@ -298,7 +299,7 @@ import Testing
 			await coach.changeModelAccess(.useCredits)
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
 		#expect(try secrets.accessSelection() == .credits)
-		#expect(await coach.status().setup == .ready)
+		#expect(try await coach.refreshedStatus().setup == .ready)
 	}
 
 	func testAccess(secret: String) -> ResolvedAccess {

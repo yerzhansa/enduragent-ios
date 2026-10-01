@@ -116,7 +116,7 @@ final class FixtureLaunchTests {
 		#expect(
 			try await #require(services.fixture).intervals.fetchAthlete().name
 				== "Ada Kovač")
-		#expect(await services.coach.status().training == .unconnected)
+		#expect(try await services.coach.observedStatus().training == .unconnected)
 		let model = model(services)
 		#expect(model.route == .onboarding(.notice))
 		#expect(model.chat == nil)
@@ -213,7 +213,7 @@ final class FixtureLaunchTests {
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.chat == .main)
-		#expect(await services.coach.status().setup == .ready)
+		#expect(try await services.coach.observedStatus().setup == .ready)
 		let identity = try await services.coach.creditsIdentity()
 		#expect(
 			identity.appAccountToken
@@ -359,6 +359,8 @@ extension ShellModel {
 		await startChatting()
 		if route == .onboarding(.consent) {
 			await acceptConsent()
+			let deadline = ContinuousClock.now + .seconds(5)
+			while route != .chat, ContinuousClock.now < deadline { await Task.yield() }
 		}
 		#expect(route == .chat)
 	}

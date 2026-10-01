@@ -41,7 +41,8 @@ extension CredentialVaultTests {
 		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: errSecNotAvailable)
 		let store = ICloudKeychainStore(backing: backing)
 		let coach = await coach(store)
-		guard case .connected(let summary, let account) = await coach.status().training else {
+		guard case .connected(let summary, let account) = try await coach.refreshedStatus().training
+		else {
 			Issue.record("expected the legacy connection to remain readable when writes fail")
 			return
 		}

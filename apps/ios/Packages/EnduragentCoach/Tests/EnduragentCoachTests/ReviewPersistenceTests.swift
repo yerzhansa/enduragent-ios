@@ -31,7 +31,7 @@ extension TurnRunnerTests {
 		#expect(shown.notes.first?.after == proposing)
 
 		try await coach.setLanguage(.fixed(.fr))
-		let french = await coach.status().language.phrasebook(device: .en)
+		let french = try await coach.observedStatus().language.phrasebook(device: .en)
 		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 1998-06-14."
 		#expect(shown.notes.map { $0.sentence(in: french) } == [frenchDone])
 

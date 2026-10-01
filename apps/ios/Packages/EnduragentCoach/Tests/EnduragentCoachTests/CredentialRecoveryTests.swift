@@ -43,7 +43,7 @@ extension CreditsClientTests {
 		try deviceB.storeIntervalsConnection(testConnection)
 		let coachB = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceB)
-		#expect(await coachB.status().setup == .ready)
+		#expect(try await coachB.observedStatus().setup == .ready)
 		let interrupted = InterruptedSecretStoreBacking(base: memory)
 		let deviceA = ICloudKeychainStore(backing: interrupted)
 		let client = try makeClient(secrets: deviceA)

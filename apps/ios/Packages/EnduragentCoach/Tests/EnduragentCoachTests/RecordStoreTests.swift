@@ -44,7 +44,7 @@ extension SwiftDataSuites {
 			let session = try SessionSettings.npmDefaults.replacing(
 				.historyBudgetRatio, with: "0.5")
 			try await coach.setSession(session)
-			let status = await coach.status()
+			let status = try await coach.observedStatus()
 			#expect(status.session == session)
 			let snapshot = try await coach.recordSyncProbe().snapshot()
 			#expect(snapshot.counts.contains { $0.kind == "sessionSettings" && $0.count == 1 })
