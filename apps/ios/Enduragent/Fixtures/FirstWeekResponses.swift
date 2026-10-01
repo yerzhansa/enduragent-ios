@@ -23,14 +23,14 @@
 								return respond(request)
 							}
 						}
-						return ScriptedReply([])
+						return ScriptedReply([.finish(reason: .stop)])
 					}
 				case .chat:
 					if request.step == 0, !request.retry {
 						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
 						if text == "fixture:flush-partial" {
 							flushes.withLock {
-								$0[text] = ScriptedReply.sequence(flushPartial, for: .flush)
+								$0[text] = PartialFlushFixture.responses()
 							}
 						} else if text == "fixture:slow-flush" {
 							flushes.withLock {
@@ -93,20 +93,6 @@
 			),
 			.finish(reason: .toolCalls),
 		]
-
-		static let flushPartial: [ScriptedEvent] =
-			[
-				.toolCall(
-					name: ToolName.memoryWrite.rawValue,
-					arguments:
-						#"{"section":"schedule","content":"Rides with a group on Saturdays."}"#),
-				.toolCall(
-					name: ToolName.ledgerAppend.rawValue,
-					arguments:
-						#"{"kind":"decision","date":"1998-06-15","text":"Keeps Saturdays for the group ride."}"#
-				),
-				.finish(reason: .toolCalls),
-			] + Array(repeating: .fail(.http(status: 500)), count: 4)
 
 		private static func repetition(_ arguments: [String]) -> (arguments: [String], count: Int) {
 			guard let last = arguments.last, last.hasPrefix("x"), let count = Int(last.dropFirst()),
