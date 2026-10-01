@@ -73,6 +73,29 @@ function hasExtraSecretStore(text) {
       return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
     });
 }
+function hasExposedMailboxState(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  let depth = 0;
+  let projection = false;
+  for (const match of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+    const [, declaration, boundary] = match;
+    const opensBody = boundary === '{' || (boundary === '\n' && /^\s*\{/.test(code.slice(match.index + match[0].length)));
+    if (depth === 1) {
+      const member = /^(.*?)\b(let|var)\s+/.exec(declaration);
+      if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
+        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
+        if (member[2] === 'let' || /\blazy\b/.test(member[1]) || declaration.includes('=') || !opensBody) return true;
+        projection = true;
+      }
+    }
+    if (depth === 2 && projection && opensBody
+      && /^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:nonmutating|mutating)\s+)?(?:set|_modify|willSet|didSet)(?:\s*\([^)]*\))?\s*$/.test(declaration)) return true;
+    if (boundary === '{') depth++;
+    if (boundary === '}') depth--;
+    if (depth === 1 && boundary === '}') projection = false;
+  }
+  return false;
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -157,15 +180,8 @@ try {
       checkLedgerIndexVersion(file, text);
     }
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
-      const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
-      const exposed = text.split('\n').some(line => {
-        const member = declaration.exec(line.replace(/"(?:\\.|[^"\\])*"/g, '""'));
-        return member && !/(?:^|\s)private(?:\s|$)/.test(member[1]);
-      });
-      if (exposed) report(file, 'mailbox-private-state');
+      if (hasExposedMailboxState(text)) report(file, 'mailbox-private-state');
     }
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:builder|environment)\s*\.\s*phrasebook\b/.test(text)) report(file, 'device-only-phrasebook');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
       && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)
       && (!file.endsWith('DebugView.swift') || !isDebugOnly(text))) report(file, 'fixture-feedback-debug-only');

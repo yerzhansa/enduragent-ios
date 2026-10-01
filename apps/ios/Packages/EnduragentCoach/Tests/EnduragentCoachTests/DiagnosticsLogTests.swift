@@ -110,7 +110,7 @@ import Testing
 								chatId: .main, messageUlids: [history[0].user, history[0].reply]))))
 			])
 		let transport = FakeModelTransport()
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = !keyStored
@@ -129,7 +129,7 @@ import Testing
 		let expected = keyStored ? "providerDown" : "secureStorageLocked"
 		#expect(flushFailures.count == 1)
 		#expect(flushFailures.first?.contains(expected) == true)
-		#expect(transport.requestCount == (keyStored ? 2 : 0))
+		#expect(transport.requestCount == (keyStored ? 3 : 0))
 	}
 }
 

@@ -137,6 +137,7 @@ import Testing
 			let copy = book.say(key, ["service": "intervals.icu"])
 			#expect(copy != english.say(key, ["service": "intervals.icu"]))
 			#expect(!copy.contains("{{"))
+			#expect(!copy.contains("%#@"))
 		}
 	}
 

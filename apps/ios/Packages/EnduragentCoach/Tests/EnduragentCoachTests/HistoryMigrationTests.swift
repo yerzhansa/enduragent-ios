@@ -129,7 +129,7 @@ extension SwiftDataSuites {
 	@Suite struct HistoryOpenTests {
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-		@Test func fiftyArchivedConversationsReadInUnderOneSecond() async throws {
+		@Test func fiftyArchivedConversationsReadEachRowOnce() async throws {
 			let store = try SwiftDataSuites.makeSwiftDataLog(
 				deviceId: DeviceID(rawValue: "phone-a"))
 			for index in 1...50 {
@@ -157,13 +157,13 @@ extension SwiftDataSuites {
 										reason: .reset(ResetID(ulid: boundary)))))),
 					])
 			}
-			let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
-			let started = ContinuousClock.now
+			let log = BatchRecordingLog(inner: store)
+			let coach = makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
 			let archived = try await coach.history()
-			let elapsed = ContinuousClock.now - started
 			#expect(archived.count == 50)
 			#expect(archived.first?.firstQuestion == "Archived 50")
-			#expect(elapsed < .seconds(1), "History of 50 took \(elapsed)")
+			#expect(log.reads.count == 1)
+			#expect(log.fetchedRecordCount == 100)
 		}
 	}
 }

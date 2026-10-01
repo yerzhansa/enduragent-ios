@@ -1,16 +1,15 @@
 import Foundation
-import Testing
 
 @testable import EnduragentCoach
 
-struct RecordReadBenchmark {
+struct RecordReadFixture {
 	let ledger: Ledger
 	let log: BatchRecordingLog
 	let jobs: [FlushJobID]
 
 	init(settled: Bool) async throws {
 		let root = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-read-benchmark-\(UUID().uuidString)", directoryHint: .isDirectory)
+			path: "enduragent-read-fixture-\(UUID().uuidString)", directoryHint: .isDirectory)
 		let local = try ModelContainerHandle.withoutCloudKit(
 			storeURL: root.appending(path: "local.store"))
 		let synced = try ModelContainerHandle.withoutCloudKit(
@@ -59,8 +58,4 @@ struct RecordReadBenchmark {
 		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
 	}
 
-	static func record(_ elapsed: Duration, name: String) {
-		Attachment.record(
-			String(format: "%.3f", elapsed / .milliseconds(1)), named: "\(name)-ms.txt")
-	}
 }

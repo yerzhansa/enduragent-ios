@@ -5,16 +5,19 @@ extension Memory {
 		messages: [ChatMessage],
 		access: ResolvedAccess,
 		transport: any ModelTransport,
+		diagnostics: DiagnosticsLog,
+		ladder: RetryLadder,
 		stamp: OperationStamp,
 		scope: TurnScope?
 	) async throws(CancellationError) -> FlushOutcome {
 		guard !messages.isEmpty else { return .nothingToSave }
 		let run = FlushRun(
 			messages: messages, timeZone: clock.timeZone, access: access, transport: transport,
-			stamp: stamp)
+			stamp: stamp, diagnostics: diagnostics, ladder: ladder,
+			maxAttempts: (scope?.policy ?? .npm).maxGenerateAttempts)
 		var tally = FlushTally()
 		do {
-			try await flushRetryingFailures(run, scope: scope, tally: &tally)
+			try await runFlushGenerate(run, scope: scope, tally: &tally)
 		} catch is CancellationError {
 			throw CancellationError()
 		} catch {
@@ -28,23 +31,6 @@ extension Memory {
 			return .nothingToSave
 		}
 		return .saved(sections: tally.sections, events: tally.events)
-	}
-
-	private func flushRetryingFailures(
-		_ run: FlushRun, scope: TurnScope?, tally: inout FlushTally
-	) async throws {
-		var attempt = 1
-		while true {
-			do {
-				try await runFlushGenerate(run, scope: scope, tally: &tally)
-				return
-			} catch is CancellationError {
-				throw CancellationError()
-			} catch {
-				guard attempt < MemoryFlushPolicy.maxAttempts else { throw error }
-				attempt += 1
-			}
-		}
 	}
 
 	private func runFlushGenerate(_ run: FlushRun, scope: TurnScope?, tally: inout FlushTally)
@@ -75,122 +61,92 @@ extension Memory {
 		)
 		let schemas = MemoryFlushPrompt.toolSchemas()
 		var steps = 0
+		var counters = RetryCounters.zero
+		var attempts = 1
+		var remainingRetryWait = MemoryFlushPolicy.retryWaitAllowance
+		let modelCall = ModelCall(transport: run.transport, diagnostics: run.diagnostics)
 		while steps < MemoryFlushPolicy.maxSteps {
-			steps += 1
+			try Task.checkCancellation()
+			try await scope?.checkDeadline(uptime: clock.uptime)
 			let request = CompletionRequest(
 				access: run.access,
 				attempt: run.stamp.attempt,
 				charge: .memoryFlush,
 				messages: messages,
 				tools: schemas,
-				deadline: TurnBudgetPolicy.npm.perCallDeadline
+				deadline: await scope?.callDeadline(uptime: clock.uptime)
+					?? TurnBudgetPolicy.npm.perCallDeadline
 			)
-			let step = try await collectFlush(transport: run.transport, request: request)
+			let step: GenerateStep
+			do {
+				step = try await modelCall.run(request: request)
+			} catch {
+				let failure = try AttemptFailure(caught: error)
+				let situation = AttemptSituation(
+					committed: [], observedText: false,
+					promptTokens: messages.reduce(0) { $0 + estimateTokens($1.content) },
+					effectiveWindow: TurnPolicy.contextWindowCap, flushLatchFree: false,
+					accessMethod: run.access.method, jitter: Double.random(in: 0..<1))
+				guard attempts < run.maxAttempts,
+					case .retry(let next, let preparations) = run.ladder.decide(
+						failure, situation: situation, counters: counters)
+				else { throw failure }
+				for preparation in preparations {
+					switch preparation {
+					case .wait(let duration, _):
+						guard duration <= remainingRetryWait else {
+							throw failure
+						}
+						try await clock.sleep(for: duration)
+						remainingRetryWait -= duration
+					case .flushMemory, .compactInTurn:
+						throw failure
+					}
+				}
+				counters = next
+				attempts += 1
+				try await scope?.chargeCall()
+				continue
+			}
+			steps += 1
 			try Task.checkCancellation()
-			if step.calls.isEmpty {
+			if step.toolCalls.isEmpty {
+				try step.checkFinish()
 				break
 			}
 			messages.append(
 				WireMessage(
-					role: .assistant, content: step.text, toolCalls: step.calls, toolCallId: nil)
+					role: .assistant, content: step.text, toolCalls: step.toolCalls, toolCallId: nil
+				)
 			)
-			for call in step.calls {
-				let (payload, wroteSection, wroteLedger) = try await executeFlushTool(
-					call, stamp: run.stamp)
-				if wroteSection { tally.sections += 1 }
-				if wroteLedger { tally.events += 1 }
+			for call in step.toolCalls {
+				let execution: ToolExecution
+				do {
+					let arguments = try call.parseArguments()
+					switch ToolName(rawValue: call.name) {
+					case .memoryWrite:
+						execution = try await executeMemoryWrite(
+							arguments, source: .flush, stamp: run.stamp)
+					case .ledgerAppend:
+						execution = try await executeLedgerAppend(
+							arguments, source: .flush, stamp: run.stamp)
+					default:
+						execution = .result(.object(["error": .string("unsupported")]))
+					}
+				} catch is DecodingError {
+					execution = .result(.object(["error": .string("invalid_arguments")]))
+				}
+				if execution.commit?.tool == .memoryWrite { tally.sections += 1 }
+				if execution.commit?.tool == .ledgerAppend { tally.events += 1 }
 				messages.append(
-					WireMessage(role: .tool, content: payload, toolCalls: [], toolCallId: call.id)
+					WireMessage(
+						role: .tool, content: encodeToolOutcome(execution.outcome), toolCalls: [],
+						toolCallId: call.id)
 				)
 			}
 		}
 	}
 
-	private func collectFlush(
-		transport: any ModelTransport,
-		request: CompletionRequest
-	) async throws -> (text: String, calls: [WireToolCall], reason: FinishReason) {
-		var text = ""
-		var calls: [WireToolCall] = []
-		var reason: FinishReason = .stop
-		for try await event in transport.stream(request) {
-			switch event {
-			case .textDelta(let delta):
-				text += delta
-			case .toolCall(let call):
-				calls.append(call)
-			case .heartbeat:
-				break
-			case .finished(let finishReason, _):
-				reason = finishReason
-			}
-		}
-		_ = reason
-		return (text, calls, reason)
-	}
-
-	private func executeFlushTool(_ call: WireToolCall, stamp: OperationStamp) async throws -> (
-		String, Bool, Bool
-	) {
-		let arguments: JSONValue
-		do {
-			arguments = try call.parseArguments()
-		} catch {
-			return (
-				JSONValue.object(["error": .string("invalid_arguments")]).canonicalDigestInput(),
-				false, false
-			)
-		}
-		switch ToolName(rawValue: call.name) {
-		case .memoryWrite:
-			let fields = arguments.objectFields
-			guard let section = fields["section"]?.stringValue,
-				let content = fields["content"]?.stringValue
-			else {
-				return (
-					JSONValue.object(["error": .string("section_required")]).canonicalDigestInput(),
-					false, false
-				)
-			}
-			try await writeSection(
-				SectionName(rawValue: section), content: content, source: .flush, stamp: stamp)
-			return (JSONValue.object(["saved": .bool(true)]).canonicalDigestInput(), true, false)
-		case .ledgerAppend:
-			let fields = arguments.objectFields
-			guard
-				let dateRaw = fields["date"]?.stringValue,
-				let date = CivilDate(rawValue: dateRaw),
-				let kindRaw = fields["kind"]?.stringValue,
-				let kind = LedgerKind(rawValue: kindRaw),
-				let text = fields["text"]?.stringValue,
-				!text.isEmpty
-			else {
-				return (
-					JSONValue.object(["error": .string("invalid_event")]).canonicalDigestInput(),
-					false,
-					false
-				)
-			}
-			let recorded = try await appendEvent(
-				date: date, kind: kind, text: text, source: .flush, stamp: stamp)
-			if recorded {
-				return (
-					JSONValue.object(["recorded": .bool(true)]).canonicalDigestInput(), false, true
-				)
-			}
-			return (
-				JSONValue.object(["duplicate": .bool(true), "recorded": .bool(false)])
-					.canonicalDigestInput(),
-				false,
-				false
-			)
-		default:
-			return (
-				JSONValue.object(["error": .string("unsupported")]).canonicalDigestInput(), false,
-				false
-			)
-		}
-	}
 }
 
 private struct FlushRun: Sendable {
@@ -199,6 +155,9 @@ private struct FlushRun: Sendable {
 	let access: ResolvedAccess
 	let transport: any ModelTransport
 	let stamp: OperationStamp
+	let diagnostics: DiagnosticsLog
+	let ladder: RetryLadder
+	let maxAttempts: Int
 }
 
 private struct FlushTally {
