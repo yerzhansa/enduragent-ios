@@ -78,6 +78,41 @@ function exportedTree(t) {
   return { root, tree, build, runs, run };
 }
 
+test('fake device listings keep their snapshot when another shard deletes a listed device', t => {
+  const fixture = exportedTree(t);
+  const devices = join(fixture.root, 'devices');
+  const tool = (args, extra = {}) => spawnSync(process.execPath, [join(fixture.root, 'bin/xcrun'), ...args], {
+    env: { ...process.env, ENDURAGENT_VERIFY_FAKE_ROOT: fixture.root, ...extra },
+    encoding: 'utf8', timeout: 10000,
+  });
+  const created = tool(['simctl', 'create', 'snapshot-proof', 'fixture-type', 'fixture-runtime']);
+  assert.equal(created.status, 0, created.stderr);
+  const udid = created.stdout.trim();
+  const removeListedDevices = join(fixture.root, 'remove-listed-devices.mjs');
+  writeFileSync(removeListedDevices, `
+import fs from 'node:fs';
+import { join } from 'node:path';
+import { syncBuiltinESMExports } from 'node:module';
+const readdir = fs.readdirSync;
+fs.readdirSync = (...args) => {
+  const entries = readdir(...args);
+  if (args[0] === process.env.VERIFY_DELETE_DURING_LIST) {
+    for (const entry of entries) fs.rmSync(join(args[0], entry));
+  }
+  return entries;
+};
+syncBuiltinESMExports();
+`);
+  const listed = tool(['simctl', 'list', 'devices', '-j'], {
+    NODE_OPTIONS: `--import=${removeListedDevices}`, VERIFY_DELETE_DURING_LIST: devices,
+  });
+  assert.equal(listed.status, 0, listed.stderr);
+  assert.deepEqual(JSON.parse(listed.stdout), {
+    devices: { fixture: [{ name: 'snapshot-proof', udid, state: 'Booted' }] },
+  });
+  assert.deepEqual(readdirSync(devices), []);
+});
+
 test('the real build command accepts a non-git export and an external build folder', t => {
   const fixture = exportedTree(t);
   const result = fixture.run(['build', '--build-folder', fixture.build]);
