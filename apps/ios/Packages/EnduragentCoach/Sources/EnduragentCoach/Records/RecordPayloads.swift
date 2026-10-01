@@ -167,6 +167,23 @@ struct WindowStartPayload: Codable {
 	var firstIncludedUlid: String
 	var reason: String
 	var droppedMessageUlids: [String]?
+	var boundaryClock: HybridLogicalClockPayload? = nil
+}
+
+struct HybridLogicalClockPayload: Codable {
+	var wallMs: Int64
+	var logical: UInt32
+	var deviceId: String
+
+	init(_ clock: HybridLogicalClock) {
+		wallMs = clock.wallMs
+		logical = clock.logical
+		deviceId = clock.deviceId.rawValue
+	}
+
+	var clock: HybridLogicalClock {
+		HybridLogicalClock(wallMs: wallMs, logical: logical, deviceId: DeviceID(rawValue: deviceId))
+	}
 }
 
 struct CompactionSummaryPayload: Codable {
