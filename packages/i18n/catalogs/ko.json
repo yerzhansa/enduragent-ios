@@ -532,7 +532,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "이전 대화를 일시적으로 사용할 수 없습니다.",
-    "loadEarlier": "이전 메시지 불러오기",
     "loading": "이전 대화 불러오는 중…",
     "pageFailure": "이 대화를 일시적으로 사용할 수 없습니다.",
     "readOnly": "이전 대화는 읽기 전용입니다.",
@@ -976,7 +975,6 @@
     },
     "history": {
       "failure": "대화 기록을 일시적으로 사용할 수 없습니다.",
-      "loadEarlier": "이전 메시지 불러오기",
       "retry": "기록 다시 불러오기"
     },
     "newConversation": {

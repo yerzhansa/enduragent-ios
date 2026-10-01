@@ -41,7 +41,6 @@ Catalog.archiveEntryDetail
 Catalog.archiveEntryLabel
 Catalog.archiveHistory
 Catalog.archiveListFailure
-Catalog.archiveLoadEarlier
 Catalog.archiveLoading
 Catalog.archivePageFailure
 Catalog.archiveReadOnly
@@ -156,7 +155,6 @@ Catalog.chatFirstSyncRetry
 Catalog.chatFirstSyncSyncingDetail
 Catalog.chatFirstSyncSyncingTitle
 Catalog.chatHistoryFailure
-Catalog.chatHistoryLoadEarlier
 Catalog.chatHistoryRetry
 Catalog.chatMenu
 Catalog.chatNewConversationAttachmentDraft

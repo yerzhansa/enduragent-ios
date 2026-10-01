@@ -15,16 +15,18 @@ import Testing
 		]
 		let conversation = coverageConversation()
 		let local = jobs.enumerated().flatMap { records(for: $1, at: $0) }
-		let folded = FlushJob.settling(
-			ConversationFold.flushJobs(
-				chat: .main, local: local, markers: [], device: store.deviceId),
-			resolved: FlushRows(jobs, in: conversation).byJob)
-		#expect(folded.map(\.settled) == [true, true, true, true, false])
+		let folded = ConversationFold.flushJobs(
+			chat: .main, local: local, markers: [], device: store.deviceId,
+			rows: ConversationRows(conversation))
+		#expect(
+			folded.map(\.phase) == [
+				.superseded(jobs[3].id), .superseded(jobs[3].id), .superseded(jobs[3].id),
+				.settled(.recorded(.nothingToSave)), .pending,
+			])
 		let older = job(13, messages: [1, 2])
 		let newer = job(14, messages: [1])
-		let rows = FlushRows([older, newer], in: conversation)
-		#expect(!older.covers(newer, resolved: rows.byJob))
-		#expect(!newer.covers(older, resolved: rows.byJob))
+		#expect(!older.covers(newer))
+		#expect(!newer.covers(older))
 	}
 
 	@Test func aJobKeepsItsProcessAndAnAbandonedSettlementRoundTrips() throws {
@@ -91,8 +93,8 @@ import Testing
 		#expect(!context.contains("Saturdays."))
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
 		#expect(jobs.count == 2)
-		#expect(jobs.map(\.settled) == [true, true])
-		#expect(jobs.first?.messages == history.flatMap { [$0.user, $0.reply] })
+		#expect(jobs.map { $0.phase != .pending } == [true, true])
+		#expect(jobs.first?.coverage.listed == history.flatMap { [$0.user, $0.reply] })
 	}
 
 	@Test func aFailingJobRetriesInItsProcessAndIsAbandonedAfterTheNextLaunchDrain() async throws {
@@ -121,8 +123,8 @@ import Testing
 		#expect(jobs.count == 2)
 		let seeded = Set(history.flatMap { [$0.user, $0.reply] })
 		let fresh = try #require(jobs.last)
-		#expect(fresh.messages.allSatisfy { !seeded.contains($0) })
-		#expect(jobs.map(\.settled) == [true, false])
+		#expect(fresh.coverage.listed.allSatisfy { !seeded.contains($0) })
+		#expect(jobs.map { $0.phase != .pending } == [true, false])
 	}
 
 	@Test func aTrimNeverSplitsATurn() async throws {
@@ -239,8 +241,11 @@ import Testing
 
 	private func job(_ offset: Int, messages: [Int], settled: Bool = false) -> FlushJob {
 		FlushJob(
-			id: FlushJobID(ulid: fixedUlid(offset)),
-			messages: messages.map(fixedUlid), settled: settled)
+			id: FlushJobID(ulid: fixedUlid(offset)), origin: .beforeUpgrade,
+			coverage: ConversationRows(coverageConversation()).coverage(
+				for: FlushJobID(ulid: fixedUlid(offset)), messages: messages.map(fixedUlid),
+				origin: .beforeUpgrade),
+			phase: settled ? .settled(.recorded(.nothingToSave)) : .pending, reset: nil)
 	}
 
 	private func records(for job: FlushJob, at index: Int) -> [AthleteRecord] {
@@ -251,9 +256,9 @@ import Testing
 				body: .deviceLocal(
 					.flushPending(
 						FlushPendingBody(
-							chatId: .main, messageUlids: job.messages))))
+							chatId: .main, messageUlids: job.coverage.listed))))
 		]
-		if job.settled {
+		if job.phase != .pending {
 			records.append(
 				seededRecord(
 					store, at: at, ulid: fixedUlid(200),

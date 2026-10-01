@@ -58,7 +58,7 @@ package struct RecordQuery: Sendable, Equatable {
 
 	package var scope: Scope
 	package var chatId: ChatID?
-	package var turn: TurnID?
+	package var turns: Set<TurnID>?
 	package var from: CivilDate?
 	package var to: CivilDate?
 	package var writtenBy: DeviceID?
@@ -73,10 +73,15 @@ package struct RecordQuery: Sendable, Equatable {
 	) {
 		self.scope = scope
 		self.chatId = chatId
-		self.turn = turn
+		self.turns = turn.map { [$0] }
 		self.from = from
 		self.to = to
 		self.writtenBy = writtenBy
+	}
+
+	package init(scope: Scope, chatId: ChatID, turns: Set<TurnID>) {
+		self.init(scope: scope, chatId: chatId)
+		self.turns = turns
 	}
 }
 
@@ -218,14 +223,14 @@ package struct SwiftDataRecordLog: RecordLog {
 		let anyKind = kinds.isEmpty
 		let anyChat = query.chatId == nil
 		let chatId = query.chatId?.rawValue ?? ""
-		let anyTurn = query.turn == nil
-		let turn = query.turn?.ulid.rawValue ?? ""
+		let anyTurn = query.turns == nil
+		let turns: [String?] = query.turns?.map { $0.ulid.rawValue } ?? []
 		let anyDevice = query.writtenBy == nil
 		let deviceId = query.writtenBy?.rawValue ?? ""
 		let predicate = #Predicate<StoredAthleteRecord> { row in
 			(anyKind || kinds.contains(row.kind))
 				&& (anyChat || row.chatId == chatId || row.chatId == nil)
-				&& (anyTurn || row.turn == turn)
+				&& (anyTurn || turns.contains(row.turn))
 				&& (anyDevice || row.deviceId == deviceId)
 		}
 		let context = ModelContext(container(for: query.scope.locality))
@@ -299,8 +304,8 @@ func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {
 	if let chatId = query.chatId, record.chatId != chatId {
 		return false
 	}
-	if let turn = query.turn, record.body.turn != turn {
-		return false
+	if let turns = query.turns {
+		guard let turn = record.body.turn, turns.contains(turn) else { return false }
 	}
 	return true
 }

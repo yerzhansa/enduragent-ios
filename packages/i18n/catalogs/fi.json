@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Aiemmat keskustelut eivät ole tilapäisesti käytettävissä.",
-    "loadEarlier": "Lataa aiempia viestejä",
     "loading": "Ladataan aiempia keskusteluja…",
     "pageFailure": "Tämä keskustelu ei ole tilapäisesti käytettävissä.",
     "readOnly": "Aiempia keskusteluja voi vain lukea.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "Keskusteluhistoria ei ole tilapäisesti käytettävissä.",
-      "loadEarlier": "Lataa aiemmat viestit",
       "retry": "Yritä historian latausta uudelleen"
     },
     "newConversation": {

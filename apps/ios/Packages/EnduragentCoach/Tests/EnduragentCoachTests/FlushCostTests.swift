@@ -18,7 +18,7 @@ extension SwiftDataSuites {
 				try await ledger.flushJobs(in: conversation)
 			}
 			#expect(jobs.count == fixture.settledJobCount + fixture.pendingJobCount)
-			#expect(jobs.filter { $0.settled }.count == fixture.settledJobCount)
+			#expect(jobs.filter { $0.phase != .pending }.count == fixture.settledJobCount)
 			#expect(log.reads.count - before.0 == 1)
 			#expect(
 				log.fetchedRecordCount - before.1 == 2 * fixture.settledJobCount

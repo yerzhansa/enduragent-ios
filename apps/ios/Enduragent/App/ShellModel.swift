@@ -227,6 +227,19 @@ final class ShellModel {
 		}
 	}
 
+	func loadArchivedConversation(_ ref: ArchivedConversationRef) async
+		-> ArchivedConversationContent
+	{
+		do {
+			guard let conversation = try await services.coach.archivedConversation(ref) else {
+				return .missing
+			}
+			return .loaded(conversation)
+		} catch {
+			return .unavailable
+		}
+	}
+
 	func loadCredits() async {
 		do {
 			let loaded = try await services.coach.credits.catalog()

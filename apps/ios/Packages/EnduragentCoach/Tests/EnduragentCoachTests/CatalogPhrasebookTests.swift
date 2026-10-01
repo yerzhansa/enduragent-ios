@@ -9,8 +9,8 @@ import Testing
 	}
 
 	@Test func catalogCountsMatchTheGenerator() {
-		#expect(Catalog.englishLeafCount == 2482)
-		#expect(Catalog.keyCount == 2522)
+		#expect(Catalog.englishLeafCount == 2480)
+		#expect(Catalog.keyCount == 2520)
 	}
 
 	@Test func connectPlaceholderStaysTheEnglishApiKeyLabel() {

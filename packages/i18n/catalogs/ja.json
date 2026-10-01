@@ -532,7 +532,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "過去の会話を一時的に利用できません。",
-    "loadEarlier": "以前のメッセージを読み込む",
     "loading": "過去の会話を読み込み中…",
     "pageFailure": "この会話を一時的に利用できません。",
     "readOnly": "過去の会話は閲覧専用です。",
@@ -976,7 +975,6 @@
     },
     "history": {
       "failure": "会話履歴を一時的に利用できません。",
-      "loadEarlier": "以前のメッセージを読み込む",
       "retry": "履歴を再読み込み"
     },
     "newConversation": {

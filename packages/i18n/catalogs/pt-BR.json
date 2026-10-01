@@ -15,7 +15,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "As conversas anteriores estão temporariamente indisponíveis.",
-    "loadEarlier": "Carregar mensagens anteriores",
     "loading": "Carregando conversas anteriores…",
     "pageFailure": "Esta conversa está temporariamente indisponível.",
     "readOnly": "As conversas anteriores são somente para leitura.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "O histórico da conversa está temporariamente indisponível.",
-      "loadEarlier": "Carregar mensagens anteriores",
       "retry": "Tentar carregar o histórico novamente"
     },
     "newConversation": {

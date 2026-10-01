@@ -1,21 +1,48 @@
 import EnduragentCoach
 import SwiftUI
 
+enum ArchivedConversationContent: Equatable {
+	case loading
+	case loaded(ArchivedConversation)
+	case missing
+	case unavailable
+}
+
 struct ArchivedConversationView: View {
 	var model: ShellModel
-	var conversation: ArchivedConversation
+	let ref: ArchivedConversationRef
+	@State private var content: ArchivedConversationContent = .loading
 
 	var body: some View {
+		Group {
+			switch content {
+			case .loading:
+				ProgressView()
+			case .loaded(let conversation):
+				archive(conversation)
+			case .missing:
+				Text(say(Catalog.archiveUnavailable))
+			case .unavailable:
+				Text(say(Catalog.archivePageFailure))
+			}
+		}
+		.navigationTitle(say(Catalog.archiveConversation))
+		.task(id: ref) {
+			content = await model.loadArchivedConversation(ref)
+		}
+	}
+
+	private func archive(_ conversation: ArchivedConversation) -> some View {
 		VStack(spacing: 0) {
 			List {
-				notes(after: nil)
+				notes(conversation.notes, after: nil)
 				ForEach(conversation.turns) { turn in
 					VStack(alignment: .leading, spacing: 8) {
 						if let athleteText = turn.athleteText {
 							Text(athleteText)
 						}
 						reply(turn.state)
-						notes(after: turn.id)
+						notes(conversation.notes, after: turn.id)
 					}
 					.frame(maxWidth: .infinity, alignment: .leading)
 					.listRowSeparator(.hidden)
@@ -28,11 +55,10 @@ struct ArchivedConversationView: View {
 				.padding()
 				.accessibilityIdentifier("archive.readOnly")
 		}
-		.navigationTitle(say(Catalog.archiveConversation))
 	}
 
-	private func notes(after turn: TurnID?) -> some View {
-		ForEach(conversation.notes.filter { $0.after == turn }) { note in
+	private func notes(_ notes: [TranscriptNote], after turn: TurnID?) -> some View {
+		ForEach(notes.filter { $0.after == turn }) { note in
 			Text(note.sentence(in: model.phrasebook))
 				.accessibilityIdentifier("archive.note")
 		}

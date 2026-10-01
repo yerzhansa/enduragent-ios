@@ -532,7 +532,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "历史对话暂时不可用。",
-    "loadEarlier": "加载更早的消息",
     "loading": "正在加载历史对话…",
     "pageFailure": "这段对话暂时不可用。",
     "readOnly": "历史对话仅供查看。",
@@ -976,7 +975,6 @@
     },
     "history": {
       "failure": "暂时无法查看对话历史。",
-      "loadEarlier": "加载更早的消息",
       "retry": "重试加载历史"
     },
     "newConversation": {

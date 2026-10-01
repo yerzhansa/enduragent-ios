@@ -156,7 +156,7 @@ public enum RecoveryAction: Sendable, Equatable {
 }
 
 extension CoachFailure {
-	package var isTerminal: Bool {
+	package var abandonsFlush: Bool {
 		switch self {
 		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed),
 			.model(.contextOverflow):
