@@ -198,7 +198,7 @@ public actor Coach {
 	{
 		let outcome = await vault.change(change) { await self.holdsBoundWork() }
 		for mailbox in mailboxes.values {
-			await mailbox.reviewChanged()
+			_ = await mailbox.reviewChanged()
 		}
 		return outcome
 	}

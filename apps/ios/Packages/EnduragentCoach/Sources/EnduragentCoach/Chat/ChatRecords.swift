@@ -127,21 +127,22 @@ final class ChatRecords {
 		guard let settled else { return }
 		await retrySettlements()
 		let record = await ledger.prepare(.synced(.turnSettled(settled)), stamp: stamp)
-		await saveSettlement(record)
+		await saveSettlement(record, mode: .initial)
 	}
 
 	func retrySettlements(isolation: isolated (any Actor)? = #isolation) async {
 		for record in pendingSettlements.values.sorted(by: { $0.ulid < $1.ulid }) {
-			await saveSettlement(record)
+			await saveSettlement(record, mode: .retry)
 		}
 	}
 
 	private func saveSettlement(
-		_ record: AthleteRecord, isolation: isolated (any Actor)? = #isolation
+		_ record: AthleteRecord, mode: Ledger.CommitMode,
+		isolation: isolated (any Actor)? = #isolation
 	) async {
 		guard case .synced(.turnSettled(let body)) = record.body else { return }
 		do {
-			try await ledger.commit(record)
+			try await ledger.commit(record, mode: mode)
 			pendingSettlements[record.ulid] = nil
 			apply([record])
 		} catch {
@@ -150,7 +151,7 @@ final class ChatRecords {
 			ledger.report(.settlementUnsaved(body.turn, error))
 			do {
 				try await ledger.commit(
-					record.replacingBody(.deviceLocal(.pendingSettlement(body))))
+					record.replacingBody(.deviceLocal(.pendingSettlement(body))), mode: mode)
 			} catch {
 				ledger.report(.settlementUnsaved(body.turn, error))
 			}

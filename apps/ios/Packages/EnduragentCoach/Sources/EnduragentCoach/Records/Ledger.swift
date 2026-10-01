@@ -1,6 +1,11 @@
 import Foundation
 
 package actor Ledger {
+	enum CommitMode {
+		case initial
+		case retry
+	}
+
 	package static let reportedSkipLimit = DiagnosticsLog.capacity / 2
 
 	private let log: any RecordLog
@@ -123,17 +128,19 @@ package actor Ledger {
 			body: body)
 	}
 
-	func commit(_ record: AthleteRecord) async throws(LedgerFailure) {
+	func commit(_ record: AthleteRecord, mode: CommitMode) async throws(LedgerFailure) {
 		try await preparedCommits.pass { () throws(LedgerFailure) in
-			let scope: RecordQuery.Scope
-			switch record.body {
-			case .synced(let body): scope = .synced([body.kind])
-			case .deviceLocal(let body): scope = .deviceLocal([body.kind])
-			case .legacy: throw LedgerFailure.rejectedBatch
+			if case .retry = mode {
+				let scope: RecordQuery.Scope
+				switch record.body {
+				case .synced(let body): scope = .synced([body.kind])
+				case .deviceLocal(let body): scope = .deviceLocal([body.kind])
+				case .legacy: throw LedgerFailure.rejectedBatch
+				}
+				let saved = try await read(
+					RecordQuery(scope: scope, chatId: record.chatId, turn: record.body.turn))
+				guard !saved.records.contains(where: { $0.ulid == record.ulid }) else { return }
 			}
-			let saved = try await read(
-				RecordQuery(scope: scope, chatId: record.chatId, turn: record.body.turn))
-			guard !saved.records.contains(where: { $0.ulid == record.ulid }) else { return }
 			try await append([record], locality: record.locality)
 		}
 	}
