@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import SwiftData
 import Testing
@@ -161,14 +162,17 @@ extension SwiftDataSuites {
 			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
 			let archived = try await coach.history()
 			#expect(archived.map(\.reason) == [.newConversation])
-			#expect(archived.first?.turns.compactMap(\.athleteText) == ["A?", "B?"])
+			let ref = try #require(archived.first?.id)
+			let opened = try #require(try await coach.archivedConversation(ref))
+			#expect(opened.turns.compactMap(\.athleteText) == ["A?", "B?"])
 			let skipped = coach.diagnostics.entries.compactMap { entry -> String? in
 				guard case .skippedRecord(.malformed(kind: "windowStart", let ulid)) = entry.event
 				else { return nil }
 				return ulid
 			}
 			#expect(Set(skipped) == [fixedUlid(19).rawValue, fixedUlid(39).rawValue])
-			transport.flushScript = [.finish(reason: .stop)]
+			transport.respond = ScriptedReply.sequence(
+				[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 			let saved = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 				\.unstampedContent)

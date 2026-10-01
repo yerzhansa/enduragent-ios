@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -12,11 +13,14 @@ import Testing
 		let transport = FakeModelTransport()
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
-		transport.flushScript = failures(retryAfter: retryAfter)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], for: .chat, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			failures(retryAfter: retryAfter), for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
-		transport.script = [.text("Second reply."), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Second reply."), .hang], for: .chat, otherwise: transport.respond)
 		let next = try #require(try await coach.send(draft("Next?"), to: .main).acceptedTurn)
 		let visibleReply = Task {
 			await coach.waitForLiveText(next)
@@ -41,7 +45,8 @@ import Testing
 		let store = InMemoryRecordLog()
 		let transport = FakeModelTransport()
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
-		transport.flushScript = failures(retryAfter: retryAfter)
+		transport.respond = ScriptedReply.sequence(
+			failures(retryAfter: retryAfter), for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let reset = Task {
 			let outcome = await coach.startNewConversation(in: .main)
@@ -77,7 +82,7 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.count == 1)
-		#expect(jobs.allSatisfy { !$0.settled && !$0.abandoned })
+		#expect(jobs.allSatisfy { $0.phase == .pending })
 		#expect(clock.held.isEmpty)
 	}
 }

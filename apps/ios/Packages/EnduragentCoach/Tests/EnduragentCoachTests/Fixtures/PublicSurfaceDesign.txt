@@ -37,6 +37,11 @@ ArchivedConversation.startedOn
 ArchivedConversation.turns
 ArchivedConversationRef
 ArchivedConversationRef.rawValue
+ArchivedConversationSummary
+ArchivedConversationSummary.firstQuestion
+ArchivedConversationSummary.id
+ArchivedConversationSummary.reason
+ArchivedConversationSummary.startedOn
 AthleteNotice
 AthleteNotice.action
 AthleteNotice.count
@@ -50,7 +55,6 @@ AthleteSelection.athlete
 AthleteSelection.keyOwner
 AttemptID
 AttemptID.ulid
-Catalog.accessErrorProviderConsentRequired
 ChangeSetID
 ChangeSetID.ulid
 ChangeSetRevision
@@ -86,8 +90,10 @@ Clock.sleep(for:)
 Clock.timeZone
 Clock.uptime
 Coach
+Coach.archivedConversation(_:)
 Coach.changeModelAccess(_:)
 Coach.changeTraining(_:)
+Coach.claimStarter(deviceCheck:)
 Coach.credits
 Coach.creditsIdentity()
 Coach.decide(_:in:)
@@ -105,7 +111,7 @@ Coach.send(_:to:)
 Coach.setLanguage(_:)
 Coach.setSession(_:)
 Coach.startNewConversation(in:)
-Coach.status()
+Coach.observeStatus()
 Coach.stop(_:)
 CoachFailure
 CoachFailure.local
@@ -294,7 +300,6 @@ ModelID.rawValue
 ModelService
 ModelService.openRouter(baseURL:)
 ModelService.openRouterAPI
-ModelService.scripted(_:)
 PreferenceWriteFailure
 PreferenceWriteFailure.notSaved
 ProviderConsent
@@ -472,7 +477,6 @@ TrainingFailure.credentialRejected
 TrainingFailure.requestRejected
 TrainingFailure.temporarilyUnavailable
 TrainingService
-TrainingService.fake(_:)
 TrainingService.intervalsREST
 TrainingStatus
 TrainingStatus.connected

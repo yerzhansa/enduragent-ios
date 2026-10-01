@@ -1,76 +1,105 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
-import Testing
 
 @testable import EnduragentCoach
 
-final class HeldClock: Clock, @unchecked Sendable {
-	private let base = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-	private let sleepers = Mutex<[Sleeper]>([])
+final class HeldClock: Clock {
+	private let calendar: FixedClock
+	private let state = Mutex(State())
 	private let onSleep: @Sendable (Duration) -> Void
 
-	init(onSleep: @escaping @Sendable (Duration) -> Void = { _ in }) {
+	private struct Sleeper {
+		let id: UUID
+		let duration: Duration
+		let deadline: Duration
+		let gate: Gate
+	}
+
+	private struct State {
+		var sleepers: [Sleeper] = []
+		var slept: [Duration] = []
+		var changed = Gate()
+	}
+
+	init(
+		calendar: FixedClock = FixedClock(
+			now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
+		onSleep: @escaping @Sendable (Duration) -> Void = { _ in }
+	) {
+		self.calendar = calendar
 		self.onSleep = onSleep
 	}
 
-	private struct Sleeper: Sendable {
-		let id: UUID
-		let duration: Duration
-		let wake: CheckedContinuation<Void, Never>
-	}
-
-	var now: Date { base.now }
-	var timeZone: TimeZone { base.timeZone }
-	var uptime: Duration { base.uptime }
-
-	var held: [Duration] {
-		sleepers.withLock { $0.map(\.duration) }
-	}
+	var now: Date { calendar.now }
+	var timeZone: TimeZone { calendar.timeZone }
+	var uptime: Duration { calendar.uptime }
+	var held: [Duration] { state.withLock { $0.sleepers.map(\.duration) } }
+	var slept: [Duration] { state.withLock { $0.slept } }
 
 	func sleep(for duration: Duration) async throws {
 		let id = UUID()
+		let gate = Gate()
 		await withTaskCancellationHandler {
-			await withCheckedContinuation { wake in
-				sleepers.withLock { $0.append(Sleeper(id: id, duration: duration, wake: wake)) }
-				onSleep(duration)
-				if Task.isCancelled {
-					resume(id)
-				}
+			let changed = state.withLock { state in
+				state.sleepers.append(
+					Sleeper(id: id, duration: duration, deadline: uptime + duration, gate: gate))
+				defer { state.changed = Gate() }
+				return state.changed
 			}
+			changed.release()
+			onSleep(duration)
+			if Task.isCancelled { cancel(id) }
+			await gate.wait()
 		} onCancel: {
-			resume(id)
+			cancel(id)
 		}
 		try Task.checkCancellation()
-		base.advance(by: duration.timeInterval)
+		state.withLock { $0.slept.append(duration) }
+	}
+
+	func advance(by duration: Duration) {
+		let released = state.withLock { state in
+			calendar.advance(by: duration.timeInterval)
+			let ready = state.sleepers.filter { $0.deadline <= uptime }
+			state.sleepers.removeAll { $0.deadline <= uptime }
+			defer { state.changed = Gate() }
+			return (ready, state.changed)
+		}
+		for sleeper in released.0 { sleeper.gate.release() }
+		released.1.release()
 	}
 
 	func release(_ duration: Duration) {
-		let woken = sleepers.withLock { current in
-			let matching = current.filter { $0.duration == duration }
-			current.removeAll { $0.duration == duration }
-			return matching
+		let released = state.withLock { state in
+			let ready = state.sleepers.filter { $0.duration == duration }
+			if let deadline = ready.map(\.deadline).max() {
+				calendar.advance(by: max(.zero, deadline - uptime).timeInterval)
+			}
+			state.sleepers.removeAll { $0.duration == duration }
+			defer { state.changed = Gate() }
+			return (ready, state.changed)
 		}
-		for sleeper in woken {
-			sleeper.wake.resume()
-		}
+		for sleeper in released.0 { sleeper.gate.release() }
+		released.1.release()
 	}
 
 	func waitUntilHeld(_ duration: Duration) async throws {
-		let deadline = ContinuousClock.now + .seconds(30)
-		while !held.contains(duration) {
-			guard ContinuousClock.now < deadline else {
-				Issue.record("HeldClock never held \(duration); held sleeps: \(held)")
-				throw CancellationError()
-			}
-			try await Task.sleep(for: .milliseconds(10))
+		while let changed = state.withLock({ state in
+			state.sleepers.contains { $0.duration == duration } ? nil : state.changed
+		}) {
+			try await changed.waitUnlessCancelled()
 		}
 	}
 
-	private func resume(_ id: UUID) {
-		let sleeper = sleepers.withLock { current -> Sleeper? in
-			guard let index = current.firstIndex(where: { $0.id == id }) else { return nil }
-			return current.remove(at: index)
+	private func cancel(_ id: UUID) {
+		let removed = state.withLock { state in
+			let sleeper = state.sleepers.first { $0.id == id }
+			state.sleepers.removeAll { $0.id == id }
+			defer { state.changed = Gate() }
+			return (sleeper, state.changed)
 		}
-		sleeper?.wake.resume()
+		removed.0?.gate.release()
+		removed.1.release()
 	}
 }

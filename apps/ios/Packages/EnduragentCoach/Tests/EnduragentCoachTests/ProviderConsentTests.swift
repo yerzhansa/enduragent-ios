@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import SwiftData
 import Testing
@@ -23,7 +24,8 @@ import Testing
 		#expect(refusal.notice.action == .tryAgain(turn))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		let answered = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(answered) == "Hello.")
@@ -34,9 +36,9 @@ import Testing
 	@Test func setupRequiresConsentBeforeItIsReady() async throws {
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(await coach.status().setup == .needsProviderConsent)
+		#expect(try await coach.observedStatus().setup == .needsProviderConsent)
 		try await coach.recordConsent()
-		#expect(await coach.status().setup == .ready)
+		#expect(try await coach.observedStatus().setup == .ready)
 	}
 
 	@Test func consentPayloadPreservesTheStoredDateFormat() throws {
@@ -53,21 +55,21 @@ import Testing
 	@Test func consentUsesTheCurrentVersionAndIsIndependentOfAccessMethod() async throws {
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(await coach.status().providerConsent == nil)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().providerConsent == nil)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		try await coach.recordConsent()
 		try await coach.recordConsent()
-		let consent = try #require(await coach.status().providerConsent)
+		let consent = try #require(try await coach.observedStatus().providerConsent)
 		#expect(consent.version == ProviderConsent.currentVersion)
 		#expect(consent.at == clock.now)
-		#expect(await coach.status().needsProviderConsent == false)
+		#expect(try await coach.observedStatus().needsProviderConsent == false)
 		let records = try await store.fetch(RecordQuery(scope: .deviceLocal([.providerConsent])))
 		#expect(records.records.count == 1)
 		#expect(try await store.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
 		let reopened = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
 		_ = await reopened.changeModelAccess(.useCredits)
-		#expect(await reopened.status().providerConsent == consent)
+		#expect(try await reopened.observedStatus().providerConsent == consent)
 	}
 
 	@Test(arguments: [0, ProviderConsent.currentVersion + 1])
@@ -82,13 +84,14 @@ import Testing
 			])
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Hello")) == "Hello.")
 	}
 
@@ -102,7 +105,7 @@ import Testing
 			])
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
@@ -114,7 +117,7 @@ import Testing
 		try log.failAppends(ofKind: "providerConsent")
 		let coach = await makeCoach(transport: transport, store: log, clock: clock, consent: false)
 		await #expect(throws: PreferenceWriteFailure.notSaved) { try await coach.recordConsent() }
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
@@ -123,11 +126,11 @@ import Testing
 
 	@Test func anUnreadableConsentRecordKeepsModelWorkBlocked() async throws {
 		let original = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await original.status().needsProviderConsent == false)
+		#expect(try await original.observedStatus().needsProviderConsent == false)
 		let coach = await makeCoach(
 			transport: transport, store: UnreadableConsentLog(inner: store), clock: clock,
 			consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
@@ -178,15 +181,16 @@ extension SwiftDataSuites {
 				storeURL: directory.appending(path: "synced.store")), local: local)
 		let transport = FakeModelTransport()
 		let coach = await makeCoach(transport: transport, store: log, consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
 		let reopened = await makeCoach(transport: transport, store: log, consent: false)
-		#expect(await reopened.status().needsProviderConsent == false)
-		transport.script = [.text("Hello."), .finish(reason: .stop)]
+		#expect(try await reopened.observedStatus().needsProviderConsent == false)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello."), .finish(reason: .stop)], otherwise: transport.respond)
 		#expect(replyText(try await reopened.sendAndSettle("Hello again")) == "Hello.")
 		#expect(transport.requestCount == 1)
 		let page = try await log.fetch(RecordQuery(scope: .deviceLocal([.providerConsent])))
@@ -202,16 +206,16 @@ extension SwiftDataSuites {
 		let directory = FileManager.default.temporaryDirectory.appending(
 			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
 		let device = DeviceID(rawValue: "consent-test-device")
-		let fixture = try RecordStore.fixture(directory: directory, deviceId: device)
+		let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: fixture.store.log, consent: false)
 		try await coach.recordConsent()
-		let consent = try #require(await coach.status().providerConsent)
-		let reopened = try RecordStore.fixture(directory: directory, deviceId: device)
+		let consent = try #require(try await coach.observedStatus().providerConsent)
+		let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 		let next = await makeCoach(
 			transport: FakeModelTransport(), store: reopened.store.log, consent: false)
-		#expect(await next.status().providerConsent == consent)
-		#expect(await next.status().needsProviderConsent == false)
+		#expect(try await next.observedStatus().providerConsent == consent)
+		#expect(try await next.observedStatus().needsProviderConsent == false)
 		#expect(
 			try await reopened.store.log.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
 	}

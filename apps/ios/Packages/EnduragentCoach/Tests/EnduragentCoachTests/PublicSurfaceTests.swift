@@ -1,3 +1,5 @@
+import EnduragentCoachFixtures
+
 #if os(macOS)
 	import Foundation
 	import Testing
@@ -8,10 +10,53 @@
 			let expected =
 				try symbols(in: "PublicSurfaceDesign")
 				+ symbols(in: "PublicSurfaceAppDependencies")
-			let actual = (root.children ?? []).flatMap { $0.publicNames() }.sorted()
+			let keys = try generatedCatalogKeys()
+			let actual = (root.children ?? []).flatMap {
+				$0.publicNames(ignoringCatalogKeys: keys)
+			}.sorted()
 			let changes = actual.difference(from: expected.sorted())
 			#expect(changes.isEmpty, "Public API declarations changed: \(Array(changes))")
 			try checkImplementationFolders()
+		}
+
+		@Test func catalogGrowthPreservesBoundaryGate() throws {
+			let catalog = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Catalog","printedName":"Catalog","declKind":"Enum","moduleName":"EnduragentCoach","children":[{"name":"newKey","printedName":"newKey","declKind":"Var","moduleName":"EnduragentCoach","static":true,"isLet":true}]}
+					""".utf8))
+			#expect(catalog.publicNames(ignoringCatalogKeys: ["newKey"]).isEmpty)
+		}
+
+		@Test func nonCatalogGrowthStillChangesTheBoundary() throws {
+			let coach = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Coach","printedName":"Coach","declKind":"Class","moduleName":"EnduragentCoach","children":[{"name":"probe","printedName":"probe()","declKind":"Func","moduleName":"EnduragentCoach"}]}
+					""".utf8))
+			let changes = coach.publicNames().difference(from: ["Coach"])
+			#expect(
+				Array(changes) == [
+					.insert(offset: 1, element: "Coach.probe()", associatedWith: nil)
+				])
+		}
+
+		@Test(arguments: [
+			#"{"name":"probe","printedName":"probe()","declKind":"Func","moduleName":"EnduragentCoach","static":true}"#,
+			#"{"name":"probe","printedName":"probe","declKind":"Var","moduleName":"EnduragentCoach","static":true}"#,
+			#"{"name":"probe","printedName":"probe","declKind":"Var","moduleName":"EnduragentCoach","static":true,"isLet":true}"#,
+		])
+		func handwrittenCatalogMembersStillChangeTheBoundary(_ member: String) throws {
+			let catalog = try JSONDecoder().decode(
+				APINode.self,
+				from: Data(
+					"""
+					{"name":"Catalog","printedName":"Catalog","declKind":"Enum","moduleName":"EnduragentCoach","children":[\(member)]}
+					""".utf8))
+			#expect(catalog.publicNames().count == 1)
+			#expect(catalog.publicNames().first?.hasPrefix("Catalog.probe") == true)
 		}
 
 		private func symbols(in resource: String) throws -> [String] {
@@ -20,6 +65,15 @@
 					forResource: resource, withExtension: "txt", subdirectory: "Fixtures"))
 			return try String(contentsOf: url, encoding: .utf8).split(separator: "\n").map(
 				String.init)
+		}
+
+		private func generatedCatalogKeys() throws -> Set<String> {
+			let package = URL(fileURLWithPath: #filePath)
+				.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+			let source = try String(
+				contentsOf: package.appendingPathComponent(
+					"Sources/EnduragentCoach/I18n/CatalogKey.generated.swift"), encoding: .utf8)
+			return Set(try publicDeclarations(in: source).filter { $0.kind == "let" }.map(\.name))
 		}
 
 		private func apiRoot() throws -> APINode {
@@ -173,15 +227,28 @@
 		let isInternal: Bool?
 		let isExternal: Bool?
 		let implicit: Bool?
+		let `static`: Bool?
+		let isLet: Bool?
 		let children: [APINode]?
 
-		func publicNames(in parent: String = "") -> [String] {
+		func publicNames(in parent: String = "", ignoringCatalogKeys keys: Set<String> = [])
+			-> [String]
+		{
 			guard declKind != nil, declKind != "Import", moduleName == "EnduragentCoach",
 				isInternal != true,
 				isExternal != true, implicit != true
 			else { return [] }
+			if parent == "Catalog", declKind == "Var", self.static == true, isLet == true,
+				keys.contains(name)
+			{
+				return []
+			}
 			let qualified = parent.isEmpty ? printedName : "\(parent).\(printedName)"
-			return [qualified] + (children ?? []).flatMap { $0.publicNames(in: qualified) }
+			let names = qualified == "Catalog" && declKind == "Enum" ? [] : [qualified]
+			return names
+				+ (children ?? []).flatMap {
+					$0.publicNames(in: qualified, ignoringCatalogKeys: keys)
+				}
 		}
 	}
 

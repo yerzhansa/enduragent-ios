@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -7,7 +8,8 @@ extension ChatMailboxTests {
 	@Test func remoteResetRefreshesExistingObserver() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))
@@ -48,7 +50,8 @@ extension ChatMailboxTests {
 	@Test func remoteTurnArrivingMidTurnReachesLiveConversation() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local partial"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
@@ -80,19 +83,23 @@ extension ChatMailboxTests {
 	@Test func importReadKeepsALocalSettlementCommittedWhileItWaits() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local partial"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
 		let observed = ImportSnapshots(await coach.observe(.main))
-		store.holdRead()
-		defer { store.releaseRead() }
+		let read = store.holdRead()
+		defer { read.release() }
 		let remote = try await importTurn(into: store)
-		try await waitUntil { store.readHeld }
-		try #require(store.readHeld)
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await read.waitUntilParked()
+			} != nil,
+			"Import read did not park within five seconds")
 		await coach.stop(.main)
-		store.releaseRead()
+		read.release()
 		try await waitUntil { observed.latest?.turns.contains { $0.id == remote } == true }
 		let state = try #require(observed.latest?.turns.first { $0.id == local }?.state)
 		#expect(isInterrupted(state))
@@ -109,7 +116,8 @@ extension ChatMailboxTests {
 		try faults.failAppends(ofKind: "replyObserved")
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
-		transport.script = [.text("Unsaved answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Unsaved answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
@@ -129,7 +137,8 @@ extension ChatMailboxTests {
 		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))
@@ -148,16 +157,22 @@ extension ChatMailboxTests {
 
 	@Test func importDuringTheInitialReadReachesTheExistingObserver() async throws {
 		let store = ImportingRecordLog()
-		store.holdRead()
-		defer { store.releaseRead() }
+		let read = store.holdRead()
+		defer { read.release() }
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		async let stream = coach.observe(.main)
-		try await waitUntil { store.readHeld }
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await read.waitUntilParked()
+			} != nil,
+			"Import read did not park within five seconds")
 		let remote = try await importTurn(into: store)
-		store.releaseRead()
-		let observed = ImportSnapshots(await stream)
-		try await waitUntil { observed.latest?.turns.map(\.id) == [remote] }
-		#expect(observed.latest?.turns.map(\.athleteText) == ["Remote question"])
+		read.release()
+		let observed = try #require(
+			try await firstSnapshot(in: await stream, within: .seconds(5)) {
+				$0.turns.map(\.id) == [remote]
+			})
+		#expect(observed.turns.map(\.athleteText) == ["Remote question"])
 	}
 
 	@Test func importSubscriptionStopsOnTermination() async throws {

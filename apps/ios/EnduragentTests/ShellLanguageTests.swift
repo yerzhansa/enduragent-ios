@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -69,6 +70,12 @@ final class ShellLanguageTests {
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
 		await model.appear()
+		#expect(await intervals.reads.calls.isEmpty)
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training { return summary.athleteName == "Ada" }
+			return false
+		}
 		#expect(await intervals.reads.calls == [.athlete, .wellness])
 		#expect(model.connected?.athleteName == "Ada")
 		#expect(model.status?.language == .fixed(.es))
@@ -77,16 +84,55 @@ final class ShellLanguageTests {
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
 	}
 
+	@Test func languageChoiceUpdatesWhileTrainingIsBlocked() async throws {
+		let intervals = SlowTrainingClient()
+		let model = try await returningModel(intervals: intervals)
+		await model.appear()
+		await intervals.reads.hold()
+		let refreshing = Task { await model.sceneChanged(.becameActive) }
+		await intervals.reads.waitUntilBlocked()
+		let choosing = Task { await model.chooseLanguage(.fixed(.es)) }
+		let deadline = ContinuousClock.now + .seconds(2)
+		while model.status?.language != .fixed(.es), ContinuousClock.now < deadline {
+			await Task.yield()
+		}
+		#expect(model.status?.language == .fixed(.es))
+		#expect(
+			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
+				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
+		await intervals.reads.release()
+		await refreshing.value
+		await choosing.value
+		#expect(model.status?.language == .fixed(.es))
+	}
+
+	@Test func activeLaunchRefreshesTrainingOnce() async throws {
+		let intervals = SlowTrainingClient()
+		let model = try await returningModel(intervals: intervals)
+		await model.appear()
+		await model.sceneChanged(.becameActive)
+		#expect(await intervals.reads.calls == [.athlete, .wellness])
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training { return summary.athleteName == "Ada" }
+			return false
+		}
+		#expect(model.connected?.athleteName == "Ada")
+		await model.sceneChanged(.enteredBackground)
+		await model.sceneChanged(.becameActive)
+		#expect(await intervals.reads.calls == [.athlete, .wellness, .athlete, .wellness])
+	}
+
 	@Test(arguments: [true, false])
 	func visibleReviewOutcomeChangesWithTheLanguagePreference(expires: Bool) async throws {
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_strength_workout",
-				arguments: #"{"date":"1998-06-14","name":"Core","description":"20 minutes"}"#),
-			.finish(reason: .toolCalls),
-			.text("Confirm to add the core workout."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments: #"{"date":"1998-06-14","name":"Core","description":"20 minutes"}"#),
+				.finish(reason: .toolCalls),
+				.text("Confirm to add the core workout."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let model = ShellModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		)
@@ -131,8 +177,18 @@ final class ShellLanguageTests {
 		}
 		#expect(visible() == expected(.en))
 		await model.chooseLanguage(.fixed(.es))
+		try await model.waitForStatus { $0.language == .fixed(.es) }
 		#expect(model.status?.language == .fixed(.es))
 		#expect(visible() == expected(.es))
+	}
+
+	private func returningModel(intervals: any IntervalsClient) async throws -> ShellModel {
+		await ShellModel(
+			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		).agreeAndStartChatting()
+		return ShellModel(
+			environment: AppEnvironment(
+				services: try services(intervals: intervals), language: .en, defaults: defaults))
 	}
 
 	private func services(

@@ -533,7 +533,6 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Las conversaciones anteriores no están disponibles temporalmente.",
-    "loadEarlier": "Cargar mensajes anteriores",
     "loading": "Cargando conversaciones anteriores…",
     "pageFailure": "Esta conversación no está disponible temporalmente.",
     "readOnly": "Las conversaciones anteriores son de solo lectura.",
@@ -984,7 +983,6 @@
     },
     "history": {
       "failure": "El historial de conversación no está disponible temporalmente.",
-      "loadEarlier": "Cargar mensajes anteriores",
       "retry": "Reintentar cargar el historial"
     },
     "newConversation": {

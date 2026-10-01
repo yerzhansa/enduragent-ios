@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -31,7 +32,9 @@ import Testing
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.text("Fresh modern reply"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Fresh modern reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Fresh modern question"), to: .main).acceptedTurn)
 		try #require(
@@ -225,8 +228,11 @@ import Testing
 				chat: .main, synced: [question, reply], device: store.deviceId)
 		}
 		let legacy = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)),
-			messages: [fixedUlid(4), fixedUlid(6)], process: nil, settled: true, consumedInV1: true)
+			id: FlushJobID(ulid: fixedUlid(7)), origin: .beforeUpgrade,
+			coverage: ConversationRows(conversation).coverage(
+				for: FlushJobID(ulid: fixedUlid(7)), messages: [fixedUlid(4), fixedUlid(6)],
+				origin: .beforeUpgrade, consumed: true),
+			phase: .settled(.consumedBeforeUpgrade), reset: nil)
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				reply.ulid
@@ -247,10 +253,13 @@ import Testing
 		)
 		let conversation = ConversationFold.fold(
 			chat: .main, synced: [question, reply], device: store.deviceId)
+		let origin: FlushJob.Origin =
+			legacyReceipt ? .beforeUpgrade : .process(ProcessID(ulid: fixedUlid(60)))
 		let receipt = FlushJob(
-			id: FlushJobID(ulid: fixedUlid(7)),
-			messages: [], process: legacyReceipt ? nil : ProcessID(ulid: fixedUlid(60)),
-			settled: true)
+			id: FlushJobID(ulid: fixedUlid(7)), origin: origin,
+			coverage: ConversationRows(conversation).coverage(
+				for: FlushJobID(ulid: fixedUlid(7)), messages: [], origin: origin),
+			phase: .settled(.recorded(.nothingToSave)), reset: nil)
 		#expect(
 			conversation.messagesSinceLastFlush([receipt], excluding: nil).map(\.ulid) == [
 				question.ulid, reply.ulid,

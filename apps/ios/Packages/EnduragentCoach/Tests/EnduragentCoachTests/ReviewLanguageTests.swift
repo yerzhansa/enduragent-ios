@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -33,19 +34,20 @@ extension FirstTurnTests {
 	@Test func reviewInstructionsFollowTheChosenLanguageWithoutChangingTheCalendarFormat()
 		async throws
 	{
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}},{"type":"ramp","duration":{"value":20,"unit":"minutes"},"power":{"kind":"percent_ftp","low":60,"high":80},"label":"Warmup ramp"},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}}"#
-			),
-			.finish(reason: .toolCalls), .text("Ready."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_workout",
+					arguments:
+						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}},{"type":"ramp","duration":{"value":20,"unit":"minutes"},"power":{"kind":"percent_ftp","low":60,"high":80},"label":"Warmup ramp"},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}}"#
+				),
+				.finish(reason: .toolCalls), .text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		let card = try #require(review.cards.first)
 		try await coach.setLanguage(.fixed(.fr))
-		let french = await coach.status().language.phrasebook(device: .en)
+		let french = try await coach.observedStatus().language.phrasebook(device: .en)
 		#expect(
 			card.lines(in: french) == [
 				"Échauffement", "- 10m 50%", "", "Bloc principal",

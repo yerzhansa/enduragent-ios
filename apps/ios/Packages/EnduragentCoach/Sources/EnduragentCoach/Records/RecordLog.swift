@@ -1,7 +1,6 @@
 import CoreData
 import Foundation
 import SwiftData
-import Synchronization
 
 package struct RecordQuery: Sendable, Equatable {
 	package enum Scope: Sendable, Equatable {
@@ -58,7 +57,7 @@ package struct RecordQuery: Sendable, Equatable {
 
 	package var scope: Scope
 	package var chatId: ChatID?
-	package var turn: TurnID?
+	package var turns: Set<TurnID>?
 	package var from: CivilDate?
 	package var to: CivilDate?
 	package var writtenBy: DeviceID?
@@ -73,10 +72,15 @@ package struct RecordQuery: Sendable, Equatable {
 	) {
 		self.scope = scope
 		self.chatId = chatId
-		self.turn = turn
+		self.turns = turn.map { [$0] }
 		self.from = from
 		self.to = to
 		self.writtenBy = writtenBy
+	}
+
+	package init(scope: Scope, chatId: ChatID, turns: Set<TurnID>) {
+		self.init(scope: scope, chatId: chatId)
+		self.turns = turns
 	}
 }
 
@@ -93,6 +97,12 @@ package struct RecordCursor: Sendable, Equatable {
 	package let ulid: ULID?
 	package let hlc: HybridLogicalClock?
 	package var skipped: [SkippedRow] = []
+
+	package init(ulid: ULID?, hlc: HybridLogicalClock?, skipped: [SkippedRow] = []) {
+		self.ulid = ulid
+		self.hlc = hlc
+		self.skipped = skipped
+	}
 }
 
 package struct RecordPage: Sendable, Equatable {
@@ -116,39 +126,6 @@ package struct RecordDecodeFailure: Error, Sendable, Equatable {
 
 	package init(reason: String) {
 		self.reason = reason
-	}
-}
-
-package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
-	package let deviceId: DeviceID
-	private let records = Mutex<[AthleteRecord]>([])
-
-	package init(deviceId: DeviceID = DeviceID()) {
-		self.deviceId = deviceId
-	}
-
-	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
-		records.withLock { $0.append(contentsOf: batch) }
-	}
-
-	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
-		let matching = records.withLock { $0.filter { recordMatches($0, query) } }
-		return RecordPage(records: matching.sorted { $0.hlc < $1.hlc }, skipped: [])
-	}
-
-	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
-	{
-		records.withLock { records in
-			let matching = records.lazy.filter {
-				$0.locality == locality && $0.deviceId == writtenBy
-			}
-			guard let hlc = matching.map(\.hlc).max() else { return nil }
-			return RecordCursor(ulid: matching.map(\.ulid).max(), hlc: hlc)
-		}
-	}
-
-	package var imports: AsyncStream<Void> {
-		AsyncStream { _ in }
 	}
 }
 
@@ -218,14 +195,14 @@ package struct SwiftDataRecordLog: RecordLog {
 		let anyKind = kinds.isEmpty
 		let anyChat = query.chatId == nil
 		let chatId = query.chatId?.rawValue ?? ""
-		let anyTurn = query.turn == nil
-		let turn = query.turn?.ulid.rawValue ?? ""
+		let anyTurn = query.turns == nil
+		let turns: [String?] = query.turns?.map { $0.ulid.rawValue } ?? []
 		let anyDevice = query.writtenBy == nil
 		let deviceId = query.writtenBy?.rawValue ?? ""
 		let predicate = #Predicate<StoredAthleteRecord> { row in
 			(anyKind || kinds.contains(row.kind))
 				&& (anyChat || row.chatId == chatId || row.chatId == nil)
-				&& (anyTurn || row.turn == turn)
+				&& (anyTurn || turns.contains(row.turn))
 				&& (anyDevice || row.deviceId == deviceId)
 		}
 		let context = ModelContext(container(for: query.scope.locality))
@@ -285,7 +262,7 @@ package struct ModelContainerHandle: Sendable {
 	let container: ModelContainer
 }
 
-func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {
+package func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {
 	guard query.scope.admits(record.body) else { return false }
 	if let writtenBy = query.writtenBy, record.deviceId != writtenBy {
 		return false
@@ -299,8 +276,8 @@ func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {
 	if let chatId = query.chatId, record.chatId != chatId {
 		return false
 	}
-	if let turn = query.turn, record.body.turn != turn {
-		return false
+	if let turns = query.turns {
+		guard let turn = record.body.turn, turns.contains(turn) else { return false }
 	}
 	return true
 }

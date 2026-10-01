@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -5,16 +6,17 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test func outcomeLineSurvivesRelaunch() async throws {
-		transport.script = [
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_workout",
+					arguments:
+						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
+				),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
 		let proposing = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
@@ -31,7 +33,7 @@ extension TurnRunnerTests {
 		#expect(shown.notes[proposing]?.first?.after == proposing)
 
 		try await coach.setLanguage(.fixed(.fr))
-		let french = await coach.status().language.phrasebook(device: .en)
+		let french = try await coach.observedStatus().language.phrasebook(device: .en)
 		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 1998-06-14."
 		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
 
@@ -46,17 +48,23 @@ extension TurnRunnerTests {
 		).records
 		#expect(synced.count == 1)
 
-		transport.script = [.text("Saturday went well."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+
+			[.text("Saturday went well."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await reopened.sendAndSettle("How did Saturday go")
 		let later = try #require(await reopened.currentSnapshot(.main))
 		#expect(later.turns.count == 2)
 		#expect(later.notes[proposing]?.first?.after == proposing)
 		#expect(await reopened.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(await reopened.currentSnapshot(.main)?.notes.isEmpty == true)
-		let archived = try #require(try await reopened.history().first)
+		let archivedRef = try #require(try await reopened.history().first?.id)
+		let archived = try #require(try await reopened.archivedConversation(archivedRef))
 		#expect(archived.notes.map { $0.sentence(in: french) } == [frenchDone])
 		#expect(archived.notes.first?.after == proposing)
-		let archivedAfterRelaunch = try #require(try await makeCoach().history().first)
+		let archivedAfterRelaunchRef = try #require(try await makeCoach().history().first?.id)
+		let archivedAfterRelaunch = try #require(
+			try await makeCoach().archivedConversation(archivedAfterRelaunchRef))
 		#expect(archivedAfterRelaunch.notes.map { $0.sentence(in: french) } == [frenchDone])
 	}
 
@@ -81,8 +89,11 @@ extension SingleProposalReviewsTests {
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let history = try await coach.history()
 		#expect(history.count == 2)
-		#expect(history.first?.turns.isEmpty == true)
-		#expect(history.first?.notes == shown.notes[nil])
-		#expect(try await self.coach().history().first?.notes == shown.notes[nil])
+		let ref = try #require(history.first?.id)
+		#expect(history.first?.firstQuestion == nil)
+		let archived = try #require(try await coach.archivedConversation(ref))
+		#expect(archived.turns.isEmpty)
+		#expect(archived.notes == shown.notes[nil])
+		#expect(try await self.coach().archivedConversation(ref)?.notes == shown.notes[nil])
 	}
 }

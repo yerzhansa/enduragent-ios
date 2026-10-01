@@ -7,13 +7,14 @@ package actor ChatMailbox {
 	private let flushes: FlushWork
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
-		chat: chatId, records: records, environment: environment, process: process)
+		chat: chatId, ledger: ledger, records: records, environment: environment, process: process)
 	private let work = MailboxQueue()
 	private let door = Turnstile()
 	private let lifetime: Coach.Lifetime
@@ -23,7 +24,7 @@ package actor ChatMailbox {
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
-	private let feed = SnapshotFeed()
+	private let feed = SnapshotFeed<ChatSnapshot>()
 	private var projection = TurnProjection()
 	private var latest: ChatSnapshot?
 	private var revision: UInt64 = 0
@@ -31,6 +32,7 @@ package actor ChatMailbox {
 	package init(
 		chatId: ChatID, ledger: Ledger, runner: TurnRunner, flushes: FlushWork,
 		clock: any Clock, coalescing: CoalescingPolicy,
+		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
 		environment: EnvironmentResolver, reviews: any WorkoutReviews,
 		process: ProcessID, host: any ExecutionHost, lifetime: Coach.Lifetime
 	) {
@@ -40,6 +42,7 @@ package actor ChatMailbox {
 		self.flushes = flushes
 		self.clock = clock
 		self.coalescing = coalescing
+		self.coalescingSleep = coalescingSleep
 		self.environment = environment
 		self.process = process
 		self.lifetime = lifetime
@@ -103,36 +106,28 @@ package actor ChatMailbox {
 		if let known = conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
-		let joining: TurnID?
-		if let window = work.window, slash == nil {
-			joining = window.turn
+		let turn: TurnID
+		let fragment: Int
+		if let window = work.window, slash == nil, let facts = conversation.turn(window.turn) {
+			turn = facts.turn
+			fragment = facts.fragments.count
 		} else {
 			closeWindow()
-			joining = nil
+			turn = TurnID(ulid: await ledger.nextULID())
+			fragment = 0
 		}
-		let minted = TurnID(ulid: await ledger.nextULID())
-		let writes = TurnLifecycle.writes(
-			for: .accept(draft, joining: joining, slash: slash),
-			on: joining.flatMap(conversation.turn),
-			chat: chatId,
-			device: ledger.deviceId,
-			mint: { minted }
-		)
-		guard case .success(.synced(let bodies)) = writes,
-			case .userMessage(let message)? = bodies.first
-		else {
-			guard let joining else { throw AcceptFailure.storageUnavailable }
-			return .accepted(joining)
-		}
+		let message = TurnLifecycle.accept(
+			draft, turn: turn, fragment: fragment, chat: chatId, slash: slash)
 		do {
-			try await records.commit(.synced(bodies), stamp: await stamp(for: message.turn))
+			let stamp = await stamp(for: turn)
+			records.apply(try await ledger.commit(synced: [.userMessage(message)], stamp: stamp))
 		} catch {
 			throw AcceptFailure.storageUnavailable
 		}
-		holdLease(.athlete)?.add(message.turn)
-		armWindow(for: message.turn)
+		holdLease(.athlete)?.add(turn)
+		armWindow(for: turn)
 		publish()
-		return .accepted(message.turn)
+		return .accepted(turn)
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
@@ -168,7 +163,10 @@ package actor ChatMailbox {
 			let unstarted = work.dropWaiting() + [work.closeWindow()].compactMap { $0 }
 			for turn in unstarted {
 				let stamp = await stamp(for: turn)
-				await records.settle(turn, .stopBeforeStart(stamp.attempt), stamp: stamp)
+				let stopped = TurnLifecycle.stopBeforeStart(
+					stamp.attempt, on: conversation.turn(turn), chat: chatId)
+				guard case .success(let settled) = stopped else { continue }
+				await records.settle(settled, stamp: stamp)
 			}
 			work.endInterruption()
 			leases.end { $0.interrupt() }
@@ -203,7 +201,10 @@ package actor ChatMailbox {
 		for dead in plan.interrupt {
 			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
 			await records.settle(
-				dead.turn, .recoverDeadClaim(dead.attempt, saved: dead.saved), stamp: stamp)
+				TurnLifecycle.settled(
+					dead.attempt,
+					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
+					on: conversation.turn(dead.turn), chat: chatId), stamp: stamp)
 		}
 		for job in plan.drain {
 			if work.add(job) { workAdded() }
@@ -236,11 +237,11 @@ package actor ChatMailbox {
 		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
 		Task {
 			do {
-				try await Task.sleep(for: coalescing.window)
+				try await coalescingSleep(coalescing.window)
 			} catch is CancellationError {
 				return
 			} catch {
-				fatalError("Task.sleep failed: \(error)")
+				fatalError("Coalescing sleep failed: \(error)")
 			}
 			await door.pass { closeWindow(ifArmed: armed) }
 		}
@@ -311,19 +312,15 @@ package actor ChatMailbox {
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		work.show(
-			RunningAttempt(
-				live: LiveAttempt(
-					turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)),
-				scope: scope))
+		let live = LiveAttempt(
+			turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
+		work.show(RunningAttempt(live: live, scope: scope))
 		publish()
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(
 				request, scope: scope,
-				committed: { records in
-					await self.apply(records)
-				}
+				committed: { records in await self.apply(records) }
 			) { progress in
 				lease.observe(progress)
 				await self.apply(progress, turn: turn, stamp: stamp)
@@ -335,7 +332,9 @@ package actor ChatMailbox {
 				cause: work.phase.cause ?? .athleteStopped,
 				saved: await scope.interrupt())
 		}
-		await records.settle(turn, .settle(attempt, settlement), stamp: stamp)
+		await records.settle(
+			TurnLifecycle.settled(attempt, settlement, on: conversation.turn(turn), chat: chatId),
+			stamp: stamp)
 		finish(turn, under: lease)
 		if !lifetime.terminating {
 			for job in await records.refreshJobs(from: flushes) {

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -5,10 +6,11 @@ import Testing
 struct SnapshotFeedTests {
 	@Test func slowSubscriberSeesNewestOnly() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let first = try #require(await coach.currentSnapshot(.main))
-		let feed = SnapshotFeed()
+		let feed = SnapshotFeed<ChatSnapshot>()
 		var slow = feed.subscribe(from: first).makeAsyncIterator()
 		var fast = feed.subscribe(from: first).makeAsyncIterator()
 		#expect(await fast.next() == first)

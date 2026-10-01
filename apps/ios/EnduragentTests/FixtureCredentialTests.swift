@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -19,6 +20,8 @@ extension FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.notice?.key == Catalog.coachErrorIntervalsTransient }
 		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
@@ -65,9 +68,16 @@ extension FixtureLaunchTests {
 	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
 		let model = model(services)
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada Kovač"
+			}
+			return false
+		}
 		#expect(model.didConnect)
 		#expect(model.connectKey.isEmpty)
 		#expect(model.connectError == nil)
@@ -83,9 +93,16 @@ extension FixtureLaunchTests {
 
 	@Test func continuingConnectClearsAnyNewKey() async throws {
 		let model = model(try services())
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada Kovač"
+			}
+			return false
+		}
 		try #require(model.didConnect)
 		model.connectKey = "edited-after-connect"
 		model.continueConnect()
@@ -96,6 +113,7 @@ extension FixtureLaunchTests {
 
 	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
 		let model = model(try services())
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "   "
 		await model.connect()
@@ -136,6 +154,7 @@ extension FixtureLaunchTests {
 		await model.sceneChanged(.enteredBackground)
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.setup == .ready }
 		#expect(model.status?.setup == .ready)
 		#expect(model.status?.notice == nil)
 	}

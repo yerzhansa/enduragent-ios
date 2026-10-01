@@ -38,6 +38,8 @@ final class ShellModel {
 	private let initialLanguage: LanguagePreference
 	private var starterLoaded = false
 	private var observation: Task<Void, Never>?
+	private var statusStart: Task<Void, Never>?
+	private var statusObservation: Task<Void, Never>?
 
 	init(environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic) {
 		self.initialLanguage = initialLanguage
@@ -49,6 +51,12 @@ final class ShellModel {
 			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
+	}
+
+	isolated deinit {
+		observation?.cancel()
+		statusStart?.cancel()
+		statusObservation?.cancel()
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
@@ -101,7 +109,6 @@ final class ShellModel {
 			connectKey = ""
 			connectError = nil
 			didConnect = true
-			await refreshStatus()
 		case .kept, .disconnected, .refused, .failedPreviousKept:
 			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
@@ -126,63 +133,64 @@ final class ShellModel {
 		starterLoaded = true
 		do {
 			let token = try await environment.deviceCheck.token()
-			let outcome = try await services.coach.credits.grant(deviceCheck: token)
-			switch outcome {
-			case .minted(let credits):
-				starterLine = phrasebook.say(
-					Catalog.creditsBalance, count: credits.units,
-					["formattedCount": String(credits.units)])
-			case .toppedUp(let added):
-				starterLine = phrasebook.say(
-					Catalog.onboardingStarterAdded, count: added.units,
-					["formattedCount": String(added.units)])
-			case .alreadyGranted:
-				starterLine =
-					try await existingBalanceLine()
-					?? phrasebook.say(Catalog.onboardingStarterAlreadyGranted, [:])
-			}
+			let notice = await services.coach.claimStarter(deviceCheck: token)
+			starterLine = notice.sentence(in: phrasebook)
 		} catch {
 			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
 		}
 		starterResolved = true
 	}
 
-	private func existingBalanceLine() async throws -> String? {
-		guard try await services.coach.creditsIdentity().hasCreditsKey else { return nil }
-		let scale = try await services.coach.credits.catalog().scale
-		let balance = try await services.coach.credits.balance(scale: scale)
-		return phrasebook.say(
-			Catalog.creditsBalance, count: balance.credits.units,
-			["formattedCount": String(balance.credits.units)])
-	}
-
 	func appear() async {
-		await refreshStatus()
+		let coach = services.coach
+		let starting =
+			statusStart
+			?? Task { [weak self] in
+				var snapshots = await coach.observeStatus().makeAsyncIterator()
+				guard let first = await snapshots.next(), let self, !Task.isCancelled else {
+					return
+				}
+				self.receiveStatus(first)
+				self.statusObservation = Task { [weak self] in
+					while let snapshot = await snapshots.next(isolation: MainActor.shared) {
+						guard let self, !Task.isCancelled else { return }
+						self.receiveStatus(snapshot)
+					}
+				}
+			}
+		statusStart = starting
+		await starting.value
 	}
 
-	@discardableResult
-	func refreshStatus() async -> CoachStatus {
-		let current = await services.coach.status()
+	private func receiveStatus(_ current: CoachStatus) {
 		status = current
-		if route == .loading || route == .chat {
-			route = current.setup == .needsProviderConsent ? .onboarding(.consent) : .chat
-			if route == .chat {
+		updateRoute()
+	}
+
+	private func updateRoute() {
+		guard let status else { return }
+		switch route {
+		case .loading, .chat, .onboarding(.consent), .onboarding(.consentDeferred):
+			if status.needsProviderConsent {
+				if route == .loading || route == .chat { route = .onboarding(.consent) }
+			} else {
+				route = .chat
 				observeChat()
 			}
+		case .onboarding(.notice), .onboarding(.connect), .onboarding(.starter):
+			break
 		}
-		return current
 	}
 
 	func sceneChanged(_ event: AppLifecycleEvent) async {
 		await lifecycle.forward(event)
-		guard event == .becameActive, route == .chat else { return }
-		await refreshStatus()
 	}
 
 	func startChatting() async {
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
 		route = .loading
-		await refreshStatus()
+		await appear()
+		updateRoute()
 	}
 
 	func acceptConsent() async {
@@ -227,11 +235,24 @@ final class ShellModel {
 		}
 	}
 
+	func loadArchivedConversation(_ ref: ArchivedConversationRef) async
+		-> ArchivedConversationContent
+	{
+		do {
+			guard let conversation = try await services.coach.archivedConversation(ref) else {
+				return .missing
+			}
+			return .loaded(conversation)
+		} catch {
+			return .unavailable
+		}
+	}
+
 	func loadCredits() async {
 		do {
 			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
-			let held = try await services.coach.credits.balance(scale: loaded.scale)
+			let held = try await services.coach.credits.balance()
 			balance = held.credits
 			creditsNotice = nil
 			packPrices = try await services.packPrices(loaded.packs.map(\.id))
@@ -310,12 +331,10 @@ final class ShellModel {
 				languageNotSaved = preference
 			}
 		}
-		await refreshStatus()
 	}
 
 	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
 		try await services.coach.setSession(settings)
-		await refreshStatus()
 	}
 
 	func decide(_ decision: ReviewDecision) async {

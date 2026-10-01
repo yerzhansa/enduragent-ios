@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -9,7 +10,7 @@ import Testing
 
 	@Test func aSendAfterTheTapRunsWhileStopWaitsOnTheRunningReply() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
@@ -17,8 +18,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Three."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Three."), .finish(reason: .stop)])
 		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(150))
 		store.release()
@@ -32,11 +33,16 @@ import Testing
 
 	@Test func aSendMidAdmissionAtTheTapIsStoppedBeforeItStarts() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		let requested = Gate()
+		transport.respond = { _ in
+			requested.release()
+			return ScriptedReply([.hang])
+		}
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
+		await requested.wait()
 		async let sent = coach.send(draft("two"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
@@ -47,12 +53,13 @@ import Testing
 		let second = try #require(try await sent.acceptedTurn)
 		#expect(await coach.interruption(of: running) == .athleteStopped)
 		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
-		#expect(transport.requests.isEmpty)
+		#expect(transport.requestCount == 1)
 	}
 
 	@Test func aStopWhileTheOnlySendIsMidAdmissionStopsItBeforeItStarts() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Ran."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 1)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		async let sent = coach.send(draft("only"), to: .main)
@@ -70,19 +77,21 @@ import Testing
 
 	@Test func aTryAgainAfterTheTapRunsOnceTheStopSettles() async throws {
 		let transport = FakeModelTransport()
-		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 500)), count: 3), for: .chat,
+			otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Recovered."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Recovered."), .finish(reason: .stop)])
 		async let retried: Void = coach.retry(failed, in: .main)
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
@@ -98,7 +107,7 @@ import Testing
 
 	@Test func aTryAgainOfTheStoppedReplyWhileTheStopWaitsRunsAfterIt() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
@@ -108,8 +117,8 @@ import Testing
 		await reached.next()
 		async let stopped: Void = coach.stop(.main)
 		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Again."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Again."), .finish(reason: .stop)])
 		async let retried: Void = coach.retry(running, in: .main)
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
@@ -126,12 +135,16 @@ import Testing
 
 	@Test func aTryAgainMidAdmissionAtTheTapIsStoppedBeforeItStarts() async throws {
 		let transport = FakeModelTransport()
-		transport.script = Array(repeating: .fail(.http(status: 500)), count: 3)
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 500)), count: 3), for: .chat,
+			otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(try #require(await coach.settledState(of: failed, in: .main)).retryable)
-		transport.script = [.text("Should not run."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Should not run."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let before = transport.requests.count
 		async let sent = coach.send(draft("two"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
@@ -152,7 +165,7 @@ import Testing
 
 	@Test func anExpiryDuringAStopReturnsOnlyAfterTheStopSettles() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let host = KeepingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
@@ -181,7 +194,7 @@ import Testing
 
 	@Test func anExpiryDuringAStopJoinsItAndASendAfterTheTapStillRuns() async throws {
 		let transport = FakeModelTransport()
-		transport.hangUntilCancelled = true
+		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let host = KeepingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
@@ -190,8 +203,8 @@ import Testing
 		async let stopped: Void = coach.stop(.main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
-		transport.hangUntilCancelled = false
-		transport.script = [.text("Three."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Three."), .finish(reason: .stop)])
 		async let sent = coach.send(draft("three"), to: .main)
 		try await Task.sleep(for: .milliseconds(50))
 		async let expired: Void = host.expire(lease: 0, .systemExpired)
@@ -209,7 +222,8 @@ import Testing
 
 	@Test func theFirstInterruptionNamesTheCause() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Yes, keep "), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Yes, keep "), .hang], otherwise: transport.respond)
 		let store = HeldAppendLog(
 			inner: InMemoryRecordLog(), holding: "replyObserved", occurrence: 1)
 		let host = KeepingHost()
@@ -229,10 +243,10 @@ import Testing
 
 	@Test func aTurnStillCollectingKeepsTheLeaseAfterAnEarlierTurnSettles() async throws {
 		let transport = FakeModelTransport()
-		transport.requestDelay = .milliseconds(200)
-		transport.script = [
-			.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("First."), .finish(reason: .stop), .text("Second."), .finish(reason: .stop),
+			], requestDelay: .milliseconds(200), otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock,

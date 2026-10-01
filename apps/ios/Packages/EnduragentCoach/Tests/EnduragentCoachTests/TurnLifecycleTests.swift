@@ -12,13 +12,13 @@ import Testing
 	let process = ProcessID(ulid: fixedUlid(60))
 	let earlierProcess = ProcessID(ulid: fixedUlid(59))
 
-	func accepted(on device: DeviceID? = nil, draft: DraftID = DraftID()) -> TurnFacts {
+	func accepted(on device: DeviceID? = nil) -> TurnFacts {
 		var facts = TurnFacts(turn: minted, chat: .main, origin: device ?? phoneA)
 		facts.fragments.append(
 			Fragment(
 				ulid: fixedUlid(1),
 				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: phoneA),
-				civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: draft,
+				civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: DraftID(),
 				text: "hi", slash: nil))
 		return facts
 	}
@@ -44,147 +44,101 @@ import Testing
 		return facts
 	}
 
-	func writes(_ event: TurnEvent, on facts: TurnFacts?) -> Result<TurnWrites, TurnRefusal> {
-		TurnLifecycle.writes(for: event, on: facts, chat: .main, device: phoneA, mint: { minted })
+	func claim(_ attempt: AttemptID, on facts: TurnFacts?) -> Result<TurnClaimBody, TurnRefusal> {
+		TurnLifecycle.claim(
+			attempt, on: facts, chat: .main, device: phoneA, process: process,
+			lease: .continuedProcessing)
 	}
 
-	@Test func acceptOfANewDraftWritesFragmentZeroOfAMintedTurn() throws {
+	@Test func acceptOfANewDraftWritesFragmentZeroOfAMintedTurn() {
 		let draft = Draft(id: DraftID(), text: "hi")
-		let result = try writes(.accept(draft, joining: nil, slash: .review), on: nil).get()
+		let result = TurnLifecycle.accept(
+			draft, turn: minted, fragment: 0, chat: .main, slash: .review)
 		#expect(
 			result
-				== .synced([
-					.userMessage(
-						UserMessageBody(
-							chatId: .main, turn: minted, fragment: 0, draft: draft.id,
-							athleteText: "hi", slash: .review))
-				]))
+				== UserMessageBody(
+					chatId: .main, turn: minted, fragment: 0, draft: draft.id,
+					athleteText: "hi", slash: .review))
 	}
 
-	@Test func acceptInsideTheWindowJoinsAsTheNextFragment() throws {
+	@Test func acceptInsideTheWindowJoinsAsTheNextFragment() {
 		let draft = Draft(id: DraftID(), text: "and Friday?")
-		let result = try writes(.accept(draft, joining: minted, slash: nil), on: accepted()).get()
+		let facts = accepted()
+		let result = TurnLifecycle.accept(
+			draft, turn: facts.turn, fragment: facts.fragments.count, chat: .main, slash: nil)
 		#expect(
 			result
-				== .synced([
-					.userMessage(
-						UserMessageBody(
-							chatId: .main, turn: minted, fragment: 1, draft: draft.id,
-							athleteText: "and Friday?", slash: nil))
-				]))
-	}
-
-	@Test func acceptOfAKnownDraftWritesNothing() throws {
-		let draft = Draft(id: DraftID(), text: "hi")
-		let result = try writes(
-			.accept(draft, joining: nil, slash: nil), on: accepted(draft: draft.id)
-		).get()
-		#expect(result == .nothing)
+				== UserMessageBody(
+					chatId: .main, turn: minted, fragment: 1, draft: draft.id,
+					athleteText: "and Friday?", slash: nil))
 	}
 
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
-		let result = try writes(
-			.claim(attempt, process: process, lease: .continuedProcessing), on: accepted()
-		).get()
 		#expect(
-			result
-				== .local([
-					.turnClaim(
-						TurnClaimBody(
-							chatId: .main, turn: minted, attempt: attempt, process: process,
-							lease: .continuedProcessing))
-				]
-				))
+			try claim(attempt, on: accepted()).get()
+				== TurnClaimBody(
+					chatId: .main, turn: minted, attempt: attempt, process: process,
+					lease: .continuedProcessing))
 	}
 
 	@Test func claimOfATurnAcceptedElsewhereIsRefused() {
-		#expect(
-			writes(
-				.claim(attempt, process: process, lease: .continuedProcessing),
-				on: accepted(on: phoneB))
-				== .failure(.acceptedElsewhere))
-		#expect(
-			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: nil)
-				== .failure(.unknownTurn))
+		#expect(claim(attempt, on: accepted(on: phoneB)) == .failure(.acceptedElsewhere))
+		#expect(claim(attempt, on: nil) == .failure(.unknownTurn))
+	}
+
+	@Test func anOpenClaimMustFinishOrRecoverBeforeAnotherClaim() {
+		#expect(claim(attempt, on: claimed()) == .failure(.attemptInFlight))
+		#expect(claim(attempt, on: claimed(by: earlierProcess)) == .failure(.unrecovered))
 	}
 
 	@Test func claimIsAcceptedOnlyAfterAStopOrFailureThatSavedNothing() throws {
 		let replied = settled(.replied(.model("done"), lineage: nil))
-		#expect(
-			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: replied)
-				== .failure(.alreadyAnswered))
+		#expect(claim(attempt, on: replied) == .failure(.alreadyAnswered))
 		let failed = settled(.failed(.model(.providerDown(.outage)), saved: .none))
 		let retry = AttemptID(ulid: fixedUlid(9))
-		#expect(
-			try writes(.claim(retry, process: process, lease: .continuedProcessing), on: failed)
-				.get()
-				== .local([
-					.turnClaim(
-						TurnClaimBody(
-							chatId: .main, turn: minted, attempt: retry, process: process,
-							lease: .continuedProcessing)
-					)
-				]))
+		let expected = TurnClaimBody(
+			chatId: .main, turn: minted, attempt: retry, process: process,
+			lease: .continuedProcessing)
+		#expect(try claim(retry, on: failed).get() == expected)
 		let interrupted = settled(.interrupted(partial: "so", cause: .athleteStopped, saved: .none))
-		#expect(
-			try writes(
-				.claim(retry, process: process, lease: .continuedProcessing), on: interrupted
-			).get()
-				== .local([
-					.turnClaim(
-						TurnClaimBody(
-							chatId: .main, turn: minted, attempt: retry, process: process,
-							lease: .continuedProcessing)
-					)
-				]))
+		#expect(try claim(retry, on: interrupted).get() == expected)
 		let saved = WriteSummary(
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let failedAfterSave = settled(
 			.failed(.model(.budgetExhausted(.generateCalls)), saved: saved))
-		#expect(
-			writes(
-				.claim(retry, process: process, lease: .continuedProcessing), on: failedAfterSave)
-				== .failure(.alreadyAnswered))
+		#expect(claim(retry, on: failedAfterSave) == .failure(.alreadyAnswered))
 		let stoppedAfterSave = settled(
 			.interrupted(partial: "so", cause: .athleteStopped, saved: saved))
-		#expect(
-			writes(
-				.claim(retry, process: process, lease: .continuedProcessing), on: stoppedAfterSave)
-				== .failure(.alreadyAnswered))
+		#expect(claim(retry, on: stoppedAfterSave) == .failure(.alreadyAnswered))
 	}
 
-	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() throws {
+	@Test func settleWritesOneSyncedSettlementForTheClaimedAttempt() {
 		let settlement = Settlement.replied(.model("done"), lineage: nil)
-		let result = try writes(.settle(attempt, settlement), on: claimed()).get()
+		let result = TurnLifecycle.settled(attempt, settlement, on: claimed(), chat: .main)
 		#expect(
 			result
-				== .synced([
-					.turnSettled(
-						TurnSettledBody(
-							chatId: .main, turn: minted, attempt: attempt, settlement: settlement))
-				]))
+				== TurnSettledBody(
+					chatId: .main, turn: minted, attempt: attempt, settlement: settlement))
 	}
 
-	@Test func settleOfSettledAttemptWritesNothing() throws {
+	@Test func settleOfSettledAttemptWritesNothing() {
 		let facts = settled(.replied(.model("done"), lineage: nil))
-		let again = try writes(
-			.settle(attempt, .failed(.model(.contextOverflow), saved: .none)), on: facts
-		).get()
-		#expect(again == .nothing)
+		let again = TurnLifecycle.settled(
+			attempt, .failed(.model(.contextOverflow), saved: .none), on: facts, chat: .main)
+		#expect(again == nil)
 	}
 
 	@Test func stopBeforeStartSettlesAnUnclaimedTurnAsInterrupted() throws {
-		let result = try writes(.stopBeforeStart(attempt), on: accepted()).get()
+		let result = try TurnLifecycle.stopBeforeStart(attempt, on: accepted(), chat: .main).get()
 		#expect(
 			result
-				== .synced([
-					.turnSettled(
-						TurnSettledBody(
-							chatId: .main, turn: minted, attempt: attempt,
-							settlement: .interrupted(
-								partial: "", cause: .stoppedBeforeStart, saved: .none)))
-				]))
-		#expect(writes(.stopBeforeStart(attempt), on: claimed()) == .failure(.attemptInFlight))
+				== TurnSettledBody(
+					chatId: .main, turn: minted, attempt: attempt,
+					settlement: .interrupted(partial: "", cause: .stoppedBeforeStart, saved: .none))
+		)
+		#expect(
+			TurnLifecycle.stopBeforeStart(attempt, on: claimed(), chat: .main)
+				== .failure(.attemptInFlight))
 	}
 
 	@Test func stateOfUnclaimedTurnAfterRelaunchIsAwaitingRestart() {
@@ -213,9 +167,7 @@ import Testing
 			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(state == .accepted(.beforeUpgrade))
 		#expect(!state.retryable)
-		#expect(
-			writes(.claim(attempt, process: process, lease: .continuedProcessing), on: legacy)
-				== .failure(.alreadyAnswered))
+		#expect(claim(attempt, on: legacy) == .failure(.alreadyAnswered))
 	}
 
 	@Test func stateOfATurnAcceptedElsewhereIsOnOtherDevice() {

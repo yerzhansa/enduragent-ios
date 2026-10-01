@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -95,7 +96,11 @@ import Testing
 				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == 2)
-		#expect(jobs.allSatisfy { $0.process == nil && $0.saved && !$0.consumedInV1 })
+		#expect(
+			jobs.allSatisfy {
+				$0.origin == .beforeUpgrade
+					&& $0.phase == .settled(.recorded(.saved(sections: 1, events: 0)))
+			})
 		#expect(
 			Array(store.reads.dropFirst(before)) == (allChats ? [] : [ConversationFold.flushScope]))
 	}
@@ -165,7 +170,7 @@ import Testing
 				try await ledger.flushJobs(in: conversation)
 			}
 		#expect(jobs.count == 1)
-		#expect(jobs.allSatisfy { !$0.settled })
+		#expect(jobs.allSatisfy { $0.phase == .pending })
 		#expect(
 			Array(store.reads.dropFirst(before))
 				== (allChats ? [] : [ConversationFold.flushScope]))
@@ -196,6 +201,6 @@ import Testing
 			], stamp: testStamp())
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.count == 2)
-		#expect(jobs.allSatisfy { !$0.settled })
+		#expect(jobs.allSatisfy { $0.phase == .pending })
 	}
 }

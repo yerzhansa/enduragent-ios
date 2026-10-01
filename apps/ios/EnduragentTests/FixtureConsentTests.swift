@@ -16,15 +16,17 @@ extension FixtureLaunchTests {
 		#expect(model.route == .onboarding(.consent))
 		#expect(model.chat == nil)
 		#expect(model.status?.setup == .needsProviderConsent)
-		#expect(await services.coach.status().providerConsent == nil)
+		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		model.declineConsent()
 		#expect(model.route == .onboarding(.consentDeferred))
-		#expect(await services.coach.status().providerConsent == nil)
+		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
+		try await model.waitForStatus { !$0.needsProviderConsent }
 		#expect(model.route == .chat)
 		#expect(
-			await services.coach.status().providerConsent?.version == ProviderConsent.currentVersion
+			try await services.coach.observedStatus().providerConsent?.version
+				== ProviderConsent.currentVersion
 		)
 		#expect(model.status?.setup == .ready)
 		try await observed(model)
@@ -50,7 +52,7 @@ extension FixtureLaunchTests {
 			environment: AppEnvironment(services: next, language: language, defaults: nextDefaults))
 		await reopened.appear()
 		#expect(reopened.route == .onboarding(.consent))
-		#expect(await next.coach.status().providerConsent == nil)
+		#expect(try await next.coach.observedStatus().providerConsent == nil)
 		#expect(next.fixtureTransport?.requestCount == 0)
 	}
 
@@ -66,13 +68,15 @@ extension FixtureLaunchTests {
 		await model.acceptConsent()
 		#expect(model.route == .onboarding(deferred ? .consentDeferred : .consent))
 		#expect(model.consentNotSaved)
-		#expect(await services.coach.status().providerConsent == nil)
+		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
+		try await model.waitForStatus { !$0.needsProviderConsent }
 		#expect(model.route == .chat)
 		#expect(!model.consentNotSaved)
 		#expect(
-			await services.coach.status().providerConsent?.version == ProviderConsent.currentVersion
+			try await services.coach.observedStatus().providerConsent?.version
+				== ProviderConsent.currentVersion
 		)
 		#expect(services.fixtureTransport?.requestCount == 0)
 	}
@@ -91,14 +95,16 @@ extension FixtureLaunchTests {
 		#expect(!model.starterResolved)
 		#expect(model.starterLine == nil)
 		#expect(model.chat == nil)
-		#expect(await services.coach.status().providerConsent == nil)
+		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
+		try await model.waitForStatus { !$0.needsProviderConsent }
 		#expect(model.route == .chat)
 		#expect(!model.starterResolved)
 		#expect(model.starterLine == nil)
 		#expect(
-			await services.coach.status().providerConsent?.version == ProviderConsent.currentVersion
+			try await services.coach.observedStatus().providerConsent?.version
+				== ProviderConsent.currentVersion
 		)
 		#expect(services.fixtureTransport?.requestCount == 0)
 	}
@@ -126,7 +132,7 @@ extension FixtureLaunchTests {
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
-		#expect(await services.coach.status().providerConsent == nil)
+		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		await model.acceptConsent()
 		try await observed(model)
 		let kept = try #require(model.chat?.turns.first)

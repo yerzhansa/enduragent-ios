@@ -396,3 +396,28 @@ test('accepts checked app conversions and string parsing', () => {
   });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const name of ['FakeModelTransport', 'FixedClock', 'InMemoryRecordLog', 'FixtureSecretStoreBacking', 'FixtureRecordStore', 'ScriptedRequest']) {
+  test(`rejects ${name} in production coach sources`, () => {
+    const result = run({
+      'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Example.swift': `public final class ${name} {}`,
+    });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /fixtures-target-only/);
+  });
+}
+
+test('accepts doubles in the fixtures target', () => {
+  const result = run({
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Example.swift': 'public final class FakeModelTransport {}',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('rejects the fixtures import outside DEBUG', () => {
+  const result = run({
+    'apps/ios/Enduragent/App/Example.swift': 'import EnduragentCoachFixtures',
+  });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /fixture-launch-debug-only/);
+});

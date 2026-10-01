@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -8,10 +9,10 @@ extension ChatMailboxTests {
 	@Test func streamingPublishesLiveTextOnly() async throws {
 		let clock = CountingSnapshotClock(base: clock)
 		let pacing = HeldClock()
-		let transport = FakeModelTransport()
-		transport.clock = pacing
-		transport.deltaDelay = .milliseconds(1)
-		transport.script = [.text("Thursday "), .text("is on."), .finish(reason: .stop)]
+		let transport = FakeModelTransport(clock: pacing)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday "), .text("is on."), .finish(reason: .stop)],
+			deltaDelay: .milliseconds(1), otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		_ = try await seedHistory(store, clock: clock, turns: 3, tokens: 60)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
@@ -26,7 +27,7 @@ extension ChatMailboxTests {
 		for text in ["Thursday ", "Thursday is on."] {
 			try await pacing.waitUntilHeld(.milliseconds(1))
 			let readsBeforeDelta = clock.readCount
-			pacing.release(.milliseconds(1))
+			pacing.advance(by: .milliseconds(1))
 			var streamed: ChatSnapshot?
 			while let snapshot = await snapshots.next() {
 				if case .processing? = snapshot.turns.last?.state,
@@ -55,7 +56,7 @@ extension ChatMailboxTests {
 			previous = snapshot
 		}
 		try await pacing.waitUntilHeld(.milliseconds(1))
-		pacing.release(.milliseconds(1))
+		pacing.advance(by: .milliseconds(1))
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(Array(previous.turns.dropLast()) == history.turns)

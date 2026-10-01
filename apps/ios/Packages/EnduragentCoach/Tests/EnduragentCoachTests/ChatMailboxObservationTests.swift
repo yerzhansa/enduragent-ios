@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -26,15 +27,15 @@ extension ChatMailboxTests {
 
 	@Test func slowSubscriberSeesStopSettlement() async throws {
 		let pacing = HeldClock()
-		let transport = FakeModelTransport()
-		transport.clock = pacing
-		transport.deltaDelay = .milliseconds(1)
-		transport.script = [.text("Thursday "), .text("is on."), .finish(reason: .stop)]
+		let transport = FakeModelTransport(clock: pacing)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday "), .text("is on."), .finish(reason: .stop)],
+			deltaDelay: .milliseconds(1), otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		var slow = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		try await pacing.waitUntilHeld(.milliseconds(1))
-		pacing.release(.milliseconds(1))
+		pacing.advance(by: .milliseconds(1))
 		await coach.waitForLiveText(turn)
 		try await pacing.waitUntilHeld(.milliseconds(1))
 		await coach.stop(.main)
@@ -52,7 +53,8 @@ extension ChatMailboxTests {
 
 	@Test func slowSubscriberSeesFailureSettlement() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [.text("Thursday "), .fail(.http(status: 401))]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday "), .fail(.http(status: 401))], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		var slow = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)

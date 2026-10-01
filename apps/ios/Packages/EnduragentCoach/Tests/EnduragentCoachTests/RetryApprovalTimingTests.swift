@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,9 +9,11 @@ extension RetryLadderTests {
 	func approvalDuringRetryModelRequestSettlesSavedWork(proposesAgain: Bool) async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ (proposesAgain ? workoutProposal : []) + [.text("Second."), .finish(reason: .stop)]
+				+ (proposesAgain ? workoutProposal : []) + [
+					.text("Second."), .finish(reason: .stop),
+				], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
@@ -31,9 +34,10 @@ extension RetryLadderTests {
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -55,10 +59,10 @@ extension RetryLadderTests {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let overflow = ScriptedFailure.http(
 			status: 400, body: #"{"error":{"message":"maximum context length exceeded"}}"#)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(overflow)] + workoutProposal + [
 				.text("Second."), .finish(reason: .stop),
-			]
+			], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, request in
 			request.charge == .memoryFlush || request.charge == .compaction ? .seconds(17) : nil
 		}
@@ -76,9 +80,10 @@ extension RetryLadderTests {
 	@Test func approvalThenStopDuringBackoffWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -94,9 +99,10 @@ extension RetryLadderTests {
 	@Test func stopThenApprovalDuringBackoffWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -112,7 +118,8 @@ extension RetryLadderTests {
 	@Test func approvalAfterTerminalFailureWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script = workoutProposal + [.fail(.http(status: 401))]
+		transport.respond = ScriptedReply.sequence(
+			workoutProposal + [.fail(.http(status: 401))], otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
 		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
@@ -127,9 +134,10 @@ extension RetryLadderTests {
 	@Test func approvalBeforeRateLimitSettlesSavedWork() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-			+ workoutProposal + [.text("Second."), .finish(reason: .stop)]
+				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(19) : nil
 		}

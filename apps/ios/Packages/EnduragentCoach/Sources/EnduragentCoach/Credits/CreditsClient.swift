@@ -84,12 +84,12 @@ public enum CreditsFailure: Error, Sendable, Equatable {
 public struct CreditsService: Sendable {
 	package let makeClient: @Sendable (CredentialVault) -> any CreditsClient
 
-	public static func worker(_ base: URL) -> CreditsService {
-		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
+	package init(makeClient: @escaping @Sendable (CredentialVault) -> any CreditsClient) {
+		self.makeClient = makeClient
 	}
 
-	public static func fake(_ client: FakeCreditsClient) -> CreditsService {
-		CreditsService { _ in client }
+	public static func worker(_ base: URL) -> CreditsService {
+		CreditsService { PhoneCreditsClient(vault: $0, workerBase: base) }
 	}
 }
 
@@ -98,7 +98,7 @@ public protocol CreditsClient: Sendable {
 	func claim(signedTransaction: String, appAccountToken: UUID) async throws -> ClaimOutcome
 	func recover(signedTransaction: String) async throws -> Recovery
 	func catalog() async throws -> PackCatalog
-	func balance(scale: CreditScale) async throws -> CreditBalance
+	func balance() async throws -> CreditBalance
 }
 
 public enum ClaimSettlement: Sendable, Equatable {
@@ -226,10 +226,11 @@ package struct PhoneCreditsClient: CreditsClient {
 		)
 	}
 
-	package func balance(scale: CreditScale) async throws -> CreditBalance {
+	package func balance() async throws -> CreditBalance {
 		guard let key = try await vault.creditsKey()?.value else {
 			throw CreditsFailure.noAthleteKey
 		}
+		let scale = try await catalog().scale
 		let (status, data) = try await send(
 			url: openRouterBase.appending(path: "key"),
 			method: "GET",

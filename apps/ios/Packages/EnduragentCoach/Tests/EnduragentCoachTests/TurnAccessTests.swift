@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -36,7 +37,9 @@ extension TurnRunnerTests {
 			CreditsAccount(
 				appAccountToken: UUID(),
 				key: "sk-or-stored-after-launch"))
-		transport.script = [.text("Hello, Ada."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Hello, Ada."), .finish(reason: .stop)], otherwise: transport.respond
+		)
 		try await coach.retry(turn, in: .main)
 		let answered = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(answered) == "Hello, Ada.")
@@ -60,8 +63,11 @@ extension TurnRunnerTests {
 	func modelWorkRequiresProviderConsent(method: AccessMethod) async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
-		transport.summaryScript = [.text("Earlier training."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier training."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
 		let secrets = keyedSecrets()
 		if method == .openRouterAccount {
 			try secrets.storeOpenRouterAccountKey("sk-or-test-account")
@@ -69,7 +75,7 @@ extension TurnRunnerTests {
 		}
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)
-		#expect(await coach.status().needsProviderConsent)
+		#expect(try await coach.observedStatus().needsProviderConsent)
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
@@ -81,7 +87,7 @@ extension TurnRunnerTests {
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled]))).records.isEmpty
 		)
 		try await coach.recordConsent()
-		#expect(await coach.status().needsProviderConsent == false)
+		#expect(try await coach.observedStatus().needsProviderConsent == false)
 		let reply = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(reply) == "Thursday is on.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
@@ -113,7 +119,8 @@ extension TurnRunnerTests {
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushSettled]))).records.isEmpty
 		)
 		try await coach.recordConsent()
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(sent(.memoryFlush, by: transport).count == 1)
