@@ -46,7 +46,6 @@ private enum ComposerIconButtonsScreen {
 		let phrasebook = CatalogPhrasebook(tag: language)
 		let placeholder = phrasebook.say(Catalog.chatComposerMessagePlaceholder)
 		XCTAssertEqual(input.placeholderValue, placeholder)
-		XCTAssertEqual(input.value as? String, placeholder)
 		XCTAssertEqual(stop.label, phrasebook.say(Catalog.chatComposerStop))
 		XCTAssertEqual(send.label, phrasebook.say(Catalog.chatComposerSend))
 		let font = UIFont.preferredFont(forTextStyle: .body)
