@@ -53,21 +53,28 @@ final class MailboxExecution {
 		await resets.outcome(of: reset)
 	}
 
-	func armWindow(
-		for turn: TurnID, policy: CoalescingPolicy,
+	func schedule(
+		_ turn: TurnID, policy: CoalescingPolicy,
 		sleep: @escaping @Sendable (Duration) async throws -> Void, on mailbox: isolated ChatMailbox
 	) {
+		if let cause = work.phase.cause {
+			if cause != .appTerminating, work.window?.turn != turn {
+				add(turn, origin: .send, on: mailbox)
+			}
+			return
+		}
+		guard !lifecycle.terminating else { return }
 		coalescingTask?.cancel()
 		let armed = work.arm(turn, at: clock.now, for: policy.window)
-		coalescingTask = Task {
+		coalescingTask = Task { [weak mailbox] in
 			do {
 				try await sleep(policy.window)
+				try await mailbox?.windowEnded(armed)
 			} catch is CancellationError {
 				return
 			} catch {
 				fatalError("Coalescing sleep failed: \(error)")
 			}
-			await mailbox.windowEnded(armed)
 		}
 	}
 

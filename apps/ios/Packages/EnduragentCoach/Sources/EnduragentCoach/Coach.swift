@@ -94,11 +94,16 @@ public actor Coach {
 		case .becameActive:
 			await recoverOnce()
 		case .willTerminate:
+			let observation = importObservation
+			let refresh = pendingImportRefresh
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
-			for mailbox in mailboxes.values {
+			await observation?.value
+			await refresh?.value
+			_ = await recovery?.value
+			for mailbox in await openedMailboxes() {
 				await mailbox.cancelInFlight(cause: .appTerminating)
 			}
 		case .enteredBackground:
@@ -146,22 +151,6 @@ public actor Coach {
 		return outcome
 	}
 
-	public func changeModelAccess(_ change: ModelAccessChange) async
-		-> CredentialOutcome<AccessSummary>
-	{
-		let outcome = await vault.change(change)
-		await publishStatus()
-		return outcome
-	}
-
-	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
-		try await vault.creditsIdentity()
-	}
-
-	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
-		try await vault.prepareCreditsAccount()
-	}
-
 	#if DEBUG
 		public func replaceAppAccountToken() async throws(AccessUnavailable) {
 			try await vault.replaceAppAccountToken()
@@ -175,6 +164,7 @@ public actor Coach {
 	#endif
 
 	private func recoverOnce() async {
+		guard !lifetime.terminating else { return }
 		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
 		recovery = recovering
 		if await !recovering.value, recovery == recovering {
@@ -252,6 +242,7 @@ public actor Coach {
 	{
 		observeImports()
 		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
+		guard !lifetime.terminating else { throw .unavailable }
 		_ = snapshotFeed(for: chatId)
 		let opening =
 			mailboxSlots[chatId]?.opening

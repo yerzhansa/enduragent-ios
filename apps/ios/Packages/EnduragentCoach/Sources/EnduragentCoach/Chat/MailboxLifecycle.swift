@@ -28,11 +28,11 @@ final class MailboxLifecycle {
 			else { return }
 		}
 		if owned { work.beginInterruption(cause) }
-		await work.cancelCoalescing()
-		if terminating { _ = work.closeWindow() }
 		mailbox.publish()
 		work.phase.running?.task.cancel()
 		let settle = {
+			await work.cancelCoalescing()
+			if terminating { _ = work.closeWindow() }
 			await work.phase.running?.task.value
 			if !terminating {
 				let unstarted = work.dropWaiting() + [work.closeWindow()].compactMap { $0 }
@@ -41,11 +41,7 @@ final class MailboxLifecycle {
 			self.leases.end { $0.interrupt() }
 			if owned { work.endInterruption() }
 		}
-		if terminating {
-			await settle()
-		} else {
-			await door.pass(settle)
-		}
+		await door.pass(settle)
 		mailbox.publish()
 		if !terminating { work.drainIfIdle(on: mailbox) }
 	}

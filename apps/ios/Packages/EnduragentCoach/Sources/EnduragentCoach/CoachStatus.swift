@@ -1,6 +1,22 @@
 import Foundation
 
 extension Coach {
+	public func changeModelAccess(_ change: ModelAccessChange) async
+		-> CredentialOutcome<AccessSummary>
+	{
+		let outcome = await vault.change(change)
+		await publishStatus()
+		return outcome
+	}
+
+	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
+		try await vault.creditsIdentity()
+	}
+
+	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
+		try await vault.prepareCreditsAccount()
+	}
+
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
 		observeImports()
 		return await statusChanges.pass {
