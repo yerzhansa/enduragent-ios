@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -55,15 +56,19 @@ func makeCoach(
 	secrets: any SecretStore = keyedSecrets(),
 	host: any ExecutionHost = ImmediateExecutionHost(),
 	deviceLanguage: LanguageTag = .en,
+	watchdogClock: HeldClock = HeldClock(),
+	coalescingClock: HeldClock? = nil,
 	consent: Bool = true
 ) async -> Coach {
+	var ports = CoachPorts(
+		records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
+		training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+		host: host, clock: clock)
+	ports.watchdogSleep = watchdogClock.sleep
+	if let coalescingClock { ports.coalescingSleep = coalescingClock.sleep }
 	let coach = Coach(
 		sport: .cycling,
-		ports: CoachPorts(
-			records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
-			training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
-			host: host, clock: clock
-		),
+		ports: ports,
 		builtInModel: testModel,
 		deviceLanguage: deviceLanguage,
 		coalescing: coalescing
@@ -120,15 +125,13 @@ extension Coach {
 	}
 
 	func waitForState(
-		of turn: TurnID, within limit: Duration = .seconds(5), until matches: (TurnState?) -> Bool
+		of turn: TurnID, within limit: Duration = .seconds(5),
+		until matches: @escaping @Sendable (TurnState?) -> Bool
 	) async throws -> TurnState? {
-		let deadline = ContinuousClock.now + limit
-		while ContinuousClock.now < deadline {
-			let current = await state(of: turn)
-			if matches(current) { return current }
-			try await Task.sleep(for: .milliseconds(10))
+		let snapshot = await firstSnapshot(in: await observe(.main), within: limit) { snapshot in
+			matches(snapshot.turns.first { $0.id == turn }?.state)
 		}
-		return await state(of: turn)
+		return snapshot?.turns.first { $0.id == turn }?.state
 	}
 
 	func dieWithoutWriting(to log: FaultInjectingRecordLog) async throws {
@@ -149,7 +152,8 @@ func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) as
 			Issue.record("condition never held")
 			return
 		}
-		try await Task.sleep(for: .milliseconds(10))
+		try Task.checkCancellation()
+		await Task.yield()
 	}
 }
 
@@ -175,7 +179,8 @@ func waitForRecords(
 			Issue.record("\(scope) never reached \(count) records")
 			return
 		}
-		try await Task.sleep(for: .milliseconds(10))
+		try Task.checkCancellation()
+		await Task.yield()
 	}
 }
 
@@ -287,15 +292,13 @@ func startNewConversation(on coach: Coach) -> PendingOutcome {
 }
 
 func outcome(_ pending: PendingOutcome) async throws -> ResetOutcome? {
-	let deadline = ContinuousClock.now + .seconds(10)
-	while pending.landed == nil, ContinuousClock.now < deadline {
-		try await Task.sleep(for: .milliseconds(10))
-	}
+	try await pending.ready.waitUnlessCancelled()
 	return pending.landed
 }
 
 final class PendingOutcome: Sendable {
 	private let outcome = Mutex<ResetOutcome?>(nil)
+	let ready = Gate()
 
 	var landed: ResetOutcome? {
 		outcome.withLock { $0 }
@@ -303,6 +306,7 @@ final class PendingOutcome: Sendable {
 
 	func land(_ value: ResetOutcome) {
 		outcome.withLock { $0 = value }
+		ready.release()
 	}
 }
 

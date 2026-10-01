@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -47,10 +48,13 @@ extension CreditsClientTests {
 		let interrupted = InterruptedSecretStoreBacking(base: memory)
 		let deviceA = ICloudKeychainStore(backing: interrupted)
 		let client = try makeClient(secrets: deviceA)
-		_ = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"data":{"limit_remaining":1}}"#)
+		_ = try await CreditsURLStub.withHandler({ request in
+			if request.url?.path == "/catalog" {
+				return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
+			}
+			return .json(200, #"{"data":{"limit_remaining":1}}"#)
 		}) {
-			try await client.balance(scale: CreditScale(creditsPerUsd: 100))
+			try await client.balance()
 		}
 		interrupted.stop(after: writes)
 		do {

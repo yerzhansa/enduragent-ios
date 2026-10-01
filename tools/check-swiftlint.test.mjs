@@ -8,6 +8,33 @@ import test from 'node:test';
 
 const config = fileURLToPath(new URL('../.swiftlint.yml', import.meta.url));
 
+test('starter_policy_in_package rejects direct grants in app code', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ios-starter-policy-check-'));
+  try {
+    for (const [path, rejected] of [
+      ['apps/ios/Enduragent/App/Probe.swift', true],
+      ['apps/ios/Enduragent/Credits/ProbeDebugView.swift', true],
+      ['apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Probe.swift', false],
+    ]) {
+      const file = join(root, path);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, [
+        'let outcome = try await coach.credits.grant(deviceCheck: token)',
+        'let outcome = try await credits . grant ( deviceCheck : token)',
+        'let notice = await coach.claimStarter(deviceCheck: token)',
+      ].join('\n') + '\n');
+      const result = spawnSync('swiftlint', [
+        'lint', '--config', config, '--quiet', '--no-cache', '--reporter', 'json', file,
+      ], { encoding: 'utf8' });
+      assert.ok(result.status === 0 || result.status === 2, result.stdout + result.stderr);
+      const violations = JSON.parse(result.stdout).filter(row => row.rule_id === 'starter_policy_in_package');
+      assert.deepEqual(violations.map(row => row.line).sort((a, b) => a - b), rejected ? [1, 2] : [], path);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('optional_try accepts only a standalone conditional container decode probe', () => {
   const root = mkdtempSync(join(tmpdir(), 'ios-swiftlint-check-'));
   try {

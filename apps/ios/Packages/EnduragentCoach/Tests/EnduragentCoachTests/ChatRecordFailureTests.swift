@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -10,8 +11,8 @@ import Testing
 		let store = InMemoryRecordLog()
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		let answer = "Keep this exact reply.\nTwo rides, 3 h 10 min."
-		let transport = FakeModelTransport { text, _ in
-			if text == "What did my week look like?" {
+		let transport = FakeModelTransport { request in
+			if request.text == "What did my week look like?" {
 				faults.failSyncedAppends = !lostAcknowledgment
 				faults.failSyncedAcknowledgments = lostAcknowledgment
 				return ScriptedReply([.text(answer), .finish(reason: .stop)])
@@ -63,9 +64,9 @@ import Testing
 		let store = InMemoryRecordLog()
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		try faults.failAppends(ofKind: "pendingSettlement")
-		let transport = FakeModelTransport { text, _ in
-			if text == "First question" { faults.failSyncedAppends = true }
-			return ScriptedReply([.text("Reply to " + text), .finish(reason: .stop)])
+		let transport = FakeModelTransport { request in
+			if request.text == "First question" { faults.failSyncedAppends = true }
+			return ScriptedReply([.text("Reply to " + request.text), .finish(reason: .stop)])
 		}
 		let coach = await makeCoach(transport: transport, store: faults)
 		let turn = try #require(
@@ -91,6 +92,13 @@ import Testing
 
 extension FirstTurnTests {
 	@Test func failedReviewRefreshKeepsTheCardUntilASuccessfulRead() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: faults, clock: clock)

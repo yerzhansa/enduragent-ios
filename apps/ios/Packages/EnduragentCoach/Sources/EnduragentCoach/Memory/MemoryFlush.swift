@@ -64,7 +64,8 @@ extension Memory {
 		var counters = RetryCounters.zero
 		var attempts = 1
 		var remainingRetryWait = MemoryFlushPolicy.retryWaitAllowance
-		let modelCall = ModelCall(transport: run.transport, diagnostics: run.diagnostics)
+		let modelCall = ModelCall(
+			transport: run.transport, diagnostics: run.diagnostics, watchdogSleep: watchdogSleep)
 		while steps < MemoryFlushPolicy.maxSteps {
 			try Task.checkCancellation()
 			try await scope?.checkDeadline(uptime: clock.uptime)

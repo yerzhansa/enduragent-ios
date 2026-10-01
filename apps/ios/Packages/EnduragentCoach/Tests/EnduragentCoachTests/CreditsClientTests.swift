@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
@@ -201,10 +202,13 @@ struct CreditsClientTests {
 			CreditsAccount(appAccountToken: UUID(), key: "sk-or-test-0000"))
 		let client = try makeClient(secrets: secrets)
 		await #expect(throws: CreditsFailure.unexpectedResponse(status: 200)) {
-			try await CreditsURLStub.withHandler({ _ in
-				.json(200, "{\"data\":{\"limit_remaining\":\(remaining)}}")
+			try await CreditsURLStub.withHandler({ request in
+				if request.url?.path == "/catalog" {
+					return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
+				}
+				return .json(200, "{\"data\":{\"limit_remaining\":\(remaining)}}")
 			}) {
-				try await client.balance(scale: CreditScale(creditsPerUsd: 100))
+				try await client.balance()
 			}
 		}
 	}
@@ -216,23 +220,28 @@ struct CreditsClientTests {
 			CreditsAccount(
 				appAccountToken: UUID(), key: "sk-or-test-0000"))
 		let client = try makeClient(secrets: secrets)
-		let scale = CreditScale(creditsPerUsd: 100)
-		let floored = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"data":{"limit_remaining":1.999}}"#)
+		let floored = try await CreditsURLStub.withHandler({ request in
+			if request.url?.path == "/catalog" {
+				return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
+			}
+			return .json(200, #"{"data":{"limit_remaining":1.999}}"#)
 		}) {
-			try await client.balance(scale: scale)
+			try await client.balance()
 		}
 		#expect(floored == CreditBalance(credits: Credits(units: 199)))
-		let nilRemaining = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"data":{"limit_remaining":null}}"#)
+		let nilRemaining = try await CreditsURLStub.withHandler({ request in
+			if request.url?.path == "/catalog" {
+				return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
+			}
+			return .json(200, #"{"data":{"limit_remaining":null}}"#)
 		}) {
-			try await client.balance(scale: scale)
+			try await client.balance()
 		}
 		#expect(nilRemaining == CreditBalance(credits: Credits(units: 0)))
 		let empty = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let missing = try makeClient(secrets: empty)
 		do {
-			_ = try await missing.balance(scale: scale)
+			_ = try await missing.balance()
 			Issue.record("expected noAthleteKey")
 		} catch let failure as CreditsFailure {
 			#expect(failure == .noAthleteKey)

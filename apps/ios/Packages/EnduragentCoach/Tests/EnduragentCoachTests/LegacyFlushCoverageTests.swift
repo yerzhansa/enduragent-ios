@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -31,7 +32,9 @@ import Testing
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		transport.script = [.text("Fresh modern reply"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Fresh modern reply"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Fresh modern question"), to: .main).acceptedTurn)
 		try #require(

@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -26,8 +27,9 @@ import Testing
 	}
 
 	@Test func aReplyStreamingAtTheTapIsSavedWithItsQuestion() async throws {
-		transport.script = [.text("Two"), .text(" rides."), .finish(reason: .stop)]
-		transport.deltaDelay = .milliseconds(300)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Two"), .text(" rides."), .finish(reason: .stop)], for: .chat,
+			deltaDelay: .milliseconds(300), otherwise: transport.respond)
 		let coach = await coach()
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
@@ -43,8 +45,9 @@ import Testing
 	}
 
 	@Test func aTurnStillInTheJoinWindowAtTheTapIsSavedWithItsReply() async throws {
-		transport.script = [.text("Two rides."), .finish(reason: .stop)]
-		transport.requestDelay = .milliseconds(400)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Two rides."), .finish(reason: .stop)], requestDelay: .milliseconds(400),
+			otherwise: transport.respond)
 		let coach = await coach(window: .seconds(1))
 		_ = try #require(try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		let resetting = startNewConversation(on: coach)
@@ -57,9 +60,11 @@ import Testing
 	@Test func aSendAheadInTheDoorBelongsToTheArchivedConversation() async throws {
 		let held = HeldAppendLog(inner: store, holding: "userMessage", occurrence: 2)
 		let coach = await coach(over: held)
-		transport.script = [.text("Two rides."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.script = [.text("Noted."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		let sending = Task { try await coach.send(draft("Remember Saturdays"), to: .main) }
 		var reached = held.reached.makeAsyncIterator()
 		await reached.next()
@@ -100,7 +105,8 @@ import Testing
 								chatId: .main, job: FlushJobID(ulid: job),
 								settlement: .saved(sections: 1, events: 0))))),
 			])
-		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
+		transport.respond = ScriptedReply.sequence(
+			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
 		#expect(await coach().startNewConversation(in: .main) == .started(memory: .saved))
 		let window = try #require(flushed().first)
 		#expect(!window.contains("Question 0"))
@@ -133,11 +139,12 @@ import Testing
 	@Test func aSoftFlushAfterResetIncludesTheNextConversationsQuestion() async throws {
 		let (coach, user) = try await resetAcrossLateReply()
 		let reply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
-		transport.script = [
-			.text("Noted again."), .finish(reason: .stop),
-			.text(reply), .finish(reason: .stop),
-			.text("Ready."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Noted again."), .finish(reason: .stop),
+				.text(reply), .finish(reason: .stop),
+				.text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Remember Sundays too")
 		_ = try await coach.sendAndSettle("Plan the week")
 		_ = try await coach.sendAndSettle("Anything else?")
@@ -175,10 +182,11 @@ import Testing
 	private func resetAcrossLateReply() async throws -> (Coach, ULID) {
 		let held = HeldAppendLog(inner: store, holding: "replyObserved", occurrence: 1)
 		let coach = await coach(over: held)
-		transport.script = [
-			.text("Two rides."), .finish(reason: .stop),
-			.text("Noted."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Two rides."), .finish(reason: .stop),
+				.text("Noted."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		var reached = held.reached.makeAsyncIterator()

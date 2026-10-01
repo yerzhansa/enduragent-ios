@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -11,7 +12,9 @@ extension TurnEvidenceTests {
 					"https://intervals.icu/api/v1/athlete/i424242/wellness?oldest=1998-06-07&newest=1998-06-13"
 			))
 		intervals.loadFailure = URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])
-		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		_ = try await coach.sendAndSettle("How is my form?")

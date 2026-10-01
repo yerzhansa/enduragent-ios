@@ -3,10 +3,15 @@ import Foundation
 package struct Memory: Sendable {
 	private let ledger: Ledger
 	let clock: any Clock
+	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
-	package init(ledger: Ledger, clock: any Clock) {
+	package init(
+		ledger: Ledger, clock: any Clock,
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
+	) {
 		self.ledger = ledger
 		self.clock = clock
+		self.watchdogSleep = watchdogSleep
 	}
 
 	package func query(from: CivilDate, to: CivilDate, contains: String?) async throws

@@ -18,12 +18,6 @@ public struct TrainingService: Sendable {
 				credential: credential, athlete: athlete, session: session, clock: clock)
 		}
 	}
-
-	public static func fake(
-		_ client: @escaping @Sendable (IntervalsCredential, AthleteSelection) -> any IntervalsClient
-	) -> TrainingService {
-		TrainingService { credential, athlete, _ in client(credential, athlete) }
-	}
 }
 
 package struct TrainingConnection: Sendable {

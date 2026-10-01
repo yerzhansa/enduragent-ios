@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -121,15 +122,5 @@ extension FixtureLaunchTests {
 		let formatter = ISO8601DateFormatter()
 		formatter.formatOptions = [.withInternetDateTime]
 		return try #require(formatter.date(from: text))
-	}
-
-	private func until(
-		within limit: Duration = .seconds(5), _ condition: () -> Bool
-	) async throws {
-		let deadline = ContinuousClock.now + limit
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
-		try #require(condition())
 	}
 }

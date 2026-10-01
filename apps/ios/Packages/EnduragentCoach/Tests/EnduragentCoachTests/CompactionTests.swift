@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -11,10 +12,11 @@ import Testing
 		status: 400, body: #"{"error":{"message":"maximum context length exceeded"}}"#)
 
 	@Test func overflowWithNothingToDropMakesNoCompactionCallAndKeepsTheHistory() async throws {
-		transport.script =
+		transport.respond = ScriptedReply.sequence(
 			[.text("Yes, rest."), .finish(reason: .stop)]
-			+ Array(repeating: .fail(overflow), count: 4)
-			+ [.text("Tuesday is easy."), .finish(reason: .stop)]
+				+ Array(repeating: .fail(overflow), count: 4)
+				+ [.text("Tuesday is easy."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Rest day?")
 		let settled = try await coach.sendAndSettle("How was my week?")
@@ -31,8 +33,12 @@ import Testing
 
 	@Test func inTurnCompactionSummarizesForTheAttemptAndRewritesNoHistory() async throws {
 		try await seedHistory(store, clock: clock, turns: 3, tokens: 300)
-		transport.script = [.fail(overflow), .text("Thursday is on."), .finish(reason: .stop)]
-		transport.summaryScript = [.text("Earlier: three questions."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(overflow), .text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Earlier: three questions."), .finish(reason: .stop)], for: .summary,
+			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
@@ -46,7 +52,9 @@ import Testing
 			retry.first?.content == "[Previous conversation summary]\nEarlier: three questions.")
 		#expect(!retry.contains { $0.unstampedContent == "Question 0" })
 		#expect(try await chatWindowRecords().isEmpty)
-		transport.script = [.text("Saturday too."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Saturday too."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let next = try #require(sent(.chatAttempt, by: transport).last).messages.dropFirst()
 		#expect(next.first?.content == "[Sat 1998-06-13 07:57 Europe/Amsterdam] Question 0")
@@ -55,8 +63,11 @@ import Testing
 
 	@Test func failedCompactionKeepsTheMessagesAndRetriesWhenTheyFit() async throws {
 		try await seedHistory(store, clock: clock, turns: 3, tokens: 300)
-		transport.script = [.fail(overflow), .text("Thursday is on."), .finish(reason: .stop)]
-		transport.summaryScript = [.fail(.http(status: 500))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(overflow), .text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500))], for: .summary, otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
@@ -69,8 +80,12 @@ import Testing
 
 	@Test func failedCompactionThatStillOverflowsEndsWithTheOriginalFailure() async throws {
 		try await seedHistory(store, clock: clock, turns: 3, tokens: 210_000)
-		transport.script = [.text("Never sent."), .finish(reason: .stop)]
-		transport.summaryScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Never sent."), .finish(reason: .stop)], otherwise: transport.respond
+		)
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .summary,
+			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.contextOverflow))
@@ -84,13 +99,15 @@ import Testing
 	@Test func trimmedHistoryPersistsTheFixtureSummaryMarkdown() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
-		transport.summaryScript = [
-			.text("Summary of the earlier conversation."), .finish(reason: .stop),
-		]
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Summary of the earlier conversation."), .finish(reason: .stop),
+			], for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		_ = try await coach.sendAndSettle("And Saturday?")
@@ -105,17 +122,77 @@ import Testing
 				== "[Previous conversation summary]\nSummary of the earlier conversation.")
 	}
 
+	@Test(arguments: [FinishReason.error, .contentFilter, .stop], ["", " \t\n "])
+	func emptySummaryKeepsHistoryAndPreviousSummaryAfterReopening(
+		reason: FinishReason, text: String
+	) async throws {
+		try await assertRejectedSummaryKeepsHistory(text: text, reason: reason)
+	}
+
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func failedSummaryKeepsHistoryAndPreviousSummaryAfterReopening(reason: FinishReason)
+		async throws
+	{
+		try await assertRejectedSummaryKeepsHistory(text: "Incomplete summary.", reason: reason)
+	}
+
+	private func assertRejectedSummaryKeepsHistory(text: String, reason: FinishReason) async throws
+	{
+		let previous = seededRecord(
+			store, at: clock.now.addingTimeInterval(-600), ulid: fixedUlid(1),
+			body: .synced(
+				.compactionSummary(
+					CompactionSummaryBody(chatId: .main, markdown: "Previous cycling context."))))
+		try await seed(store, [previous])
+		try await seedHistory(
+			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text(text), .finish(reason: reason)], count: 3
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+				.text("Sunday is rest."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
+		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
+		#expect(try await chatWindowRecords() == [previous])
+		#expect(compactionFailed(coach))
+		let reopened = await makeCoach()
+		#expect(replyText(try await reopened.sendAndSettle("And Sunday?")) == "Sunday is rest.")
+		#expect(try await chatWindowRecords() == [previous])
+		#expect(compactionFailed(reopened))
+		#expect(sent(.droppedSummary, by: transport).count == 3)
+		let prompts = sent(.chatAttempt, by: transport)
+		#expect(prompts.count == 3)
+		for prompt in prompts {
+			let keepsEarliestQuestion = prompt.messages.contains {
+				$0.unstampedContent == "Question 0"
+			}
+			let keepsPreviousSummary = prompt.messages.contains {
+				$0.content == "[Previous conversation summary]\nPrevious cycling context."
+			}
+			#expect(keepsEarliestQuestion)
+			#expect(keepsPreviousSummary)
+		}
+	}
+
 	@Test func interleavedTrimIsSummarizedOnce() async throws {
 		let droppedReply =
 			"Dropped answer " + String(repeating: "w", count: historyBudget(clock: clock) * 4)
 		try await seedInterleavedHistory(firstReply: droppedReply)
-		transport.summaryScript = Array(
-			repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 2
-		).flatMap { $0 }
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 2
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
@@ -159,13 +236,15 @@ import Testing
 					device: store.deviceId, wall: 5, ulid: fixedUlid(5),
 					body: .synced(sampleReply(chatId: .main, turn: kept, text: "Kept answer"))),
 			])
-		transport.summaryScript = Array(
-			repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 2
-		).flatMap { $0 }
-		transport.script = [
-			.text("Thursday is on."), .finish(reason: .stop),
-			.text("Saturday too."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			Array(
+				repeating: [.text("Earlier conversation."), .finish(reason: .stop)], count: 2
+			).flatMap { $0 }, for: .summary, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Thursday is on."), .finish(reason: .stop),
+				.text("Saturday too."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach()
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
@@ -198,7 +277,9 @@ import Testing
 							WindowStartBody(
 								chatId: .main, firstIncludedUlid: fixedUlid(2), reason: .trim))))
 			])
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		#expect(
 			replyText(try await makeCoach().sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		let prompt = try #require(sent(.chatAttempt, by: transport).only)

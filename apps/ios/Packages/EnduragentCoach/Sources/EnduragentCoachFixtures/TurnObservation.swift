@@ -1,3 +1,4 @@
+import EnduragentCoach
 import Foundation
 
 extension SendOutcome {

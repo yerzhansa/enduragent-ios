@@ -34,6 +34,23 @@ final class ConnectIntervalsProof: XCTestCase {
 }
 
 final class StarterCreditsProof: XCTestCase {
+	func testDebugStarterUsesInjectedDeviceCheck() {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.openSidebar(app)
+		TutorialHarness.named(app, "sidebar.debug").tap()
+		let credits = TutorialHarness.named(app, "debug.credits")
+		TutorialHarness.waitUntilHittable(credits)
+		credits.tap()
+		let claim = TutorialHarness.named(app, "debug.credits.claimStarter")
+		TutorialHarness.waitUntilHittable(claim)
+		claim.tap()
+		TutorialHarness.waitForIdentifier(
+			app, "debug.credits.starterNotice", reading: "200 credits")
+		TutorialHarness.attach(self, name: "debug-starter-credits", app: app)
+	}
+
 	func testStarterCredits() {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
