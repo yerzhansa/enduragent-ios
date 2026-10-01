@@ -4,6 +4,47 @@ import Testing
 
 @testable import EnduragentCoach
 
+@Suite struct ChatMailboxLifecycleTests {
+	@Test func backgroundDuringRecoveryMarksLaterCompletion() async throws {
+		let transport = FakeModelTransport()
+		transport.script = [.text("Thursday is "), .hang]
+		let local = InMemoryRecordLog()
+		let dying = FaultInjectingRecordLog(wrapping: local)
+		let before = await makeCoach(transport: transport, store: dying)
+		let interrupted = try #require(
+			try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
+		await before.waitForLiveText(interrupted)
+		try await before.dieWithoutWriting(to: dying)
+
+		let store = HeldFirstReadLog(inner: local)
+		let coach = await makeCoach(transport: transport, store: store, consent: false)
+		let activating = Task { await coach.lifecycle(.becameActive) }
+		var reached = store.reached.makeAsyncIterator()
+		await reached.next()
+		await coach.lifecycle(.enteredBackground)
+		store.release()
+		await activating.value
+		#expect(await coach.interruption(of: interrupted) == .processEnded)
+
+		let chats: [ChatID] = [.main, "created-in-background"]
+		for chat in chats {
+			transport.script = [.text("Still on."), .finish(reason: .stop)]
+			let turn = try #require(
+				try await coach.send(draft("Thursday?"), to: chat).acceptedTurn)
+			let state = try #require(await coach.settledState(of: turn, in: chat))
+			#expect(replyText(state) == "Still on.")
+			let completed = try #require(
+				await coach.currentSnapshot(chat)?.turns.first { $0.id == turn })
+			#expect(completed.completedInBackground)
+			await coach.lifecycle(.becameActive)
+			#expect(
+				await coach.currentSnapshot(chat)?.turns.first { $0.id == turn }?
+					.completedInBackground == true)
+			await coach.lifecycle(.enteredBackground)
+		}
+	}
+}
+
 extension ChatMailboxTests {
 	@Test func aTurnThatStartedNeverShowsAsWaitingAgain() async throws {
 		let transport = FakeModelTransport()
