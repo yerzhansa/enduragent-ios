@@ -55,5 +55,58 @@ extension ResetWindowTests {
 		#expect(prompt.last?.hasPrefix("Next question") == true)
 		#expect(!prompt.contains("Question 0"))
 		#expect(try await reopened.history().count == 1)
+		#expect(await reopened.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await reopened.transcript(.main).isEmpty)
+		let localWindow = try #require(
+			try await store.fetch(
+				RecordQuery(scope: .synced([.windowStart]), writtenBy: store.deviceId)
+			).records.first)
+		guard case .synced(.windowStart(let localBody)) = localWindow.body else {
+			Issue.record("Expected a local reset")
+			return
+		}
+		#expect(localBody.firstIncludedUlid < body.firstIncludedUlid)
+		#expect(
+			try await reopened.history().map(\.firstQuestion) == ["Behind question", "Question 0"])
+		let final = await self.coach()
+		#expect(await final.transcript(.main).isEmpty)
+		#expect(try await final.history() == reopened.history())
+	}
+
+	@Test func aResetImportedMidTurnKeepsItsLateReplyWithItsQuestion() async throws {
+		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
+		defer { held.release() }
+		let importing = ImportingRecordLog(inner: held)
+		let coach = await coach(over: importing)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Late answer"), .finish(reason: .stop)], otherwise: transport.respond)
+		let local = try #require(
+			try await coach.send(draft("Earlier question"), to: .main).acceptedTurn)
+		let parked = try await beforeDeadline(within: .seconds(5)) {
+			var reached = held.reached.makeAsyncIterator()
+			return await reached.next() != nil
+		}
+		try #require(parked == true)
+		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
+		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
+		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)
+		#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
+		importing.notifyImport()
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+				$0.opening == .afterNewConversation(memorySaved: true)
+			} != nil)
+		#expect(await coach.transcript(.main).isEmpty)
+		held.release()
+		try await waitForRecords(.synced([.turnSettled]), count: 1, in: store)
+		#expect(await coach.transcript(.main).isEmpty)
+		let archived = try #require(try await coach.history().first?.id)
+		let liveHistory = try #require(try await coach.archivedConversation(archived))
+		#expect(liveHistory.turns.map(\.id) == [local])
+		#expect(replyText(try #require(liveHistory.turns.first?.state)) == "Late answer")
+		let reopened = await self.coach()
+		#expect(await reopened.transcript(.main).isEmpty)
+		#expect(try await reopened.archivedConversation(archived) == liveHistory)
 	}
 }

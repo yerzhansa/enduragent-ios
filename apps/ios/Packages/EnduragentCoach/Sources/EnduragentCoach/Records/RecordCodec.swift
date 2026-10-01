@@ -1,21 +1,28 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 2
+	static let currentBodyVersion = 3
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
 		encoder.outputFormatting = [.sortedKeys]
 		let data: Data
+		let version: Int
 		switch body {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
+			if case .windowStart(let window) = synced, window.boundaryClock != nil {
+				version = 3
+			} else {
+				version = 2
+			}
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
+			version = 2
 		case .legacy(let legacy):
 			throw RecordDecodeFailure(reason: "legacy kind \(legacy.kind.rawValue) is read-only")
 		}
-		return (currentBodyVersion, data)
+		return (version, data)
 	}
 
 	static func decode(kind: String, version: Int, data: Data, civilDate: CivilDate, ulid: String)
@@ -137,12 +144,19 @@ enum RecordCodec {
 		case .windowStart:
 			let payload = try payload(
 				WindowStartPayload.self, version: version, kind: name, data: data)
+			let reason = try decodeWindowReason(payload.reason)
+			if version == 3 {
+				guard case .reset = reason, payload.boundaryClock != nil else {
+					throw RecordDecodeFailure(reason: "reset boundary")
+				}
+			}
 			return .windowStart(
 				WindowStartBody(
 					chatId: try decodeChatID(payload.chatId),
 					firstIncludedUlid: try decodeULID(payload.firstIncludedUlid),
-					reason: try decodeWindowReason(payload.reason),
-					droppedMessageUlids: try payload.droppedMessageUlids?.map(decodeULID)
+					reason: reason,
+					droppedMessageUlids: try payload.droppedMessageUlids?.map(decodeULID),
+					boundaryClock: version == 3 ? payload.boundaryClock?.clock : nil
 				)
 			)
 		case .compactionSummary:

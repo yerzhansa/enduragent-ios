@@ -220,10 +220,11 @@ import Testing
 			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.respond = ScriptedReply.sequence(
 			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
-		let reset = ResetID(ulid: await ledger.nextULID())
+		let conversation = try await ledger.conversation(.main)
+		let reset = try await ledger.reserveReset()
 		let result = await ConversationReset(
 			chat: .main, ledger: ledger, flushes: flushes, clock: clock
-		).run(reset, archiving: try await ledger.conversation(.main), access: { testAccess })
+		).run(reset, archiving: conversation, access: { testAccess })
 		#expect(result.outcome == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
 		let window = flushed.messages.map(\.unstampedContent)

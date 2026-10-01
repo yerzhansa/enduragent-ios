@@ -47,6 +47,7 @@ package struct WindowStartBody: Sendable, Equatable {
 	package var firstIncludedUlid: ULID
 	package var reason: WindowReason
 	package var droppedMessageUlids: [ULID]? = nil
+	package var boundaryClock: HybridLogicalClock? = nil
 }
 
 package enum WindowReason: Sendable, Equatable {

@@ -206,11 +206,22 @@ import Testing
 		try #require(parked == true)
 		#expect(try await store.fetch(RecordQuery(scope: .synced([.windowStart]))).records.isEmpty)
 		let next = try #require(try await coach.send(draft("New question"), to: .main).acceptedTurn)
+		let user = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: next)).records
+				.first)
 		held.release()
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		#expect(
 			replyText(try #require(await coach.settledState(of: next, in: .main))) == "New answer")
 		#expect(await coach.transcript(.main) == ["New question", "New answer"])
+		let windowRecord = try #require(
+			try await store.fetch(RecordQuery(scope: .synced([.windowStart]))).records.first)
+		guard case .synced(.windowStart(let body)) = windowRecord.body else {
+			Issue.record("Expected a reset window")
+			return
+		}
+		#expect(try #require(body.boundaryClock) < user.hlc)
+		#expect(user.hlc < windowRecord.hlc)
 		#expect(flushed().count == 1)
 		let window = try #require(flushed().first)
 		#expect(window.contains("Old question"))

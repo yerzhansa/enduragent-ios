@@ -163,7 +163,7 @@ private struct FlushedMessages {
 
 extension Conversation {
 	package func messagesSinceLastFlush(
-		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: ULID? = nil
+		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: HybridLogicalClock? = nil
 	) -> [(ulid: ULID, message: ChatMessage)] {
 		let segment = boundary.map { current.closing(at: $0) } ?? current
 		let history = segment.promptHistory(excluding: turn)

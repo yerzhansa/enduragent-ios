@@ -15,7 +15,7 @@ final class MailboxQueue {
 		append(.turn(turn, origin: origin))
 	}
 
-	func add(_ reset: ResetID) -> Bool {
+	func add(_ reset: ReservedReset) -> Bool {
 		append(.reset(reset))
 	}
 

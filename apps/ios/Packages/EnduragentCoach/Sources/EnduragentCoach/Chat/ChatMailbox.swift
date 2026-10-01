@@ -77,12 +77,12 @@ package actor ChatMailbox {
 		do {
 			let reset = try await door.pass { () throws(LedgerFailure) in
 				closeWindow()
-				let reset = ResetID(ulid: await ledger.nextULID())
+				let reset = try await ledger.reserveReset()
 				_ = holdLease(.athlete)
 				if work.add(reset) { workAdded() }
 				return reset
 			}
-			return await resets.outcome(of: reset)
+			return await resets.outcome(of: reset.id)
 		} catch {
 			return .notStarted(.local(.recordStorage))
 		}
