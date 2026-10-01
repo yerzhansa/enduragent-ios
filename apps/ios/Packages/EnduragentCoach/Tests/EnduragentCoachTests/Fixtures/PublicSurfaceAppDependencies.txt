@@ -2595,7 +2595,7 @@ Credits.<(_:_:)
 Credits.init(units:)
 Credits.units
 CreditsClient
-CreditsClient.balance(scale:)
+CreditsClient.balance()
 CreditsClient.catalog()
 CreditsClient.claim(signedTransaction:appAccountToken:)
 CreditsClient.grant(deviceCheck:)
@@ -2627,7 +2627,7 @@ EventID
 EventID.init(rawValue:)
 EventID.rawValue
 FakeCreditsClient
-FakeCreditsClient.balance(scale:)
+FakeCreditsClient.balance()
 FakeCreditsClient.balanceResult
 FakeCreditsClient.catalog()
 FakeCreditsClient.catalogResult

@@ -206,11 +206,16 @@ import Testing
 
 	@Test func watchdogFireIsATimeoutThatRetriesOnce() async throws {
 		transport.script = [.hang, .text("Back on track."), .finish(reason: .stop)]
-		let coach = await makeCoach()
+		let clock = HeldClock()
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, store: store, clock: clock, watchdogClock: clock)
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
+		try await clock.waitUntilHeld(.seconds(30))
+		clock.advance(by: .seconds(30))
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
 		#expect(replyText(settled) == "Back on track.")
+		#expect(clock.slept == [.seconds(30)])
 		#expect(transport.requests.count == 2)
 		let claim = try #require(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))
