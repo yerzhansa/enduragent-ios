@@ -30,7 +30,7 @@ final class FixtureLaunchTests {
 		launch.recovery = recovery
 		if store != .keep {
 			await fixture.releaseOwners()
-			await fixture.folder.waitUntilUnused()
+			try await fixture.folder.waitUntilUnused()
 		}
 		let defaults = try launch.prepare()
 		return (try fixtureServices(launch, defaults: defaults), defaults)

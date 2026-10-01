@@ -26,7 +26,7 @@ struct FixtureFolderTests {
 				return true
 			} == true,
 			"The fixture store did not open within five seconds")
-		await #expect(throws: (any Error).self) {
+		await #expect(throws: FixtureCleanupFailure.storeOwnerNotReleased) {
 			try await folder.cleanup {}
 		}
 		#expect(FileManager.default.fileExists(atPath: folder.directory.path))

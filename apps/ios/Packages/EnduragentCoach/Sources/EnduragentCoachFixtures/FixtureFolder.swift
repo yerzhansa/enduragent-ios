@@ -22,38 +22,40 @@ public final class FixtureFolder: Sendable {
 
 	public func cleanup(releasing owners: @Sendable () async throws -> Void) async throws {
 		try await owners()
-		await waitUntilUnused()
+		try await waitUntilUnused()
 		try FileManager.default.removeItem(at: directory)
 	}
 
-	public func waitUntilUnused() async {
+	public func waitUntilUnused() async throws {
+		let deadline = ContinuousClock.now + .seconds(5)
 		for store in stores.withLock({ $0 }) {
 			waiting.yield()
-			await store.wait()
+			try await store.wait(until: deadline)
 		}
 	}
 }
 
 package final class FixtureStoreRelease: Sendable {
-	private let waiters = Mutex<[CheckedContinuation<Void, Never>]?>([])
+	private let released = Mutex(false)
 
-	package func wait() async {
-		await withCheckedContinuation { continuation in
-			let released = waiters.withLock { waiters in
-				guard waiters != nil else { return true }
-				waiters?.append(continuation)
-				return false
+	package func wait(until deadline: ContinuousClock.Instant) async throws {
+		while !released.withLock({ $0 }) {
+			guard ContinuousClock.now < deadline else {
+				throw FixtureCleanupFailure.storeOwnerNotReleased
 			}
-			if released { continuation.resume() }
+			try await Task.sleep(for: .milliseconds(10))
 		}
 	}
 
 	package func finish() {
-		let pending = waiters.withLock { waiters in
-			let pending = waiters ?? []
-			waiters = nil
-			return pending
-		}
-		for waiter in pending { waiter.resume() }
+		released.withLock { $0 = true }
+	}
+}
+
+public enum FixtureCleanupFailure: Error, CustomStringConvertible {
+	case storeOwnerNotReleased
+
+	public var description: String {
+		"A fixture store owner was not released within five seconds"
 	}
 }

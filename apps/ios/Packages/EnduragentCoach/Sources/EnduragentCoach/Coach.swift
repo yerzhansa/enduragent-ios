@@ -13,9 +13,7 @@ public actor Coach {
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
 	private let deviceLanguage: LanguageTag
-	var preferenceRecords: [AthleteRecord] = []
-	var preferencesLoaded = false
-	var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
+	let preferences: CoachPreferences
 	let builtInModel: ModelID
 	let vault: CredentialVault
 	private let runner: TurnRunner
@@ -57,6 +55,9 @@ public actor Coach {
 		self.builtInModel = builtInModel
 		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
+		self.preferences = CoachPreferences(
+			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
+			builtInModel: builtInModel)
 		self.clock = clock
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
@@ -123,13 +124,6 @@ public actor Coach {
 			decision, chat: chat, scope: await mailbox.reviewScope)
 		_ = await mailbox.reviewChanged()
 		return outcome
-	}
-
-	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		guard await providerConsent()?.isCurrent == true else {
-			throw .providerConsentRequired
-		}
-		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async
@@ -270,9 +264,10 @@ public actor Coach {
 	{
 		do {
 			let vault = self.vault
+			let preferences = self.preferences
 			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
 				() async throws(AccessUnavailable) in
-				try await self.modelAccess()
+				try await preferences.modelAccess()
 			}
 			let created = try await ChatMailbox.open(
 				chatId: chatId,
@@ -286,7 +281,7 @@ public actor Coach {
 				coalescing: coalescing,
 				coalescingSleep: coalescingSleep,
 				environment: EnvironmentResolver(
-					preferences: { await self.loadedPreferences() }, access: access,
+					preferences: { await preferences.load() }, access: access,
 					training: { () async throws(AccessUnavailable) in
 						try await vault.trainingConnection()
 					}, deviceLanguage: deviceLanguage),

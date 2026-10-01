@@ -5,7 +5,7 @@ import Testing
 
 @testable import Enduragent
 
-struct FixtureTestScope: SuiteTrait, TestScoping {
+struct FixtureTestScope: SuiteTrait, TestTrait, TestScoping {
 	@TaskLocal static var current: AppTestFixture?
 	let isRecursive = true
 
@@ -83,8 +83,8 @@ final class AppTestFixture {
 	}
 
 	func cleanup() async throws {
+		defer { defaults.removePersistentDomain(forName: launch.defaultsSuiteName) }
 		try await folder.cleanup { await self.releaseOwners() }
-		defaults.removePersistentDomain(forName: launch.defaultsSuiteName)
 	}
 }
 
@@ -103,6 +103,11 @@ func fixtureModel(
 
 @MainActor
 struct FixtureScopeTests {
+	@Test(FixtureTestScope())
+	func recursiveScopeProvidesATestFixture() {
+		#expect(FileManager.default.fileExists(atPath: AppTestFixture.active.launch.directory.path))
+	}
+
 	@Test(.timeLimit(.minutes(1)))
 	func cleanupWaitsForTheAppModelCoachAndRecordStore() async throws {
 		let fixture = try AppTestFixture()
@@ -110,27 +115,51 @@ struct FixtureScopeTests {
 		let opened = AsyncStream<Void>.makeStream()
 		try await FixtureFolder.$current.withValue(fixture.folder) {
 			try await FixtureTestScope.$current.withValue(fixture) {
-				let owner = Task {
-					let records = try FixtureRecordStore(
-						directory: fixture.launch.directory, deviceId: DeviceID())
-					let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
-					let model = fixtureModel(
-						environment: AppEnvironment(
-							services: services, language: .en, defaults: fixture.defaults))
-					await model.appear()
-					opened.continuation.finish()
-					for await _ in held.stream {}
-					withExtendedLifetime((model, services.coach, records)) {}
+				try await withThrowingTaskGroup(of: Bool.self) { group in
+					defer {
+						held.continuation.finish()
+						opened.continuation.finish()
+						group.cancelAll()
+					}
+					group.addTask { @MainActor in
+						let records = try FixtureRecordStore(
+							directory: fixture.launch.directory, deviceId: DeviceID())
+						let services = try fixtureServices(
+							fixture.launch, defaults: fixture.defaults)
+						let model = fixtureModel(
+							environment: AppEnvironment(
+								services: services, language: .en, defaults: fixture.defaults))
+						await model.appear()
+						opened.continuation.finish()
+						for await _ in held.stream {}
+						withExtendedLifetime((model, services.coach, records)) {}
+						return true
+					}
+					group.addTask { @MainActor in
+						for await _ in opened.stream {}
+						try Task.checkCancellation()
+						let cleanup = Task { try await fixture.cleanup() }
+						defer { cleanup.cancel() }
+						var waiting = fixture.folder.waitingForStores.makeAsyncIterator()
+						try #require(await waiting.next() != nil)
+						#expect(
+							FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+						held.continuation.finish()
+						try await cleanup.value
+						#expect(
+							!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+						return true
+					}
+					group.addTask {
+						try await Task.sleep(for: .seconds(10))
+						return false
+					}
+					for _ in 0..<2 {
+						try #require(
+							try await group.next() == true,
+							"The app fixture ownership proof did not finish within ten seconds")
+					}
 				}
-				for await _ in opened.stream {}
-				let cleanup = Task { try await fixture.cleanup() }
-				var waiting = fixture.folder.waitingForStores.makeAsyncIterator()
-				try #require(await waiting.next() != nil)
-				#expect(FileManager.default.fileExists(atPath: fixture.launch.directory.path))
-				held.continuation.finish()
-				try await owner.value
-				try await cleanup.value
-				#expect(!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
 			}
 		}
 	}
