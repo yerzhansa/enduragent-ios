@@ -23,7 +23,10 @@ public actor Coach {
 	private var mailboxes: [ChatID: ChatMailbox]
 	private let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
+	private var importObservation: Task<Void, Never>?
 	private let process: ProcessID
+
+	deinit { importObservation?.cancel() }
 
 	public init(
 		sport: SportID,
@@ -103,6 +106,8 @@ public actor Coach {
 			return
 		case .willTerminate:
 			lifetime.terminate()
+			importObservation?.cancel()
+			importObservation = nil
 		case .enteredBackground:
 			break
 		}
@@ -309,6 +314,7 @@ public actor Coach {
 	}
 
 	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
+		observeImports()
 		if let existing = mailboxes[chatId] {
 			return existing
 		}
@@ -340,6 +346,26 @@ public actor Coach {
 		)
 		mailboxes[chatId] = created
 		return created
+	}
+
+	private func observeImports() {
+		guard importObservation == nil, !lifetime.terminating else { return }
+		importObservation = Task { [weak self, imports = ledger.imports] in
+			for await _ in imports {
+				guard !Task.isCancelled else { return }
+				await self?.refreshImports()
+			}
+		}
+	}
+
+	private func refreshImports() async {
+		for mailbox in mailboxes.values {
+			do {
+				try await mailbox.refreshImports()
+			} catch {
+				diagnostics.record(.importsUnavailable(mailbox.chatId, error))
+			}
+		}
 	}
 
 	package final class Lifetime: Sendable {

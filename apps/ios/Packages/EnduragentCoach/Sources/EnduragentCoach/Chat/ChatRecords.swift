@@ -10,6 +10,7 @@ final class ChatRecords {
 	private(set) var jobs: [FlushJob] = []
 	private var loaded = false
 	private var loading: Task<Result<Void, LedgerFailure>, Never>?
+	private var applied: [ULID: AthleteRecord] = [:]
 
 	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
 		self.chat = chat
@@ -21,12 +22,19 @@ final class ChatRecords {
 
 	func load(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		guard !loaded else { return }
-		let reading =
-			loading
-			?? Task {
-				_ = isolation
-				return await self.read()
-			}
+		if let loading {
+			try await loading.value.get()
+		} else {
+			try await refresh()
+		}
+	}
+
+	func refresh(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		if let loading { try await loading.value.get() }
+		let reading = Task {
+			_ = isolation
+			return await self.read()
+		}
 		loading = reading
 		try await reading.value.get()
 	}
@@ -36,10 +44,16 @@ final class ChatRecords {
 	{
 		defer { loading = nil }
 		do {
-			let folded = try await ledger.conversation(chat)
-			review = try await reviews.snapshot(chat: chat)
-			jobs = try await ledger.flushJobs(in: folded)
-			conversation = folded
+			let imported = try await ledger.conversationRecords(chat)
+			let folded = ConversationFold.fold(
+				chat: chat, synced: imported, device: ledger.deviceId)
+			let review = try await reviews.snapshot(chat: chat)
+			let jobs = try await ledger.flushJobs(in: folded)
+			for record in imported { applied[record.ulid] = record }
+			conversation = ConversationFold.fold(
+				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
+			self.review = review
+			self.jobs = jobs
 			loaded = true
 			return .success(())
 		} catch {
@@ -66,7 +80,9 @@ final class ChatRecords {
 	}
 
 	func apply(_ committed: [AthleteRecord]) {
-		conversation.apply(committed, device: ledger.deviceId)
+		let unseen = committed.filter { applied[$0.ulid] == nil }
+		for record in unseen { applied[record.ulid] = record }
+		conversation.apply(unseen, device: ledger.deviceId)
 	}
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
@@ -109,8 +125,11 @@ final class ChatRecords {
 		isolation: isolated (any Actor)? = #isolation
 	) async {
 		let ulid = await ledger.nextULID()
-		conversation.settleInMemory(
+		if let record = conversation.settleInMemory(
 			turn, attempt: attempt, settlement, ulid: ulid, now: clock.now, device: ledger.deviceId)
+		{
+			applied[record.ulid] = record
+		}
 	}
 
 	func observeReply(
@@ -122,7 +141,11 @@ final class ChatRecords {
 		do {
 			try await commit(mark, stamp: stamp)
 		} catch {
-			conversation.observeInMemory(turn, attempt: stamp.attempt, device: ledger.deviceId)
+			if let record = conversation.observeInMemory(
+				turn, attempt: stamp.attempt, device: ledger.deviceId)
+			{
+				applied[record.ulid] = record
+			}
 			ledger.report(.replyObservedUnsaved(stamp.attempt, detail: "\(error)"))
 		}
 	}
