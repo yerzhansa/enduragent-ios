@@ -184,21 +184,24 @@ package actor SingleProposalReviews: WorkoutReviews {
 	) async -> ReviewOutcome {
 		do {
 			let id = try await operation.dispatch(on: connection.client)
-			return await record(intent, evidence: .applied(eventID: id), scope: scope)
+			return try await record(intent, evidence: .applied(eventID: id), scope: scope)
+		} catch let error as LedgerFailure {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return unresolved(intent.body.evidence)
 		} catch {
 			if let stamp = intent.stamp, let proposal = intent.proposal {
 				diagnostics.record(
 					.toolFailed(
 						stamp.attempt, proposal.body.tool.toolName, failure: ToolFault(error)))
 			}
-			return unresolved(intent)
+			return unresolved(intent.body.evidence)
 		}
 	}
 
 	func record(_ intent: CalendarWriteIntent, evidence: CalendarWriteEvidence, scope: TurnScope?)
-		async -> ReviewOutcome
+		async throws(LedgerFailure) -> ReviewOutcome
 	{
-		guard let stamp = intent.stamp else { return .blocked(.cannotVerify) }
+		guard let stamp = intent.stamp else { throw .rejectedBatch }
 		var body = intent.body
 		body.evidence = body.evidence.merging(evidence)
 		var bodies: [SyncedRecordBody] = [.reviewWrite(body)]
@@ -208,29 +211,33 @@ package actor SingleProposalReviews: WorkoutReviews {
 					ReviewAppliedBody(
 						chatId: body.chatId, summary: ReviewSummary(proposal.body.toolInput))))
 		}
-		do {
-			_ = try await ledger.commit(synced: bodies, stamp: stamp)
-			if let proposal = intent.proposal {
-				await scope?.recordReview(proposal, evidence: body.evidence)
-			}
-		} catch {
-			diagnostics.record(.reviewOutcomeUnsaved(error))
-			return .storageUnavailable
+		_ = try await ledger.commit(synced: bodies, stamp: stamp)
+		if let proposal = intent.proposal {
+			await scope?.recordReview(proposal, evidence: body.evidence)
 		}
 		if case .applied(let id?) = body.evidence {
 			return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
 		}
-		return unresolved(intent)
+		return unresolved(body.evidence)
 	}
 
 	private func cancel(_ token: ReviewControlToken) async -> ReviewOutcome {
 		do {
 			let writes = try await ledger.calendarWrites(token.ref.chat)
-			guard
-				!writes.contains(where: {
-					$0.body.review == token.ref.set && $0.body.evidence.dispatched
-				})
-			else { return .blocked(.cannotVerify) }
+			if let intent = writes.first(where: {
+				$0.body.review == token.ref.set && $0.body.evidence.dispatched
+			}) {
+				guard canRepeat(intent), let live = intent.proposal, let stamp = intent.stamp else {
+					return unresolved(intent.body.evidence)
+				}
+				do {
+					try await ProposalPolicy.clear(
+						live, reason: .canceled, ledger: ledger, stamp: stamp)
+				} catch {
+					diagnostics.record(.reviewOutcomeUnsaved(error))
+				}
+				return unresolved(intent.body.evidence)
+			}
 			guard
 				let live = try await ProposalPolicy.live(
 					chatId: token.ref.chat, ledger: ledger, now: clock.now),
@@ -282,9 +289,16 @@ package actor SingleProposalReviews: WorkoutReviews {
 		return ReviewNotice(kind: .partialFailure, key: Catalog.reviewWriteReadFailed, vars: [:])
 	}
 
-	func unresolved(_ intent: CalendarWriteIntent) -> ReviewOutcome {
-		guard let proposal = intent.proposal else { return .blocked(.cannotVerify) }
-		return .uncertain(done: [], unresolved: ReviewCard(proposal.body))
+	func unresolved(_ evidence: CalendarWriteEvidence) -> ReviewOutcome {
+		.uncertain(pendingNotice(evidence))
+	}
+
+	func pendingNotice(_ evidence: CalendarWriteEvidence) -> ReviewNotice {
+		ReviewNotice(
+			kind: .partialFailure,
+			key: evidence == .unknown(.readFailed)
+				? Catalog.reviewWriteReadFailed : Catalog.reviewWritePending,
+			vars: [:])
 	}
 }
 

@@ -24,19 +24,14 @@ extension SingleProposalReviews {
 		} else {
 			controls = .checkAgain(delivery.ref)
 		}
-		let failed = intent.body.evidence == .unknown(.readFailed)
-		let notice =
-			block.map(accountNotice)
-			?? ReviewNotice(
-				kind: .partialFailure,
-				key: failed ? Catalog.reviewWriteReadFailed : Catalog.reviewWritePending, vars: [:])
+		let notice = block.map(accountNotice) ?? pendingNotice(intent.body.evidence)
 		return ReviewSnapshot(
 			ref: delivery.ref, cards: cards, kept: [], totals: ReviewTotals(cards), receipts: [],
 			notice: notice, controls: controls, authority: authority)
 	}
 
 	func canRepeat(_ intent: CalendarWriteIntent) -> Bool {
-		guard intent.body.writeID != nil else { return false }
+		guard intent.body.writeID != nil, !intent.canceled else { return false }
 		switch (intent.body.target, intent.body.evidence) {
 		case (.create, .unknown(.absent)), (.delete, .unknown(.found)): return true
 		default: return false
@@ -49,8 +44,9 @@ extension SingleProposalReviews {
 				let intent = try await ledger.calendarWrites(ref.chat).first(where: {
 					$0.body.review == ref.set
 				}),
-				intent.record.deviceId == ledger.deviceId, let live = intent.proposal
-			else { return .blocked(.cannotVerify) }
+				intent.record.deviceId == ledger.deviceId, let live = intent.proposal,
+				intent.body.evidence.dispatched
+			else { return unresolved(.unknown(.readFailed)) }
 			if case .applied(let id?) = intent.body.evidence {
 				return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
 			}
@@ -58,7 +54,7 @@ extension SingleProposalReviews {
 			guard Self.permits(intent.record.account.authority(under: connection.account)) else {
 				return .blocked(.accountChanged)
 			}
-			if repeatWrite && !canRepeat(intent) { return .blocked(.cannotVerify) }
+			if repeatWrite && !canRepeat(intent) { return unresolved(intent.body.evidence) }
 			let evidence: CalendarWriteEvidence
 			do {
 				evidence = try await CalendarWriteOperation.observe(intent, on: connection.client)
@@ -69,17 +65,16 @@ extension SingleProposalReviews {
 				let prepared = try await CalendarWriteOperation.prepare(
 					live, client: connection.client,
 					today: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
-				let persisted = await record(intent, evidence: .unknown(.dispatched), scope: scope)
-				guard case .uncertain = persisted else { return persisted }
+				_ = try await record(intent, evidence: .unknown(.dispatched), scope: scope)
 				return await dispatch(
 					intent, operation: prepared, connection: connection, scope: scope)
 			}
-			return await record(intent, evidence: evidence, scope: scope)
+			return try await record(intent, evidence: evidence, scope: scope)
 		} catch let error as LedgerFailure {
 			diagnostics.record(.reviewOutcomeUnsaved(error))
-			return .storageUnavailable
+			return unresolved(.unknown(.readFailed))
 		} catch {
-			return .blocked(.cannotVerify)
+			return unresolved(.unknown(.readFailed))
 		}
 	}
 

@@ -182,16 +182,18 @@ import Testing
 	@Test func dispatchedRejectionKeepsPendingReviewWithACatalogSentence() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = IntervalsError(code: "http", details: "status 422", status: 422)
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
 		#expect(
-			outcome == .uncertain(done: [], unresolved: card))
+			outcome
+				== .uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
+		)
 		#expect(
 			outcome.notice?.sentence(in: phrasebook)
-				== "Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
+				== "This workout may have been saved. Check the calendar before continuing."
 		)
 		#expect(
 			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
@@ -208,15 +210,18 @@ import Testing
 	@Test func lostResponseSettlesUncertain() async throws {
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = URLError(.timedOut)
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
-		#expect(outcome == .uncertain(done: [], unresolved: card))
+		#expect(
+			outcome
+				== .uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
+		)
 		#expect(
 			outcome.notice?.sentence(in: phrasebook)
-				== "Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
+				== "This workout may have been saved. Check the calendar before continuing."
 		)
 		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
 	}
@@ -256,8 +261,9 @@ import Testing
 				"intervals.icu rejected the request — check your intervals.icu connection or API key."
 			),
 			(
-				.uncertain(done: [], unresolved: card),
-				"Couldn't confirm whether this reached your intervals.icu calendar. Check your calendar before asking again."
+				.uncertain(
+					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:])),
+				"This workout may have been saved. Check the calendar before continuing."
 			),
 			(
 				.blocked(.accountChanged),

@@ -207,10 +207,7 @@ package enum AthleteNotices {
 			return nil
 		case .partiallyApplied(_, _, let failure):
 			return notice(for: failure)
-		case .uncertain:
-			return AthleteNotice(
-				key: Catalog.reviewUncertain, vars: ["service": intervals], action: nil)
-		case .changedSinceReview(let notice):
+		case .uncertain(let notice), .changedSinceReview(let notice):
 			return AthleteNotice(key: notice.key, vars: notice.vars, action: nil)
 		case .blocked(.accountChanged):
 			return AthleteNotice(key: accountChanged.key, vars: accountChanged.vars, action: nil)

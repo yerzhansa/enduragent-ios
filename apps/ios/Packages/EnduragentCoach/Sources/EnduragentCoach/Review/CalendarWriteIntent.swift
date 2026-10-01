@@ -4,6 +4,7 @@ struct CalendarWriteIntent: Sendable {
 	let record: AthleteRecord
 	var body: ReviewWriteBody
 	let proposal: LiveProposal?
+	var canceled = false
 
 	var stamp: OperationStamp? {
 		guard case .operation(let operation, let attempt) = record.cause else { return nil }
@@ -44,7 +45,17 @@ extension Ledger {
 			} else {
 				proposal = nil
 			}
-			intents[body.key] = CalendarWriteIntent(record: record, body: body, proposal: proposal)
+			let canceled =
+				proposal.map { proposal in
+					local.contains {
+						guard case .deviceLocal(.proposalCleared(let cleared)) = $0.body else {
+							return false
+						}
+						return cleared.nonce == proposal.body.nonce && cleared.reason == .canceled
+					}
+				} ?? false
+			intents[body.key] = CalendarWriteIntent(
+				record: record, body: body, proposal: proposal, canceled: canceled)
 		}
 		return intents.values.sorted { $0.record.hlc < $1.record.hlc }
 	}

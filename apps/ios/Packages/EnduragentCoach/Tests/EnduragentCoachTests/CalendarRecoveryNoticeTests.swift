@@ -94,6 +94,34 @@ import Testing
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}
+
+	@Test func failedRepeatIntentCommitSendsNoAdditionalPOST() async throws {
+		let server = try CalendarWriteServer()
+		let url = try await server.start()
+		defer { server.stop() }
+		server.state.withLock { $0.response = .heldBeforeCommit }
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let helpers = DurableCalendarWriteTests()
+		let fixture = await helpers.fixture(url: url, store: faults)
+		let (_, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
+		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
+		try await waitUntil { server.posts.count == 1 }
+		approval.cancel()
+		_ = await approval.value
+		await fixture.coach.stop(.main)
+		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
+		let absent = try #require(await fixture.coach.currentSnapshot(.main)?.review)
+		guard case .retryRemainingOrCancel(let token) = absent.controls else {
+			Issue.record("expected approved-write recovery controls")
+			return
+		}
+		try faults.failAppends(ofKind: "reviewWrite")
+		let outcome = await fixture.coach.decide(.retryRemaining(token), in: .main)
+		#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
+		#expect(server.posts.count == 1)
+		#expect(server.events.isEmpty)
+	}
 }
 
 private struct HeldCalendarConfirmationLog: RecordLog {

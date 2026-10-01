@@ -39,7 +39,7 @@ extension DurableCalendarWriteTests {
 		_ = await store.reached.first { _ in true }
 		faults.failNextAppend = true
 		store.release()
-		#expect(await approving.value == .storageUnavailable)
+		#expect(await approving.value.notice?.key == Catalog.reviewWritePending)
 		await fixture.coach.stop(.main)
 		#expect(await fixture.coach.state(of: turn)?.retryable == false)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
