@@ -45,6 +45,7 @@ final class ShellModel {
 			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
+		updateSlashList()
 	}
 
 	isolated deinit {
