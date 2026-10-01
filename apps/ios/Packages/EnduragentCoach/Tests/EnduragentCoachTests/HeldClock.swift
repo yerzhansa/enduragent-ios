@@ -5,6 +5,7 @@ import Synchronization
 @testable import EnduragentCoach
 
 final class HeldClock: Clock {
+	private let waitLimit: Duration
 	private let calendar: FixedClock
 	private let state = Mutex(State())
 	private let onSleep: @Sendable (Duration) -> Void
@@ -23,10 +24,12 @@ final class HeldClock: Clock {
 	}
 
 	init(
+		within waitLimit: Duration = .seconds(5),
 		calendar: FixedClock = FixedClock(
 			now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 		onSleep: @escaping @Sendable (Duration) -> Void = { _ in }
 	) {
+		self.waitLimit = waitLimit
 		self.calendar = calendar
 		self.onSleep = onSleep
 	}
@@ -40,7 +43,7 @@ final class HeldClock: Clock {
 	func sleep(for duration: Duration) async throws {
 		let id = UUID()
 		let gate = Gate()
-		await withTaskCancellationHandler {
+		try await withTaskCancellationHandler {
 			let changed = state.withLock { state in
 				state.sleepers.append(
 					Sleeper(id: id, duration: duration, deadline: uptime + duration, gate: gate))
@@ -50,7 +53,13 @@ final class HeldClock: Clock {
 			changed.release()
 			onSleep(duration)
 			if Task.isCancelled { cancel(id) }
-			await gate.wait()
+			let released: Void? = try await beforeDeadline(within: waitLimit) {
+				try await gate.waitUnlessCancelled()
+			}
+			guard released != nil else {
+				cancel(id)
+				throw CancellationError()
+			}
 		} onCancel: {
 			cancel(id)
 		}
@@ -85,11 +94,14 @@ final class HeldClock: Clock {
 	}
 
 	func waitUntilHeld(_ duration: Duration) async throws {
-		while let changed = state.withLock({ state in
-			state.sleepers.contains { $0.duration == duration } ? nil : state.changed
-		}) {
-			try await changed.waitUnlessCancelled()
+		let held: Void? = try await beforeDeadline(within: waitLimit) { [self] in
+			while let changed = state.withLock({ state in
+				state.sleepers.contains { $0.duration == duration } ? nil : state.changed
+			}) {
+				try await changed.waitUnlessCancelled()
+			}
 		}
+		guard held != nil else { throw TestWaitDeadlineExceeded() }
 	}
 
 	private func cancel(_ id: UUID) {

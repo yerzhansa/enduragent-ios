@@ -31,13 +31,27 @@ import Testing
 			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
 		let snapshots = await coach.observeStatus()
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		await gate.waitUntilParked()
+		defer { gate.release() }
+		defer { refreshing.cancel() }
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await gate.waitUntilParked()
+			} != nil)
 		try await coach.setLanguage(.fixed(.es))
-		let chosen = await snapshots.status { $0.language == .fixed(.es) }
+		let chosen = try await snapshots.status { $0.language == .fixed(.es) }
 		#expect(chosen?.language == .fixed(.es))
 		#expect(client.base.calls.isEmpty)
 		gate.release()
-		await refreshing.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					refreshing.cancel()
+					gate.release()
+				}
+			) {
+				await refreshing.value
+			} != nil)
 		let refreshed = try await coach.observedStatus()
 		#expect(refreshed.language == .fixed(.es))
 		guard case .connected(let summary, _) = refreshed.training else {
@@ -50,20 +64,20 @@ import Testing
 	@Test func consentAndSessionPublishToEverySubscriber() async throws {
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), consent: false)
-		var first = await coach.observeStatus().makeAsyncIterator()
-		var second = await coach.observeStatus().makeAsyncIterator()
-		#expect(await first.next()?.needsProviderConsent == true)
-		#expect(await second.next()?.needsProviderConsent == true)
+		let first = await coach.observeStatus()
+		let second = await coach.observeStatus()
+		#expect(try await first.status(matching: { _ in true })?.needsProviderConsent == true)
+		#expect(try await second.status(matching: { _ in true })?.needsProviderConsent == true)
 		try await coach.recordConsent()
-		let accepted = try #require(await first.next())
+		let accepted = try #require(try await first.status { _ in true })
 		#expect(accepted.providerConsent?.isCurrent == true)
 		#expect(accepted.setup == .ready)
-		#expect(await second.next() == accepted)
+		#expect(try await second.status { _ in true } == accepted)
 		let session = try SessionSettings.npmDefaults.replacing(
 			.contextWindowOverride, with: "64000")
 		try await coach.setSession(session)
-		#expect(await first.next()?.session == session)
-		#expect(await second.next()?.session == session)
+		#expect(try await first.status(matching: { _ in true })?.session == session)
+		#expect(try await second.status(matching: { _ in true })?.session == session)
 	}
 
 	@Test func acceptingStoredConsentRepublishesAfterAReadFailure() async throws {
@@ -74,7 +88,7 @@ import Testing
 		let snapshots = await coach.observeStatus()
 		records.failFetches = false
 		try await coach.recordConsent()
-		let accepted = await snapshots.status { !$0.needsProviderConsent }
+		let accepted = try await snapshots.status { !$0.needsProviderConsent }
 		#expect(accepted?.providerConsent?.isCurrent == true)
 		#expect(accepted?.setup == .ready)
 		let persisted = try await records.fetch(
@@ -93,7 +107,7 @@ import Testing
 		let snapshots = await reopened.observeStatus()
 		records.failFetches = false
 		try await reopened.setLanguage(.fixed(.es))
-		let chosen = await snapshots.status { $0.language == .fixed(.es) }
+		let chosen = try await snapshots.status { $0.language == .fixed(.es) }
 		#expect(chosen?.language == .fixed(.es))
 		let persisted = try await records.fetch(
 			RecordQuery(scope: .synced([.languagePreference])))
@@ -104,14 +118,14 @@ import Testing
 		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = await makeCoach(transport: FakeModelTransport(), store: records)
 		try await coach.setLanguage(.fixed(.fr))
-		var snapshots = await coach.observeStatus().makeAsyncIterator()
-		#expect(await snapshots.next()?.language == .fixed(.fr))
+		let snapshots = await coach.observeStatus()
+		#expect(try await snapshots.status(matching: { _ in true })?.language == .fixed(.fr))
 		try records.failAppends(ofKind: "languagePreference")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setLanguage(.fixed(.es))
 		}
 		try await coach.setSession(.npmDefaults)
-		#expect(await snapshots.next()?.language == .fixed(.fr))
+		#expect(try await snapshots.status(matching: { _ in true })?.language == .fixed(.fr))
 	}
 
 	@Test func aLateTrainingRefreshCannotRestoreADisconnectedAccount() async throws {
@@ -121,10 +135,24 @@ import Testing
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), intervals: client, store: InMemoryRecordLog())
 		let refreshing = Task { await coach.lifecycle(.becameActive) }
-		await gate.waitUntilParked()
+		defer { gate.release() }
+		defer { refreshing.cancel() }
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await gate.waitUntilParked()
+			} != nil)
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
 		gate.release()
-		await refreshing.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					refreshing.cancel()
+					gate.release()
+				}
+			) {
+				await refreshing.value
+			} != nil)
 		#expect(try await coach.observedStatus().training == .unconnected)
 	}
 
