@@ -42,27 +42,28 @@ import Testing
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
 		var liveTexts: [String] = []
 		var settled: TurnState?
-		var snapshots = await coach.observe(.main).makeAsyncIterator()
+		let snapshots = await coach.observe(.main)
 		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
-			try await pacing.waitUntilHeld(.milliseconds(1))
+			let held = try await beforeDeadline(within: .seconds(2)) {
+				try await pacing.waitUntilHeld(.milliseconds(1))
+				return true
+			}
+			try #require(held == true)
 			pacing.advance(by: .milliseconds(1))
-			while let snapshot = await snapshots.next() {
-				guard case .processing? = snapshot.turns.first?.state,
-					snapshot.liveReply?.text == text
-				else { continue }
-				liveTexts.append(text)
-				break
-			}
+			_ = try #require(
+				try await firstSnapshot(in: snapshots, within: .seconds(2)) { snapshot in
+					guard case .processing? = snapshot.turns.first?.state else { return false }
+					return snapshot.liveReply?.text == text
+				})
+			liveTexts.append(text)
 		}
-		try await pacing.waitUntilHeld(.milliseconds(1))
+		let finishing = try await beforeDeadline(within: .seconds(2)) {
+			try await pacing.waitUntilHeld(.milliseconds(1))
+			return true
+		}
+		try #require(finishing == true)
 		pacing.advance(by: .milliseconds(1))
-		while let snapshot = await snapshots.next() {
-			guard let state = snapshot.turns.first?.state else { continue }
-			if state.isSettled {
-				settled = state
-				break
-			}
-		}
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(2)))
 		#expect(liveTexts.contains("Your week: "))
 		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)

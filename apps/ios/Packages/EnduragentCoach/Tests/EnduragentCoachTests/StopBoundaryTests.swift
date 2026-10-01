@@ -42,7 +42,11 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
-		await requested.wait()
+		let admitted = try await beforeDeadline(within: .seconds(2)) {
+			try await requested.waitUnlessCancelled()
+			return true
+		}
+		try #require(admitted == true)
 		async let sent = coach.send(draft("two"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
