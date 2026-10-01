@@ -33,11 +33,16 @@ import Testing
 
 	@Test func aSendMidAdmissionAtTheTapIsStoppedBeforeItStarts() async throws {
 		let transport = FakeModelTransport()
-		transport.respond = { _ in ScriptedReply([.hang]) }
+		let requested = Gate()
+		transport.respond = { _ in
+			requested.release()
+			return ScriptedReply([.hang])
+		}
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
+		await requested.wait()
 		async let sent = coach.send(draft("two"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()

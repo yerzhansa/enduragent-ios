@@ -67,9 +67,11 @@ ChatActivity.working
 ChatSnapshot
 ChatSnapshot.activity
 ChatSnapshot.chat
+ChatSnapshot.liveReply
 ChatSnapshot.notes
 ChatSnapshot.opening
 ChatSnapshot.review
+ChatSnapshot.revision
 ChatSnapshot.turns
 CivilDate
 CivilDate.<(_:_:)
@@ -265,6 +267,9 @@ LeaseRequest.initiatedBy
 LeaseRequest.language
 LeaseRequest.title
 LeaseRequest.titleText
+LiveReply
+LiveReply.text
+LiveReply.turn
 LocalFailure
 LocalFailure.recordStorage
 MemorySaveResult
@@ -506,7 +511,6 @@ TurnState.Interrupted.saved
 TurnState.Processing
 TurnState.Processing.activity
 TurnState.Processing.attempt
-TurnState.Processing.liveText
 TurnState.SavedWork
 TurnState.SavedWork.notice
 TurnState.SavedWork.outcome

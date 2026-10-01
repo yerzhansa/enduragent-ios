@@ -107,8 +107,8 @@ extension Coach {
 
 	func waitForLiveText(_ turn: TurnID, in chat: ChatID = .main) async {
 		for await snapshot in await observe(chat) {
-			if case .processing(let processing)? = snapshot.turns.first(where: { $0.id == turn })?
-				.state, !processing.liveText.isEmpty
+			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?
+				.state, snapshot.liveReply?.text.isEmpty == false
 			{
 				return
 			}

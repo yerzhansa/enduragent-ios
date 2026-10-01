@@ -260,18 +260,19 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
 		try await paused.waitUntilHeld(.seconds(7))
+		#expect(paused.held.first == .seconds(7))
 		let waiting = try #require(await coach.currentSnapshot(.main))
 		guard case .processing(let processing)? = waiting.turns.first?.state else {
 			Issue.record("expected processing, got \(String(describing: waiting.turns.first))")
 			return
 		}
-		#expect(processing.liveText.isEmpty)
+		#expect(waiting.liveReply?.text.isEmpty != false)
 		#expect(
 			processing.activity
 				== .waiting(RetryWait(until: clock.now.addingTimeInterval(7), reason: .rateLimited))
 		)
 		#expect(waiting.activity == .working(label: Catalog.chatNoticeWorking))
-		paused.release(.seconds(7))
+		paused.advance(by: .seconds(7))
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Thursday is on.")
 	}

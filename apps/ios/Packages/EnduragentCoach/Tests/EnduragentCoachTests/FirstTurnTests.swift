@@ -29,21 +29,35 @@ import Testing
 		}
 	}
 
-	@Test func replyStreamsTextThenFinishes() async throws {
+	@Test func replyFinishesWithTheAssembledRequest() async throws {
+		let pacing = HeldClock()
+		let transport = FakeModelTransport(clock: pacing)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await makeCoach()
+			], deltaDelay: .milliseconds(1), otherwise: transport.respond)
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
 		var liveTexts: [String] = []
 		var settled: TurnState?
-		for await snapshot in await coach.observe(.main) {
-			guard let state = snapshot.turns.first?.state else { continue }
-			if case .processing(let processing) = state {
-				liveTexts.append(processing.liveText)
+		var snapshots = await coach.observe(.main).makeAsyncIterator()
+		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
+			try await pacing.waitUntilHeld(.milliseconds(1))
+			pacing.advance(by: .milliseconds(1))
+			while let snapshot = await snapshots.next() {
+				guard case .processing? = snapshot.turns.first?.state,
+					snapshot.liveReply?.text == text
+				else { continue }
+				liveTexts.append(text)
+				break
 			}
+		}
+		try await pacing.waitUntilHeld(.milliseconds(1))
+		pacing.advance(by: .milliseconds(1))
+		while let snapshot = await snapshots.next() {
+			guard let state = snapshot.turns.first?.state else { continue }
 			if state.isSettled {
 				settled = state
 				break

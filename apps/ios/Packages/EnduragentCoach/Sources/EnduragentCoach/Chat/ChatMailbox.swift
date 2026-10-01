@@ -10,7 +10,6 @@ package actor ChatMailbox {
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
-
 	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
@@ -25,6 +24,9 @@ package actor ChatMailbox {
 		await self?.waitEnded($0, $1)
 	}
 	private let feed: SnapshotFeed<ChatSnapshot>
+	private var projection = TurnProjection()
+	private var latest: ChatSnapshot?
+	private var revision: UInt64 = 0
 
 	init(
 		chatId: ChatID,
@@ -68,7 +70,9 @@ package actor ChatMailbox {
 	}
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		return feed.subscribe(from: snapshot())
+		let current = snapshot()
+		latest = current
+		return feed.subscribe(from: current)
 	}
 
 	package func accept(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
@@ -204,9 +208,7 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package var reviewScope: TurnScope? {
-		work.phase.running?.attempt?.scope
-	}
+	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
 	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
@@ -296,11 +298,9 @@ package actor ChatMailbox {
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
 		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		work.show(
-			RunningAttempt(
-				live: LiveAttempt(
-					turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)),
-				scope: scope))
+		let live = LiveAttempt(
+			turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
+		work.show(RunningAttempt(live: live, scope: scope))
 		publish()
 		let settlement: Settlement
 		do {
@@ -349,28 +349,38 @@ package actor ChatMailbox {
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
 		await records.apply(progress, turn: turn, stamp: stamp)
 		work.apply(progress, attempt: stamp.attempt)
-		publish()
+		switch progress {
+		case .textDelta, .attemptRestarted:
+			publishLiveText()
+		case .activity, .proposalPending:
+			publish()
+		}
 	}
 
 	private func snapshot() -> ChatSnapshot {
-		ChatSnapshot(
-			chat: chatId,
-			conversation: conversation,
-			jobs: records.jobs,
-			phase: work.phase,
-			window: work.window,
-			queued: work.waiting,
+		revision += 1
+		return ChatSnapshot(
+			chat: chatId, revision: revision, projection: &projection,
+			conversation: conversation, jobs: records.jobs, phase: work.phase,
+			window: work.window, queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
-			finishedAway: finishedAway,
-			review: records.review,
-			device: ledger.deviceId,
-			process: process,
-			now: clock.now, zone: clock.timeZone
-		)
+			finishedAway: finishedAway, review: records.review,
+			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 
 	private func publish() {
-		feed.publish(snapshot())
+		let current = snapshot()
+		latest = current
+		feed.publish(current)
+	}
+
+	private func publishLiveText() {
+		guard var current = latest else { return publish() }
+		current.liveReply = LiveReply(work.phase.running?.live)
+		revision += 1
+		current.revision = revision
+		latest = current
+		feed.publish(current)
 	}
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {

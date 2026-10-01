@@ -18,7 +18,7 @@ extension Coach {
 			return feed.subscribe(
 				from: ChatSnapshot(
 					chat: chat, opening: .welcome, turns: [], activity: .idle, review: nil,
-					notes: []))
+					notes: [:], liveReply: nil, revision: 0))
 		}
 	}
 
