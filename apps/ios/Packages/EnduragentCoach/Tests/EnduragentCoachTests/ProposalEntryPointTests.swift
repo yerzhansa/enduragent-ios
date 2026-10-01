@@ -22,7 +22,7 @@ extension RetryLadderTests {
 		let token = try await presentReview(on: coach)
 		held.release(.seconds(7))
 		try await held.waitUntilHeld(.seconds(11))
-		let scope = try #require(await coach.mailbox(for: .main).reviewScope)
+		let scope = try #require(try await coach.mailbox(for: .main).reviewScope)
 		let first = await coach.decide(.approve(token), in: .main)
 		let probeStore = InMemoryRecordLog()
 		let ledger = Ledger(log: probeStore, clock: held, diagnostics: DiagnosticsLog(clock: held))

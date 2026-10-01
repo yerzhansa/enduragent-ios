@@ -150,7 +150,7 @@ extension RetryLadderTests {
 	}
 
 	func waitForReviewGate(on coach: Coach) async throws {
-		let scope = try #require(await coach.mailbox(for: .main).reviewScope)
+		let scope = try #require(try await coach.mailbox(for: .main).reviewScope)
 		let deadline = ContinuousClock.now + .seconds(5)
 		while await !scope.waitingForReview {
 			try #require(
