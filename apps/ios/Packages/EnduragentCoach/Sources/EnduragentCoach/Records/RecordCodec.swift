@@ -141,7 +141,8 @@ enum RecordCodec {
 				WindowStartBody(
 					chatId: try decodeChatID(payload.chatId),
 					firstIncludedUlid: try decodeULID(payload.firstIncludedUlid),
-					reason: try decodeWindowReason(payload.reason)
+					reason: try decodeWindowReason(payload.reason),
+					droppedMessageUlids: try payload.droppedMessageUlids?.map(decodeULID)
 				)
 			)
 		case .compactionSummary:

@@ -193,13 +193,10 @@ extension SwiftDataSuites {
 						body: .synced(sampleUser(chatId: chat, text: "row \(index)"))))
 			}
 			try await log.append(batch, locality: .synced)
-			let clock = ContinuousClock()
-			let start = clock.now
 			let page = try await log.fetch(
 				RecordQuery(scope: .synced([.userMessage]), chatId: .main))
-			let elapsed = clock.now - start
 			#expect(page.records.count == 100)
-			#expect(elapsed < .seconds(2))
+			#expect(page.records == batch.filter { $0.chatId == .main })
 		}
 
 		@Test func syncedFaultsRejectEverySyncedKindAndLeaveLocalRecordsWritable() async throws {

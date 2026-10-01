@@ -360,7 +360,7 @@ public actor Coach {
 			flushes: FlushWork(
 				chat: chatId, process: process, ledger: ledger, memory: memory,
 				transport: transport, clock: clock,
-				diagnostics: diagnostics),
+				diagnostics: diagnostics, ladder: runner.ladder),
 			clock: clock,
 			coalescing: coalescing,
 			environment: EnvironmentResolver(

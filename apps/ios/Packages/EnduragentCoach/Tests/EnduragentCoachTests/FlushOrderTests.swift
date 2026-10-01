@@ -67,7 +67,7 @@ import Testing
 		let budget = historyBudget(clock: clock)
 		let history = try await seedHistory(store, clock: clock, turns: 3, tokens: budget * 9 / 10)
 		transport.flushScript =
-			[.fail(.http(status: 500)), .fail(.http(status: 500))]
+			Array(repeating: .fail(.http(status: 500)), count: 3)
 			+ memoryWrite("Sundays now.") + memoryWrite("Saturdays.")
 		transport.summaryScript = [.text("Earlier."), .finish(reason: .stop)]
 		let longReply = "Long " + String(repeating: "r", count: budget / 2)
@@ -76,13 +76,13 @@ import Testing
 		]
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
+		try await waitUntil { sent(.memoryFlush, by: transport).count == 3 }
 		_ = try await coach.sendAndSettle("And Sunday?")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		try await Task.sleep(for: .milliseconds(200))
 		let flushes = sent(.memoryFlush, by: transport)
-		#expect(flushes.count == 4)
-		let window = flushes[2].messages.map(\.unstampedContent)
+		#expect(flushes.count == 5)
+		let window = flushes[3].messages.map(\.unstampedContent)
 		#expect(window.contains { $0.hasPrefix("Question 0") })
 		#expect(window.contains { $0 == "Rest day?" })
 		let memory = Memory(ledger: ledger(), clock: clock)
@@ -103,7 +103,7 @@ import Testing
 		for index in 0..<3 {
 			transport.script = [.text("Reply \(index)."), .finish(reason: .stop)]
 			_ = try await coach.sendAndSettle("Ask \(index)?")
-			try await waitUntil { sent(.memoryFlush, by: transport).count == 2 * (index + 1) }
+			try await waitUntil { sent(.memoryFlush, by: transport).count == index + 1 }
 		}
 		#expect(try await count(.flushPending) == 1)
 		#expect(try await count(.flushSettled) == 0)
@@ -111,12 +111,12 @@ import Testing
 		let relaunched = await makeCoach(transport: transport, store: store, clock: clock)
 		await relaunched.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
-		#expect(sent(.memoryFlush, by: transport).count == 8)
+		#expect(sent(.memoryFlush, by: transport).count == 4)
 		#expect(try await settlements() == [.abandoned])
 
 		transport.script = [.text("Reply 3."), .finish(reason: .stop)]
 		_ = try await relaunched.sendAndSettle("Ask 3?")
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 10 }
+		try await waitUntil { sent(.memoryFlush, by: transport).count == 5 }
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))
 		#expect(jobs.count == 2)
 		let seeded = Set(history.flatMap { [$0.user, $0.reply] })

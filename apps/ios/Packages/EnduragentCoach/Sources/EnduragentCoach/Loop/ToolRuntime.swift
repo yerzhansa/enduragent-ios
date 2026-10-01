@@ -111,9 +111,11 @@ package struct ToolRuntime: Sendable {
 			case .memoryQuery:
 				return try await executeMemoryQuery(arguments)
 			case .memoryWrite:
-				return try await executeMemoryWrite(arguments, stamp: stamp)
+				return try await memory().executeMemoryWrite(
+					arguments, source: .chat, stamp: stamp)
 			case .ledgerAppend:
-				return try await executeLedgerAppend(arguments, stamp: stamp)
+				return try await memory().executeLedgerAppend(
+					arguments, source: .chat, stamp: stamp)
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")

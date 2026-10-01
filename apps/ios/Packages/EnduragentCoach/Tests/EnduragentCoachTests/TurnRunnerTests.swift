@@ -256,7 +256,8 @@ import Testing
 				.synced(
 					.windowStart(
 						WindowStartBody(
-							chatId: .main, firstIncludedUlid: history[1].user, reason: .trim))),
+							chatId: .main, firstIncludedUlid: history[1].user, reason: .trim,
+							droppedMessageUlids: [history[0].user, history[0].reply]))),
 				.synced(
 					.compactionSummary(
 						CompactionSummaryBody(chatId: .main, markdown: earlierSummary))),
