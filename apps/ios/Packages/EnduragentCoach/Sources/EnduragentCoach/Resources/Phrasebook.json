@@ -200129,6 +200129,112 @@
         }
       }
     },
+    "review.saveApprovedAgain": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save approved workout again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar de nuevo el entrenamiento aprobado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer à nouveau l'entraînement approuvé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva di nuovo l'allenamento approvato"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genehmigtes Training erneut speichern"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedgekeurde training opnieuw opslaan"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem den godkendte træning igen"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spara det godkända träningspasset igen"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lagre den godkjente treningsøkten på nytt"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallenna hyväksytty harjoitus uudelleen"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar novamente o treino aprovado"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar novamente o treino aprovado"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisz ponownie zatwierdzony trening"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "승인한 운동 다시 저장"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承認したワークアウトをもう一度保存"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新保存已批准的训练"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新儲存已核准的訓練"
+          }
+        }
+      }
+    },
     "review.storageUnavailable": {
       "localizations": {
         "en": {
@@ -200337,6 +200443,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "訓練審核"
+          }
+        }
+      }
+    },
+    "review.turnStopping": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This reply is stopping. You can approve or cancel the workout review once it stops."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta respuesta se está deteniendo. Cuando se detenga, podrás aprobar o cancelar la revisión del entrenamiento."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa risposta si sta interrompendo. Quando si sarà interrotta, potrai approvare o annullare la revisione dell'allenamento."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Antwort wird gerade gestoppt. Danach kannst du die Trainingsprüfung bestätigen oder abbrechen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tätä vastausta pysäytetään. Kun se on pysähtynyt, voit hyväksyä tai perua harjoituksen tarkistuksen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta resposta está sendo interrompida. Quando parar, você poderá aprovar ou cancelar a revisão do treino."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta odpowiedź jest zatrzymywana. Po jej zatrzymaniu możesz zatwierdzić lub anulować przegląd treningu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 답변을 중지하고 있어요. 중지되면 운동 검토 내용을 승인하거나 취소할 수 있어요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この返信を停止しています。停止したら、ワークアウトの確認内容を承認またはキャンセルできます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止此回复。停止后，你可以批准或取消训练审核。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止此回覆。停止後，你可以核准或取消訓練審核。"
           }
         }
       }
@@ -200969,6 +201181,218 @@
           "stringUnit": {
             "state": "translated",
             "value": "暖身"
+          }
+        }
+      }
+    },
+    "review.writePending": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This workout may have been saved. Check the calendar before continuing."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puede que este entrenamiento se haya guardado. Revisa el calendario antes de continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cet entraînement a peut-être été enregistré. Vérifie le calendrier avant de continuer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo allenamento potrebbe essere stato salvato. Controlla il calendario prima di continuare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Training wurde möglicherweise gespeichert. Prüfe den Kalender, bevor du fortfährst."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze training is mogelijk opgeslagen. Controleer de kalender voordat je verdergaat."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne træning er muligvis blevet gemt. Tjek kalenderen, før du fortsætter."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det här träningspasset kan ha sparats. Kontrollera kalendern innan du fortsätter."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne treningsøkten kan ha blitt lagret. Sjekk kalenderen før du fortsetter."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä harjoitus on ehkä tallennettu. Tarkista kalenteri ennen jatkamista."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino pode ter sido guardado. Verifica o calendário antes de continuares."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este treino pode ter sido salvo. Confira o calendário antes de continuar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten trening mógł zostać zapisany. Sprawdź kalendarz, zanim przejdziesz dalej."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 운동이 저장되었을 수 있습니다. 계속하기 전에 캘린더를 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このワークアウトは保存された可能性があります。続行する前にカレンダーを確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此训练可能已保存。请先检查日历再继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此訓練可能已儲存。請先檢查行事曆再繼續。"
+          }
+        }
+      }
+    },
+    "review.writeReadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The calendar could not be checked. Your approved workout is still pending."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo comprobar el calendario. Tu entrenamiento aprobado sigue pendiente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de vérifier le calendrier. Ton entraînement approuvé est toujours en attente."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile controllare il calendario. Il tuo allenamento approvato è ancora in sospeso."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Kalender konnte nicht geprüft werden. Dein genehmigtes Training ist weiterhin ausstehend."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalendern kunde inte kontrolleras. Ditt godkända träningspass väntar fortfarande på bekräftelse."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderen kunne ikke kontrolleres. Den godkjente treningsøkten din venter fortsatt."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenteria ei voitu tarkistaa. Hyväksymäsi harjoitus odottaa yhä vahvistusta."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível verificar o calendário. O teu treino aprovado continua pendente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível verificar o calendário. Seu treino aprovado continua pendente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더를 확인하지 못했습니다. 승인한 운동은 아직 확인 대기 중입니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーを確認できませんでした。承認したワークアウトは引き続き確認待ちです。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查日历。你已批准的训练仍在等待确认。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法檢查行事曆。你已核准的訓練仍在等待確認。"
           }
         }
       }

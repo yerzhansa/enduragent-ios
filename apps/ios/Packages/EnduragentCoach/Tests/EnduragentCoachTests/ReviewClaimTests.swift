@@ -12,10 +12,17 @@ extension SingleProposalReviewsTests {
 		await firstWrite.arm()
 		let approval = Task { await coach.decide(.approve(token), in: .main) }
 		#expect(await firstWrite.waitUntilEntered())
-		let clears = try await records.fetch(
-			RecordQuery(scope: .deviceLocal([.proposalCleared]), chatId: .main)
+		let writes = try await records.fetch(
+			RecordQuery(scope: .synced([.reviewWrite]), chatId: .main)
 		).records
-		#expect(clears.count == 1)
+		#expect(writes.count == 2)
+		guard case .synced(.reviewWrite(let body)) = writes.last?.body else {
+			Issue.record("expected durable evidence before dispatch")
+			await firstWrite.release()
+			_ = await approval.value
+			return
+		}
+		#expect(body.evidence == .unknown(.dispatched))
 		await firstWrite.release()
 		_ = await approval.value
 	}

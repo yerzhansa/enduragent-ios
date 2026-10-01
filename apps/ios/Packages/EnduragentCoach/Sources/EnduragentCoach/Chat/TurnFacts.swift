@@ -11,6 +11,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package var claims: [ClaimedAttempt] = []
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
+	package var reviewWrites: [CalendarWriteKey: CalendarWriteEvidence] = [:]
 
 	package var requestText: String {
 		fragments.sorted { $0.index < $1.index }.map(\.text).joined(separator: "\n")
@@ -29,8 +30,13 @@ package struct TurnFacts: Sendable, Equatable {
 	}
 
 	package var latestSettlement: SettledAttempt? {
-		guard let latest = latestAttempt else { return nil }
-		return settlements.filter { $0.attempt == latest }.max { $0.hlc < $1.hlc }
+		guard let latest = latestAttempt,
+			let settled = settlements.filter({ $0.attempt == latest }).max(by: { $0.hlc < $1.hlc })
+		else { return nil }
+		return SettledAttempt(
+			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
+			settlement: settled.settlement.resolvingCalendarWrites(
+				evidence: Array(reviewWrites.values)))
 	}
 
 	package var reply: ReplyText? {
@@ -106,4 +112,31 @@ package struct SettledAttempt: Sendable, Equatable {
 	package let hlc: HybridLogicalClock
 	package let attempt: AttemptID
 	package let settlement: Settlement
+}
+
+extension Settlement {
+	fileprivate func resolvingCalendarWrites(evidence: [CalendarWriteEvidence]) -> Settlement {
+		guard !evidence.isEmpty else { return self }
+		switch self {
+		case .interrupted(let partial, let cause, let saved):
+			return .interrupted(
+				partial: partial, cause: cause, saved: saved.resolvingCalendarWrites(evidence))
+		case .failed(let failure, let saved):
+			return .failed(failure, saved: saved.resolvingCalendarWrites(evidence))
+		case .savedWork(let outcome, let saved):
+			let updated = saved.resolvingCalendarWrites(evidence)
+			return .savedWork(outcome, saved: updated)
+		case .replied:
+			return self
+		}
+	}
+}
+
+extension WriteSummary {
+	fileprivate func resolvingCalendarWrites(_ evidence: [CalendarWriteEvidence]) -> WriteSummary {
+		WriteSummary(
+			memorySections: memorySections, ledgerEvents: ledgerEvents, planSaves: planSaves,
+			calendarWrites: evidence.filter(\.dispatched).count,
+			unverifiedCalendarWrites: evidence.filter { $0.dispatched && !$0.applied }.count)
+	}
 }

@@ -2874,6 +2874,7 @@
     "accountChanged": "这项训练是为 {{service}} 上的另一位运动员准备的。请再次提出请求，让我为当前连接的运动员准备训练。",
     "add": "添加到日历",
     "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
+    "turnStopping": "正在停止此回复。停止后，你可以批准或取消训练审核。",
     "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
     "storageUnavailable": "无法读取已保存的训练审核。仍显示上次的审核。请重试以恢复操作按钮。",
     "title": "训练审核",
@@ -2883,7 +2884,10 @@
       "mainSet": "主训练",
       "cooldown": "放松",
       "ramp": "渐增"
-    }
+    },
+    "writePending": "此训练可能已保存。请先检查日历再继续。",
+    "writeReadFailed": "无法检查日历。你已批准的训练仍在等待确认。",
+    "saveApprovedAgain": "重新保存已批准的训练"
   },
   "credits": {
     "buy": "购买",

@@ -52,13 +52,14 @@ extension SwiftDataSuites {
 			try await store.append([question, question, reply, reply], locality: .synced)
 			store.notifyImport()
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
-			let mailbox = try await coach.mailbox(for: .main)
-			let live = await mailbox.conversation
+			let live = await coach.currentSnapshot(.main)
+			let reopened = await makeCoach(
+				transport: FakeModelTransport(), store: store, clock: clock)
 			let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 			let cold = try await ledger.conversation(.main)
 			#expect(cold.turn(turn)?.fragments.count == 1)
 			#expect(cold.turn(turn)?.settlements.count == 1)
-			#expect(live == cold)
+			#expect(live == (await reopened.currentSnapshot(.main)))
 			var replayed = cold
 			replayed.apply([question, reply], device: store.deviceId)
 			#expect(replayed == cold)

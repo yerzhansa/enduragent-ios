@@ -26,7 +26,7 @@ final class ShellModel {
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
-	private(set) var reviewNotice: AthleteNotice?
+	private var reviewOutcomeNotice: AthleteNotice?
 	var showSidebar = false
 	var showCredits = false
 	var packPrices: [String: String] = [:]
@@ -71,6 +71,18 @@ final class ShellModel {
 
 	var phrasebook: CatalogPhrasebook {
 		languagePreference.phrasebook(device: environment.language)
+	}
+
+	var reviewNotice: AthleteNotice? {
+		guard let reviewOutcomeNotice else { return nil }
+		if let cardNotice = chat?.review?.notice,
+			cardNotice.kind == .storageUnavailable
+				|| (cardNotice.key == reviewOutcomeNotice.key
+					&& cardNotice.vars == reviewOutcomeNotice.vars)
+		{
+			return nil
+		}
+		return reviewOutcomeNotice
 	}
 
 	var languageNotSavedLine: String? {
@@ -220,7 +232,7 @@ final class ShellModel {
 	}
 
 	func newConversation() async {
-		reviewNotice = nil
+		reviewOutcomeNotice = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
@@ -287,7 +299,7 @@ final class ShellModel {
 		defer { isSending = false }
 		notSent = false
 		newConversationUncertain = false
-		reviewNotice = nil
+		reviewOutcomeNotice = nil
 		slashListVisible = false
 		do {
 			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
@@ -341,7 +353,7 @@ final class ShellModel {
 		let outcome = await services.coach.decide(decision, in: .main)
 		switch decision {
 		case .approve, .cancel, .retryRemaining, .checkAgain:
-			reviewNotice = outcome.notice
+			reviewOutcomeNotice = outcome.notice
 		case .presented, .presentationFailed, .showAgain:
 			break
 		}

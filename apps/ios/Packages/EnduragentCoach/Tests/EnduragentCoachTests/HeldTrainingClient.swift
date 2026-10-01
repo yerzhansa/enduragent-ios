@@ -3,36 +3,12 @@ import Foundation
 
 @testable import EnduragentCoach
 
-actor CredentialProfileGate {
-	private var entered = false
-	private var released = false
-	private var waiters: [CheckedContinuation<Void, Never>] = []
-	private var blocked: [CheckedContinuation<Void, Never>] = []
-
-	func pause() async {
-		entered = true
-		for waiter in waiters { waiter.resume() }
-		waiters.removeAll()
-		if !released { await withCheckedContinuation { blocked.append($0) } }
-	}
-
-	func waitUntilEntered() async {
-		if !entered { await withCheckedContinuation { waiters.append($0) } }
-	}
-
-	func release() {
-		released = true
-		for waiter in blocked { waiter.resume() }
-		blocked.removeAll()
-	}
-}
-
 struct GatedProfileIntervals: IntervalsClient {
 	let base: FakeIntervalsClient
-	let gate: CredentialProfileGate
+	let gate: Gate
 
 	func fetchAthlete() async throws -> AthleteProfile {
-		await gate.pause()
+		await gate.wait()
 		return try await base.fetchAthlete()
 	}
 	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
@@ -47,6 +23,7 @@ struct GatedProfileIntervals: IntervalsClient {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchStreams(id: id)
 	}
+	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try await base.listEvents(oldest: oldest, newest: newest)
 	}

@@ -2910,6 +2910,7 @@
     "accountChanged": "Questo allenamento è stato preparato per un altro atleta su {{service}}. Chiedimi di nuovo di prepararlo per l'atleta collegato.",
     "add": "Aggiungi al calendario",
     "cannotVerify": "Non ho potuto verificare la connessione a {{service}}, quindi non è cambiato nulla. Riprova tra poco.",
+    "turnStopping": "Questa risposta si sta interrompendo. Quando si sarà interrotta, potrai approvare o annullare la revisione dell'allenamento.",
     "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
     "storageUnavailable": "Non è stato possibile leggere la revisione salvata dell’allenamento. La tua ultima revisione resta visibile. Riprova per ripristinare i comandi.",
     "title": "Revisione dell'allenamento",
@@ -2919,7 +2920,10 @@
       "mainSet": "Blocco principale",
       "cooldown": "Defaticamento",
       "ramp": "rampa"
-    }
+    },
+    "writePending": "Questo allenamento potrebbe essere stato salvato. Controlla il calendario prima di continuare.",
+    "writeReadFailed": "Impossibile controllare il calendario. Il tuo allenamento approvato è ancora in sospeso.",
+    "saveApprovedAgain": "Salva di nuovo l'allenamento approvato"
   },
   "credits": {
     "buy": "Acquista",

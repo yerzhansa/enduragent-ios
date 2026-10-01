@@ -28,6 +28,9 @@ struct SlowTrainingClient: IntervalsClient {
 		try await inner.fetchStreams(id: id)
 	}
 
+	func fetchEvent(id: EventID) async throws -> CalendarEvent {
+		try await inner.fetchEvent(id: id)
+	}
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try await inner.listEvents(oldest: oldest, newest: newest)
 	}

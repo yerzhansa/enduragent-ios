@@ -18,18 +18,18 @@ extension CredentialVaultTests {
 			selection: .keyOwner, resolvedAthlete: nil)
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try secrets.storeIntervalsConnection(unresolved)
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		if failingWrite {
 			memory.failWrites("intervalsCredential", with: statusCode)
 		} else {
 			memory.fail("intervalsCredential", with: statusCode)
 		}
-		await gate.release()
+		gate.release()
 		let training = try await status.value.training
 		#expect(training == .connected(adaSummary, account: account(unresolved)))
 		if statusCode != errSecInteractionNotAllowed {
@@ -63,14 +63,14 @@ extension CredentialVaultTests {
 			selection: .keyOwner, resolvedAthlete: nil)
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try secrets.storeIntervalsConnection(unresolved)
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
-		await gate.release()
+		gate.release()
 		#expect(
 			try await status.value.training == .connected(adaSummary, account: account(unresolved)))
 		#expect(
@@ -214,7 +214,7 @@ extension CredentialVaultTests {
 
 	@Test func concurrentReplacementThenDisconnectKeepsDisconnect() async throws {
 		let secrets = keyedSecrets()
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
 		let service = TrainingService { credential, _, _ in
 			if credential == .apiKey("test-delayed-key") { return client }
@@ -224,10 +224,10 @@ extension CredentialVaultTests {
 		let replacement = Task {
 			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
 		}
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		let disconnect = Task { await coach.changeTraining(.disconnect) }
 		try await Task.sleep(for: .milliseconds(150))
-		await gate.release()
+		gate.release()
 		_ = await replacement.value
 		#expect(await disconnect.value == .disconnected)
 		#expect(try secrets.intervalsConnection() == nil)
@@ -241,7 +241,7 @@ extension CredentialVaultTests {
 			IntervalsConnection(
 				id: testConnection.id, credential: .apiKey("test-unresolved"),
 				selection: .keyOwner, resolvedAthlete: nil))
-		let gate = CredentialProfileGate()
+		let gate = Gate()
 		let old = GatedProfileIntervals(base: ada, gate: gate)
 		let service = TrainingService { credential, _, _ in
 			if credential == .apiKey("test-unresolved") { return old }
@@ -249,10 +249,10 @@ extension CredentialVaultTests {
 		}
 		let coach = await coachWithTraining(secrets, training: service)
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilEntered()
+		await gate.waitUntilParked()
 		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
 		let replacement = try #require(try secrets.intervalsConnection())
-		await gate.release()
+		gate.release()
 		_ = try await status.value
 		#expect(try secrets.intervalsConnection() == replacement)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))

@@ -199,6 +199,8 @@ package actor ChatMailbox {
 		publish()
 	}
 
+	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }
+
 	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
 		defer { publish() }
 		return await records.refreshReview(ref)
@@ -298,10 +300,13 @@ package actor ChatMailbox {
 			)
 		else { return finish(turn, under: lease) }
 		let attempt = stamp.attempt
-		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
-		let live = LiveAttempt(
-			turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
-		work.show(RunningAttempt(live: live, scope: scope))
+		let scope = TurnScope(
+			stamp: stamp, policy: .npm, ladder: runner.ladder, uptime: clock.uptime)
+		work.show(
+			RunningAttempt(
+				live: LiveAttempt(
+					turn: turn, attempt: attempt, text: "", activity: .generating(step: 1)),
+				scope: scope))
 		publish()
 		let settlement: Settlement
 		do {
