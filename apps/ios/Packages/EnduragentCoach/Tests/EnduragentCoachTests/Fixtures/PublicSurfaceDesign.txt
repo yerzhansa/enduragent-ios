@@ -23,7 +23,6 @@ AccountAuthority.unverifiable
 AppLifecycleEvent
 AppLifecycleEvent.becameActive
 AppLifecycleEvent.enteredBackground
-AppLifecycleEvent.willResignActive
 AppLifecycleEvent.willTerminate
 ArchiveReason
 ArchiveReason.earlierChat

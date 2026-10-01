@@ -52,7 +52,7 @@ extension Coach {
 
 	public func stop(_ chat: ChatID) async {
 		do {
-			try await mailbox(for: chat).interrupt(.athleteStopped)
+			try await mailbox(for: chat).cancelInFlight(cause: .athleteStopped)
 		} catch {
 			diagnostics.record(.recoveryUnavailable(error))
 		}
