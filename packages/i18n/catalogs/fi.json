@@ -515,7 +515,8 @@
         "remove": "Poista webhook",
         "title": "Poista nykyinen webhook"
       }
-    }
+    },
+    "modelAccessTitle": "Mallin käyttö"
   },
   "archive": {
     "athlete": "Sinä",

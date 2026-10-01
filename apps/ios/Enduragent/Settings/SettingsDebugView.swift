@@ -2,7 +2,7 @@ import EnduragentCoach
 import SwiftUI
 
 #if DEBUG
-	struct DebugMenuView: View {
+	struct SettingsDebugView: View {
 		static let title = "Debug"
 		var model: ShellModel
 
@@ -26,9 +26,10 @@ import SwiftUI
 					LanguageView(model: model)
 				}
 				.accessibilityIdentifier("debug.language")
-				NavigationLink(model.phrasebook.say(Catalog.settingsConversationTitle, [:])) {
-					SessionDebugView(model: model)
-				}
+				NavigationLink(
+					model.phrasebook.say(Catalog.settingsConversationTitle, [:]),
+					value: ShellDestination.session
+				)
 				.accessibilityIdentifier("debug.session")
 				NavigationLink("Leases") {
 					LeasesDebugView(leases: model.services.leases)

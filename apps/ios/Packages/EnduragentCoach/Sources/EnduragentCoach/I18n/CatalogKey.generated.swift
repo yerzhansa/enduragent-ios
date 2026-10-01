@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2485
-	public static let keyCount = 2525
+	public static let englishLeafCount = 2486
+	public static let keyCount = 2526
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -1620,6 +1620,7 @@ public enum Catalog {
 	public static let settingsLanguageTitle = CatalogKey(rawValue: "settings.language.title")
 	public static let settingsLanguageUnavailable = CatalogKey(rawValue: "settings.language.unavailable")
 	public static let settingsManagedByEnvironment = CatalogKey(rawValue: "settings.managedByEnvironment")
+	public static let settingsModelAccessTitle = CatalogKey(rawValue: "settings.modelAccessTitle")
 	public static let settingsPaletteApp = CatalogKey(rawValue: "settings.palette.app")
 	public static let settingsPaletteDetail = CatalogKey(rawValue: "settings.palette.detail")
 	public static let settingsPaletteTitle = CatalogKey(rawValue: "settings.palette.title")

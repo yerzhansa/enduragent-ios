@@ -5,6 +5,24 @@ import Testing
 
 @Suite struct ChromeCatalogTests {
 	@Test(arguments: [
+		(LanguageTag.en, "Model access"), (LanguageTag.es, "Acceso al modelo"),
+		(LanguageTag.fr, "Accès au modèle"), (LanguageTag.it, "Accesso al modello"),
+		(LanguageTag.de, "Modellzugriff"), (LanguageTag.nl, "Modeltoegang"),
+		(LanguageTag.da, "Modeladgang"), (LanguageTag.sv, "Modellåtkomst"),
+		(LanguageTag.nb, "Modelltilgang"), (LanguageTag.fi, "Mallin käyttö"),
+		(LanguageTag.ptPT, "Acesso ao modelo"), (LanguageTag.ptBR, "Acesso ao modelo"),
+		(LanguageTag.pl, "Dostęp do modelu"), (LanguageTag.ko, "모델 접근"),
+		(LanguageTag.ja, "モデルへのアクセス"), (LanguageTag.zhHans, "模型访问"),
+		(LanguageTag.zhHant, "模型存取"),
+	])
+	func settingsModelAccessFollowsTheCoachLanguage(tag: LanguageTag, title: String) async throws {
+		let coach = await makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
+		try await coach.setLanguage(.fixed(tag))
+		let book = await coach.languagePreference().phrasebook(device: .en)
+		#expect(book.say(CatalogKey(rawValue: "settings.modelAccessTitle")) == title)
+	}
+
+	@Test(arguments: [
 		(
 			LanguageTag.en, "Menu", "12 credits",
 			"Requesting starter credits",

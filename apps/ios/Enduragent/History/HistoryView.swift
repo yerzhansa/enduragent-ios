@@ -30,7 +30,7 @@ struct HistoryView: View {
 				}
 			}
 		}
-		.navigationTitle(say(Catalog.archiveTitle))
+		.navigationTitle(say(Catalog.archiveHistory))
 		.task {
 			await model.loadHistory()
 		}

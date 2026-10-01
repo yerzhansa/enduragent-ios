@@ -5,7 +5,12 @@ import Observation
 @MainActor
 @Observable
 final class ShellModel {
-	var route: ShellRoute = .onboarding(.notice)
+	var route: ShellRoute = .onboarding(.notice) {
+		didSet {
+			if route != .chat { navigation.removeAll() }
+		}
+	}
+	var navigation: [ShellDestination] = []
 	private(set) var chat: ChatSnapshot?
 	private(set) var languageNotSaved: LanguagePreference?
 	var showLanguage = false
@@ -16,8 +21,6 @@ final class ShellModel {
 	private(set) var status: CoachStatus?
 	private(set) var newConversationUncertain = false
 	private var reviewOutcomeNotice: AthleteNotice?
-	var showSidebar = false
-	var showCredits = false
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
@@ -115,6 +118,11 @@ final class ShellModel {
 
 	var isWorking: Bool {
 		chat.map { $0.activity != .idle } ?? false
+	}
+
+	func open(_ destination: ShellDestination) {
+		guard route == .chat else { return }
+		navigation = destination.path
 	}
 
 	func continueNotice() {

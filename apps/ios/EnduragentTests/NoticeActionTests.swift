@@ -25,9 +25,9 @@ extension FixtureLaunchTests {
 		let model = model(try services())
 		let (_, notice) = try await failedNotice(model, after: directive)
 		let action = try #require(notice.action)
-		#expect(!model.showCredits)
+		#expect(model.navigation.isEmpty)
 		await model.perform(action)
-		#expect(model.showCredits)
+		#expect(model.navigation == [.settings, .credits])
 		#expect(model.route == .chat)
 	}
 
@@ -39,14 +39,16 @@ extension FixtureLaunchTests {
 		#expect(!turn.state.retryable)
 		await model.perform(.chooseAccessMethod)
 		#expect(model.route == .onboarding(.connect))
-		#expect(!model.showCredits)
+		#expect(model.navigation.isEmpty)
 	}
 
 	@Test func signInToOpenRouterOpensTheConnectStep() async throws {
 		let model = model(try services())
 		await model.agreeAndStartChatting()
+		model.open(.settings)
 		await model.perform(.signInToOpenRouter)
 		#expect(model.route == .onboarding(.connect))
+		#expect(model.navigation.isEmpty)
 	}
 
 	@Test func lockedKeychainKeepsTheMessageAndOffersTryAgain() async throws {

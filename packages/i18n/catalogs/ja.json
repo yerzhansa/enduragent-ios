@@ -514,7 +514,8 @@
         "remove": "Webhookを削除",
         "title": "既存のWebhookを削除"
       }
-    }
+    },
+    "modelAccessTitle": "モデルへのアクセス"
   },
   "archive": {
     "athlete": "あなた",

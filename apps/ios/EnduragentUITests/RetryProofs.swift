@@ -82,7 +82,7 @@ final class OverflowExhaustedProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "compactionSummary"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
 		TutorialHarness.attach(self, name: "overflow-exhausted-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		assertModelRequests(app, 4 + 1, test: self, name: "overflow-requests")
 	}
 }
@@ -100,7 +100,7 @@ final class ReplyObservedProof: XCTestCase {
 		TutorialHarness.waitForRecordCount(app, "replyObserved", "replyObserved 1")
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"), "the reply already settled")
 		TutorialHarness.attach(self, name: "observed-text-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.providerDown), within: .retry)
 		TutorialHarness.attach(self, name: "observed-text-timeout", app: app)
@@ -147,12 +147,11 @@ private func assertModelRequests(
 	_ app: XCUIApplication, _ expected: Int, test: XCTestCase, name: String
 ) {
 	TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)
-	TutorialHarness.openSidebar(app)
-	TutorialHarness.named(app, "sidebar.debug").tap()
+	TutorialHarness.openDebug(app)
 	let model = TutorialHarness.named(app, "fixture.modelRequestCount")
 	TutorialHarness.wait(model)
 	XCTAssertEqual(model.label, "\(expected) model requests")
 	XCTAssertEqual(TutorialHarness.named(app, "fixture.requestCount").label, "0 requests")
 	TutorialHarness.attach(test, name: name, app: app)
-	TutorialHarness.closeMenu(app)
+	TutorialHarness.returnToChat(app)
 }

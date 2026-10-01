@@ -27,7 +27,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
-- `chat-session-settings` edits four settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
+- `chat-session-settings` edits history ratio and context-window override through Settings, Debug, Session. A rejected value preserves the stored value; a saved value affects later turns.
 - `chat-no-network` keeps `fixture.requestCount` at zero through all fixture work.
 
 | Turn or composer state | Visible notice and action |
@@ -57,7 +57,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 - Tap Stop responding while work is running, or the recovery action beneath a settled notice.
 - Tap the compose icon labeled New conversation in the top bar or send `/start`.
 - Relaunch the next morning with the store kept and send another message.
-- Choose Menu, Debug, then Records, Leases, or Conversation & time for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
+- Choose Settings, Debug, then Records, Leases, or Session for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
 
 ## Driving it with sim.mjs and XCUITest
 
@@ -149,7 +149,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> SessionRejectionProof` | Both invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
 | `sim.mjs test <run id> RatioAppliesProof` | A 0.05 history ratio causes earlier compaction than the default, `ratio-applies-turns`, `m1-12-ratio-applies`. |
 
-Debug, Conversation & time uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
+Settings, Debug, Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
 
 ## Gotchas
 
@@ -157,7 +157,7 @@ Debug, Conversation & time uses the field names `historyBudgetRatio` and `contex
 - `fixture:fail <kind>` fails one model request. Exhaustion needs `500 x3`, `network x3`, `timeout x2`, `overflow x4`, or `429 <seconds> x4`. A single retryable failure normally ends with a successful reply.
 - Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
 - `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
-- In Debug, tap `fixture.failNextAppend`, close the menu, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
+- In Debug, tap `fixture.failNextAppend`, return to the conversation with Back, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
 - Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
 - The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
@@ -168,5 +168,5 @@ Debug, Conversation & time uses the field names `historyBudgetRatio` and `contex
 - Records and Leases read when opened or refreshed. Records has `records.refresh`; Leases has a visible Refresh button without an identifier.
 - `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
-- Menu is a sheet without a close button. Dismiss it and wait for `chat.sidebar` to become hittable before interacting with the conversation.
+- Settings and History push onto the conversation navigation stack. Use Back until `chat.settings` is hittable before interacting with the conversation.
 - Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.

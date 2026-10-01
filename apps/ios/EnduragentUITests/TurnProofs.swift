@@ -62,7 +62,7 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnClaim"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
 		TutorialHarness.attach(self, name: "accept-kill-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		tryAgain.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.wait(
@@ -75,7 +75,7 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "accept-kill-try-again-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
@@ -98,7 +98,7 @@ final class HangWatchdogProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
 		TutorialHarness.attach(self, name: "hang-watchdog-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -167,7 +167,7 @@ final class DraftSurvivesKillProof: XCTestCase {
 		TutorialHarness.attach(self, name: "draft-survives", app: app)
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "userMessage"))
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -192,7 +192,7 @@ final class CoalesceProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "coalesce-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

@@ -13,7 +13,7 @@ The athlete's Credits screen shows available Credits, the two packs, and the tes
 
 ## How to get to it (user POV)
 
-- Choose Menu, then Credits from the conversation.
+- Tap Settings, then Credits under Model access from the conversation.
 - Choose Buy Credits or Restore purchases below a Credits-related turn notice.
 - Receive starter Credits during [onboarding](./onboarding.md).
 - Debug, Credits is a separate developer entry for grant, identity, and purchase diagnostics. It does not replace the athlete's Credits screen.
@@ -26,14 +26,14 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim.mjs test <run id> CreditsProof` | `chat.sidebar`, then `sidebar.credits`, opens 200 credits, both packs, and the tester note, `06-credits`. |
+| `sim.mjs test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
 | `sim.mjs test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance`, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
 
-Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `sidebar.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app test `creditsFailuresShowCatalogNotices` covers the unavailable notice; fixture directives do not fail the Credits client.
+Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app test `creditsFailuresShowCatalogNotices` covers the unavailable notice; fixture directives do not fail the Credits client.
 
 ## Gotchas
 
 - Fixture mode omits StoreKit price lookup and keeps available Credits at 200. These proofs do not establish live prices, spending, purchases, or restore settlement.
 - Restore purchases currently navigates to Credits. The button's label is not evidence of a restored transaction.
-- Debug, Credits has no accessibility identifier on its link. Its developer labels and StoreKit actions are outside the athlete-screen proof.
-- The Credits screen can appear inside the Menu sheet or on the conversation's navigation stack. Capture the entry point used.
+- Debug, Credits uses `debug.credits` on its link. Its developer labels and StoreKit actions are outside the athlete-screen proof.
+- Credits always opens on the conversation navigation stack under Settings. Turn recovery opens that same Settings > Credits path. Capture the entry point used.
