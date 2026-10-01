@@ -8,8 +8,6 @@ final class ChatRecords {
 	private(set) var conversation: Conversation
 	private(set) var review: ReviewSnapshot?
 	private(set) var jobs: [FlushJob] = []
-	private var loaded = false
-	private var loading: Task<Result<Void, LedgerFailure>, Never>?
 	private var applied: [ULID: AthleteRecord] = [:]
 
 	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
@@ -20,45 +18,39 @@ final class ChatRecords {
 		self.conversation = Conversation(chat: chat, segments: [])
 	}
 
-	func load(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
-		guard !loaded else { return }
-		if let loading {
-			try await loading.value.get()
+	func refresh(
+		recoveryRecords: [AthleteRecord]? = nil,
+		isolation: isolated (any Actor)? = #isolation
+	) async throws(LedgerFailure) {
+		let imported: [AthleteRecord]
+		if let recoveryRecords {
+			let synced = try await ledger.read(
+				RecordQuery(scope: ConversationFold.syncedScope, chatId: chat)
+			).records
+			imported =
+				synced
+				+ recoveryRecords.filter {
+					$0.chatId == chat && ConversationFold.localScope.admits($0.body)
+				}
 		} else {
-			try await refresh()
+			imported = try await ledger.conversationRecords(chat)
 		}
-	}
-
-	func refresh(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
-		if let loading { try await loading.value.get() }
-		let reading = Task {
-			_ = isolation
-			return await self.read()
+		for record in imported { applied[record.ulid] = record }
+		var folded = ConversationFold.fold(
+			chat: chat, synced: Array(applied.values), device: ledger.deviceId)
+		let jobs: [FlushJob]
+		if let recoveryRecords {
+			jobs =
+				try await ledger.flushJobsByChat(in: [chat: folded], local: recoveryRecords)[chat]
+				?? []
+		} else {
+			jobs = try await ledger.flushJobs(in: folded)
 		}
-		loading = reading
-		try await reading.value.get()
-	}
-
-	private func read(isolation: isolated (any Actor)? = #isolation) async
-		-> Result<Void, LedgerFailure>
-	{
-		defer { loading = nil }
-		do {
-			let imported = try await ledger.conversationRecords(chat)
-			for record in imported { applied[record.ulid] = record }
-			var folded = ConversationFold.fold(
-				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
-			let jobs = try await ledger.flushJobs(in: folded)
-			let review = try await reviews.snapshot(chat: chat)
-			folded.apply(Array(applied.values), device: ledger.deviceId)
-			conversation = folded
-			self.review = review
-			self.jobs = jobs
-			loaded = true
-			return .success(())
-		} catch {
-			return .failure(error)
-		}
+		let review = try await reviews.snapshot(chat: chat)
+		folded.apply(Array(applied.values), device: ledger.deviceId)
+		conversation = folded
+		self.review = review
+		self.jobs = jobs
 	}
 
 	func refreshReview(isolation: isolated (any Actor)? = #isolation) async {

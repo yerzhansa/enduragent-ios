@@ -5,7 +5,7 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct ConversationTrimBatchTests {
-	let store = InMemoryRecordLog()
+	let store = ImportingRecordLog()
 	let transport = FakeModelTransport()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	let remote = DeviceID(rawValue: "remote-phone")
@@ -44,16 +44,21 @@ import Testing
 		#expect(Set(recorded) == Set(dropped))
 		#expect(recorded.count == dropped.count)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let mailbox = await coach.mailbox(for: .main)
+		let mailbox = try await coach.mailbox(for: .main)
 		#expect(await mailbox.conversation == (try await ledger.conversation(.main)))
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let second = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(!second.messages.contains { $0.content.contains("Dropped") })
 		#expect(second.messages.contains { $0.unstampedContent == "Kept question" })
 		#expect(second.messages.contains { $0.content == "Kept answer" })
+		let observed = ImportSnapshots(await coach.observe(.main))
 		try await seed(
 			store,
 			turnRecords(at: 1, question: "Late remote question", answer: "Late remote answer"))
+		store.notifyImport()
+		try await waitUntil {
+			observed.latest?.turns.contains { $0.athleteText == "Late remote question" } == true
+		}
 		_ = try await coach.sendAndSettle("And Sunday?")
 		let last = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(last.messages.contains { $0.unstampedContent == "Late remote question" })

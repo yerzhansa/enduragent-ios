@@ -11,11 +11,13 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	private let scopes = Mutex<[RecordQuery.Scope]>([])
 	private let cursorLocalities = Mutex<[RecordLocality]>([])
 	private let recordCounts = Mutex(0)
+	private let fetched = Mutex<[(query: RecordQuery, ulids: [ULID])]>([])
 
 	var fetchedRecordCount: Int { recordCounts.withLock { $0 } }
 
 	var reads: [RecordQuery.Scope] { scopes.withLock { $0 } }
 	var cursorReads: [RecordLocality] { cursorLocalities.withLock { $0 } }
+	var fetches: [(query: RecordQuery, ulids: [ULID])] { fetched.withLock { $0 } }
 
 	init(inner: any RecordLog) {
 		self.inner = inner
@@ -36,6 +38,7 @@ final class BatchRecordingLog: RecordLog, @unchecked Sendable {
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		scopes.withLock { $0.append(query.scope) }
 		let page = try await inner.fetch(query)
+		fetched.withLock { $0.append((query, page.records.map(\.ulid))) }
 		recordCounts.withLock { $0 += page.records.count + page.skipped.count }
 		return page
 	}
