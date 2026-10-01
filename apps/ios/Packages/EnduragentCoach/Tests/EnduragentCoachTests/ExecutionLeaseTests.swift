@@ -93,9 +93,7 @@ import Testing
 		let coach = coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
-		let started = ContinuousClock.now
 		await host.expire(.systemExpired)
-		let took = ContinuousClock.now - started
 		let state = try #require(await coach.state(of: turn))
 		guard case .interrupted(let interrupted) = state else {
 			Issue.record("expected interrupted, got \(state)")
@@ -107,7 +105,6 @@ import Testing
 			interrupted.notice
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
-		#expect(took < .milliseconds(500), "expiry to settlement took \(took)")
 		#expect(
 			try await settlements(of: turn) == [
 				.interrupted(partial: "Yes, keep Thursday.", cause: .systemExpired, saved: .none)

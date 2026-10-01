@@ -12,7 +12,7 @@ test('proof commands select their appearance and restore light after a dark fail
   let appearance = 'dark';
   let failBuild = false;
   mock.module('node:child_process', {
-    namedExports: {
+    exports: {
       execFileSync(command, args) {
         if (command === 'git') return resolve('.') + '\n';
         assert.equal(command, 'xcrun');

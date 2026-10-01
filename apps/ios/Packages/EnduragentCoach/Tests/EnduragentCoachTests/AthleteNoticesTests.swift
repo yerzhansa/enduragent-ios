@@ -207,6 +207,15 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(state.retryable == (row.button == tryAgain))
 	}
 
+	@Test(arguments: LanguageTag.allCases)
+	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
+		for row in NoticeRow.all {
+			let shown = try #require(notice(of: settledState(row.settlement)))
+			let copy = shown.sentence(in: tag.phrasebook)
+			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
+		}
+	}
+
 	@Test func everyFailureCaseHasARowAndNoneIsUnknownExceptTheThree() {
 		var families: Set<String> = []
 		for row in NoticeRow.failures {

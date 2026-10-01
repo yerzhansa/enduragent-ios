@@ -2,7 +2,7 @@ import Foundation
 
 @testable import EnduragentCoach
 
-struct FlushCostBenchmark {
+struct FlushCostFixture {
 	let rowCount = 2_000
 	let settledJobCount = 200
 	let pendingJobCount = 3
@@ -75,7 +75,7 @@ struct FlushCostBenchmark {
 		try await log.append(messages, locality: .synced)
 	}
 
-	func ledger(oldest: Bool) async throws -> Ledger {
+	func ledger(oldest: Bool) async throws -> (Ledger, BatchRecordingLog) {
 		let log = SwiftDataRecordLog(
 			deviceId: device, synced: synced,
 			local: oldest
@@ -102,10 +102,11 @@ struct FlushCostBenchmark {
 		}
 
 		try await log.append(local, locality: .deviceLocal)
-		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let recording = BatchRecordingLog(inner: log)
+		let ledger = Ledger(log: recording, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
 
-		return ledger
+		return (ledger, recording)
 	}
 
 	private static func rowUlids(_ range: Range<Int>) -> [ULID] {

@@ -73,30 +73,6 @@ for (const [name, file, value, code] of [
   ['private key', 'key.txt', '-----BEGIN ' + 'PRIVATE KEY-----', 'secret-shape'],
   ['app TypeScript public wording', 'packages/i18n/scripts/message.ts', 'const message = "Your CTL is rising";', 'public-language'],
   ['Swift label', 'apps/ios/Enduragent/Screen.swift', 'Text("Normalized Power")', 'public-language'],
-  ['literal confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "That proposal expired."', 'uncatalogued-confirmation'],
-  ['interpolated confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = "Done — \\(summary)."', 'uncatalogued-confirmation'],
-  ['raw confirmation copy', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = #"That proposal expired."#', 'uncatalogued-confirmation'],
-  ['device-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = builder.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
-  ['device-only review language', 'apps/ios/Enduragent/Chat/ConfirmedPreviewCard.swift', 'Text(model.builder.phrasebook.say(notice.key, notice.vars))', 'device-only-phrasebook'],
-  ['device-only review outcome language', 'apps/ios/Enduragent/Chat/ChatView.swift', 'Text(notice.sentence(in: model.builder.phrasebook))', 'device-only-phrasebook'],
-  ['environment-only confirmation language', 'apps/ios/Enduragent/App/ShellModel.swift', 'confirmLine = environment.phrasebook.say(Catalog.coachConfirmationExpired, [:])', 'device-only-phrasebook'],
-  ['exposed mailbox ledger:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let ledger: Ledger', 'mailbox-private-state'],
-  ['exposed mailbox clock:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let clock: any Clock', 'mailbox-private-state'],
-  ['exposed mailbox process:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let process: ProcessID', 'mailbox-private-state'],
-  ['exposed mailbox records:', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let records: ChatRecords', 'mailbox-private-state'],
-  ['exposed mailbox work', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let work = MailboxQueue()', 'mailbox-private-state'],
-  ['exposed mailbox interruption', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let interruption = Interruption()', 'mailbox-private-state'],
-  ['exposed mailbox var', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) var live: LiveAttempt?', 'mailbox-private-state'],
-  ['exposed mailbox var', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) var finishedAway: Set<TurnID> = []', 'mailbox-private-state'],
-  ['exposed mailbox lazy', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'private(set) lazy var waits = RetryWaits()', 'mailbox-private-state'],
-  ['exposed mailbox door', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'let door = Turnstile()', 'mailbox-private-state'],
-  ['exposed mailbox pass()', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'func pass() {}', 'mailbox-private-state'],
-  ['mailbox modifier fileprivate let ledger: Ledger', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'fileprivate let ledger: Ledger', 'mailbox-private-state'],
-  ['mailbox modifier open var work: MailboxQueue', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'open var work: MailboxQueue', 'mailbox-private-state'],
-  ['mailbox modifier public nonisolated let clock: any Clock', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'public nonisolated let clock: any Clock', 'mailbox-private-state'],
-  ['mailbox modifier package(set) var live: LiveAttempt?', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', 'package(set) var live: LiveAttempt?', 'mailbox-private-state'],
-  ['mailbox modifier @ObservationIgnored fileprivate var interruption: Interruption', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', '@ObservationIgnored fileprivate var interruption: Interruption', 'mailbox-private-state'],
-  ['mailbox modifier @ObservationIgnored public private(set) var waits: RetryWaits', 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift', '@ObservationIgnored public private(set) var waits: RetryWaits', 'mailbox-private-state'],
   ['public prose', 'README.md', 'Your CTL is rising.', 'public-language'],
   ['SwiftLint disable command', 'apps/ios/Enduragent/Screen.swift', '// swiftlint:disable:this no_comments', 'lint-disable'],
 ]) {
@@ -134,19 +110,97 @@ test('does not inspect untracked credentials', () => {
   assert.equal(result.status, 0, result.output);
 });
 
-test('accepts catalogued confirmation copy and debug-only literals', () => {
-  const result = run({
-    'apps/ios/Enduragent/App/ShellModel.swift': 'confirmLine = phrasebook.say(Catalog.coachConfirmationExpired, [:])',
-    'apps/ios/Enduragent/Credits/CredentialsDebugView.swift': '#if DEBUG\nconfirmLine = "Debug result"\n#endif',
+const mailbox = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift';
+for (const declaration of [
+  'var runner: TurnRunner',
+  'let renamed: Ledger',
+  'private(set) var runner: TurnRunner',
+  'fileprivate let runner: TurnRunner',
+  'public nonisolated let renamed: Clock',
+  'package(set) var state: State',
+  '@ObservationIgnored public private(set) lazy var state = State()',
+  'package var chatId: ChatID',
+  'package let (a, b) = (1, 2)',
+  'var `default`: TurnRunner',
+  'lazy var state = State()',
+  'lazy var state: State = { State() }()',
+  'var state = makeState { State() }',
+  'var state: State { willSet { record(newValue) } }',
+  'var state: State { didSet { record(oldValue) } }',
+  'var state = State() { didSet { record(oldValue) } }',
+  'var exposed: State { get { state } set { state = newValue } }',
+  'private(set) var exposed: State { get { state } set(value) { state = value } }',
+  'var exposed: State { _read { yield state } _modify { yield &state } }',
+  'var exposed: State { get { state } nonmutating set { replace(newValue) } }',
+  'var exposed: State { get { state } @_transparent set { state = newValue } }',
+  'var exposed: State { _read { yield state } @_transparent _modify { yield &state } }',
+  'var exposed: State\n{\nget { state }\nset\n{ state = newValue }\n}',
+]) {
+  test(`rejects exposed mailbox state: ${declaration}`, () => {
+    const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /\[mailbox-private-state\]/);
   });
+}
+
+for (const [name, source] of [
+  ['same-line member', 'package actor ChatMailbox { var runner: TurnRunner }'],
+  ['member after a method', 'package actor ChatMailbox { func accept() {} ; var runner: TurnRunner }'],
+  ['member after private state', 'package actor ChatMailbox { private let hidden = 1; var runner: TurnRunner }'],
+  ['opening brace in a multiline string', 'package actor ChatMailbox {\nprivate let text = """\n{\n"""\nvar runner: TurnRunner\n}'],
+  ['closing brace in a multiline string', 'package actor ChatMailbox {\nprivate let text = """\n}\n"""\nvar runner: TurnRunner\n}'],
+  ['braces and quotes in a raw multiline string', 'package actor ChatMailbox {\nprivate let text = #"""\n"{"\n"""#\nvar runner: TurnRunner\n}'],
+]) {
+  test(`rejects exposed mailbox state with ${name}`, () => {
+    const result = run({ [mailbox]: source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /\[mailbox-private-state\]/);
+  });
+}
+
+test('accepts inline private mailbox bindings and braces inside strings', () => {
+  const result = run({ [mailbox]: `package actor ChatMailbox { package let chatId: ChatID;
+    private let (a, b) = (1, 2); private var \`default\`: TurnRunner
+    private let text = """
+    } var exposed: TurnRunner {
+    """
+    package func accept() { let runner = self.runner }
+  }` });
   assert.equal(result.status, 0, result.output);
 });
 
-test('accepts private mailbox declarations with attributes and modifiers', () => {
-  const result = run({
-    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift':
-      '@ObservationIgnored private lazy var waits = RetryWaits()\nnonisolated private let clock: Clock',
+for (const declaration of [
+  'var exposed: State { state }',
+  'package var runningScope: TurnScope? { work.phase.running?.attempt?.scope }',
+  'var exposed: State { get { state } }',
+  'var exposed: State { _read { yield state } }',
+  'var exposed: State\n{\nstate\n}',
+  'var exposed: State { let copy = state; return copy }',
+  'var exposed: State { let set = state; return set }',
+  'var exposed: String { "set { _modify { didSet {" }',
+  'var exposed: State { get async throws { try await load() } }',
+  'package func queue() -> State { state }',
+]) {
+  test(`accepts read-only mailbox projections: ${declaration}`, () => {
+    const result = run({ [mailbox]: `package actor ChatMailbox {\n${declaration}\n}` });
+    assert.equal(result.status, 0, result.output);
   });
+}
+
+test('accepts private mailbox state, its immutable identity, and method locals', () => {
+  const result = run({ [mailbox]: `package actor ChatMailbox {
+    package let chatId: ChatID
+    private let runner: TurnRunner
+    @ObservationIgnored private lazy var state = State {
+      let local = State()
+      return local
+    }
+    nonisolated private let clock: Clock
+    package func accept() {
+      let runner = self.runner
+      if let state = state { state.run() }
+    }
+  }` });
   assert.equal(result.status, 0, result.output);
 });
 
