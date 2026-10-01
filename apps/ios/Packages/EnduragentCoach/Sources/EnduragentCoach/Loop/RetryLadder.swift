@@ -127,7 +127,6 @@ package struct RetryLadder: Sendable, Equatable {
 				return decision
 			}
 		}
-		let coachFailure = failure.coachFailure(for: situation.accessMethod)
 		let failureClass = failure.ladderClass
 		for rung in rungs
 		where rung.classes.contains(failureClass) && counters.count(rung.counter) < rung.limit {
@@ -135,7 +134,7 @@ package struct RetryLadder: Sendable, Equatable {
 				return retry
 			}
 		}
-		return .terminal(coachFailure)
+		return .terminal(failure.coachFailure(for: situation.accessMethod))
 	}
 
 	package func savedWork(committed: [CommittedWrite]) -> SavedWorkOutcome? {
