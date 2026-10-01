@@ -97,6 +97,33 @@ function hasExposedMailboxState(text) {
   }
   return false;
 }
+function trailingBlocks(code, pattern) {
+  return [...code.matchAll(pattern)].flatMap(match => {
+    let parentheses = 0;
+    let depth = 0;
+    let start;
+    for (let index = match.index + match[0].length; index < code.length; index++) {
+      const token = code[index];
+      if (start === undefined) {
+        if (token === '(') parentheses++;
+        if (token === ')') parentheses--;
+        if (token !== '{' || parentheses !== 0) continue;
+        start = index;
+      }
+      if (token === '{') depth++;
+      if (token === '}' && --depth === 0) return [[start, index]];
+    }
+    return [];
+  });
+}
+function hasUnboundedTestWait(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  const loops = trailingBlocks(code, /\bwhile\b/g);
+  const deadlines = trailingBlocks(code, /\bbeforeDeadline\b/g);
+  return [...code.matchAll(/\bawait\s+[\w.]+\s*\.\s*waitUnlessCancelled\s*\(/g)]
+    .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
+      && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -181,6 +208,8 @@ try {
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
+    if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
+      && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');

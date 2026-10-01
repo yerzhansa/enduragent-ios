@@ -2,6 +2,8 @@ import Foundation
 
 @testable import EnduragentCoach
 
+struct TestWaitDeadlineExceeded: Error {}
+
 func firstSnapshot(
 	in stream: AsyncStream<ChatSnapshot>, within limit: Duration,
 	where matches: @escaping @Sendable (ChatSnapshot) -> Bool

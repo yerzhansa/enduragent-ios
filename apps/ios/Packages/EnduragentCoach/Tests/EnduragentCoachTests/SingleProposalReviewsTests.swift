@@ -132,7 +132,7 @@ import Testing
 		await claim.arm()
 
 		let first = Task { await coach.decide(.approve(token), in: .main) }
-		#expect(await claim.waitUntilEntered())
+		try #require(try await claim.waitUntilEntered())
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
 		await claim.release()
