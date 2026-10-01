@@ -15,6 +15,7 @@ public struct TurnView: Sendable, Equatable, Identifiable {
 	public let sentOn: CivilDate
 	public let state: TurnState
 	public let completedInBackground: Bool
+	public let saveFailure: CatalogKey?
 }
 
 public enum ChatActivity: Sendable, Equatable {
@@ -151,6 +152,7 @@ extension ChatSnapshot {
 		queued: [MailboxWork],
 		waiting: Set<TurnID>,
 		finishedAway: Set<TurnID>,
+		unsavedTurns: Set<TurnID> = [],
 		review: ReviewSnapshot?,
 		device: DeviceID,
 		process: ProcessID,
@@ -165,6 +167,7 @@ extension ChatSnapshot {
 			live: phase.running?.live, window: window, queued: items.compactMap(\.turn),
 			waiting: waiting,
 			finishedAway: finishedAway, device: device, process: process,
+			unsavedTurns: unsavedTurns,
 			today: CivilDate(date: now, timeZone: zone))
 		if phase.cause != nil {
 			self.activity = .stopping
@@ -192,7 +195,7 @@ extension Segment {
 	func turnViews(
 		live: LiveAttempt?, window: OpenWindow? = nil, queued: [TurnID] = [],
 		waiting: Set<TurnID> = [], finishedAway: Set<TurnID> = [],
-		device: DeviceID, process: ProcessID, today: CivilDate
+		device: DeviceID, process: ProcessID, unsavedTurns: Set<TurnID> = [], today: CivilDate
 	) -> [TurnView] {
 		turns.compactMap { facts -> TurnView? in
 			if hidesWholly(facts) {
@@ -207,7 +210,9 @@ extension Segment {
 				state: TurnLifecycle.state(
 					of: facts, live: live, overlay: overlay, device: device,
 					process: process),
-				completedInBackground: finishedAway.contains(facts.turn)
+				completedInBackground: finishedAway.contains(facts.turn),
+				saveFailure: unsavedTurns.contains(facts.turn)
+					? Catalog.chatNoticeReplyUnsaved : nil
 			)
 		}
 	}

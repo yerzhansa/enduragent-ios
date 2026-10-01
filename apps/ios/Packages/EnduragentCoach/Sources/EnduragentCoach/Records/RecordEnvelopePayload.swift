@@ -30,14 +30,7 @@ enum SyncedPayload: Encodable {
 				)
 			)
 		case .turnSettled(let value):
-			self = .turnSettled(
-				TurnSettledPayload(
-					chatId: value.chatId.rawValue,
-					turn: value.turn.ulid.rawValue,
-					attempt: value.attempt.ulid.rawValue,
-					settlement: SettlementPayload(value.settlement)
-				)
-			)
+			self = .turnSettled(TurnSettledPayload(value))
 		case .windowStart(let value):
 			self = .windowStart(
 				WindowStartPayload(
@@ -120,6 +113,7 @@ enum DeviceLocalPayload: Encodable {
 	case providerConsent(ProviderConsentPayload)
 	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
+	case pendingSettlement(TurnSettledPayload)
 	case pendingProposal(ProposalPayload)
 	case proposalCleared(ProposalClearedPayload)
 	case flushPending(FlushPendingPayload)
@@ -151,6 +145,8 @@ enum DeviceLocalPayload: Encodable {
 					attempt: value.attempt.ulid.rawValue
 				)
 			)
+		case .pendingSettlement(let value):
+			self = .pendingSettlement(TurnSettledPayload(value))
 		case .pendingProposal(let value):
 			self = .pendingProposal(
 				ProposalPayload(
@@ -233,6 +229,7 @@ enum DeviceLocalPayload: Encodable {
 		case .providerConsent(let payload): try payload.encode(to: encoder)
 		case .turnClaim(let payload): try payload.encode(to: encoder)
 		case .replyObserved(let payload): try payload.encode(to: encoder)
+		case .pendingSettlement(let payload): try payload.encode(to: encoder)
 		case .pendingProposal(let payload): try payload.encode(to: encoder)
 		case .proposalCleared(let payload): try payload.encode(to: encoder)
 		case .flushPending(let payload): try payload.encode(to: encoder)

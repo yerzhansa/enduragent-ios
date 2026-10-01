@@ -1,6 +1,10 @@
 import Foundation
 
 extension Coach {
+	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
+		await mailbox(for: chat).observe()
+	}
+
 	func observeImports() {
 		guard importObservation == nil, !lifetime.terminating else { return }
 		importObservation = Task { [weak self, imports = ledger.imports] in

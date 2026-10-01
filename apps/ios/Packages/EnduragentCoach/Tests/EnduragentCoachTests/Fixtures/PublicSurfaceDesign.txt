@@ -378,6 +378,7 @@ ReviewNotice.Kind.earlierVersion
 ReviewNotice.Kind.partialFailure
 ReviewNotice.Kind.proposedRevision
 ReviewNotice.Kind.refreshedAfterStaleTarget
+ReviewNotice.Kind.storageUnavailable
 ReviewNotice.key
 ReviewNotice.kind
 ReviewNotice.vars
@@ -529,6 +530,7 @@ TurnView
 TurnView.athleteText
 TurnView.completedInBackground
 TurnView.id
+TurnView.saveFailure
 TurnView.sentOn
 TurnView.state
 ULID

@@ -46,7 +46,7 @@ extension Conversation {
 		}.sorted { $0.hlc < $1.hlc }
 		for record in ordered {
 			switch record.body {
-			case .synced(.turnSettled(let body)):
+			case .synced(.turnSettled(let body)), .deviceLocal(.pendingSettlement(let body)):
 				turns[body.turn]?.settlements.append(
 					SettledAttempt(
 						ulid: record.ulid, hlc: record.hlc, attempt: body.attempt,

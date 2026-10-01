@@ -186,6 +186,7 @@ Catalog.chatNoticeProtocolFailure
 Catalog.chatNoticeQuestionSkipped
 Catalog.chatNoticeQueueLoadFailure
 Catalog.chatNoticeQueueRemoveFailure
+Catalog.chatNoticeReplyUnsaved
 Catalog.chatNoticeResponseFailure
 Catalog.chatNoticeResponseStopped
 Catalog.chatNoticeRetryMessage
@@ -1437,6 +1438,7 @@ Catalog.reviewAccountChanged
 Catalog.reviewAdd
 Catalog.reviewCannotVerify
 Catalog.reviewEarlierVersion
+Catalog.reviewStorageUnavailable
 Catalog.reviewTitle
 Catalog.reviewUncertain
 Catalog.reviewWorkoutCooldown

@@ -72,10 +72,6 @@ public actor Coach {
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
 
-	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
-		await mailbox(for: chat).observe()
-	}
-
 	public func send(_ draft: Draft, to chat: ChatID) async throws(AcceptFailure) -> SendOutcome {
 		try await mailbox(for: chat).accept(draft)
 	}
@@ -133,9 +129,12 @@ public actor Coach {
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
 		let mailbox = await mailbox(for: chat)
+		if case .checkAgain(let ref) = decision {
+			return await mailbox.reviewChanged(ref)
+		}
 		let outcome = await reviews.decide(
 			decision, chat: chat, scope: await mailbox.reviewScope)
-		await mailbox.reviewChanged()
+		_ = await mailbox.reviewChanged()
 		return outcome
 	}
 

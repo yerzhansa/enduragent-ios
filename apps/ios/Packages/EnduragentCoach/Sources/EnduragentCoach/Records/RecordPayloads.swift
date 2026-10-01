@@ -22,6 +22,21 @@ struct TurnSettledPayload: Codable {
 	var settlement: SettlementPayload
 }
 
+extension TurnSettledPayload {
+	init(_ body: TurnSettledBody) {
+		self.init(
+			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
+			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement))
+	}
+
+	func body() throws -> TurnSettledBody {
+		TurnSettledBody(
+			chatId: try decodeChatID(chatId), turn: TurnID(ulid: try decodeULID(turn)),
+			attempt: AttemptID(ulid: try decodeULID(attempt)),
+			settlement: try settlement.settlement())
+	}
+}
+
 struct SettlementPayload: Codable {
 	var kind: String
 	var modelText: String?

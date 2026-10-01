@@ -214,9 +214,10 @@ package actor ChatMailbox {
 		publish()
 	}
 
-	package func reviewChanged() async {
-		await records.refreshReview()
+	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
+		let outcome = await records.refreshReview(ref)
 		publish()
+		return outcome
 	}
 
 	package func refreshImports() async throws(LedgerFailure) {
@@ -380,6 +381,7 @@ package actor ChatMailbox {
 			queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
 			finishedAway: finishedAway,
+			unsavedTurns: records.unsavedTurns,
 			review: records.review,
 			device: ledger.deviceId,
 			process: process,

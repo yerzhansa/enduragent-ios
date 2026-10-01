@@ -48,6 +48,11 @@ struct TurnRowView: View {
 			case .unrecovered(let unrecovered):
 				notice(unrecovered.notice)
 			}
+			if let failure = turn.saveFailure {
+				Text(say(failure))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.turn.saveFailure")
+			}
 		}
 		.fixedSize(horizontal: false, vertical: true)
 		.frame(maxWidth: .infinity, alignment: .leading)
