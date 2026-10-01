@@ -72,6 +72,7 @@ final class FinishedWhileAwayProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.sendLong(app)
 		TutorialHarness.send(app, "fixture:slow")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
 		XCUIDevice.shared.press(.home)
@@ -81,6 +82,27 @@ final class FinishedWhileAwayProof: XCTestCase {
 		let line = TutorialHarness.named(app, "chat.turn.finishedWhileLocked")
 		TutorialHarness.wait(line)
 		XCTAssertEqual(line.label, TutorialHarness.finishedWhileLocked)
+		let reply = app.staticTexts.matching(
+			NSPredicate(format: "label BEGINSWITH %@", "This week has Tuesday sweet spot")
+		).firstMatch
+		TutorialHarness.wait(reply)
+		XCTAssertTrue(reply.label.hasSuffix("quieter stretch between them."))
+		let composer = TutorialHarness.named(app, "chat.composer.container")
+		TutorialHarness.wait(composer)
+		let transcript = TutorialHarness.named(app, "chat.transcript")
+		TutorialHarness.wait(transcript)
+		TutorialHarness.wait(
+			until: {
+				line.isHittable && line.frame.height > 0
+					&& line.frame.minY >= transcript.frame.minY
+					&& line.frame.maxY <= composer.frame.minY
+			},
+			message:
+				"the background finish line is outside the visible transcript above the composer"
+		)
+		XCTAssertGreaterThan(reply.frame.maxY, transcript.frame.minY)
+		XCTAssertLessThanOrEqual(reply.frame.maxY, line.frame.minY)
+		XCTAssertLessThanOrEqual(line.frame.maxY, composer.frame.minY)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "finished-while-away", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
