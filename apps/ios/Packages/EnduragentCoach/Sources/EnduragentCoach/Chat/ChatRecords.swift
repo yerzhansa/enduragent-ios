@@ -9,6 +9,11 @@ final class ChatRecords {
 	private(set) var review: ReviewSnapshot?
 	private(set) var jobs: [FlushJob] = []
 	private var applied: [ULID: AthleteRecord] = [:]
+	private var pendingSettlements: [ULID: AthleteRecord] = [:]
+
+	var unsavedTurns: Set<TurnID> {
+		Set(pendingSettlements.values.compactMap { $0.body.turn })
+	}
 
 	init(chat: ChatID, ledger: Ledger, clock: any Clock, reviews: any WorkoutReviews) {
 		self.chat = chat
@@ -35,7 +40,17 @@ final class ChatRecords {
 		} else {
 			imported = try await ledger.conversationRecords(chat)
 		}
+		let saved = Set(imported.filter { $0.locality == .synced }.map(\.ulid))
+		for record in imported {
+			if case .deviceLocal(.pendingSettlement(let body)) = record.body,
+				record.deviceId == ledger.deviceId, !saved.contains(record.ulid)
+			{
+				pendingSettlements[record.ulid] = record.replacingBody(
+					.synced(.turnSettled(body)))
+			}
+		}
 		for record in imported { applied[record.ulid] = record }
+		await retrySettlements()
 		var folded = ConversationFold.fold(
 			chat: chat, synced: Array(applied.values), device: ledger.deviceId)
 		let jobs: [FlushJob]
@@ -53,15 +68,35 @@ final class ChatRecords {
 		self.jobs = jobs
 	}
 
-	func refreshReview(isolation: isolated (any Actor)? = #isolation) async {
+	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
+		let reviewing = await reviews.isExecuting(in: chat)
+		return reviewing || conversation.hasLocalWork(on: ledger.deviceId)
+	}
+
+	func refreshReview(
+		_ ref: ReviewRef? = nil, isolation: isolated (any Actor)? = #isolation
+	) async -> ReviewOutcome {
+		if let ref, review?.ref != ref { return .staleControl }
 		do {
 			try await refreshNotes()
 			review = try await reviews.snapshot(chat: chat)
+			return .presentationRecorded
 		} catch {
-			switch error {
-			case .unavailable, .rejectedBatch: review = nil
-			}
+			reviewUnavailable(error)
+			return .storageUnavailable
 		}
+	}
+
+	private func reviewUnavailable(_ failure: LedgerFailure) {
+		if let previous = review {
+			review = ReviewSnapshot(
+				ref: previous.ref, cards: previous.cards, kept: previous.kept,
+				totals: previous.totals, receipts: previous.receipts,
+				notice: ReviewNotice(
+					kind: .storageUnavailable, key: Catalog.reviewStorageUnavailable, vars: [:]),
+				controls: .none, authority: previous.authority)
+		}
+		ledger.report(.reviewUnavailable(chat, failure))
 	}
 
 	func refreshJobs(
@@ -87,10 +122,36 @@ final class ChatRecords {
 		isolation: isolated (any Actor)? = #isolation
 	) async {
 		guard let settled else { return }
+		await retrySettlements()
+		let record = await ledger.prepare(.synced(.turnSettled(settled)), stamp: stamp)
+		await saveSettlement(record, mode: .initial)
+	}
+
+	func retrySettlements(isolation: isolated (any Actor)? = #isolation) async {
+		for record in pendingSettlements.values.sorted(by: { $0.ulid < $1.ulid }) {
+			await saveSettlement(record, mode: .retry)
+		}
+	}
+
+	private func saveSettlement(
+		_ record: AthleteRecord, mode: Ledger.CommitMode,
+		isolation: isolated (any Actor)? = #isolation
+	) async {
+		guard case .synced(.turnSettled(let body)) = record.body else { return }
 		do {
-			apply(try await ledger.commit(synced: [.turnSettled(settled)], stamp: stamp))
+			try await ledger.commit(record, mode: mode)
+			pendingSettlements[record.ulid] = nil
+			apply([record])
 		} catch {
-			await settleUnsaved(settled.turn, attempt: settled.attempt, settled.settlement)
+			pendingSettlements[record.ulid] = record
+			apply([record])
+			ledger.report(.settlementUnsaved(body.turn, error))
+			do {
+				try await ledger.commit(
+					record.replacingBody(.deviceLocal(.pendingSettlement(body))), mode: mode)
+			} catch {
+				ledger.report(.settlementUnsaved(body.turn, error))
+			}
 		}
 	}
 

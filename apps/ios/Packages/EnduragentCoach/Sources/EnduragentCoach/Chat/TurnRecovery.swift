@@ -17,7 +17,7 @@ package struct DeadClaim: Sendable, Equatable {
 
 package enum TurnRecovery {
 	package static let localScope: RecordQuery.Scope = .deviceLocal([
-		.turnClaim, .replyObserved, .flushPending, .flushSettled,
+		.turnClaim, .replyObserved, .pendingSettlement, .flushPending, .flushSettled,
 	])
 	package static let stampedWrites: RecordQuery.Scope = .synced([
 		.memorySection, .dailyNote, .ledgerEvent,

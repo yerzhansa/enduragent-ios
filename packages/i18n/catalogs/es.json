@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "No se pudieron comprobar las solicitudes de plan guardadas. Vuelve a conectar e inténtalo de nuevo.",
       "protocolFailure": "No se pudo verificar la respuesta del entrenador. Inténtalo de nuevo.",
       "questionSkipped": "Pregunta omitida",
+      "replyUnsaved": "No se pudo guardar esta respuesta. Mantén la app abierta mientras se vuelve a intentar guardarla.",
       "queueLoadFailure": "No se pudieron comprobar tus mensajes guardados. Vuelve a conectar e inténtalo de nuevo.",
       "queueRemoveFailure": "No se pudo quitar ese mensaje guardado. Inténtalo de nuevo.",
       "responseFailure": "El entrenador no pudo responder. Inténtalo de nuevo.",
@@ -2910,6 +2911,7 @@
     "add": "Añadir al calendario",
     "cannotVerify": "No he podido comprobar tu conexión con {{service}}, así que no se ha cambiado nada. Inténtalo de nuevo en un momento.",
     "earlierVersion": "Esta revisión del entrenamiento es de una versión anterior de la app y ya no se puede aplicar.",
+    "storageUnavailable": "No se pudo leer la revisión del entrenamiento guardada. Se sigue mostrando tu última revisión. Vuelve a intentarlo para recuperar los controles.",
     "title": "Revisión del entrenamiento",
     "uncertain": "No he podido confirmar si esto llegó a tu calendario de {{service}}. Revisa tu calendario antes de pedírmelo otra vez.",
     "workout": {

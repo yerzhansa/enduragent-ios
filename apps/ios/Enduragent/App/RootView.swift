@@ -38,7 +38,7 @@ extension AppLifecycleEvent {
 		case .active:
 			self = .becameActive
 		case .inactive:
-			self = .willResignActive
+			return nil
 		case .background:
 			self = .enteredBackground
 		@unknown default:

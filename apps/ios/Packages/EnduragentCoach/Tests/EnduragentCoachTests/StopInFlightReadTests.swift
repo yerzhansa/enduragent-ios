@@ -42,6 +42,7 @@ extension StopAndLeaseEdgeTests {
 			break
 		}
 		_ = await coach.currentSnapshot(.main)
+		try await waitUntil { readClock.held.isEmpty }
 		#expect(readClock.held.isEmpty, "the training read did not receive cancellation")
 		readClock.release(.seconds(30))
 		await interruption.value

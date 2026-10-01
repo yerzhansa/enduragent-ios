@@ -26,6 +26,7 @@ package enum DeviceLocalKind: String, Sendable, CaseIterable {
 	case providerConsent
 	case turnClaim
 	case replyObserved
+	case pendingSettlement
 	case pendingProposal
 	case proposalCleared
 	case flushPending
@@ -107,6 +108,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 	case providerConsent(ProviderConsent)
 	case turnClaim(TurnClaimBody)
 	case replyObserved(ReplyObservedBody)
+	case pendingSettlement(TurnSettledBody)
 	case pendingProposal(ProposalBody)
 	case proposalCleared(ProposalClearedBody)
 	case flushPending(FlushPendingBody)
@@ -122,6 +124,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		case .providerConsent: .providerConsent
 		case .turnClaim: .turnClaim
 		case .replyObserved: .replyObserved
+		case .pendingSettlement: .pendingSettlement
 		case .pendingProposal: .pendingProposal
 		case .proposalCleared: .proposalCleared
 		case .flushPending: .flushPending
@@ -138,6 +141,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		switch self {
 		case .turnClaim(let body): body.chatId
 		case .replyObserved(let body): body.chatId
+		case .pendingSettlement(let body): body.chatId
 		case .pendingProposal(let body): body.chatId
 		case .proposalCleared(let body): body.chatId
 		case .flushPending(let body): body.chatId
@@ -152,6 +156,7 @@ package enum DeviceLocalRecordBody: Sendable, Equatable {
 		switch self {
 		case .turnClaim(let body): body.turn
 		case .replyObserved(let body): body.turn
+		case .pendingSettlement(let body): body.turn
 		case .providerConsent, .pendingProposal, .proposalCleared, .flushPending, .flushSettled,
 			.planningCommand,
 			.planRevision, .mirrorJob, .workoutMatch, .workoutDrift:
@@ -215,6 +220,12 @@ package struct AthleteRecord: Sendable, Equatable, Identifiable {
 
 	package var locality: RecordLocality { body.locality }
 	package var chatId: ChatID? { body.chatId }
+
+	func replacingBody(_ body: RecordBody) -> AthleteRecord {
+		AthleteRecord(
+			ulid: ulid, deviceId: deviceId, hlc: hlc, timeZone: timeZone,
+			civilDate: civilDate, cause: cause, account: account, body: body)
+	}
 
 	package init(
 		ulid: ULID,
