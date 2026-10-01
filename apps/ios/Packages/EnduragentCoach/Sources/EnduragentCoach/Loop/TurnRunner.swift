@@ -203,7 +203,7 @@ package struct TurnRunner: Sendable {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock),
-			transport: transport, clock: clock, diagnostics: diagnostics)
+			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
 	private func assemble(
@@ -318,7 +318,7 @@ package struct TurnRunner: Sendable {
 	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
 		async throws -> String
 	{
-		try await generateStep(
+		try await modelCall.run(
 			request: CompletionRequest(
 				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,

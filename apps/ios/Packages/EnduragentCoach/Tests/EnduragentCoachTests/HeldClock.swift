@@ -7,6 +7,11 @@ import Testing
 final class HeldClock: Clock, @unchecked Sendable {
 	private let base = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 	private let sleepers = Mutex<[Sleeper]>([])
+	private let onSleep: @Sendable (Duration) -> Void
+
+	init(onSleep: @escaping @Sendable (Duration) -> Void = { _ in }) {
+		self.onSleep = onSleep
+	}
 
 	private struct Sleeper: Sendable {
 		let id: UUID
@@ -27,6 +32,7 @@ final class HeldClock: Clock, @unchecked Sendable {
 		await withTaskCancellationHandler {
 			await withCheckedContinuation { wake in
 				sleepers.withLock { $0.append(Sleeper(id: id, duration: duration, wake: wake)) }
+				onSleep(duration)
 				if Task.isCancelled {
 					resume(id)
 				}
