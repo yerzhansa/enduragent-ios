@@ -10,6 +10,7 @@ extension SingleProposalReviewsTests {
 		let staleRead = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: ReviewGate(), readGate: staleRead)
 		let coach = await gatedCoach(log: log, client: ada)
+		_ = try #require(await coach.currentSnapshot(.main)?.review)
 		await staleRead.arm()
 		let refresh = Task { await coach.decide(.presented(proposal.ref), in: .main) }
 		#expect(await staleRead.waitUntilEntered())

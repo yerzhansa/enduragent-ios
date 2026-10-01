@@ -10,18 +10,12 @@ struct Transcript: Sendable {
 	var window: [(ulid: ULID, message: ChatMessage)] {
 		pending + unflushed
 	}
-}
 
-extension Ledger {
-	func loadTranscript(chatId: ChatID, excluding turn: TurnID) async throws -> Transcript {
-		let conversation = try await conversation(chatId)
-		let jobs = try await flushJobs(in: conversation)
-		return Transcript(
-			history: conversation.current.promptHistory(excluding: turn),
-			pending: conversation.outstandingRows(jobs),
-			unflushed: conversation.messagesSinceLastFlush(jobs, excluding: turn),
-			flushPending: jobs.contains { $0.phase == .pending },
-			current: conversation.turn(turn)?.userRow
-		)
+	init(conversation: Conversation, jobs: [FlushJob], excluding turn: TurnID) {
+		history = conversation.current.promptHistory(excluding: turn)
+		pending = conversation.outstandingRows(jobs)
+		unflushed = conversation.messagesSinceLastFlush(jobs, excluding: turn)
+		flushPending = jobs.contains { $0.phase == .pending }
+		current = conversation.turn(turn)?.userRow
 	}
 }

@@ -86,6 +86,7 @@ package struct TurnRunner: Sendable {
 
 	package func run(
 		_ attempt: TurnAttempt,
+		conversation: Conversation, jobs: [FlushJob],
 		scope: TurnScope,
 		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
@@ -93,7 +94,10 @@ package struct TurnRunner: Sendable {
 		let prompt: TurnPrompt
 		do {
 			prompt = try await assemble(
-				attempt, scope: scope, committed: committed, progress: progress)
+				attempt,
+				transcript: Transcript(
+					conversation: conversation, jobs: jobs, excluding: attempt.turn),
+				scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
@@ -213,18 +217,16 @@ package struct TurnRunner: Sendable {
 	}
 
 	private func assemble(
-		_ attempt: TurnAttempt,
+		_ attempt: TurnAttempt, transcript: Transcript,
 		scope: TurnScope,
 		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
 	) async throws -> TurnPrompt {
 		let chatId = attempt.chat
 		let stamp = scope.stamp
-		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
 
 		let memory = Memory(ledger: ledger, clock: clock)
-		let context = try await memory.context()
-		let view = try await memory.view()
+		let (context, view) = try await memory.prompt()
 		let schemas = ToolCatalog.schemas(memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(

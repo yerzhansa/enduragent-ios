@@ -5,17 +5,13 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct TurnFailurePropagationTests {
-	@Test func memoryContextReadFailureSettlesTheTurnWithoutARequest() async throws {
+	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
 		try await expectPromptReadFailure(on: 1)
-	}
-
-	@Test func memoryViewReadFailureSettlesTheTurnWithoutARequest() async throws {
-		try await expectPromptReadFailure(on: 2)
 	}
 
 	@Test func memorySectionValidationFailureDoesNotWrite() async throws {
 		let store = InMemoryRecordLog()
-		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 3)
+		let failing = MemoryReadFailingLog(wrapping: store, failingOn: 2)
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[

@@ -25,9 +25,9 @@ package actor ChatMailbox {
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
-	private let feed = SnapshotFeed<ChatSnapshot>()
+	private let feed: SnapshotFeed<ChatSnapshot>
 
-	package init(
+	init(
 		chatId: ChatID,
 		ledger: Ledger,
 		runner: TurnRunner,
@@ -38,8 +38,9 @@ package actor ChatMailbox {
 		environment: EnvironmentResolver,
 		reviews: any WorkoutReviews,
 		process: ProcessID,
-		host: any ExecutionHost, lifetime: Coach.Lifetime
-	) {
+		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed<ChatSnapshot>,
+		recoveryRecords: [AthleteRecord]?
+	) async throws(LedgerFailure) {
 		self.chatId = chatId
 		self.ledger = ledger
 		self.runner = runner
@@ -49,43 +50,32 @@ package actor ChatMailbox {
 		self.coalescingSleep = coalescingSleep
 		self.environment = environment
 		self.process = process
+		self.feed = feed
 		self.lifetime = lifetime
 		self.leases = LeaseSlot(host: host, chat: chatId) { await environment.appLanguage() }
 		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
+		try await records.refresh(recoveryRecords: recoveryRecords)
+		publish()
 	}
 
 	var conversation: Conversation { records.conversation }
+	var jobs: [FlushJob] { records.jobs }
 
 	package func observe() async -> AsyncStream<ChatSnapshot> {
-		do {
-			try await records.load()
-		} catch {
-			switch error {
-			case .unavailable, .rejectedBatch:
-				break
-			}
-		}
 		return feed.subscribe(from: snapshot())
 	}
 
-	package func accept(_ draft: Draft) async throws(AcceptFailure) -> SendOutcome {
-		let text = draft.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty else { return .ignoredBlank }
-		let slash = SlashRouting.parse(text)
-		switch slash?.route {
-		case .languagePicker: return .showLanguagePicker
-		case .resetConversation: return .newConversation(await reset())
-		case .modelTurn, nil: break
-		}
+	package func accept(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
+		-> SendOutcome
+	{
 		return try await door.pass { () throws(AcceptFailure) in
-			try await admit(Draft(id: draft.id, text: text), slash: slash)
+			try await admit(draft, slash: slash)
 		}
 	}
 
 	package func reset() async -> ResetOutcome {
 		do {
 			let reset = try await door.pass { () throws(LedgerFailure) in
-				try await records.load()
 				closeWindow()
 				let reset = ResetID(ulid: await ledger.nextULID())
 				_ = holdLease(.athlete)
@@ -101,11 +91,6 @@ package actor ChatMailbox {
 	private func admit(
 		_ draft: Draft, slash: SlashCommand?
 	) async throws(AcceptFailure) -> SendOutcome {
-		do {
-			try await records.load()
-		} catch {
-			throw AcceptFailure.storageUnavailable
-		}
 		if let known = conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
@@ -135,11 +120,6 @@ package actor ChatMailbox {
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
 		try await door.pass { () throws(RetryRefusal) in
-			do {
-				try await records.load()
-			} catch {
-				throw RetryRefusal.unknownTurn
-			}
 			let waiting = waits.waiting(among: conversation.current.turns)
 			let queued = work.phase.items(queued: work.waiting)
 			let overlay = TurnOverlay(
@@ -199,8 +179,7 @@ package actor ChatMailbox {
 		}
 	}
 
-	package func recover(_ plan: RecoveryPlan) async throws(LedgerFailure) {
-		try await records.load()
+	package func recover(_ plan: RecoveryPlan) async {
 		for dead in plan.interrupt {
 			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
 			await records.settle(
@@ -327,7 +306,7 @@ package actor ChatMailbox {
 		let settlement: Settlement
 		do {
 			let result = try await runner.run(
-				request, scope: scope,
+				request, conversation: conversation, jobs: records.jobs, scope: scope,
 				committed: { records in
 					await self.apply(records)
 				}

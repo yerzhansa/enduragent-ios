@@ -19,7 +19,8 @@ public actor Coach {
 	let vault: CredentialVault
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
-	var mailboxes: [ChatID: ChatMailbox]
+	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
+	var mailboxes: [ChatID: ChatMailbox] { mailboxSlots.compactMapValues(\.mailbox) }
 	let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
 	let statusFeed = SnapshotFeed<CoachStatus>()
@@ -72,29 +73,7 @@ public actor Coach {
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
 			reviews: reviews, watchdogSleep: ports.watchdogSleep
 		)
-
-		self.mailboxes = [:]
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
-	}
-
-	public func observe(_ chat: ChatID) async -> AsyncStream<ChatSnapshot> {
-		await mailbox(for: chat).observe()
-	}
-
-	public func send(_ draft: Draft, to chat: ChatID) async throws(AcceptFailure) -> SendOutcome {
-		try await mailbox(for: chat).accept(draft)
-	}
-
-	public func retry(_ turn: TurnID, in chat: ChatID) async throws(RetryRefusal) {
-		try await mailbox(for: chat).retry(turn)
-	}
-
-	public func stop(_ chat: ChatID) async {
-		await mailbox(for: chat).interrupt(.athleteStopped)
-	}
-
-	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
-		await mailbox(for: chat).reset()
 	}
 
 	public func archivedConversation(_ ref: ArchivedConversationRef)
@@ -132,7 +111,12 @@ public actor Coach {
 	}
 
 	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
-		let mailbox = await mailbox(for: chat)
+		let mailbox: ChatMailbox
+		do {
+			mailbox = try await self.mailbox(for: chat)
+		} catch {
+			return .storageUnavailable
+		}
 		let outcome = await reviews.decide(
 			decision, chat: chat, scope: await mailbox.reviewScope,
 			changed: { await mailbox.reviewChanged() })
@@ -215,7 +199,7 @@ public actor Coach {
 	private func recoverDeadClaims() async -> Bool {
 		do {
 			for (chat, plan) in try await recoveryPlans() {
-				try await makeMailbox(for: chat).recover(plan)
+				await mailboxes[chat]?.recover(plan)
 			}
 			return true
 		} catch {
@@ -231,15 +215,13 @@ public actor Coach {
 		).records
 		let chats = Set(local.compactMap(\.chatId))
 		guard !chats.isEmpty else { return [:] }
-		let synced = try await ledger.read(RecordQuery(scope: ConversationFold.syncedScope)).records
-		let conversations = Dictionary(
-			uniqueKeysWithValues: chats.map { chat in
-				(
-					chat,
-					ConversationFold.fold(chat: chat, synced: synced, local: local, device: device)
-				)
-			})
-		let flushQueue = try await ledger.flushJobsByChat(in: conversations, local: local)
+		var conversations: [ChatID: Conversation] = [:]
+		var flushQueue: [ChatID: [FlushJob]] = [:]
+		for chat in chats {
+			let mailbox = try await makeMailbox(for: chat, recoveryRecords: local)
+			conversations[chat] = await mailbox.conversation
+			flushQueue[chat] = await mailbox.jobs
+		}
 		let turns = conversations.mapValues { $0.segments.flatMap(\.turns) }
 		let dead = Set(
 			turns.values.flatMap {
@@ -253,57 +235,82 @@ public actor Coach {
 			).records
 			writes = TurnRecovery.writes(of: dead, in: stamped)
 		}
-		var plans: [ChatID: RecoveryPlan] = [:]
-		for (chat, conversation) in conversations {
-			let drain = FlushJob.outstanding(
-				flushQueue[chat] ?? [], in: conversation)
-			let plan = TurnRecovery.plan(
-				turns: turns[chat] ?? [], drain: drain.map(\.id), writes: writes,
-				device: device, process: process)
-			if !plan.isEmpty {
-				plans[chat] = plan
+		return TurnRecovery.plans(
+			in: conversations, jobs: flushQueue, writes: writes, device: device, process: process)
+	}
+
+	func mailbox(for chatId: ChatID) async throws(LedgerFailure) -> ChatMailbox {
+		await recoverOnce()
+		return try await makeMailbox(for: chatId)
+	}
+
+	func snapshotFeed(for chat: ChatID) -> SnapshotFeed<ChatSnapshot> {
+		if let slot = mailboxSlots[chat] { return slot.feed }
+		let slot = MailboxSlot()
+		mailboxSlots[chat] = slot
+		return slot.feed
+	}
+
+	func openedMailboxes() async -> [ChatMailbox] {
+		for (chat, slot) in mailboxSlots {
+			guard let opening = slot.opening else { continue }
+			if case .failure(let error) = await opening.value {
+				diagnostics.record(.importsUnavailable(chat, error))
 			}
 		}
-		return plans
+		return Array(mailboxes.values)
 	}
 
-	private func mailbox(for chatId: ChatID) async -> ChatMailbox {
-		await recoverOnce()
-		return makeMailbox(for: chatId)
-	}
-
-	private func makeMailbox(for chatId: ChatID) -> ChatMailbox {
+	private func makeMailbox(for chatId: ChatID, recoveryRecords: [AthleteRecord]? = nil)
+		async throws(LedgerFailure) -> ChatMailbox
+	{
 		observeImports()
-		if let existing = mailboxes[chatId] {
-			return existing
+		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
+		_ = snapshotFeed(for: chatId)
+		let opening =
+			mailboxSlots[chatId]?.opening
+			?? Task { await self.openMailbox(for: chatId, recoveryRecords: recoveryRecords) }
+		mailboxSlots[chatId]?.opening = opening
+		let result = await opening.value
+		if mailboxSlots[chatId]?.opening == opening { mailboxSlots[chatId]?.opening = nil }
+		return try result.get()
+	}
+
+	private func openMailbox(for chatId: ChatID, recoveryRecords: [AthleteRecord]?) async
+		-> Result<ChatMailbox, LedgerFailure>
+	{
+		do {
+			let vault = self.vault
+			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
+				() async throws(AccessUnavailable) in
+				try await self.modelAccess()
+			}
+			let created = try await ChatMailbox.open(
+				chatId: chatId,
+				ledger: ledger,
+				runner: runner,
+				flushes: FlushWork(
+					chat: chatId, process: process, ledger: ledger, memory: memory,
+					transport: transport, clock: clock,
+					diagnostics: diagnostics, ladder: runner.ladder),
+				clock: clock,
+				coalescing: coalescing,
+				coalescingSleep: coalescingSleep,
+				environment: EnvironmentResolver(
+					preferences: { await self.loadedPreferences() }, access: access,
+					training: { () async throws(AccessUnavailable) in
+						try await vault.trainingConnection()
+					}, deviceLanguage: deviceLanguage),
+				reviews: reviews,
+				process: process,
+				host: host,
+				lifetime: lifetime, feed: snapshotFeed(for: chatId),
+				recoveryRecords: recoveryRecords
+			)
+			mailboxSlots[chatId]?.mailbox = created
+			return .success(created)
+		} catch {
+			return .failure(error)
 		}
-		let vault = self.vault
-		let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
-			() async throws(AccessUnavailable) in
-			try await self.modelAccess()
-		}
-		let created = ChatMailbox(
-			chatId: chatId,
-			ledger: ledger,
-			runner: runner,
-			flushes: FlushWork(
-				chat: chatId, process: process, ledger: ledger, memory: memory,
-				transport: transport, clock: clock,
-				diagnostics: diagnostics, ladder: runner.ladder),
-			clock: clock,
-			coalescing: coalescing,
-			coalescingSleep: coalescingSleep,
-			environment: EnvironmentResolver(
-				preferences: { await self.loadedPreferences() }, access: access,
-				training: { () async throws(AccessUnavailable) in
-					try await vault.trainingConnection()
-				}, deviceLanguage: deviceLanguage),
-			reviews: reviews,
-			process: process,
-			host: host,
-			lifetime: lifetime
-		)
-		mailboxes[chatId] = created
-		return created
 	}
 }
