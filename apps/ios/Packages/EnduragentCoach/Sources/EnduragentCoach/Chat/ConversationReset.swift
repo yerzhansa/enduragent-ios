@@ -29,7 +29,7 @@ package struct ConversationReset: Sendable {
 	package let clock: any Clock
 
 	package func run(
-		_ reset: ResetID, archiving conversation: Conversation,
+		_ reset: ResetID, archiving conversation: Conversation, jobs: [FlushJob],
 		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess
 	) async -> (outcome: ResetOutcome, boundary: [AthleteRecord]) {
 		let stamp = OperationStamp(
@@ -38,7 +38,6 @@ package struct ConversationReset: Sendable {
 			binding: ActionBinding(
 				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
 		)
-		let jobs = await flushes.jobs(in: conversation)
 		let rows =
 			conversation.outstandingRows(jobs)
 			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.ulid)
@@ -120,7 +119,9 @@ final class PendingResets {
 		access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess,
 		isolation: isolated (any Actor)? = #isolation, then publish: () -> Void
 	) async {
-		let result = await work.run(reset, archiving: records.conversation, access: access)
+		_ = await records.refreshJobs(from: work.flushes)
+		let result = await work.run(
+			reset, archiving: records.conversation, jobs: records.jobs, access: access)
 		records.apply(result.boundary)
 		_ = await records.refreshJobs(from: work.flushes)
 		publish()

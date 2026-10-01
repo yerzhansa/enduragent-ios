@@ -341,12 +341,12 @@ package struct FlushWork: Sendable {
 		}
 	}
 
-	package func jobs(in conversation: Conversation) async -> [FlushJob] {
+	package func jobs(in conversation: Conversation) async -> Result<[FlushJob], LedgerFailure> {
 		do {
-			return try await ledger.flushJobs(in: conversation)
+			return .success(try await ledger.flushJobs(in: conversation))
 		} catch {
 			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-			return []
+			return .failure(error)
 		}
 	}
 
