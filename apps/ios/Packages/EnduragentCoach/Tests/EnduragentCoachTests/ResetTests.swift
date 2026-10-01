@@ -119,7 +119,7 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .flush,
+			Array(repeating: .fail(.http(status: 500)), count: 3), for: .flush,
 			otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
@@ -150,7 +150,7 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		let offline = ScriptedEvent.fail(.connection(.notConnectedToInternet))
 		transport.respond = ScriptedReply.sequence(
-			[offline, offline], for: .flush, otherwise: transport.respond)
+			[offline, offline, offline], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		#expect(
 			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: false)
@@ -159,8 +159,7 @@ import Testing
 		let original = try #require(sent(.memoryFlush, by: transport).first).messages
 
 		transport.respond = ScriptedReply.sequence(
-
-			[offline, offline], for: .flush, otherwise: transport.respond)
+			[offline, offline, offline], for: .flush, otherwise: transport.respond)
 		let offlineHost = ImmediateExecutionHost()
 		let reopened = makeCoach(
 			transport: transport, store: store, clock: clock, host: offlineHost)
@@ -171,7 +170,7 @@ import Testing
 				== .afterNewConversation(memorySaved: false))
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
-		#expect(sent(.memoryFlush, by: transport).count == 4)
+		#expect(sent(.memoryFlush, by: transport).count == 6)
 
 		transport.respond = ScriptedReply.sequence(
 
@@ -189,8 +188,8 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushPending])) == 1)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
 		let flushes = sent(.memoryFlush, by: transport)
-		#expect(flushes.count == 6)
-		#expect(flushes.dropFirst(4).first?.messages == original)
+		#expect(flushes.count == 8)
+		#expect(flushes.dropFirst(6).first?.messages == original)
 		#expect(
 			await self.coach().currentSnapshot(.main)?.opening
 				== .afterNewConversation(memorySaved: true))
@@ -214,7 +213,7 @@ import Testing
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
-			diagnostics: DiagnosticsLog(clock: clock))
+			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.respond = ScriptedReply.sequence(
 			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
 		let reset = ResetID(ulid: await ledger.nextULID())

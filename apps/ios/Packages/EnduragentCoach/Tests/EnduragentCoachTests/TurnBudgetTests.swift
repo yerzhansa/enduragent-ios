@@ -155,7 +155,29 @@ import Testing
 		}
 	}
 
-	private func runner() -> TurnRunner {
+	@Test func inTurnFlushUsesTheTurnsLadder() async throws {
+		try await seedReplies(tokens: [200])
+		transport.respond = ScriptedReply.sequence(
+			[
+				.fail(.http(status: 400, body: "maximum context length")),
+				.text("Recovered."), .finish(reason: .stop),
+			], for: .chat, otherwise: transport.respond)
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 429)), .finish(reason: .stop)], for: .flush,
+			otherwise: transport.respond)
+		let ladder = RetryLadder(
+			guards: RetryLadder.npm.guards,
+			rungs: RetryLadder.npm.rungs.filter { !$0.classes.contains(.rateLimit) })
+		let scope = TurnScope(stamp: testStamp(), policy: .npm, uptime: clock.uptime)
+		let result = try await runner(ladder: ladder).run(
+			attempt("How was my week?", scope: scope), scope: scope, committed: { _ in }
+		) { _ in }
+		#expect(result.replyText == "Recovered.")
+		#expect(sent(.memoryFlush, by: transport).count == 1)
+		#expect(clock.slept.isEmpty)
+	}
+
+	private func runner(ladder: RetryLadder = .npm) -> TurnRunner {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: diagnostics)
 		return TurnRunner(
@@ -163,7 +185,7 @@ import Testing
 			ledger: ledger,
 			clock: clock,
 			diagnostics: diagnostics,
-			ladder: .npm,
+			ladder: ladder,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics)
 		)
 	}

@@ -17,7 +17,8 @@ import Testing
 		var facts = TurnFacts(turn: turn, chat: .main, origin: origin ?? device)
 		facts.fragments.append(
 			Fragment(
-				ulid: fixedUlid(1), hlc: clockAt(1), civilDate: "1998-06-13", index: 0,
+				ulid: fixedUlid(1), hlc: clockAt(1), civilDate: "1998-06-13",
+				timeZone: amsterdamZone, index: 0,
 				draft: DraftID(), text: "Thursday?", slash: nil))
 		return facts
 	}

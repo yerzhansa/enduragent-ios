@@ -203,7 +203,7 @@ package struct TurnRunner: Sendable {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock),
-			transport: transport, clock: clock, diagnostics: diagnostics)
+			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
 	private func assemble(
@@ -233,7 +233,7 @@ package struct TurnRunner: Sendable {
 		)
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
-		let past = history.messages.map { PromptAssembly.wireMessage(from: $0, in: zone) }
+		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
 		let trim = HistoryWindow.trim(
 			messages: past, systemTokens: estimateTokens(system),
 			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
@@ -318,7 +318,7 @@ package struct TurnRunner: Sendable {
 	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
 		async throws -> String
 	{
-		try await generateStep(
+		try await modelCall.run(
 			request: CompletionRequest(
 				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,

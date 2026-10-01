@@ -112,7 +112,7 @@ import Testing
 			])
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
-			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .flush,
+			Array(repeating: .fail(.http(status: 500)), count: 3), for: .flush,
 			otherwise: transport.respond)
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
@@ -132,7 +132,7 @@ import Testing
 		let expected = keyStored ? "providerDown" : "secureStorageLocked"
 		#expect(flushFailures.count == 1)
 		#expect(flushFailures.first?.contains(expected) == true)
-		#expect(transport.requestCount == (keyStored ? 2 : 0))
+		#expect(transport.requestCount == (keyStored ? 3 : 0))
 	}
 }
 

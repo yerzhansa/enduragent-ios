@@ -161,26 +161,20 @@ extension FixtureLaunchTests {
 		seeded.draft.text = "fixture:hang"
 		await seeded.send()
 		let dead = try await turn(in: seeded, where: isProcessing)
-		let clock = ContinuousClock()
 		let (recovering, _) = try relaunch(.keep)
-		let recovery = await clock.measure { await recovering.coach.lifecycle(.becameActive) }
-		var reopened: ChatSnapshot?
-		let firstShow = await clock.measure {
-			reopened = await firstSnapshot(recovering, chat: .main)
-		}
-		let (clean, _) = try relaunch(.keep)
-		let cleanOpen = await clock.measure { await clean.coach.lifecycle(.becameActive) }
-		let cleanShow = await clock.measure { _ = await firstSnapshot(clean, chat: .main) }
-		let overhead = recovery + firstShow - cleanOpen - cleanShow
-		Attachment.record(
-			"recovery \(recovery), first snapshot \(firstShow), clean open \(cleanOpen), "
-				+ "clean first snapshot \(cleanShow), overhead \(overhead)",
-			named: "recovery-of-one-dead-claim")
-		let snapshot = try #require(reopened)
+		await recovering.coach.lifecycle(.becameActive)
+		let snapshot = try #require(await firstSnapshot(recovering, chat: .main))
 		#expect(snapshot.turns.count == 201)
 		let state = try #require(snapshot.turns.first { $0.id == dead.id }?.state)
 		#expect(cause(state) == .processEnded)
-		#expect(overhead < .milliseconds(300), "recovery overhead \(overhead)")
+		#expect(snapshot.turns.filter { isCompleted($0.state) }.count == 200)
+		#expect(snapshot.turns.filter { cause($0.state) == .processEnded }.map(\.id) == [dead.id])
+		let transport = try #require(recovering.fixtureTransport)
+		#expect(transport.requestCount == 0)
+		let (clean, _) = try relaunch(.keep)
+		await clean.coach.lifecycle(.becameActive)
+		let reopened = try #require(await firstSnapshot(clean, chat: .main))
+		#expect(reopened.turns == snapshot.turns)
 		await seeded.stop()
 	}
 

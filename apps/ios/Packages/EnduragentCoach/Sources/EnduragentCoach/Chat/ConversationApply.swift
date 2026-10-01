@@ -20,6 +20,7 @@ extension Conversation {
 				turns[body.turn]?.fragments.append(
 					Fragment(
 						ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+						timeZone: record.timeZone,
 						index: body.fragment, draft: body.draft, text: body.athleteText,
 						slash: body.slash))
 			case .legacy(.userMessageV1(_, let text, let slash)):
@@ -30,6 +31,7 @@ extension Conversation {
 					fragments: [
 						Fragment(
 							ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+							timeZone: record.timeZone,
 							index: 0, draft: nil, text: text, slash: slash)
 					])
 			case .legacy(.assistantMessage):

@@ -96,22 +96,16 @@ import Testing
 		#expect(reason == .length)
 	}
 
-	@Test func deltaDelayPausesBeforeEachEvent() async throws {
+	@Test func deltaDelaySleepsOncePerEvent() async throws {
 		let delay = Duration.milliseconds(60)
-		let transport = FakeModelTransport()
+		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
+		let transport = FakeModelTransport(clock: clock)
 		transport.respond = ScriptedReply.sequence(
-			[.text("one"), .text("two"), .finish(reason: .stop)], for: .chat,
-			deltaDelay: delay, otherwise: transport.respond)
-		let clock = ContinuousClock()
-		let started = clock.now
-		var arrivals: [ContinuousClock.Instant] = []
-		for try await _ in transport.stream(request("Slowly")) {
-			arrivals.append(clock.now)
-		}
-		#expect(arrivals.count == 3)
-		for (index, arrival) in arrivals.enumerated() {
-			#expect(arrival - started >= delay * (index + 1))
-		}
+			[.text("one"), .text("two"), .finish(reason: .stop)], deltaDelay: delay)
+		let events = try await collect(transport.stream(request("Slowly")))
+		#expect(textDeltas(in: events) == ["one", "two"])
+		#expect(events.count == 3)
+		#expect(clock.slept == [delay, delay, delay])
 	}
 
 	@Test func scriptedFailureFailsTheRequestThatReachesIt() async throws {

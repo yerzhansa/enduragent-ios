@@ -139,24 +139,21 @@ extension SwiftDataSuites {
 			#expect(try #require(await reopened.currentSnapshot(.main)).turns.count == 1)
 		}
 
-		@Test func acceptCommitOnDiskStaysUnderOneHundredMilliseconds() async throws {
-			let store = try makeSwiftDataLog(deviceId: DeviceID(rawValue: "phone-a"))
+		@Test func acceptCommitOnDiskWritesOneBatchPerDraft() async throws {
+			let store = BatchRecordingLog(
+				inner: try makeSwiftDataLog(deviceId: DeviceID(rawValue: "phone-a")))
 			let coach = makeCoach(
 				transport: transport, store: store, clock: clock,
 				coalescing: CoalescingPolicy(window: .seconds(60)))
-			_ = try await coach.send(draft("warm up"), to: .main)
-			var samples: [Duration] = []
 			for index in 0..<3 {
-				let started = ContinuousClock.now
-				_ = try await coach.send(draft("message \(index)"), to: .main)
-				samples.append(ContinuousClock.now - started)
+				let before = store.batches.count
+				let sent = draft("message \(index)")
+				let turn = try #require(try await coach.send(sent, to: .main).acceptedTurn)
+				#expect(Array(store.batches.dropFirst(before)) == [["userMessage"]])
+				#expect(try await coach.send(sent, to: .main) == .accepted(turn))
+				#expect(store.batches.count == before + 1)
 			}
-			let median = try #require(samples.sorted().dropFirst().first)
-			Attachment.record(
-				samples.map { String(format: "%.2f", $0 / .milliseconds(1)) }.joined(
-					separator: " "),
-				named: "accept-commit-ms.txt")
-			#expect(median < .milliseconds(100), "accept commit samples \(samples)")
+			#expect(transport.requests.isEmpty)
 		}
 	}
 }

@@ -9,6 +9,10 @@ struct ReadToolsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func reviewWindowCoversSevenDays() {
+		#expect(IntervalsPolicy.reviewWindowDays == 7)
+	}
+
 	@Test func calculateZonesReturnsDesktopRows() async throws {
 		let outcome = try await runtime().execute(
 			name: .calculateZones,
