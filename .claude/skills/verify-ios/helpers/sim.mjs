@@ -1,18 +1,21 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
 import { closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parseOptions, planShards, proofClasses, summarizeTests } from './sim-plan.mjs';
 
-const repo = capture('git', ['-C', dirname(fileURLToPath(import.meta.url)), 'rev-parse', '--show-toplevel']);
+const helper = fileURLToPath(import.meta.url);
+const repo = resolve(dirname(helper), '../../../..');
+const options = parseOptions(process.argv.slice(2), process.env, repo);
 const runsRoot = process.env.ENDURAGENT_VERIFY_RUNS ?? join(homedir(), 'Library/Logs/enduragent-verify');
 const captures = process.env.ENDURAGENT_PROTOTYPE_CAPTURES ?? join(homedir(), 'projects/enduragent/desktop/docs/prototypes/ios/captures-2026-09-25');
 const deviceType = process.env.ENDURAGENT_SIM_DEVICE ?? 'iPhone 17e';
 const bundleId = 'icu.enduragent.app';
 const project = join(repo, 'apps/ios/Enduragent.xcodeproj');
-const derivedData = join(repo, 'DerivedData');
+const derivedData = options.buildFolder;
 const products = join(derivedData, 'Build/Products');
 const appPath = join(products, 'Debug-iphonesimulator/Enduragent.app');
 const sourceManifest = join(derivedData, 'verify-ios-sources.json');
@@ -28,9 +31,13 @@ function succeeds(command, args) {
 }
 function logged(log, command, args) {
   const fd = openSync(log, 'w');
-  const { status } = spawnSync(command, args, { stdio: ['ignore', fd, fd] });
-  closeSync(fd);
-  return status;
+  try {
+    const { status, error } = spawnSync(command, args, { cwd: repo, stdio: ['ignore', fd, fd] });
+    if (error) throw error;
+    return status;
+  } finally {
+    closeSync(fd);
+  }
 }
 function tail(log) {
   return readFileSync(log, 'utf8').trimEnd().split('\n').slice(-25).join('\n');
@@ -39,9 +46,7 @@ function pause(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 function stamp() {
-  const now = new Date();
-  const pad = value => String(value).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+  return `${capture('date', ['+%Y-%m-%d-%H%M%S'])}-${randomUUID().slice(0, 8)}`;
 }
 function slug(value, what) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value ?? '')) throw new Error(`${what} must be kebab-case, got ${JSON.stringify(value)}`);
@@ -77,11 +82,19 @@ function activeRun(id) {
   return { dir, udid: sim.udid };
 }
 function sourceHashes() {
-  const files = capture('git', ['-C', repo, 'ls-files', '--cached', '--others', '--exclude-standard', '--', 'apps/ios', ':!apps/ios/Enduragent.xcodeproj']).split('\n').filter(Boolean).sort();
-  return Object.fromEntries(files.map(file => {
-    const path = join(repo, file);
-    return [file, existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing'];
-  }));
+  const hashes = {};
+  const ignored = new Set(['.build', '.swiftpm', 'DerivedData', 'build', 'node_modules', 'Enduragent.xcodeproj']);
+  function walk(folder) {
+    for (const entry of readdirSync(folder, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const path = join(folder, entry.name);
+      if (ignored.has(entry.name) || path === derivedData) continue;
+      if (entry.isDirectory()) walk(path);
+      else if (entry.isFile()) hashes[relative(repo, path)] = createHash('sha256').update(readFileSync(path)).digest('hex');
+      else throw new Error(`source must be a regular file or directory: ${path}`);
+    }
+  }
+  walk(join(repo, 'apps/ios'));
+  return hashes;
 }
 function staleSource() {
   if (!existsSync(sourceManifest)) return 'no source manifest from sim.mjs build';
@@ -143,19 +156,28 @@ function build() {
 }
 
 function create(name) {
-  const id = `${stamp()}-${slug(name, 'run slug')}`;
+  createRun(`${stamp()}-${slug(name, 'run slug')}`);
+}
+
+function createRun(id) {
   const dir = join(runsRoot, id);
   if (existsSync(dir) || findSim(id)) throw new Error(`run ${id} already exists`);
   const runtime = iosRuntimes()[0];
   if (!runtime) throw new Error('no available iOS 26 simulator runtime; install one in Xcode > Settings > Components');
   mkdirSync(dir, { recursive: true });
-  const record = { id, simulator: simName(id), deviceType, runtime: runtime.name, checkout: repo, revision: capture('git', ['-C', repo, 'describe', '--always', '--dirty']) };
+  const revision = process.env.ENDURAGENT_VERIFY_REVISION ?? (existsSync(join(repo, '.git')) ? capture('git', ['-C', repo, 'describe', '--always', '--dirty']) : 'exported-tree');
+  const record = { id, simulator: simName(id), deviceType, runtime: runtime.name, checkout: repo, revision, buildFolder: derivedData, sourceDigest: createHash('sha256').update(JSON.stringify(sourceHashes())).digest('hex') };
   writeFileSync(join(dir, 'run.json'), `${JSON.stringify(record, null, 2)}\n`);
   const udid = capture('xcrun', ['simctl', 'create', simName(id), deviceType, runtime.identifier]);
   writeFileSync(join(dir, 'run.json'), `${JSON.stringify({ ...record, udid }, null, 2)}\n`);
-  capture('xcrun', ['simctl', 'bootstatus', udid, '-b']);
-  capture('xcrun', ['simctl', 'status_bar', udid, 'override', ...statusBar]);
-  capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+  try {
+    capture('xcrun', ['simctl', 'bootstatus', udid, '-b']);
+    capture('xcrun', ['simctl', 'status_bar', udid, 'override', ...statusBar]);
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+  } catch (error) {
+    cleanup(id);
+    throw error;
+  }
   console.log(`run ${id}\nsimulator ${simName(id)} ${udid}\nevidence ${dir}`);
 }
 
@@ -188,19 +210,24 @@ function test(id, ...proofs) {
   const dark = proofs.filter(proof => /DarkProof(\/|$)/.test(proof));
   const light = proofs.filter(proof => !dark.includes(proof));
   const failures = [];
+  const classes = [];
   if (light.length > 0) {
     capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
-    failures.push(...runProofs(dir, udid, light));
+    const report = runProofs(dir, udid, light);
+    failures.push(...report.failures);
+    classes.push(...report.classes);
   }
   if (dark.length > 0) {
     capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'dark']);
     try {
-      failures.push(...runProofs(dir, udid, dark));
+      const report = runProofs(dir, udid, dark);
+      failures.push(...report.failures);
+      classes.push(...report.classes);
     } finally {
       capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
     }
   }
-  if (failures.length > 0) throw new Error(failures.join('\n'));
+  return { classes, failures };
 }
 
 function runProofs(dir, udid, proofs) {
@@ -209,7 +236,13 @@ function runProofs(dir, udid, proofs) {
   const bundle = join(dir, `${name}.xcresult`);
   const log = join(dir, `${name}.log`);
   const status = logged(log, 'xcodebuild', ['test-without-building', '-project', project, '-scheme', 'Enduragent', '-destination', `id=${udid}`, '-derivedDataPath', derivedData, '-parallel-testing-enabled', 'NO', '-resultBundlePath', bundle, ...proofs.map(proof => `-only-testing:EnduragentUITests/${proof}`)]);
+  const failures = status === 0 ? [] : [`test-without-building exited ${status}\n${tail(log)}`];
+  let classes = summarizeTests({ testNodes: [] }, [...new Set(proofs.map(proof => proof.split('/')[0]))]);
   if (existsSync(bundle)) {
+    const tests = capture('xcrun', ['xcresulttool', 'get', 'test-results', 'tests', '--path', bundle]);
+    writeFileSync(join(dir, `${name}-tests.json`), `${tests}\n`);
+    classes = summarizeTests(JSON.parse(tests), classes.map(row => row.name));
+    writeFileSync(join(dir, `${name}-classes.json`), `${JSON.stringify(classes, null, 2)}\n`);
     const attachments = join(dir, `${name}-attachments`);
     mkdirSync(attachments, { recursive: true });
     capture('xcrun', ['xcresulttool', 'export', 'attachments', '--path', bundle, '--output-path', attachments]);
@@ -221,8 +254,11 @@ function runProofs(dir, udid, proofs) {
       for (const item of items) console.log(`attachment ${testIdentifier} ${item.suggestedHumanReadableName.replace(/_\d+_[0-9A-F-]{36}(?=\.\w+$)/, '')} ${join(attachments, item.exportedFileName)}`);
     }
   }
+  for (const row of classes) {
+    if (row.failed || row.skipped || row.missing) failures.push(`${row.name}: ${row.failed} failed, ${row.skipped} skipped, ${row.missing} missing`);
+  }
   console.log(`result bundle ${bundle}\nlog ${log}`);
-  return status === 0 ? [] : [`test-without-building exited ${status}\n${tail(log)}`];
+  return { classes, failures };
 }
 
 function parity(id, state, theme, flag, source) {
@@ -251,8 +287,11 @@ function cleanup(id) {
   const dir = runDir(id);
   const sim = findSim(id);
   if (sim) {
-    if (sim.state !== 'Shutdown') capture('xcrun', ['simctl', 'shutdown', sim.udid]);
-    capture('xcrun', ['simctl', 'delete', sim.udid]);
+    try {
+      if (sim.state !== 'Shutdown') capture('xcrun', ['simctl', 'shutdown', sim.udid]);
+    } finally {
+      capture('xcrun', ['simctl', 'delete', sim.udid]);
+    }
     console.log(`deleted ${simName(id)} ${sim.udid}`);
   } else {
     console.log(`no simulator ${simName(id)}; nothing to delete`);
@@ -261,14 +300,107 @@ function cleanup(id) {
   console.log(`evidence kept at ${dir}\n${readdirSync(dir).sort().join('\n')}`);
 }
 
-const commands = { doctor, build, create, install, launch, shot, test, parity, cleanup };
-const [command, ...rest] = process.argv.slice(2);
+function shard(id, ...proofs) {
+  const dir = join(runsRoot, slug(id, 'shard id'));
+  const report = { classes: summarizeTests({ testNodes: [] }, proofs), failures: [] };
+  try {
+    createRun(id);
+    install(id);
+    Object.assign(report, test(id, ...proofs));
+  } catch (error) {
+    report.failures.push(error.message);
+  } finally {
+    if (existsSync(join(dir, 'run.json'))) {
+      try {
+        cleanup(id);
+      } catch (error) {
+        report.failures.push(`cleanup: ${error.message}`);
+      }
+    }
+    if (existsSync(dir)) {
+      const measured = readdirSync(dir).filter(file => file.endsWith('-classes.json')).flatMap(file => JSON.parse(readFileSync(join(dir, file), 'utf8')));
+      report.classes = report.classes.map(row => measured.find(result => result.name === row.name) ?? row);
+    }
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'summary.json'), `${JSON.stringify(report, null, 2)}\n`);
+  }
+  if (report.failures.length) throw new Error(report.failures.join('\n'));
+}
+
+function runShard(log, id, proofs) {
+  return new Promise(resolveStatus => {
+    const fd = openSync(log, 'w');
+    const child = spawn(process.execPath, [helper, 'shard', id, ...proofs], {
+      cwd: repo,
+      env: { ...process.env, ENDURAGENT_VERIFY_BUILD: derivedData },
+      stdio: ['ignore', fd, fd],
+    });
+    child.on('error', error => console.error(`shard ${id}: ${error.message}`));
+    child.on('close', (status, signal) => {
+      closeSync(fd);
+      resolveStatus({ status, signal });
+    });
+  });
+}
+
+async function suite(...requested) {
+  const available = proofClasses(repo);
+  const proofs = requested.length ? requested : available;
+  for (const proof of proofs) {
+    if (!available.includes(proof)) throw new Error(`unknown UI proof class ${proof}`);
+  }
+  const timingFile = options.timings ?? join(runsRoot, 'timings.json');
+  if (options.timings && !existsSync(timingFile)) throw new Error(`timing file missing: ${timingFile}`);
+  const timings = existsSync(timingFile) ? JSON.parse(readFileSync(timingFile, 'utf8')) : {};
+  const plan = planShards(proofs, options.shards, timings);
+  const id = `${stamp()}-suite`;
+  const dir = join(runsRoot, id);
+  mkdirSync(dir, { recursive: true });
+  const shards = plan.map((item, index) => ({
+    ...item, id: `${id}-shard-${index + 1}`, directory: join(runsRoot, `${id}-shard-${index + 1}`),
+    log: join(dir, `shard-${index + 1}.log`),
+  }));
+  writeFileSync(join(dir, 'plan.json'), `${JSON.stringify({ buildFolder: derivedData, timingFile, shards }, null, 2)}\n`);
+  build();
+  const statuses = await Promise.allSettled(shards.map(item => runShard(item.log, item.id, item.proofs)));
+  const reports = shards.map((item, index) => {
+    const file = join(item.directory, 'summary.json');
+    let report = { classes: summarizeTests({ testNodes: [] }, item.proofs), failures: ['shard wrote no summary'] };
+    try {
+      if (existsSync(join(item.directory, 'run.json')) && findSim(item.id)) cleanup(item.id);
+      if (existsSync(file)) report = JSON.parse(readFileSync(file, 'utf8'));
+    } catch (error) {
+      report.failures.push(error.message);
+    }
+    const outcome = statuses[index];
+    if (outcome.status === 'rejected') report.failures.push(outcome.reason.message);
+    else if (outcome.value.status !== 0) report.failures.push(`shard exited ${outcome.value.status}, signal ${outcome.value.signal}`);
+    mkdirSync(item.directory, { recursive: true });
+    writeFileSync(file, `${JSON.stringify(report, null, 2)}\n`);
+    return { ...item, ...report };
+  });
+  const classes = reports.flatMap(report => report.classes).sort((a, b) => a.name.localeCompare(b.name));
+  const failed = reports.some(report => report.failures.length) || classes.some(row => row.failed || row.skipped || row.missing);
+  const summary = { result: failed ? 'Failed' : 'Passed', classes, shards: reports };
+  writeFileSync(join(dir, 'summary.json'), `${JSON.stringify(summary, null, 2)}\n`);
+  const lines = ['| Class | Passed | Failed | Skipped | Missing | Seconds |', '| --- | --- | --- | --- | --- | --- |',
+    ...classes.map(row => `| ${row.name} | ${row.passed} | ${row.failed} | ${row.skipped} | ${row.missing} | ${row.seconds.toFixed(1)} |`)];
+  writeFileSync(join(dir, 'summary.md'), `${summary.result}\n\n${lines.join('\n')}\n`);
+  const measured = Object.fromEntries(classes.filter(row => row.passed && !row.failed && !row.skipped && !row.missing && row.seconds > 0).map(row => [row.name, row.seconds]));
+  writeFileSync(join(dir, 'timings.json'), `${JSON.stringify({ ...timings, ...measured }, null, 2)}\n`);
+  console.log(`${summary.result}\ncombined summary ${join(dir, 'summary.md')}\ntimings ${join(dir, 'timings.json')}`);
+  if (failed) throw new Error(`proof suite failed; see ${join(dir, 'summary.json')}`);
+}
+
+const commands = { doctor, build, create, install, launch, shot, test, suite, shard, parity, cleanup };
+const { command, args: rest } = options;
 if (!Object.hasOwn(commands, command ?? '')) {
   console.error(`Usage: sim.mjs <${Object.keys(commands).join('|')}> [arguments]`);
   process.exit(2);
 }
 try {
-  commands[command](...rest);
+  const report = await commands[command](...rest);
+  if (report?.failures?.length) throw new Error(report.failures.join('\n'));
 } catch (error) {
   console.error(`sim.mjs ${command}: ${error.message}`);
   process.exitCode = 1;
