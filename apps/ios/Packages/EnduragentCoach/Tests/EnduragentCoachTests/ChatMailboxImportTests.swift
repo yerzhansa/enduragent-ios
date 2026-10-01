@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -7,7 +8,8 @@ extension ChatMailboxTests {
 	@Test func remoteResetRefreshesExistingObserver() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))
@@ -44,7 +46,8 @@ extension ChatMailboxTests {
 	@Test func remoteTurnArrivingMidTurnReachesLiveConversation() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local partial"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
@@ -75,7 +78,8 @@ extension ChatMailboxTests {
 	@Test func importReadKeepsALocalSettlementCommittedWhileItWaits() async throws {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local partial"), .hang], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
@@ -103,7 +107,8 @@ extension ChatMailboxTests {
 		try faults.failAppends(ofKind: "replyObserved")
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
-		transport.script = [.text("Unsaved answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Unsaved answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
@@ -123,7 +128,8 @@ extension ChatMailboxTests {
 		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
-		transport.script = [.text("Local answer"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))

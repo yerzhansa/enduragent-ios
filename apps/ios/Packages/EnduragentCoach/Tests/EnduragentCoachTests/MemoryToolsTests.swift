@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -9,11 +10,13 @@ import Testing
 
 	@Test func memoryQueryRejectsSlashSeparatedBounds() async throws {
 		let transport = FakeModelTransport()
-		transport.script = [
-			.toolCall(name: "memory_query", arguments: #"{"from":"2024/01/01","to":"2024/01/02"}"#),
-			.finish(reason: .toolCalls),
-			.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "memory_query", arguments: #"{"from":"2024/01/01","to":"2024/01/02"}"#),
+				.finish(reason: .toolCalls),
+				.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("Read my notes")

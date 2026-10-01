@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,21 +9,25 @@ extension FlushCoverageTests {
 	func resetDoesNotReplayAQuestionFromAPendingSupersededPartial(relaunch: Bool) async throws {
 		let host = EndingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
-		transport.script = [.text("Pending superseded partial"), .hang]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Pending superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Pending Saturday question"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		try await host.waitForEnd(0)
 		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
-		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 20)
+		transport.respond = ScriptedReply.sequence(
+			Array(repeating: .fail(.http(status: 400)), count: 20), for: .flush,
+			otherwise: transport.respond)
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
-		transport.script = [
-			.text("First."), .finish(reason: .stop),
-			.text("Second."), .finish(reason: .stop),
-			.text(longReply), .finish(reason: .stop),
-			.text("Ready."), .finish(reason: .stop),
-		]
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("First."), .finish(reason: .stop),
+				.text("Second."), .finish(reason: .stop),
+				.text(longReply), .finish(reason: .stop),
+				.text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
 		let questions = ["First question", "Second question", "Plan the week", "Anything else?"]
 		for (index, question) in questions.enumerated() {
 			_ = try await coach.sendAndSettle(question)
@@ -32,14 +37,17 @@ extension FlushCoverageTests {
 		let first = try #require(sent(.memoryFlush, by: transport).first)
 		try #require(
 			first.messages.contains { $0.unstampedContent == "Pending superseded partial" })
-		transport.script = [.text("Replacement after pending"), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Replacement after pending"), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement after pending")
 		try await host.waitForEnd(questions.count + 1)
 		try #require(sent(.memoryFlush, by: transport).count == 2)
-		transport.flushScript = [.finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = sent(.memoryFlush, by: transport)
 		try #require(saved.count == 3)
@@ -85,7 +93,9 @@ extension FlushCoverageTests {
 		#expect(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.phase
 				== .pending)
-		transport.flushScript = [.fail(.http(status: 400)), .fail(.http(status: 400))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 400)), .fail(.http(status: 400))], for: .flush,
+			otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let failed = sent(.memoryFlush, by: transport)
 		#expect(!failed.isEmpty)
@@ -98,7 +108,8 @@ extension FlushCoverageTests {
 		#expect(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).first?.phase
 				== .pending)
-		transport.flushScript = [.finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
@@ -111,7 +122,9 @@ extension FlushCoverageTests {
 
 	@Test func aSupersededOnlyJobDoesNotHideReplacementOrUnrelatedRows() async throws {
 		let ledger = try await seedSupersededJobs(pending: [2], newer: [1], settled: true)
-		transport.flushScript = [.fail(.http(status: 400)), .fail(.http(status: 400))]
+		transport.respond = ScriptedReply.sequence(
+			[.fail(.http(status: 400)), .fail(.http(status: 400))], for: .flush,
+			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
@@ -131,7 +144,8 @@ extension FlushCoverageTests {
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(pending.phase == .pending)
 		#expect(pending.coverage.listed.count == 3)
-		transport.flushScript = [.finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)

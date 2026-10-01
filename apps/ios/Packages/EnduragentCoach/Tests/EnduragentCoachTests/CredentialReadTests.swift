@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Security
 import Testing
@@ -12,7 +13,9 @@ extension CredentialVaultTests {
 		try store.storeIntervalsConnection(testConnection)
 		let coach = await coach(store)
 		let before = memory.readCount
-		transport.script = [.text("Thursday is on."), .finish(reason: .stop)]
+		transport.respond = ScriptedReply.sequence(
+			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
+			otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(memory.readCount - before == 3)
 		#expect(
