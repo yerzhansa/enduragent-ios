@@ -29,6 +29,8 @@ final class InterruptedAfterKillProof: XCTestCase {
 		TutorialHarness.closeMenu(app)
 		tryAgain.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
 		XCTAssertFalse(notice.exists)
 		TutorialHarness.attach(self, name: "interrupted-after-kill-try-again", app: app)
@@ -133,6 +135,8 @@ final class QueuedTurnAfterKillProof: XCTestCase {
 		TutorialHarness.attach(self, name: "queued-turn-after-kill", app: app)
 		tryAgain.element(boundBy: 1).tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertFalse(received.exists)
 		XCTAssertEqual(app.staticTexts.matching(identifier: TutorialHarness.weekQuestion).count, 1)
 		TutorialHarness.attach(self, name: "queued-turn-after-kill-try-again", app: app)
@@ -194,6 +198,8 @@ final class BackgroundResumeProof: XCTestCase {
 		app.activate()
 		TutorialHarness.wait(app, until: .foreground)
 		TutorialHarness.waitForLabel(app, "quieter stretch between them.", within: .turn)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "background-resume", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)

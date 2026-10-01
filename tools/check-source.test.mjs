@@ -48,6 +48,17 @@ test('accepts UI proofs using the argument builder and named waits', () => {
   assert.equal(result.status, 0, result.output);
 });
 
+test('rejects delayed predicate expectations in the shared UI wait helper', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ui-proof-eager-waits/);
+});
+
+test('accepts native existence and foreground waits in the shared helper', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'element.waitForExistence(timeout: limit.rawValue)\napp.wait(for: .runningForeground, timeout: limit.rawValue)' });
+  assert.equal(result.status, 0, result.output);
+});
+
 const upgradeStore = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade/history/synced-records.store';
 test('accepts committed upgrade SQLite stores', () => {
   const result = run({ [upgradeStore]: Buffer.from('SQLite format 3\0fixture') });

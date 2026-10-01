@@ -159,9 +159,28 @@ enum TutorialHarness {
 		within limit: Timeout = .screen, required: Bool = true,
 		file: StaticString = #filePath, line: UInt = #line
 	) -> Bool {
-		wait(
-			until: { condition.matches(element) }, within: limit, required: required,
-			message: "\(element) did not reach \(condition)", file: file, line: line)
+		let completed: Bool
+		switch condition {
+		case .exists:
+			completed = element.waitForExistence(timeout: limit.rawValue)
+		case .absent:
+			completed = element.waitForNonExistence(timeout: limit.rawValue)
+		case .foreground:
+			guard let app = element as? XCUIApplication else {
+				XCTFail("foreground waits require an application", file: file, line: line)
+				return false
+			}
+			completed = app.wait(for: .runningForeground, timeout: limit.rawValue)
+		default:
+			return wait(
+				until: { condition.matches(element) }, within: limit, required: required,
+				message: "\(element) did not reach \(condition)", file: file, line: line)
+		}
+		if required {
+			XCTAssertTrue(
+				completed, "\(element) did not reach \(condition)", file: file, line: line)
+		}
+		return completed
 	}
 
 	@discardableResult
@@ -170,9 +189,12 @@ enum TutorialHarness {
 		required: Bool = true, message: String,
 		file: StaticString = #filePath, line: UInt = #line
 	) -> Bool {
-		let expectation = XCTNSPredicateExpectation(
-			predicate: NSPredicate { _, _ in condition() }, object: nil)
-		let completed = XCTWaiter.wait(for: [expectation], timeout: limit.rawValue) == .completed
+		let deadline = ProcessInfo.processInfo.systemUptime + limit.rawValue
+		var completed = condition()
+		while !completed && ProcessInfo.processInfo.systemUptime < deadline {
+			RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.01))
+			completed = condition()
+		}
 		if required { XCTAssertTrue(completed, message, file: file, line: line) }
 		return completed
 	}

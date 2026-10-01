@@ -15,6 +15,7 @@ final class SlowReplyProof: XCTestCase {
 		XCTAssertTrue(working.exists, "the working row stays under the streaming text")
 		TutorialHarness.attach(self, name: "slow-reply-streaming", app: app)
 		TutorialHarness.waitForLabel(app, "quieter stretch between them.", within: .turn)
+		TutorialHarness.wait(working, until: .absent, within: .turn)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "slow-reply-done", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -64,6 +65,8 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		TutorialHarness.closeMenu(app)
 		tryAgain.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
 		XCTAssertFalse(tryAgain.exists)
 		TutorialHarness.attach(self, name: "accept-kill-try-again", app: app)
@@ -178,6 +181,8 @@ final class CoalesceProof: XCTestCase {
 		let reply = app.staticTexts.containing(
 			NSPredicate(format: "label CONTAINS %@", TutorialHarness.weekReply))
 		TutorialHarness.wait(reply.firstMatch, within: .turn)
+		TutorialHarness.wait(
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		let joined = app.staticTexts.matching(
 			NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Thursday?", "Friday?"))
 		XCTAssertEqual(joined.count, 1)

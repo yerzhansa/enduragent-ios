@@ -172,6 +172,7 @@ try {
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
     if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
+    if (proofFile.test(file) && /\bXCTNSPredicateExpectation\b/.test(text)) report(file, 'ui-proof-eager-waits');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
