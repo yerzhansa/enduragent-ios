@@ -20,14 +20,10 @@ struct ConfirmedPreviewCard: View {
 					Text(model.phrasebook.say(notice.key, notice.vars))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
-				if review.authority == .thisDevice, review.notice?.kind != .accountChanged {
-					HStack {
-						ForEach(actions, id: \.id) { action in
-							Button(say(action.title)) {
-								Task { await model.decide(action.decision) }
-							}
-							.accessibilityIdentifier(action.id)
-						}
+				if !actions.isEmpty {
+					ViewThatFits(in: .horizontal) {
+						HStack { buttons }
+						VStack(alignment: .leading) { buttons }
 					}
 				}
 			}
@@ -41,7 +37,10 @@ struct ConfirmedPreviewCard: View {
 	}
 
 	var actions: [ConfirmedPreviewAction] {
-		switch review.controls {
+		guard review.authority == .thisDevice, review.notice?.kind != .accountChanged else {
+			return []
+		}
+		return switch review.controls {
 		case .approveOrCancel(let token):
 			[
 				ConfirmedPreviewAction(
@@ -50,7 +49,34 @@ struct ConfirmedPreviewCard: View {
 				ConfirmedPreviewAction(
 					id: "chat.preview.add", title: Catalog.reviewAdd, decision: .approve(token)),
 			]
-		case .none, .checkAgain, .retryRemainingOrCancel: []
+		case .checkAgain(let ref):
+			[
+				ConfirmedPreviewAction(
+					id: "chat.preview.checkAgain", title: Catalog.setupTelegramCheckAgain,
+					decision: .checkAgain(ref))
+			]
+		case .retryRemainingOrCancel(let token):
+			[
+				ConfirmedPreviewAction(
+					id: "chat.preview.checkAgain", title: Catalog.setupTelegramCheckAgain,
+					decision: .checkAgain(token.ref)),
+				ConfirmedPreviewAction(
+					id: "chat.preview.cancel", title: Catalog.commonCancel, decision: .cancel(token)
+				),
+				ConfirmedPreviewAction(
+					id: "chat.preview.saveAgain", title: Catalog.reviewSaveApprovedAgain,
+					decision: .retryRemaining(token)),
+			]
+		case .none: []
+		}
+	}
+
+	private var buttons: some View {
+		ForEach(actions, id: \.id) { action in
+			Button(say(action.title)) {
+				Task { await model.decide(action.decision) }
+			}
+			.accessibilityIdentifier(action.id)
 		}
 	}
 
