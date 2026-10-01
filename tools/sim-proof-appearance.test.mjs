@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { mock, test } from 'node:test';
 
 test('proof commands select their appearance and restore light after a dark failure', async () => {
@@ -11,11 +11,23 @@ test('proof commands select their appearance and restore light after a dark fail
   const events = [];
   let appearance = 'dark';
   let failBuild = false;
+  let selected = [];
   mock.module('node:child_process', {
-    exports: {
+    namedExports: {
+      spawn() { throw new Error('appearance tests never spawn shards'); },
       execFileSync(command, args) {
-        if (command === 'git') return resolve('.') + '\n';
+        if (command === 'date') return '2026-10-01-120000';
         assert.equal(command, 'xcrun');
+        if (args[0] === 'xcresulttool') {
+          if (args[1] === 'export') {
+            writeFileSync(join(args[args.indexOf('--output-path') + 1], 'manifest.json'), '[]');
+            return '';
+          }
+          if (args[3] === 'tests') return JSON.stringify({ testNodes: selected.map(name => ({
+            nodeType: 'Test Case', nodeIdentifier: `${name}/testAppearance()`, result: failBuild ? 'Failed' : 'Passed', durationInSeconds: 1,
+          })) });
+          return JSON.stringify({ result: failBuild ? 'Failed' : 'Passed', passedTests: failBuild ? 0 : selected.length, failedTests: failBuild ? selected.length : 0, skippedTests: 0 });
+        }
         if (args.join(' ') === 'simctl list devices -j') {
           return JSON.stringify({ devices: { fixture: [{ name: 'enduragent-verify-fixture', udid: 'fixture-device' }] } });
         }
@@ -30,6 +42,8 @@ test('proof commands select their appearance and restore light after a dark fail
           return { status: 0 };
         }
         assert.equal(command, 'xcodebuild');
+        selected = args.filter(arg => arg.startsWith('-only-testing:')).map(arg => arg.split('/')[1]);
+        mkdirSync(args[args.indexOf('-resultBundlePath') + 1]);
         events.push(['proofs', appearance, ...args.filter(arg => arg.startsWith('-only-testing:'))]);
         return { status: failBuild ? 1 : 0 };
       },
