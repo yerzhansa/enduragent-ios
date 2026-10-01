@@ -5,21 +5,21 @@ package actor ChatMailbox {
 	private let ledger: Ledger
 	private let runner: TurnRunner
 	private let flushes: FlushWork
-	let clock: any Clock
+	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
-	let records: ChatRecords
+	private let records: ChatRecords
 	private lazy var resets = PendingResets(
 		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
 	private lazy var start = AttemptStart(
 		chat: chatId, ledger: ledger, records: records, environment: environment, process: process)
-	let work = MailboxQueue()
-	let door = Turnstile()
-	let lifetime: Coach.Lifetime
+	private let work = MailboxQueue()
+	private let door = Turnstile()
+	private let lifetime: Coach.Lifetime
 	private var finishedAway: Set<TurnID> = []
-	var leases: LeaseSlot
+	private var leases: LeaseSlot
 	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
 		await self?.waitEnded($0, $1)
 	}
@@ -146,6 +146,48 @@ package actor ChatMailbox {
 		}
 	}
 
+	package func cancelInFlight(cause: InterruptionCause) async {
+		let terminating = cause == .appTerminating
+		let owned = work.phase.cause == nil
+		if !terminating {
+			guard owned else { return await work.joinInterruption() }
+			guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held
+			else { return }
+		}
+		if owned { work.beginInterruption(cause) }
+		publish()
+		work.phase.running?.task.cancel()
+		let settle = {
+			await self.work.phase.running?.task.value
+			if !terminating {
+				let unstarted =
+					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
+				await self.records.stopBeforeStart(unstarted)
+			}
+			self.leases.end { $0.interrupt() }
+			if owned { self.work.endInterruption() }
+		}
+		if terminating {
+			await settle()
+		} else {
+			await door.pass(settle)
+		}
+		publish()
+		if !terminating { drainIfIdle() }
+	}
+
+	package func enteredBackground() async {
+		await door.pass { closeWindow() }
+	}
+
+	package func recover(_ plan: RecoveryPlan) async {
+		await records.recover(plan.interrupt)
+		for job in plan.drain {
+			if work.add(job) { workAdded() }
+		}
+		publish()
+	}
+
 	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }
 
 	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
@@ -165,11 +207,11 @@ package actor ChatMailbox {
 
 	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
 
-	func stamp(for turn: TurnID) async -> OperationStamp {
+	private func stamp(for turn: TurnID) async -> OperationStamp {
 		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
 	}
 
-	func closeWindow(ifArmed armed: Int? = nil) {
+	private func closeWindow(ifArmed armed: Int? = nil) {
 		guard let turn = work.closeWindow(ifArmed: armed) else { return }
 		if work.add(turn, origin: .send) { workAdded() }
 	}
@@ -188,12 +230,12 @@ package actor ChatMailbox {
 		}
 	}
 
-	func workAdded() {
+	private func workAdded() {
 		publish()
 		drainIfIdle()
 	}
 
-	func drainIfIdle() {
+	private func drainIfIdle() {
 		guard case .idle = work.phase, let initiator = work.next?.initiator,
 			let lease = holdLease(initiator)
 		else { return }
@@ -227,6 +269,18 @@ package actor ChatMailbox {
 		} else {
 			drainIfIdle()
 		}
+	}
+
+	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease? {
+		guard !lifetime.terminating else { return nil }
+		return leases.hold(initiator) { [weak self] generation, cause in
+			await self?.expire(cause, lease: generation)
+		}
+	}
+
+	private func expire(_ cause: ExpiryCause, lease generation: Int) async {
+		guard leases.holds(generation) else { return }
+		await cancelInFlight(cause: InterruptionCause(cause))
 	}
 
 	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
@@ -315,7 +369,7 @@ package actor ChatMailbox {
 			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 
-	func publish() {
+	private func publish() {
 		let current = snapshot()
 		latest = current
 		feed.publish(current)

@@ -83,10 +83,8 @@ function hasExposedMailboxState(text) {
     const opensBody = boundary === '{' || (boundary === '\n' && /^\s*\{/.test(code.slice(match.index + match[0].length)));
     if (depth === 1) {
       const member = /^(.*?)\b(let|var)\s+/.exec(declaration);
-      const lifecycleDependency = !opensBody
-        && /^\s*(?:internal\s+)?(?:let clock\s*:\s*any Clock|let records\s*:\s*ChatRecords|let work\s*=\s*MailboxQueue\(\)|let door\s*=\s*Turnstile\(\)|let lifetime\s*:\s*Coach\.Lifetime|var leases\s*:\s*LeaseSlot)\s*$/.test(declaration);
       if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
-        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration) && !lifecycleDependency) {
+        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
         if (member[2] === 'let' || /\blazy\b/.test(member[1]) || declaration.includes('=') || !opensBody) return true;
         projection = true;
       }
