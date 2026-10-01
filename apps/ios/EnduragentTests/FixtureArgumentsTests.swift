@@ -14,6 +14,16 @@ import Testing
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
+		let otherSuite = "enduragent.fixture.arguments.other.\(UUID().uuidString)"
+		let otherDefaults = try #require(UserDefaults(suiteName: otherSuite))
+		defer { otherDefaults.removePersistentDomain(forName: otherSuite) }
+		otherDefaults.setPersistentDomain(
+			[
+				FixtureLaunch.clockArgumentKey: FixtureLaunch.defaultClock,
+				FixtureLaunch.coalescingArgumentKey: "2000",
+				FixtureLaunch.recoveryArgumentKey: "readable",
+				"enduragent.onboardingCompleted": false,
+			], forName: otherSuite)
 		let defaults = try #require(UserDefaults(suiteName: "enduragent.fixture.arguments.test"))
 		var values: [String: String] = [:]
 		for index in stride(from: 0, to: expected.launchArguments.count, by: 2) {
@@ -29,6 +39,12 @@ import Testing
 		#expect(parsed.recovery == .unreadable)
 		#expect(parsed.host == .expireAfter(.seconds(3)))
 		#expect(parsed.clock == expected.clock)
+		#expect(
+			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
+				== FixtureLaunch.defaultClock)
+		#expect(otherDefaults.string(forKey: FixtureLaunch.coalescingArgumentKey) == "2000")
+		#expect(otherDefaults.string(forKey: FixtureLaunch.recoveryArgumentKey) == "readable")
+		#expect(otherDefaults.bool(forKey: "enduragent.onboardingCompleted") == false)
 	}
 
 	@Test func relaunchPreservesOverridesAndReplacesStorePolicy() throws {
