@@ -7,7 +7,7 @@ public actor Coach {
 
 	private let sport: SportID
 	private let transport: any ModelTransport
-	private let ledger: Ledger
+	let ledger: Ledger
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let host: any ExecutionHost
@@ -19,11 +19,11 @@ public actor Coach {
 	private let vault: CredentialVault
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
-	private var mailboxes: [ChatID: ChatMailbox]
-	private let lifetime = Lifetime()
+	var mailboxes: [ChatID: ChatMailbox]
+	let lifetime = Lifetime()
 	private var recovery: Task<Bool, Never>?
-	private var importObservation: Task<Void, Never>?
-	private var pendingImportRefresh: Task<Void, Never>?
+	var importObservation: Task<Void, Never>?
+	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
 	deinit {
@@ -386,44 +386,6 @@ public actor Coach {
 		)
 		mailboxes[chatId] = created
 		return created
-	}
-
-	private func observeImports() {
-		guard importObservation == nil, !lifetime.terminating else { return }
-		importObservation = Task { [weak self, imports = ledger.imports] in
-			for await _ in imports {
-				guard !Task.isCancelled else { return }
-				await self?.scheduleImportRefresh()
-			}
-		}
-	}
-
-	private func scheduleImportRefresh() {
-		guard !lifetime.terminating else { return }
-		pendingImportRefresh?.cancel()
-		pendingImportRefresh = Task { [weak self] in
-			do {
-				try await Task.sleep(for: .milliseconds(200))
-			} catch is CancellationError {
-				return
-			} catch {
-				fatalError("Import coalescing sleep failed: \(error)")
-			}
-			guard !Task.isCancelled else { return }
-			await self?.refreshImports()
-		}
-	}
-
-	private func refreshImports() async {
-		pendingImportRefresh = nil
-		guard !lifetime.terminating else { return }
-		for mailbox in mailboxes.values {
-			do {
-				try await mailbox.refreshImports()
-			} catch {
-				diagnostics.record(.importsUnavailable(mailbox.chatId, error))
-			}
-		}
 	}
 
 }

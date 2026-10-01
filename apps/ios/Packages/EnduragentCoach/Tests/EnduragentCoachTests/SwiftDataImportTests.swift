@@ -18,7 +18,7 @@ extension SwiftDataSuites {
 		@Test func remoteNotificationBurstRefreshesOnce() async throws {
 			let store = ImportingRecordLog(inner: try makeSwiftDataLog(deviceId: DeviceID()))
 			let log = BatchRecordingLog(inner: store)
-			let coach = makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+			let coach = await makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
 			let snapshots = ImportSnapshots(await coach.observe(.main))
 			try await waitUntil { snapshots.latest != nil }
 			let reads = log.reads.count
@@ -38,7 +38,7 @@ extension SwiftDataSuites {
 
 		@Test func duplicateImportedRowsMatchColdLoad() async throws {
 			let store = ImportingRecordLog(inner: try makeSwiftDataLog(deviceId: DeviceID()))
-			let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+			let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 			let snapshots = ImportSnapshots(await coach.observe(.main))
 			try await waitUntil { snapshots.latest != nil }
 			let question = remoteQuestion()
@@ -91,7 +91,7 @@ extension SwiftDataSuites {
 				inner: observingImports ? store : ImportingRecordLog(inner: store))
 			let transport = FakeModelTransport()
 			transport.script = [.text("Local answer"), .finish(reason: .stop)]
-			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			_ = await coach.currentSnapshot(.main)
 			try await Task.sleep(for: .milliseconds(500))
 			let reads = log.reads.count

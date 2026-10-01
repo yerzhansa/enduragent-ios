@@ -12,7 +12,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.summaryScript = [.text("Earlier conversation."), .finish(reason: .stop)]
 		transport.script = [.text("Thursday is"), .hang]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
 		let observed = ImportSnapshots(await coach.observe(.main))

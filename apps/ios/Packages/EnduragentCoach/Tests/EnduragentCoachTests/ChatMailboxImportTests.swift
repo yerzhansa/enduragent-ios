@@ -8,7 +8,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
 		transport.script = [.text("Local answer"), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))
 		let reset = ResetID(ulid: fixedUlid(90))
@@ -45,7 +45,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
 		transport.script = [.text("Local partial"), .hang]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
@@ -76,7 +76,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog()
 		let transport = FakeModelTransport()
 		transport.script = [.text("Local partial"), .hang]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(local)
@@ -105,7 +105,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
 		transport.script = [.text("Unsaved answer"), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let local = try #require(
 			try await coach.send(draft("Local question"), to: .main).acceptedTurn)
 		let before = try #require(await coach.settledState(of: local, in: .main))
@@ -125,7 +125,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog(inner: faults)
 		let transport = FakeModelTransport()
 		transport.script = [.text("Local answer"), .finish(reason: .stop)]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		let observed = ImportSnapshots(await coach.observe(.main))
 		try await waitUntil { observed.latest != nil }
@@ -145,7 +145,7 @@ extension ChatMailboxTests {
 		let store = ImportingRecordLog()
 		store.holdRead()
 		defer { store.releaseRead() }
-		let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		async let stream = coach.observe(.main)
 		try await waitUntil { store.readHeld }
 		let remote = try await importTurn(into: store)
@@ -157,7 +157,7 @@ extension ChatMailboxTests {
 
 	@Test func importSubscriptionStopsOnTermination() async throws {
 		let store = ImportingRecordLog()
-		let coach = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		_ = await coach.currentSnapshot(.main)
 		_ = await coach.currentSnapshot(.main)
 		#expect(store.subscriptions == 1)

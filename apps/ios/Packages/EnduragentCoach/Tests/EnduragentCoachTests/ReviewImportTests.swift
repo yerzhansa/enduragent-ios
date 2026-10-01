@@ -6,7 +6,7 @@ extension SingleProposalReviewsTests {
 	@Test func importDoesNotRestoreAReviewCanceledWhileItReads() async throws {
 		let held = HeldFlushReadLog(inner: records)
 		let store = ImportingRecordLog(inner: held)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: ada, store: store, clock: clock, secrets: secrets)
 		let token = try await presentedToken(on: coach)
 		let observed = ImportSnapshots(await coach.observe(.main))
