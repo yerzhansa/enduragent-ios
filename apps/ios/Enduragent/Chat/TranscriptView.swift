@@ -3,6 +3,7 @@ import SwiftUI
 
 struct TranscriptView: View {
 	@Bindable var model: ShellModel
+	@Environment(\.scenePhase) private var scenePhase
 
 	var body: some View {
 		ScrollViewReader { proxy in
@@ -60,6 +61,12 @@ struct TranscriptView: View {
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: scenePhase) { _, phase in
+				guard phase == .active, model.chat?.turns.last?.completedInBackground == true else {
+					return
+				}
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 			.onChange(of: model.slashListVisible) {
