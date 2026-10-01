@@ -76,6 +76,7 @@ final class AppTestFixture {
 	}
 
 	func releaseOwners() async {
+		for model in models { await model.lifecycle.forward(.willTerminate) }
 		for coach in coaches { await coach.lifecycle(.willTerminate) }
 		models.removeAll()
 		coaches.removeAll()

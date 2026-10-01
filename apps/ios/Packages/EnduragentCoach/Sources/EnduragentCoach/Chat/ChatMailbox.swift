@@ -8,6 +8,7 @@ package actor ChatMailbox {
 	private let clock: any Clock
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
+	private var coalescingTask: Task<Void, Never>?
 	private let environment: EnvironmentResolver
 	private let process: ProcessID
 	private let records: ChatRecords
@@ -29,16 +30,11 @@ package actor ChatMailbox {
 	private var revision: UInt64 = 0
 
 	init(
-		chatId: ChatID,
-		ledger: Ledger,
-		runner: TurnRunner,
-		flushes: FlushWork,
-		clock: any Clock,
-		coalescing: CoalescingPolicy,
+		chatId: ChatID, ledger: Ledger,
+		runner: TurnRunner, flushes: FlushWork,
+		clock: any Clock, coalescing: CoalescingPolicy,
 		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
-		environment: EnvironmentResolver,
-		reviews: any WorkoutReviews,
-		process: ProcessID,
+		environment: EnvironmentResolver, reviews: any WorkoutReviews, process: ProcessID,
 		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed<ChatSnapshot>,
 		recoveryRecords: [AthleteRecord]?
 	) async throws(LedgerFailure) {
@@ -153,8 +149,13 @@ package actor ChatMailbox {
 			else { return }
 		}
 		if owned { work.beginInterruption(cause) }
+		let coalescingTask = self.coalescingTask
+		self.coalescingTask = nil
+		coalescingTask?.cancel()
+		if terminating { _ = work.closeWindow() }
 		publish()
 		work.phase.running?.task.cancel()
+		await coalescingTask?.value
 		let settle = {
 			await self.work.phase.running?.task.value
 			if !terminating {
@@ -219,12 +220,15 @@ package actor ChatMailbox {
 
 	private func closeWindow(ifArmed armed: Int? = nil) {
 		guard let turn = work.closeWindow(ifArmed: armed) else { return }
+		coalescingTask?.cancel()
+		coalescingTask = nil
 		if work.add(turn, origin: .send) { workAdded() }
 	}
 
 	private func armWindow(for turn: TurnID) {
+		coalescingTask?.cancel()
 		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
-		Task {
+		coalescingTask = Task {
 			do {
 				try await coalescingSleep(coalescing.window)
 			} catch is CancellationError {

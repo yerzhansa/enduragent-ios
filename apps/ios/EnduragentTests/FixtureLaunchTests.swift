@@ -22,16 +22,15 @@ final class FixtureLaunchTests {
 
 	func relaunch(
 		_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked,
-		recovery: FixtureRecoveryPolicy = .readable
+		recovery: FixtureRecoveryPolicy = .readable, clock: String? = nil
 	) async throws -> (AppServices, UserDefaults) {
 		var launch = launch
 		launch.store = store
 		launch.keychain = keychain
 		launch.recovery = recovery
-		if store != .keep {
-			await fixture.releaseOwners()
-			try await fixture.folder.waitUntilUnused()
-		}
+		launch.clock = clock ?? launch.clock
+		await fixture.releaseOwners()
+		try await fixture.folder.waitUntilUnused()
 		let defaults = try launch.prepare()
 		return (try fixtureServices(launch, defaults: defaults), defaults)
 	}
@@ -303,12 +302,14 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		let settled = try await settledTurn(first)
-		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
+		do {
+			let first = model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			let settled = try await settledTurn(first)
+			#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
+		}
 		let (second, kept) = try await relaunch(.keep)
 		let restored = try #require(await firstSnapshot(second, chat: .main))
 		#expect(restored.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])

@@ -124,11 +124,13 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		_ = try await settledTurn(first)
+		do {
+			let first = model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			_ = try await settledTurn(first)
+		}
 		let (locked, kept) = try await relaunch(.keep, keychain: .locked)
 		let reopened = fixtureModel(
 			environment: AppEnvironment(services: locked, language: language, defaults: kept))

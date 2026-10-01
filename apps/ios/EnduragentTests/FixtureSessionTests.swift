@@ -24,28 +24,30 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func languageChoiceRewritesTheChatAndTheNextReplyRequest() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
-		model.draft.text = "/language"
-		await model.send()
-		#expect(model.showLanguage)
-		#expect(model.draft.text.isEmpty)
-		#expect(model.status?.language == .automatic)
-		await model.chooseLanguage(.fixed(.fr))
-		try await model.waitForStatus { $0.language == .fixed(.fr) }
-		#expect(model.status?.language == .fixed(.fr))
-		#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
-		#expect(
-			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
-				== "Écris à ton coach")
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		_ = try await settledTurn(model)
-		#expect(
-			services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
-				"The athlete chose French (Français).") == true)
+		do {
+			let services = try services()
+			let model = model(services)
+			await model.agreeAndStartChatting()
+			#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
+			model.draft.text = "/language"
+			await model.send()
+			#expect(model.showLanguage)
+			#expect(model.draft.text.isEmpty)
+			#expect(model.status?.language == .automatic)
+			await model.chooseLanguage(.fixed(.fr))
+			try await model.waitForStatus { $0.language == .fixed(.fr) }
+			#expect(model.status?.language == .fixed(.fr))
+			#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
+			#expect(
+				model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
+					== "Écris à ton coach")
+			model.draft.text = TutorialCopy.weekQuestion
+			await model.send()
+			_ = try await settledTurn(model)
+			#expect(
+				services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
+					"The athlete chose French (Français).") == true)
+		}
 		let (kept, keptDefaults) = try await relaunch(.keep)
 		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
@@ -74,14 +76,16 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
-		let services = try services()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		let stored = try #require(model.status).session
-		#expect(stored.text(for: .contextWindowOverride) == "")
-		try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
-		try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
-		#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
+		do {
+			let services = try services()
+			let model = model(services)
+			await model.agreeAndStartChatting()
+			let stored = try #require(model.status).session
+			#expect(stored.text(for: .contextWindowOverride) == "")
+			try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
+			try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
+			#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
+		}
 		let (kept, _) = try await relaunch(.keep)
 		#expect(
 			try await kept.coach.observedStatus().session.text(for: .contextWindowOverride)
@@ -91,20 +95,18 @@ extension FixtureLaunchTests {
 	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
 		var evening = launch
 		evening.clock = "1998-06-15T18:00:00Z"
-		let first = model(try fixtureServices(evening, defaults: defaults))
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		let earlier = try await settledTurn(first)
-		var morning = launch
-		morning.store = .keep
-		morning.clock = "1998-06-16T07:00:00Z"
-		let keptDefaults = try morning.prepare()
+		let earlier: TurnView
+		do {
+			let first = model(try fixtureServices(evening, defaults: defaults))
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			earlier = try await settledTurn(first)
+		}
+		let (morning, keptDefaults) = try await relaunch(.keep, clock: "1998-06-16T07:00:00Z")
 		let second = fixtureModel(
 			environment: AppEnvironment(
-				services: try fixtureServices(morning, defaults: keptDefaults),
-				language: language,
-				defaults: keptDefaults))
+				services: morning, language: language, defaults: keptDefaults))
 		try await observed(second)
 		second.draft.text = TutorialCopy.weekQuestion
 		await second.send()
