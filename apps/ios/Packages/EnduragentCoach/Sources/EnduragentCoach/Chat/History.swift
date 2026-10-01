@@ -60,7 +60,9 @@ extension Ledger {
 				closed = [(conversation.earlierChat, .earlierChat)]
 			}
 			for (segment, reason) in closed {
-				let views = segment.turnViews(
+				var projection = TurnProjection()
+				let views = projection.turns(
+					in: segment,
 					live: nil,
 					device: deviceId, process: process, today: today)
 				let first = segment.turns.first?.fragments.first

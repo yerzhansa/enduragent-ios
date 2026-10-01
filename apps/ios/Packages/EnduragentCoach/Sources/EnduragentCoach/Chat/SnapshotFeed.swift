@@ -7,7 +7,7 @@ final class SnapshotFeed: Sendable {
 	func subscribe(from first: ChatSnapshot) -> AsyncStream<ChatSnapshot> {
 		let id = UUID()
 		let (stream, continuation) = AsyncStream<ChatSnapshot>.makeStream(
-			bufferingPolicy: .unbounded)
+			bufferingPolicy: .bufferingNewest(1))
 		continuation.onTermination = { [weak self] _ in
 			self?.observers.withLock { _ = $0.removeValue(forKey: id) }
 		}

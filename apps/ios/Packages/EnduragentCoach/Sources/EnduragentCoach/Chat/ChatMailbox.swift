@@ -25,18 +25,15 @@ package actor ChatMailbox {
 		await self?.waitEnded($0, $1)
 	}
 	private let feed = SnapshotFeed()
+	private var projection = TurnProjection()
+	private var latest: ChatSnapshot?
+	private var revision: UInt64 = 0
 
 	package init(
-		chatId: ChatID,
-		ledger: Ledger,
-		runner: TurnRunner,
-		flushes: FlushWork,
-		clock: any Clock,
-		coalescing: CoalescingPolicy,
-		environment: EnvironmentResolver,
-		reviews: any WorkoutReviews,
-		process: ProcessID,
-		host: any ExecutionHost, lifetime: Coach.Lifetime
+		chatId: ChatID, ledger: Ledger, runner: TurnRunner, flushes: FlushWork,
+		clock: any Clock, coalescing: CoalescingPolicy,
+		environment: EnvironmentResolver, reviews: any WorkoutReviews,
+		process: ProcessID, host: any ExecutionHost, lifetime: Coach.Lifetime
 	) {
 		self.chatId = chatId
 		self.ledger = ledger
@@ -59,10 +56,12 @@ package actor ChatMailbox {
 		} catch {
 			switch error {
 			case .unavailable, .rejectedBatch:
-				break
+				return feed.subscribe(from: snapshot())
 			}
 		}
-		return feed.subscribe(from: snapshot())
+		let current = latest ?? snapshot()
+		latest = current
+		return feed.subscribe(from: current)
 	}
 
 	package func accept(_ draft: Draft) async throws(AcceptFailure) -> SendOutcome {
@@ -347,9 +346,7 @@ package actor ChatMailbox {
 	private func finish(_ turn: TurnID, under lease: DrainLease) {
 		work.finishTurn()
 		let reply = conversation.turn(turn)?.reply
-		if reply != nil, !foreground {
-			finishedAway.insert(turn)
-		}
+		if reply != nil, !foreground { finishedAway.insert(turn) }
 		lease.settle(turn, reply: reply)
 		publish()
 	}
@@ -362,29 +359,38 @@ package actor ChatMailbox {
 	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
 		await records.apply(progress, turn: turn, stamp: stamp)
 		work.apply(progress, attempt: stamp.attempt)
-		publish()
+		switch progress {
+		case .textDelta, .attemptRestarted:
+			publishLiveText()
+		case .activity, .proposalPending:
+			publish()
+		}
 	}
 
 	private func snapshot() -> ChatSnapshot {
-		ChatSnapshot(
-			chat: chatId,
-			conversation: conversation,
-			jobs: records.jobs,
-			phase: work.phase,
-			window: work.window,
-			queued: work.waiting,
+		revision += 1
+		return ChatSnapshot(
+			chat: chatId, revision: revision, projection: &projection,
+			conversation: conversation, jobs: records.jobs, phase: work.phase,
+			window: work.window, queued: work.waiting,
 			waiting: waits.waiting(among: conversation.current.turns),
-			finishedAway: finishedAway,
-			review: records.review,
-			device: ledger.deviceId,
-			process: process,
-			now: clock.now,
-			zone: clock.timeZone
-		)
+			finishedAway: finishedAway, review: records.review,
+			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
 	}
 
 	private func publish() {
-		feed.publish(snapshot())
+		let current = snapshot()
+		latest = current
+		feed.publish(current)
+	}
+
+	private func publishLiveText() {
+		guard var current = latest else { return publish() }
+		current.liveReply = LiveReply(work.phase.running?.live)
+		revision += 1
+		current.revision = revision
+		latest = current
+		feed.publish(current)
 	}
 
 	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {

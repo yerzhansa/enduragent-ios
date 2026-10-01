@@ -18,11 +18,11 @@ import Testing
 		var held = gate.held.makeAsyncIterator()
 		_ = await held.next()
 		let whileHeld = try #require(await coach.currentSnapshot(.main))
-		guard case .processing(let processing)? = whileHeld.turns.first?.state else {
+		guard case .processing? = whileHeld.turns.first?.state else {
 			Issue.record("expected processing, got \(String(describing: whileHeld.turns.first))")
 			return
 		}
-		#expect(processing.liveText.isEmpty)
+		#expect(whileHeld.liveReply?.text.isEmpty != false)
 		gate.open()
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Thursday is on.")

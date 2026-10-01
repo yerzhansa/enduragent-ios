@@ -157,7 +157,7 @@ import Testing
 			state
 				== .processing(
 					TurnState.Processing(
-						attempt: first, liveText: "", activity: .generating(step: 1))))
+						attempt: first, activity: .generating(step: 1))))
 		#expect(!state.retryable)
 		#expect(
 			TurnLifecycle.claimRefusal(of: running, device: device, process: current)

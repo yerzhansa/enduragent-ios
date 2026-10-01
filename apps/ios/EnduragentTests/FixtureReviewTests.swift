@@ -76,9 +76,9 @@ extension FixtureLaunchTests {
 		backing.locked = false
 		await model.decide(.approve(token))
 		#expect(model.reviewNotice == nil)
-		try await waitUntil { model.chat?.notes.count == 1 }
+		try await waitUntil { model.chat?.notes.values.flatMap { $0 }.count == 1 }
 		#expect(
-			model.chat?.notes.first?.sentence(in: model.phrasebook)
+			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
 				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
 	}
 

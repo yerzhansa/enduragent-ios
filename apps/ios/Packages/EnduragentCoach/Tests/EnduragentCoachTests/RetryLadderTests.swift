@@ -248,7 +248,7 @@ import Testing
 			Issue.record("expected processing, got \(String(describing: waiting.turns.first))")
 			return
 		}
-		#expect(processing.liveText.isEmpty)
+		#expect(waiting.liveReply?.text.isEmpty != false)
 		#expect(
 			processing.activity
 				== .waiting(RetryWait(until: clock.now.addingTimeInterval(7), reason: .rateLimited))

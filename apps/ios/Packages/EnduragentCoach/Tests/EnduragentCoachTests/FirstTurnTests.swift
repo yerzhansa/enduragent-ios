@@ -28,27 +28,15 @@ import Testing
 		}
 	}
 
-	@Test func replyStreamsTextThenFinishes() async throws {
+	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		transport.script = [
 			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
 		]
 		let coach = makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
-		var liveTexts: [String] = []
-		var settled: TurnState?
-		for await snapshot in await coach.observe(.main) {
-			guard let state = snapshot.turns.first?.state else { continue }
-			if case .processing(let processing) = state {
-				liveTexts.append(processing.liveText)
-			}
-			if state.isSettled {
-				settled = state
-				break
-			}
-		}
-		#expect(liveTexts.contains("Your week: "))
-		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		#expect(replyText(settled) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)
 		#expect(turn == (await coach.currentSnapshot(.main))?.turns.first?.id)
 
