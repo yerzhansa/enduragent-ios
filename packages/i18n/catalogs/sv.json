@@ -2920,7 +2920,8 @@
       "ramp": "gradvis ökning"
     },
     "writePending": "Det här träningspasset kan ha sparats. Kontrollera kalendern innan du fortsätter.",
-    "writeReadFailed": "Kalendern kunde inte kontrolleras. Ditt godkända träningspass väntar fortfarande på bekräftelse."
+    "writeReadFailed": "Kalendern kunde inte kontrolleras. Ditt godkända träningspass väntar fortfarande på bekräftelse.",
+    "saveApprovedAgain": "Spara det godkända träningspasset igen"
   },
   "credits": {
     "buy": "Köp",

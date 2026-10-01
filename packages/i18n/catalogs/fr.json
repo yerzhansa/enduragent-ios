@@ -2920,7 +2920,8 @@
       "ramp": "progressif"
     },
     "writePending": "Cet entraînement a peut-être été enregistré. Vérifie le calendrier avant de continuer.",
-    "writeReadFailed": "Impossible de vérifier le calendrier. Ton entraînement approuvé est toujours en attente."
+    "writeReadFailed": "Impossible de vérifier le calendrier. Ton entraînement approuvé est toujours en attente.",
+    "saveApprovedAgain": "Enregistrer à nouveau l'entraînement approuvé"
   },
   "credits": {
     "buy": "Acheter",

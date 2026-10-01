@@ -2992,7 +2992,8 @@
       "ramp": "narastająco"
     },
     "writePending": "Ten trening mógł zostać zapisany. Sprawdź kalendarz, zanim przejdziesz dalej.",
-    "writeReadFailed": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie."
+    "writeReadFailed": "Nie udało się sprawdzić kalendarza. Zatwierdzony trening nadal oczekuje na potwierdzenie.",
+    "saveApprovedAgain": "Zapisz ponownie zatwierdzony trening"
   },
   "credits": {
     "buy": "Kup",

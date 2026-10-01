@@ -2920,7 +2920,8 @@
       "ramp": "Rampe"
     },
     "writePending": "Dieses Training wurde möglicherweise gespeichert. Prüfe den Kalender, bevor du fortfährst.",
-    "writeReadFailed": "Der Kalender konnte nicht geprüft werden. Dein genehmigtes Training ist weiterhin ausstehend."
+    "writeReadFailed": "Der Kalender konnte nicht geprüft werden. Dein genehmigtes Training ist weiterhin ausstehend.",
+    "saveApprovedAgain": "Genehmigtes Training erneut speichern"
   },
   "credits": {
     "buy": "Kaufen",

@@ -2920,7 +2920,8 @@
       "ramp": "rampa"
     },
     "writePending": "Este treino pode ter sido guardado. Verifica o calendário antes de continuares.",
-    "writeReadFailed": "Não foi possível verificar o calendário. O teu treino aprovado continua pendente."
+    "writeReadFailed": "Não foi possível verificar o calendário. O teu treino aprovado continua pendente.",
+    "saveApprovedAgain": "Guardar novamente o treino aprovado"
   },
   "credits": {
     "buy": "Comprar",

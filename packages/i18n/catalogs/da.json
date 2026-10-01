@@ -2920,7 +2920,8 @@
       "ramp": "gradvis stigning"
     },
     "writePending": "Denne træning er muligvis blevet gemt. Tjek kalenderen, før du fortsætter.",
-    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig."
+    "writeReadFailed": "Kalenderen kunne ikke kontrolleres. Din godkendte træning afventer stadig.",
+    "saveApprovedAgain": "Gem den godkendte træning igen"
   },
   "credits": {
     "buy": "Køb",

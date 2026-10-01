@@ -2920,7 +2920,8 @@
       "ramp": "rampa"
     },
     "writePending": "Questo allenamento potrebbe essere stato salvato. Controlla il calendario prima di continuare.",
-    "writeReadFailed": "Impossibile controllare il calendario. Il tuo allenamento approvato è ancora in sospeso."
+    "writeReadFailed": "Impossibile controllare il calendario. Il tuo allenamento approvato è ancora in sospeso.",
+    "saveApprovedAgain": "Salva di nuovo l'allenamento approvato"
   },
   "credits": {
     "buy": "Acquista",

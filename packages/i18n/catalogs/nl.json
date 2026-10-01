@@ -2920,7 +2920,8 @@
       "ramp": "oplopend"
     },
     "writePending": "Deze training is mogelijk opgeslagen. Controleer de kalender voordat je verdergaat.",
-    "writeReadFailed": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging."
+    "writeReadFailed": "De kalender kon niet worden gecontroleerd. Je goedgekeurde training wacht nog op bevestiging.",
+    "saveApprovedAgain": "Goedgekeurde training opnieuw opslaan"
   },
   "credits": {
     "buy": "Kopen",

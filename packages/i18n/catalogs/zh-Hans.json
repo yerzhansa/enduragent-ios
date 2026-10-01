@@ -2884,7 +2884,8 @@
       "ramp": "渐增"
     },
     "writePending": "此训练可能已保存。请先检查日历再继续。",
-    "writeReadFailed": "无法检查日历。你已批准的训练仍在等待确认。"
+    "writeReadFailed": "无法检查日历。你已批准的训练仍在等待确认。",
+    "saveApprovedAgain": "重新保存已批准的训练"
   },
   "credits": {
     "buy": "购买",
