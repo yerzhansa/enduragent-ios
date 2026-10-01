@@ -16,16 +16,22 @@ struct ComposerView: View {
 						model.draftChanged(from: previous)
 					}
 				if model.isWorking {
-					Button(say(Catalog.chatComposerStop)) {
+					Button {
 						Task { await model.stop() }
+					} label: {
+						Label(say(Catalog.chatComposerStop), systemImage: "stop.fill")
 					}
+					.labelStyle(.iconOnly)
 					.accessibilityIdentifier("chat.stop")
 					.disabled(model.chat?.activity == .stopping)
 				}
-				Button(say(Catalog.chatComposerSend)) {
+				Button {
 					composerFocused = false
 					Task { await model.send() }
+				} label: {
+					Label(say(Catalog.chatComposerSend), systemImage: "arrow.up.circle.fill")
 				}
+				.labelStyle(.iconOnly)
 				.accessibilityIdentifier("chat.send")
 				.disabled(model.isSending)
 			}
