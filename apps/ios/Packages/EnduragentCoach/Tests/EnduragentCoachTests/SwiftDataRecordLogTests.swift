@@ -326,6 +326,10 @@ extension SwiftDataSuites {
 						lease: .continuedProcessing)),
 				.replyObserved(
 					ReplyObservedBody(chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid))),
+				.pendingSettlement(
+					TurnSettledBody(
+						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),
+						settlement: .replied(.model("Kept reply"), lineage: nil))),
 				.pendingProposal(
 					ProposalBody(
 						chatId: .main,

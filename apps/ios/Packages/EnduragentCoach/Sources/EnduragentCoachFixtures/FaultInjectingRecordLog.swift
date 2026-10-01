@@ -23,6 +23,7 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 	private struct Faults: Sendable {
 		var nextAppend = false
 		var syncedAppends = false
+		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
 		var fetches = false
 		var recoveryReads = false
@@ -66,6 +67,11 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		set { faults.withLock { $0.syncedAppends = newValue } }
 	}
 
+	package var failSyncedAcknowledgments: Bool {
+		get { faults.withLock { $0.syncedAcknowledgments } }
+		set { faults.withLock { $0.syncedAcknowledgments = newValue } }
+	}
+
 	package var failRecoveryReads: Bool {
 		get { faults.withLock { $0.recoveryReads } }
 		set { faults.withLock { $0.recoveryReads = newValue } }
@@ -94,6 +100,9 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 			throw RecordStorageFault(operation: .append(kinds: kinds))
 		}
 		try await wrapped.append(batch, locality: locality)
+		if locality == .synced, failSyncedAcknowledgments {
+			throw RecordStorageFault(operation: .append(kinds: kinds))
+		}
 	}
 
 	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?

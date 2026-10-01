@@ -6,6 +6,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 	private let diagnostics: DiagnosticsLog
 	private let training: @Sendable () async throws(AccessUnavailable) -> TrainingConnection
 	private var deliveries: [ChatID: Delivery] = [:]
+	private var executions: Set<ReviewRef> = []
 	private var closed: Set<ChangeSetID> = []
 
 	package init(
@@ -18,6 +19,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 		self.clock = clock
 		self.diagnostics = diagnostics
 		self.training = training
+	}
+
+	package func isExecuting(in chat: ChatID) -> Bool {
+		executions.contains { $0.chat == chat }
 	}
 
 	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
@@ -51,7 +56,8 @@ package actor SingleProposalReviews: WorkoutReviews {
 			totals: ReviewTotals([card]),
 			receipts: [],
 			notice: notice,
-			controls: changed ? .none : delivery.controls,
+			controls: changed
+				? .none : delivery.controls(executing: executions.contains(delivery.ref)),
 			authority: delivery.authority
 		)
 	}
@@ -73,14 +79,16 @@ package actor SingleProposalReviews: WorkoutReviews {
 		case .presentationFailed:
 			delivery.secret = nil
 		case .showAgain:
+			guard !executions.contains(delivery.ref) else { return .staleControl }
 			delivery.ref = ReviewRef(
 				chat: chat, set: delivery.ref.set, revision: delivery.ref.revision, delivery: UUID()
 			)
 			delivery.secret = nil
 		case .approve(let token), .cancel(let token):
-			guard !delivery.busy, delivery.secret == token.secret else { return .staleControl }
-			delivery.busy = true
-			deliveries[chat] = delivery
+			guard !executions.contains(delivery.ref), delivery.secret == token.secret else {
+				return .staleControl
+			}
+			executions.insert(delivery.ref)
 			let outcome: ReviewOutcome
 			if case .approve = decision {
 				let gate: TurnScope
@@ -190,11 +198,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	private func finish(_ ref: ReviewRef, _ outcome: ReviewOutcome) {
+		executions.remove(ref)
 		switch outcome {
 		case .blocked, .storageUnavailable:
-			if deliveries[ref.chat]?.ref == ref {
-				deliveries[ref.chat]?.busy = false
-			}
+			break
 		case .applied, .partiallyApplied, .uncertain, .canceled, .changedSinceReview, .staleControl,
 			.presentationRecorded:
 			closed.insert(ref.set)
@@ -323,10 +330,8 @@ private struct Delivery {
 	let authority: ReviewAuthority
 	var ref: ReviewRef
 	var secret: UUID?
-	var busy = false
-
-	var controls: ReviewControls {
-		guard !busy, let secret else { return .none }
+	func controls(executing: Bool) -> ReviewControls {
+		guard !executing, let secret else { return .none }
 		return .approveOrCancel(ReviewControlToken(ref: ref, secret: secret))
 	}
 }

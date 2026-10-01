@@ -103,8 +103,8 @@ extension FixtureLaunchTests {
 		model.draft.text = "fixture:slow"
 		await model.send()
 		let streaming = try await turn(in: model, within: .seconds(10)) { state in
-			guard case .processing(let processing) = state else { return false }
-			return !processing.liveText.isEmpty
+			guard case .processing = state else { return false }
+			return model.chat?.liveReply?.text.isEmpty == false
 		}
 		NotificationCenter.default.post(name: UIApplication.willTerminateNotification, object: nil)
 		records.failSyncedAppends = true

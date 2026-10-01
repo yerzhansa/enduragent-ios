@@ -188,6 +188,7 @@
       "planningRequestLoadFailure": "We couldn’t check saved Plan requests. Reconnect and try again.",
       "protocolFailure": "The coaching response could not be verified. Please try again.",
       "questionSkipped": "Question skipped",
+      "replyUnsaved": "Couldn't save this reply. Keep the app open while saving is retried.",
       "queueLoadFailure": "We couldn’t check your saved messages. Reconnect and try again.",
       "queueRemoveFailure": "We couldn’t remove that saved message. Try again.",
       "responseFailure": "The coach couldn't respond. Please try again.",
@@ -1630,6 +1631,7 @@
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
     "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
+    "storageUnavailable": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls.",
     "title": "Workout review",
     "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {

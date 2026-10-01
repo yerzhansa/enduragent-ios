@@ -1007,6 +1007,7 @@
       "planningRequestLoadFailure": "无法检查已保存的计划请求。请重新连接后重试。",
       "protocolFailure": "无法验证教练回复。请重试。",
       "questionSkipped": "已跳过问题",
+      "replyUnsaved": "无法保存此回复。重新尝试保存时，请保持应用打开。",
       "queueLoadFailure": "无法检查已保存的消息。请重新连接后重试。",
       "queueRemoveFailure": "无法移除此已保存的消息。请重试。",
       "responseFailure": "教练无法回复。请重试。",
@@ -2874,6 +2875,7 @@
     "add": "添加到日历",
     "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
     "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
+    "storageUnavailable": "无法读取已保存的训练审核。仍显示上次的审核。请重试以恢复操作按钮。",
     "title": "训练审核",
     "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
     "workout": {

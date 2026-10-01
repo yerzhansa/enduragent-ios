@@ -1015,6 +1015,7 @@
       "planningRequestLoadFailure": "Impossibile controllare le richieste salvate per il piano. Riconnetti e riprova.",
       "protocolFailure": "Impossibile verificare la risposta del coach. Riprova.",
       "questionSkipped": "Domanda saltata",
+      "replyUnsaved": "Non è stato possibile salvare questa risposta. Tieni aperta l'app mentre si riprova a salvarla.",
       "queueLoadFailure": "Impossibile controllare i messaggi salvati. Riconnetti e riprova.",
       "queueRemoveFailure": "Impossibile rimuovere il messaggio salvato. Riprova.",
       "responseFailure": "Il coach non ha potuto rispondere. Riprova.",
@@ -2910,6 +2911,7 @@
     "add": "Aggiungi al calendario",
     "cannotVerify": "Non ho potuto verificare la connessione a {{service}}, quindi non è cambiato nulla. Riprova tra poco.",
     "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
+    "storageUnavailable": "Non è stato possibile leggere la revisione salvata dell’allenamento. La tua ultima revisione resta visibile. Riprova per ripristinare i comandi.",
     "title": "Revisione dell'allenamento",
     "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
     "workout": {

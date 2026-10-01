@@ -145,12 +145,12 @@ final class ShellLanguageTests {
 			while model.chat?.notes.isEmpty != false, ContinuousClock.now < deadline {
 				try await Task.sleep(for: .milliseconds(10))
 			}
-			try #require(model.chat?.notes.count == 1)
+			try #require(model.chat?.notes.values.flatMap { $0 }.count == 1)
 		}
 		let visible = {
 			expires
 				? model.reviewNotice?.sentence(in: model.phrasebook)
-				: model.chat?.notes.first?.sentence(in: model.phrasebook)
+				: model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
 		}
 		let expected = { (tag: LanguageTag) in
 			let key = expires ? Catalog.coachConfirmationExpired : Catalog.coachConfirmationExecuted

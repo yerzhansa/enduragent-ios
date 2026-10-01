@@ -16,7 +16,15 @@ import Testing
 		if openConversation { _ = await coach.currentSnapshot(.main) }
 		let remote = await remoteCoach(sharing: store)
 		try await remote.setLanguage(.fixed(.es))
+		let read = store.holdRead(scope: Preferences.scope)
+		defer { read.release() }
 		store.notifyImport()
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await read.waitUntilParked()
+			} != nil,
+			"Preference import read did not park")
+		read.release()
 		#expect(await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
 		#expect(await coach.languagePreference() == .fixed(.es))
 		try await coach.setLanguage(.automatic)
