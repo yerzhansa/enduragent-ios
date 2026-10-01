@@ -132,28 +132,17 @@ final class FailedWriteRecordsProof: XCTestCase {
 final class UpgradeConnectionProof: XCTestCase {
 	func testConnectionFromBeforeTheVaultReachesTheNextTurn() throws {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, arguments: FixtureArguments(store: .keep))
-		if TutorialHarness.wait(
-			TutorialHarness.named(app, "consent.accept"), within: .probe, required: false)
-		{
-			TutorialHarness.agreeToProviderConsent(app)
-		}
-		guard TutorialHarness.wait(TutorialHarness.named(app, "chat.sidebar"), required: false)
-		else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		TutorialHarness.launchUpgrade(app, store: .preVault)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.sidebar"))
 		TutorialHarness.openRecords(app)
 		let claims = TutorialHarness.recordRowLabels(app).filter { $0.hasPrefix("turnClaim ") }
 		TutorialHarness.closeMenu(app)
-		guard !claims.isEmpty, claims.allSatisfy({ $0.hasSuffix(" unconnected") }) else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		XCTAssertEqual(claims.count, 1)
+		XCTAssertTrue(claims.allSatisfy { $0.hasSuffix(" unconnected") })
 		TutorialHarness.openCredentials(app)
 		let connection = TutorialHarness.named(app, "credentials.connection")
 		TutorialHarness.wait(connection)
-		guard connection.label != "unconnected" else {
-			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
-		}
+		XCTAssertNotEqual(connection.label, "unconnected")
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
 		let account = TutorialHarness.connectedAccount(app)
 		XCTAssertTrue(account.hasSuffix(":i1001"), "the upgraded connection reads \(account)")
@@ -231,8 +220,6 @@ final class StorageUnavailableProof: XCTestCase {
 }
 
 extension TutorialHarness {
-	static let connectionBeforeVaultMissing =
-		"needs a store and keychain that a build before M1-11 left after connecting intervals.icu"
 	static let otherAthleteRefused =
 		"This key belongs to athlete i2002, not i1001. Switch athlete to use it."
 	static let rotatedForAda = "Replaced. Ada Kovač, authority sameAthlete."

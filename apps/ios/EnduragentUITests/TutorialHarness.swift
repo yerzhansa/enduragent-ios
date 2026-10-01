@@ -159,28 +159,9 @@ enum TutorialHarness {
 		within limit: Timeout = .screen, required: Bool = true,
 		file: StaticString = #filePath, line: UInt = #line
 	) -> Bool {
-		let completed: Bool
-		switch condition {
-		case .exists:
-			completed = element.waitForExistence(timeout: limit.rawValue)
-		case .absent:
-			completed = element.waitForNonExistence(timeout: limit.rawValue)
-		case .foreground:
-			guard let app = element as? XCUIApplication else {
-				XCTFail("foreground waits require an application", file: file, line: line)
-				return false
-			}
-			completed = app.wait(for: .runningForeground, timeout: limit.rawValue)
-		default:
-			return wait(
-				until: { condition.matches(element) }, within: limit, required: required,
-				message: "\(element) did not reach \(condition)", file: file, line: line)
-		}
-		if required {
-			XCTAssertTrue(
-				completed, "\(element) did not reach \(condition)", file: file, line: line)
-		}
-		return completed
+		wait(
+			until: { condition.matches(element) }, within: limit, required: required,
+			message: "\(element) did not reach \(condition)", file: file, line: line)
 	}
 
 	@discardableResult
@@ -191,8 +172,10 @@ enum TutorialHarness {
 	) -> Bool {
 		let deadline = ProcessInfo.processInfo.systemUptime + limit.rawValue
 		var completed = condition()
-		while !completed && ProcessInfo.processInfo.systemUptime < deadline {
-			RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.01))
+		while !completed {
+			let remaining = deadline - ProcessInfo.processInfo.systemUptime
+			guard remaining > 0 else { break }
+			RunLoop.current.run(until: Date(timeIntervalSinceNow: min(0.02, remaining)))
 			completed = condition()
 		}
 		if required { XCTAssertTrue(completed, message, file: file, line: line) }

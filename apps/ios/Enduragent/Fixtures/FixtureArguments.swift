@@ -7,6 +7,16 @@
 		case unreadable
 		case v1History = "v1-history"
 		case v1Review = "v1-review"
+		case preVault = "pre-vault-5de5c782"
+
+		var upgradeResource: (folder: String?, name: String, device: String)? {
+			switch self {
+			case .v1History: ("v1-upgrade", "history", "v1-upgrade-fixture")
+			case .v1Review: ("v1-upgrade", "review", "v1-upgrade-fixture")
+			case .preVault: (nil, rawValue, rawValue)
+			case .fresh, .keep, .unreadable: nil
+			}
+		}
 	}
 
 	enum FixtureKeychainPolicy: String {

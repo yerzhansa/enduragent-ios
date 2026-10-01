@@ -54,9 +54,28 @@ test('rejects delayed predicate expectations in the shared UI wait helper', () =
   assert.match(result.output, /ui-proof-eager-waits/);
 });
 
-test('accepts native existence and foreground waits in the shared helper', () => {
-  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'element.waitForExistence(timeout: limit.rawValue)\napp.wait(for: .runningForeground, timeout: limit.rawValue)' });
+for (const source of [
+  'element.waitForExistence(timeout: limit.rawValue)',
+  'element.waitForNonExistence(timeout: limit.rawValue)',
+  'app.wait(for: .runningForeground, timeout: limit.rawValue)',
+  'XCTWaiter.wait(for: [ready], timeout: limit.rawValue)',
+]) {
+  test(`rejects deferred XCTest waiters in the shared helper: ${source}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': source });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ui-proof-eager-waits/);
+  });
+}
+
+test('accepts immediate bounded polling in the shared helper', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let deadline = ProcessInfo.processInfo.systemUptime + limit.rawValue\nvar completed = condition()\nwhile !completed && ProcessInfo.processInfo.systemUptime < deadline {\nRunLoop.current.run(until: Date(timeIntervalSinceNow: 0.02))\ncompleted = condition()\n}' });
   assert.equal(result.status, 0, result.output);
+});
+
+test('rejects skipped UI proofs', () => {
+  const result = run({ 'apps/ios/EnduragentUITests/ExampleProof.swift': 'throw XCTSkip("missing old store")' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /ui-proof-no-skips/);
 });
 
 const upgradeStore = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade/history/synced-records.store';
@@ -64,6 +83,13 @@ test('accepts committed upgrade SQLite stores', () => {
   const result = run({ [upgradeStore]: Buffer.from('SQLite format 3\0fixture') });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const folder of ['pre-vault-5de5c782', 'build-2bbe2ee']) {
+  test(`accepts committed historical SQLite stores from ${folder}`, () => {
+    const result = run({ [upgradeStore.replace('v1-upgrade/history', folder)]: Buffer.from('SQLite format 3\0fixture') });
+    assert.equal(result.status, 0, result.output);
+  });
+}
 
 test('rejects other binary files in upgrade resources', () => {
   const result = run({ [upgradeStore]: Buffer.from('arbitrary\0binary') });

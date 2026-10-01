@@ -98,17 +98,21 @@
 				}
 			}
 			try files.createDirectory(at: directory, withIntermediateDirectories: true)
-			if store == .v1History || store == .v1Review {
-				let scenario = store == .v1History ? "history" : "review"
+			if let resource = store.upgradeResource {
 				guard
 					let source = Bundle.main.url(
-						forResource: scenario, withExtension: nil, subdirectory: "v1-upgrade")
-				else { throw FixtureLaunchError.upgradeStoreMissing(scenario) }
+						forResource: resource.name, withExtension: nil,
+						subdirectory: resource.folder)
+				else { throw FixtureLaunchError.upgradeStoreMissing(resource.name) }
 				for name in ["synced-records.store", "local-records.store"] {
 					try files.copyItem(
 						at: source.appending(path: name), to: directory.appending(path: name))
 				}
-				defaults.set("v1-upgrade-fixture", forKey: AppServices.deviceDefaultsKey)
+				if store == .preVault {
+					try Data(#"{"intervalsApiKey":"fixture-pre-vault-key"}"#.utf8).write(
+						to: directory.appending(path: "secrets.json"), options: .atomic)
+				}
+				defaults.set(resource.device, forKey: AppServices.deviceDefaultsKey)
 				defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 			}
 
