@@ -197,9 +197,8 @@ struct ReadToolsTests {
 		#expect(intervals.calls.isEmpty)
 	}
 
-	@Test func toolsForTurnSchemasHaveNoUnions() {
-		let schemas = runtime().toolsForTurn(
-			chatId: .main,
+	@Test func toolCatalogSchemasHaveNoUnions() {
+		let schemas = ToolCatalog.schemas(
 			memory: MemoryView(
 				sections: [:],
 				todayNotes: nil,

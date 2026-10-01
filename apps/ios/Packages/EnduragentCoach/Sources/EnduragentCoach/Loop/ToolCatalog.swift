@@ -1,8 +1,7 @@
 import Foundation
 
-extension ToolRuntime {
-	package func toolsForTurn(chatId: ChatID, memory: MemoryView) -> [ToolSchema] {
-		_ = chatId
+package enum ToolCatalog {
+	package static func schemas(memory: MemoryView) -> [ToolSchema] {
 		var schemas = [
 			ToolSchema(
 				name: .calculateZones,
@@ -234,7 +233,7 @@ extension ToolRuntime {
 	private static let activityIDDescription =
 		"Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed."
 
-	private func shouldOfferMemoryRead(_ view: MemoryView) -> Bool {
+	private static func shouldOfferMemoryRead(_ view: MemoryView) -> Bool {
 		for name in SectionName.cyclingEffective where !name.inject {
 			if let content = view.sections[name.rawValue], memorySectionHasLogicalContent(content) {
 				return true
@@ -243,7 +242,9 @@ extension ToolRuntime {
 		return false
 	}
 
-	private func objectSchema(properties: [String: JSONValue], required: [String]) -> JSONValue {
+	private static func objectSchema(properties: [String: JSONValue], required: [String])
+		-> JSONValue
+	{
 		var fields: [String: JSONValue] = [
 			"type": .string("object"),
 			"properties": .object(properties),
@@ -254,14 +255,14 @@ extension ToolRuntime {
 		return .object(fields)
 	}
 
-	private func stringProperty(_ description: String) -> JSONValue {
+	private static func stringProperty(_ description: String) -> JSONValue {
 		.object([
 			"type": .string("string"),
 			"description": .string(description),
 		])
 	}
 
-	private func uniqueStrings(_ values: [String]) -> [String] {
+	private static func uniqueStrings(_ values: [String]) -> [String] {
 		var seen: Set<String> = []
 		var unique: [String] = []
 		for value in values where seen.insert(value).inserted {
@@ -270,14 +271,16 @@ extension ToolRuntime {
 		return unique
 	}
 
-	private func memorySectionHasLogicalContent(_ stamped: String) -> Bool {
+	private static func memorySectionHasLogicalContent(_ stamped: String) -> Bool {
 		guard let newline = stamped.firstIndex(of: "\n") else { return false }
 		return !stamped[stamped.index(after: newline)...]
 			.trimmingCharacters(in: .whitespacesAndNewlines)
 			.isEmpty
 	}
 
-	private func integerProperty(_ description: String, minimum: Int? = nil, maximum: Int? = nil)
+	private static func integerProperty(
+		_ description: String, minimum: Int? = nil, maximum: Int? = nil
+	)
 		-> JSONValue
 	{
 		var fields: [String: JSONValue] = [
