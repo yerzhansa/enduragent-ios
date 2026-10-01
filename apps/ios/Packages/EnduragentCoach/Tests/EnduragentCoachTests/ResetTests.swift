@@ -221,9 +221,12 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
 		let reset = ResetID(ulid: await ledger.nextULID())
+		let conversation = try await ledger.conversation(.main)
 		let result = await ConversationReset(
 			chat: .main, ledger: ledger, flushes: flushes, clock: clock
-		).run(reset, archiving: try await ledger.conversation(.main), access: { testAccess })
+		).run(
+			reset, archiving: conversation, jobs: try await ledger.flushJobs(in: conversation),
+			access: { testAccess })
 		#expect(result.outcome == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first)
 		let window = flushed.messages.map(\.unstampedContent)
@@ -231,7 +234,7 @@ import Testing
 		#expect(window.contains("Question 1"))
 		#expect(
 			FlushJob.outstanding(
-				await flushes.jobs(in: try await ledger.conversation(.main)),
+				try await ledger.flushJobs(in: try await ledger.conversation(.main)),
 				in: try await ledger.conversation(.main)
 			)
 			.isEmpty)

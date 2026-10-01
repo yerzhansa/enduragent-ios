@@ -52,6 +52,18 @@ import Testing
 		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
 	}
 
+	@Test func failNextFetchThrowsOnceOnlyForTheSelectedScope() async throws {
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
+		try await log.append([record(wall: 1, text: "hi")], locality: .synced)
+		log.failNextFetch(in: ConversationFold.flushScope)
+		#expect(try await log.fetch(RecordQuery(scope: .synced([.userMessage]))).records.count == 1)
+		await #expect(throws: RecordStorageFault(operation: .fetch)) {
+			_ = try await log.fetch(RecordQuery(scope: ConversationFold.flushScope))
+		}
+		#expect(
+			try await log.fetch(RecordQuery(scope: ConversationFold.flushScope)).records.isEmpty)
+	}
+
 	@Test func failRecoveryReadsFailsOnlyTheRecoveryClaimReadUntilCleared() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phone))
 		try await log.append([record(wall: 1, text: "hi")], locality: .synced)

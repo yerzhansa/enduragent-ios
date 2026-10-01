@@ -102,7 +102,12 @@ final class ChatRecords {
 	func refreshJobs(
 		from flushes: FlushWork, isolation: isolated (any Actor)? = #isolation
 	) async -> [FlushJobID] {
-		jobs = await flushes.jobs(in: conversation)
+		switch await flushes.jobs(in: conversation) {
+		case .success(let saved):
+			jobs = saved
+		case .failure:
+			break
+		}
 		return FlushJob.outstanding(jobs, in: conversation).map(\.id)
 	}
 
