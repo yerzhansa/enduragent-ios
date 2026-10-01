@@ -81,6 +81,14 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		try await wrapped.append(batch, locality: locality)
 	}
 
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		if failFetches {
+			throw RecordStorageFault(operation: .fetch)
+		}
+		return try await wrapped.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let fails = faults.withLock { current in
 			current.fetches || (current.recoveryReads && query.scope == TurnRecovery.localScope)

@@ -3,14 +3,10 @@ import Foundation
 public struct SessionSettings: Sendable, Equatable {
 	public var historyBudgetRatio: HistoryBudgetRatio
 	public var contextWindowOverride: ContextWindowOverride?
-	public var compactionModel: ModelSelection
-	public var flushModel: ModelSelection
 
 	public static let npmDefaults = SessionSettings(
 		historyBudgetRatio: .npmDefault,
-		contextWindowOverride: nil,
-		compactionModel: .sameAsResponse,
-		flushModel: .sameAsResponse
+		contextWindowOverride: nil
 	)
 
 	public func replacing(_ field: SessionField, with text: String)
@@ -26,13 +22,6 @@ public struct SessionSettings: Sendable, Equatable {
 		case .contextWindowOverride:
 			next.contextWindowOverride = try ContextWindowOverride(
 				tokens: try Self.whole(text, for: field))
-		case .compactionModel, .flushModel:
-			let selection = try ModelSelection(text: text, field: field)
-			if field == .compactionModel {
-				next.compactionModel = selection
-			} else {
-				next.flushModel = selection
-			}
 		}
 		return next
 	}
@@ -41,8 +30,6 @@ public struct SessionSettings: Sendable, Equatable {
 		switch field {
 		case .historyBudgetRatio: String(historyBudgetRatio.value)
 		case .contextWindowOverride: contextWindowOverride.map { String($0.tokens) } ?? ""
-		case .compactionModel: compactionModel.text
-		case .flushModel: flushModel.text
 		}
 	}
 
@@ -96,48 +83,6 @@ public struct ContextWindowOverride: Sendable, Equatable {
 	}
 }
 
-public enum ModelSelection: Sendable, Equatable {
-	case sameAsResponse
-	case model(ModelID)
-
-	static let maxLength = 512
-
-	init(text: String, field: SessionField) throws(SessionSettingRejected) {
-		if Self.hasControlCharacters(text) {
-			throw SessionSettingRejected(
-				field: field, reason: Catalog.settingsCoachValidationModelControlCharacters)
-		}
-		let trimmed = text.trimmingCharacters(in: .whitespaces)
-		guard !trimmed.isEmpty else {
-			self = .sameAsResponse
-			return
-		}
-		guard trimmed.utf16.count <= Self.maxLength else {
-			throw SessionSettingRejected(
-				field: field, reason: Catalog.settingsCoachValidationModelTooLong)
-		}
-		self = .model(ModelID(rawValue: trimmed))
-	}
-
-	public var text: String {
-		switch self {
-		case .sameAsResponse: ""
-		case .model(let model): model.rawValue
-		}
-	}
-
-	package func resolve(response: ModelID) -> ModelID {
-		switch self {
-		case .sameAsResponse: response
-		case .model(let model): model
-		}
-	}
-
-	private static func hasControlCharacters(_ text: String) -> Bool {
-		text.unicodeScalars.contains { $0.value <= 31 || (127...159).contains($0.value) }
-	}
-}
-
 public struct SessionSettingRejected: Error, Sendable, Equatable {
 	static let safeIntegerLimit = 9_007_199_254_740_991
 
@@ -153,7 +98,7 @@ public struct SessionSettingRejected: Error, Sendable, Equatable {
 		self.init(field: field, reason: field.rejection)
 	}
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
 		phrasebook.say(reason, [:])
 	}
 }
@@ -161,14 +106,11 @@ public struct SessionSettingRejected: Error, Sendable, Equatable {
 public enum SessionField: Sendable, Equatable, Hashable, CaseIterable {
 	case historyBudgetRatio
 	case contextWindowOverride
-	case compactionModel
-	case flushModel
 
 	fileprivate var rejection: CatalogKey {
 		switch self {
 		case .historyBudgetRatio: Catalog.settingsConversationValidationHistoryTokenBudgetRatio
 		case .contextWindowOverride: Catalog.settingsConversationValidationContextWindowTokens
-		case .compactionModel, .flushModel: Catalog.settingsCoachValidationModelControlCharacters
 		}
 	}
 }
@@ -181,8 +123,8 @@ package struct ModelRoles: Sendable, Equatable {
 
 	package init(response: ModelID, session: SessionSettings) {
 		self.chat = response
-		self.compaction = session.compactionModel.resolve(response: response)
-		self.flush = session.flushModel.resolve(response: response)
+		self.compaction = response
+		self.flush = response
 		self.chatWindow = min(
 			session.contextWindowOverride?.tokens ?? TurnPolicy.contextWindowCap,
 			TurnPolicy.contextWindowCap)

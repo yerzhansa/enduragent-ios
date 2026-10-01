@@ -26,9 +26,7 @@ extension CredentialVaultTests {
 	@Test func blockedMigrationIsNotOverwrittenByATrainingReplacement() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
-		let current = CreditsAccount(appAccountToken: token, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
-		let undo = try memory.copy(account: "intervalsConnectionStaging")
+		let memory = legacyCreditsBacking(previous)
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeIntervalsConnection(testConnection)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
@@ -45,8 +43,8 @@ extension CredentialVaultTests {
 			return
 		}
 		#expect(try store.intervalsConnection()?.credential == .apiKey("icu-rotated-key"))
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == undo)
-		#expect(memory.writes(to: "intervalsConnectionStaging") == 0)
+		#expect(try memory.copy(account: "openRouterKey") == Data("test-old-credits-key".utf8))
+		#expect(memory.writes(to: "openRouterKey") == 0)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
 		#expect(
 			try await coach.creditsIdentity()
@@ -58,10 +56,8 @@ extension CredentialVaultTests {
 extension CreditsClientTests {
 	@Test func blockedMigrationIsNotUndoneByAGrant() async throws {
 		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
 		let previous = CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key")
-		let current = CreditsAccount(appAccountToken: newToken, key: "test-new-credits-key")
-		let memory = try legacyCreditsBacking(previous: previous, current: current)
+		let memory = legacyCreditsBacking(previous)
 		let store = ICloudKeychainStore(backing: memory)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
 		let coach = await makeCoach(
@@ -84,13 +80,13 @@ extension CreditsClientTests {
 		#expect(
 			try store.creditsAccount()
 				== CreditsAccount(appAccountToken: oldToken, key: "test-granted-credits-key"))
-		#expect(try memory.copy(account: "intervalsConnectionStaging") == nil)
+		#expect(try memory.copy(account: "openRouterKey") == nil)
 	}
 
 	@Test func failedRecoveryKeepsThePreviousAccountDuringTheNextReplacement() async throws {
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		let previous = CreditsAccount(appAccountToken: token, key: "test-old-credits-key")
-		let memory = MemorySecretStoreBacking()
+		let memory = FixtureSecretStoreBacking()
 		let secrets = ICloudKeychainStore(backing: memory)
 		try secrets.storeCreditsAccount(previous)
 		try secrets.storeIntervalsConnection(testConnection)

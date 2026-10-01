@@ -19,7 +19,11 @@ xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configurat
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-CI runs these focused checks on every pull request and every push to main.
+CI runs the source checks, package tests, app tests, and Release builds on every pull request and every push to main. To run the app tests locally, choose an iPhone destination from `xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations`, then run:
+
+```sh
+xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,arch=arm64,id=<iPhone destination ID>' -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
+```
 
 `pnpm lint:swift` enforces the rules in `.swiftlint.yml`.
 

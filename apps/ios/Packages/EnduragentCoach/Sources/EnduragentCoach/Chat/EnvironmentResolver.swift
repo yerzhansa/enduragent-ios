@@ -19,11 +19,13 @@ package struct EnvironmentResolver: Sendable {
 	}
 
 	package func attempt(
-		of facts: TurnFacts, attempt: AttemptID, chat: ChatID, process: ProcessID,
+		of facts: TurnFacts, attempt: AttemptID, origin: AttemptOrigin, chat: ChatID,
+		process: ProcessID,
 		in resolved: AttemptEnvironment
 	) -> TurnAttempt {
 		TurnAttempt(
-			turn: facts.turn, attempt: attempt, chat: chat, request: facts.requestText,
+			turn: facts.turn, attempt: attempt, origin: origin, chat: chat,
+			request: facts.requestText,
 			slash: facts.slash,
 			language: resolved.preferences.language.replyLanguage(
 				for: facts.requestText, device: deviceLanguage),

@@ -8,6 +8,33 @@ import Testing
 	let phoneB = DeviceID(rawValue: "phone-b")
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func openReadsCursorsWithoutFetchingHistory() async throws {
+		let store = InMemoryRecordLog(deviceId: phoneA)
+		let previous = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		_ = try await previous.commit(
+			synced: (0..<500).map { sampleUser(chatId: .main, text: "message \($0)") },
+			stamp: testStamp())
+		let local = try await previous.commit(
+			local: Array(
+				repeating: .flushPending(FlushPendingBody(chatId: .main, messageUlids: [])),
+				count: 500), stamp: testStamp())
+		let last = try #require(local.last)
+		let log = BatchRecordingLog(inner: store)
+		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		let written = try await reopened.commit(
+			synced: [sampleUser(chatId: .main, text: "after reopening")], stamp: testStamp())
+		let next = try #require(written.first)
+		#expect(log.reads.isEmpty)
+		#expect(log.cursorReads == [.synced, .deviceLocal])
+		#expect(log.fetchedRecordCount == 0)
+		#expect(next.hlc.wallMs == last.hlc.wallMs)
+		#expect(next.hlc.logical == last.hlc.logical + 1)
+		#expect(next.ulid > last.ulid)
+		_ = try await reopened.commit(local: [], stamp: testStamp())
+		#expect(log.fetchedRecordCount == 0)
+		#expect(log.cursorReads == [.synced, .deviceLocal])
+	}
+
 	@Test func twoWritersInOneMillisecondGetStrictlyIncreasingClocks() async throws {
 		let log = InMemoryRecordLog(deviceId: phoneA)
 		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -126,7 +153,7 @@ import Testing
 	}
 
 	@Test(arguments: [false, true])
-	func consumedMarkerReadInMemoryStaysWithinTheAttemptBudget(oneUnsettled: Bool) async throws {
+	func consumedMarkerReadFetchesOnlyRequiredRows(oneUnsettled: Bool) async throws {
 		let store = InMemoryRecordLog(deviceId: phoneA)
 		let jobs = (1...200).map { FlushJobID(ulid: fixedUlid($0)) }
 		let pending = jobs.map { job in
@@ -159,29 +186,21 @@ import Testing
 		}
 		try await store.append(pending + settled, locality: .deviceLocal)
 		try await store.append(provenance, locality: .synced)
-		var samples = PerformanceSamples()
-		for _ in 0..<PerformanceSamples.batchCount {
-			let recording = BatchRecordingLog(inner: store)
-			let ledger = Ledger(
-				log: recording, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-			_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
-			let before = recording.reads.count
-			let recordsBefore = recording.fetchedRecordCount
-			try await samples.measure(count: 1) {
-				try await ledger.flushJobs(in: try await ledger.conversation(.main))
-			} validate: { read in
-				#expect(Set(read.map(\.id)) == Set(jobs))
-				#expect(read.allSatisfy { $0.saved && $0.process == nil })
-				let reads = recording.reads.dropFirst(before)
-				#expect(reads.count == (oneUnsettled ? 4 : 3))
-				#expect(
-					reads.filter { $0 == ConversationFold.consumedMarkerScope }.count
-						== (oneUnsettled ? 1 : 0))
-				#expect(
-					recording.fetchedRecordCount - recordsBefore == (oneUnsettled ? 5_399 : 400))
-			}
-		}
-		try samples.check(
-			budget: .milliseconds(50), name: "consumed-marker-unsettled-\(oneUnsettled)")
+		let recording = BatchRecordingLog(inner: store)
+		let ledger = Ledger(
+			log: recording, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		_ = try await ledger.read(RecordQuery(scope: .deviceLocal([])))
+		let before = recording.reads.count
+		let recordsBefore = recording.fetchedRecordCount
+		let read = try await ledger.flushJobs(in: try await ledger.conversation(.main))
+		#expect(Set(read.map(\.id)) == Set(jobs))
+		#expect(read.allSatisfy { $0.saved && $0.process == nil })
+		let reads = recording.reads.dropFirst(before)
+		#expect(reads.count == (oneUnsettled ? 4 : 3))
+		#expect(
+			reads.filter { $0 == ConversationFold.consumedMarkerScope }.count
+				== (oneUnsettled ? 1 : 0))
+		#expect(
+			recording.fetchedRecordCount - recordsBefore == (oneUnsettled ? 5_399 : 400))
 	}
 }

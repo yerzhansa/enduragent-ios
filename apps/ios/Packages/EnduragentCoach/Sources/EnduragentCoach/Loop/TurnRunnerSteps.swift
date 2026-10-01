@@ -8,7 +8,7 @@ extension TurnRunner {
 		progress: @escaping AttemptProgressSink
 	) async throws -> AttemptResult {
 		try Task.checkCancellation()
-		try await scope.chargeAttempt()
+		try await scope.chargeAttempt(using: ladder)
 		try await scope.checkDeadline(uptime: clock.uptime)
 		if prompt.overBudget {
 			try await flushOnce(
@@ -27,12 +27,13 @@ extension TurnRunner {
 			let request = CompletionRequest(
 				access: attempt.access,
 				attempt: attempt.attempt,
+				origin: attempt.origin,
 				charge: .chatAttempt,
 				messages: [prompt.systemMessage] + prompt.summaryMessages + wire,
 				tools: prompt.schemas,
 				deadline: await scope.callDeadline(uptime: clock.uptime)
 			)
-			let step = try await generateStep(request: request, progress: progress)
+			let step = try await modelCall.run(request: request, progress: progress)
 			steps += 1
 			lastText = step.text
 			lastReason = step.reason
@@ -40,12 +41,7 @@ extension TurnRunner {
 				throw AttemptFailure.windowExceededFinish
 			}
 			if step.toolCalls.isEmpty {
-				if step.reason == .error || step.reason == .contentFilter,
-					step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-				{
-					throw AttemptFailure.generation(
-						step.reason == .error ? .emptyAfterError : .contentFiltered)
-				}
+				try step.checkFinish()
 				break stepLoop
 			}
 			wire.append(
@@ -53,8 +49,11 @@ extension TurnRunner {
 					role: .assistant, content: step.text, toolCalls: step.toolCalls,
 					toolCallId: nil)
 			)
-			await progress(.activity(.runningTools(step.toolCalls.map(\.name))))
-			let outcomes = try await runTools(step.toolCalls, for: attempt, scope: scope)
+			let calls = step.toolCalls.map { call in
+				(call, prompt.schemas.first { $0.name.rawValue == call.name }?.name)
+			}
+			await progress(.activity(.runningTools(calls.compactMap { $0.1 })))
+			let outcomes = try await runTools(calls, for: attempt, scope: scope)
 			for (call, outcome) in outcomes {
 				if case .pending(let proposal) = outcome {
 					await progress(.proposalPending(proposal))
@@ -75,10 +74,11 @@ extension TurnRunner {
 			lastReason == .toolCalls || lastReason == .length
 		{
 			try await scope.chargeCall()
-			let recovery = try await generateStep(
+			let recovery = try await modelCall.run(
 				request: CompletionRequest(
 					access: attempt.access,
 					attempt: attempt.attempt,
+					origin: attempt.origin,
 					charge: .stepRecovery,
 					messages: [prompt.systemMessage] + prompt.summaryMessages + wire + [
 						WireMessage(
@@ -100,6 +100,10 @@ extension TurnRunner {
 			await progress(.textDelta(assistantText))
 		}
 
+		if let outcome = try await scope.savedReviewWork(using: ladder) {
+			return .savedWork(outcome, saved: await scope.summary)
+		}
+
 		let templateHash = sha256Hex(
 			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
@@ -110,89 +114,27 @@ extension TurnRunner {
 		)
 	}
 
-	func generateStep(
-		request: CompletionRequest,
-		progress: @escaping AttemptProgressSink
-	) async throws -> GenerateStep {
-		let watchdog = ChatWatchdog()
-		await watchdog.arm()
-		do {
-			let step = try await withThrowingTaskGroup(of: GenerateStep.self) { group in
-				group.addTask {
-					try await self.collect(request: request, watchdog: watchdog, progress: progress)
-				}
-				group.addTask {
-					if let kind = await watchdog.fired() {
-						let failure = ProviderFailure.timeout(kind)
-						self.diagnostics.record(
-							.providerFailure(request.attempt, failure, detail: ""))
-						throw failure
-					}
-					throw CancellationError()
-				}
-				guard let first = await group.nextResult() else {
-					throw CancellationError()
-				}
-				await watchdog.disarm()
-				group.cancelAll()
-				while await group.nextResult() != nil {}
-				switch first {
-				case .success(let step):
-					return step
-				case .failure(let error):
-					throw error
-				}
-			}
-			try Task.checkCancellation()
-			return step
-		} catch {
-			await watchdog.disarm()
-			throw error
-		}
-	}
-
-	private func collect(
-		request: CompletionRequest,
-		watchdog: ChatWatchdog,
-		progress: @escaping AttemptProgressSink
-	) async throws -> GenerateStep {
-		var text = ""
-		var calls: [WireToolCall] = []
-		var reason: FinishReason = .stop
-		var usage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
-		let stream = transport.stream(request)
-		for try await event in stream {
-			try Task.checkCancellation()
-			switch event {
-			case .textDelta(let delta):
-				if delta.isEmpty {
-					continue
-				}
-				await watchdog.beat()
-				text += delta
-				await progress(.textDelta(delta))
-			case .toolCall(let call):
-				await watchdog.beat()
-				calls.append(call)
-			case .heartbeat:
-				await watchdog.beat()
-			case .finished(let finishReason, let finishUsage):
-				reason = finishReason
-				usage = finishUsage
-			}
-		}
-		return GenerateStep(text: text, toolCalls: calls, reason: reason, usage: usage)
-	}
-
 	private func runTools(
-		_ calls: [WireToolCall],
+		_ calls: [(WireToolCall, ToolName?)],
 		for attempt: TurnAttempt,
 		scope: TurnScope
 	) async throws -> [(WireToolCall, ToolOutcome)] {
 		let runtime = tools(for: attempt)
 		return try await withThrowingTaskGroup(of: (Int, WireToolCall, ToolOutcome).self) { group in
-			for (index, call) in calls.enumerated() {
+			for (index, (call, name)) in calls.enumerated() {
 				group.addTask {
+					guard let name else {
+						return (
+							index, call,
+							.result(
+								.object([
+									"error": .string("unknown_tool"),
+									"details": .string(
+										"This tool was not offered for this turn. Use an offered tool."
+									),
+								]))
+						)
+					}
 					let arguments: JSONValue
 					do {
 						arguments = try call.parseArguments()
@@ -210,17 +152,21 @@ extension TurnRunner {
 					let outcome: ToolOutcome
 					do {
 						outcome = try await runtime.execute(
-							name: call.name,
+							name: name,
 							arguments: arguments,
 							chatId: attempt.chat,
 							scope: scope
 						).outcome
+					} catch let saved as SavedWorkReached {
+						throw saved
 					} catch is CancellationError {
+						throw CancellationError()
+					} catch  where Task.isCancelled {
 						throw CancellationError()
 					} catch {
 						self.diagnostics.record(
 							.toolFailed(
-								scope.stamp.attempt, call.name, failure: ToolFault(error)))
+								scope.stamp.attempt, name, failure: ToolFault(error)))
 						outcome = .result(ToolFault(error).json)
 					}
 					return (index, call, outcome)
@@ -264,14 +210,7 @@ extension TurnRunner {
 	}
 }
 
-struct GenerateStep: Sendable {
-	var text: String
-	var toolCalls: [WireToolCall]
-	var reason: FinishReason
-	var usage: Usage
-}
-
-private func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
+func encodeToolOutcome(_ outcome: ToolOutcome) -> String {
 	switch outcome {
 	case .result(let json):
 		return json.canonicalDigestInput()

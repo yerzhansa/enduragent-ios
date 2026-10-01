@@ -42,13 +42,13 @@ public enum IntervalsCredential: Sendable, Equatable {
 }
 
 public struct IntervalsConnection: Sendable, Equatable {
-	public let id: ConnectionID?
+	public let id: ConnectionID
 	public let credential: IntervalsCredential
 	public let selection: AthleteSelection
 	public let resolvedAthlete: IntervalsAthleteID?
 
 	public init(
-		id: ConnectionID?,
+		id: ConnectionID,
 		credential: IntervalsCredential,
 		selection: AthleteSelection,
 		resolvedAthlete: IntervalsAthleteID?
@@ -57,6 +57,10 @@ public struct IntervalsConnection: Sendable, Equatable {
 		self.credential = credential
 		self.selection = selection
 		self.resolvedAthlete = resolvedAthlete
+	}
+
+	var account: TrainingAccount {
+		.intervals(connection: id, athlete: resolvedAthlete)
 	}
 }
 

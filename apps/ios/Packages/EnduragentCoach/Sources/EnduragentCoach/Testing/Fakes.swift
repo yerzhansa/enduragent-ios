@@ -37,9 +37,14 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	package var finishUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
 	public var requestDelay: Duration?
 	public var deltaDelay: Duration?
+	package var clock: any Clock = SystemClock()
 	private let lock = NSLock()
+	private var replies: [AttemptID: ScriptedReply] = [:]
+	private var flushDelay: Duration?
+	private let respond: (@Sendable (String, Bool) -> ScriptedReply)?
 
-	public init() {
+	public init(respond: (@Sendable (String, Bool) -> ScriptedReply)? = nil) {
+		self.respond = respond
 		self.script = []
 		self.summaryScript = []
 		self.flushScript = []
@@ -47,7 +52,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 	}
 
 	public var requestCount: Int {
-		requests.count
+		lock.withLock { requests.count }
 	}
 
 	public var lastReplyLanguage: String? {
@@ -88,25 +93,19 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				}
 			}
 		}
-		let batch: ScriptedBatch
-		do {
-			batch = try nextBatch(for: request)
-		} catch {
-			return AsyncThrowingStream { continuation in
-				continuation.finish(throwing: error)
-			}
-		}
-		let delay = requestDelay
-		let pause = deltaDelay
+		let batch = nextBatch(for: request)
+		let delay = batch.requestDelay
+		let pause = batch.deltaDelay
+		let clock = clock
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
 					if let delay {
-						try await Task.sleep(for: delay)
+						try await clock.sleep(for: delay)
 					}
 					for event in batch.events {
 						if let pause {
-							try await Task.sleep(for: pause)
+							try await clock.sleep(for: pause)
 						}
 						continuation.yield(event)
 					}
@@ -137,45 +136,71 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		}
 	}
 
-	private func nextBatch(for request: CompletionRequest) throws -> ScriptedBatch {
+	private func nextBatch(for request: CompletionRequest) -> ScriptedBatch {
 		lock.lock()
 		defer { lock.unlock() }
+		selectReply(for: request)
 		requests.append(request)
+		let reply = replies[request.attempt]
+		let delay =
+			request.charge == .memoryFlush
+			? flushDelay ?? requestDelay : reply?.requestDelay ?? requestDelay
+		let pause = reply?.deltaDelay ?? deltaDelay
 		var events: [TransportEvent] = []
-		while let event = takeEvent(for: request.charge) {
+		var summary = summaryScript
+		while let event = takeEvent(for: request, summary: &summary) {
 			switch event {
 			case .text(let text):
 				events.append(.textDelta(text))
 			case .toolCall(let name, let arguments):
-				guard let toolName = ToolName(rawValue: name) else {
-					throw ProviderFailure.malformedStream
-				}
 				events.append(
 					.toolCall(
 						WireToolCall(
 							id: UUID().uuidString,
-							name: toolName,
+							name: name,
 							arguments: arguments
 						)
 					)
 				)
 			case .finish(let reason):
 				events.append(.finished(reason: reason, usage: finishUsage))
-				return ScriptedBatch(events: events, end: .finished)
+				return ScriptedBatch(
+					events: events, end: .finished, requestDelay: delay, deltaDelay: pause)
 			case .fail(let scripted):
-				return ScriptedBatch(events: events, end: .failed(scripted.failure))
+				return ScriptedBatch(
+					events: events, end: .failed(scripted.failure), requestDelay: delay,
+					deltaDelay: pause)
 			case .hang:
-				return ScriptedBatch(events: events, end: .hanging)
+				return ScriptedBatch(
+					events: events, end: .hanging, requestDelay: delay, deltaDelay: pause)
 			}
 		}
-		return ScriptedBatch(events: events, end: .finished)
+		return ScriptedBatch(events: events, end: .finished, requestDelay: delay, deltaDelay: pause)
 	}
 
-	private func takeEvent(for charge: GenerateCharge) -> ScriptedEvent? {
-		switch charge {
+	private func selectReply(for request: CompletionRequest) {
+		guard let respond, request.charge == .chatAttempt, replies[request.attempt] == nil,
+			let lastUser = request.messages.lastIndex(where: { $0.role == .user })
+		else { return }
+		let text = request.messages[lastUser].content.components(separatedBy: "\nCurrent time:")[0]
+		let reply = respond(text, request.origin == .retry)
+		replies[request.attempt] = reply
+		flushDelay = reply.flushDelay
+		if let flush = reply.flush { flushScript = flush }
+	}
+
+	private func takeEvent(for request: CompletionRequest, summary: inout [ScriptedEvent])
+		-> ScriptedEvent?
+	{
+		switch request.charge {
 		case .chatAttempt, .stepRecovery:
+			if let reply = replies[request.attempt] {
+				if reply.events.first == .hang { return .hang }
+				return reply.events.isEmpty ? nil : replies[request.attempt]?.events.removeFirst()
+			}
 			return script.isEmpty ? nil : script.removeFirst()
 		case .compaction, .droppedSummary:
+			if respond != nil { return summary.isEmpty ? nil : summary.removeFirst() }
 			return summaryScript.isEmpty ? nil : summaryScript.removeFirst()
 		case .memoryFlush:
 			return flushScript.isEmpty ? nil : flushScript.removeFirst()
@@ -186,6 +211,8 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 private struct ScriptedBatch: Sendable {
 	let events: [TransportEvent]
 	let end: End
+	let requestDelay: Duration?
+	let deltaDelay: Duration?
 
 	enum End: Sendable {
 		case finished
@@ -293,12 +320,6 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 			tags: draft.tags,
 			coachCreated: true
 		)
-	}
-
-	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		_ = draft
-		throw IntervalsError(
-			code: "not_implemented", details: "Plan mirror writes are not available.")
 	}
 
 	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)

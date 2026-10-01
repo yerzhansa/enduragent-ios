@@ -1,8 +1,7 @@
 import Foundation
 
 package struct TurnFacts: Sendable, Equatable {
-	private static let promptPhrasebook = CatalogPhrasebook(
-		tag: .en, locale: LanguageTag.en.defaultLocale)
+	private static let promptPhrasebook = CatalogPhrasebook(tag: .en)
 
 	package let turn: TurnID
 	package let chat: ChatID
@@ -44,10 +43,6 @@ package struct TurnFacts: Sendable, Equatable {
 		return claims.first { $0.attempt == latest }
 	}
 
-	var lastUlid: ULID {
-		(fragments.map(\.ulid) + settlements.map(\.ulid)).max() ?? turn.ulid
-	}
-
 	var messageRows: [(ulid: ULID, message: ChatMessage)] {
 		guard let userRow else { return [] }
 		if let replyRow {
@@ -71,8 +66,9 @@ package struct TurnFacts: Sendable, Equatable {
 			replyText = text
 		case .interrupted(let partial, _, _) where !partial.isEmpty:
 			replyText = partial
-		case .savedWork(let outcome, _):
-			replyText = AthleteNotices.notice(for: outcome).sentence(in: Self.promptPhrasebook)
+		case .savedWork(let outcome, let saved):
+			replyText = AthleteNotices.notice(for: outcome, saved: saved).sentence(
+				in: Self.promptPhrasebook)
 		case .interrupted, .failed:
 			return nil
 		}

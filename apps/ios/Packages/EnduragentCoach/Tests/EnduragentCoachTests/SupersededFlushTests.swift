@@ -24,7 +24,7 @@ extension FlushCoverageTests {
 		for question in ["First question", "Second question", "Plan the week", "Anything else?"] {
 			_ = try await coach.sendAndSettle(question)
 		}
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
+		try await waitUntil { sent(.memoryFlush, by: transport).count == 1 }
 		let first = try #require(sent(.memoryFlush, by: transport).first)
 		try #require(
 			first.messages.contains { $0.unstampedContent == "Pending superseded partial" })
@@ -33,11 +33,11 @@ extension FlushCoverageTests {
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement after pending")
-		try await waitUntil { sent(.memoryFlush, by: transport).count == 4 }
+		try await waitUntil { sent(.memoryFlush, by: transport).count == 2 }
 		transport.flushScript = [.finish(reason: .stop)]
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let saved = sent(.memoryFlush, by: transport)
-		try #require(saved.count == 5)
+		try #require(saved.count == 3)
 		let reset = try #require(saved.last).messages.map(\.unstampedContent)
 		try #require(reset.filter { $0 == "Pending Saturday question" }.count == 1)
 		try #require(reset.filter { $0 == "Replacement after pending" }.count == 1)
@@ -48,7 +48,7 @@ extension FlushCoverageTests {
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let after = sent(.memoryFlush, by: transport)
 		#expect(after.count == saved.count)
-		let successfulRows = after.dropFirst(4).flatMap(\.messages).map(\.unstampedContent)
+		let successfulRows = after.dropFirst(2).flatMap(\.messages).map(\.unstampedContent)
 		#expect(successfulRows.filter { $0 == "Pending Saturday question" }.count == 1)
 	}
 
@@ -111,7 +111,7 @@ extension FlushCoverageTests {
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let requests = sent(.memoryFlush, by: transport)
-		#expect(requests.count == 2)
+		#expect(requests.count == 1)
 		for request in requests {
 			let rows = request.messages.map(\.unstampedContent)
 			#expect(rows.filter { $0 == "Replacement reply" }.count == 1)

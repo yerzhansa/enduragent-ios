@@ -21,6 +21,13 @@ force_unwrapping:
   ignored_literal_argument_functions: []
 
 custom_rules:
+  one_session_factory:
+    included: 'apps/ios/(?:Enduragent|Packages/EnduragentCoach/Sources)/'
+    excluded: 'Packages/EnduragentCoach/Sources/EnduragentCoach/Transport/HTTPSession\.swift$'
+    regex: '\bURLSessionConfiguration\b|\bURLSession\s*(?:\(|\.\s*(?:shared|init)\b)|(?<![\w)\]?!])\.(?:shared\b|init\(\s*configuration:)'
+    match_kinds: [identifier, typeidentifier]
+    message: 'Build every URLSession through ephemeralSession in Transport/HTTPSession.swift.'
+    severity: error
   no_comments:
     regex: '//|/\*'
     match_kinds: [comment, doccomment, comment.url, comment.mark]

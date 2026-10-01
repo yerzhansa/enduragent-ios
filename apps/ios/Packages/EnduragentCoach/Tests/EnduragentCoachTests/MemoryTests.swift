@@ -197,6 +197,10 @@ private final class JournalRejectingLog: RecordLog, @unchecked Sendable {
 		try await inner.append(batch, locality: locality)
 	}
 
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor? {
+		try await inner.latest(locality: locality, writtenBy: writtenBy)
+	}
+
 	func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		try await inner.fetch(query)
 	}

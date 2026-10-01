@@ -35,3 +35,41 @@ test('optional_try accepts only a standalone conditional container decode probe'
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('one_session_factory rejects every construction outside the package factory', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ios-session-factory-check-'));
+  const probes = [
+    'let session = URLSession(configuration: config)',
+    'let session = URLSession.init(configuration: config)',
+    'let session: URLSession = .init(configuration: config)',
+    'let session = URLSession.shared',
+    'let session = URLSession . shared',
+    'let client = Client(session: .shared)',
+    'let configuration = URLSessionConfiguration.ephemeral',
+    'let app = UIApplication.shared',
+    'let scheduler = BGTaskScheduler.shared',
+  ];
+  try {
+    for (const [path, rejected] of [
+      ['apps/ios/Enduragent/App/Probe.swift', true],
+      ['apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Probe.swift', true],
+      ['apps/ios/Enduragent/App/Transport/HTTPSession.swift', true],
+      ['apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Probe.swift', false],
+      ['apps/ios/EnduragentTests/Probe.swift', false],
+      ['apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Transport/HTTPSession.swift', false],
+    ]) {
+      const file = join(root, path);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, probes.join('\n') + '\n');
+      const result = spawnSync('swiftlint', [
+        'lint', '--config', config, '--quiet', '--no-cache', '--reporter', 'json', file,
+      ], { encoding: 'utf8' });
+      assert.ok(result.status === 0 || result.status === 2, result.stdout + result.stderr);
+      const violations = JSON.parse(result.stdout).filter(row => row.rule_id === 'one_session_factory');
+      assert.deepEqual(violations.map(row => row.line).sort((a, b) => a - b),
+        rejected ? [1, 2, 3, 4, 5, 6, 7] : [], path);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

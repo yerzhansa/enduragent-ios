@@ -22,8 +22,6 @@ package enum LadderClass: Hashable, Sendable {
 	case rateLimit
 	case serverError
 	case network
-	case auth
-	case invalidRequest
 	case unknown
 }
 
@@ -129,6 +127,7 @@ package struct RetryLadder: Sendable, Equatable {
 				return decision
 			}
 		}
+		let coachFailure = failure.coachFailure(for: situation.accessMethod)
 		let failureClass = failure.ladderClass
 		for rung in rungs
 		where rung.classes.contains(failureClass) && counters.count(rung.counter) < rung.limit {
@@ -136,7 +135,11 @@ package struct RetryLadder: Sendable, Equatable {
 				return retry
 			}
 		}
-		return .terminal(failure.coachFailure(for: situation.accessMethod))
+		return .terminal(coachFailure)
+	}
+
+	package func savedWork(committed: [CommittedWrite]) -> SavedWorkOutcome? {
+		guards.lazy.compactMap { $0.savedWork(committed: committed) }.first
 	}
 }
 
@@ -194,11 +197,8 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			.serverError
 		case .provider(.network):
 			.network
-		case .provider(.credentialRejected):
-			.auth
-		case .provider(.invalidRequest):
-			.invalidRequest
-		case .provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
+		case .provider(.credentialRejected), .provider(.invalidRequest),
+			.provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
 			.budget, .generation, .recordStorage, .rescueFailed:
 			.unknown
 		}
@@ -262,19 +262,26 @@ extension LadderGuard {
 		case .budgetExceededIsTerminal:
 			guard case .budget = failure else { return nil }
 			return .terminal(failure.coachFailure(for: situation.accessMethod))
-		case .committedWriteSettlesAsSavedWork(let calendar, let other):
-			let tools = Set(situation.committed.map(\.tool))
-			if !tools.isDisjoint(with: calendar) {
-				return .settleSavedWork(.writesSaved)
-			}
-			if !tools.isDisjoint(with: other) {
-				return .settleSavedWork(.savedUnverified)
-			}
-			return nil
+		case .committedWriteSettlesAsSavedWork:
+			return savedWork(committed: situation.committed).map(LadderDecision.settleSavedWork)
 		case .observedTextIsTerminalUnlessWindowExceeded:
 			guard situation.observedText, failure != .windowExceededFinish else { return nil }
 			return .terminal(failure.coachFailure(for: situation.accessMethod))
 		}
+	}
+
+	fileprivate func savedWork(committed: [CommittedWrite]) -> SavedWorkOutcome? {
+		guard case .committedWriteSettlesAsSavedWork(let calendar, let other) = self else {
+			return nil
+		}
+		let tools = Set(committed.map(\.tool))
+		if !tools.isDisjoint(with: calendar) {
+			return committed.allSatisfy(\.verified) ? .writesSaved : .savedUnverified
+		}
+		if !tools.isDisjoint(with: other) {
+			return .savedUnverified
+		}
+		return nil
 	}
 }
 

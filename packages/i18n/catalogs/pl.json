@@ -1040,6 +1040,7 @@
       "savedChoice": "Zapisany wybór",
       "working": "Trener pracuje…",
       "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
+      "calendarUnverified": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie.",
       "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
     },
     "planChange": {
@@ -1492,7 +1493,9 @@
       "receivedBeforeClose": "Odebrano przed zamknięciem aplikacji. Stuknij Spróbuj ponownie, aby wysłać wiadomość.",
       "restorePurchases": "Przywróć zakupy",
       "signInAgain": "Zaloguj się ponownie"
-    }
+    },
+    "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{commands}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2765,7 +2768,6 @@
       "start": "Rozpocznij nową sesję",
       "status": "Sprawdź obecne wytrenowanie, zmęczenie i formę",
       "sync": "Wymuś odświeżenie danych treningowych z {{service}}",
-      "update": "Sprawdź i zainstaluj aktualizacje",
       "version": "Pokaż obecną wersję",
       "whatsnew": "Zobacz zmiany w najnowszej wersji",
       "workout": "Pokaż dzisiejszy trening"
@@ -2888,7 +2890,6 @@
       "managedInstruction": "Wyślij {{whatsnew}}, aby zobaczyć zmiany. {{notice}}",
       "prepareFailed": "Nie udało się teraz bezpiecznie przygotować aktualizacji. Spróbuj ponownie użyć {{command}} za chwilę."
     },
-    "welcome": "Witaj w {{product}}!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z {{service}}.\n\nPolecenia:\n{{plan}} — Utwórz plan treningowy\n{{workout}} — Pokaż dzisiejszy trening\n{{status}} — Sprawdź obecne wytrenowanie, zmęczenie i formę\n{{review}} — Przeanalizuj ostatni trening\n{{sync}} — Wymuś odświeżenie danych treningowych z {{service}}\n{{version}} — Pokaż obecną wersję\n{{whatsnew}} — Zobacz zmiany w najnowszej wersji\n{{update}} — {{updateDescription}}\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!",
     "workout": {
       "working": "Sprawdzam twoją formę i plan…"
     }
@@ -3035,6 +3036,13 @@
     },
     "notice": {
       "health": "To sugestie treningowe, nie porady medyczne. Przed dużymi zmianami skonsultuj się z lekarzem."
+    },
+    "consent": {
+      "title": "Twój trener korzysta z AI",
+      "body": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenera i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je dostawcy modelu AI (DeepSeek). Wykorzystują te dane wyłącznie do generowania odpowiedzi Twojego trenera. Nic nie zostanie wysłane bez Twojej zgody.",
+      "accept": "Wyraź zgodę i kontynuuj",
+      "decline": "Nie teraz",
+      "saveFailed": "Nie udało się zapisać Twojej zgody. Spróbuj ponownie."
     }
   },
   "access": {

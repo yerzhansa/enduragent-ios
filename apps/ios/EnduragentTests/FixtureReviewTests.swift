@@ -10,15 +10,15 @@ extension FixtureLaunchTests {
 		async throws
 	{
 		let services = try services()
-		let secrets = try #require(services.fixtureDirector?.secrets)
+		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
-		secrets.locked = true
+		backing.locked = true
 		await model.decide(.approve(token))
 		try #require(model.reviewNotice?.key == Catalog.reviewCannotVerify)
-		secrets.locked = false
+		backing.locked = false
 
 		if newConversation {
 			await model.newConversation()
@@ -40,7 +40,7 @@ extension FixtureLaunchTests {
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 
 		await model.decide(.cancel(token))
@@ -54,16 +54,16 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.turns.count == 2)
 		#expect(model.chat?.review == nil)
 		#expect(
-			services.fixtureDirector?.intervals.calls.contains(where: \.isCalendarWrite) == false)
+			services.fixture?.intervals.calls.contains(where: \.isCalendarWrite) == false)
 	}
 
 	@Test func onlyATapShowsTheReviewOutcome() async throws {
 		let services = try services()
-		let secrets = try #require(services.fixtureDirector?.secrets)
+		let backing = try #require(services.fixture?.secretBacking)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
-		secrets.locked = true
+		backing.locked = true
 
 		await model.decide(.approve(token))
 
@@ -73,7 +73,7 @@ extension FixtureLaunchTests {
 		)
 		await model.decide(.presented(token.ref))
 		#expect(model.reviewNotice?.key == Catalog.reviewCannotVerify)
-		secrets.locked = false
+		backing.locked = false
 		await model.decide(.approve(token))
 		#expect(model.reviewNotice == nil)
 		try await waitUntil { model.chat?.notes.count == 1 }
@@ -85,7 +85,7 @@ extension FixtureLaunchTests {
 	@Test func reviewUsesTheChosenLanguageAfterAnAccountChange() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		await model.chooseLanguage(.fixed(.fr))
 		#expect(model.phrasebook.say(Catalog.reviewTitle, [:]) == "Vérification de la séance")

@@ -113,17 +113,21 @@ public struct WriteSummary: Sendable, Equatable {
 
 public struct AthleteNotice: Sendable, Equatable {
 	public let key: CatalogKey
+	public let count: Int?
 	public let vars: [String: String]
 	public let action: RecoveryAction?
 
-	package init(key: CatalogKey, vars: [String: String] = [:], action: RecoveryAction?) {
+	package init(
+		key: CatalogKey, count: Int? = nil, vars: [String: String] = [:], action: RecoveryAction?
+	) {
 		self.key = key
+		self.count = count
 		self.vars = vars
 		self.action = action
 	}
 
-	public func sentence(in phrasebook: any Phrasebook) -> String {
-		phrasebook.say(key, vars).trimmingCharacters(in: .whitespacesAndNewlines)
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+		phrasebook.say(key, count: count, vars).trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 }
 
@@ -147,6 +151,17 @@ public enum RecoveryAction: Sendable, Equatable {
 }
 
 extension CoachFailure {
+	package var isTerminal: Bool {
+		switch self {
+		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed),
+			.model(.contextOverflow):
+			true
+		case .model(.accessExhausted), .model(.rateLimited), .model(.providerDown),
+			.model(.budgetExhausted), .model(.accessUnavailable), .local:
+			false
+		}
+	}
+
 	package var tryAgainWait: Duration? {
 		guard case .model(.rateLimited(let retryAfter)) = self else { return nil }
 		return retryAfter.flatMap { $0 > .zero ? $0 : nil } ?? .seconds(60)
@@ -246,21 +261,22 @@ package enum AthleteNotices {
 	private static func rateLimitNotice(after retryAfter: Duration?, action: RecoveryAction?)
 		-> AthleteNotice
 	{
-		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }) else {
+		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }),
+			let seconds = wholeInt((hinted / .seconds(1)).rounded(.up))
+		else {
 			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, action: action)
 		}
-		let seconds = Int((hinted / .seconds(1)).rounded(.up))
 		if seconds < 60 {
 			return AthleteNotice(
-				key: Catalog.coachErrorRateLimitSeconds,
-				vars: ["count": "\(seconds)", "seconds": "\(seconds)"],
+				key: Catalog.coachErrorRateLimitSeconds, count: seconds,
+				vars: ["seconds": "\(seconds)"],
 				action: action
 			)
 		}
 		let minutes = (seconds + 59) / 60
 		return AthleteNotice(
-			key: Catalog.coachErrorRateLimitMinutes,
-			vars: ["count": "\(minutes)", "minutes": "\(minutes)"],
+			key: Catalog.coachErrorRateLimitMinutes, count: minutes,
+			vars: ["minutes": "\(minutes)"],
 			action: action
 		)
 	}
@@ -302,21 +318,29 @@ package enum AthleteNotices {
 
 	private static func notice(outsideTurn unavailable: AccessUnavailable) -> AthleteNotice {
 		let turn = notice(for: .model(.accessUnavailable(unavailable)), turn: nil, waiting: false)
-		return AthleteNotice(key: turn.key, vars: turn.vars, action: nil)
+		return AthleteNotice(key: turn.key, count: turn.count, vars: turn.vars, action: nil)
 	}
 
-	package static func notice(for outcome: SavedWorkOutcome) -> AthleteNotice {
+	package static func notice(for outcome: SavedWorkOutcome, saved: WriteSummary = .none)
+		-> AthleteNotice
+	{
 		switch outcome {
 		case .writesSaved:
 			AthleteNotice(key: Catalog.coachFallbackWritesSaved, action: nil)
 		case .savedUnverified:
-			AthleteNotice(key: Catalog.chatNoticeSavedUnverified, action: nil)
+			AthleteNotice(
+				key: saved.calendarWrites > 0
+					? Catalog.chatNoticeCalendarUnverified : Catalog.chatNoticeSavedUnverified,
+				action: nil)
 		}
 	}
 
 	package static func notice(
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {
+		if saved.calendarWrites > 0 {
+			return AthleteNotice(key: Catalog.chatNoticeCalendarUnverified, action: nil)
+		}
 		switch interruption {
 		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded,
 			.stoppedBeforeStart:

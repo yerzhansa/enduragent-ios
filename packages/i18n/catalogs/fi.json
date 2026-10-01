@@ -1024,6 +1024,7 @@
       "savedChoice": "Tallennettu valinta",
       "working": "Valmentaja työskentelee…",
       "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
+      "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
       "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
     },
     "planChange": {
@@ -1466,7 +1467,9 @@
       "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
       "restorePurchases": "Palauta ostokset",
       "signInAgain": "Kirjaudu uudelleen"
-    }
+    },
+    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
+    "welcomeCommand": "{{command}}: {{description}}"
   },
   "plan": {
     "details": {
@@ -2699,7 +2702,6 @@
       "start": "Aloita uusi keskustelu",
       "status": "Tarkista nykyinen kunto, väsymys ja tuoreus",
       "sync": "Pakota harjoitustietojen päivitys palvelusta {{service}}",
-      "update": "Tarkista ja asenna päivitykset",
       "version": "Näytä nykyinen versio",
       "whatsnew": "Katso uusimman version muutokset",
       "workout": "Hae tämän päivän harjoitus"
@@ -2816,7 +2818,6 @@
       "managedInstruction": "Katso muutokset lähettämällä {{whatsnew}}. {{notice}}",
       "prepareFailed": "Päivitystä ei voitu juuri nyt valmistella turvallisesti. Yritä komentoa {{command}} hetken kuluttua uudelleen."
     },
-    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{plan}}: Luo harjoitussuunnitelma\n{{workout}}: Hae tämän päivän harjoitus\n{{status}}: Tarkista nykyinen kunto, väsymys ja tuoreus\n{{review}}: Tarkista viimeisin harjoituksesi\n{{sync}}: Pakota harjoitustietojen päivitys palvelusta {{service}}\n{{version}}: Näytä nykyinen versio\n{{whatsnew}}: Katso uusimman version muutokset\n{{update}}: {{updateDescription}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
     "workout": {
       "working": "Tarkistan tuoreuttasi ja suunnitelmaasi…"
     }
@@ -2955,6 +2956,13 @@
     },
     "notice": {
       "health": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+    },
+    "consent": {
+      "title": "Valmentajasi käyttää tekoälyä",
+      "body": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi.",
+      "accept": "Hyväksy ja jatka",
+      "decline": "Ei nyt",
+      "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
     }
   },
   "access": {

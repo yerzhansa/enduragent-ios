@@ -7,6 +7,8 @@ import Testing
 @MainActor
 @Suite(.serialized)
 final class ShellLanguageTests {
+	private let directory = FileManager.default.temporaryDirectory.appending(
+		path: "enduragent-shell-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
 	private let domain = "enduragent.shell.language.tests"
 	private let defaults: UserDefaults
 	private let records = RecordStore.inMemory(deviceId: DeviceID())
@@ -15,11 +17,17 @@ final class ShellLanguageTests {
 		now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	init() throws {
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defaults = try #require(UserDefaults(suiteName: domain))
 		defaults.removePersistentDomain(forName: domain)
 	}
 
 	deinit {
+		do {
+			try FileManager.default.removeItem(at: directory)
+		} catch {
+			Issue.record(error, "shell secrets directory cleanup")
+		}
 		UserDefaults(suiteName: domain)?.removePersistentDomain(forName: domain)
 	}
 
@@ -33,7 +41,7 @@ final class ShellLanguageTests {
 			Issue.record("The saved language did not reopen into a ready shell")
 			return
 		}
-		#expect(model.route == .chat)
+		#expect(model.route == .loading)
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
@@ -82,7 +90,7 @@ final class ShellLanguageTests {
 		let model = ShellModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		await model.appear()
 		model.draft.text = "Add a core workout tomorrow."
 		await model.send()
@@ -130,7 +138,7 @@ final class ShellLanguageTests {
 	private func services(
 		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	) throws -> AppServices {
-		let secrets = FakeSecretStore()
+		let secrets = try ICloudKeychainStore.fixture(directory: directory).store
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(),
@@ -149,6 +157,6 @@ final class ShellLanguageTests {
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
 		return AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			fixtureDirector: nil, leases: { [] })
+			leases: { [] }, packPrices: { _ in [:] })
 	}
 }

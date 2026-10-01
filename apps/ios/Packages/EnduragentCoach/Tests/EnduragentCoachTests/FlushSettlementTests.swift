@@ -97,7 +97,7 @@ import Testing
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(61)), ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock), transport: FakeModelTransport(),
-			clock: clock, diagnostics: diagnostics)
+			clock: clock, diagnostics: diagnostics, ladder: .npm)
 		#expect(await records.refreshJobs(from: flushes) == [older])
 		let outstanding = try #require(records.jobs.first { $0.id == older })
 		#expect(!outstanding.settled)

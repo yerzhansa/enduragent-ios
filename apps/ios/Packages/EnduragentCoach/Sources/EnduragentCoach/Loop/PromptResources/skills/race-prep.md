@@ -1,14 +1,5 @@
 # Race Preparation
 
-## Taper Length by Race Type
-
-Taper length per race type — how many weeks of reduced volume each event needs —
-is computed by the `build_plan_skeleton` tool, which returns the taper phase as
-part of the plan. Call the tool with the athlete's race type and narrate the
-taper it returns rather than quoting a per-race-type week count from memory; the
-numbers live in one deterministic place and drift the moment they're copied. The
-*how* of the taper is below.
-
 ## Taper Strategy
 
 - **Week 1 of taper**: Reduce volume 30%, maintain intensity. Include 1-2 short sharp efforts.

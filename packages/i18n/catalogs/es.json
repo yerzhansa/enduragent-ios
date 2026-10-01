@@ -1024,6 +1024,7 @@
       "savedChoice": "Elección guardada",
       "working": "El entrenador está trabajando…",
       "responseStopped": "Respuesta detenida. Se conserva la respuesta parcial.",
+      "calendarUnverified": "Es posible que el cambio en el calendario se haya guardado. Revisa tu calendario antes de volver a pedirlo.",
       "savedUnverified": "Guardé tu información, pero no pude verificar mi respuesta. Inténtalo de nuevo."
     },
     "planChange": {
@@ -1466,7 +1467,9 @@
       "receivedBeforeClose": "Se recibió antes de cerrar la app. Toca Reintentar para enviarlo.",
       "restorePurchases": "Restaurar compras",
       "signInAgain": "Iniciar sesión de nuevo"
-    }
+    },
+    "welcome": "¡Te doy la bienvenida a {{product}}!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de {{service}}.\n\nComandos:\n{{commands}}\n\n¡También puedes hablar conmigo sobre tu entrenamiento!",
+    "welcomeCommand": "{{command}}: {{description}}"
   },
   "plan": {
     "details": {
@@ -2699,7 +2702,6 @@
       "start": "Iniciar una nueva sesión",
       "status": "Consultar tu condición física, fatiga y forma actuales",
       "sync": "Forzar la actualización de los datos de entrenamiento de {{service}}",
-      "update": "Buscar e instalar actualizaciones",
       "version": "Mostrar la versión actual",
       "whatsnew": "Ver las novedades de la última versión",
       "workout": "Consultar el entrenamiento de hoy"
@@ -2816,7 +2818,6 @@
       "managedInstruction": "Envía {{whatsnew}} para ver las novedades. {{notice}}",
       "prepareFailed": "No se ha podido preparar la actualización de forma segura ahora. Prueba {{command}} de nuevo en un momento."
     },
-    "welcome": "¡Te doy la bienvenida a {{product}}!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de {{service}}.\n\nComandos:\n{{plan}}: generar un plan de entrenamiento\n{{workout}}: consultar el entrenamiento de hoy\n{{status}}: consultar tu condición física, fatiga y forma actuales\n{{review}}: revisar tu última sesión\n{{sync}}: forzar la actualización de los datos de entrenamiento de {{service}}\n{{version}}: mostrar la versión actual\n{{whatsnew}}: ver las novedades de la última versión\n{{update}}: {{updateDescription}}\n\n¡También puedes hablar conmigo sobre tu entrenamiento!",
     "workout": {
       "working": "Revisando tu forma y tu plan..."
     }
@@ -2955,6 +2956,13 @@
     },
     "notice": {
       "health": "Sugerencias de entrenamiento, no asesoramiento médico. Consulta con un médico antes de hacer grandes cambios."
+    },
+    "consent": {
+      "title": "Tu entrenador usa IA",
+      "body": "Para responder, Enduragent envía tus mensajes, la memoria de tu entrenador y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los transmite al proveedor del modelo de IA (DeepSeek). Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes.",
+      "accept": "Aceptar y continuar",
+      "decline": "Ahora no",
+      "saveFailed": "No se pudo guardar tu consentimiento. Inténtalo de nuevo."
     }
   },
   "access": {

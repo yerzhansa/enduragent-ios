@@ -112,7 +112,7 @@ import Testing
 		let coach = await coach(over: log)
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.flushScript = [.fail(.http(status: 500)), .fail(.http(status: 500))]
+		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 3)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
@@ -122,14 +122,60 @@ import Testing
 		let coach = await coach()
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
-		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 8)
+		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 8)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
-		transport.flushScript = Array(repeating: .fail(.http(status: 500)), count: 8)
+		transport.flushScript = Array(repeating: .fail(.http(status: 400)), count: 8)
 		let reopened = await self.coach()
 		await reopened.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		let snapshot = try #require(await reopened.currentSnapshot(.main))
 		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+	}
+
+	@Test func aTransientResetFlushRecoversTheMemorySavedOpeningAfterRelaunch() async throws {
+		let coach = await coach()
+		answer("Two rides.")
+		_ = try await coach.sendAndSettle("How was my week?")
+		let offline = ScriptedEvent.fail(.connection(.notConnectedToInternet))
+		transport.flushScript = [offline, offline, offline]
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(
+			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: false)
+		)
+		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
+		let original = try #require(sent(.memoryFlush, by: transport).first).messages
+
+		transport.flushScript = [offline, offline, offline]
+		let offlineHost = ImmediateExecutionHost()
+		let reopened = await makeCoach(
+			transport: transport, store: store, clock: clock, host: offlineHost)
+		await reopened.lifecycle(.becameActive)
+		_ = try #require(await offlineHost.ended(0))
+		#expect(
+			await reopened.currentSnapshot(.main)?.opening
+				== .afterNewConversation(memorySaved: false))
+		#expect(try await count(.deviceLocal([.flushPending])) == 1)
+		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
+		#expect(sent(.memoryFlush, by: transport).count == 6)
+
+		transport.flushScript = [schedule, .finish(reason: .toolCalls), .finish(reason: .stop)]
+		let healthyHost = ImmediateExecutionHost()
+		let recovered = await makeCoach(
+			transport: transport, store: store, clock: clock, host: healthyHost)
+		await recovered.lifecycle(.becameActive)
+		_ = try #require(await healthyHost.ended(0))
+		let snapshot = try #require(await recovered.currentSnapshot(.main))
+		#expect(snapshot.turns.isEmpty)
+		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
+		#expect(try await count(.synced([.memorySection])) == 1)
+		#expect(try await count(.deviceLocal([.flushPending])) == 1)
+		#expect(try await count(.deviceLocal([.flushSettled])) == 1)
+		let flushes = sent(.memoryFlush, by: transport)
+		#expect(flushes.count == 8)
+		#expect(flushes.dropFirst(6).first?.messages == original)
+		#expect(
+			await self.coach().currentSnapshot(.main)?.opening
+				== .afterNewConversation(memorySaved: true))
 	}
 
 	@Test func theResetWindowStartsWithTheOutstandingJobsRows() async throws {
@@ -150,7 +196,7 @@ import Testing
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
-			diagnostics: DiagnosticsLog(clock: clock))
+			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.flushScript = [schedule, .finish(reason: .toolCalls)]
 		let reset = ResetID(ulid: await ledger.nextULID())
 		let result = await ConversationReset(

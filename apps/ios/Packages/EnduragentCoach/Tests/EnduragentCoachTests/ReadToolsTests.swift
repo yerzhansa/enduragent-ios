@@ -8,6 +8,10 @@ struct ReadToolsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func reviewWindowCoversSevenDays() {
+		#expect(IntervalsPolicy.reviewWindowDays == 7)
+	}
+
 	@Test func calculateZonesReturnsDesktopRows() async throws {
 		let outcome = try await runtime().execute(
 			name: .calculateZones,
@@ -154,6 +158,30 @@ struct ReadToolsTests {
 		#expect(events[0].objectFields["name"]?.stringValue == "Endurance")
 	}
 
+	@Test(arguments: [
+		("1998-06-13", "1998-06-13", 1), ("1998-06-14", "1998-06-13", 0),
+		("2000-02-28", "2000-03-01", 3), ("1900-02-28", "1900-03-01", 2),
+		("1999-12-31", "2000-01-01", 2), ("1583-01-01", "1583-12-31", 365),
+	])
+	func inclusiveRangesCountGregorianDays(oldest: String, newest: String, days: Int) throws {
+		#expect(
+			IntervalsPolicy.inclusiveDayCount(
+				from: try #require(CivilDate(rawValue: oldest)),
+				to: try #require(CivilDate(rawValue: newest))) == days)
+	}
+
+	@Test func wholeCalendarRangeReturnsRangeTooWide() {
+		#expect(throws: IntervalsError.self) {
+			do {
+				try IntervalsPolicy.rejectListRange(
+					oldest: "1583-01-01", newest: "9999-12-31")
+			} catch let error as IntervalsError {
+				#expect(error.code == "range_too_wide")
+				throw error
+			}
+		}
+	}
+
 	@Test func rangeTooWideReturnsTypedError() async throws {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
@@ -201,8 +229,6 @@ struct ReadToolsTests {
 		#expect(!encoded.contains("oneOf"))
 		#expect(!encoded.contains("allOf"))
 		#expect(schemas.contains { $0.description.contains("Form = fitness - fatigue") })
-		#expect(WorkoutReview.windowDays == IntervalsPolicy.reviewWindowDays)
-		#expect(WorkoutReview.windowDays == 7)
 	}
 
 	private func unwrapData(_ json: JSONValue) -> JSONValue {
@@ -214,7 +240,6 @@ struct ReadToolsTests {
 		return ToolRuntime(
 			intervals: intervals,
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			planning: Planning(clock: clock),
 			clock: clock
 		)
 	}

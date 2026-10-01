@@ -226,6 +226,7 @@ package struct FlushWork: Sendable {
 	package let transport: any ModelTransport
 	package let clock: any Clock
 	package let diagnostics: DiagnosticsLog
+	package let ladder: RetryLadder
 
 	package func open(covering ulids: [ULID], stamp: OperationStamp)
 		async throws(LedgerFailure) -> FlushJob
@@ -266,7 +267,8 @@ package struct FlushWork: Sendable {
 		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
 	) async throws(CancellationError) -> FlushOutcome {
 		let outcome = try await memory.runFlush(
-			messages: messages, access: access, transport: transport, stamp: stamp, scope: scope)
+			messages: messages, access: access, transport: transport, diagnostics: diagnostics,
+			ladder: ladder, stamp: stamp, scope: scope)
 		if outcome.settlement == nil {
 			diagnostics.record(
 				.memoryFlushFailed(chat, detail: "\(outcome)"),
@@ -276,13 +278,14 @@ package struct FlushWork: Sendable {
 	}
 
 	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
-		let settlement: FlushSettlement
-		if let saved = outcome.settlement {
-			settlement = saved
-		} else {
-			guard job.process != process else { return }
-			settlement = .abandoned
-		}
+		let settlement: FlushSettlement? =
+			switch outcome {
+			case .failed(let failure), .partial(_, _, let failure):
+				job.process != process && failure.isTerminal ? .abandoned : nil
+			case .saved, .nothingToSave:
+				outcome.settlement
+			}
+		guard let settlement else { return }
 		do {
 			_ = try await ledger.commit(
 				local: [

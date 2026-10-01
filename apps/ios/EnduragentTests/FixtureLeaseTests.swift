@@ -88,7 +88,7 @@ extension FixtureLaunchTests {
 	@Test func aReplyFinishedAwayPostsOneNotification() async throws {
 		let system = StubBackgroundSystem()
 		system.isActive = false
-		let coach = try leaseCoach(host: leaseHost(system))
+		let coach = try await leaseCoach(host: leaseHost(system))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
 		try await waitUntil { !system.posted.isEmpty }
 		#expect(system.posted.count == 1)
@@ -100,7 +100,7 @@ extension FixtureLaunchTests {
 	@Test func backgroundTitlesFollowTheChosenLanguage() async throws {
 		let system = StubBackgroundSystem()
 		system.isActive = false
-		let coach = try leaseCoach(host: leaseHost(system))
+		let coach = try await leaseCoach(host: leaseHost(system))
 		try await coach.setLanguage(.fixed(.es))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
 		try await waitUntil { !system.posted.isEmpty }
@@ -111,7 +111,7 @@ extension FixtureLaunchTests {
 	@Test func aReplyFinishedInTheAppPostsNoNotification() async throws {
 		let system = StubBackgroundSystem()
 		let host = leaseHost(system)
-		let coach = try leaseCoach(host: host)
+		let coach = try await leaseCoach(host: host)
 		_ = try await reply(to: "Is Thursday on?", from: coach)
 		try await waitUntil { host.leases.first?.ending != nil }
 		#expect(system.posted.isEmpty)
@@ -128,7 +128,7 @@ extension FixtureLaunchTests {
 	@Test func fixtureExpireInterruptsTheRunningTurnAsSystemExpired() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-hang"
 		await model.send()
 		let running = try await leaseTurn(in: model) { state in
@@ -140,8 +140,7 @@ extension FixtureLaunchTests {
 				$0.kind == "memorySection" && $0.count > 0
 			}
 		}
-		model.draft.text = "fixture:expire"
-		await model.send()
+		await services.fixture?.host.expire(.systemExpired)
 		try await waitUntil {
 			guard
 				case .interrupted? = model.chat?.turns.first(where: { $0.id == running.id })?.state
@@ -170,15 +169,16 @@ extension FixtureLaunchTests {
 		ContinuedProcessingHost(bundleIdentifier: "icu.enduragent.app", system: system)
 	}
 
-	private func leaseCoach(host: ContinuedProcessingHost) throws -> Coach {
+	private func leaseCoach(host: ContinuedProcessingHost) async throws -> Coach {
 		let transport = FakeModelTransport()
 		transport.script = [.text("Still on."), .finish(reason: .stop)]
-		let secrets = FakeSecretStore()
+		let secrets = try ICloudKeychainStore.fixture(directory: launch.directory).store
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "sk-or-test-lease"))
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		return Coach(
+		let clock = FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
 				records: .inMemory(deviceId: DeviceID()),
@@ -187,12 +187,17 @@ extension FixtureLaunchTests {
 				training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()),
 				host: host,
-				clock: FixedClock(now: "1998-06-15T08:00:00Z", timeZone: "Europe/Ljubljana")
+				clock: clock
 			),
 			builtInModel: ModelID(rawValue: "test/lease-model"),
 			deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .milliseconds(20))
 		)
+		let services = AppServices(
+			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+			leases: { await host.leases }, packPrices: { _ in [:] })
+		await model(services).agreeAndStartChatting()
+		return coach
 	}
 
 	private func reply(to text: String, from coach: Coach) async throws -> String {
@@ -205,9 +210,9 @@ extension FixtureLaunchTests {
 		}
 		for await snapshot in await coach.observe(.main) {
 			if let state = snapshot.turns.first(where: { $0.id == turn })?.state,
-				let text = replyText(state)
+				state.isSettled
 			{
-				return text
+				return try #require(replyText(state), "Expected a completed reply, got \(state)")
 			}
 		}
 		return ""

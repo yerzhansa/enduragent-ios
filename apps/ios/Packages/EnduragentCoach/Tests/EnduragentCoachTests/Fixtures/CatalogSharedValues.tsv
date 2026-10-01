@@ -55,6 +55,7 @@ da,nl	chat.trainingContext.confidence.platform	platform	Native Danish and Dutch 
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.trainingContext.power	{{watts}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
 da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.trainingContext.workoutDetail	{{minutes}} min · {{sport}}	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
 da,de,es,it,nb,nl,pt-BR	chat.view.title	Chat	Established loanword for an online conversation in these locales.
+da,de,fr,it,ja,ko,nb,pl,sv,zh-Hans,zh-Hant	chat.welcomeCommand	{{command}} — {{description}}	Only substituted values and language-neutral punctuation; no English words.
 da,nl,pl	cli.setup.model	Model	Native model noun in these locales; shared spelling.
 es,pt-BR,pt-PT	cli.setup.modelHints.experimental	experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
 da,fr,nb,nl,pt-BR,pt-PT,sv	cli.setup.modelVia	{{model}} (via {{provider}})	Via is also the localized preposition in these locales; model and provider names are substituted.

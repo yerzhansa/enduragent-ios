@@ -1024,6 +1024,7 @@
       "savedChoice": "Choix enregistré",
       "working": "Le coach travaille…",
       "responseStopped": "Réponse arrêtée. La réponse partielle est conservée.",
+      "calendarUnverified": "La modification du calendrier a peut-être été enregistrée. Vérifie ton calendrier avant de renouveler ta demande.",
       "savedUnverified": "J’ai enregistré tes informations, mais je n’ai pas pu vérifier ma réponse. Réessaie."
     },
     "planChange": {
@@ -1466,7 +1467,9 @@
       "receivedBeforeClose": "Reçu avant la fermeture de l’app. Appuie sur Réessayer pour l’envoyer.",
       "restorePurchases": "Restaurer les achats",
       "signInAgain": "Se reconnecter"
-    }
+    },
+    "welcome": "Bienvenue dans {{product}} !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de {{service}}.\n\nCommandes :\n{{commands}}\n\nTu peux aussi simplement me parler de ton entraînement !",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2483,7 +2486,6 @@
       "start": "Commencer une nouvelle conversation",
       "status": "Voir ta condition physique, ta fatigue et ta forme actuelles",
       "sync": "Forcer l’actualisation des données d’entraînement depuis {{service}}",
-      "update": "Rechercher et installer des mises à jour",
       "version": "Afficher la version actuelle",
       "whatsnew": "Voir les changements de la dernière version",
       "workout": "Voir l’entraînement du jour"
@@ -2600,7 +2602,6 @@
       "managedInstruction": "Envoie {{whatsnew}} pour voir les changements. {{notice}}",
       "prepareFailed": "Impossible de préparer la mise à jour en toute sécurité pour le moment. Réessaie {{command}} dans un instant."
     },
-    "welcome": "Bienvenue dans {{product}} !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de {{service}}.\n\nCommandes :\n{{plan}} — Générer un plan d’entraînement\n{{workout}} — Voir l’entraînement du jour\n{{status}} — Voir ta condition physique, ta fatigue et ta forme actuelles\n{{review}} — Analyser ta dernière séance\n{{sync}} — Forcer l’actualisation des données d’entraînement depuis {{service}}\n{{version}} — Afficher la version actuelle\n{{whatsnew}} — Voir les changements de la dernière version\n{{update}} — {{updateDescription}}\n\nTu peux aussi simplement me parler de ton entraînement !",
     "workout": {
       "working": "Je vérifie ta forme et ton plan…"
     }
@@ -2955,13 +2956,20 @@
     },
     "notice": {
       "health": "Des suggestions d’entraînement, pas des conseils médicaux. Consulte un médecin avant tout changement important."
+    },
+    "consent": {
+      "title": "Ton coach utilise l’IA",
+      "body": "Pour répondre, Enduragent envoie tes messages, la mémoire de ton coach et les données d’entraînement que tu connectes depuis intervals.icu à OpenRouter, qui les transmet au fournisseur du modèle d’IA (DeepSeek). Ils utilisent ces données uniquement pour générer les réponses de ton coach. Rien n’est envoyé sans ton accord.",
+      "accept": "Accepter et continuer",
+      "decline": "Pas maintenant",
+      "saveFailed": "Impossible d’enregistrer ton accord. Réessaie."
     }
   },
   "access": {
     "error": {
       "locked": "Déverrouille ton iPhone pour continuer. Ton message est enregistré.",
       "notConfigured": "Choisis comment le coach accède à un modèle pour continuer.",
-      "providerConsentRequired": "Votre autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
+      "providerConsentRequired": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits."
     }
   },

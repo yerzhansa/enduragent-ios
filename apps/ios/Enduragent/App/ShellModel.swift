@@ -1,7 +1,6 @@
 import EnduragentCoach
 import Foundation
 import Observation
-import StoreKit
 
 @MainActor
 @Observable
@@ -13,6 +12,8 @@ final class ShellModel {
 	var draft = Draft(id: DraftID(), text: "")
 	var notSent = false
 	private(set) var isSending = false
+	private(set) var consentNotSaved = false
+	private(set) var isRecordingConsent = false
 	var slashListVisible = false
 	private(set) var status: CoachStatus?
 	var starterLine: String?
@@ -22,7 +23,6 @@ final class ShellModel {
 	var creditsNotice: AthleteNotice?
 	private(set) var history: HistoryList = .loading
 	private(set) var newConversationUncertain = false
-	private(set) var fixtureFeedback: String?
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
@@ -46,12 +46,9 @@ final class ShellModel {
 		self.defaults = environment.defaults
 		self.drafts = DraftStore(defaults: environment.defaults)
 		if defaults.bool(forKey: Self.onboardingCompletedKey) {
-			route = .chat
+			route = .loading
 		}
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
-		if route == .chat {
-			observeChat()
-		}
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
@@ -64,7 +61,7 @@ final class ShellModel {
 		status?.language ?? initialLanguage
 	}
 
-	var phrasebook: any Phrasebook {
+	var phrasebook: CatalogPhrasebook {
 		languagePreference.phrasebook(device: environment.language)
 	}
 
@@ -101,6 +98,7 @@ final class ShellModel {
 			.replace(apiKey: connectKey, athlete: .keyOwner))
 		switch outcome {
 		case .replaced:
+			connectKey = ""
 			connectError = nil
 			didConnect = true
 			await refreshStatus()
@@ -112,10 +110,12 @@ final class ShellModel {
 
 	func continueConnect() {
 		guard didConnect else { return }
+		connectKey = ""
 		route = .onboarding(.starter)
 	}
 
 	func skipConnect() {
+		connectKey = ""
 		didConnect = false
 		connectError = nil
 		route = .onboarding(.starter)
@@ -130,12 +130,12 @@ final class ShellModel {
 			switch outcome {
 			case .minted(let credits):
 				starterLine = phrasebook.say(
-					Catalog.creditsBalance,
-					["count": String(credits.units), "formattedCount": String(credits.units)])
+					Catalog.creditsBalance, count: credits.units,
+					["formattedCount": String(credits.units)])
 			case .toppedUp(let added):
 				starterLine = phrasebook.say(
-					Catalog.onboardingStarterAdded,
-					["count": String(added.units), "formattedCount": String(added.units)])
+					Catalog.onboardingStarterAdded, count: added.units,
+					["formattedCount": String(added.units)])
 			case .alreadyGranted:
 				starterLine =
 					try await existingBalanceLine()
@@ -152,17 +152,11 @@ final class ShellModel {
 		let scale = try await services.coach.credits.catalog().scale
 		let balance = try await services.coach.credits.balance(scale: scale)
 		return phrasebook.say(
-			Catalog.creditsBalance,
-			[
-				"count": String(balance.credits.units),
-				"formattedCount": String(balance.credits.units),
-			])
+			Catalog.creditsBalance, count: balance.credits.units,
+			["formattedCount": String(balance.credits.units)])
 	}
 
 	func appear() async {
-		if route == .chat {
-			observeChat()
-		}
 		await refreshStatus()
 	}
 
@@ -170,6 +164,12 @@ final class ShellModel {
 	func refreshStatus() async -> CoachStatus {
 		let current = await services.coach.status()
 		status = current
+		if route == .loading || route == .chat {
+			route = current.setup == .needsProviderConsent ? .onboarding(.consent) : .chat
+			if route == .chat {
+				observeChat()
+			}
+		}
 		return current
 	}
 
@@ -179,15 +179,40 @@ final class ShellModel {
 		await refreshStatus()
 	}
 
-	func startChatting() {
+	func startChatting() async {
 		defaults.set(true, forKey: Self.onboardingCompletedKey)
-		route = .chat
-		observeChat()
+		route = .loading
+		await refreshStatus()
+	}
+
+	func acceptConsent() async {
+		guard
+			route == .onboarding(.consent) || route == .onboarding(.consentDeferred),
+			!isRecordingConsent
+		else { return }
+		isRecordingConsent = true
+		defer { isRecordingConsent = false }
+		consentNotSaved = false
+		do {
+			try await services.coach.recordConsent()
+		} catch {
+			switch error {
+			case .notSaved:
+				consentNotSaved = true
+			}
+			return
+		}
+		await startChatting()
+	}
+
+	func declineConsent() {
+		guard route == .onboarding(.consent), !isRecordingConsent else { return }
+		consentNotSaved = false
+		route = .onboarding(.consentDeferred)
 	}
 
 	func newConversation() async {
 		reviewNotice = nil
-		fixtureFeedback = nil
 		showNewConversation(await services.coach.startNewConversation(in: .main))
 	}
 
@@ -209,13 +234,7 @@ final class ShellModel {
 			let held = try await services.coach.credits.balance(scale: loaded.scale)
 			balance = held.credits
 			creditsNotice = nil
-			if services.isFixture {
-				packPrices = [:]
-			} else {
-				let products = try await Product.products(for: loaded.packs.map(\.id))
-				packPrices = Dictionary(
-					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
-			}
+			packPrices = try await services.packPrices(loaded.packs.map(\.id))
 		} catch {
 			creditsNotice = AthleteNotice.credits(failure: error)
 		}
@@ -247,13 +266,8 @@ final class ShellModel {
 		defer { isSending = false }
 		notSent = false
 		newConversationUncertain = false
-		fixtureFeedback = nil
 		reviewNotice = nil
 		slashListVisible = false
-		if case .rejected(let message)? = await services.fixtureDirector?.prepare(for: text) {
-			fixtureFeedback = message
-			return
-		}
 		do {
 			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
 			case .accepted:

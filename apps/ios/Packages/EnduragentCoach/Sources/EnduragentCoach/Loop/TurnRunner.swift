@@ -1,13 +1,19 @@
 import Foundation
 import Synchronization
 
+package enum AttemptOrigin: Sendable, Equatable {
+	case send
+	case retry
+}
+
 package struct TurnAttempt: Sendable {
 	package let turn: TurnID
 	package let attempt: AttemptID
+	package let origin: AttemptOrigin
 	package let chat: ChatID
 	package let request: String
 	package let slash: SlashCommand?
-	package let language: LanguageResolution
+	package let language: ReplyLanguage
 	package let session: SessionSettings
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
@@ -47,19 +53,19 @@ extension Settlement {
 package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Void
 
 package struct TurnRunner: Sendable {
+	private static let droppedMessageLimit = 1_024
+
 	let transport: any ModelTransport
 	private let ledger: Ledger
 	let clock: any Clock
-	private let planning: Planning
 	let diagnostics: DiagnosticsLog
-	private let ladder: RetryLadder
+	let ladder: RetryLadder
 	private let evidence: any TurnEvidence
 
 	package init(
 		transport: any ModelTransport,
 		ledger: Ledger,
 		clock: any Clock,
-		planning: Planning,
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		evidence: any TurnEvidence
@@ -67,7 +73,6 @@ package struct TurnRunner: Sendable {
 		self.transport = transport
 		self.ledger = ledger
 		self.clock = clock
-		self.planning = planning
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
@@ -76,11 +81,13 @@ package struct TurnRunner: Sendable {
 	package func run(
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
 	) async throws(CancellationError) -> AttemptResult {
 		let prompt: TurnPrompt
 		do {
-			prompt = try await assemble(attempt, scope: scope, progress: progress)
+			prompt = try await assemble(
+				attempt, scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
 			return .failed(
@@ -101,18 +108,22 @@ package struct TurnRunner: Sendable {
 		while true {
 			let observed = TextObservation()
 			do {
-				if let pending {
-					try await prepare(
+				if let pending,
+					let outcome = try await prepare(
 						pending, prompt: &prompt, attempt: attempt, scope: scope, progress: progress
 					)
+				{
+					return .savedWork(outcome, saved: await scope.summary)
 				}
 				pending = nil
 				return try await generate(
 					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
+			} catch let saved as SavedWorkReached {
+				return .savedWork(saved.outcome, saved: await scope.summary)
 			} catch {
 				let failure = try AttemptFailure(caught: error)
 				let situation = AttemptSituation(
-					committed: await scope.written,
+					committed: try await scope.resolvedWrites(),
 					observedText: observed.seen,
 					promptTokens: prompt.estimatedTokens,
 					effectiveWindow: prompt.window,
@@ -141,7 +152,7 @@ package struct TurnRunner: Sendable {
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
-	) async throws {
+	) async throws -> SavedWorkOutcome? {
 		for preparation in retry.preparations {
 			switch preparation {
 			case .flushMemory:
@@ -163,6 +174,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
+		return try await scope.savedWork(using: ladder)
 	}
 
 	func flushOnce(
@@ -191,15 +203,15 @@ package struct TurnRunner: Sendable {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
 			memory: Memory(ledger: ledger, clock: clock),
-			transport: transport, clock: clock, diagnostics: diagnostics)
+			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 
 	private func assemble(
 		_ attempt: TurnAttempt,
 		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
 		progress: @escaping AttemptProgressSink
 	) async throws -> TurnPrompt {
-		_ = planning
 		let chatId = attempt.chat
 		let stamp = scope.stamp
 		let transcript = try await ledger.loadTranscript(chatId: chatId, excluding: attempt.turn)
@@ -211,7 +223,7 @@ package struct TurnRunner: Sendable {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
 			for: attempt.training, attempt: attempt.attempt, now: clock.now)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: attempt.language)
+		let replyLanguage = PromptAssembly.replyLanguageSection(attempt.language)
 		let zone = clock.timeZone
 		let volatile = PromptAssembly.volatile(
 			context: context,
@@ -236,9 +248,12 @@ package struct TurnRunner: Sendable {
 					trim.kept.isEmpty
 					? transcript.current?.ulid ?? attempt.turn.ulid
 					: history.ulids[trim.dropped.count]
-				summary = try await summarizeDropped(
+				let dropped = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
 					scope: scope, progress: progress)
+				await committed(dropped.records)
+				summary = dropped.summary
 			} catch is CancellationError {
 				throw CancellationError()
 			} catch {
@@ -275,29 +290,35 @@ package struct TurnRunner: Sendable {
 
 	private func summarizeDropped(
 		_ dropped: [WireMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
-		scope: TurnScope, progress: @escaping AttemptProgressSink
-	) async throws -> String {
+		droppedUlids: [ULID], scope: TurnScope, progress: @escaping AttemptProgressSink
+	) async throws -> (summary: String, records: [AthleteRecord]) {
 		await progress(.activity(.compacting))
 		try await scope.chargeCall()
 		let summary = try await summarize(
 			PromptAssembly.droppedSummaryRequest(
 				previous: previous, transcript: PromptAssembly.transcript(dropped)),
 			charge: .droppedSummary, attempt: attempt)
-		_ = try await ledger.commit(
-			synced: [
-				.windowStart(
-					WindowStartBody(
-						chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim)),
-				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary)),
+		let windows = stride(from: 0, to: droppedUlids.count, by: Self.droppedMessageLimit).map {
+			start in
+			SyncedRecordBody.windowStart(
+				WindowStartBody(
+					chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim,
+					droppedMessageUlids: Array(
+						droppedUlids[
+							start..<min(start + Self.droppedMessageLimit, droppedUlids.count)])))
+		}
+		let records = try await ledger.commit(
+			synced: windows + [
+				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary))
 			],
 			stamp: scope.stamp)
-		return summary
+		return (summary, records)
 	}
 
 	func summarize(_ request: String, charge: GenerateCharge, attempt: TurnAttempt)
 		async throws -> String
 	{
-		try await generateStep(
+		try await modelCall.run(
 			request: CompletionRequest(
 				access: attempt.access.using(model: attempt.models.compaction),
 				attempt: attempt.attempt,
@@ -317,7 +338,7 @@ package struct TurnRunner: Sendable {
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, planning: planning, clock: clock)
+			intervals: attempt.training.client, ledger: ledger, clock: clock)
 	}
 
 }

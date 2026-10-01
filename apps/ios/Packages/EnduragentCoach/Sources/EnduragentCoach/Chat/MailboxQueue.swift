@@ -1,98 +1,100 @@
 import Foundation
 
-extension ChatMailbox.Admitted {
-	func add(_ turn: TurnID) -> Bool {
-		queue.append(.turn(turn))
-	}
-
-	func add(_ reset: ResetID) -> Bool {
-		queue.append(.reset(reset))
-	}
-
-	func arm(
-		_ turn: TurnID, at now: Date, for duration: Duration,
-		then close: @escaping @Sendable (Int) async -> Void
-	) {
-		queue.joining.arm(turn, at: now, for: duration, then: close)
-	}
-
-	func closeWindow(ifArmed armed: Int? = nil) -> TurnID? {
-		queue.joining.close(ifArmed: armed)
-	}
-}
-
 final class MailboxQueue {
-	fileprivate var joining = JoinWindow()
-	private(set) var active: MailboxWork?
-	private var waiting: [MailboxWork] = []
-
-	var window: OpenWindow? { joining.open }
+	private(set) var window: OpenWindow?
+	private var armed = 0
+	private(set) var phase = MailboxPhase.idle
+	private(set) var waiting: [MailboxWork] = []
+	private var interrupted: [CheckedContinuation<Void, Never>] = []
 
 	var isEmpty: Bool { waiting.isEmpty }
 
 	var next: MailboxWork? { waiting.first }
 
-	var resetting: Bool {
-		active?.reset != nil || waiting.contains { $0.reset != nil }
+	func add(_ turn: TurnID, origin: AttemptOrigin) -> Bool {
+		append(.turn(turn, origin: origin))
 	}
 
-	func turns(includingActive: Bool) -> [TurnID] {
-		let items = includingActive ? [active].compactMap { $0 } + waiting : waiting
-		return items.compactMap(\.turn)
+	func add(_ reset: ResetID) -> Bool {
+		append(.reset(reset))
+	}
+
+	func arm(_ turn: TurnID, at now: Date, for duration: Duration) -> Int {
+		armed += 1
+		window = OpenWindow(turn: turn, closesAt: now.addingTimeInterval(duration.timeInterval))
+		return armed
+	}
+
+	func closeWindow(ifArmed generation: Int? = nil) -> TurnID? {
+		guard let window, generation == nil || generation == armed else { return nil }
+		self.window = nil
+		return window.turn
 	}
 
 	func add(_ job: FlushJobID) -> Bool {
 		append(.flush(job))
 	}
 
-	func start() -> MailboxWork? {
-		guard !waiting.isEmpty else { return nil }
-		active = waiting.removeFirst()
-		return active
+	func start(_ run: (MailboxWork) -> Task<Void, Never>) {
+		guard case .idle = phase, !waiting.isEmpty else { return }
+		let next = waiting.removeFirst()
+		phase = .running(.active(next, run(next), nil))
 	}
 
 	func finish() {
-		active = nil
+		if case .stopping(let cause, _) = phase {
+			phase = .stopping(cause, nil)
+		} else {
+			phase = .idle
+		}
+	}
+
+	func finishTurn() {
+		guard let running = phase.running else {
+			preconditionFailure("A finishing turn must retain its running task")
+		}
+		update(.finishing(running.task))
+	}
+
+	func show(_ attempt: RunningAttempt) {
+		guard case .active(let item, let task, _)? = phase.running else { return }
+		update(.active(item, task, attempt))
+	}
+
+	func beginInterruption(_ cause: InterruptionCause) {
+		phase = .stopping(cause, phase.running)
+	}
+
+	func joinInterruption(isolation: isolated (any Actor)? = #isolation) async {
+		await withCheckedContinuation { interrupted.append($0) }
+	}
+
+	func endInterruption() {
+		guard case .stopping(_, nil) = phase else {
+			preconditionFailure("An interruption must join its running task before ending")
+		}
+		phase = .idle
+		while let waiting = interrupted.popLast() {
+			waiting.resume()
+		}
 	}
 
 	func dropWaiting() -> [TurnID] {
 		defer { waiting.removeAll { $0.reset == nil } }
-		return turns(includingActive: false)
+		return waiting.compactMap(\.turn)
 	}
 
-	fileprivate func append(_ item: MailboxWork) -> Bool {
+	private func append(_ item: MailboxWork) -> Bool {
 		guard !waiting.contains(item) else { return false }
 		waiting.append(item)
 		return true
 	}
-}
 
-private struct JoinWindow: Sendable {
-	private(set) var open: OpenWindow?
-	private var armed = 0
-
-	mutating func arm(
-		_ turn: TurnID, at now: Date, for duration: Duration,
-		then close: @escaping @Sendable (Int) async -> Void
-	) {
-		armed += 1
-		let generation = armed
-		open = OpenWindow(turn: turn, closesAt: now.addingTimeInterval(duration.timeInterval))
-		Task {
-			do {
-				try await Task.sleep(for: duration)
-			} catch is CancellationError {
-				return
-			} catch {
-				fatalError("Task.sleep failed: \(error)")
-			}
-			await close(generation)
+	private func update(_ running: RunningWork) {
+		if let cause = phase.cause {
+			phase = .stopping(cause, running)
+		} else {
+			phase = .running(running)
 		}
-	}
-
-	mutating func close(ifArmed generation: Int? = nil) -> TurnID? {
-		guard let open, generation == nil || generation == armed else { return nil }
-		self.open = nil
-		return open.turn
 	}
 }

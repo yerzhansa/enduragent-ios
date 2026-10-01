@@ -48,8 +48,24 @@ jobs:
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
           /tmp/xcodegen/xcodegen/bin/xcodegen --version
           /tmp/xcodegen/xcodegen/bin/xcodegen generate --spec apps/ios/project.yml
-      - name: Build unsigned iPhone app
-        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+      - name: Test iPhone app
+        run: |
+          xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations > "$RUNNER_TEMP/enduragent-destinations.txt"
+          destination_id="$(awk '
+            /Available destinations for/ { available = 1; next }
+            /Ineligible destinations for/ { available = 0 }
+            available && /platform:iOS Simulator/ && /name:iPhone/ {
+              sub(/^.*id:/, "")
+              sub(/,.*/, "")
+              print
+              exit
+            }
+          ' "$RUNNER_TEMP/enduragent-destinations.txt")"
+          if [ -z "$destination_id" ]; then
+            cat "$RUNNER_TEMP/enduragent-destinations.txt"
+            exit 1
+          fi
+          xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$destination_id" -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
       - name: Build unsigned iPhone app in Release

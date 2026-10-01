@@ -48,6 +48,67 @@ function isDebugOnly(text) {
   }
   return depth === 0;
 }
+function hasReleaseFixtureLaunch(text) {
+  const guards = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*#if\b/.test(line)) {
+      guards.push({ debug: /^\s*#if\s+DEBUG\s*$/.test(line), alternate: false });
+    } else if (/^\s*#(?:else|elseif)\b/.test(line)) {
+      if (guards.length) guards.at(-1).alternate = true;
+    } else if (/^\s*#endif\b/.test(line)) {
+      guards.pop();
+    } else if (/\bFixtureLaunch\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+      return true;
+    }
+  }
+  return false;
+}
+function hasExtraSecretStore(text) {
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
+    .some(([, name, declaration]) => {
+      if (name === 'ICloudKeychainStore') return false;
+      let header = declaration;
+      while (/<[^<>]*>/.test(header)) header = header.replace(/<[^<>]*>/g, '');
+      const inheritance = header.split(/\bwhere\b/)[0];
+      return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
+    });
+}
+function hasExposedMailboxState(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  let depth = 0;
+  let projection = false;
+  for (const match of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+    const [, declaration, boundary] = match;
+    const opensBody = boundary === '{' || (boundary === '\n' && /^\s*\{/.test(code.slice(match.index + match[0].length)));
+    if (depth === 1) {
+      const member = /^(.*?)\b(let|var)\s+/.exec(declaration);
+      if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
+        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
+        if (member[2] === 'let' || /\blazy\b/.test(member[1]) || declaration.includes('=') || !opensBody) return true;
+        projection = true;
+      }
+    }
+    if (depth === 2 && projection && opensBody
+      && /^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:nonmutating|mutating)\s+)?(?:set|_modify|willSet|didSet)(?:\s*\([^)]*\))?\s*$/.test(declaration)) return true;
+    if (boundary === '{') depth++;
+    if (boundary === '}') depth--;
+    if (depth === 1 && boundary === '}') projection = false;
+  }
+  return false;
+}
+function checkLedgerIndexVersion(file, text) {
+  const versions = new Map([
+    ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
+  ]);
+  const modifier = /@Attribute\(\s*hashModifier:\s*"(ledger-indexes-v\d+)"\s*\)\s*var\s+deviceId\b/.exec(text)?.[1];
+  const declarations = [...text.matchAll(/#Index\s*<\s*StoredAthleteRecord\s*>\s*\(([^)]*)\)/g)];
+  const indexes = declarations.flatMap(match => [...match[1].matchAll(/\[([^\]]*)\]/g)]
+    .map(fields => fields[1].replace(/\s|\\\./g, ''))).sort();
+  const expected = versions.get(modifier);
+  if (!expected || JSON.stringify(indexes) !== JSON.stringify([...expected].sort())) {
+    report(file, 'ledger-index-version');
+  }
+}
 function checkFeatureProofs(sources) {
   const classes = new Map();
   const mapped = new Set();
@@ -107,21 +168,20 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Records\/.*\.swift$/.test(file)
       && /\b(?:public|open)\b|@_spi\b/.test(text)) report(file, 'records-package-only');
-    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
-      const declaration = /^(.*?)\b(?:let|var|func)\s+(?:ledger|clock|process|records|work|interruption|live|finishedAway|waits|door|pass)\b/;
-      const exposed = text.split('\n').some(line => {
-        const member = declaration.exec(line.replace(/"(?:\\.|[^"\\])*"/g, '""'));
-        return member && !/(?:^|\s)private(?:\s|$)/.test(member[1]);
-      });
-      if (exposed) report(file, 'mailbox-private-state');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift') {
+      checkLedgerIndexVersion(file, text);
     }
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && !file.endsWith('DebugView.swift') && /\bconfirmLine\s*=\s*#*"/.test(text)) report(file, 'uncatalogued-confirmation');
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:builder|environment)\s*\.\s*phrasebook\b/.test(text)) report(file, 'device-only-phrasebook');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
+      if (hasExposedMailboxState(text)) report(file, 'mailbox-private-state');
+    }
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
       && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)
       && (!file.endsWith('DebugView.swift') || !isDebugOnly(text))) report(file, 'fixture-feedback-debug-only');

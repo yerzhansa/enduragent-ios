@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 enum TutorialHarness {
@@ -11,7 +12,6 @@ enum TutorialHarness {
 	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 	static let reviewReply = "Saturday group ride"
 	static let welcomeHead = "Welcome to Cycling Coach!"
-	static let syncLine = "/sync — Force-refresh training data from intervals.icu"
 	static let newConversationStarted = "New conversation started."
 	static let newConversationMemoryWarning =
 		"New conversation started. Some recent details may not have been saved to coach memory."
@@ -91,6 +91,9 @@ enum TutorialHarness {
 			] + arguments
 		app.launch()
 		XCTAssertTrue(app.wait(for: .runningForeground, timeout: 10))
+		if named(app, "consent.accept").waitForExistence(timeout: 3) {
+			agreeToProviderConsent(app)
+		}
 		guard named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
 			throw XCTSkip(v1StoreMissing)
 		}
@@ -225,6 +228,18 @@ enum TutorialHarness {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, timeout: timeout)
 		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
+		let phrasebook = CatalogPhrasebook(tag: .en)
+		let commands = welcome.label.split(separator: "\n").filter { $0.hasPrefix("/") }
+		XCTAssertEqual(
+			commands.map(String.init),
+			SlashCommand.allCases.map { command in
+				phrasebook.say(
+					Catalog.chatWelcomeCommand,
+					[
+						"command": command.rawValue,
+						"description": phrasebook.say(command.menuTitle),
+					])
+			})
 	}
 
 	static func startNewConversation(_ app: XCUIApplication) {
@@ -287,6 +302,15 @@ enum TutorialHarness {
 		waitUntilHittable(sidebar)
 		sidebar.tap()
 		wait(named(app, "sidebar.credits"))
+	}
+
+	static func fixtureControl(_ app: XCUIApplication, _ identifier: String) {
+		openSidebar(app)
+		named(app, "sidebar.debug").tap()
+		let control = named(app, identifier)
+		waitUntilHittable(control)
+		control.tap()
+		closeMenu(app)
 	}
 
 	static func openRecords(_ app: XCUIApplication) {

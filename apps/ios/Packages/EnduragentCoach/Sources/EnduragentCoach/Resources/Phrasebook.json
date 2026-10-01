@@ -336,7 +336,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA."
+            "value": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA."
           }
         },
         "it": {
@@ -18335,6 +18335,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "無法更新此附件。訊息草稿已保留。"
+          }
+        }
+      }
+    },
+    "chat.notice.calendarUnverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The calendar change may have been saved. Check your calendar before asking again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es posible que el cambio en el calendario se haya guardado. Revisa tu calendario antes de volver a pedirlo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La modification du calendrier a peut-être été enregistrée. Vérifie ton calendrier avant de renouveler ta demande."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La modifica al calendario potrebbe essere stata salvata. Controlla il calendario prima di chiedere di nuovo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenderendringen kan ha blitt lagret. Sjekk kalenderen din før du spør igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A alteração no calendário pode ter sido salva. Confira seu calendário antes de pedir novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캘린더 변경 사항이 저장되었을 수 있습니다. 다시 요청하기 전에 캘린더를 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "カレンダーの変更は保存されている可能性があります。もう一度依頼する前に、カレンダーを確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日历更改可能已保存。再次请求前，请先检查日历。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "行事曆變更可能已儲存。再次提出要求前，請先檢查行事曆。"
           }
         }
       }
@@ -71977,6 +72083,626 @@
           "stringUnit": {
             "state": "translated",
             "value": "聊天"
+          }
+        }
+      }
+    },
+    "chat.welcome": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to %#@product@!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using %#@service@ data.\n\nCommands:\n%#@commands@\n\nOr just chat with me about your training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Te doy la bienvenida a %#@product@!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de %#@service@.\n\nComandos:\n%#@commands@\n\n¡También puedes hablar conmigo sobre tu entrenamiento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bienvenue dans %#@product@ !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de %#@service@.\n\nCommandes :\n%#@commands@\n\nTu peux aussi simplement me parler de ton entraînement !"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti do il benvenuto su %#@product@!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di %#@service@.\n\nComandi:\n%#@commands@\n\nOppure parlami del tuo allenamento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Willkommen bei %#@product@!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von %#@service@-Daten verfolgen.\n\nBefehle:\n%#@commands@\n\nOder sprich einfach mit mir über dein Training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welkom bij %#@product@!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van %#@service@.\n\nOpdrachten:\n%#@commands@\n\nJe kunt ook gewoon met me praten over je training!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velkommen til %#@product@!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra %#@service@.\n\nKommandoer:\n%#@commands@\n\nEller skriv bare til mig om din træning!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Välkommen till %#@product@!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från %#@service@.\n\nKommandon:\n%#@commands@\n\nDu kan också bara prata med mig om din träning!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Velkommen til %#@product@!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra %#@service@.\n\nKommandoer:\n%#@commands@\n\nDu kan også bare prate med meg om treningen din!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tervetuloa käyttämään sovellusta %#@product@!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun %#@service@ tietojen avulla.\n\nKomennot:\n%#@commands@\n\nVoit myös vain jutella kanssani harjoittelustasi!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boas-vindas ao %#@product@!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de %#@service@.\n\nComandos:\n%#@commands@\n\nOu fala comigo sobre o teu treino!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boas-vindas ao %#@product@!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de %#@service@.\n\nComandos:\n%#@commands@\n\nOu converse comigo sobre seu treinamento!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Witaj w %#@product@!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z %#@service@.\n\nPolecenia:\n%#@commands@\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@product@에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. %#@service@ 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n%#@commands@\n\n편하게 훈련 이야기를 나눠도 좋습니다!"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@product@へようこそ！\n\nAIサイクリングコーチです。%#@service@のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n%#@commands@\n\nトレーニングについて、気軽に話しかけてください！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
+          },
+          "substitutions": {
+            "product": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "service": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            },
+            "commands": {
+              "argNum": 3,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "chat.welcomeCommand": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@: %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@: %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ : %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%#@command@ — %#@description@"
+          },
+          "substitutions": {
+            "command": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "description": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         }
       }
@@ -126903,6 +127629,536 @@
           "stringUnit": {
             "state": "translated",
             "value": "暫時略過"
+          }
+        }
+      }
+    },
+    "onboarding.consent.accept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agree and continue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aceptar y continuar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepter et continuer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acconsenti e continua"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zustimmen und fortfahren"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akkoord en doorgaan"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceptér og fortsæt"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Godkänn och fortsätt"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Samtykk og fortsett"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hyväksy ja jatka"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concordar e continuar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concordar e continuar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wyraź zgodę i kontynuuj"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동의하고 계속하기"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意して続ける"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意并继续"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意並繼續"
+          }
+        }
+      }
+    },
+    "onboarding.consent.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para responder, Enduragent envía tus mensajes, la memoria de tu entrenador y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los transmite al proveedor del modelo de IA (DeepSeek). Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour répondre, Enduragent envoie tes messages, la mémoire de ton coach et les données d’entraînement que tu connectes depuis intervals.icu à OpenRouter, qui les transmet au fournisseur du modèle d’IA (DeepSeek). Ils utilisent ces données uniquement pour générer les réponses de ton coach. Rien n’est envoyé sans ton accord."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Per rispondere, Enduragent invia i tuoi messaggi, la memoria del tuo coach e i dati di allenamento che colleghi da intervals.icu a OpenRouter, che li trasmette al fornitore del modello di IA (DeepSeek). Usano questi dati solo per generare le risposte del tuo coach. Non viene inviato nulla finché non acconsenti."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Om te antwoorden stuurt Enduragent je berichten, het geheugen van je coach en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan de aanbieder van het AI-model (DeepSeek). Ze gebruiken deze gegevens alleen om de antwoorden van je coach te genereren. Er wordt niets verstuurd totdat je akkoord gaat."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For at svare sender Enduragent dine beskeder, din coachs hukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til udbyderen af AI-modellen (DeepSeek). De bruger kun disse data til at generere din coachs svar. Intet sendes, før du giver samtykke."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For å svare sender Enduragent meldingene dine, trenerens minne og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som sender dem videre til leverandøren av KI-modellen (DeepSeek). De bruker disse dataene bare til å lage svarene fra treneren din. Ingenting sendes før du samtykker."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para responder, o Enduragent envia as tuas mensagens, a memória do teu treinador e os dados de treino que ligas a partir do intervals.icu ao OpenRouter, que os transmite ao fornecedor do modelo de IA (DeepSeek). Usam estes dados apenas para gerar as respostas do teu treinador. Nada é enviado até concordares."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para responder, o Enduragent envia suas mensagens, a memória do seu treinador e os dados de treino que você conecta do intervals.icu ao OpenRouter, que os repassa ao provedor do modelo de IA (DeepSeek). Eles usam esses dados apenas para gerar as respostas do seu treinador. Nada é enviado até você concordar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenera i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je dostawcy modelu AI (DeepSeek). Wykorzystują te dane wyłącznie do generowania odpowiedzi Twojego trenera. Nic nie zostanie wysłane bez Twojej zgody."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为了回复你，Enduragent 会将你的消息、教练记忆以及你从 intervals.icu 连接的训练数据发送给 OpenRouter，再由 OpenRouter 传递给 AI 模型提供商（DeepSeek）。他们仅使用这些数据来生成教练的回复。在你同意之前，不会发送任何内容。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為了回覆你，Enduragent 會將你的訊息、教練記憶，以及你從 intervals.icu 連結的訓練資料傳送給 OpenRouter，再由 OpenRouter 傳遞給 AI 模型供應商（DeepSeek）。他們僅使用這些資料來產生教練的回覆。在你同意之前，不會傳送任何內容。"
+          }
+        }
+      }
+    },
+    "onboarding.consent.decline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora no"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pas maintenant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non ora"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht jetzt"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niet nu"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke nu"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inte nu"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ikke nå"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ei nyt"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agora não"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agora não"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie teraz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "나중에"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今はしない"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暫不"
+          }
+        }
+      }
+    },
+    "onboarding.consent.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save your agreement. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar tu consentimiento. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’enregistrer ton accord. Réessaie."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare il tuo consenso. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Zustimmung konnte nicht gespeichert werden. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je toestemming kon niet worden opgeslagen. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit samtykke kunne ikke gemmes. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att spara ditt samtycke. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Samtykket ditt kunne ikke lagres. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível guardar o teu consentimento. Tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar seu consentimento. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać Twojej zgody. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "동의를 저장하지 못했어요. 다시 시도해 주세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意を保存できませんでした。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存你的同意。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法儲存你的同意。請再試一次。"
+          }
+        }
+      }
+    },
+    "onboarding.consent.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your coach uses AI"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu entrenador usa IA"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton coach utilise l’IA"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo coach usa l’IA"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Coach nutzt KI"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je coach gebruikt AI"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din coach bruger AI"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din coach använder AI"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treneren din bruker KI"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valmentajasi käyttää tekoälyä"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O teu treinador usa IA"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu treinador usa IA"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój trener korzysta z AI"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "코치는 AI를 사용해요"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コーチはAIを使用します"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的教练使用 AI"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的教練使用 AI"
           }
         }
       }
@@ -302733,112 +303989,6 @@
         }
       }
     },
-    "telegram.menu.update": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check for and install updates"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar e instalar actualizaciones"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechercher et installer des mises à jour"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cerca e installa aggiornamenti"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nach Updates suchen und sie installieren"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Controleren op updates en deze installeren"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Søg efter og installer opdateringer"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sök efter och installera uppdateringar"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se etter og installer oppdateringer"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tarkista ja asenna päivitykset"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Procurar e instalar atualizações"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verificar e instalar atualizações"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sprawdź i zainstaluj aktualizacje"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트 확인 및 설치"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新を確認してインストール"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查并安装更新"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "檢查並安裝更新"
-          }
-        }
-      }
-    },
     "telegram.menu.version": {
       "localizations": {
         "en": {
@@ -322265,894 +323415,6 @@
           "substitutions": {
             "command": {
               "argNum": 1,
-              "formatSpecifier": "@"
-            }
-          }
-        }
-      }
-    },
-    "telegram.welcome": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welcome to %#@product@!\n\nI'm your AI cycling coach. I can build training plans, suggest workouts, and track your fitness using %#@service@ data.\n\nCommands:\n%#@plan@ — Generate a training plan\n%#@workout@ — Get today's workout\n%#@status@ — Check current fitness, fatigue, and form\n%#@review@ — Review your last session\n%#@sync@ — Force-refresh training data from %#@service@\n%#@version@ — Show current version\n%#@whatsnew@ — See what changed in the latest version\n%#@update@ — %#@updateDescription@\n\nOr just chat with me about your training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Te doy la bienvenida a %#@product@!\n\nSoy tu entrenador de ciclismo con IA. Puedo crear planes de entrenamiento, sugerir entrenamientos y seguir tu condición física con los datos de %#@service@.\n\nComandos:\n%#@plan@: generar un plan de entrenamiento\n%#@workout@: consultar el entrenamiento de hoy\n%#@status@: consultar tu condición física, fatiga y forma actuales\n%#@review@: revisar tu última sesión\n%#@sync@: forzar la actualización de los datos de entrenamiento de %#@service@\n%#@version@: mostrar la versión actual\n%#@whatsnew@: ver las novedades de la última versión\n%#@update@: %#@updateDescription@\n\n¡También puedes hablar conmigo sobre tu entrenamiento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bienvenue dans %#@product@ !\n\nJe suis ton coach de cyclisme IA. Je peux créer des plans d’entraînement, te proposer des entraînements et suivre ta condition physique avec les données de %#@service@.\n\nCommandes :\n%#@plan@ — Générer un plan d’entraînement\n%#@workout@ — Voir l’entraînement du jour\n%#@status@ — Voir ta condition physique, ta fatigue et ta forme actuelles\n%#@review@ — Analyser ta dernière séance\n%#@sync@ — Forcer l’actualisation des données d’entraînement depuis %#@service@\n%#@version@ — Afficher la version actuelle\n%#@whatsnew@ — Voir les changements de la dernière version\n%#@update@ — %#@updateDescription@\n\nTu peux aussi simplement me parler de ton entraînement !"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ti do il benvenuto su %#@product@!\n\nSono il tuo coach di ciclismo con IA. Posso creare piani di allenamento, suggerire allenamenti e seguire il tuo fitness con i dati di %#@service@.\n\nComandi:\n%#@plan@ — Genera un piano di allenamento\n%#@workout@ — Mostra l’allenamento di oggi\n%#@status@ — Controlla fitness, fatica e forma attuali\n%#@review@ — Rivedi la tua ultima sessione\n%#@sync@ — Forza l’aggiornamento dei dati di allenamento da %#@service@\n%#@version@ — Mostra la versione attuale\n%#@whatsnew@ — Scopri le novità dell’ultima versione\n%#@update@ — %#@updateDescription@\n\nOppure parlami del tuo allenamento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Willkommen bei %#@product@!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von %#@service@-Daten verfolgen.\n\nBefehle:\n%#@plan@ — Einen Trainingsplan erstellen\n%#@workout@ — Heutiges Training abrufen\n%#@status@ — Aktuelle Fitness, Ermüdung und Form prüfen\n%#@review@ — Deine letzte Einheit besprechen\n%#@sync@ — Trainingsdaten von %#@service@ vollständig aktualisieren\n%#@version@ — Aktuelle Version anzeigen\n%#@whatsnew@ — Änderungen der neuesten Version ansehen\n%#@update@ — %#@updateDescription@\n\nOder sprich einfach mit mir über dein Training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Welkom bij %#@product@!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van %#@service@.\n\nOpdrachten:\n%#@plan@ : Een trainingsschema maken\n%#@workout@ : De training van vandaag ophalen\n%#@status@ : Je huidige conditie, vermoeidheid en vorm bekijken\n%#@review@ : Je laatste training bekijken\n%#@sync@ : Trainingsgegevens uit %#@service@ geforceerd vernieuwen\n%#@version@ : Huidige versie tonen\n%#@whatsnew@ : Bekijk wat er in de nieuwste versie is veranderd\n%#@update@ : %#@updateDescription@\n\nJe kunt ook gewoon met me praten over je training!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velkommen til %#@product@!\n\nJeg er din AI-cykeltræner. Jeg kan lave træningsplaner, foreslå træning og følge din fitness med data fra %#@service@.\n\nKommandoer:\n%#@plan@ — Lav en træningsplan\n%#@workout@ — Se dagens træning\n%#@status@ — Se din aktuelle fitness, træthed og form\n%#@review@ — Gennemgå din seneste træning\n%#@sync@ — Gennemtving opdatering af træningsdata fra %#@service@\n%#@version@ — Vis den aktuelle version\n%#@whatsnew@ — Se ændringer i den nyeste version\n%#@update@ — %#@updateDescription@\n\nEller skriv bare til mig om din træning!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Välkommen till %#@product@!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från %#@service@.\n\nKommandon:\n%#@plan@ — Skapa en träningsplan\n%#@workout@ — Hämta dagens träningspass\n%#@status@ — Kontrollera aktuell CTL, trötthet och TSB\n%#@review@ — Gå igenom ditt senaste träningspass\n%#@sync@ — Tvinga uppdatering av träningsdata från %#@service@\n%#@version@ — Visa aktuell version\n%#@whatsnew@ — Se vad som ändrats i den senaste versionen\n%#@update@ — %#@updateDescription@\n\nDu kan också bara prata med mig om din träning!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Velkommen til %#@product@!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra %#@service@.\n\nKommandoer:\n%#@plan@ — Lag en treningsplan\n%#@workout@ — Hent dagens treningsøkt\n%#@status@ — Sjekk form (CTL), tretthet (ATL) og form (TSB)\n%#@review@ — Se gjennom den siste treningsøkten din\n%#@sync@ — Hent oppdaterte treningsdata fra %#@service@\n%#@version@ — Vis nåværende versjon\n%#@whatsnew@ — Se hva som er nytt i den nyeste versjonen\n%#@update@ — %#@updateDescription@\n\nDu kan også bare prate med meg om treningen din!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tervetuloa käyttämään sovellusta %#@product@!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun %#@service@ tietojen avulla.\n\nKomennot:\n%#@plan@: Luo harjoitussuunnitelma\n%#@workout@: Hae tämän päivän harjoitus\n%#@status@: Tarkista nykyinen kunto, väsymys ja tuoreus\n%#@review@: Tarkista viimeisin harjoituksesi\n%#@sync@: Pakota harjoitustietojen päivitys palvelusta %#@service@\n%#@version@: Näytä nykyinen versio\n%#@whatsnew@: Katso uusimman version muutokset\n%#@update@: %#@updateDescription@\n\nVoit myös vain jutella kanssani harjoittelustasi!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boas-vindas ao %#@product@!\n\nSou o teu treinador de ciclismo com IA. Posso criar planos de treino, sugerir treinos e acompanhar a tua condição física com os dados de %#@service@.\n\nComandos:\n%#@plan@ : Gerar um plano de treino\n%#@workout@ : Ver o treino de hoje\n%#@status@ : Ver a condição física, a fadiga e a forma atuais\n%#@review@ : Rever o teu último treino\n%#@sync@ : Forçar a atualização dos dados de treino de %#@service@\n%#@version@ : Mostrar a versão atual\n%#@whatsnew@ : Ver o que mudou na versão mais recente\n%#@update@ : %#@updateDescription@\n\nOu fala comigo sobre o teu treino!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Boas-vindas ao %#@product@!\n\nSou seu treinador de ciclismo com IA. Posso criar planos de treinamento, sugerir treinos e acompanhar seu condicionamento com os dados de %#@service@.\n\nComandos:\n%#@plan@ : Gerar um plano de treinamento\n%#@workout@ : Ver o treino de hoje\n%#@status@ : Ver o condicionamento, a fadiga e a forma atuais\n%#@review@ : Revisar seu último treino\n%#@sync@ : Forçar a atualização dos dados de treinamento de %#@service@\n%#@version@ : Mostrar a versão atual\n%#@whatsnew@ : Ver o que mudou na versão mais recente\n%#@update@ : %#@updateDescription@\n\nOu converse comigo sobre seu treinamento!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Witaj w %#@product@!\n\nJestem twoim trenerem kolarskim AI. Mogę tworzyć plany treningowe, proponować treningi i śledzić twoje wytrenowanie na podstawie danych z %#@service@.\n\nPolecenia:\n%#@plan@ — Utwórz plan treningowy\n%#@workout@ — Pokaż dzisiejszy trening\n%#@status@ — Sprawdź obecne wytrenowanie, zmęczenie i formę\n%#@review@ — Przeanalizuj ostatni trening\n%#@sync@ — Wymuś odświeżenie danych treningowych z %#@service@\n%#@version@ — Pokaż obecną wersję\n%#@whatsnew@ — Zobacz zmiany w najnowszej wersji\n%#@update@ — %#@updateDescription@\n\nMożesz też po prostu porozmawiać ze mną o swoim treningu!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@product@에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. %#@service@ 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n%#@plan@ — 훈련 계획 만들기\n%#@workout@ — 오늘의 워크아웃 확인\n%#@status@ — 현재 체력, 피로도, 밸런스 확인\n%#@review@ — 지난 훈련 돌아보기\n%#@sync@ — %#@service@에서 훈련 데이터 강제 새로고침\n%#@version@ — 현재 버전 표시\n%#@whatsnew@ — 최신 버전의 변경 사항 보기\n%#@update@ — %#@updateDescription@\n\n편하게 훈련 이야기를 나눠도 좋습니다!"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%#@product@へようこそ！\n\nAIサイクリングコーチです。%#@service@のデータを使ってトレーニングプランを作成し、ワークアウトを提案し、フィットネスの変化を確認できます。\n\nコマンド:\n%#@plan@ — トレーニングプランを作成\n%#@workout@ — 今日のワークアウトを確認\n%#@status@ — 現在のフィットネス、ファティーグ、フォームを確認\n%#@review@ — 前回のトレーニングを振り返る\n%#@sync@ — %#@service@からトレーニングデータを強制更新\n%#@version@ — 現在のバージョンを表示\n%#@whatsnew@ — 最新バージョンの変更内容を見る\n%#@update@ — %#@updateDescription@\n\nトレーニングについて、気軽に話しかけてください！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@plan@ — 生成训练计划\n%#@workout@ — 获取今日训练课程\n%#@status@ — 查看当前体能（CTL）、疲劳（ATL）和状态（TSB）\n%#@review@ — 回顾上次训练\n%#@sync@ — 强制从 %#@service@ 刷新训练数据\n%#@version@ — 显示当前版本\n%#@whatsnew@ — 查看最新版本的变化\n%#@update@ — %#@updateDescription@\n\n也可以直接和我聊聊训练！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
-              "formatSpecifier": "@"
-            }
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@plan@ — 產生訓練計畫\n%#@workout@ — 取得今日訓練課表\n%#@status@ — 查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）\n%#@review@ — 回顧上次訓練\n%#@sync@ — 強制從 %#@service@ 重新整理訓練資料\n%#@version@ — 顯示目前版本\n%#@whatsnew@ — 查看最新版本的變更\n%#@update@ — %#@updateDescription@\n\n也可以直接和我聊聊訓練！"
-          },
-          "substitutions": {
-            "product": {
-              "argNum": 1,
-              "formatSpecifier": "@"
-            },
-            "service": {
-              "argNum": 2,
-              "formatSpecifier": "@"
-            },
-            "plan": {
-              "argNum": 3,
-              "formatSpecifier": "@"
-            },
-            "workout": {
-              "argNum": 4,
-              "formatSpecifier": "@"
-            },
-            "status": {
-              "argNum": 5,
-              "formatSpecifier": "@"
-            },
-            "review": {
-              "argNum": 6,
-              "formatSpecifier": "@"
-            },
-            "sync": {
-              "argNum": 7,
-              "formatSpecifier": "@"
-            },
-            "version": {
-              "argNum": 8,
-              "formatSpecifier": "@"
-            },
-            "whatsnew": {
-              "argNum": 9,
-              "formatSpecifier": "@"
-            },
-            "update": {
-              "argNum": 10,
-              "formatSpecifier": "@"
-            },
-            "updateDescription": {
-              "argNum": 11,
               "formatSpecifier": "@"
             }
           }

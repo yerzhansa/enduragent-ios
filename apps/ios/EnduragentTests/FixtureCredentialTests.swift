@@ -8,10 +8,11 @@ extension FixtureLaunchTests {
 	@Test func intervalsLoadFailureShowsACatalogNotice() async throws {
 		let services = try services()
 		let onboarding = model(services)
+		await onboarding.agreeAndStartChatting()
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
 		#expect(onboarding.didConnect)
-		try #require(services.fixtureDirector).intervals.loadFailure = IntervalsError(
+		try #require(services.fixture).intervals.loadFailure = IntervalsError(
 			code: "load_failed",
 			details: "intervals.icu could not load today's training data."
 		)
@@ -20,7 +21,6 @@ extension FixtureLaunchTests {
 		await model.appear()
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.fixtureFeedback == nil)
 		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
 		#expect(
 			model.status?.notice?.sentence(in: model.phrasebook)
@@ -52,7 +52,7 @@ extension FixtureLaunchTests {
 
 	@Test func creditsFailuresShowCatalogNotices() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .failure(.banned)
 		fixture.credits.catalogResult = .failure(.unavailable)
 		let model = model(services)
@@ -60,16 +60,16 @@ extension FixtureLaunchTests {
 		#expect(model.starterLine == "Credits are unavailable right now. Try again later.")
 		await model.loadCredits()
 		#expect(model.creditsNotice?.key == Catalog.creditsErrorUnavailable)
-		#expect(model.fixtureFeedback == nil)
 	}
 
-	@Test func connectStoresTheKeyAndShowsTheAthleteAndToday() async throws {
+	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
 		let model = model(services)
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
 		#expect(model.didConnect)
+		#expect(model.connectKey.isEmpty)
 		#expect(model.connectError == nil)
 		#expect(model.connected?.athleteName == "Ada Kovač")
 		#expect(model.connected?.today?.fitness == 42)
@@ -81,19 +81,33 @@ extension FixtureLaunchTests {
 		#expect(athlete?.rawValue == "i1001")
 	}
 
+	@Test func continuingConnectClearsAnyNewKey() async throws {
+		let model = model(try services())
+		model.continueNotice()
+		model.connectKey = "fixture"
+		await model.connect()
+		try #require(model.didConnect)
+		model.connectKey = "edited-after-connect"
+		model.continueConnect()
+		#expect(model.connectKey.isEmpty)
+		#expect(model.route == .onboarding(.starter))
+		#expect(model.connected?.athleteName == "Ada Kovač")
+	}
+
 	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
 		let model = model(try services())
 		model.continueNotice()
 		model.connectKey = "   "
 		await model.connect()
 		#expect(!model.didConnect)
+		#expect(model.connectKey == "   ")
 		#expect(model.connectError == "intervals.icu did not accept that key.")
 		#expect(model.connected == nil)
 	}
 
 	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
 		let first = model(try services())
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		_ = try await settledTurn(first)
@@ -113,11 +127,12 @@ extension FixtureLaunchTests {
 	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let services = try services(keychain: .locked)
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		let model = model(services)
+		await model.agreeAndStartChatting()
 		await model.appear()
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		fixture.secrets.locked = false
+		fixture.secretBacking.locked = false
 		await model.sceneChanged(.enteredBackground)
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)
@@ -127,9 +142,9 @@ extension FixtureLaunchTests {
 
 	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
 		let services = try services()
-		let fixture = try #require(services.fixtureDirector)
+		let fixture = try #require(services.fixture)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let unconnected = try await settledTurn(model)

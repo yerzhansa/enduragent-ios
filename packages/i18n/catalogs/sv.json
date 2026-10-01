@@ -1024,6 +1024,7 @@
       "savedChoice": "Sparat val",
       "working": "Tränaren arbetar…",
       "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
+      "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
       "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
     },
     "planChange": {
@@ -1466,7 +1467,9 @@
       "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
       "restorePurchases": "Återställ köp",
       "signInAgain": "Logga in igen"
-    }
+    },
+    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "training": {
     "export": {
@@ -2699,7 +2702,6 @@
       "start": "Starta en ny session",
       "status": "Kontrollera aktuell CTL, trötthet och TSB",
       "sync": "Tvinga uppdatering av träningsdata från {{service}}",
-      "update": "Sök efter och installera uppdateringar",
       "version": "Visa aktuell version",
       "whatsnew": "Se vad som ändrats i den senaste versionen",
       "workout": "Hämta dagens träningspass"
@@ -2816,7 +2818,6 @@
       "managedInstruction": "Skicka {{whatsnew}} för att se vad som ändrats. {{notice}}",
       "prepareFailed": "Kunde inte förbereda uppdateringen på ett säkert sätt just nu. Prova {{command}} igen om en liten stund."
     },
-    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{plan}} — Skapa en träningsplan\n{{workout}} — Hämta dagens träningspass\n{{status}} — Kontrollera aktuell CTL, trötthet och TSB\n{{review}} — Gå igenom ditt senaste träningspass\n{{sync}} — Tvinga uppdatering av träningsdata från {{service}}\n{{version}} — Visa aktuell version\n{{whatsnew}} — Se vad som ändrats i den senaste versionen\n{{update}} — {{updateDescription}}\n\nDu kan också bara prata med mig om din träning!",
     "workout": {
       "working": "Kontrollerar din TSB och träningsplan..."
     }
@@ -2955,6 +2956,13 @@
     },
     "notice": {
       "health": "Träningsförslag, inte medicinska råd. Rådgör med en läkare före stora förändringar."
+    },
+    "consent": {
+      "title": "Din coach använder AI",
+      "body": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det.",
+      "accept": "Godkänn och fortsätt",
+      "decline": "Inte nu",
+      "saveFailed": "Det gick inte att spara ditt samtycke. Försök igen."
     }
   },
   "access": {

@@ -14,8 +14,10 @@ let testConnection = IntervalsConnection(
 	id: ConnectionID(), credential: .apiKey("icu-test-key"), selection: .keyOwner,
 	resolvedAthlete: IntervalsAthleteID(rawValue: "i1001"))
 
-func keyedSecrets(_ key: String = testKey) -> FakeSecretStore {
-	let secrets = FakeSecretStore()
+func keyedSecrets(
+	_ key: String = testKey, backing: FixtureSecretStoreBacking = FixtureSecretStoreBacking()
+) -> ICloudKeychainStore {
+	let secrets = ICloudKeychainStore(backing: backing)
 	do {
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: key))
@@ -46,7 +48,7 @@ func testRequest(
 
 func makeCoach(
 	transport: FakeModelTransport,
-	intervals: FakeIntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+	intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
 	store: any RecordLog,
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 	coalescing: CoalescingPolicy = quickWindow,
@@ -209,7 +211,7 @@ func systemTokens(clock: any Clock) -> Int {
 		evidence: EvidenceBlock(wellnessLine: nil),
 		timeZoneName: clock.timeZone.identifier,
 		replyLanguage: PromptAssembly.replyLanguageSection(
-			resolution: LanguageResolution(language: .en, source: .surface, locale: "en"))
+			.mirror(fallback: .en))
 	)
 	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
 }

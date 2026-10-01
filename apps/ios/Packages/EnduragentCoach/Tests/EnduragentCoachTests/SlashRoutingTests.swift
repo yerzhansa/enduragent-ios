@@ -13,19 +13,19 @@ import Testing
 		#expect(SlashRouting.parse("hello /review") == nil)
 	}
 
-	@Test func welcomeListsSyncOnlyWhenIntervalsIsConnected() {
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en")
-		let connected = Welcome.text(in: phrasebook, showsSyncLine: true)
-		let skipped = Welcome.text(in: phrasebook, showsSyncLine: false)
-		let sync = "/sync — Force-refresh training data from intervals.icu"
-		#expect(connected.hasPrefix("Welcome to Cycling Coach!"))
-		#expect(connected.contains(sync))
-		#expect(!skipped.contains("/sync"))
-		#expect(connected.replacingOccurrences(of: sync + "\n", with: "") == skipped)
-		let french = Welcome.text(
-			in: CatalogPhrasebook(tag: .fr, locale: "fr-FR"), showsSyncLine: false)
-		#expect(!french.contains("/sync"))
-		#expect(french.contains("/workout"))
+	@Test(arguments: LanguageTag.allCases)
+	func welcomeAdvertisesOnlySupportedCommands(tag: LanguageTag) {
+		let phrasebook = CatalogPhrasebook(tag: tag)
+		let text = Welcome.text(in: phrasebook)
+		let advertised = text.matches(of: /\/[a-z]+/).map { String($0.output) }
+		#expect(advertised.count == SlashCommand.allCases.count)
+		for command in advertised {
+			#expect(SlashRouting.parse(command) != nil)
+		}
+		#expect(Set(advertised.compactMap(SlashRouting.parse)) == Set(SlashCommand.allCases))
+		for command in SlashCommand.allCases {
+			#expect(text.contains(phrasebook.say(command.menuTitle)))
+		}
 	}
 
 	@Test func startRoutesToResetAndPlanIsFreeText() async throws {

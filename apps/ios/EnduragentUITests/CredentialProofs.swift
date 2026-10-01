@@ -47,10 +47,13 @@ final class SameAthleteRotationProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
 		TutorialHarness.openCredentials(app)
 		let before = TutorialHarness.connectedAccount(app)
+		XCTAssertTrue(app.secureTextFields["credentials.apiKey"].exists)
 		TutorialHarness.type(app, "fixture-rotated", into: "credentials.apiKey")
 		TutorialHarness.named(app, "credentials.replace").tap()
 		TutorialHarness.waitForIdentifier(
 			app, "credentials.outcome", reading: TutorialHarness.rotatedForAda)
+		let cleared = app.secureTextFields["credentials.apiKey"].value as? String
+		XCTAssertTrue(cleared == "" || cleared == "intervals.icu API key")
 		TutorialHarness.waitForIdentifier(app, "credentials.athlete", reading: "Ada Kovač")
 		let after = TutorialHarness.connectedAccount(app)
 		XCTAssertNotEqual(after, before)
@@ -134,6 +137,9 @@ final class UpgradeConnectionProof: XCTestCase {
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
+		if TutorialHarness.named(app, "consent.accept").waitForExistence(timeout: 3) {
+			TutorialHarness.agreeToProviderConsent(app)
+		}
 		guard TutorialHarness.named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
 			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
 		}

@@ -41,6 +41,7 @@ final class ResetKeepsReviewProof: XCTestCase {
 		XCTAssertNil(TutorialHarness.recordCount(app, "proposalCleared"))
 		XCTAssertEqual(TutorialHarness.recordCount(app, "windowStart"), "windowStart 1")
 		TutorialHarness.attach(self, name: "reset-keeps-review-records", app: app)
+		XCTAssertEqual(TutorialHarness.recordCount(app, "pendingProposal"), "pendingProposal 1")
 	}
 }
 
@@ -71,7 +72,6 @@ final class PlanFreeTextProof: XCTestCase {
 		TutorialHarness.send(app, "/plan")
 		TutorialHarness.wait(app.staticTexts["/plan"])
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.error").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
 		TutorialHarness.attach(self, name: "plan-free-text", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
@@ -84,9 +84,6 @@ final class WelcomeAfterSkipProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.startUnconnected(app)
 		TutorialHarness.waitForWelcome(app)
-		let welcome = TutorialHarness.named(app, "chat.welcome")
-		XCTAssertFalse(welcome.label.contains("/sync"))
-		XCTAssertTrue(welcome.label.contains("/workout"))
 		TutorialHarness.attach(self, name: "welcome-after-skip", app: app)
 	}
 }

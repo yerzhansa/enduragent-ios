@@ -178,7 +178,8 @@ package enum TurnLifecycle {
 			case .savedWork(let outcome, let saved):
 				return .savedWork(
 					TurnState.SavedWork(
-						outcome: outcome, saved: saved, notice: AthleteNotices.notice(for: outcome))
+						outcome: outcome, saved: saved,
+						notice: AthleteNotices.notice(for: outcome, saved: saved))
 				)
 			case .failed(let failure, let saved):
 				return .failed(
@@ -268,12 +269,12 @@ public struct CoalescingPolicy: Sendable, Equatable {
 }
 
 package enum MailboxWork: Sendable, Equatable {
-	case turn(TurnID)
+	case turn(TurnID, origin: AttemptOrigin)
 	case flush(FlushJobID)
 	case reset(ResetID)
 
 	package var turn: TurnID? {
-		guard case .turn(let turn) = self else { return nil }
+		guard case .turn(let turn, _) = self else { return nil }
 		return turn
 	}
 

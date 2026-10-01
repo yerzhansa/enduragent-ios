@@ -89,13 +89,16 @@ package enum PromptAssembly {
 		return base + "\n" + currentTimeLine(now: now, timeZone: timeZone)
 	}
 
-	package static func replyLanguageSection(resolution: LanguageResolution) -> String {
-		let englishName = resolution.language.englishName
-		let endonym = resolution.language.endonym
-		let direction =
-			resolution.source == .preference
-			? "The athlete chose \(englishName) (\(endonym)). Write every athlete-facing sentence in \(englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(englishName); never mirror the language itself."
-			: "No language is saved. Reply in the language of the athlete's latest message; that is what \"Mirror the athlete's register\" means for language. When the message carries no language signal (a bare command, numbers only), reply in \(englishName) (\(endonym))."
+	package static func replyLanguageSection(_ language: ReplyLanguage) -> String {
+		let direction: String
+		switch language {
+		case .fixed(let tag):
+			direction =
+				"The athlete chose \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
+		case .mirror(let tag):
+			direction =
+				"No language is saved. Reply in the language of the athlete's latest message; that is what \"Mirror the athlete's register\" means for language. When the message carries no language signal (a bare command, numbers only), reply in \(tag.englishName) (\(tag.endonym))."
+		}
 		return """
 			# Reply language
 

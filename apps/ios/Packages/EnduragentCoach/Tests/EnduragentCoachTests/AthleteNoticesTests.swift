@@ -3,7 +3,7 @@ import Testing
 
 @testable import EnduragentCoach
 
-private let english = CatalogPhrasebook(tag: .en, locale: "en-US")
+private let english = CatalogPhrasebook(tag: .en)
 private let phone = DeviceID(rawValue: "phone-a")
 private let turn = TurnID(ulid: fixedUlid(1))
 private let attempt = AttemptID(ulid: fixedUlid(2))
@@ -207,6 +207,15 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(state.retryable == (row.button == tryAgain))
 	}
 
+	@Test(arguments: LanguageTag.allCases)
+	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
+		for row in NoticeRow.all {
+			let shown = try #require(notice(of: settledState(row.settlement)))
+			let copy = shown.sentence(in: tag.phrasebook)
+			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
+		}
+	}
+
 	@Test func everyFailureCaseHasARowAndNoneIsUnknownExceptTheThree() {
 		var families: Set<String> = []
 		for row in NoticeRow.failures {
@@ -295,11 +304,13 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			for: .model(.rateLimited(retryAfter: .milliseconds(6_200))), turn: turn,
 			waiting: false)
 		#expect(seconds.key == Catalog.coachErrorRateLimitSeconds)
-		#expect(seconds.vars == ["count": "7", "seconds": "7"])
+		#expect(seconds.count == 7)
+		#expect(seconds.vars == ["seconds": "7"])
 		let minutes = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, waiting: false)
 		#expect(minutes.key == Catalog.coachErrorRateLimitMinutes)
-		#expect(minutes.vars == ["count": "2", "minutes": "2"])
+		#expect(minutes.count == 2)
+		#expect(minutes.vars == ["minutes": "2"])
 		let fallback = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: nil)), turn: turn, waiting: false)
 		#expect(fallback.key == Catalog.coachErrorRateLimitDefault)

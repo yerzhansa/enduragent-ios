@@ -5,60 +5,44 @@ import Testing
 
 @Suite struct LanguageTests {
 	@Test func registryMatchesSeventeenTagTable() {
-		let expected: [(LanguageTag, String, String, String)] = [
-			(.en, "English", "English", "en-GB"),
-			(.es, "Español", "Spanish", "es-ES"),
-			(.fr, "Français", "French", "fr-FR"),
-			(.it, "Italiano", "Italian", "it-IT"),
-			(.de, "Deutsch", "German", "de-DE"),
-			(.nl, "Nederlands", "Dutch", "nl-NL"),
-			(.da, "Dansk", "Danish", "da-DK"),
-			(.sv, "Svenska", "Swedish", "sv-SE"),
-			(.nb, "Norsk bokmål", "Norwegian Bokmål", "nb-NO"),
-			(.fi, "Suomi", "Finnish", "fi-FI"),
-			(.ptPT, "Português (Portugal)", "Portuguese (Portugal)", "pt-PT"),
-			(.ptBR, "Português (Brasil)", "Portuguese (Brazil)", "pt-BR"),
-			(.pl, "Polski", "Polish", "pl-PL"),
-			(.ko, "한국어", "Korean", "ko-KR"),
-			(.ja, "日本語", "Japanese", "ja-JP"),
-			(.zhHans, "简体中文", "Simplified Chinese", "zh-Hans-CN"),
-			(.zhHant, "繁體中文", "Traditional Chinese", "zh-Hant-TW"),
+		let expected: [(LanguageTag, String, String)] = [
+			(.en, "English", "English"),
+			(.es, "Español", "Spanish"),
+			(.fr, "Français", "French"),
+			(.it, "Italiano", "Italian"),
+			(.de, "Deutsch", "German"),
+			(.nl, "Nederlands", "Dutch"),
+			(.da, "Dansk", "Danish"),
+			(.sv, "Svenska", "Swedish"),
+			(.nb, "Norsk bokmål", "Norwegian Bokmål"),
+			(.fi, "Suomi", "Finnish"),
+			(.ptPT, "Português (Portugal)", "Portuguese (Portugal)"),
+			(.ptBR, "Português (Brasil)", "Portuguese (Brazil)"),
+			(.pl, "Polski", "Polish"),
+			(.ko, "한국어", "Korean"),
+			(.ja, "日本語", "Japanese"),
+			(.zhHans, "简体中文", "Simplified Chinese"),
+			(.zhHant, "繁體中文", "Traditional Chinese"),
 		]
 		#expect(LanguageTag.contractOrder == expected.map(\.0))
 		#expect(LanguageTag.allCases.count == 17)
-		for (tag, endonym, englishName, locale) in expected {
+		for (tag, endonym, englishName) in expected {
 			#expect(tag.endonym == endonym)
 			#expect(tag.englishName == englishName)
-			#expect(tag.defaultLocale == locale)
 			#expect(LanguageTag(rawValue: tag.rawValue) == tag)
 		}
 	}
 
-	@Test func resolvePrefersSavedThenMessageThenSurfaceThenEnglish() {
+	@Test func replyLanguageKeepsFixedAndMirrorDistinct() {
+		let message = "Comment était ma semaine et que dois-je faire aujourd'hui ?"
 		#expect(
-			Language.resolve(saved: .it, messageHint: .fr, surface: .nl)
-				== LanguageResolution(language: .it, source: .preference, locale: "it-IT")
-		)
+			LanguagePreference.fixed(.it).replyLanguage(for: message, device: .nl) == .fixed(.it))
 		#expect(
-			Language.resolve(saved: nil, messageHint: .fr, surface: .nl)
-				== LanguageResolution(language: .fr, source: .message, locale: "fr-FR")
-		)
+			LanguagePreference.automatic.replyLanguage(for: message, device: .nl)
+				== .mirror(fallback: .fr))
 		#expect(
-			Language.resolve(saved: nil, messageHint: nil, surface: .nl)
-				== LanguageResolution(language: .nl, source: .surface, locale: "nl-NL")
-		)
-		#expect(
-			Language.resolve(saved: nil, messageHint: nil, surface: nil)
-				== LanguageResolution(language: .en, source: .default, locale: "en-GB")
-		)
-	}
-
-	@Test func resolveUsesDefaultLocaleOfTheResolvedTag() {
-		for tag in LanguageTag.contractOrder {
-			let resolved = Language.resolve(saved: tag, messageHint: nil, surface: nil)
-			#expect(resolved.locale == tag.defaultLocale)
-			#expect(resolved.source == .preference)
-		}
+			LanguagePreference.automatic.replyLanguage(for: "123", device: .nl)
+				== .mirror(fallback: .nl))
 	}
 
 	@Test func normalizeLocaleHintMatchesDesktop() {
@@ -324,49 +308,5 @@ import Testing
 			try await coach.setLanguage(.fixed(.fr))
 		}
 		#expect(await coach.status().language == .fixed(.de))
-	}
-
-	@Test func writeResolveEvidenceWhenPresent() throws {
-		let directory = URL(fileURLWithPath: "/tmp/ios-c7")
-		guard FileManager.default.fileExists(atPath: directory.path) else { return }
-		var detect: [[String: String]] = []
-		for language in LanguageTag.contractOrder {
-			for message in DetectFixtures.messages[language] ?? [] {
-				let found = Language.detectMessageLanguage(message)?.rawValue ?? ""
-				detect.append(["input": message, "output": found, "expected": language.rawValue])
-			}
-		}
-		for sample in ["", "ok", "/review", "the und et", "bonjour"] {
-			detect.append([
-				"input": sample, "output": Language.detectMessageLanguage(sample)?.rawValue ?? "",
-			])
-		}
-		var normalize: [[String: String]] = []
-		for hint in ["it_IT.UTF-8", "C", "pt-br", "pt", "zh-TW", "no", "nn", "ru_RU:fr_FR:en"] {
-			normalize.append([
-				"input": hint, "output": Language.normalizeLocaleHint(hint)?.rawValue ?? "",
-			])
-		}
-		var resolve: [[String: String]] = []
-		for saved in [Optional<LanguageTag>.none, .it] {
-			for message in [Optional<LanguageTag>.none, .fr] {
-				for surface in [Optional<LanguageTag>.none, .nl] {
-					let result = Language.resolve(
-						saved: saved, messageHint: message, surface: surface)
-					resolve.append([
-						"saved": saved?.rawValue ?? "",
-						"message": message?.rawValue ?? "",
-						"surface": surface?.rawValue ?? "",
-						"language": result.language.rawValue,
-						"source": result.source.rawValue,
-						"locale": result.locale,
-					])
-				}
-			}
-		}
-		let payload: [String: Any] = ["detect": detect, "normalize": normalize, "resolve": resolve]
-		let data = try JSONSerialization.data(
-			withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
-		try data.write(to: directory.appendingPathComponent("resolve-swift.json"))
 	}
 }

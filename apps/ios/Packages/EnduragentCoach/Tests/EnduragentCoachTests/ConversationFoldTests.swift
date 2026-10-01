@@ -117,7 +117,8 @@ import Testing
 					WindowStartBody(
 						chatId: .main, firstIncludedUlid: ulid(3),
 						reason: .reset(resetId)))))
-		let applied = ConversationFold.applying([boundary], to: folded, device: phoneA)
+		var applied = folded
+		applied.apply([boundary], device: phoneA)
 		#expect(applied.segments.map(\.turns.count) == [1, 1])
 		#expect(applied.segments[0].turns.map(\.turn) == [before])
 		#expect(applied.current.openedBy == .reset(resetId))
@@ -142,19 +143,23 @@ import Testing
 				device: phoneB, wall: 4, ulid: ulid(4),
 				body: .synced(
 					.windowStart(
-						WindowStartBody(chatId: .main, firstIncludedUlid: ulid(3), reason: .trim)))),
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: ulid(3), reason: .trim,
+							droppedMessageUlids: [ulid(1), ulid(2)])))),
 			storedRecord(
 				device: phoneA, wall: 5, ulid: ulid(5),
 				body: .synced(sampleReply(chatId: .main, turn: second, text: "second reply"))),
 		]
 		let onA = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		#expect(onA.current.promptWindow.firstIncluded == nil)
+		#expect(onA.current.promptWindow.trim == nil)
 		#expect(
 			onA.current.promptHistory(excluding: nil).messages.map(\.text) == [
 				"first", "first reply", "second", "second reply",
 			])
 		let onB = ConversationFold.fold(chat: .main, synced: records, device: phoneB)
-		#expect(onB.current.promptWindow.firstIncluded == ulid(3))
+		#expect(
+			onB.current.promptWindow.trim
+				== .init(messageUlids: [ulid(1), ulid(2)], opened: ulid(4)))
 		#expect(
 			onB.current.promptHistory(excluding: nil).messages.map(\.text) == [
 				"second", "second reply",

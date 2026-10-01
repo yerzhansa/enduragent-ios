@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2475
-	public static let keyCount = 2515
+	public static let englishLeafCount = 2481
+	public static let keyCount = 2521
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -145,6 +145,7 @@ public enum Catalog {
 	public static let chatNewConversationLabel = CatalogKey(rawValue: "chat.newConversation.label")
 	public static let chatNewConversationTitle = CatalogKey(rawValue: "chat.newConversation.title")
 	public static let chatNoticeAttachmentFailure = CatalogKey(rawValue: "chat.notice.attachmentFailure")
+	public static let chatNoticeCalendarUnverified = CatalogKey(rawValue: "chat.notice.calendarUnverified")
 	public static let chatNoticeCheckingTraining = CatalogKey(rawValue: "chat.notice.checkingTraining")
 	public static let chatNoticeChoiceUnchanged = CatalogKey(rawValue: "chat.notice.choiceUnchanged")
 	public static let chatNoticeConnectionInterrupted = CatalogKey(rawValue: "chat.notice.connectionInterrupted")
@@ -567,6 +568,8 @@ public enum Catalog {
 	public static let chatViewHideContext = CatalogKey(rawValue: "chat.view.hideContext")
 	public static let chatViewShowContext = CatalogKey(rawValue: "chat.view.showContext")
 	public static let chatViewTitle = CatalogKey(rawValue: "chat.view.title")
+	public static let chatWelcome = CatalogKey(rawValue: "chat.welcome")
+	public static let chatWelcomeCommand = CatalogKey(rawValue: "chat.welcomeCommand")
 	public static let cliLanguageChoose = CatalogKey(rawValue: "cli.language.choose")
 	public static let cliSetupAllowlistLockfileIsHeldByAnother = CatalogKey(rawValue: "cli.setup.allowlistLockfileIsHeldByAnother")
 	public static let cliSetupApiKey = CatalogKey(rawValue: "cli.setup.apiKey")
@@ -869,6 +872,11 @@ public enum Catalog {
 	public static let onboardingConnectFitness = CatalogKey(rawValue: "onboarding.connect.fitness")
 	public static let onboardingConnectForm = CatalogKey(rawValue: "onboarding.connect.form")
 	public static let onboardingConnectSkip = CatalogKey(rawValue: "onboarding.connect.skip")
+	public static let onboardingConsentAccept = CatalogKey(rawValue: "onboarding.consent.accept")
+	public static let onboardingConsentBody = CatalogKey(rawValue: "onboarding.consent.body")
+	public static let onboardingConsentDecline = CatalogKey(rawValue: "onboarding.consent.decline")
+	public static let onboardingConsentSaveFailed = CatalogKey(rawValue: "onboarding.consent.saveFailed")
+	public static let onboardingConsentTitle = CatalogKey(rawValue: "onboarding.consent.title")
 	public static let onboardingNoticeHealth = CatalogKey(rawValue: "onboarding.notice.health")
 	public static let onboardingStarterAdded = CatalogKey(rawValue: "onboarding.starter.added")
 	public static let onboardingStarterAddedOne = CatalogKey(rawValue: "onboarding.starter.added_one")
@@ -2076,7 +2084,6 @@ public enum Catalog {
 	public static let telegramMenuStart = CatalogKey(rawValue: "telegram.menu.start")
 	public static let telegramMenuStatus = CatalogKey(rawValue: "telegram.menu.status")
 	public static let telegramMenuSync = CatalogKey(rawValue: "telegram.menu.sync")
-	public static let telegramMenuUpdate = CatalogKey(rawValue: "telegram.menu.update")
 	public static let telegramMenuVersion = CatalogKey(rawValue: "telegram.menu.version")
 	public static let telegramMenuWhatsnew = CatalogKey(rawValue: "telegram.menu.whatsnew")
 	public static let telegramMenuWorkout = CatalogKey(rawValue: "telegram.menu.workout")
@@ -2173,7 +2180,6 @@ public enum Catalog {
 	public static let telegramUpdateLatest = CatalogKey(rawValue: "telegram.update.latest")
 	public static let telegramUpdateManagedInstruction = CatalogKey(rawValue: "telegram.update.managedInstruction")
 	public static let telegramUpdatePrepareFailed = CatalogKey(rawValue: "telegram.update.prepareFailed")
-	public static let telegramWelcome = CatalogKey(rawValue: "telegram.welcome")
 	public static let telegramWorkoutWorking = CatalogKey(rawValue: "telegram.workout.working")
 	public static let trainingExportDescription = CatalogKey(rawValue: "training.export.description")
 	public static let trainingExportFormatLabel = CatalogKey(rawValue: "training.export.formatLabel")

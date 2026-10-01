@@ -4,16 +4,18 @@ import Foundation
 @MainActor
 enum AppLaunch {
 	case ready(ShellModel)
-	case storageUnavailable(any Phrasebook, failure: any Error)
+	case storageUnavailable(CatalogPhrasebook, failure: any Error)
 
 	static func start() async -> AppLaunch {
 		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
 		return await open(language: language) {
-			guard let fixture = try fixtureLaunch() else {
-				return (try AppServices.live(language: language), .standard)
-			}
-			let defaults = try fixture.prepare()
-			return (try AppServices.fixture(fixture, defaults: defaults), defaults)
+			#if DEBUG
+				if let fixture = try fixtureLaunch() {
+					let defaults = try fixture.prepare()
+					return (try AppServices.fixture(fixture, defaults: defaults), defaults)
+				}
+			#endif
+			return (try AppServices.live(language: language), .standard)
 		}
 	}
 
@@ -28,18 +30,28 @@ enum AppLaunch {
 					services: built, language: language, defaults: defaults),
 				initialLanguage: preference)
 			return .ready(model)
-		} catch let error as FixtureLaunchError {
-			fatalError("The fixture launch arguments are invalid: \(error)")
 		} catch {
+			#if DEBUG
+				if let error = error as? FixtureLaunchError {
+					fatalError("The fixture launch arguments are invalid: \(error)")
+				}
+			#endif
 			return .storageUnavailable(
-				CatalogPhrasebook(tag: language, locale: language.defaultLocale), failure: error)
+				CatalogPhrasebook(tag: language), failure: error)
 		}
 	}
 
-	private static func fixtureLaunch() throws -> FixtureLaunch? {
-		if let launch = try FixtureLaunch.fromArguments() {
-			return launch
+	#if DEBUG
+		private static func fixtureLaunch() throws -> FixtureLaunch? {
+			if let launch = try FixtureLaunch.fromArguments() {
+				return launch
+			}
+			return isHostedByTests ? try FixtureLaunch.firstWeek() : nil
 		}
-		return AppEnvironment.isHostedByTests ? try FixtureLaunch.firstWeek() : nil
-	}
+		private static var isHostedByTests: Bool {
+			ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+				|| ProcessInfo.processInfo.environment["XCTestBundlePath"] != nil
+				|| NSClassFromString("XCTestCase") != nil
+		}
+	#endif
 }

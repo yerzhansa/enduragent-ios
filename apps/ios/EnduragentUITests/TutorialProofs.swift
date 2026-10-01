@@ -19,6 +19,7 @@ final class ConnectIntervalsProof: XCTestCase {
 		TutorialHarness.named(app, "notice.continue").tap()
 		let key = TutorialHarness.named(app, "connect.apiKey")
 		TutorialHarness.wait(key)
+		XCTAssertEqual(key.elementType, .secureTextField)
 		XCTAssertTrue(app.staticTexts["intervals.icu API key"].exists || key.exists)
 		key.tap()
 		key.typeText("fixture")
@@ -156,7 +157,7 @@ final class NewConversationProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		let button = TutorialHarness.named(app, "chat.newConversation")
 		TutorialHarness.waitUntilHittable(button)
-		let phrasebook = CatalogPhrasebook(tag: .en, locale: "en_US")
+		let phrasebook = CatalogPhrasebook(tag: .en)
 		XCTAssertEqual(button.label, phrasebook.say(Catalog.chatNewConversationLabel))
 		XCTAssertEqual(button.elementType, .button)
 		TutorialHarness.assertIconButtonWidth(button)
@@ -173,7 +174,6 @@ final class NewConversationProof: XCTestCase {
 		sample.name = "new-conversation-latency-ms"
 		sample.lifetime = .keepAlways
 		add(sample)
-		XCTAssertTrue(welcome.label.contains(TutorialHarness.syncLine))
 		let notice = TutorialHarness.named(app, "chat.newConversation.notice")
 		TutorialHarness.wait(notice)
 		XCTAssertEqual(notice.label, TutorialHarness.newConversationStarted)

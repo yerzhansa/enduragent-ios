@@ -7,19 +7,17 @@ package enum ToolOutcome: Sendable, Equatable {
 }
 
 package struct ToolRuntime: Sendable {
-	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery, .planLoad]
+	private static let memoryReads: Set<ToolName> = [.memoryRead, .memoryQuery]
 
 	private let intervals: any IntervalsClient
 	let ledger: Ledger
-	private let planning: Planning
 	let clock: any Clock
 
 	package init(
-		intervals: any IntervalsClient, ledger: Ledger, planning: Planning, clock: any Clock
+		intervals: any IntervalsClient, ledger: Ledger, clock: any Clock
 	) {
 		self.intervals = intervals
 		self.ledger = ledger
-		self.planning = planning
 		self.clock = clock
 	}
 
@@ -32,7 +30,7 @@ package struct ToolRuntime: Sendable {
 		let stamp = scope.stamp
 		if let gated = GatedToolName(rawValue: name.rawValue) {
 			let outcome = try await executeGated(
-				gated, arguments: arguments, chatId: chatId, stamp: stamp)
+				gated, arguments: arguments, chatId: chatId, scope: scope)
 			return ToolExecution(outcome: outcome, commit: nil)
 		}
 		if ReplayUnsafeToolName(rawValue: name.rawValue) != nil {
@@ -78,7 +76,6 @@ package struct ToolRuntime: Sendable {
 		arguments: JSONValue,
 		stamp: OperationStamp
 	) async throws -> ToolExecution {
-		_ = planning
 		do {
 			switch name {
 			case .calculateZones:
@@ -114,15 +111,14 @@ package struct ToolRuntime: Sendable {
 			case .memoryQuery:
 				return try await executeMemoryQuery(arguments)
 			case .memoryWrite:
-				return try await executeMemoryWrite(arguments, stamp: stamp)
+				return try await memory().executeMemoryWrite(
+					arguments, source: .chat, stamp: stamp)
 			case .ledgerAppend:
-				return try await executeLedgerAppend(arguments, stamp: stamp)
+				return try await memory().executeLedgerAppend(
+					arguments, source: .chat, stamp: stamp)
 			case .intervalsCreateWorkout, .intervalsCreateStrengthWorkout,
 				.intervalsDeleteWorkout, .intervalsUpdateWorkout, .planSave:
 				fatalError("gated tools are handled in execute")
-			case .buildPlanSkeleton, .assessFeasibility, .getSampleWeek,
-				.planLoad:
-				fatalError("not implemented")
 			}
 		} catch let error as IntervalsError {
 			return .result(error.json)

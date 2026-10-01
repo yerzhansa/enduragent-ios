@@ -85,7 +85,14 @@ package protocol RecordLog: Sendable {
 
 	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
 	func fetch(_ query: RecordQuery) async throws -> RecordPage
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
 	var imports: AsyncStream<Void> { get }
+}
+
+package struct RecordCursor: Sendable, Equatable {
+	package let ulid: ULID?
+	package let hlc: HybridLogicalClock?
+	package var skipped: [SkippedRow] = []
 }
 
 package struct RecordPage: Sendable, Equatable {
@@ -129,6 +136,17 @@ package final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
 		return RecordPage(records: matching.sorted { $0.hlc < $1.hlc }, skipped: [])
 	}
 
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		records.withLock { records in
+			let matching = records.lazy.filter {
+				$0.locality == locality && $0.deviceId == writtenBy
+			}
+			guard let hlc = matching.map(\.hlc).max() else { return nil }
+			return RecordCursor(ulid: matching.map(\.ulid).max(), hlc: hlc)
+		}
+	}
+
 	package var imports: AsyncStream<Void> {
 		AsyncStream { _ in }
 	}
@@ -152,6 +170,44 @@ package struct SwiftDataRecordLog: RecordLog {
 			context.insert(try StoredAthleteRecord(record: record))
 		}
 		try context.save()
+	}
+
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		let deviceId = writtenBy.rawValue
+		let descriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { $0.deviceId == deviceId },
+			sortBy: [
+				SortDescriptor(\.hlcWallMs, order: .reverse),
+				SortDescriptor(\.hlcLogical, order: .reverse),
+			])
+		let context = ModelContext(container(for: locality))
+		var skipped: [SkippedRow] = []
+		let hlc = try firstValue(in: context, matching: descriptor, skipped: &skipped) { row in
+			ULID(rawValue: row.ulid) == nil ? nil : row.hlc
+		}
+		let ulidDescriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { $0.deviceId == deviceId },
+			sortBy: [SortDescriptor(\.ulid, comparator: .lexical, order: .reverse)])
+		let ulid = try firstValue(in: context, matching: ulidDescriptor, skipped: &skipped) {
+			ULID(rawValue: $0.ulid)
+		}
+		guard hlc != nil || ulid != nil || !skipped.isEmpty else { return nil }
+		return RecordCursor(ulid: ulid, hlc: hlc, skipped: skipped)
+	}
+
+	private func firstValue<Value>(
+		in context: ModelContext, matching descriptor: FetchDescriptor<StoredAthleteRecord>,
+		skipped: inout [SkippedRow], decode: (StoredAthleteRecord) -> Value?
+	) throws -> Value? {
+		var descriptor = descriptor
+		descriptor.fetchLimit = 1
+		while let row = try context.fetch(descriptor).first {
+			if let value = decode(row) { return value }
+			skipped.append(.malformed(kind: row.kind, ulid: row.ulid))
+			descriptor.fetchOffset = (descriptor.fetchOffset ?? 0) + 1
+		}
+		return nil
 	}
 
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {

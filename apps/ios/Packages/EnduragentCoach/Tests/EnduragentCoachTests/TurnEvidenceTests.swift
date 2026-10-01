@@ -8,6 +8,21 @@ import Testing
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test(arguments: [1e20, -1e20])
+	func extremeWellnessStillCompletesTurn(value: Double) async throws {
+		intervals.wellness = [
+			WellnessDay(date: "1998-06-13", fitness: value, fatigue: value, form: value)
+		]
+		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]
+		let coach = await makeCoach(
+			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
+		let settled = try await coach.sendAndSettle("How is my form?")
+		#expect(replyText(settled) == "Easy spin today.")
+		let system = try #require(transport.requests.first?.messages.first?.content)
+		#expect(system.contains("Fitness \(String(format: "%.1f", value))"))
+		#expect(coach.diagnostics.entries.isEmpty)
+	}
+
 	@Test func failedWellnessReadOmitsLineAndLogsDiagnostics() async throws {
 		let failure = IntervalsError(code: "http", details: "status 503", status: 503)
 		intervals.loadFailure = failure
@@ -48,7 +63,7 @@ import Testing
 	}
 
 	@Test func unconnectedAthleteReadsNoWellnessAndLogsNothing() async throws {
-		let secrets = FakeSecretStore()
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
 		transport.script = [.text("Easy spin today."), .finish(reason: .stop)]

@@ -5,18 +5,8 @@ extension ToolRuntime {
 		_ gated: GatedToolName,
 		arguments: JSONValue,
 		chatId: ChatID,
-		stamp: OperationStamp
+		scope: TurnScope
 	) async throws -> ToolOutcome {
-		if gated == .planSave {
-			return .result(
-				UntrustedEnvelope.wrap(
-					.object([
-						"error": .string("not_implemented"),
-						"details": .string("Saving a plan is not available yet."),
-					])
-				)
-			)
-		}
 		do {
 			let parsed = try parseGated(gated, arguments: arguments)
 			let proposal = try await ProposalPolicy.propose(
@@ -27,7 +17,7 @@ extension ToolRuntime {
 				description: parsed.description,
 				now: clock.now,
 				ledger: ledger,
-				stamp: stamp
+				scope: scope
 			)
 			return .pending(proposal)
 		} catch let error as IntervalsError {
@@ -76,7 +66,7 @@ extension ToolRuntime {
 		}
 	}
 
-	private func memory() -> Memory {
+	func memory() -> Memory {
 		Memory(ledger: ledger, clock: clock)
 	}
 
@@ -108,71 +98,6 @@ extension ToolRuntime {
 		}
 	}
 
-	func executeMemoryWrite(_ arguments: JSONValue, stamp: OperationStamp) async throws
-		-> ToolExecution
-	{
-		let fields = arguments.objectFields
-		let type = fields["type"]?.stringValue
-		let content = fields["content"]?.stringValue ?? ""
-		if type == "memory" {
-			guard let section = fields["section"]?.stringValue else {
-				return .result(
-					.object([
-						"details": .string(
-							"type='memory' requires a section. Pick one of the listed sections, or use type='daily' for free-form notes."
-						),
-						"error": .string("section_required"),
-					])
-				)
-			}
-			let view = try await memory().view()
-			let allowed = Set(SectionName.cyclingEffective.map(\.rawValue) + view.orphanNames)
-			if !allowed.contains(section) {
-				return .result(
-					.object([
-						"details": .string("Unknown memory section."),
-						"error": .string("unknown_section"),
-					])
-				)
-			}
-			try await memory().writeSection(
-				SectionName(rawValue: section), content: content, source: .chat, stamp: stamp)
-			return ToolExecution(
-				outcome: .result(.object(["saved": .bool(true)])),
-				commit: CommittedWrite(tool: .memoryWrite))
-		}
-		let appended = try await memory().appendDailyNote(content, stamp: stamp)
-		return ToolExecution(
-			outcome: .result(.object(["saved": .bool(true)])),
-			commit: appended ? CommittedWrite(tool: .memoryWrite) : nil)
-	}
-
-	func executeLedgerAppend(_ arguments: JSONValue, stamp: OperationStamp) async throws
-		-> ToolExecution
-	{
-		let fields = arguments.objectFields
-		guard
-			let dateRaw = fields["date"]?.stringValue,
-			let date = CivilDate(rawValue: dateRaw),
-			let kindRaw = fields["kind"]?.stringValue,
-			let kind = LedgerKind(rawValue: kindRaw),
-			let text = fields["text"]?.stringValue,
-			!text.isEmpty
-		else {
-			let dateRaw = fields["date"]?.stringValue ?? ""
-			return .result(
-				.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
-		}
-		let recorded = try await memory().appendEvent(
-			date: date, kind: kind, text: text, source: .chat, stamp: stamp)
-		if recorded {
-			return ToolExecution(
-				outcome: .result(.object(["recorded": .bool(true)])),
-				commit: CommittedWrite(tool: .ledgerAppend))
-		}
-		return .result(.object(["duplicate": .bool(true), "recorded": .bool(false)]))
-	}
-
 	func executeCalculateZones(_ arguments: JSONValue) throws -> ToolExecution {
 		guard let ftp = arguments.objectFields["ftpWatts"]?.intValue() else {
 			throw IntervalsError(code: "invalid_ftp", details: "ftpWatts is required.")
@@ -202,7 +127,12 @@ extension ToolRuntime {
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 			return (oldest, newest)
 		}
-		if let days = fields["days"]?.intValue(), days >= 1 {
+		if let value = fields["days"] {
+			guard let days = value.intValue(), days >= 1 else {
+				throw IntervalsError(
+					code: "invalid_input", details: "days must be a positive integer.")
+			}
+			try IntervalsPolicy.rejectListDayCount(days)
 			let newest = today
 			let oldest = today.adding(days: -(days - 1))
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
