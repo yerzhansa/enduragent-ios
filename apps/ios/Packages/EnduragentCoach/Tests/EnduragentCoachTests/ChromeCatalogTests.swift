@@ -112,7 +112,7 @@ import Testing
 		tag: LanguageTag, menu: String, balance: String, progress: String, added: String,
 		alreadyGranted: String
 	) async throws {
-		let coach = makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: FakeModelTransport(), store: InMemoryRecordLog())
 		try await coach.setLanguage(.fixed(tag))
 		let book = await coach.languagePreference().phrasebook(device: .en)
 		let vars = ["formattedCount": "12"]

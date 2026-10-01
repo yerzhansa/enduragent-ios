@@ -9,7 +9,7 @@ extension SingleProposalReviewsTests {
 		let staleRead = ReviewGate()
 		let claim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: claim, readGate: staleRead)
-		let coach = gatedCoach(log: log, client: ada)
+		let coach = await gatedCoach(log: log, client: ada)
 		let firstToken = try await presentedToken(on: coach)
 		_ = await coach.decide(.approve(firstToken), in: .main)
 		await staleRead.arm()
@@ -41,7 +41,7 @@ extension SingleProposalReviewsTests {
 		let secondClaim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: secondClaim)
 		let client = GatedReviewIntervals(base: ada, gate: firstWrite)
-		let coach = gatedCoach(log: log, client: client)
+		let coach = await gatedCoach(log: log, client: client)
 		let firstToken = try await presentedToken(on: coach)
 		await firstWrite.arm()
 		let first = Task { await coach.decide(.approve(firstToken), in: .main) }
@@ -73,7 +73,7 @@ extension SingleProposalReviewsTests {
 		let secondClaim = ReviewGate()
 		let log = GatedReviewLog(inner: records, gate: secondClaim)
 		let client = GatedReviewIntervals(base: ada, gate: firstWrite)
-		let coach = gatedCoach(log: log, client: client)
+		let coach = await gatedCoach(log: log, client: client)
 		let firstToken = try await presentedToken(on: coach)
 		await firstWrite.arm()
 		let first = Task { await coach.decide(.approve(firstToken), in: .main) }

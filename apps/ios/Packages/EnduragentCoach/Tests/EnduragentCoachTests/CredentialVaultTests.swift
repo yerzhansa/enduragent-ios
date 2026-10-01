@@ -18,7 +18,7 @@ import Testing
 	func secureStorageDiagnosticsKeepStatus(_ status: OSStatus) async throws {
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		backing.failWrites(CredentialSlot.intervalsConnection.rawValue, with: status)
 		let outcome = await coach.changeTraining(
 			.replace(apiKey: "icu-new-key", athlete: .keyOwner))
@@ -57,17 +57,19 @@ import Testing
 			keySuffix: "-key", athleteName: "Ada Kovač", today: nil, displayUnavailable: nil)
 	}
 
-	func coach(_ secrets: any SecretStore) -> Coach {
-		Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
-				training: training, credits: .fake(FakeCreditsClient()),
-				host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: testModel,
-			deviceLanguage: .en,
-			coalescing: quickWindow
-		)
+	func coach(_ secrets: any SecretStore) async -> Coach {
+		await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: records), secrets: secrets,
+					models: .scripted(transport),
+					training: training, credits: .fake(FakeCreditsClient()),
+					host: ImmediateExecutionHost(), clock: clock),
+				builtInModel: testModel,
+				deviceLanguage: .en,
+				coalescing: quickWindow
+			))
 	}
 
 	func vault(_ store: any SecretStore) -> CredentialVault {
@@ -105,7 +107,7 @@ import Testing
 
 	@Test func blankReplacementKeepsTheWorkingKey() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(
 			await coach.changeTraining(.replace(apiKey: " \n ", athlete: .keyOwner))
 				== .refused(.blankReplacementKeepsCurrent))
@@ -117,7 +119,7 @@ import Testing
 
 	@Test func cancelKeepsTheWorkingKey() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(await coach.changeTraining(.keep) == .kept(adaSummary))
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(
@@ -127,7 +129,7 @@ import Testing
 	@Test func failedWriteKeepsPreviousItemAndNextAttemptUsesIt() async throws {
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		backing.failNextWrite = true
 		#expect(
 			await coach.changeTraining(.replace(apiKey: "icu-new-key", athlete: .keyOwner))
@@ -153,7 +155,7 @@ import Testing
 
 	@Test func profileReadFailureFlipsWithUnverifiableAuthority() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let outcome = await coach.changeTraining(
 			.replace(apiKey: "icu-offline", athlete: .keyOwner))
 		#expect(
@@ -173,7 +175,7 @@ import Testing
 
 	@Test func differentAthleteWithBoundWorkIsRefused() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		_ = try await proposeRide(on: coach)
 		let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
 		let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
@@ -188,7 +190,7 @@ import Testing
 
 	@Test func unverifiedAthleteResolvesOnTheNextReadAndThenRefusesAnotherAthlete() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		guard
 			case .replaced(_, .unverifiable?) = await coach.changeTraining(
 				.replace(apiKey: "icu-offline", athlete: .keyOwner))
@@ -225,7 +227,7 @@ import Testing
 
 	@Test func confirmingAthleteSwitchFlips() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(pending.notice == nil)
 		let outcome = await coach.changeTraining(
@@ -261,7 +263,7 @@ import Testing
 
 	@Test func disconnectLeavesTheNextTurnUnconnected() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
 		#expect(try secrets.intervalsConnection() == nil)
 		#expect(await coach.status().training == .unconnected)
@@ -272,7 +274,7 @@ import Testing
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: testKey))
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == .unconnected)
 		guard
 			case .replaced = await coach.changeTraining(
@@ -288,9 +290,9 @@ import Testing
 
 	@Test func useCreditsSelectsCreditsAndSignInKeepsThePreviousMethod() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(
-			await coach.changeModelAccess(.signInToOpenRouter(model: testModel, consent: consent))
+			await coach.changeModelAccess(.signInToOpenRouter(model: testModel))
 				== .failedPreviousKept(
 					.signIn(.presentationUnavailable), previous: AccessSummary(selection: .credits))
 		)
@@ -300,10 +302,6 @@ import Testing
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
 		#expect(try secrets.accessSelection() == .credits)
 		#expect(await coach.status().setup == .ready)
-	}
-
-	var consent: ProviderConsent {
-		ProviderConsent(provider: "Test Provider", model: testModel, at: clock.now)
 	}
 
 	func testAccess(secret: String) -> ResolvedAccess {

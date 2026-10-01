@@ -19,7 +19,7 @@ import Testing
 	let phrasebook = CatalogPhrasebook(tag: .en)
 
 	@Test func controlsAreNoneUntilPresented() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let review = try await propose(on: coach)
 		#expect(review.controls == .none)
 		#expect(review.cards.map { $0.name.sentence(in: phrasebook) } == ["Endurance"])
@@ -33,7 +33,7 @@ import Testing
 	}
 
 	@Test func cancelCommitsClearedCanceledAndSnapshotIsNil() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 
 		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
@@ -66,7 +66,7 @@ import Testing
 	}
 
 	@Test func approveWithStaleTokenIsStaleControl() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		#expect(await coach.decide(.showAgain(token.ref), in: .main) == .presentationRecorded)
 		#expect(await coach.decide(.presented(token.ref), in: .main) == .staleControl)
@@ -85,7 +85,7 @@ import Testing
 	}
 
 	@Test func approveWritesOnceAndASecondTapIsStale() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 
 		let outcome = await coach.decide(.approve(token), in: .main)
@@ -114,7 +114,7 @@ import Testing
 	}
 
 	@Test func presentationFailedWithdrawsTheControl() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 
 		#expect(
@@ -128,7 +128,7 @@ import Testing
 
 	@Test func racingApprovalsWriteOnce() async throws {
 		let claim = ReviewGate()
-		let coach = gatedCoach(log: GatedReviewLog(inner: records, gate: claim), client: ada)
+		let coach = await gatedCoach(log: GatedReviewLog(inner: records, gate: claim), client: ada)
 		let token = try await presentedToken(on: coach)
 		await claim.arm()
 
@@ -145,7 +145,7 @@ import Testing
 	}
 
 	@Test func accountChangedBlocksApproval() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 
 		_ = await coach.changeTraining(
@@ -165,7 +165,7 @@ import Testing
 	}
 
 	@Test func lockedKeychainBlocksApprovalAndKeepsTheReview() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		secretBacking.locked = true
 
@@ -184,7 +184,7 @@ import Testing
 	}
 
 	@Test func rejectedWriteSettlesPartiallyAppliedWithACatalogSentence() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = IntervalsError(code: "http", details: "status 422", status: 422)
@@ -209,7 +209,7 @@ import Testing
 	}
 
 	@Test func lostResponseSettlesUncertain() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		let card = try #require(await coach.currentSnapshot(.main)?.review?.cards.first)
 		ada.writeFailure = URLError(.timedOut)
@@ -225,7 +225,7 @@ import Testing
 	}
 
 	@Test func redisplayIssuesNoModelRequest() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let review = try await propose(on: coach)
 		let requests = transport.requests.count
 
@@ -280,19 +280,23 @@ import Testing
 		}
 	}
 
-	func coach() -> Coach {
+	func coach() async -> Coach {
 		let (ada, bo) = (ada, bo)
-		return Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
-				training: .fake { credential, _ in credential == .apiKey("other-athlete") ? bo : ada
-				},
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: testModel,
-			deviceLanguage: .en,
-			coalescing: quickWindow
-		)
+		return await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: records), secrets: secrets,
+					models: .scripted(transport),
+					training: .fake { credential, _ in
+						credential == .apiKey("other-athlete") ? bo : ada
+					},
+					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
+					clock: clock),
+				builtInModel: testModel,
+				deviceLanguage: .en,
+				coalescing: quickWindow
+			))
 	}
 
 	func propose(on coach: Coach) async throws -> ReviewSnapshot {

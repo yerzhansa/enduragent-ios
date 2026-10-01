@@ -46,7 +46,7 @@ import Testing
 				.fail(.http(status: status, headers: ["Retry-After": "7"])),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: held)
+		let coach = await makeCoach(transport: transport, store: store, clock: held)
 		let reset = Task { await coach.startNewConversation(in: .main) }
 		defer { reset.cancel() }
 		if status == 429 {
@@ -72,7 +72,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
 		#expect(written.isEmpty)
@@ -86,7 +86,7 @@ import Testing
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: reason)], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
@@ -192,7 +192,7 @@ import Testing
 				.toolCall(name: "memory_write", arguments: #"{"section":"schedule"}"#),
 				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
 		#expect(result.content.contains("requires a section and content"))
@@ -266,7 +266,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
@@ -295,7 +295,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember Saturdays")
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)

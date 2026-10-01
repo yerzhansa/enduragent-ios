@@ -6,6 +6,7 @@ public enum ResetOutcome: Sendable, Equatable {
 }
 
 public enum MemorySaveResult: Sendable, Equatable {
+	case providerConsentRequired
 	case saved
 	case partiallySaved
 	case notSaved
@@ -14,6 +15,8 @@ public enum MemorySaveResult: Sendable, Equatable {
 		switch outcome {
 		case .saved, .nothingToSave: self = .saved
 		case .partial: self = .partiallySaved
+		case .failed(.model(.accessUnavailable(.providerConsentRequired))):
+			self = .providerConsentRequired
 		case .failed, nil: self = .notSaved
 		}
 	}
@@ -78,6 +81,8 @@ package struct ConversationReset: Sendable {
 		let resolved: ResolvedAccess
 		do {
 			resolved = try await access()
+		} catch .providerConsentRequired {
+			return .failed(.model(.accessUnavailable(.providerConsentRequired)))
 		} catch {
 			flushes.diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
 			return nil

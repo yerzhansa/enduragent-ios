@@ -15,7 +15,7 @@ extension TurnEvidenceTests {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		_ = try await coach.sendAndSettle("How is my form?")
 		let entry = try #require(coach.diagnostics.entries.first)

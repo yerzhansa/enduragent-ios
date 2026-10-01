@@ -20,7 +20,7 @@ extension StopAndLeaseEdgeTests {
 			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock, host: host)
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)

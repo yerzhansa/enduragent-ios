@@ -21,7 +21,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(sent(.droppedSummary, by: transport).isEmpty)
 		try await coach.setSession(
@@ -39,7 +39,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		let window = systemTokens(clock: clock) + TurnPolicy.reserveTokens + 1_500
@@ -63,7 +63,7 @@ import Testing
 				.text("truncated"), .finish(reason: .length), .text("after compact"),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		try await coach.setSession(
 			SessionSettings.npmDefaults.replacing(.contextWindowOverride, with: "50000"))
 		let rescued = try await coach.sendAndSettle("Long history")
@@ -71,7 +71,7 @@ import Testing
 		#expect(sent(.chatAttempt, by: transport).count == 2)
 	}
 
-	private func makeCoach() -> Coach {
-		EnduragentCoachTests.makeCoach(transport: transport, store: store, clock: clock)
+	private func makeCoach() async -> Coach {
+		await EnduragentCoachTests.makeCoach(transport: transport, store: store, clock: clock)
 	}
 }

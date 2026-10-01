@@ -229,7 +229,8 @@ package actor SingleProposalReviews: WorkoutReviews {
 			return try await training().account
 		} catch {
 			switch error {
-			case .notConfigured, .secureStorageLocked, .secureStorageUnavailable,
+			case .providerConsentRequired, .notConfigured, .secureStorageLocked,
+				.secureStorageUnavailable,
 				.malformedStoredCredential:
 				return nil
 			}

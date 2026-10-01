@@ -36,7 +36,7 @@ import Testing
 		#expect(SlashRouting.parse("/plan") == nil)
 		let transport = FakeModelTransport()
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(transport: transport, store: store)
+		let coach = await makeCoach(transport: transport, store: store)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Plans come in a later release."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)

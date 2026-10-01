@@ -17,7 +17,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("How is my form?")
 		#expect(replyText(settled) == "Easy spin today.")
@@ -32,7 +32,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
 		let settled = try await coach.sendAndSettle("How is my form?")
@@ -58,7 +58,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 
 		_ = try await coach.sendAndSettle("How is my form?")
@@ -76,7 +76,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock,
 			secrets: secrets)
 

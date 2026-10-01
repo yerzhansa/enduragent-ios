@@ -20,7 +20,8 @@ extension CredentialVaultTests {
 		try secrets.storeIntervalsConnection(unresolved)
 		let gate = CredentialProfileGate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
-		let coach = coachWithTraining(secrets, training: TrainingService { _, _, _ in client })
+		let coach = await coachWithTraining(
+			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { await coach.status() }
 		await gate.waitUntilEntered()
 		if failingWrite {
@@ -64,7 +65,8 @@ extension CredentialVaultTests {
 		try secrets.storeIntervalsConnection(unresolved)
 		let gate = CredentialProfileGate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
-		let coach = coachWithTraining(secrets, training: TrainingService { _, _, _ in client })
+		let coach = await coachWithTraining(
+			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { await coach.status() }
 		await gate.waitUntilEntered()
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
@@ -89,7 +91,7 @@ extension CredentialVaultTests {
 				appAccountToken: oldToken,
 				key: "test-old-credits-key"))
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
-		let coach = try recoveryCoach(secrets)
+		let coach = try await recoveryCoach(secrets)
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
 		}
@@ -101,7 +103,7 @@ extension CredentialVaultTests {
 
 	@Test func oldProposalCannotExecuteForTheNewAthlete() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -122,7 +124,7 @@ extension CredentialVaultTests {
 
 	@Test func sameAthleteRotationPreservesProposal() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -149,7 +151,7 @@ extension CredentialVaultTests {
 			IntervalsConnection(
 				id: testConnection.id, credential: testConnection.credential,
 				selection: .keyOwner, resolvedAthlete: nil))
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -176,7 +178,7 @@ extension CredentialVaultTests {
 			IntervalsConnection(
 				id: testConnection.id, credential: testConnection.credential,
 				selection: .keyOwner, resolvedAthlete: nil))
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let pending = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -201,7 +203,7 @@ extension CredentialVaultTests {
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = true
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		#expect(await coach.status().setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		backing.locked = false
 		await coach.lifecycle(.becameActive)
@@ -216,7 +218,7 @@ extension CredentialVaultTests {
 			if credential == .apiKey("test-delayed-key") { return client }
 			return self.ada
 		}
-		let coach = coachWithTraining(secrets, training: service)
+		let coach = await coachWithTraining(secrets, training: service)
 		let replacement = Task {
 			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
 		}
@@ -243,7 +245,7 @@ extension CredentialVaultTests {
 			if credential == .apiKey("test-unresolved") { return old }
 			return self.bo
 		}
-		let coach = coachWithTraining(secrets, training: service)
+		let coach = await coachWithTraining(secrets, training: service)
 		let status = Task { await coach.status() }
 		await gate.waitUntilEntered()
 		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
@@ -255,34 +257,40 @@ extension CredentialVaultTests {
 	}
 
 	private func recoveryCoach(_ secrets: any SecretStore, training service: TrainingService? = nil)
-		throws -> Coach
+		async throws -> Coach
 	{
 		let config = URLSessionConfiguration.ephemeral
 		config.protocolClasses = [RecoveryResponseStub.self]
 		let session = URLSession(configuration: config)
 		let base = try #require(URL(string: "https://credits.invalid"))
-		return Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
-				training: service ?? training,
-				credits: CreditsService { vault in
-					PhoneCreditsClient(vault: vault, workerBase: base, session: session)
-				},
-				host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: testModel, deviceLanguage: .en,
-			coalescing: quickWindow)
+		return await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: records), secrets: secrets,
+					models: .scripted(transport),
+					training: service ?? training,
+					credits: CreditsService { vault in
+						PhoneCreditsClient(vault: vault, workerBase: base, session: session)
+					},
+					host: ImmediateExecutionHost(), clock: clock),
+				builtInModel: testModel, deviceLanguage: .en,
+				coalescing: quickWindow))
 	}
 
-	private func coachWithTraining(_ secrets: any SecretStore, training: TrainingService) -> Coach {
-		Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records), secrets: secrets, models: .scripted(transport),
-				training: training, credits: .fake(FakeCreditsClient()),
-				host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: testModel, deviceLanguage: .en,
-			coalescing: quickWindow)
+	private func coachWithTraining(_ secrets: any SecretStore, training: TrainingService) async
+		-> Coach
+	{
+		await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: records), secrets: secrets,
+					models: .scripted(transport),
+					training: training, credits: .fake(FakeCreditsClient()),
+					host: ImmediateExecutionHost(), clock: clock),
+				builtInModel: testModel, deviceLanguage: .en,
+				coalescing: quickWindow))
 	}
 }
 

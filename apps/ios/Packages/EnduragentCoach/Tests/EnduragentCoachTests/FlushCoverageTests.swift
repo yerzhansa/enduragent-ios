@@ -18,7 +18,7 @@ import Testing
 				.text("Two"), .text(" rides."), .finish(reason: .stop),
 				.text("Noted."), .finish(reason: .stop),
 			], deltaDelay: .milliseconds(200), otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(first)
@@ -92,7 +92,7 @@ import Testing
 					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
 				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
@@ -140,7 +140,7 @@ import Testing
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).map(\.saved) == [
 				true
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
@@ -150,7 +150,7 @@ import Testing
 	}
 
 	@Test func retryAfterItsPartialWasSavedExtractsOnlyTheReplacementReply() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
@@ -189,7 +189,7 @@ import Testing
 	}
 
 	@Test func aTrimmedFailedQuestionBecomesEligibleWhenRetried() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(
@@ -273,7 +273,7 @@ import Testing
 						: .synced(sampleReply(chatId: .main, turn: turn, text: "Current reply"))
 				),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)

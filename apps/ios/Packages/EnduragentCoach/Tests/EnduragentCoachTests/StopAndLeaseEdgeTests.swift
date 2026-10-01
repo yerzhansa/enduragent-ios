@@ -16,7 +16,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -46,7 +46,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -70,7 +70,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 3)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -105,7 +105,7 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
@@ -120,7 +120,7 @@ import Testing
 			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 1)
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		async let sent = coach.send(draft("only"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
@@ -131,7 +131,7 @@ import Testing
 		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
 		#expect(try await claims(of: turn, in: store).isEmpty)
 		#expect(transport.requests.isEmpty)
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
 	}
@@ -142,7 +142,8 @@ import Testing
 			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = HeldFirstReadLog(inner: InMemoryRecordLog())
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(
+			transport: transport, store: store, clock: clock, host: host, consent: false)
 		async let sent = coach.send(draft("first send"), to: .main)
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
@@ -153,7 +154,7 @@ import Testing
 		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
 		#expect(try await claims(of: turn, in: store).isEmpty)
 		#expect(transport.requests.isEmpty)
-		let reopened = makeCoach(transport: transport, store: store, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
 	}
@@ -163,7 +164,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Working."), .hang], otherwise: transport.respond)
 		let store = HeldFlushReadLog(inner: InMemoryRecordLog())
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(running)
 		store.holdNextChatFlushRead()
@@ -183,7 +184,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 1)
 		let host = KeepingHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -209,7 +210,7 @@ import Testing
 			[.fail(.http(status: 401))], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		let lease = await host.ended(0)
@@ -222,7 +223,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = InMemoryRecordLog()
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		_ = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
@@ -255,7 +256,7 @@ import Testing
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
 			requestDelay: .milliseconds(300), otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let first = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
@@ -297,7 +298,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
 			requestDelay: .milliseconds(300), otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
@@ -312,7 +313,8 @@ import Testing
 			[saturdays, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
 			otherwise: transport2.respond)
 		let host2 = ImmediateExecutionHost()
-		let relaunched = makeCoach(transport: transport2, store: store, clock: clock, host: host2)
+		let relaunched = await makeCoach(
+			transport: transport2, store: store, clock: clock, host: host2)
 		await relaunched.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		try await Task.sleep(for: .milliseconds(300))
@@ -325,11 +327,12 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Yes, keep "), .hang], otherwise: transport.respond)
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await host.expire(.systemExpired)
-		let relaunched = makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
+		let relaunched = await makeCoach(
+			transport: FakeModelTransport(), store: store, clock: clock)
 		await relaunched.lifecycle(.becameActive)
 		try await Task.sleep(for: .milliseconds(300))
 		let all = try await settlements(of: turn, in: store)

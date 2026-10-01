@@ -14,7 +14,7 @@ import Testing
 			secondClaim.release()
 		}
 		let transport = FakeModelTransport()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: firstClaim,
 			coalescing: CoalescingPolicy(window: .seconds(60)),
 			secrets: ICloudKeychainStore(backing: FixtureSecretStoreBacking()))
@@ -44,7 +44,7 @@ import Testing
 
 	@Test(arguments: StartRefusal.allCases)
 	func aRefusedStartPublishesItsFailureAsSoonAsItSettles(_ refusal: StartRefusal) async throws {
-		let (coach, claim, transport) = try heldStart(refusal)
+		let (coach, claim, transport) = try await heldStart(refusal)
 		defer { claim.release() }
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
@@ -67,7 +67,7 @@ import Testing
 	func stopDuringARefusedStartPublishesTheFailureWhileStopping(_ refusal: StartRefusal)
 		async throws
 	{
-		let (coach, claim, transport) = try heldStart(refusal)
+		let (coach, claim, transport) = try await heldStart(refusal)
 		defer { claim.release() }
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
@@ -88,7 +88,7 @@ import Testing
 		#expect(transport.requests.isEmpty)
 	}
 
-	private func heldStart(_ refusal: StartRefusal) throws
+	private func heldStart(_ refusal: StartRefusal) async throws
 		-> (Coach, HeldAppendLog, FakeModelTransport)
 	{
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
@@ -100,7 +100,7 @@ import Testing
 		if refusal == .claimStorage { try log.failAppends(ofKind: "turnClaim") }
 		let claim = HeldAppendLog(inner: log, holding: "turnClaim", occurrence: 1)
 		let transport = FakeModelTransport()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: claim,
 			coalescing: CoalescingPolicy(window: .seconds(60)), secrets: secrets)
 		return (coach, claim, transport)

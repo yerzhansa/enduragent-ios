@@ -18,7 +18,7 @@ import Testing
 			}
 		}
 		let store = try ICloudKeychainStore.fixture(directory: directory).store
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		try FileManager.default.createDirectory(
 			at: directory.appending(path: FixtureSecretStoreBacking.fileName),

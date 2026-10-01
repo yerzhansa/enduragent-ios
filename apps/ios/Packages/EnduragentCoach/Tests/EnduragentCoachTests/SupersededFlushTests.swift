@@ -7,7 +7,7 @@ import Testing
 extension FlushCoverageTests {
 	@Test(arguments: [false, true])
 	func resetDoesNotReplayAQuestionFromAPendingSupersededPartial(relaunch: Bool) async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Pending superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
@@ -50,7 +50,8 @@ extension FlushCoverageTests {
 		try #require(reset.filter { $0 == "Pending Saturday question" }.count == 1)
 		try #require(reset.filter { $0 == "Replacement after pending" }.count == 1)
 		#expect(!reset.contains("Pending superseded partial"))
-		let next = relaunch ? makeCoach(transport: transport, store: store, clock: clock) : coach
+		let next =
+			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : coach
 		if relaunch { await next.lifecycle(.becameActive) }
 		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
 		let after = sent(.memoryFlush, by: transport)
@@ -62,7 +63,7 @@ extension FlushCoverageTests {
 	@Test func launchDrainsOnlyTheNewerJobCoveringASupersededPartial() async throws {
 		let ledger = try await seedSupersededJobs(
 			pending: [1, 2], newer: [1, 3, 4, 5], settled: false)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
@@ -80,7 +81,7 @@ extension FlushCoverageTests {
 
 	@Test(arguments: [false, true], [false, true])
 	func aPendingJobKeepsRowsMissingFromANewerJob(implicit: Bool, newerSettled: Bool) async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let ledger = try await seedSupersededJobs(
 			pending: implicit ? [] : [1, 2, 4, 5], newer: [1, 3], settled: newerSettled)
@@ -119,7 +120,7 @@ extension FlushCoverageTests {
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 400)), .fail(.http(status: 400))], for: .flush,
 			otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
 		let requests = sent(.memoryFlush, by: transport)

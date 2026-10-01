@@ -6,7 +6,7 @@ import Testing
 
 extension SingleProposalReviewsTests {
 	@Test func approvalDiagnosticsExcludePrivateURL() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		let url = try #require(
 			URL(
@@ -44,7 +44,7 @@ extension TurnRunnerTests {
 				.text("I could not read your wellness data."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
 		let settled = try await coach.sendAndSettle("How am I recovering?")
 		#expect(replyText(settled) == "I could not read your wellness data.")

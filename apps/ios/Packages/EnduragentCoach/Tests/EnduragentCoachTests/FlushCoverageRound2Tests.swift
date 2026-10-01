@@ -87,13 +87,13 @@ extension ExecutionLeaseTests {
 
 		let recording = BatchRecordingLog(inner: store)
 		let recoveryHost = ImmediateExecutionHost()
-		let relaunched = makeCoach(
+		let relaunched = await makeCoach(
 			transport: transport, store: recording, clock: clock, host: recoveryHost)
 		await relaunched.lifecycle(.becameActive)
 		await relaunched.lifecycle(.willTerminate)
 
 		#expect(recoveryHost.leases.isEmpty)
-		#expect(recording.batches.isEmpty)
+		#expect(recording.batches == [["providerConsent"]])
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records.count

@@ -9,7 +9,7 @@ import Testing
 		preference: LanguagePreference
 	) async throws {
 		let transport = FakeModelTransport()
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: InMemoryRecordLog(), deviceLanguage: .nl)
 		try await coach.setLanguage(preference)
 		for (message, detected) in [
@@ -36,9 +36,10 @@ import Testing
 	@Test func savedLanguageLoadsWithoutReadingTraining() async throws {
 		let store = InMemoryRecordLog()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let first = makeCoach(transport: FakeModelTransport(), intervals: intervals, store: store)
+		let first = await makeCoach(
+			transport: FakeModelTransport(), intervals: intervals, store: store)
 		try await first.setLanguage(.fixed(.es))
-		let reopened = makeCoach(
+		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: intervals, store: store)
 		#expect(await reopened.languagePreference() == .fixed(.es))
 		#expect(intervals.calls.isEmpty)

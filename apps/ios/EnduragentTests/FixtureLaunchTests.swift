@@ -100,6 +100,7 @@ final class FixtureLaunchTests {
 	}
 
 	func observed(_ model: ShellModel) async throws {
+		await model.appear()
 		let deadline = ContinuousClock.now + .seconds(5)
 		while model.chat == nil, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
@@ -154,7 +155,7 @@ final class FixtureLaunchTests {
 		widened.coalescing = parsed.coalescing
 		let services = try AppServices.fixture(widened, defaults: defaults)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let turn = try await firstTurn(model)
@@ -205,6 +206,7 @@ final class FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: "enduragent.lastChatId")
 		let model = model(try services())
+		await model.agreeAndStartChatting()
 		try await observed(model)
 		#expect(model.route == .chat)
 		#expect(model.chat?.chat == .main)
@@ -218,6 +220,7 @@ final class FixtureLaunchTests {
 		let (services, kept) = try relaunch(.keep)
 		let reopened = ShellModel(
 			environment: AppEnvironment(services: services, language: language, defaults: kept))
+		await reopened.agreeAndStartChatting()
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.chat == .main)
@@ -232,6 +235,7 @@ final class FixtureLaunchTests {
 	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let first = model(try services())
+		await first.agreeAndStartChatting()
 		first.draft.text = "Is Thursday still on?"
 		first.draftChanged(from: "")
 		let second = model(try services())
@@ -244,7 +248,7 @@ final class FixtureLaunchTests {
 	@Test func startChattingPersistsSessionForNextLaunch() async throws {
 		let services = try services()
 		let first = model(services)
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		#expect(first.route == .chat)
 		let second = model(services)
 		try await observed(first)
@@ -255,14 +259,14 @@ final class FixtureLaunchTests {
 
 	@Test func chooseAccessMethodThenStartChattingKeepsTheConversation() async throws {
 		let model = model(try services())
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let settled = try await settledTurn(model)
 		await model.perform(.chooseAccessMethod)
 		#expect(model.route == .onboarding(.connect))
 		model.skipConnect()
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		#expect(model.route == .chat)
 		try await observed(model)
 		#expect(model.chat?.turns.map(\.id) == [settled.id])
@@ -271,7 +275,7 @@ final class FixtureLaunchTests {
 
 	@Test func newConversationArchivesTheExchangeAndOpensOnTheWelcome() async throws {
 		let model = model(try services())
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let settled = try await settledTurn(model)
@@ -295,7 +299,7 @@ final class FixtureLaunchTests {
 	@Test func typedStartClearsTheDraftAndAFailedBoundaryKeepsTheConversation() async throws {
 		let services = try services()
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let settled = try await settledTurn(model)
@@ -311,7 +315,7 @@ final class FixtureLaunchTests {
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
 		let first = model(try services())
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		let settled = try await settledTurn(first)
@@ -331,7 +335,7 @@ final class FixtureLaunchTests {
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
 		let first = model(try services())
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		_ = try await settledTurn(first)
@@ -358,4 +362,15 @@ func replyText(_ state: TurnState) -> String? {
 		return nil
 	}
 	return text
+}
+
+@MainActor
+extension ShellModel {
+	func agreeAndStartChatting() async {
+		await startChatting()
+		if route == .onboarding(.consent) {
+			await acceptConsent()
+		}
+		#expect(route == .chat)
+	}
 }

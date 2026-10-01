@@ -101,28 +101,19 @@ package enum StoredIntervalsCredential: Codable, Equatable, Sendable {
 
 package enum StoredAccessSelection: Codable, Equatable, Sendable {
 	case credits
-	case openRouterAccount(model: String, provider: String, consentModel: String, consentAt: Date)
+	case openRouterAccount(model: String)
 
 	package init(_ selection: AccessSelection) {
 		switch selection {
-		case .credits:
-			self = .credits
-		case .openRouterAccount(let model, let consent):
-			self = .openRouterAccount(
-				model: model.rawValue, provider: consent.provider,
-				consentModel: consent.model.rawValue, consentAt: consent.at)
+		case .credits: self = .credits
+		case .openRouterAccount(let model): self = .openRouterAccount(model: model.rawValue)
 		}
 	}
 
 	package func selection() -> AccessSelection {
 		switch self {
-		case .credits:
-			return .credits
-		case .openRouterAccount(let model, let provider, let consentModel, let consentAt):
-			return .openRouterAccount(
-				model: ModelID(rawValue: model),
-				consent: ProviderConsent(
-					provider: provider, model: ModelID(rawValue: consentModel), at: consentAt))
+		case .credits: .credits
+		case .openRouterAccount(let model): .openRouterAccount(model: ModelID(rawValue: model))
 		}
 	}
 }

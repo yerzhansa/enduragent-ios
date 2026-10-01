@@ -12,7 +12,7 @@ import Testing
 		let memory = legacyCreditsBacking(previous)
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecInteractionNotAllowed)
 		let store = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 
 		await #expect(throws: AccessUnavailable.secureStorageLocked) {
@@ -42,7 +42,7 @@ extension CreditsClientTests {
 		let deviceB = ICloudKeychainStore(backing: memory)
 		try deviceB.storeCreditsAccount(CreditsAccount(appAccountToken: oldToken, key: oldKey))
 		try deviceB.storeIntervalsConnection(testConnection)
-		let coachB = makeCoach(
+		let coachB = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceB)
 		#expect(await coachB.status().setup == .ready)
 		let interrupted = InterruptedSecretStoreBacking(base: memory)
@@ -74,7 +74,7 @@ extension CreditsClientTests {
 			return
 		}
 		interrupted.resume()
-		let coachA = makeCoach(
+		let coachA = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: deviceA)
 		for (coach, store) in [(coachA, deviceA), (coachB, deviceB)] {
 			let identity = try await coach.creditsIdentity()
@@ -106,7 +106,7 @@ extension CreditsClientTests {
 		}
 
 		let restarted = ICloudKeychainStore(backing: memory)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: restarted)
 		#expect(
 			try await coach.creditsIdentity()

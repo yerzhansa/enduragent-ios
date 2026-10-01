@@ -17,7 +17,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
 		let settled = try await coach.sendAndSettle("Read my notes")
 		#expect(replyText(settled) == "Please use YYYY-MM-DD dates.")
@@ -37,12 +37,12 @@ import Testing
 			clock: clock)
 		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
 		let view = try await memory.view()
-		let schemas = runtime(store: store).toolsForTurn(chatId: .main, memory: view)
+		let schemas = ToolCatalog.schemas(memory: view)
 		#expect(!schemas.map(\.name).contains(.memoryRead))
 		try await memory.writeSection(
 			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
 		let withNotes = try await memory.view()
-		let offered = runtime(store: store).toolsForTurn(chatId: .main, memory: withNotes)
+		let offered = ToolCatalog.schemas(memory: withNotes)
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
 
@@ -131,7 +131,7 @@ import Testing
 			stamp: testStamp())
 		let tools = runtime(store: store)
 		let view = try await memory.view()
-		let schema = tools.toolsForTurn(chatId: .main, memory: view).first {
+		let schema = ToolCatalog.schemas(memory: view).first {
 			$0.name == .memoryWrite
 		}
 		let encoded = canonicalJSON(schema?.parameters ?? .null)

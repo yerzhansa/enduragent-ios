@@ -11,7 +11,7 @@ extension CredentialVaultTests {
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try store.storeIntervalsConnection(testConnection)
-		let coach = coach(store)
+		let coach = await coach(store)
 		let before = memory.readCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
@@ -33,7 +33,7 @@ extension CredentialVaultTests {
 		] {
 			memory.fail(account, with: errSecInteractionNotAllowed)
 		}
-		let coach = coach(ICloudKeychainStore(backing: memory))
+		let coach = await coach(ICloudKeychainStore(backing: memory))
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.secureStorageLocked)))
 		#expect(coach.diagnostics.entries.isEmpty)
@@ -118,9 +118,7 @@ extension CredentialVaultTests {
 		try secrets.storeOpenRouterAccountKey("sk-or-account")
 		let model = ModelID(rawValue: "test/account-model")
 		try secrets.storeAccessSelection(
-			.openRouterAccount(
-				model: model,
-				consent: ProviderConsent(provider: "Test Provider", model: model, at: clock.now)))
+			.openRouterAccount(model: model))
 		let readsBeforeResolving = backing.readCount
 		let vault = vault(secrets)
 		#expect(
@@ -162,7 +160,7 @@ extension CredentialVaultTests {
 				#"{"apiKey":{"_0":"icu-v1-key"}}"#.utf8),
 		])
 		let keychain = ICloudKeychainStore(backing: memory)
-		let coach = coach(keychain)
+		let coach = await coach(keychain)
 		_ = await coach.status()
 		let resolved = try #require(try keychain.intervalsConnection())
 		#expect(resolved.resolvedAthlete?.rawValue == "i1001")
@@ -173,7 +171,7 @@ extension CredentialVaultTests {
 
 	@Test func athleteSelectionReachesEveryTrainingClient() async throws {
 		let secrets = keyedSecrets()
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		guard
 			case .replaced = await coach.changeTraining(

@@ -13,7 +13,7 @@ extension CredentialVaultTests {
 		let memory = legacyCreditsBacking(previous)
 		let backing = FailedLegacyDeletionBacking(base: memory, failedSlot: failedSlot)
 		let secrets = ICloudKeychainStore(backing: backing)
-		let coach = coach(secrets)
+		let coach = await coach(secrets)
 
 		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
 			try await coach.creditsIdentity()

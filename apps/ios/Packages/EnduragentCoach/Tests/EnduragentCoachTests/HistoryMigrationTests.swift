@@ -28,8 +28,8 @@ import Testing
 			])
 	}
 
-	func coach() -> Coach {
-		makeCoach(transport: transport, store: store, clock: clock)
+	func coach() async -> Coach {
+		await makeCoach(transport: transport, store: store, clock: clock)
 	}
 
 	@Test func v1ChatsBecomeArchivedConversationsAndMainOpensOnWelcome() async throws {
@@ -37,7 +37,7 @@ import Testing
 			firstChat, asking: "How was my week?", reply: "Two rides.", hoursAgo: 48)
 		try await seedV1Chat(
 			secondChat, asking: "Is Thursday still on?", reply: "Yes, keep it.", hoursAgo: 2)
-		let coach = coach()
+		let coach = await coach()
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
 		#expect(snapshot.opening == .welcome)
@@ -111,7 +111,8 @@ extension SwiftDataSuites {
 					])
 			}
 			let log = BatchRecordingLog(inner: store)
-			let coach = makeCoach(transport: FakeModelTransport(), store: log, clock: clock)
+			let coach = await makeCoach(
+				transport: FakeModelTransport(), store: log, clock: clock, consent: false)
 			let archived = try await coach.history()
 			#expect(archived.count == 50)
 			#expect(archived.first?.turns.first?.athleteText == "Archived 50")

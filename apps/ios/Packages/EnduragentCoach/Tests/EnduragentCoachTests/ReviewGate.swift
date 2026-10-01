@@ -5,14 +5,16 @@ import Testing
 @testable import EnduragentCoach
 
 extension SingleProposalReviewsTests {
-	func gatedCoach(log: any RecordLog, client: any IntervalsClient) -> Coach {
-		Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: log), secrets: secrets, models: .scripted(transport),
-				training: TrainingService { _, _, _ in client },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)
+	func gatedCoach(log: any RecordLog, client: any IntervalsClient) async -> Coach {
+		await consentingCoach(
+			Coach(
+				sport: .cycling,
+				ports: CoachPorts(
+					records: RecordStore(log: log), secrets: secrets, models: .scripted(transport),
+					training: TrainingService { _, _, _ in client },
+					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
+					clock: clock),
+				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
 	}
 }
 

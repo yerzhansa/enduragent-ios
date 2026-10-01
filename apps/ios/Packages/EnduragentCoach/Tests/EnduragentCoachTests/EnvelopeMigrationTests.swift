@@ -88,7 +88,7 @@ extension SwiftDataSuites {
 						device: phoneA, wall: 5, ulid: fixedUlid(6),
 						body: legacyReply(chatId: .main, text: "Tuesday was hard.")),
 				])
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: FakeModelTransport(), store: log, clock: clock, coalescing: .npm)
 			#expect(
 				await coach.transcript(.main) == [
@@ -123,7 +123,7 @@ extension SwiftDataSuites {
 						body: .legacy(
 							.windowStartV1(chatId: .main, firstIncludedUlid: fixedUlid(4)))),
 				])
-			let coach = makeCoach(
+			let coach = await makeCoach(
 				transport: FakeModelTransport(), store: log, clock: clock, coalescing: .npm)
 			#expect(
 				await coach.transcript(.main) == [

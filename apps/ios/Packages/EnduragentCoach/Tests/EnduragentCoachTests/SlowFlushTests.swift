@@ -38,6 +38,7 @@ import Testing
 				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock
 			), builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)
+		_ = await consentingCoach(coach)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(clock.uptime == .seconds(retryAfter == nil ? 15 : 22))
 		#expect(clock.slept == (retryAfter == nil ? [] : [.seconds(7)]))

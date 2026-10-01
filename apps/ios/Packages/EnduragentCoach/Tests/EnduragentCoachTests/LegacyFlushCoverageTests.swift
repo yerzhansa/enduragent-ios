@@ -31,7 +31,7 @@ import Testing
 								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Fresh modern reply"), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -90,7 +90,7 @@ import Testing
 					body: .synced(
 						sampleReply(chatId: .main, turn: turn, text: "Imported modern reply"))),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
@@ -121,7 +121,7 @@ import Testing
 								chatId: .main, messageUlids: [question, reply])))),
 				record(job.ulid.incremented(), logical: 4, body: consumed(job)),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main) == ["Legacy question", "Legacy reply"])
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -168,7 +168,7 @@ import Testing
 					record(fixedUlid(id + 10), logical: UInt32(id + 10), body: consumed(job)),
 				])
 		}
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 6)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
@@ -198,7 +198,7 @@ import Testing
 						.flushSettled(
 							FlushSettledBody(chatId: .main, job: job, settlement: .nothingToSave)))),
 			])
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)

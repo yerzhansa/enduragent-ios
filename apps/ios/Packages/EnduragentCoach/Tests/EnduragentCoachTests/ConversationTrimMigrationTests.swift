@@ -44,7 +44,8 @@ import Testing
 				.text("Saturday too."), .finish(reason: .stop),
 				.text("Sunday off."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = EnduragentCoachTests.makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, store: store, clock: clock)
 		let firstPrompt = try await sendCapturing("Is Thursday on?", coach)
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 		#expect(!firstPrompt.contains { $0.content.contains("Legacy first answer") })

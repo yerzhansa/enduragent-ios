@@ -24,7 +24,7 @@ extension RetryLadderTests {
 				)
 			] + workoutProposal + [.text("A second workout is ready."), .finish(reason: .stop)],
 			for: .chat, otherwise: transport.respond)
-		let coach = approvalCoach(held, intervals: intervals)
+		let coach = await approvalCoach(held, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
@@ -63,7 +63,7 @@ extension RetryLadderTests {
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await coach.retry(turn, in: .main)
 			}
-			let reopened = approvalCoach(HeldClock(), intervals: intervals)
+			let reopened = await approvalCoach(HeldClock(), intervals: intervals)
 			#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
 			return
 		}
@@ -73,7 +73,7 @@ extension RetryLadderTests {
 	@Test func approvalFromEarlierTurnDoesNotSettleWaitingTurn() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let coach = approvalCoach(held, intervals: intervals)
+		let coach = await approvalCoach(held, intervals: intervals)
 		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.text("Please review the ride."), .finish(reason: .stop)],
 			for: .chat, otherwise: transport.respond)
@@ -103,7 +103,7 @@ extension RetryLadderTests {
 	@Test func canceledReviewDuringBackoffDoesNotSettleSavedWork() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		let coach = approvalCoach(held, intervals: intervals)
+		let coach = await approvalCoach(held, intervals: intervals)
 		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [
 				.fail(.http(status: 429, headers: ["retry-after": "7"])),
@@ -130,9 +130,9 @@ extension RetryLadderTests {
 		]
 	}
 
-	private func approvalCoach(_ held: HeldClock, intervals: FakeIntervalsClient) -> Coach {
+	private func approvalCoach(_ held: HeldClock, intervals: FakeIntervalsClient) async -> Coach {
 		let model = ApprovalWaitTransport(base: transport, clock: held)
-		return Coach(
+		let coach = Coach(
 			sport: .cycling,
 			ports: CoachPorts(
 				records: RecordStore(log: store), secrets: keyedSecrets(),
@@ -140,6 +140,7 @@ extension RetryLadderTests {
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
 			builtInModel: testModel, deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .zero))
+		return await consentingCoach(coach)
 	}
 
 	func presentReview(on coach: Coach) async throws -> ReviewControlToken {

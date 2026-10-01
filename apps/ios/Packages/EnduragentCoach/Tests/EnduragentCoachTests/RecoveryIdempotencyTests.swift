@@ -212,7 +212,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = InMemoryRecordLog()
 		let faulty = FaultInjectingRecordLog(wrapping: store)
-		let coach = makeCoach(transport: transport, store: faulty, clock: clock)
+		let coach = await makeCoach(transport: transport, store: faulty, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
@@ -225,7 +225,7 @@ import Testing
 		let replied = try await coach.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(replied.flatMap(replyText) == "Thursday is on.")
 		let recording = BatchRecordingLog(inner: store)
-		let reopened = makeCoach(transport: transport, store: recording, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: recording, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn).flatMap(replyText) == "Thursday is on.")
 		#expect(recording.batches.isEmpty)
@@ -237,7 +237,7 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		log.failRecoveryReads = true
-		let coach = makeCoach(transport: transport, store: log, clock: clock)
+		let coach = await makeCoach(transport: transport, store: log, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
@@ -259,7 +259,7 @@ import Testing
 		let inner = InMemoryRecordLog()
 		let log = FaultInjectingRecordLog(wrapping: inner)
 		log.failRecoveryReads = true
-		let coach = makeCoach(transport: transport, store: log, clock: clock)
+		let coach = await makeCoach(transport: transport, store: log, clock: clock)
 		await coach.lifecycle(.becameActive)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(turn)
@@ -277,7 +277,7 @@ import Testing
 		let store = InMemoryRecordLog()
 		let otherTransport = FakeModelTransport()
 		otherTransport.respond = { _ in ScriptedReply([.hang]) }
-		let other = makeCoach(
+		let other = await makeCoach(
 			transport: otherTransport,
 			store: DeviceAliasLog(inner: store, deviceId: DeviceID(rawValue: "phone-b")),
 			clock: clock)
@@ -285,9 +285,9 @@ import Testing
 		await other.waitUntilProcessing(turn)
 		let transport = FakeModelTransport()
 		let recording = BatchRecordingLog(inner: store)
-		let mine = makeCoach(transport: transport, store: recording, clock: clock)
+		let mine = await makeCoach(transport: transport, store: recording, clock: clock)
 		await mine.lifecycle(.becameActive)
-		#expect(recording.batches.isEmpty)
+		#expect(recording.batches == [["providerConsent"]])
 		#expect(await mine.state(of: turn) == .accepted(.onOtherDevice))
 		await #expect(throws: RetryRefusal.acceptedOnOtherDevice) {
 			try await mine.retry(turn, in: .main)

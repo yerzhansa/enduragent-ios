@@ -77,9 +77,7 @@ struct CreditsClientTests {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let model = ModelID(rawValue: "test/account-model")
 		let selection = AccessSelection.openRouterAccount(
-			model: model,
-			consent: ProviderConsent(
-				provider: "Test Provider", model: model, at: Date(timeIntervalSince1970: 0)))
+			model: model)
 		try secrets.storeOpenRouterAccountKey("sk-or-test-account")
 		try secrets.storeAccessSelection(selection)
 		let client = try makeClient(secrets: secrets)

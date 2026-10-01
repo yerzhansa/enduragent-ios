@@ -14,7 +14,7 @@ extension RetryLadderTests {
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
 				+ [.text("Rest today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = heldApprovalCoach(held, model: transport, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)

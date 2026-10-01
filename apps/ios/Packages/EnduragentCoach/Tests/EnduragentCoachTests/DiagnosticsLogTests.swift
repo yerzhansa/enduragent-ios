@@ -117,7 +117,7 @@ import Testing
 		let backing = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: backing)
 		backing.locked = !keyStored
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
 		let deadline = ContinuousClock.now + .seconds(5)
@@ -148,7 +148,7 @@ extension SwiftDataSuites {
 			let transport = FakeModelTransport()
 			transport.respond = ScriptedReply.sequence(
 				[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
-			let coach = makeCoach(transport: transport, store: log, clock: clock)
+			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			let before = await coach.transcript(.main)
 			_ = try await coach.sendAndSettle("Still on for Saturday?")
 			let after = await coach.transcript(.main)
@@ -188,6 +188,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		.replyObservedUnsaved(_, let detail):
 		return detail.count
 	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
+		.importsUnavailable,
 		.preferencesUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved:
 		return nil

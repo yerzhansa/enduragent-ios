@@ -13,8 +13,8 @@ import Testing
 		chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
 		language: .en)
 
-	func coach() -> Coach {
-		makeCoach(transport: transport, store: store, clock: clock, host: host)
+	func coach() async -> Coach {
+		await makeCoach(transport: transport, store: store, clock: clock, host: host)
 	}
 
 	func count(_ scope: RecordQuery.Scope) async throws -> Int {
@@ -37,7 +37,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: .stop), .finish(reason: .stop)], for: .flush,
 			requestDelay: .seconds(2), otherwise: transport.respond)
-		let coach = coach()
+		let coach = await coach()
 		await coach.lifecycle(.becameActive)
 		try await waitUntil { host.leases.count == 1 }
 		let resetting = startNewConversation(on: coach)
@@ -54,7 +54,7 @@ import Testing
 	@Test func theChatShowsWorkingWhileTheResetSavesMemory() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
-		let coach = coach()
+		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
 			[], for: .flush, requestDelay: .milliseconds(500), otherwise: transport.respond)
@@ -83,7 +83,7 @@ import Testing
 	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
-		let coach = coach()
+		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
@@ -99,7 +99,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let held = HeldAppendLog(inner: store, holding: "turnSettled", occurrence: 1)
-		let coach = makeCoach(transport: transport, store: held, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: held, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		async let stopped: Void = coach.stop(.main)
@@ -124,7 +124,7 @@ import Testing
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
-		let coach = coach()
+		let coach = await coach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
@@ -146,7 +146,7 @@ import Testing
 	@Test func expiryDuringTheResetFlushStartsTheConversationAndKeepsTheJob() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Two rides."), .finish(reason: .stop)], otherwise: transport.respond)
-		let coach = coach()
+		let coach = await coach()
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
 			[.hang], for: .flush, otherwise: transport.respond)

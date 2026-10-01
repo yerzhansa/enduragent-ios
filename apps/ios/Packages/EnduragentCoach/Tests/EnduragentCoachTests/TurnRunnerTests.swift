@@ -22,7 +22,7 @@ import Testing
 		}
 		transport.respond = ScriptedReply.sequence(
 			script, otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Keep fetching")
 		#expect(replyText(settled) == ".")
 		#expect(transport.requests.count == 10)
@@ -32,13 +32,14 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		let recording = BatchRecordingLog(inner: store)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: recording, clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(
 			recording.batches == [
+				["providerConsent"],
 				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
 			])
 		let everyKind: [String] = recording.batches.flatMap { $0 }
@@ -83,7 +84,7 @@ import Testing
 				.text("I could not read your wellness data."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("How am I recovering?")
 		#expect(replyText(settled) == "I could not read your wellness data.")
 		#expect(transport.requests.count == 2)
@@ -98,7 +99,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("How am I recovering?")
 		#expect(replyText(settled) == "Easy spin today.")
 		let request = try #require(transport.requests.only)
@@ -120,7 +121,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Let's start with your goals."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(secrets: secrets)
+		let coach = await makeCoach(secrets: secrets)
 		let settled = try await coach.sendAndSettle("Hello")
 		#expect(replyText(settled) == "Let's start with your goals.")
 		#expect(coach.diagnostics.entries.isEmpty)
@@ -139,7 +140,7 @@ import Testing
 				.text("I could not save that."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: failing, clock: clock)
 		let settled = try await coach.sendAndSettle("Remember that I ride on Saturdays")
 		#expect(replyText(settled) == "I could not save that.")
@@ -166,7 +167,7 @@ import Testing
 				.text("I could not save that."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: failing, clock: clock)
 		_ = try await coach.sendAndSettle("Remember that I ride on Saturdays")
 		let toolMessage = try #require(
@@ -187,7 +188,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.connection(.notConnectedToInternet)), count: 3), for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let network = try await coach.sendAndSettle("one")
 		#expect(failure(network) == .model(.providerDown(.network)))
 		transport.respond = ScriptedReply.sequence(
@@ -204,7 +205,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(row.scripted), count: row.calls), for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Plan my week"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		guard case .failed(let failed) = settled else {
@@ -224,7 +225,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.hang, .text("Back on track."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(
 			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
@@ -294,7 +295,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
 		let chat = try #require(sent(.chatAttempt, by: transport).first)
@@ -324,7 +325,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		let settled = try await coach.sendAndSettle("And Saturday?")
 		#expect(replyText(settled) == "Saturday too.")
@@ -347,7 +348,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
@@ -373,7 +374,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop), .text("Saturday too."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(sent(.droppedSummary, by: transport).isEmpty)
 		try await coach.setSession(

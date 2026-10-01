@@ -32,7 +32,7 @@ extension ConversationFoldTests {
 			transport.respond = ScriptedReply.sequence(
 				[.fail(.http(status: 400))], otherwise: transport.respond)
 		}
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
 		if ending == .stop {

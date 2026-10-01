@@ -9,6 +9,7 @@ extension FixtureLaunchTests {
 	@Test func intervalsLoadFailureShowsACatalogNotice() async throws {
 		let services = try services()
 		let onboarding = model(services)
+		await onboarding.agreeAndStartChatting()
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
 		#expect(onboarding.didConnect)
@@ -107,7 +108,7 @@ extension FixtureLaunchTests {
 
 	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
 		let first = model(try services())
-		first.startChatting()
+		await first.agreeAndStartChatting()
 		first.draft.text = TutorialCopy.weekQuestion
 		await first.send()
 		_ = try await settledTurn(first)
@@ -129,6 +130,7 @@ extension FixtureLaunchTests {
 		let services = try services(keychain: .locked)
 		let fixture = try #require(services.fixture)
 		let model = model(services)
+		await model.agreeAndStartChatting()
 		await model.appear()
 		#expect(model.status?.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		fixture.secretBacking.locked = false
@@ -143,7 +145,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let fixture = try #require(services.fixture)
 		let model = model(services)
-		model.startChatting()
+		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let unconnected = try await settledTurn(model)

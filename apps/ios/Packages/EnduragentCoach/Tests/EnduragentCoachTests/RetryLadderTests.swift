@@ -14,7 +14,7 @@ import Testing
 			Array(
 				repeating: .fail(.http(status: 429, headers: ["retry-after": "7"])), count: 4),
 			for: .chat, otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
@@ -146,7 +146,7 @@ import Testing
 				.text("Never sent."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
@@ -173,7 +173,7 @@ import Testing
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await coach.retry(turn, in: .main)
 		}
-		let reopened = makeCoach()
+		let reopened = await makeCoach()
 		#expect(try #require(await reopened.currentSnapshot(.main)).turns.first?.state == settled)
 	}
 
@@ -188,7 +188,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let saved = try await coach.sendAndSettle("Remember my Saturday ride")
 		guard case .savedWork = saved else {
 			Issue.record("expected saved work, got \(saved)")
@@ -255,7 +255,7 @@ import Testing
 				.text("Thursday is on."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, store: store, clock: paused)
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
@@ -325,8 +325,8 @@ import Testing
 		transport.requests.filter { $0.charge == charge }.count
 	}
 
-	private func makeCoach(transport: FakeModelTransport? = nil) -> Coach {
-		EnduragentCoachTests.makeCoach(
+	private func makeCoach(transport: FakeModelTransport? = nil) async -> Coach {
+		await EnduragentCoachTests.makeCoach(
 			transport: transport ?? self.transport, store: store, clock: clock)
 	}
 }

@@ -28,7 +28,7 @@ import Testing
 				.text("I could not save that."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: failing)
+		let coach = await makeCoach(transport: transport, store: failing)
 		let settled = try await coach.sendAndSettle("Remember that I ride on Saturdays")
 		#expect(replyText(settled) == "I could not save that.")
 		#expect(transport.requests.count == 2)
@@ -64,7 +64,7 @@ import Testing
 					.text("ok"),
 					.finish(reason: .stop),
 				], otherwise: transport.respond)
-			let coach = makeCoach(transport: transport, store: try await storeWithNotes())
+			let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 			let settled = try await coach.sendAndSettle("Read my information")
 			#expect(replyText(settled) == "ok")
 			let followUp = try #require(transport.requests.dropFirst().first)
@@ -85,7 +85,7 @@ import Testing
 				.text("What is your FTP?"),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		let settled = try await coach.sendAndSettle("Calculate my zones")
 		#expect(replyText(settled) == "What is your FTP?")
 		#expect(transport.requests.count == 2)
@@ -110,7 +110,7 @@ import Testing
 				.text("ok"),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: try await storeWithNotes())
+		let coach = await makeCoach(transport: transport, store: try await storeWithNotes())
 		let settled = try await coach.sendAndSettle("read memory")
 		#expect(replyText(settled) == "ok")
 		#expect(transport.requests.count == 2)
@@ -142,7 +142,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("This response must not be generated."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: failing)
+		let coach = await makeCoach(transport: transport, store: failing)
 		let settled = try await coach.sendAndSettle("Plan my week")
 		#expect(failure(settled) == .local(.recordStorage))
 		#expect(transport.requests.isEmpty)

@@ -105,7 +105,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
+		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		for await snapshot in await coach.observe(.main) {

@@ -48,7 +48,7 @@ import Testing
 
 	@Test func setSessionStoresOneRecordThatTheNextCoachReads() async throws {
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
 		#expect(await coach.status().session == .npmDefaults)
 		let chosen = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
 			.replacing(.contextWindowOverride, with: "64000")
@@ -75,7 +75,7 @@ import Testing
 			return
 		}
 		let store = InMemoryRecordLog()
-		let coach = makeCoach(transport: FakeModelTransport(), store: store)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
 		try await coach.setSession(body.settings)
 		let rows = try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records
 		let encoded = try RecordCodec.encode(try #require(rows.first).body).data
@@ -93,7 +93,7 @@ import Testing
 
 	@Test func failedSessionWriteKeepsTheStoredSettings() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let coach = makeCoach(transport: FakeModelTransport(), store: log)
+		let coach = await makeCoach(transport: FakeModelTransport(), store: log)
 		try log.failAppends(ofKind: "sessionSettings")
 		let chosen = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.5")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {

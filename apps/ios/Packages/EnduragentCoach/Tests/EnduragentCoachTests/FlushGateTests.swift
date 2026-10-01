@@ -58,7 +58,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("And Sunday?")
 		#expect(transport.requests.map(\.charge) == [.chatAttempt])
 		#expect(
@@ -69,7 +69,7 @@ import Testing
 	@Test func retryingAStoppedPartialDoesNotCountItsOwnMessagesTowardSoftFlush() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 2, tokens: historyBudget(clock: clock) * 9 / 10)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Superseded partial"), .hang], otherwise: transport.respond)
 		let turn = try #require(
@@ -96,7 +96,7 @@ import Testing
 	}
 
 	@Test func aRetriedQuestionBeforeASavedWindowIsStillUnsaved() async throws {
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(

@@ -11,18 +11,19 @@ import Testing
 	let memorySaved = WriteSummary(
 		memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 
-	func processBeforeTheKill(coalescing: CoalescingPolicy = quickWindow) -> (
+	func processBeforeTheKill(coalescing: CoalescingPolicy = quickWindow) async -> (
 		Coach, FaultInjectingRecordLog
 	) {
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		return (
-			makeCoach(transport: transport, store: dying, clock: clock, coalescing: coalescing),
+			await makeCoach(
+				transport: transport, store: dying, clock: clock, coalescing: coalescing),
 			dying
 		)
 	}
 
 	func relaunched(over log: (any RecordLog)? = nil) async -> Coach {
-		let coach = makeCoach(transport: transport, store: log ?? store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: log ?? store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		return coach
 	}
@@ -46,7 +47,7 @@ import Testing
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
-		let (before, dying) = processBeforeTheKill()
+		let (before, dying) = await processBeforeTheKill()
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
@@ -84,7 +85,7 @@ import Testing
 
 	@Test func claimedThenKilledTurnIsInterruptedAndTryAgainAnswersIt() async throws {
 		transport.respond = { _ in ScriptedReply([.hang]) }
-		let (before, dying) = processBeforeTheKill()
+		let (before, dying) = await processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)
@@ -123,12 +124,12 @@ import Testing
 				.finish(reason: .toolCalls),
 				.hang,
 			], otherwise: transport.respond)
-		let (before, dying) = processBeforeTheKill()
+		let (before, dying) = await processBeforeTheKill()
 		let turn = try #require(
 			try await before.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
 		try await waitForRecords(.synced([.memorySection]), count: 1, in: store)
 		try await before.dieWithoutWriting(to: dying)
-		let after = makeCoach(transport: transport, store: store, clock: clock)
+		let after = await makeCoach(transport: transport, store: store, clock: clock)
 		let first = try #require(await after.currentSnapshot(.main)?.turns.first?.state)
 		guard case .interrupted(let interrupted) = first else {
 			Issue.record("expected interrupted, got \(first)")
@@ -136,14 +137,14 @@ import Testing
 		}
 		#expect(interrupted.saved == memorySaved)
 		#expect(interrupted.notice.action == nil)
-		let retried = makeCoach(transport: transport, store: store, clock: clock)
+		let retried = await makeCoach(transport: transport, store: store, clock: clock)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await retried.retry(turn, in: .main)
 		}
 	}
 
 	@Test func unclaimedTurnStaysAcceptedAwaitingRestart() async throws {
-		let (before, dying) = processBeforeTheKill(
+		let (before, dying) = await processBeforeTheKill(
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		try await before.dieWithoutWriting(to: dying)
@@ -162,7 +163,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let before = makeCoach(transport: transport, store: store, clock: clock)
+		let before = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		let settled = try #require(await before.settledState(of: turn, in: .main))
 		let recording = BatchRecordingLog(inner: store)
@@ -174,7 +175,7 @@ import Testing
 
 	@Test func planRunTwiceWritesNothingTheSecondTime() async throws {
 		transport.respond = { _ in ScriptedReply([.hang]) }
-		let (before, dying) = processBeforeTheKill()
+		let (before, dying) = await processBeforeTheKill()
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await before.waitUntilProcessing(turn)
 		try await before.dieWithoutWriting(to: dying)

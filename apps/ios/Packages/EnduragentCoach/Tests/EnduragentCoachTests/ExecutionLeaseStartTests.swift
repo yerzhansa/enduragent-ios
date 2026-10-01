@@ -8,7 +8,7 @@ extension ExecutionLeaseTests {
 	@Test func theLeaseBeginsAtSendWhileTheWindowIsStillOpen() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)), host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)

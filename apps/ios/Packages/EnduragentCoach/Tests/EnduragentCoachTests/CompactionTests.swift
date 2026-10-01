@@ -17,7 +17,7 @@ import Testing
 				+ Array(repeating: .fail(overflow), count: 4)
 				+ [.text("Tuesday is easy."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Rest day?")
 		let settled = try await coach.sendAndSettle("How was my week?")
 		#expect(failure(settled) == .model(.contextOverflow))
@@ -39,7 +39,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Earlier: three questions."), .finish(reason: .stop)], for: .summary,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
 		let asked = try #require(sent(.compaction, by: transport).only).messages.last?.content
@@ -68,7 +68,7 @@ import Testing
 			otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 500))], for: .summary, otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(sent(.compaction, by: transport).count == 1)
@@ -86,7 +86,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.fail(.http(status: 500)), .fail(.http(status: 500))], for: .summary,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.contextOverflow))
 		#expect(sent(.droppedSummary, by: transport).count == 1)
@@ -108,7 +108,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop),
 				.text("Saturday too."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let summaries = try await chatWindowRecords().compactMap { record -> String? in
@@ -135,7 +135,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop),
 				.text("Saturday too."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
 		#expect(sent(.droppedSummary, by: transport).count == 1)
@@ -187,7 +187,7 @@ import Testing
 				.text("Thursday is on."), .finish(reason: .stop),
 				.text("Saturday too."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
 		#expect(replyText(try await coach.sendAndSettle("And Saturday?")) == "Saturday too.")
 		#expect(sent(.droppedSummary, by: transport).count == 1)
@@ -261,8 +261,8 @@ import Testing
 		}
 	}
 
-	private func makeCoach() -> Coach {
-		EnduragentCoachTests.makeCoach(transport: transport, store: store, clock: clock)
+	private func makeCoach() async -> Coach {
+		await EnduragentCoachTests.makeCoach(transport: transport, store: store, clock: clock)
 	}
 }
 

@@ -219,10 +219,22 @@ package struct SwiftDataRecordLog: RecordLog {
 
 	package var imports: AsyncStream<Void> {
 		AsyncStream { continuation in
+			let urls = Set(synced.configurations.map(\.url))
+			let changes = NotificationCenter.default.notifications(
+				named: NSPersistentCloudKitContainer.eventChangedNotification)
 			let task = Task {
-				let changes = NotificationCenter.default.notifications(
-					named: .NSPersistentStoreRemoteChange)
-				for await _ in changes {
+				for await notification in changes {
+					guard
+						let event = notification.userInfo?[
+							NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+							as? NSPersistentCloudKitContainer.Event,
+						event.type == .import, event.endDate != nil,
+						let container = notification.object as? NSPersistentCloudKitContainer,
+						container.persistentStoreCoordinator.persistentStores.contains(where: {
+							$0.identifier == event.storeIdentifier
+								&& $0.url.map(urls.contains) == true
+						})
+					else { continue }
 					continuation.yield()
 				}
 				continuation.finish()

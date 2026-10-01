@@ -17,7 +17,7 @@ import Testing
 			[.text("Noted."), .finish(reason: .stop)], for: .chat, otherwise: transport.respond)
 		transport.respond = ScriptedReply.sequence(
 			failures(retryAfter: retryAfter), for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
 		transport.respond = ScriptedReply.sequence(
 			[.text("Second reply."), .hang], for: .chat, otherwise: transport.respond)
@@ -47,7 +47,7 @@ import Testing
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		transport.respond = ScriptedReply.sequence(
 			failures(retryAfter: retryAfter), for: .flush, otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let reset = Task {
 			let outcome = await coach.startNewConversation(in: .main)
 			waits.continuation.finish()

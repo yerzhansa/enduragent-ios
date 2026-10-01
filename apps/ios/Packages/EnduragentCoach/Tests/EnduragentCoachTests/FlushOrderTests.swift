@@ -79,7 +79,7 @@ import Testing
 			[
 				.text(longReply), .finish(reason: .stop), .text("Noted."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Rest day?")
 		try await waitUntil { sent(.memoryFlush, by: transport).count == 3 }
 		_ = try await coach.sendAndSettle("And Sunday?")
@@ -106,7 +106,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 400)), count: 12), for: .flush,
 			otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		for index in 0..<3 {
 			transport.respond = ScriptedReply.sequence(
 				[.text("Reply \(index)."), .finish(reason: .stop)], for: .chat,
@@ -117,7 +117,7 @@ import Testing
 		#expect(try await count(.flushPending) == 1)
 		#expect(try await count(.flushSettled) == 0)
 
-		let relaunched = makeCoach(transport: transport, store: store, clock: clock)
+		let relaunched = await makeCoach(transport: transport, store: store, clock: clock)
 		await relaunched.lifecycle(.becameActive)
 		try await waitForRecords(.deviceLocal([.flushSettled]), count: 1, in: store)
 		#expect(sent(.memoryFlush, by: transport).count == 4)
@@ -167,7 +167,7 @@ import Testing
 			[
 				.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Short?")
 		let windows = try await store.fetch(
 			RecordQuery(scope: .synced([.windowStart], includeLegacy: []))
@@ -208,7 +208,7 @@ import Testing
 			[
 				.text("Ok."), .finish(reason: .stop), .text("Ok again."), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let running = try #require(try await coach.send(draft("And now?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: running, in: .main))
 		let userMessage = try #require(

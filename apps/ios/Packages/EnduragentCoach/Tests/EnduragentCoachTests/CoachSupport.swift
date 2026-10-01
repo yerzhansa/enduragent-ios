@@ -55,9 +55,10 @@ func makeCoach(
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
 	host: any ExecutionHost = ImmediateExecutionHost(),
-	deviceLanguage: LanguageTag = .en
-) -> Coach {
-	Coach(
+	deviceLanguage: LanguageTag = .en,
+	consent: Bool = true
+) async -> Coach {
+	let coach = Coach(
 		sport: .cycling,
 		ports: CoachPorts(
 			records: RecordStore(log: store), secrets: secrets, models: .scripted(transport),
@@ -68,6 +69,16 @@ func makeCoach(
 		deviceLanguage: deviceLanguage,
 		coalescing: coalescing
 	)
+	return consent ? await consentingCoach(coach) : coach
+}
+
+func consentingCoach(_ coach: Coach) async -> Coach {
+	do {
+		try await coach.recordConsent()
+	} catch {
+		Issue.record(error)
+	}
+	return coach
 }
 
 func draft(_ text: String) -> Draft {

@@ -15,7 +15,7 @@ import Testing
 			[.text("Thursday "), .text("is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
 		let gate = ReplyMarkGate(inner: store)
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: gate, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		var held = gate.held.makeAsyncIterator()
@@ -43,7 +43,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -97,7 +97,7 @@ import Testing
 				.fail(.http(status: 500)),
 				.text("after compact"), .finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		let turn = try #require(try await coach.send(draft("Long history"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "after compact")
@@ -114,7 +114,7 @@ import Testing
 			otherwise: transport.respond)
 		let faulty = FaultInjectingRecordLog(wrapping: store)
 		try faulty.failAppends(ofKind: "replyObserved")
-		let coach = EnduragentCoachTests.makeCoach(
+		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: faulty, clock: clock)
 		let settled = try await coach.sendAndSettle("Count to three")
 		#expect(replyText(settled) == "One two three.")
@@ -125,8 +125,8 @@ import Testing
 		#expect(unsaved.count == 1)
 	}
 
-	private func makeCoach() -> Coach {
-		EnduragentCoachTests.makeCoach(
+	private func makeCoach() async -> Coach {
+		await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 }

@@ -108,7 +108,7 @@ extension CreditsClientTests {
 extension CredentialVaultTests {
 	@Test func replyWithNoAccountWritesNothing() async throws {
 		let memory = FixtureSecretStoreBacking()
-		let coach = coach(ICloudKeychainStore(backing: memory))
+		let coach = await coach(ICloudKeychainStore(backing: memory))
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
 		#expect(memory.writeCount == 0)
@@ -119,7 +119,7 @@ extension CredentialVaultTests {
 	@Test func statusWithNoAccountWritesNothing() async throws {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
-		let coach = coach(store)
+		let coach = await coach(store)
 		#expect(await coach.status().setup == .needsAccessMethod)
 		#expect(try await coach.creditsIdentity().hasCreditsKey == false)
 		#expect(try await vault(store).creditsKey() == nil)

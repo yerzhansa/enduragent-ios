@@ -14,7 +14,7 @@ extension SwiftDataSuites {
 			let store = RecordStore.inMemory(deviceId: device)
 			try await coach(store).setLanguage(.fixed(.fr))
 			#expect(await coach(store).languagePreference() == .fixed(.fr))
-			#expect(coach(store).recordSyncProbe().deviceId == device)
+			#expect(await coach(store).recordSyncProbe().deviceId == device)
 		}
 
 		@Test func fixtureReopensTheExistingStoreFilesAndDevice() async throws {
@@ -22,7 +22,7 @@ extension SwiftDataSuites {
 			try await coach(first.store).setLanguage(.fixed(.fr))
 			let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 			#expect(await coach(reopened.store).languagePreference() == .fixed(.fr))
-			#expect(coach(reopened.store).recordSyncProbe().deviceId == device)
+			#expect(await coach(reopened.store).recordSyncProbe().deviceId == device)
 			let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
 			#expect(files.contains("synced-records.store"))
 			#expect(files.contains("local-records.store"))
@@ -36,7 +36,7 @@ extension SwiftDataSuites {
 
 		@Test func faultingFixtureRejectsTheNamedKindAndStillSavesOtherKinds() async throws {
 			let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
-			let coach = coach(fixture.store)
+			let coach = await coach(fixture.store)
 			try fixture.faults.failAppends(ofKind: "languagePreference")
 			await #expect(throws: PreferenceWriteFailure.notSaved) {
 				try await coach.setLanguage(.fixed(.fr))
@@ -66,17 +66,19 @@ extension SwiftDataSuites {
 			}
 		}
 
-		private func coach(_ store: RecordStore) -> Coach {
-			Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: store, secrets: keyedSecrets(),
-					models: .scripted(FakeModelTransport()),
-					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: FixedClock(
-						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
-				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow)
+		private func coach(_ store: RecordStore) async -> Coach {
+			await consentingCoach(
+				Coach(
+					sport: .cycling,
+					ports: CoachPorts(
+						records: store, secrets: keyedSecrets(),
+						models: .scripted(FakeModelTransport()),
+						training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+						},
+						credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
+						clock: FixedClock(
+							now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
+					builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
 		}
 	}
 }

@@ -39,10 +39,7 @@ import Testing
 		try store.storeIntervalsConnection(oauth)
 		#expect(try store.intervalsConnection() == oauth)
 		let selection = AccessSelection.openRouterAccount(
-			model: ModelID(rawValue: "test/account-model"),
-			consent: ProviderConsent(
-				provider: "Test Provider", model: ModelID(rawValue: "test/account-model"),
-				at: Date(timeIntervalSince1970: 897_897_600)))
+			model: ModelID(rawValue: "test/account-model"))
 		try store.storeAccessSelection(selection)
 		#expect(try store.accessSelection() == selection)
 	}
