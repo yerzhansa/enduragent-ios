@@ -146,7 +146,7 @@ import Testing
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.count == 2)
 		let job = try #require(jobs.last)
-		#expect(job.messages.filter { $0 == user }.count == 1)
+		#expect(job.coverage.listed.filter { $0 == user }.count == 1)
 		let window = try #require(flushed().last)
 		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)
 		#expect(!window.contains("How was my week?"))

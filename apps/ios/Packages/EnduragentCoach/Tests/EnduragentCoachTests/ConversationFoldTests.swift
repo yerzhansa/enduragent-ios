@@ -355,41 +355,6 @@ import Testing
 		#expect(conversation.current.promptHistory(excluding: nil).summary == nil)
 	}
 
-	@Test func aLegacyJobWithNoMessagesCoversItsSegmentBeforeIt() throws {
-		let archived = TurnID(ulid: ulid(1))
-		let current = TurnID(ulid: ulid(5))
-		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: ulid(1),
-				body: .synced(sampleUser(chatId: .main, text: "archived", turn: archived))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: ulid(2),
-				body: .synced(sampleReply(chatId: .main, turn: archived, text: "archived reply"))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: ulid(4),
-				body: .synced(
-					.windowStart(
-						WindowStartBody(
-							chatId: .main, firstIncludedUlid: ulid(4),
-							reason: .reset(ResetID(ulid: ulid(4))))))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: ulid(5),
-				body: .synced(sampleUser(chatId: .main, text: "new", turn: current))),
-			storedRecord(
-				device: phoneA, wall: 6, ulid: ulid(6),
-				body: .synced(sampleReply(chatId: .main, turn: current, text: "new reply"))),
-		]
-		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
-		let legacy = FlushJob(
-			id: FlushJobID(ulid: ulid(3)), messages: [], settled: false)
-		#expect(
-			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
-		#expect(
-			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
-				ulid(5), ulid(6),
-			])
-	}
-
 	private func summary(_ markdown: String) -> SyncedRecordBody {
 		.compactionSummary(CompactionSummaryBody(chatId: .main, markdown: markdown))
 	}

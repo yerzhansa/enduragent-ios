@@ -92,6 +92,7 @@ Coach
 Coach.archivedConversation(_:)
 Coach.changeModelAccess(_:)
 Coach.changeTraining(_:)
+Coach.claimStarter(deviceCheck:)
 Coach.credits
 Coach.creditsIdentity()
 Coach.decide(_:in:)
