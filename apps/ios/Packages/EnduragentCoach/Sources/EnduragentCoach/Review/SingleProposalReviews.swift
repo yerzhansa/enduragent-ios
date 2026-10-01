@@ -1,18 +1,16 @@
 import Foundation
 
 package actor SingleProposalReviews: WorkoutReviews {
-	private let ledger: Ledger
-	private let clock: any Clock
-	private let diagnostics: DiagnosticsLog
-	private let training: @Sendable () async throws(AccessUnavailable) -> TrainingConnection
-	private var deliveries: [ChatID: Delivery] = [:]
-	private var executions: Set<ReviewRef> = []
-	private var closed: Set<ChangeSetID> = []
+	let ledger: Ledger
+	let clock: any Clock
+	let diagnostics: DiagnosticsLog
+	let training: @Sendable () async throws(AccessUnavailable) -> TrainingConnection
+	let registration = Turnstile()
+	var deliveries: [ChatID: ReviewDelivery] = [:]
+	var closed: Set<ChangeSetID> = []
 
 	package init(
-		ledger: Ledger,
-		clock: any Clock,
-		diagnostics: DiagnosticsLog,
+		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
 		training: @escaping @Sendable () async throws(AccessUnavailable) -> TrainingConnection
 	) {
 		self.ledger = ledger
@@ -22,371 +20,313 @@ package actor SingleProposalReviews: WorkoutReviews {
 	}
 
 	package func isExecuting(in chat: ChatID) -> Bool {
-		executions.contains { $0.chat == chat }
+		deliveries[chat]?.busy == true
 	}
 
-	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
+	package func snapshot(chat: ChatID, records: [AthleteRecord]? = nil) async throws(LedgerFailure)
+		-> ReviewSnapshot?
+	{
 		let previous = deliveries[chat]?.ref
-		let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now)
-		let current: TrainingAccount? = if live != nil { await currentAccount() } else { nil }
+		let intents = try await ledger.calendarWrites(chat, synced: records)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
-		guard let live else {
+		if let intent = intents.first(where: {
+			$0.body.evidence.dispatched && !$0.body.evidence.applied
+				&& !closed.contains($0.body.review)
+		}) {
+			return try await recoverySnapshot(intent, chat: chat)
+		}
+		guard
+			let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now),
+			!closed.contains(ChangeSetID(ulid: live.ulid)),
+			!intents.contains(where: {
+				$0.body.review.ulid == live.ulid && $0.body.evidence.applied
+			})
+		else {
 			deliveries[chat] = nil
 			return nil
 		}
-		guard !closed.contains(ChangeSetID(ulid: live.ulid)) else {
-			deliveries[chat] = nil
-			return nil
-		}
-		let delivery = delivery(for: live, in: chat)
-		let changed = current.map { !Self.permits(live.account.authority(under: $0)) } ?? false
-		let notice: ReviewNotice? =
-			if delivery.authority == .readOnly {
-				AthleteNotices.earlierVersion
-			} else if changed {
-				AthleteNotices.accountChanged
-			} else {
-				nil
-			}
+		let block = await accountBlock(live.account)
+		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
+		let delivery = delivery(
+			set: ChangeSetID(ulid: live.ulid), chat: chat,
+			authority: live.cause == .legacy ? .readOnly : .thisDevice)
 		let card = ReviewCard(live.body)
 		return ReviewSnapshot(
-			ref: delivery.ref,
-			cards: [card],
-			kept: [],
-			totals: ReviewTotals([card]),
-			receipts: [],
-			notice: notice,
-			controls: changed
-				? .none : delivery.controls(executing: executions.contains(delivery.ref)),
-			authority: delivery.authority
-		)
+			ref: delivery.ref, cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
+			notice: delivery.authority == .readOnly
+				? AthleteNotices.earlierVersion
+				: block == .accountChanged ? AthleteNotices.accountChanged : nil,
+			controls: block == .accountChanged ? .none : delivery.controls,
+			authority: delivery.authority)
 	}
 
 	package func decide(
-		_ decision: ReviewDecision, chat: ChatID,
-		scope: TurnScope?
-	) async -> ReviewOutcome {
+		_ decision: ReviewDecision, chat: ChatID, scope: TurnScope?,
+		changed: @escaping @Sendable () async -> Void = {}
+	) async
+		-> ReviewOutcome
+	{
 		guard decision.ref.chat == chat, var delivery = deliveries[chat],
 			delivery.ref == decision.ref
-		else {
-			return .staleControl
-		}
+		else { return .staleControl }
 		switch decision {
 		case .presented:
-			if delivery.authority == .thisDevice {
-				delivery.secret = delivery.secret ?? UUID()
-			}
+			if delivery.authority == .thisDevice { delivery.secret = delivery.secret ?? UUID() }
 		case .presentationFailed:
 			delivery.secret = nil
 		case .showAgain:
-			guard !executions.contains(delivery.ref) else { return .staleControl }
+			guard !delivery.busy else { return .staleControl }
 			delivery.ref = ReviewRef(
 				chat: chat, set: delivery.ref.set, revision: delivery.ref.revision, delivery: UUID()
 			)
 			delivery.secret = nil
-		case .approve(let token), .cancel(let token):
-			guard !executions.contains(delivery.ref), delivery.secret == token.secret else {
-				return .staleControl
-			}
-			executions.insert(delivery.ref)
+		case .approve(let token), .cancel(let token), .retryRemaining(let token):
+			guard !delivery.busy, delivery.secret == token.secret else { return .staleControl }
+			delivery.busy = true
+			deliveries[chat] = delivery
+			await changed()
 			let outcome: ReviewOutcome
-			if case .approve = decision {
-				let gate: TurnScope
-				if let scope {
-					gate = scope
-				} else {
-					gate = TurnScope(
-						stamp: await stamp(token.ref, account: .unconnected),
-						policy: .npm, uptime: clock.uptime)
-				}
-				outcome = await approve(token, scope: gate)
-			} else {
-				outcome = await cancel(token)
+			switch decision {
+			case .approve: outcome = await approve(token, scope: scope, changed: changed)
+			case .retryRemaining:
+				outcome = await recover(token.ref, repeatWrite: true, scope: scope)
+			default: outcome = await cancel(token)
 			}
-			finish(token.ref, outcome)
+			finish(token.ref, outcome: outcome)
 			return outcome
-		case .retryRemaining, .checkAgain:
-			return .staleControl
+		case .checkAgain(let ref):
+			guard !delivery.busy else { return .staleControl }
+			delivery.busy = true
+			deliveries[chat] = delivery
+			let outcome = await recover(ref, repeatWrite: false, scope: scope)
+			finish(ref, outcome: outcome)
+			return outcome
 		}
 		deliveries[chat] = delivery
 		return .presentationRecorded
 	}
 
 	private func approve(
-		_ token: ReviewControlToken, scope: TurnScope
+		_ token: ReviewControlToken, scope: TurnScope?,
+		changed: @escaping @Sendable () async -> Void
 	) async -> ReviewOutcome {
-		await scope.reviewing { await self.applyApproval(token, scope: scope) }
+		if let scope {
+			return await scope.reviewing {
+				await self.applyApproval(token, scope: scope, changed: changed)
+			}
+		}
+		return await applyApproval(token, scope: nil, changed: changed)
 	}
 
 	private func applyApproval(
-		_ token: ReviewControlToken, scope: TurnScope
-	) async -> ReviewOutcome {
-		let live: LiveProposal
-		switch await liveProposal(for: token.ref) {
-		case .found(let found): live = found
+		_ token: ReviewControlToken, scope: TurnScope?,
+		changed: @escaping @Sendable () async -> Void
+	) async
+		-> ReviewOutcome
+	{
+		let prepared = await registration.pass { await prepareApproval(token, scope: scope) }
+		switch prepared {
 		case .refused(let outcome): return outcome
+		case .ready(let intent, let operation, let connection):
+			await changed()
+			return await dispatch(
+				intent, operation: operation, connection: connection, scope: scope)
 		}
-		let connection: TrainingConnection
-		do {
-			connection = try await training()
-		} catch {
-			return .blocked(.cannotVerify)
-		}
-		guard Self.permits(live.account.authority(under: connection.account)) else {
-			return .blocked(.accountChanged)
-		}
-		let stamp = await stamp(token.ref, account: connection.account)
-		guard await scope.beginReview(live) else { return .staleControl }
-		do {
-			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
-		} catch {
-			await scope.recordReview(live, outcome: .storageUnavailable)
-			return .storageUnavailable
-		}
-		let outcome = await apply(live, connection: connection, stamp: stamp)
-		await scope.recordReview(live, outcome: outcome)
-		return outcome
 	}
 
-	private func apply(
-		_ live: LiveProposal, connection: TrainingConnection, stamp: OperationStamp
-	) async -> ReviewOutcome {
-		let card = ReviewCard(live.body)
-		let eventId: String
+	private func prepareApproval(_ token: ReviewControlToken, scope: TurnScope?) async
+		-> PreparedCalendarApproval
+	{
 		do {
-			eventId = try await write(live.body.toolInput, on: connection.client)
-		} catch {
-			diagnostics.record(
-				.toolFailed(
-					stamp.attempt, live.body.tool.toolName, failure: ToolFault(error)))
-			guard let failure = Self.stopped(error) else {
-				return .uncertain(done: [], unresolved: card)
+			guard
+				let live = try await ProposalPolicy.live(
+					chatId: token.ref.chat, ledger: ledger, now: clock.now),
+				live.ulid == token.ref.set.ulid, live.cause != .legacy,
+				live.body.writeID != nil
+			else { return .refused(.staleControl) }
+			let intents = try await ledger.calendarWrites(token.ref.chat)
+			guard
+				!intents.contains(where: {
+					$0.body.review == token.ref.set && $0.body.evidence.dispatched
+				})
+			else { return .refused(.staleControl) }
+			let connection = try await training()
+			guard Self.permits(live.account.authority(under: connection.account)) else {
+				return .refused(.blocked(.accountChanged))
 			}
-			return .partiallyApplied(done: [], stoppedAt: card, failure: failure)
+			let operation = try await CalendarWriteOperation.prepare(
+				live, client: connection.client,
+				today: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))
+			if let scope, !(await scope.beginReview()) {
+				return .refused(.blocked(.turnStopping))
+			}
+			guard case .operation(let origin, let attempt) = live.cause else {
+				return .refused(.staleControl)
+			}
+			let stamp = OperationStamp(
+				operation: origin, attempt: attempt,
+				binding: ActionBinding(
+					account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
+			var body = ReviewWriteBody(
+				chatId: live.body.chatId, review: token.ref.set, writeID: live.body.writeID,
+				target: operation.target, evidence: .notSent)
+			let records = try await ledger.commit(synced: [.reviewWrite(body)], stamp: stamp)
+			guard let record = records.first else { return .refused(.storageUnavailable) }
+			body.evidence = .unknown(.dispatched)
+			_ = try await ledger.commit(synced: [.reviewWrite(body)], stamp: stamp)
+			await scope?.recordReview(live, evidence: body.evidence)
+			try await ProposalPolicy.clear(live, reason: .executed, ledger: ledger, stamp: stamp)
+			return .ready(
+				CalendarWriteIntent(record: record, body: body, proposal: live), operation,
+				connection)
+		} catch let error as LedgerFailure {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return .refused(.storageUnavailable)
+		} catch {
+			return .refused(.blocked(.cannotVerify))
 		}
-		await note(live.body, stamp: stamp)
-		return .applied([ReviewReceipt(index: card.index, result: .confirmed(eventId: eventId))])
+	}
+
+	func dispatch(
+		_ intent: CalendarWriteIntent, operation: CalendarWriteOperation,
+		connection: TrainingConnection, scope: TurnScope?
+	) async -> ReviewOutcome {
+		do {
+			let id = try await operation.dispatch(on: connection.client)
+			return try await record(intent, evidence: .applied(eventID: id), scope: scope)
+		} catch let error as LedgerFailure {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return unresolved(intent.body.evidence)
+		} catch {
+			if let stamp = intent.stamp, let proposal = intent.proposal {
+				diagnostics.record(
+					.toolFailed(
+						stamp.attempt, proposal.body.tool.toolName, failure: ToolFault(error)))
+			}
+			return unresolved(intent.body.evidence)
+		}
+	}
+
+	func record(_ intent: CalendarWriteIntent, evidence: CalendarWriteEvidence, scope: TurnScope?)
+		async throws(LedgerFailure) -> ReviewOutcome
+	{
+		guard let stamp = intent.stamp else { throw .rejectedBatch }
+		var body = intent.body
+		body.evidence = body.evidence.merging(evidence)
+		var bodies: [SyncedRecordBody] = [.reviewWrite(body)]
+		if body.evidence.applied, let proposal = intent.proposal {
+			bodies.append(
+				.reviewApplied(
+					ReviewAppliedBody(
+						chatId: body.chatId, summary: ReviewSummary(proposal.body.toolInput))))
+		}
+		_ = try await ledger.commit(synced: bodies, stamp: stamp)
+		if let proposal = intent.proposal {
+			await scope?.recordReview(proposal, evidence: body.evidence)
+		}
+		if case .applied(let id?) = body.evidence {
+			return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
+		}
+		return unresolved(body.evidence)
 	}
 
 	private func cancel(_ token: ReviewControlToken) async -> ReviewOutcome {
-		let live: LiveProposal
-		switch await liveProposal(for: token.ref) {
-		case .found(let found): live = found
-		case .refused(let outcome): return outcome
-		}
 		do {
-			try await ProposalPolicy.clear(
-				live, reason: .canceled, ledger: ledger,
-				stamp: await stamp(token.ref, account: live.account))
-		} catch {
-			return .storageUnavailable
-		}
-		return .canceled(kept: [])
-	}
-
-	private func liveProposal(for ref: ReviewRef) async -> LiveLookup {
-		let found: LiveProposal?
-		do {
-			found = try await ProposalPolicy.live(chatId: ref.chat, ledger: ledger, now: clock.now)
-		} catch {
-			return .refused(.storageUnavailable)
-		}
-		guard let found, ChangeSetID(ulid: found.ulid) == ref.set else {
-			return .refused(.staleControl)
-		}
-		return .found(found)
-	}
-
-	private func finish(_ ref: ReviewRef, _ outcome: ReviewOutcome) {
-		executions.remove(ref)
-		switch outcome {
-		case .blocked, .storageUnavailable:
-			break
-		case .applied, .partiallyApplied, .uncertain, .canceled, .changedSinceReview, .staleControl,
-			.presentationRecorded:
-			closed.insert(ref.set)
-			if deliveries[ref.chat]?.ref == ref {
-				deliveries[ref.chat] = nil
+			let writes = try await ledger.calendarWrites(token.ref.chat)
+			if let intent = writes.first(where: {
+				$0.body.review == token.ref.set && $0.body.evidence.dispatched
+			}) {
+				guard canRepeat(intent), let live = intent.proposal, let stamp = intent.stamp else {
+					return unresolved(intent.body.evidence)
+				}
+				do {
+					try await ProposalPolicy.clear(
+						live, reason: .canceled, ledger: ledger, stamp: stamp)
+				} catch {
+					diagnostics.record(.reviewOutcomeUnsaved(error))
+				}
+				return unresolved(intent.body.evidence)
 			}
+			guard
+				let live = try await ProposalPolicy.live(
+					chatId: token.ref.chat, ledger: ledger, now: clock.now),
+				live.ulid == token.ref.set.ulid
+			else { return .staleControl }
+			let stamp = OperationStamp(
+				operation: .workoutChangeSet(token.ref.set, token.ref.revision),
+				attempt: AttemptID(ulid: await ledger.nextULID()),
+				binding: ActionBinding(
+					account: live.account, zone: AthleteCalendar(clock: clock).deviceZone))
+			try await ProposalPolicy.clear(live, reason: .canceled, ledger: ledger, stamp: stamp)
+			return .canceled(kept: [])
+		} catch {
+			diagnostics.record(.reviewOutcomeUnsaved(error))
+			return unresolved(.unknown(.readFailed))
 		}
 	}
 
-	private func delivery(for live: LiveProposal, in chat: ChatID) -> Delivery {
-		let set = ChangeSetID(ulid: live.ulid)
-		if let existing = deliveries[chat], existing.ref.set == set {
-			return existing
-		}
-		let minted = Delivery(
-			authority: live.cause == .legacy ? .readOnly : .thisDevice,
+	func finish(_ ref: ReviewRef, outcome: ReviewOutcome) {
+		if case .applied = outcome { closed.insert(ref.set) }
+		if case .canceled = outcome { closed.insert(ref.set) }
+		if closed.contains(ref.set), deliveries[ref.chat]?.ref == ref { deliveries[ref.chat] = nil }
+		if deliveries[ref.chat]?.ref == ref { deliveries[ref.chat]?.busy = false }
+	}
+
+	func delivery(set: ChangeSetID, chat: ChatID, authority: ReviewAuthority) -> ReviewDelivery {
+		if let existing = deliveries[chat], existing.ref.set == set { return existing }
+		let minted = ReviewDelivery(
+			authority: authority,
 			ref: ReviewRef(
 				chat: chat, set: set, revision: ChangeSetRevision(rawValue: 1), delivery: UUID()))
 		deliveries[chat] = minted
 		return minted
 	}
 
-	private static func permits(_ authority: AccountAuthority) -> Bool {
+	static func permits(_ authority: AccountAuthority) -> Bool {
 		switch authority {
 		case .same, .sameAthlete: true
 		case .changed, .unverifiable: false
 		}
 	}
 
-	private func currentAccount() async -> TrainingAccount? {
+	func accountBlock(_ account: TrainingAccount) async -> ReviewBlock? {
 		do {
-			return try await training().account
-		} catch {
-			switch error {
-			case .providerConsentRequired, .notConfigured, .secureStorageLocked,
-				.secureStorageUnavailable,
-				.malformedStoredCredential:
-				return nil
-			}
-		}
+			return Self.permits(account.authority(under: try await training().account))
+				? nil : .accountChanged
+		} catch { return .cannotVerify }
 	}
 
-	private func stamp(_ ref: ReviewRef, account: TrainingAccount) async -> OperationStamp {
-		OperationStamp(
-			operation: .workoutChangeSet(ref.set, ref.revision),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: ActionBinding(account: account, zone: AthleteCalendar(clock: clock).deviceZone)
-		)
+	func accountNotice(_ block: ReviewBlock) -> ReviewNotice {
+		if block == .accountChanged { return AthleteNotices.accountChanged }
+		return ReviewNotice(kind: .partialFailure, key: Catalog.reviewWriteReadFailed, vars: [:])
 	}
 
-	private func note(_ body: ProposalBody, stamp: OperationStamp) async {
-		do {
-			_ = try await ledger.commit(
-				synced: [
-					.reviewApplied(
-						ReviewAppliedBody(
-							chatId: body.chatId, summary: ReviewSummary(body.toolInput)))
-				],
-				stamp: stamp)
-		} catch {
-			diagnostics.record(.reviewOutcomeUnsaved(error))
-		}
+	func unresolved(_ evidence: CalendarWriteEvidence) -> ReviewOutcome {
+		.uncertain(pendingNotice(evidence))
 	}
 
-	private func write(_ input: GatedToolInput, on intervals: any IntervalsClient) async throws
-		-> String
-	{
-		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		switch input {
-		case .createWorkout(let date, let workout):
-			try IntervalsPolicy.rejectPastCreationDate(date, today: today)
-			let serialized = try IntervalsSerializer.serialize(workout)
-			let event = try await intervals.createChatEvent(
-				ChatCalendarCreate(
-					date: date,
-					name: workout.name,
-					description: serialized.description,
-					type: .ride,
-					externalId: IntervalsSerializer.chatExternalId(date: date, name: workout.name),
-					tags: [IntervalsPolicy.coachTag]
-				))
-			return String(event.id.rawValue)
-		case .createStrengthWorkout(let date, let name, let description):
-			try IntervalsPolicy.rejectPastCreationDate(date, today: today)
-			let event = try await intervals.createChatEvent(
-				ChatCalendarCreate(
-					date: date,
-					name: name,
-					description: description,
-					type: .weightTraining,
-					externalId: IntervalsSerializer.chatExternalId(
-						date: date, name: "strength \(name)"),
-					tags: [IntervalsPolicy.coachTag]
-				))
-			return String(event.id.rawValue)
-		case .deleteWorkout(let eventId):
-			try await intervals.deleteEvent(id: eventId)
-			return String(eventId.rawValue)
-		case .updateWorkout(let update):
-			let event = try await intervals.updateEvent(
-				id: update.eventId, name: update.name, description: update.description,
-				date: update.date)
-			return String(event.id.rawValue)
-		case .planSave:
-			throw IntervalsError(
-				code: "not_implemented", details: "Saving a plan is not available yet.")
-		}
-	}
-
-	private static func stopped(_ error: any Error) -> TrainingFailure? {
-		if error is InvalidWorkout {
-			return .requestRejected
-		}
-		guard let intervals = error as? IntervalsError else { return nil }
-		if intervals.status != nil {
-			return TrainingFailure(intervals)
-		}
-		switch intervals.code {
-		case "invalid_json", "network": return nil
-		default: return .requestRejected
-		}
+	func pendingNotice(_ evidence: CalendarWriteEvidence) -> ReviewNotice {
+		ReviewNotice(
+			kind: .partialFailure,
+			key: evidence == .unknown(.readFailed)
+				? Catalog.reviewWriteReadFailed : Catalog.reviewWritePending,
+			vars: [:])
 	}
 }
 
-private struct Delivery {
+struct ReviewDelivery {
 	let authority: ReviewAuthority
 	var ref: ReviewRef
 	var secret: UUID?
-	func controls(executing: Bool) -> ReviewControls {
-		guard !executing, let secret else { return .none }
+	var busy = false
+
+	var controls: ReviewControls {
+		guard authority == .thisDevice, !busy, let secret else { return .none }
 		return .approveOrCancel(ReviewControlToken(ref: ref, secret: secret))
 	}
 }
 
-private enum LiveLookup {
-	case found(LiveProposal)
+enum PreparedCalendarApproval {
 	case refused(ReviewOutcome)
-}
-
-extension ReviewCard {
-	fileprivate init(_ body: ProposalBody) {
-		let instructions: ReviewInstructions
-		if case .createWorkout(_, let workout) = body.toolInput {
-			instructions = ReviewInstructions(content: .cycling(workout))
-		} else {
-			instructions = ReviewInstructions(content: .supplied(body.description))
-		}
-		let action: Action
-		let name: ReviewSummary
-		let date: CivilDate?
-		switch body.toolInput {
-		case .createWorkout(let day, let workout):
-			(action, name, date) = (.add, .supplied(workout.name), day)
-		case .createStrengthWorkout(let day, let title, _):
-			(action, name, date) = (.add, .supplied(title), day)
-		case .updateWorkout(let update):
-			(action, name, date) = (
-				.edit(previousName: nil),
-				update.name.map(ReviewSummary.supplied) ?? ReviewSummary(body.toolInput),
-				update.date
-			)
-		case .deleteWorkout:
-			(action, name, date) = (.delete, ReviewSummary(body.toolInput), nil)
-		case .planSave:
-			(action, name, date) = (.add, ReviewSummary(body.toolInput), nil)
-		}
-		self.init(
-			index: 0, action: action, name: name, date: date, chart: nil,
-			instructions: instructions,
-			durationMinutes: nil, estimatedLoad: nil)
-	}
-}
-
-extension ReviewTotals {
-	fileprivate init(_ cards: [ReviewCard]) {
-		var additions = 0
-		var edits = 0
-		var deletions = 0
-		for card in cards {
-			switch card.action {
-			case .add: additions += 1
-			case .edit: edits += 1
-			case .delete: deletions += 1
-			}
-		}
-		self.init(additions: additions, edits: edits, deletions: deletions, durationMinutes: nil)
-	}
+	case ready(CalendarWriteIntent, CalendarWriteOperation, TrainingConnection)
 }

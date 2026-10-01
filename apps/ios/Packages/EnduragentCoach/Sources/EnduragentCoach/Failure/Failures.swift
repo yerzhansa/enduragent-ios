@@ -95,12 +95,17 @@ public struct WriteSummary: Sendable, Equatable {
 	public let ledgerEvents: Int
 	public let planSaves: Int
 	public let calendarWrites: Int
+	public let unverifiedCalendarWrites: Int
 
-	public init(memorySections: Int, ledgerEvents: Int, planSaves: Int, calendarWrites: Int) {
+	public init(
+		memorySections: Int, ledgerEvents: Int, planSaves: Int, calendarWrites: Int,
+		unverifiedCalendarWrites: Int = 0
+	) {
 		self.memorySections = memorySections
 		self.ledgerEvents = ledgerEvents
 		self.planSaves = planSaves
 		self.calendarWrites = calendarWrites
+		self.unverifiedCalendarWrites = unverifiedCalendarWrites
 	}
 
 	public static let none = WriteSummary(
@@ -202,16 +207,15 @@ package enum AthleteNotices {
 			return nil
 		case .partiallyApplied(_, _, let failure):
 			return notice(for: failure)
-		case .uncertain:
-			return AthleteNotice(
-				key: Catalog.reviewUncertain, vars: ["service": intervals], action: nil)
-		case .changedSinceReview(let notice):
+		case .uncertain(let notice), .changedSinceReview(let notice):
 			return AthleteNotice(key: notice.key, vars: notice.vars, action: nil)
 		case .blocked(.accountChanged):
 			return AthleteNotice(key: accountChanged.key, vars: accountChanged.vars, action: nil)
 		case .blocked(.cannotVerify):
 			return AthleteNotice(
 				key: Catalog.reviewCannotVerify, vars: ["service": intervals], action: nil)
+		case .blocked(.turnStopping):
+			return AthleteNotice(key: Catalog.reviewTurnStopping, action: nil)
 		case .staleControl:
 			return AthleteNotice(key: Catalog.coachConfirmationExpired, action: nil)
 		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly),
@@ -339,7 +343,10 @@ package enum AthleteNotices {
 		for interruption: InterruptionCause, saved: WriteSummary, turn: TurnID?
 	) -> AthleteNotice {
 		if saved.calendarWrites > 0 {
-			return AthleteNotice(key: Catalog.chatNoticeCalendarUnverified, action: nil)
+			return AthleteNotice(
+				key: saved.unverifiedCalendarWrites > 0
+					? Catalog.chatNoticeCalendarUnverified : Catalog.chatTurnInterruptedSomeSaved,
+				action: nil)
 		}
 		switch interruption {
 		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded,

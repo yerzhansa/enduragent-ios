@@ -39,22 +39,48 @@ import Testing
 			return ScriptedReply([.hang])
 		}
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 2)
+		defer {
+			store.release()
+			requested.release()
+		}
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
-		await coach.waitUntilProcessing(running)
+		let running = try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				try await coach.send(draft("one"), to: .main)
+			}?.acceptedTurn)
+		let processing = try await beforeDeadline(within: .seconds(5)) {
+			await coach.waitUntilProcessing(running)
+			return true
+		}
+		try #require(processing == true)
 		let admitted = try await beforeDeadline(within: .seconds(2)) {
 			try await requested.waitUnlessCancelled()
 			return true
 		}
 		try #require(admitted == true)
-		async let sent = coach.send(draft("two"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
-		async let stopped: Void = coach.stop(.main)
+		async let sent = beforeDeadline(within: .seconds(5)) {
+			try await withTaskCancellationHandler {
+				try await coach.send(draft("two"), to: .main)
+			} onCancel: {
+				store.release()
+			}
+		}
+		let reached = try await beforeDeadline(within: .seconds(5)) {
+			await store.reached.first(where: { _ in true }) != nil
+		}
+		try #require(reached == true)
+		async let stopped = beforeDeadline(within: .seconds(5)) {
+			await withTaskCancellationHandler {
+				await coach.stop(.main)
+				return true
+			} onCancel: {
+				store.release()
+			}
+		}
 		try await Task.sleep(for: .milliseconds(100))
 		store.release()
-		await stopped
-		let second = try #require(try await sent.acceptedTurn)
+		try #require(try await stopped == true)
+		let second = try #require(try await sent?.acceptedTurn)
 		#expect(await coach.interruption(of: running) == .athleteStopped)
 		#expect(await coach.interruption(of: second) == .stoppedBeforeStart)
 		#expect(transport.requestCount == 1)

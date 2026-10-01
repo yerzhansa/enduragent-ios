@@ -1,14 +1,16 @@
 import EnduragentCoachFixtures
 import Foundation
 import Synchronization
+import Testing
 
 @testable import EnduragentCoach
 
-struct HeldApprovalTransport: ModelTransport {
+final class HeldApprovalTransport: ModelTransport {
 	let base: FakeModelTransport
 	let clock: HeldClock
 	let hold: @Sendable (Int, CompletionRequest) -> Duration?
 	private let counter = ApprovalRequestCounter()
+	private let streamedTools = Mutex<[Int: Gate]>([:])
 
 	init(
 		base: FakeModelTransport, clock: HeldClock,
@@ -17,6 +19,19 @@ struct HeldApprovalTransport: ModelTransport {
 		self.base = base
 		self.clock = clock
 		self.hold = hold
+	}
+
+	func waitForToolCall(in request: Int) async throws {
+		try await toolGate(for: request).waitUnlessCancelled()
+	}
+
+	private func toolGate(for request: Int) -> Gate {
+		streamedTools.withLock {
+			if let gate = $0[request] { return gate }
+			let gate = Gate()
+			$0[request] = gate
+			return gate
+		}
 	}
 
 	func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
@@ -30,6 +45,9 @@ struct HeldApprovalTransport: ModelTransport {
 					if let pause { try await clock.sleep(for: pause) }
 					for try await event in source {
 						continuation.yield(event)
+						if case .toolCall = event {
+							toolGate(for: index).release()
+						}
 					}
 					continuation.finish()
 				} catch {
@@ -76,6 +94,7 @@ final class HeldApprovalWrites: IntervalsClient, Sendable {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		try await base.fetchStreams(id: id)
 	}
+	func fetchEvent(id: EventID) async throws -> CalendarEvent { try await base.fetchEvent(id: id) }
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try await base.listEvents(oldest: oldest, newest: newest)
 	}

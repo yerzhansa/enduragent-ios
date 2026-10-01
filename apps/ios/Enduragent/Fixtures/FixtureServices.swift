@@ -11,6 +11,7 @@
 		let secretBacking: FixtureSecretStoreBacking
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
+		let reviewProofDriver: FixtureReviewProofDriver?
 	}
 
 	extension AppServices {
@@ -26,6 +27,8 @@
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 			FirstWeekFixture.install(on: intervals)
+			intervals.loseCalendarSaveAnswerOnce = launch.calendarSaveFault == .loseAnswerOnce
+			intervals.failCalendarReadOnce = launch.calendarReadFault == .failOnce
 			let transport = FakeModelTransport(respond: FirstWeekFixture.responses())
 			let fixture = try FixtureRecordStore(
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
@@ -65,7 +68,9 @@
 				fixture: FixtureServices(
 					transport: transport, records: records, host: host, secrets: secrets,
 					secretBacking: secretFixture.backing,
-					intervals: intervals, credits: credits)
+					intervals: intervals, credits: credits,
+					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
+						? FixtureReviewProofDriver() : nil)
 			)
 		}
 	}

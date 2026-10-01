@@ -1,7 +1,83 @@
 import Foundation
+import Synchronization
 import Testing
 
 @Suite struct DeadlineWaitTests {
+	@Test func heldClockFailsWhenNoSleepArrives() async throws {
+		let clock = HeldClock(within: .zero)
+		let ended = try await beforeDeadline(within: .seconds(1)) {
+			await #expect(throws: TestWaitDeadlineExceeded.self) {
+				try await clock.waitUntilHeld(.seconds(7))
+			}
+			return true
+		}
+		#expect(ended == true)
+	}
+
+	@Test func heldClockFailsWhenASleepIsNeverReleased() async throws {
+		let clock = HeldClock(within: .zero)
+		let ended = try await beforeDeadline(within: .seconds(1)) {
+			await #expect(throws: CancellationError.self) {
+				try await clock.sleep(for: .seconds(7))
+			}
+			return true
+		}
+		#expect(ended == true)
+		#expect(clock.held.isEmpty)
+		#expect(clock.slept.isEmpty)
+		#expect(clock.uptime == .zero)
+	}
+
+	@Test func reviewGateFailsWhenNoRefreshEnters() async throws {
+		let gate = ReviewGate(within: .zero)
+		let entered = try await beforeDeadline(within: .seconds(1)) {
+			try await gate.waitUntilEntered()
+		}
+		#expect(entered == false)
+	}
+
+	@Test func reviewGateFailsWhenARefreshIsNeverReleased() async throws {
+		let gate = ReviewGate(within: .zero)
+		await gate.arm()
+		let rescue = Task {
+			try await Task.sleep(for: .seconds(1))
+			await gate.release()
+		}
+		defer { rescue.cancel() }
+		await #expect(throws: TestWaitDeadlineExceeded.self) {
+			try await gate.pass()
+		}
+	}
+
+	@Test func deadlineReleasesAHeldTaskBeforeJoiningIt() async throws {
+		let gate = Gate()
+		defer { gate.release() }
+		let held = Task { await gate.wait() }
+		defer { held.cancel() }
+		try #require(
+			try await beforeDeadline(within: .seconds(5)) {
+				await gate.waitUntilParked()
+			} != nil)
+		let rescue = Task {
+			try await Task.sleep(for: .seconds(1))
+			gate.release()
+		}
+		defer { rescue.cancel() }
+		let released = Mutex(false)
+		let value = try await beforeDeadline(
+			within: .milliseconds(20),
+			onTimeout: {
+				released.withLock { $0 = true }
+				held.cancel()
+				gate.release()
+			}
+		) {
+			await held.value
+		}
+		#expect(value == nil)
+		#expect(released.withLock { $0 })
+	}
+
 	@Test func completedEventReturnsItsValue() async throws {
 		let gate = Gate()
 		gate.release()

@@ -61,6 +61,7 @@ package struct TurnRunner: Sendable {
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 	let diagnostics: DiagnosticsLog
 	let ladder: RetryLadder
+	let reviews: SingleProposalReviews
 	private let evidence: any TurnEvidence
 
 	package init(
@@ -70,6 +71,7 @@ package struct TurnRunner: Sendable {
 		diagnostics: DiagnosticsLog,
 		ladder: RetryLadder,
 		evidence: any TurnEvidence,
+		reviews: SingleProposalReviews,
 		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
 	) {
 		self.transport = transport
@@ -79,6 +81,7 @@ package struct TurnRunner: Sendable {
 		self.diagnostics = diagnostics
 		self.ladder = ladder
 		self.evidence = evidence
+		self.reviews = reviews
 	}
 
 	package func run(
@@ -181,7 +184,7 @@ package struct TurnRunner: Sendable {
 				try await scope.checkDeadline(uptime: clock.uptime)
 			}
 		}
-		return try await scope.savedWork(using: ladder)
+		return try await scope.savedWork()
 	}
 
 	func flushOnce(
@@ -321,7 +324,7 @@ package struct TurnRunner: Sendable {
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
 		ToolRuntime(
-			intervals: attempt.training.client, ledger: ledger, clock: clock)
+			intervals: attempt.training.client, ledger: ledger, clock: clock, reviews: reviews)
 	}
 
 }

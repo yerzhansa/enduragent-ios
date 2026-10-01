@@ -1630,6 +1630,7 @@
     "accountChanged": "This workout was prepared for a different {{service}} athlete. Ask me again to prepare it for the connected athlete.",
     "add": "Add to calendar",
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
+    "turnStopping": "This reply is stopping. You can approve or cancel the workout review once it stops.",
     "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
     "storageUnavailable": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls.",
     "title": "Workout review",
@@ -1639,7 +1640,10 @@
       "mainSet": "Main set",
       "cooldown": "Cooldown",
       "ramp": "ramp"
-    }
+    },
+    "writePending": "This workout may have been saved. Check the calendar before continuing.",
+    "writeReadFailed": "The calendar could not be checked. Your approved workout is still pending.",
+    "saveApprovedAgain": "Save approved workout again"
   },
   "settings": {
     "appearance": {

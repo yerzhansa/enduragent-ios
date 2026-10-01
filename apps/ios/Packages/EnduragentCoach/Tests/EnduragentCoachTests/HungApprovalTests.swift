@@ -5,24 +5,29 @@ import Testing
 @testable import EnduragentCoach
 
 extension RetryLadderTests {
-	@Test(.timeLimit(.minutes(1)))
-	func hungApprovalDoesNotBlockStopOrNewSend() async throws {
+	@Test(arguments: ApprovalCheckpoint.allCases)
+	func hungApprovalDoesNotBlockStopOrNewSend(checkpoint: ApprovalCheckpoint) async throws {
 		let held = HeldClock()
 		let intervals = HeldApprovalWrites(
 			base: FakeIntervalsClient(athleteName: "Ada", ftp: 250), clock: held)
 		transport.respond = ScriptedReply.sequence(
 			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ [.text("Rest today."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await heldApprovalCoach(held, model: transport, intervals: intervals)
+				+ (checkpoint == .retryModelRequest ? workoutProposal : [])
+				+ [.text("Rest today."), .finish(reason: .stop)], otherwise: transport.respond)
+		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
+			checkpoint == .retryModelRequest && request.charge == .chatAttempt && index == 3
+				? .seconds(11) : nil
+		}
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
+		try await checkpoint.reach(using: held)
 		let approving = Task { await coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
-		held.release(.seconds(7))
-		try await waitForReviewGate(on: coach)
+		try await expectApprovalBlocked(
+			at: checkpoint, turn: turn, coach: coach, model: model, clock: held)
 		let stopped = AsyncStream.makeStream(of: Bool.self)
 		Task {
 			await coach.stop(.main)
@@ -37,6 +42,7 @@ extension RetryLadderTests {
 			return
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
+		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(!settled.retryable)
 		#expect(
 			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)

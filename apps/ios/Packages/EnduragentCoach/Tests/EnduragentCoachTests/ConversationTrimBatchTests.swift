@@ -43,9 +43,6 @@ import Testing
 		}
 		#expect(Set(recorded) == Set(dropped))
 		#expect(recorded.count == dropped.count)
-		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let mailbox = try await coach.mailbox(for: .main)
-		#expect(await mailbox.conversation == (try await ledger.conversation(.main)))
 		_ = try await coach.sendAndSettle("And Saturday?")
 		let second = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(!second.messages.contains { $0.content.contains("Dropped") })

@@ -24,6 +24,10 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var ftp: Int
 	public var loadFailure: (any Error)?
 	public var writeFailure: (any Error)?
+	#if DEBUG
+		public var loseCalendarSaveAnswerOnce = false
+		public var failCalendarReadOnce = false
+	#endif
 
 	public init(athleteName: String, ftp: Int, athleteId: String = "i1001") {
 		self.athleteId = athleteId
@@ -75,8 +79,21 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		return streams
 	}
 
+	public func fetchEvent(id: EventID) async throws -> CalendarEvent {
+		#if DEBUG
+			try consumeCalendarReadFault()
+		#endif
+		guard let event = events.first(where: { $0.id == id }) else {
+			throw IntervalsError(code: "http", details: "Missing event", status: 404)
+		}
+		return event
+	}
+
 	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		calls.append(.events(oldest: oldest, newest: newest))
+		#if DEBUG
+			try consumeCalendarReadFault()
+		#endif
 		return events.filter { event in
 			guard let date = CivilDate(rawValue: String(event.startDateLocal.prefix(10))) else {
 				return false
@@ -90,17 +107,42 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 			throw writeFailure
 		}
 		calls.append(.createEvent(date: draft.date, externalId: draft.externalId.rawValue))
-		return CalendarEvent(
-			id: EventID(rawValue: 1),
+		let previous = draft.writeID.flatMap { identity in
+			events.first { $0.uid == identity.uid }
+		}
+		let event = CalendarEvent(
+			description: draft.description, type: draft.type.rawValue,
+			id: previous?.id ?? EventID(rawValue: (events.map(\.id.rawValue).max() ?? 0) + 1),
 			startDateLocal: "\(draft.date.rawValue)T00:00:00",
 			name: draft.name,
 			category: "WORKOUT",
-			externalId: draft.externalId.rawValue,
-			uid: nil,
+			externalId: draft.writeID?.externalID ?? draft.externalId.rawValue,
+			uid: draft.writeID?.uid,
 			tags: draft.tags,
 			coachCreated: true
 		)
+		if let index = events.firstIndex(where: { $0.id == event.id }) {
+			events[index] = event
+		} else {
+			events.append(event)
+		}
+		#if DEBUG
+			if loseCalendarSaveAnswerOnce {
+				loseCalendarSaveAnswerOnce = false
+				throw URLError(.timedOut)
+			}
+		#endif
+		return event
 	}
+
+	#if DEBUG
+		private func consumeCalendarReadFault() throws {
+			if failCalendarReadOnce {
+				failCalendarReadOnce = false
+				throw URLError(.notConnectedToInternet)
+			}
+		}
+	#endif
 
 	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent

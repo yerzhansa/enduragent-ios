@@ -19,6 +19,11 @@ public final class RecordFaults: Sendable {
 		set { log.failNextAppend = newValue }
 	}
 
+	public var failFetches: Bool {
+		get { log.failFetches }
+		set { log.failFetches = newValue }
+	}
+
 	public var failRecoveryReads: Bool {
 		get { log.failRecoveryReads }
 		set { log.failRecoveryReads = newValue }
@@ -32,4 +37,10 @@ public final class RecordFaults: Sendable {
 	public func failAppends(ofKind kind: String) throws {
 		try log.failAppends(ofKind: kind)
 	}
+
+	#if DEBUG
+		public func failNextReviewRead() {
+			log.failNextFetch(in: .synced([.reviewWrite]))
+		}
+	#endif
 }

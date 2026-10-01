@@ -2874,6 +2874,7 @@
     "accountChanged": "這項訓練是為 {{service}} 上的另一位運動員準備的。請再次提出請求，讓我為目前連線的運動員準備訓練。",
     "add": "加入行事曆",
     "cannotVerify": "無法檢查你的 {{service}} 連線，因此未做任何變更。請稍後重試。",
+    "turnStopping": "正在停止此回覆。停止後，你可以核准或取消訓練審核。",
     "earlierVersion": "此訓練審核來自舊版 App，已無法套用。",
     "storageUnavailable": "無法讀取已儲存的訓練審核。仍顯示上次的審核。請重試以恢復操作按鈕。",
     "title": "訓練審核",
@@ -2883,7 +2884,10 @@
       "mainSet": "主要訓練",
       "cooldown": "緩和",
       "ramp": "漸增"
-    }
+    },
+    "writePending": "此訓練可能已儲存。請先檢查行事曆再繼續。",
+    "writeReadFailed": "無法檢查行事曆。你已核准的訓練仍在等待確認。",
+    "saveApprovedAgain": "重新儲存已核准的訓練"
   },
   "credits": {
     "buy": "購買",
