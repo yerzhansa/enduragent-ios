@@ -89,10 +89,10 @@ import Testing
 			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
 				+ Array(repeating: .fail(failure), count: 4), for: .flush,
 			otherwise: transport.respond)
-		let host = ImmediateExecutionHost()
+		let host = EndingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
-		_ = try #require(await host.ended(0))
+		try await host.waitForEnd(0)
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let expectedAttempts: Int
 		switch failure.failure {
@@ -113,7 +113,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Anything else?")
-		_ = try #require(await host.ended(1))
+		try await host.waitForEnd(1)
 		let flushes = sent(.memoryFlush, by: transport)
 		#expect(flushes.count == requestsBeforeRecovery + 2)
 		for request in flushes.suffix(2) {
@@ -137,7 +137,7 @@ import Testing
 			[.text("Still noted."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("And later?")
-		_ = try #require(await host.ended(2))
+		try await host.waitForEnd(2)
 		#expect(sent(.memoryFlush, by: transport).count == flushes.count)
 		#expect(try await count(.synced([.ledgerEvent])) == 1)
 	}
@@ -154,10 +154,10 @@ import Testing
 			process: ProcessID(ulid: fixedUlid(60)))
 		transport.respond = ScriptedReply.sequence(
 			[.fail(failure)], for: .flush, otherwise: transport.respond)
-		let host = ImmediateExecutionHost()
+		let host = EndingHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
-		_ = try #require(await host.ended(0))
+		try await host.waitForEnd(0)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))
 		#expect(jobs.map(\.phase) == [.settled(.recorded(.abandoned))])
@@ -167,7 +167,7 @@ import Testing
 
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Anything else?")
-		_ = try #require(await host.ended(1))
+		try await host.waitForEnd(1)
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 

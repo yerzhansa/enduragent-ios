@@ -49,13 +49,14 @@ import Testing
 	@Test func setSessionStoresOneRecordThatTheNextCoachReads() async throws {
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
-		#expect(await coach.status().session == .npmDefaults)
+		#expect(try await coach.observedStatus().session == .npmDefaults)
 		let chosen = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
 			.replacing(.contextWindowOverride, with: "64000")
 		try await coach.setSession(chosen)
-		#expect(await coach.status().session == chosen)
+		#expect(try await coach.observedStatus().session == chosen)
 		#expect(
-			await makeCoach(transport: FakeModelTransport(), store: store).status().session
+			try await makeCoach(transport: FakeModelTransport(), store: store).observedStatus()
+				.session
 				== chosen)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records.count
@@ -83,7 +84,8 @@ import Testing
 			try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
 		#expect(payload["compactionModel"] == nil)
 		#expect(payload["flushModel"] == nil)
-		let restored = await makeCoach(transport: FakeModelTransport(), store: store).status()
+		let restored = try await makeCoach(transport: FakeModelTransport(), store: store)
+			.observedStatus()
 			.session
 		let roles = ModelRoles(response: testModel, session: restored)
 		#expect(roles.compaction == testModel)
@@ -99,7 +101,7 @@ import Testing
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setSession(chosen)
 		}
-		#expect(await coach.status().session == .npmDefaults)
+		#expect(try await coach.observedStatus().session == .npmDefaults)
 	}
 
 	@Test func storedValuesOutsideTheirRangeDecodeAsMalformedRows() {

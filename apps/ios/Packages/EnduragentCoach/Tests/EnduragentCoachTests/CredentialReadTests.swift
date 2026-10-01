@@ -37,7 +37,7 @@ extension CredentialVaultTests {
 		let settled = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(failure(settled) == .model(.accessUnavailable(.secureStorageLocked)))
 		#expect(coach.diagnostics.entries.isEmpty)
-		let status = await coach.status()
+		let status = try await coach.refreshedStatus()
 		#expect(status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(status.training == .unavailable(.secureStorageLocked))
 		#expect(coach.diagnostics.entries.isEmpty)
@@ -51,7 +51,7 @@ extension CredentialVaultTests {
 		await #expect(throws: AccessUnavailable.secureStorageLocked) {
 			try await vault(secrets).modelAccess(builtInModel: testModel)
 		}
-		let status = await coach(secrets).status()
+		let status = try await coach(secrets).refreshedStatus()
 		#expect(status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(status.training == .unavailable(.secureStorageLocked))
 		#expect(status.notice?.key == Catalog.accessErrorLocked)
@@ -161,10 +161,10 @@ extension CredentialVaultTests {
 		])
 		let keychain = ICloudKeychainStore(backing: memory)
 		let coach = await coach(keychain)
-		_ = await coach.status()
+		_ = try await coach.refreshedStatus()
 		let resolved = try #require(try keychain.intervalsConnection())
 		#expect(resolved.resolvedAthlete?.rawValue == "i1001")
-		_ = await coach.status()
+		_ = try await coach.refreshedStatus()
 		#expect(try keychain.intervalsConnection() == resolved)
 		#expect(memory.writes(to: CredentialSlot.intervalsConnection.rawValue) == 1)
 	}

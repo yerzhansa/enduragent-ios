@@ -47,7 +47,7 @@
 							Button(locked ? "Unlock keychain" : "Lock keychain") {
 								backing.locked.toggle()
 								locked = backing.locked
-								Task { await model.refreshStatus() }
+								Task { await model.sceneChanged(.becameActive) }
 							}
 							.accessibilityIdentifier("credentials.lock")
 							Spacer()
@@ -65,7 +65,6 @@
 			.navigationBarTitleDisplayMode(.inline)
 			.task {
 				locked = model.services.fixture?.secretBacking.locked ?? false
-				await model.refreshStatus()
 			}
 		}
 
@@ -99,7 +98,6 @@
 			let result = await model.services.coach.changeTraining(change)
 			if case .replaced = result { key = "" }
 			outcome = describe(result)
-			await model.refreshStatus()
 		}
 
 		private func describe(_ outcome: CredentialOutcome<IntervalsSummary>) -> String {
