@@ -1,48 +1,52 @@
 # Enduragent iPhone verification map
 
-This directory is the maintained source for verifying what an athlete can do in the Enduragent iPhone app. Read the index before driving the app, then use the matching feature file as the recipe.
+Enduragent has one ongoing conversation. New conversation closes it into History and opens the welcome. Nothing closes it automatically, however long the gap between messages. History is read-only. A turn can be accepted, working, completed, failed, interrupted, or waiting for recovery. The feature files below describe the athlete's actions, the notices those states show, and the existing proofs that reach them.
 
 ## Baseline preconditions
 
-- Build the checkout with `.claude/skills/verify-ios/helpers/sim.mjs build`.
-- Create a run with `sim.mjs create <slug>` and keep the printed run id.
-- Install the app with `sim.mjs install <run id>`.
-- Run `sim.mjs doctor <run id>` and require exit 0.
-- Launch with `sim.mjs launch <run id>` for interactive driving. A proof launches the app itself.
-- Never drive a simulator that this run did not create.
+Use the existing [verify-ios skill](../SKILL.md) and its helper, `.claude/skills/verify-ios/helpers/sim.mjs`, abbreviated below as `sim.mjs`. Build, create a dedicated run, install, and require `sim.mjs doctor <run id>` to pass before driving that run. Never drive another run's simulator. A proof launches the app itself; interactive steps need `sim.mjs launch <run id>` first.
+
+A task that forbids simulators permits only the source and proof inventory checks. Record UI execution as skipped in that task's report. This map is a recipe, not evidence that its recipes ran.
 
 ## Driving conventions
 
-- Every launch is a first launch, because fixture state lives in memory. Each recipe starts at the notice screen unless its preconditions say otherwise.
-- Find controls by accessibility identifier. Use a visible label only where the feature file says the control has no identifier.
-- Scripted steps run an existing proof with `sim.mjs test <run id> <Proof>`. Steps marked interactive use the iOS Simulator `control` tool with `device: <udid>` on every call.
-- Treat every command and every quoted string as literal.
-- Type `fixture` as the intervals.icu key. Any non-empty key connects in fixture mode.
+- `sim.mjs launch <run id>` starts a fresh fixture store at the health notice. `sim.mjs launch <run id> --keep` keeps the conversation, drafts, settings, and connection.
+- `sim.mjs test <run id> ClassName` runs an existing XCUITest class. `ClassName/testMethod` selects one method. Use the commands in each feature file; keep their `Passed` summary and named attachments.
+- Prefer accessibility identifiers to visible labels. Labels in this map are English catalog values unless another language is explicit. Product chrome follows the language preference; Debug-only labels can remain English.
+- Type `fixture` as the intervals.icu key. In fixture mode `other-athlete` resolves to Bo Lind, and other non-empty keys resolve to Ada Kovač. No real account is needed.
+- Fixture directives are messages typed into `chat.composer`. See [chat.md](./chat.md) for failures, interruptions, storage faults, and memory work.
+- `fixture.requestCount` must read `0 requests`. This counts blocked network attempts. `fixture.modelRequestCount` counts requests to the fake model and is expected to grow.
+- Capture the action and resulting state. A skipped or unreachable entry point remains unverified, even if another path reaches the same screen.
 
-## Proof and skip reporting
+## Debug entry points
 
-- Capture the user action and the resulting state, not only the final screen.
-- A scripted step's proof is the `Passed` summary plus its named attachment. An interactive step's proof is a `sim.mjs shot` before and after the action.
-- Every proof run that reaches the chat also reads `fixture.requestCount` as `0 requests`.
-- Record the feature ID and the entry point with every artifact.
-- Report an unreachable path with the attempted command and the unmet precondition.
-- Do not report a skipped entry point as verified through a different path.
+Open `chat.sidebar`, then `sidebar.debug`. These entry points exist in Debug builds only.
 
-## Feature entry contract
+| Entry | Handle | What to inspect |
+| --- | --- | --- |
+| Credits | Visible `Credits` link, no identifier | Developer grant, balance, identity, and purchase diagnostics. Athlete Credits is `sidebar.credits`. |
+| Credentials | `debug.credentials` | Connection, replacement, confirmed athlete switch, disconnect, fixture keychain lock and failed write. See [onboarding.md](./onboarding.md). |
+| Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
+| Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
+| Conversation & time | `debug.session` | Four settings in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
+| Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
+| Fixture counters and prompt text | Rows on Debug itself | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 
-Each feature file starts with an H1 title and one paragraph describing the athlete-visible behavior. It then uses exactly four H2 sections in this order.
+The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle.
 
-1. `Sub-features` lists short IDs with one line for each behavior.
-2. `How to get to it (user POV)` lists every athlete entry point.
-3. `Driving it with sim.mjs and XCUITest` starts with `Preconditions:` and uses labeled bullets that pair each athlete action with an exact command and observable result.
-4. `Gotchas` lists traps that can waste or invalidate a verification run.
+## Feature files
 
-Keep implementation details out of the map. Name only athlete paths, stable handles, required state, commands, and observable proof.
+| Feature | Coverage |
+| --- | --- |
+| [Onboarding](./onboarding.md) | Health notice, intervals.icu connection, starter Credits, storage availability, and credential Debug actions. |
+| [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
+| [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
+| [Workout review](./workout-preview.md) | Approve or cancel, durable outcomes, account changes, v1 notice connected and disconnected, and French review text. |
+| [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
+| [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, and recovery links from a turn. |
 
-## Features
+## Maintaining the map
 
-- [Onboarding](./onboarding.md) covers the notice, connecting or skipping intervals.icu, and the starter credits.
-- [Chat](./chat.md) covers sending, replies, the working line, the slash list, `/plan`, and `New chat`.
-- [Workout preview](./workout-preview.md) covers the `Confirmed preview` card with `Cancel` and `Add to calendar`.
-- [History](./history.md) covers the chat list in the menu and reopening a chat.
-- [Credits](./credits.md) covers the balance, the packs, and the tester note.
+Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim.mjs and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
+
+Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `pnpm check:source` for the Node cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.

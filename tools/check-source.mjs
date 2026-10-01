@@ -12,6 +12,8 @@ const forbiddenPath = /(?:^|\/)(?:docs|node_modules|\.build|build|dist|out|Deriv
 const language = /\b(?:CTL|ATL|TSB|TSS|IF|NP|Normalized\s+Power|[Nn]orm\s+[Pp]ower)\b/;
 const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
 const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
+const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
+const featureFile = /^\.claude\/skills\/verify-ios\/features\/[^/]+\.md$/;
 let violations = 0;
 let count = 0;
 function report(file, rule) {
@@ -30,8 +32,123 @@ function publicText(file, text) {
   }
   return [];
 }
+function isDebugOnly(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines[0].trim() !== '#if DEBUG') return false;
+  let depth = 0;
+  for (const [index, line] of lines.entries()) {
+    if (/^\s*#if\b/.test(line)) {
+      depth++;
+    } else if (/^\s*#endif\b/.test(line)) {
+      depth--;
+      if (depth === 0 && index !== lines.length - 1) return false;
+    } else if (depth === 1 && /^\s*#(?:else|elseif)\b/.test(line)) {
+      return false;
+    }
+  }
+  return depth === 0;
+}
+function hasReleaseFixtureLaunch(text) {
+  const guards = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (/^\s*#if\b/.test(line)) {
+      guards.push({ debug: /^\s*#if\s+DEBUG\s*$/.test(line), alternate: false });
+    } else if (/^\s*#(?:else|elseif)\b/.test(line)) {
+      if (guards.length) guards.at(-1).alternate = true;
+    } else if (/^\s*#endif\b/.test(line)) {
+      guards.pop();
+    } else if (/\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/.test(line) && !guards.some(guard => guard.debug && !guard.alternate)) {
+      return true;
+    }
+  }
+  return false;
+}
+function hasExtraSecretStore(text) {
+  return [...text.matchAll(/\b(?:class|struct|actor|enum|extension)\s+(\w+(?:\.\w+)*)([^{}]*)\{/g)]
+    .some(([, name, declaration]) => {
+      if (name === 'ICloudKeychainStore') return false;
+      let header = declaration;
+      while (/<[^<>]*>/.test(header)) header = header.replace(/<[^<>]*>/g, '');
+      const inheritance = header.split(/\bwhere\b/)[0];
+      return /^\s*:[^:]*\bSecretStore\b/.test(inheritance);
+    });
+}
+function hasExposedMailboxState(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  let depth = 0;
+  let projection = false;
+  for (const match of code.matchAll(/([^{};\n]*)([{};\n]|$)/g)) {
+    const [, declaration, boundary] = match;
+    const opensBody = boundary === '{' || (boundary === '\n' && /^\s*\{/.test(code.slice(match.index + match[0].length)));
+    if (depth === 1) {
+      const member = /^(.*?)\b(let|var)\s+/.exec(declaration);
+      if (member && !/(?:^|\s)private(?:\s|$)/.test(member[1])
+        && !/^\s*package\s+let\s+chatId\s*:\s*ChatID\s*$/.test(declaration)) {
+        if (member[2] === 'let' || /\blazy\b/.test(member[1]) || declaration.includes('=') || !opensBody) return true;
+        projection = true;
+      }
+    }
+    if (depth === 2 && projection && opensBody
+      && /^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:nonmutating|mutating)\s+)?(?:set|_modify|willSet|didSet)(?:\s*\([^)]*\))?\s*$/.test(declaration)) return true;
+    if (boundary === '{') depth++;
+    if (boundary === '}') depth--;
+    if (depth === 1 && boundary === '}') projection = false;
+  }
+  return false;
+}
+function checkLedgerIndexVersion(file, text) {
+  const versions = new Map([
+    ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
+  ]);
+  const modifier = /@Attribute\(\s*hashModifier:\s*"(ledger-indexes-v\d+)"\s*\)\s*var\s+deviceId\b/.exec(text)?.[1];
+  const declarations = [...text.matchAll(/#Index\s*<\s*StoredAthleteRecord\s*>\s*\(([^)]*)\)/g)];
+  const indexes = declarations.flatMap(match => [...match[1].matchAll(/\[([^\]]*)\]/g)]
+    .map(fields => fields[1].replace(/\s|\\\./g, ''))).sort();
+  const expected = versions.get(modifier);
+  if (!expected || JSON.stringify(indexes) !== JSON.stringify([...expected].sort())) {
+    report(file, 'ledger-index-version');
+  }
+}
+function checkFeatureProofs(sources) {
+  const classes = new Map();
+  const mapped = new Set();
+  const expectedSections = [
+    'Sub-features',
+    'How to get to it (user POV)',
+    'Driving it with sim.mjs and XCUITest',
+    'Gotchas',
+  ];
+  for (const [file, text] of sources) {
+    if (!proofFile.test(file)) continue;
+    const declarations = [...text.matchAll(/\bclass\s+(\w+)\s*:\s*XCTestCase\b/g)];
+    for (const [index, declaration] of declarations.entries()) {
+      const name = declaration[1];
+      if (classes.has(name)) report(file, 'feature-proof-duplicate');
+      const body = text.slice(declaration.index + declaration[0].length, declarations[index + 1]?.index ?? text.length);
+      const methods = new Set([...body.matchAll(/\bfunc\s+(test\w+)\s*\(/g)].map(match => match[1]));
+      classes.set(name, { file, methods });
+    }
+  }
+  for (const [file, text] of sources) {
+    if (!featureFile.test(file)) continue;
+    const references = [...text.matchAll(/\b[A-Z][A-Za-z0-9]*(?:Proof|Probe)\b/g)].map(match => match[0]);
+    if (references.some(name => !classes.has(name))) report(file, 'feature-proof-reference');
+    if (basename(file) !== 'README.md') {
+      for (const name of references) mapped.add(name);
+      const sections = [...text.matchAll(/^## ([^\r\n]+)\r?$/gm)].map(match => match[1]);
+      if (JSON.stringify(sections) !== JSON.stringify(expectedSections)) report(file, 'feature-proof-sections');
+    }
+    for (const [, name, method] of text.matchAll(/\b([A-Z][A-Za-z0-9]*(?:Proof|Probe))\/(test\w+)\b/g)) {
+      if (!classes.get(name)?.methods.has(method)) report(file, 'feature-proof-method');
+    }
+  }
+  for (const [name, { file }] of classes) {
+    if (!mapped.has(name)) report(file, 'feature-proof-unmapped');
+  }
+}
 try {
   const files = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean);
+  const featureProofSources = new Map();
   for (const file of files) {
     count++;
     if (forbiddenPath.test(file)) {
@@ -51,13 +168,31 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && hasReleaseFixtureLaunch(text)) report(file, 'fixture-launch-debug-only');
+    if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
+      && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
+    if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
+    if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');
     if (file.endsWith('.swift') && /swiftlint:(?:disable|enable)/.test(text)) report(file, 'lint-disable');
+    if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Records\/.*\.swift$/.test(file)
+      && /\b(?:public|open)\b|@_spi\b/.test(text)) report(file, 'records-package-only');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift') {
+      checkLedgerIndexVersion(file, text);
+    }
+    if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
+      if (hasExposedMailboxState(text)) report(file, 'mailbox-private-state');
+    }
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
+      && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)
+      && (!file.endsWith('DebugView.swift') || !isDebugOnly(text))) report(file, 'fixture-feedback-debug-only');
     if (/(?:["'](?:id|activity_?id)["']\s*:\s*["']?\d{9,}\b|\/activit(?:y|ies)\/\d{9,}\b|\bactivity_?[Ii][Dd]\s*[:=]\s*["']?\d{9,}\b)/.test(text)) report(file, 'activity-id');
     if (fixture.test(file) && [...text.matchAll(/\b(\d{4})-\d{2}-\d{2}\b/g)].some(match => Number(match[1]) >= 2015)) report(file, 'fixture-date');
     if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b/.test(text)) report(file, 'secret-shape');
     if (publicText(file, text).some(value => language.test(value))) report(file, 'public-language');
   }
+  checkFeatureProofs(featureProofSources);
   console.log(`check-source: ${count} tracked files; ${violations} violations.`);
   process.exitCode = violations ? 1 : 0;
 } catch {

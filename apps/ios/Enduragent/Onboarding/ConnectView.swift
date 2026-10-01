@@ -7,62 +7,61 @@ struct ConnectView: View {
 	var body: some View {
 		NavigationStack {
 			Form {
-				TextField(
-					model.builder.phrasebook.say(Catalog.onboardingConnectApiKey, [:]),
+				SecureField(
+					model.phrasebook.say(Catalog.onboardingConnectApiKey, [:]),
 					text: $model.connectKey
 				)
 				.accessibilityIdentifier("connect.apiKey")
 				.autocorrectionDisabled()
 				.textInputAutocapitalization(.never)
-				Button(model.builder.phrasebook.say(Catalog.onboardingConnectAction, [:])) {
+				Button(model.phrasebook.say(Catalog.onboardingConnectAction, [:])) {
 					Task { await model.connect() }
 				}
 				.accessibilityIdentifier("connect.connect")
 				if let connectError = model.connectError {
 					Text(connectError)
+						.accessibilityIdentifier("connect.error")
 				}
 				if !model.didConnect {
-					Button(model.builder.phrasebook.say(Catalog.onboardingConnectSkip, [:])) {
+					Button(model.phrasebook.say(Catalog.onboardingConnectSkip, [:])) {
 						model.skipConnect()
 					}
 					.accessibilityIdentifier("connect.skip")
 				}
-				if model.didConnect, let athlete = model.athlete {
-					Text(athlete.name)
-						.accessibilityIdentifier("connect.athleteName")
-					if let wellness = model.todayWellness {
+				if model.didConnect, let connected = model.connected {
+					if let athleteName = connected.athleteName {
+						Text(athleteName)
+							.accessibilityIdentifier("connect.athleteName")
+					}
+					if let wellness = connected.today {
 						Text(
-							model.builder.phrasebook.say(
+							model.phrasebook.say(
 								Catalog.onboardingConnectFitness,
-								["value": wholeNumber(wellness.fitness)]
+								["value": WellnessDay.formattedNumber(wellness.fitness)]
 							)
 						)
 						.accessibilityIdentifier("connect.fitness")
 						Text(
-							model.builder.phrasebook.say(
+							model.phrasebook.say(
 								Catalog.onboardingConnectFatigue,
-								["value": wholeNumber(wellness.fatigue)]
+								["value": WellnessDay.formattedNumber(wellness.fatigue)]
 							)
 						)
 						.accessibilityIdentifier("connect.fatigue")
 						Text(
-							model.builder.phrasebook.say(
-								Catalog.onboardingConnectForm, ["value": wholeNumber(wellness.form)]
+							model.phrasebook.say(
+								Catalog.onboardingConnectForm,
+								["value": WellnessDay.formattedNumber(wellness.form)]
 							)
 						)
 						.accessibilityIdentifier("connect.form")
 					}
-					Button(model.builder.phrasebook.say(Catalog.commonContinue, [:])) {
+					Button(model.phrasebook.say(Catalog.languageContinue, [:])) {
 						model.continueConnect()
 					}
 					.accessibilityIdentifier("connect.continue")
 				}
 			}
 		}
-	}
-
-	private func wholeNumber(_ value: Double?) -> String {
-		guard let value else { return "—" }
-		return String(Int(value.rounded()))
 	}
 }

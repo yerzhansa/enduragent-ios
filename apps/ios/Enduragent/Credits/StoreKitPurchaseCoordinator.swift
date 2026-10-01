@@ -10,19 +10,12 @@ enum StoreKitPurchaseFailure: Error {
 
 @MainActor
 final class StoreKitPurchaseCoordinator {
-	private let credits: any CreditsClient
-	private let secrets: any SecretStore
-	private let onSettlementFailure: @MainActor (String) -> Void
+	private let coach: Coach
+	private let onSettlementFailure: @MainActor (Error) -> Void
 	private var updatesTask: Task<Void, Never>?
-	var settlementError: String?
 
-	init(
-		credits: any CreditsClient,
-		secrets: any SecretStore,
-		onSettlementFailure: @escaping @MainActor (String) -> Void
-	) {
-		self.credits = credits
-		self.secrets = secrets
+	init(coach: Coach, onSettlementFailure: @escaping @MainActor (Error) -> Void) {
+		self.coach = coach
 		self.onSettlementFailure = onSettlementFailure
 		updatesTask = Task { [weak self] in
 			for await update in Transaction.updates {
@@ -32,9 +25,7 @@ final class StoreKitPurchaseCoordinator {
 				} catch is CancellationError {
 					return
 				} catch {
-					let message = String(describing: error)
-					self.settlementError = message
-					self.onSettlementFailure(message)
+					self.onSettlementFailure(error)
 				}
 			}
 		}
@@ -46,7 +37,7 @@ final class StoreKitPurchaseCoordinator {
 
 	func purchase(_ product: Product) async throws -> ClaimOutcome {
 		let result = try await product.purchase(options: [
-			.appAccountToken(try secrets.appAccountToken())
+			.appAccountToken(try await coach.prepareCreditsPurchase())
 		])
 		switch result {
 		case .success(let verification):
@@ -64,15 +55,17 @@ final class StoreKitPurchaseCoordinator {
 		guard case .verified(let tx) = verification else {
 			throw StoreKitPurchaseFailure.unverified
 		}
-		let outcome = try await credits.claim(signedTransaction: verification.jwsRepresentation)
-		let hasKey = try secrets.openRouterKey() != nil
+		guard let token = tx.appAccountToken else { throw CreditsFailure.identityMismatch }
+		let outcome = try await coach.credits.claim(
+			signedTransaction: verification.jwsRepresentation, appAccountToken: token)
+		let hasKey = try await coach.creditsIdentity().hasCreditsKey
 		switch ClaimSettlement.settlement(after: outcome, hasKey: hasKey) {
 		case .finish:
 			await tx.finish()
 			return outcome
 		case .recoverThenFinish:
 			let jws = await newestPurchaseJWS(fallback: verification)
-			_ = try await credits.recover(signedTransaction: jws)
+			_ = try await coach.credits.recover(signedTransaction: jws)
 			await tx.finish()
 			return outcome
 		}

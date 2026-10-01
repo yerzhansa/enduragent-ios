@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Valitse kielesi",
-    "continue": "Jatka"
+    "continue": "Jatka",
+    "saveFailed": "Kielivalintaa {{language}} ei voitu tallentaa. Vastausten kieli on edelleen {{current}}. Yritä uudelleen.",
+    "saveFailedAutomatic": "Kielivalintaa {{language}} ei voitu tallentaa. Vastaukset pysyvät kunkin viestin kielellä. Yritä uudelleen."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Anna historian osuudeksi yli 0 % ja enintään 100 %.",
         "idleMinutes": "Anna minuuttimääräksi sallittu kokonaisluku, vähintään 0.",
         "resetArchiveRetentionDays": "Anna päivien määräksi sallittu kokonaisluku, vähintään 0.",
-        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}."
+        "timezone": "Anna kelvollinen IANA-aikavyöhyke, esimerkiksi {{timezone}}.",
+        "contextWindowTokens": "Anna tokenien määräksi kokonaisluku sallitulta väliltä, vähintään 1."
       }
     },
     "credentials": {
@@ -530,13 +533,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Aiemmat keskustelut eivät ole tilapäisesti käytettävissä.",
-    "loadEarlier": "Lataa aiempia viestejä",
     "loading": "Ladataan aiempia keskusteluja…",
     "pageFailure": "Tämä keskustelu ei ole tilapäisesti käytettävissä.",
     "readOnly": "Aiempia keskusteluja voi vain lukea.",
     "reason": {
       "explicit": "Aloitit uuden keskustelun",
-      "stale": "Suljettu tauon jälkeen"
+      "stale": "Suljettu tauon jälkeen",
+      "earlierChat": "Aiempi keskustelu"
     },
     "retry": "Yritä uudelleen",
     "timestamp": "{{day}}.{{month}}.{{year}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +547,8 @@
     "truncated": "Luettelossa näkyvät vain uusimmat aiemmat keskustelut.",
     "turnCount_one": "{{formattedCount}} viesti",
     "turnCount_other": "{{formattedCount}} viestiä",
-    "unavailable": "Tämä keskustelu ei ole enää käytettävissä."
+    "unavailable": "Tämä keskustelu ei ole enää käytettävissä.",
+    "history": "Historia"
   },
   "setup": {
     "ai": {
@@ -945,7 +949,8 @@
       "messagePlaceholder": "Lähetä viesti valmentajallesi",
       "responding": "Valmentaja vastaa…",
       "send": "Lähetä viesti",
-      "stop": "Pysäytä vastaus"
+      "stop": "Pysäytä vastaus",
+      "notSent": "Ei lähetetty. Luonnoksesi on yhä täällä."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -978,7 +983,6 @@
     },
     "history": {
       "failure": "Keskusteluhistoria ei ole tilapäisesti käytettävissä.",
-      "loadEarlier": "Lataa aiemmat viestit",
       "retry": "Yritä historian latausta uudelleen"
     },
     "newConversation": {
@@ -987,6 +991,7 @@
       "cancel": "Peruuta",
       "confirm": "Aloita uusi keskustelu",
       "hydrated": "Näkyvä keskustelusi ja tietokoneelle {{computer}} palautetut aiemmat viestit tyhjennetään. Harjoitustietosi ja valmentajan tallennettu muisti säilyvät.",
+      "label": "Uusi keskustelu",
       "title": "Aloitetaanko uusi keskustelu?"
     },
     "notice": {
@@ -1010,13 +1015,16 @@
       "planningRequestLoadFailure": "Tallennettuja suunnitelmapyyntöjä ei voitu tarkistaa. Yhdistä uudelleen ja yritä uudelleen.",
       "protocolFailure": "Valmentajan vastausta ei voitu varmistaa. Yritä uudelleen.",
       "questionSkipped": "Kysymys ohitettu",
+      "replyUnsaved": "Tätä vastausta ei voitu tallentaa. Pidä sovellus auki, kun tallennusta yritetään uudelleen.",
       "queueLoadFailure": "Tallennettuja viestejäsi ei voitu tarkistaa. Yhdistä uudelleen ja yritä uudelleen.",
       "queueRemoveFailure": "Tallennettua viestiä ei voitu poistaa. Yritä uudelleen.",
       "responseFailure": "Valmentaja ei voinut vastata. Yritä uudelleen.",
-      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "retryMessage": "Yritä viestiä uudelleen",
       "savedChoice": "Tallennettu valinta",
-      "working": "Valmentaja työskentelee…"
+      "working": "Valmentaja työskentelee…",
+      "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
+      "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -1447,7 +1455,20 @@
       "hideContext": "Piilota harjoittelun taustatiedot",
       "showContext": "Näytä harjoittelun taustatiedot",
       "title": "Keskustelu"
-    }
+    },
+    "menu": "Valikko",
+    "turn": {
+      "buyCredits": "Osta krediittejä",
+      "chooseAccessMethod": "Valitse yhteystapa",
+      "finishedWhileLocked": "Valmistui puhelimen ollessa lukittuna.",
+      "interruptedNothingChanged": "Tämä vastaus keskeytyi ennen valmistumistaan. Mitään ei muutettu.",
+      "interruptedSomeSaved": "Tämä vastaus keskeytyi ennen valmistumistaan. Osa tiedoista ehdittiin tallentaa.",
+      "receivedBeforeClose": "Vastaanotettu ennen sovelluksen sulkeutumista. Lähetä viesti napauttamalla Yritä uudelleen.",
+      "restorePurchases": "Palauta ostokset",
+      "signInAgain": "Kirjaudu uudelleen"
+    },
+    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{commands}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
+    "welcomeCommand": "{{command}}: {{description}}"
   },
   "plan": {
     "details": {
@@ -2647,7 +2668,9 @@
       "structure": "harjoituksen rakenne",
       "trainingLoad": "harjoituskuormaksi {{load}}",
       "unnamed": "Nimetön harjoitus",
-      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}"
+      "update": "Päivitä harjoitus \"{{name}}\" päivälle {{date}}. {{detail}}",
+      "deleteFallback": "Poista harjoitus",
+      "updateFallback": "Päivitä harjoitus. {{detail}}"
     }
   },
   "telegram": {
@@ -2678,7 +2701,6 @@
       "start": "Aloita uusi keskustelu",
       "status": "Tarkista nykyinen kunto, väsymys ja tuoreus",
       "sync": "Pakota harjoitustietojen päivitys palvelusta {{service}}",
-      "update": "Tarkista ja asenna päivitykset",
       "version": "Näytä nykyinen versio",
       "whatsnew": "Katso uusimman version muutokset",
       "workout": "Hae tämän päivän harjoitus"
@@ -2795,7 +2817,6 @@
       "managedInstruction": "Katso muutokset lähettämällä {{whatsnew}}. {{notice}}",
       "prepareFailed": "Päivitystä ei voitu juuri nyt valmistella turvallisesti. Yritä komentoa {{command}} hetken kuluttua uudelleen."
     },
-    "welcome": "Tervetuloa käyttämään sovellusta {{product}}!\n\nOlen tekoälyyn perustuva pyöräilyvalmentajasi. Voin laatia harjoitussuunnitelmia, ehdottaa harjoituksia ja seurata kuntoasi palvelun {{service}} tietojen avulla.\n\nKomennot:\n{{plan}}: Luo harjoitussuunnitelma\n{{workout}}: Hae tämän päivän harjoitus\n{{status}}: Tarkista nykyinen kunto, väsymys ja tuoreus\n{{review}}: Tarkista viimeisin harjoituksesi\n{{sync}}: Pakota harjoitustietojen päivitys palvelusta {{service}}\n{{version}}: Näytä nykyinen versio\n{{whatsnew}}: Katso uusimman version muutokset\n{{update}}: {{updateDescription}}\n\nVoit myös vain jutella kanssani harjoittelustasi!",
     "workout": {
       "working": "Tarkistan tuoreuttasi ja suunnitelmaasi…"
     }
@@ -2883,6 +2904,78 @@
         "tokenRejected": "Telegram-tunniste hylättiin",
         "transferRequired": "Botti on siirrettävä"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Tämä harjoitus valmisteltiin toiselle urheilijalle palvelussa {{service}}. Pyydä minua uudelleen valmistelemaan se yhdistetylle urheilijalle.",
+    "add": "Lisää kalenteriin",
+    "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
+    "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
+    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Viimeisin tarkistuksesi näkyy edelleen. Yritä uudelleen palauttaaksesi painikkeet käyttöön.",
+    "title": "Harjoituksen tarkistus",
+    "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
+    "workout": {
+      "warmup": "Lämmittely",
+      "mainSet": "Pääsarja",
+      "cooldown": "Jäähdyttely",
+      "ramp": "tehon nousu"
+    }
+  },
+  "credits": {
+    "buy": "Osta",
+    "testers": "Testaajat eivät voi vielä ostaa paketteja.",
+    "title": "Krediitit",
+    "balance_one": "{{formattedCount}} krediitti",
+    "pack_one": "{{formattedCount}} krediitti",
+    "packPrice_one": "{{formattedCount}} krediitti · {{price}}",
+    "balance_other": "{{formattedCount}} krediittiä",
+    "pack_other": "{{formattedCount}} krediittiä",
+    "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
+    "error": {
+      "accessRejected": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi.",
+      "exhausted": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi.",
+      "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
+      "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Yhdistä",
+      "apiKey": "intervals.icu-API-avain",
+      "fatigue": "Väsymys {{value}}",
+      "fitness": "Kunto {{value}}",
+      "form": "Vire {{value}}",
+      "skip": "Ohita toistaiseksi"
+    },
+    "starter": {
+      "start": "Aloita keskustelu",
+      "progress": "Pyydetään aloituskrediittejä",
+      "alreadyGranted": "Tämä laite on jo käyttänyt aloituskrediittinsä.",
+      "added_one": "Lisätty {{formattedCount}} krediitti",
+      "added_other": "Lisätty {{formattedCount}} krediittiä"
+    },
+    "notice": {
+      "health": "Harjoitteluehdotuksia, ei lääketieteellisiä neuvoja. Keskustele lääkärin kanssa ennen suuria muutoksia."
+    },
+    "consent": {
+      "title": "Valmentajasi käyttää tekoälyä",
+      "body": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi.",
+      "accept": "Hyväksy ja jatka",
+      "decline": "Ei nyt",
+      "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
+      "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
+      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu ei hyväksynyt avainta."
     }
   }
 }

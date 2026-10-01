@@ -1,18 +1,21 @@
 import EnduragentCoach
 import SwiftUI
 
-enum VisibleSlash {
-	static let commands: [SlashCommand] = SlashCommand.all.filter { $0 != .plan }
-}
-
 struct SlashListView: View {
 	var model: ShellModel
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 0) {
-			ForEach(VisibleSlash.commands, id: \.self) { command in
-				Button(command.rawValue) {
+			ForEach(SlashCommand.allCases, id: \.self) { command in
+				Button {
 					model.fillSlash(command)
+				} label: {
+					VStack(alignment: .leading, spacing: 2) {
+						Text(command.rawValue)
+						Text(model.phrasebook.say(command.menuTitle, [:]))
+							.font(.footnote)
+							.foregroundStyle(Color.primary)
+					}
 				}
 				.accessibilityIdentifier("chat.slash.\(String(command.rawValue.dropFirst()))")
 				.frame(maxWidth: .infinity, alignment: .leading)

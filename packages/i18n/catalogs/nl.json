@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Kies je taal",
-    "continue": "Doorgaan"
+    "continue": "Doorgaan",
+    "saveFailed": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in het {{current}}. Probeer het opnieuw.",
+    "saveFailedAutomatic": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in de taal van elk bericht. Probeer het opnieuw."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Voer een ruimte voor geschiedenis in van meer dan 0% en maximaal 100%.",
         "idleMinutes": "Voer een veilig geheel aantal minuten in, 0 of meer.",
         "resetArchiveRetentionDays": "Voer een veilig geheel aantal dagen in, 0 of meer.",
-        "timezone": "Voer een geldige IANA-tijdzone in, zoals {{timezone}}."
+        "timezone": "Voer een geldige IANA-tijdzone in, zoals {{timezone}}.",
+        "contextWindowTokens": "Voer een geheel aantal tokens in binnen het geldige bereik, minimaal 1."
       }
     },
     "credentials": {
@@ -405,7 +408,7 @@
           "gap": "{{telegram}} is na een lange onderbreking opnieuw verbonden. Sommige berichten zijn mogelijk niet aangekomen.",
           "invalidToken": "{{telegram}} heeft dit token geweigerd. Verwijder de verbinding en koppel een nieuwe bot met een nieuw token van {{botFather}}.",
           "off": "{{telegram}} is uitgeschakeld.",
-          "online": "{{telegram}} is online.",
+          "online": "{{telegram}} is beschikbaar.",
           "transferRequired": "Deze bot hoort nog bij een andere Desktop-installatie. Verwijder de verbinding daar voordat je de bot hier verbindt.",
           "waitingForToken": "Kopieer een bottoken van {{botFather}} en plak het vanaf het klembord."
         },
@@ -530,13 +533,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Eerdere gesprekken zijn tijdelijk niet beschikbaar.",
-    "loadEarlier": "Eerdere berichten laden",
     "loading": "Eerdere gesprekken laden…",
     "pageFailure": "Dit gesprek is tijdelijk niet beschikbaar.",
     "readOnly": "Je kunt eerdere gesprekken alleen lezen.",
     "reason": {
       "explicit": "Je bent een nieuw gesprek begonnen",
-      "stale": "Gesloten na een pauze"
+      "stale": "Gesloten na een pauze",
+      "earlierChat": "Eerdere chat"
     },
     "retry": "Opnieuw proberen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +547,8 @@
     "truncated": "Alleen de meest recente eerdere gesprekken worden weergegeven.",
     "turnCount_one": "{{formattedCount}} bericht",
     "turnCount_other": "{{formattedCount}} berichten",
-    "unavailable": "Dit gesprek is niet meer beschikbaar."
+    "unavailable": "Dit gesprek is niet meer beschikbaar.",
+    "history": "Geschiedenis"
   },
   "setup": {
     "ai": {
@@ -945,7 +949,8 @@
       "messagePlaceholder": "Stuur je coach een bericht",
       "responding": "De coach antwoordt…",
       "send": "Bericht verzenden",
-      "stop": "Antwoord stoppen"
+      "stop": "Antwoord stoppen",
+      "notSent": "Niet verzonden. Je concept staat hier nog."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +983,6 @@
     },
     "history": {
       "failure": "De gespreksgeschiedenis is tijdelijk niet beschikbaar.",
-      "loadEarlier": "Eerdere berichten laden",
       "retry": "Geschiedenis opnieuw laden"
     },
     "newConversation": {
@@ -987,6 +991,7 @@
       "cancel": "Annuleren",
       "confirm": "Nieuw gesprek starten",
       "hydrated": "Je zichtbare gesprek en de eerdere berichten die op {{computer}} zijn hersteld, worden gewist. Je trainingsgegevens en het opgeslagen coachgeheugen blijven bewaard.",
+      "label": "Nieuw gesprek",
       "title": "Een nieuw gesprek starten?"
     },
     "notice": {
@@ -1010,13 +1015,16 @@
       "planningRequestLoadFailure": "Opgeslagen verzoeken voor Plan konden niet worden gecontroleerd. Maak opnieuw verbinding en probeer het opnieuw.",
       "protocolFailure": "Het antwoord van de coach kon niet worden geverifieerd. Probeer het opnieuw.",
       "questionSkipped": "Vraag overgeslagen",
+      "replyUnsaved": "Dit antwoord kon niet worden opgeslagen. Houd de app open terwijl het opslaan opnieuw wordt geprobeerd.",
       "queueLoadFailure": "Je opgeslagen berichten konden niet worden gecontroleerd. Maak opnieuw verbinding en probeer het opnieuw.",
       "queueRemoveFailure": "Dat opgeslagen bericht kon niet worden verwijderd. Probeer het opnieuw.",
       "responseFailure": "De coach kon niet antwoorden. Probeer het opnieuw.",
-      "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
       "retryMessage": "Bericht opnieuw proberen",
       "savedChoice": "Opgeslagen keuze",
-      "working": "De coach is bezig…"
+      "working": "De coach is bezig…",
+      "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
+      "calendarUnverified": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt.",
+      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",
@@ -1377,7 +1385,7 @@
       "anchorDetail": "{{source}} · {{confidence}}",
       "available": "Beschikbaar voor de coach",
       "confidence": {
-        "fit": "fit",
+        "fit": "aanpassing",
         "manual": "handmatig",
         "platform": "platform"
       },
@@ -1447,7 +1455,20 @@
       "hideContext": "Trainingscontext verbergen",
       "showContext": "Trainingscontext tonen",
       "title": "Chat"
-    }
+    },
+    "menu": "Menu",
+    "turn": {
+      "buyCredits": "Tegoed kopen",
+      "chooseAccessMethod": "Toegangsmethode kiezen",
+      "finishedWhileLocked": "Voltooid terwijl de telefoon vergrendeld was.",
+      "interruptedNothingChanged": "Dit antwoord werd onderbroken voordat het klaar was. Er is niets gewijzigd.",
+      "interruptedSomeSaved": "Dit antwoord werd onderbroken voordat het klaar was. Een deel van de informatie was al opgeslagen.",
+      "receivedBeforeClose": "Ontvangen voordat de app sloot. Tik op Opnieuw proberen om het te verzenden.",
+      "restorePurchases": "Aankopen herstellen",
+      "signInAgain": "Opnieuw inloggen"
+    },
+    "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{commands}}\n\nJe kunt ook gewoon met me praten over je training!",
+    "welcomeCommand": "{{command}} : {{description}}"
   },
   "plan": {
     "details": {
@@ -2464,7 +2485,6 @@
       "start": "Een nieuwe sessie starten",
       "status": "Je huidige conditie, vermoeidheid en vorm bekijken",
       "sync": "Trainingsgegevens uit {{service}} geforceerd vernieuwen",
-      "update": "Controleren op updates en deze installeren",
       "version": "Huidige versie tonen",
       "whatsnew": "Bekijk wat er in de nieuwste versie is veranderd",
       "workout": "De training van vandaag ophalen"
@@ -2581,7 +2601,6 @@
       "managedInstruction": "Stuur {{whatsnew}} om de wijzigingen te bekijken. {{notice}}",
       "prepareFailed": "De update kon zojuist niet veilig worden voorbereid. Probeer {{command}} zo opnieuw."
     },
-    "welcome": "Welkom bij {{product}}!\n\nIk ben je AI-fietscoach. Ik kan trainingsschema's maken, trainingen voorstellen en je conditie volgen met gegevens van {{service}}.\n\nOpdrachten:\n{{plan}} : Een trainingsschema maken\n{{workout}} : De training van vandaag ophalen\n{{status}} : Je huidige conditie, vermoeidheid en vorm bekijken\n{{review}} : Je laatste training bekijken\n{{sync}} : Trainingsgegevens uit {{service}} geforceerd vernieuwen\n{{version}} : Huidige versie tonen\n{{whatsnew}} : Bekijk wat er in de nieuwste versie is veranderd\n{{update}} : {{updateDescription}}\n\nJe kunt ook gewoon met me praten over je training!",
     "workout": {
       "working": "Je vorm en trainingsschema controleren..."
     }
@@ -2797,7 +2816,9 @@
       "structure": "trainingsopbouw",
       "trainingLoad": "trainingsbelasting naar {{load}}",
       "unnamed": "Naamloze training",
-      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}"
+      "update": "Training \"{{name}}\" op {{date}} bijwerken: {{detail}}",
+      "deleteFallback": "Een training verwijderen",
+      "updateFallback": "Een training bijwerken: {{detail}}"
     }
   },
   "desktop": {
@@ -2883,6 +2904,78 @@
         "tokenRejected": "Telegram-token geweigerd",
         "transferRequired": "Botoverdracht vereist"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Deze training is voorbereid voor een andere atleet op {{service}}. Vraag me opnieuw om deze voor de verbonden atleet voor te bereiden.",
+    "add": "Toevoegen aan kalender",
+    "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
+    "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
+    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen.",
+    "title": "Training controleren",
+    "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
+    "workout": {
+      "warmup": "Warming-up",
+      "mainSet": "Hoofdblok",
+      "cooldown": "Cooling-down",
+      "ramp": "oplopend"
+    }
+  },
+  "credits": {
+    "buy": "Kopen",
+    "testers": "Testers kunnen nog geen pakketten kopen.",
+    "title": "Tegoed",
+    "balance_one": "{{formattedCount}} tegoedpunt",
+    "pack_one": "{{formattedCount}} tegoedpunt",
+    "packPrice_one": "{{formattedCount}} tegoedpunt · {{price}}",
+    "balance_other": "{{formattedCount}} tegoedpunten",
+    "pack_other": "{{formattedCount}} tegoedpunten",
+    "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
+    "error": {
+      "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan.",
+      "exhausted": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account.",
+      "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
+      "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Verbinden",
+      "apiKey": "intervals.icu API-sleutel",
+      "fatigue": "Vermoeidheid {{value}}",
+      "fitness": "Conditie {{value}}",
+      "form": "Vorm {{value}}",
+      "skip": "Voorlopig overslaan"
+    },
+    "starter": {
+      "start": "Beginnen met chatten",
+      "progress": "Starttegoed aanvragen",
+      "alreadyGranted": "Dit apparaat heeft het starttegoed al gebruikt.",
+      "added_one": "{{formattedCount}} tegoedpunt toegevoegd",
+      "added_other": "{{formattedCount}} tegoedpunten toegevoegd"
+    },
+    "notice": {
+      "health": "Trainingssuggesties, geen medisch advies. Overleg met een arts voordat je grote veranderingen aanbrengt."
+    },
+    "consent": {
+      "title": "Je coach gebruikt AI",
+      "body": "Om te antwoorden stuurt Enduragent je berichten, het geheugen van je coach en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan de aanbieder van het AI-model (DeepSeek). Ze gebruiken deze gegevens alleen om de antwoorden van je coach te genereren. Er wordt niets verstuurd totdat je akkoord gaat.",
+      "accept": "Akkoord en doorgaan",
+      "decline": "Niet nu",
+      "saveFailed": "Je toestemming kon niet worden opgeslagen. Probeer het opnieuw."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
+      "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
+      "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
+      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd."
     }
   }
 }

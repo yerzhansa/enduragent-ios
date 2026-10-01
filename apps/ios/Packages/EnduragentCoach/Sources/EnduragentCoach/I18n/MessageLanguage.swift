@@ -40,7 +40,7 @@ enum MessageLanguage {
 		return best.language
 	}
 
-	static func clean(_ text: String) -> String {
+	private static func clean(_ text: String) -> String {
 		var stripped = replace(/^\s*(?:\/[\w-]+(?:@[\w-]+)?(?:\s+|$))+/, in: text, with: "")
 		stripped = replace(/```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)/, in: stripped, with: " ")
 		stripped = replace(/(?i)(?:https?:\/\/|www\.)\S+/, in: stripped, with: " ")
@@ -55,7 +55,7 @@ enum MessageLanguage {
 		return sample.precomposedStringWithCanonicalMapping.lowercased()
 	}
 
-	static func uniqueLatinTokens(_ sample: String) -> Set<String> {
+	private static func uniqueLatinTokens(_ sample: String) -> Set<String> {
 		let regex = /[\p{Script=Latin}]+(?:['’][\p{Script=Latin}]+)?/
 		var tokens: Set<String> = []
 		for match in sample.matches(of: regex) {
@@ -64,7 +64,7 @@ enum MessageLanguage {
 		return tokens
 	}
 
-	static let profiles: [(language: LanguageTag, words: Set<String>)] = [
+	private static let profiles: [(language: LanguageTag, words: Set<String>)] = [
 		(
 			.en,
 			words(
@@ -139,7 +139,7 @@ enum MessageLanguage {
 		),
 	]
 
-	static func diacriticPattern(_ tag: LanguageTag) -> (any RegexComponent)? {
+	private static func diacriticPattern(_ tag: LanguageTag) -> (any RegexComponent)? {
 		switch tag {
 		case .es: /[ñ¿¡]/
 		case .fr: /[œç]|[àâêîôû]/
@@ -155,15 +155,15 @@ enum MessageLanguage {
 		}
 	}
 
-	static func words(_ list: String) -> Set<String> {
+	private static func words(_ list: String) -> Set<String> {
 		Set(list.split(separator: " ").map(String.init))
 	}
 
-	static func matches(_ pattern: any RegexComponent, _ text: String) -> Bool {
+	private static func matches(_ pattern: any RegexComponent, _ text: String) -> Bool {
 		text.contains(pattern)
 	}
 
-	static func replace(
+	private static func replace(
 		_ pattern: some RegexComponent,
 		in text: String,
 		with template: String

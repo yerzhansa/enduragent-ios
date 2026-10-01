@@ -12,12 +12,12 @@ struct StarterView: View {
 						.accessibilityIdentifier("starter.credits")
 				}
 				if model.starterResolved {
-					Button(model.builder.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
-						model.startChatting()
+					Button(model.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
+						Task { await model.startChatting() }
 					}
 					.accessibilityIdentifier("starter.start")
 				} else {
-					ProgressView("Requesting starter credits")
+					ProgressView(model.phrasebook.say(Catalog.onboardingStarterProgress, [:]))
 						.accessibilityIdentifier("starter.progress")
 				}
 			}

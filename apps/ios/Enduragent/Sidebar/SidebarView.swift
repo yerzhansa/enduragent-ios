@@ -6,21 +6,21 @@ struct SidebarView: View {
 
 	var body: some View {
 		List {
-			NavigationLink("Credits") {
+			NavigationLink(model.phrasebook.say(Catalog.creditsTitle, [:])) {
 				CreditsView(model: model)
 			}
 			.accessibilityIdentifier("sidebar.credits")
-			NavigationLink("History") {
+			NavigationLink(model.phrasebook.say(Catalog.archiveHistory, [:])) {
 				HistoryView(model: model)
 			}
 			.accessibilityIdentifier("sidebar.history")
 			#if DEBUG
-				NavigationLink("Debug") {
+				NavigationLink(DebugMenuView.title) {
 					DebugMenuView(model: model)
 				}
 				.accessibilityIdentifier("sidebar.debug")
 			#endif
 		}
-		.navigationTitle(model.builder.phrasebook.say(Catalog.sidebarMenu, [:]))
+		.navigationTitle(model.phrasebook.say(Catalog.chatMenu, [:]))
 	}
 }

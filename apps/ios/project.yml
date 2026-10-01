@@ -31,6 +31,7 @@ targets:
         OPENROUTER_MODEL: deepseek/deepseek-v4.1-flash-20260910
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         INFOPLIST_KEY_CFBundleDisplayName: Enduragent
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
@@ -39,6 +40,9 @@ targets:
         DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
+      configs:
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures*
     info:
       path: Enduragent/Info.plist
       properties:
@@ -48,6 +52,8 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         CreditsWorkerBase: $(CREDITS_WORKER_BASE)
         OpenRouterModel: $(OPENROUTER_MODEL)
+        BGTaskSchedulerPermittedIdentifiers:
+          - $(PRODUCT_BUNDLE_IDENTIFIER).coach.*
     entitlements:
       path: Enduragent/Enduragent.entitlements
       properties:
@@ -59,6 +65,8 @@ targets:
           - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
   EnduragentTests:
     type: bundle.unit-test
     platform: iOS
@@ -94,6 +102,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+      - package: EnduragentCoach
 schemes:
   Enduragent:
     build:

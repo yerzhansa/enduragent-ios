@@ -6,45 +6,86 @@ struct TranscriptView: View {
 
 	var body: some View {
 		ScrollViewReader { proxy in
-			ScrollView {
-				LazyVStack(alignment: .leading, spacing: 16) {
-					if showsGreeting {
-						Text(
-							model.athleteFirstName.isEmpty
-								? "Hello." : "Hello, \(model.athleteFirstName).")
+			List {
+				Group {
+					if let opening = model.chat?.opening {
+						if opening.showsWelcome {
+							Text(Welcome.text(in: model.phrasebook))
+								.accessibilityIdentifier("chat.welcome")
+						}
+						if let notice = opening.notice {
+							newConversationNotice(notice)
+						}
 					}
-					ForEach(Array(model.seam.transcript.enumerated()), id: \.offset) { _, message in
-						Text(message.text)
+					notes(after: nil)
+					ForEach(model.chat?.turns ?? []) { turn in
+						TurnRowView(model: model, turn: turn)
+						notes(after: turn.id)
 					}
-					if model.isWaitingForCoach {
-						Text(model.builder.phrasebook.say(Catalog.chatNoticeWorking, [:]))
+					if case .startingNewConversation(let label)? = model.chat?.activity {
+						Text(model.phrasebook.say(label, [:]))
 							.foregroundStyle(.secondary)
 							.accessibilityIdentifier("chat.working")
 					}
-					if !model.seam.streamingText.isEmpty {
-						Text(model.seam.streamingText)
+					if model.newConversationUncertain {
+						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}
-					if let confirmLine = model.confirmLine {
-						Text(confirmLine)
+					if let review = model.chat?.review {
+						ConfirmedPreviewCard(model: model, review: review)
+							.fixedSize(horizontal: false, vertical: true)
 					}
-					Color.clear
-						.frame(height: 1)
-						.id("transcript.tail")
+					if let notice = model.reviewNotice {
+						Text(notice.sentence(in: model.phrasebook))
+							.accessibilityIdentifier("chat.review.notice")
+					}
 				}
-				.padding()
-				.frame(maxWidth: .infinity, alignment: .leading)
+				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+				.listRowSeparator(.hidden)
+				.listRowBackground(Color.clear)
+				if model.slashListVisible {
+					SlashListView(model: model)
+						.listRowInsets(EdgeInsets())
+						.listRowSeparator(.hidden)
+						.listRowBackground(Color.clear)
+				}
+				Color.clear
+					.frame(height: 1)
+					.listRowInsets(EdgeInsets())
+					.listRowSeparator(.hidden)
+					.listRowBackground(Color.clear)
+					.id("transcript.tail")
 			}
-			.onChange(of: model.seam.streamingText) {
+			.listStyle(.plain)
+			.accessibilityIdentifier("chat.transcript")
+			.environment(\.defaultMinListRowHeight, 0)
+			.buttonStyle(.borderless)
+			.onChange(of: model.chat?.revision, initial: true) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
-			.onChange(of: model.seam.transcript.count) {
+			.onChange(of: model.slashListVisible) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.reviewNotice) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onReceive(
+				NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)
+			) { _ in
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 		}
 	}
 
-	private var showsGreeting: Bool {
-		model.seam.transcript.isEmpty && model.seam.streamingText.isEmpty
-			&& model.seam.phase != .streaming
+	private func notes(after turn: TurnID?) -> some View {
+		ForEach(model.chat?.notes[turn] ?? []) { note in
+			Text(note.sentence(in: model.phrasebook))
+				.accessibilityIdentifier("chat.note")
+		}
+	}
+
+	private func newConversationNotice(_ key: CatalogKey) -> some View {
+		Text(model.phrasebook.say(key, [:]))
+			.foregroundStyle(.secondary)
+			.accessibilityIdentifier("chat.newConversation.notice")
 	}
 }

@@ -1,30 +1,39 @@
 # Credits
 
-The menu's Credits screen shows the athlete's credit balance and the credit packs, and tells testers that they cannot buy packs yet.
+The athlete's Credits screen shows available Credits, the two packs, and the tester notice. Buying is disabled. A Credits notice under a turn opens this same screen through Buy Credits or Restore purchases.
 
 ## Sub-features
 
-- `credits-balance` shows `200 credits` in `credits.balance`.
-- `credits-packs` shows `credits.pack.icu.enduragent.credits.small` with `500 credits` and `credits.pack.icu.enduragent.credits.large` with `2000 credits`, each with a disabled `Buy`.
+- `credits-balance` shows the fixture's `200 credits` in `credits.balance`.
+- `credits-packs` shows 500 and 2000 credits, with disabled Buy buttons, in `credits.pack.icu.enduragent.credits.small` and `credits.pack.icu.enduragent.credits.large`.
 - `credits-note` shows `Testers cannot buy packs yet.` in `credits.note`.
+- `credits-unavailable` shows `Credits are unavailable right now. Try again later.` in `credits.notice` when loading fails.
+- `credits-recovery` opens Credits from the turn's `chat.turn.buyCredits` or `chat.turn.restorePurchases` action without replacing the conversation.
+- `credits-language` renders the title, amounts, pack rows, Buy, tester notice, and failure notice through the current language preference.
 
 ## How to get to it (user POV)
 
-- In the chat, choose `Menu`, then `Credits`.
-- The starter grant during onboarding is covered in [onboarding.md](./onboarding.md).
+- Choose Menu, then Credits from the conversation.
+- Choose Buy Credits or Restore purchases below a Credits-related turn notice.
+- Receive starter Credits during [onboarding](./onboarding.md).
+- Debug, Credits is a separate developer entry for grant, identity, and purchase diagnostics. It does not replace the athlete's Credits screen.
 
 ## Driving it with sim.mjs and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
-- For interactive steps, the app is on the chat after onboarding.
+- Follow the [index](./README.md) setup. Interactive steps begin after onboarding.
 
-- **Open credits.** Tap `chat.sidebar`, then `sidebar.credits`. Run `sim.mjs test <run id> CreditsProof`. `credits.balance` reads `200 credits`, `credits.note` reads `Testers cannot buy packs yet.`, and both pack rows exist. Attachment `06-credits` shows the screen.
-- **Buy is disabled.** This step is interactive. Tap `Buy` on the 500-credit row. Nothing changes and the button stays dimmed. Capture `sim.mjs shot <run id> credits-buy-disabled` after the tap.
+| Action and command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> CreditsProof` | `chat.sidebar`, then `sidebar.credits`, opens 200 credits, both packs, and the tester note, `06-credits`. |
+| `sim.mjs test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance`, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
+
+Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `sidebar.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app test `creditsFailuresShowCatalogNotices` covers the unavailable notice; fixture directives do not fail the Credits client.
 
 ## Gotchas
 
-- Fixture mode skips the StoreKit price lookup, so pack rows show credits without a price. A fixture run cannot verify prices.
-- The fixture balance stays at 200 credits after any number of chats. Spending is not modeled.
-- `Debug`, then `Credits`, opens a developer screen. It is not this feature and is not proof of it.
+- Fixture mode omits StoreKit price lookup and keeps available Credits at 200. These proofs do not establish live prices, spending, purchases, or restore settlement.
+- Restore purchases currently navigates to Credits. The button's label is not evidence of a restored transaction.
+- Debug, Credits has no accessibility identifier on its link. Its developer labels and StoreKit actions are outside the athlete-screen proof.
+- The Credits screen can appear inside the Menu sheet or on the conversation's navigation stack. Capture the entry point used.

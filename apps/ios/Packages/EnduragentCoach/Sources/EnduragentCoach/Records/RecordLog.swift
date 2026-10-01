@@ -1,188 +1,270 @@
+import CoreData
 import Foundation
 import SwiftData
-import Synchronization
 
-public struct RecordQuery: Sendable, Equatable {
-	public var kinds: Set<RecordKind>
-	public var chatId: ChatID?
-	public var from: CivilDate?
-	public var to: CivilDate?
-	public var deviceLocalOnly: Bool
+package struct RecordQuery: Sendable, Equatable {
+	package enum Scope: Sendable, Equatable {
+		case synced(Set<SyncedKind>, includeLegacy: Set<LegacyKind>)
+		case deviceLocal(Set<DeviceLocalKind>)
 
-	public init(
-		kinds: Set<RecordKind>,
+		package static func synced(_ kinds: Set<SyncedKind>) -> Scope {
+			.synced(kinds, includeLegacy: [])
+		}
+
+		package static let everySynced: Scope = .synced(
+			Set(SyncedKind.allCases), includeLegacy: Set(LegacyKind.allCases))
+		package static let everyDeviceLocal: Scope = .deviceLocal(Set(DeviceLocalKind.allCases))
+
+		var locality: RecordLocality {
+			switch self {
+			case .synced: .synced
+			case .deviceLocal: .deviceLocal
+			}
+		}
+
+		var isExhaustive: Bool {
+			switch self {
+			case .synced(let kinds, let legacy):
+				kinds.count == SyncedKind.allCases.count
+					&& legacy.count == LegacyKind.allCases.count
+			case .deviceLocal(let kinds):
+				kinds.count == DeviceLocalKind.allCases.count
+			}
+		}
+
+		var kindNames: Set<String> {
+			switch self {
+			case .synced(let kinds, let legacy):
+				Set(kinds.map(\.rawValue)).union(legacy.map(\.rawValue))
+			case .deviceLocal(let kinds):
+				Set(kinds.map(\.rawValue))
+			}
+		}
+
+		func admits(_ body: RecordBody) -> Bool {
+			switch (self, body) {
+			case (.synced(let kinds, _), .synced(let synced)):
+				kinds.contains(synced.kind)
+			case (.synced(_, let legacy), .legacy(let body)):
+				legacy.contains(body.kind)
+			case (.deviceLocal(let kinds), .deviceLocal(let local)):
+				kinds.contains(local.kind)
+			default:
+				false
+			}
+		}
+	}
+
+	package var scope: Scope
+	package var chatId: ChatID?
+	package var turns: Set<TurnID>?
+	package var from: CivilDate?
+	package var to: CivilDate?
+	package var writtenBy: DeviceID?
+
+	package init(
+		scope: Scope,
 		chatId: ChatID? = nil,
+		turn: TurnID? = nil,
 		from: CivilDate? = nil,
 		to: CivilDate? = nil,
-		deviceLocalOnly: Bool = false
+		writtenBy: DeviceID? = nil
 	) {
-		self.kinds = kinds
+		self.scope = scope
 		self.chatId = chatId
+		self.turns = turn.map { [$0] }
 		self.from = from
 		self.to = to
-		self.deviceLocalOnly = deviceLocalOnly
+		self.writtenBy = writtenBy
+	}
+
+	package init(scope: Scope, chatId: ChatID, turns: Set<TurnID>) {
+		self.init(scope: scope, chatId: chatId)
+		self.turns = turns
 	}
 }
 
-public protocol RecordLog: Sendable {
+package protocol RecordLog: Sendable {
 	var deviceId: DeviceID { get }
 
-	func append(_ record: AthleteRecord) async throws
-	func fetch(_ query: RecordQuery) async throws -> [AthleteRecord]
+	func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws
+	func fetch(_ query: RecordQuery) async throws -> RecordPage
+	func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	var imports: AsyncStream<Void> { get }
 }
 
-public struct ForeignDeviceLocalRecord: Error, Sendable, Equatable {
-	public var recordDeviceId: DeviceID
-	public var logDeviceId: DeviceID
+package struct RecordCursor: Sendable, Equatable {
+	package let ulid: ULID?
+	package let hlc: HybridLogicalClock?
+	package var skipped: [SkippedRow] = []
 
-	public init(recordDeviceId: DeviceID, logDeviceId: DeviceID) {
-		self.recordDeviceId = recordDeviceId
-		self.logDeviceId = logDeviceId
+	package init(ulid: ULID?, hlc: HybridLogicalClock?, skipped: [SkippedRow] = []) {
+		self.ulid = ulid
+		self.hlc = hlc
+		self.skipped = skipped
 	}
 }
 
-public struct MixedRecordLocalityQuery: Error, Sendable, Equatable {
-	public var kinds: Set<RecordKind>
+package struct RecordPage: Sendable, Equatable {
+	package let records: [AthleteRecord]
+	package let skipped: [SkippedRow]
 
-	public init(kinds: Set<RecordKind>) {
-		self.kinds = kinds
+	package init(records: [AthleteRecord], skipped: [SkippedRow]) {
+		self.records = records
+		self.skipped = skipped
 	}
 }
 
-public struct RecordDecodeFailure: Error, Sendable, Equatable {
-	public var reason: String
+package enum SkippedRow: Error, Sendable, Hashable {
+	case newerKind(kind: String, ulid: String)
+	case newerVersion(kind: String, version: Int, ulid: String)
+	case malformed(kind: String, ulid: String)
+}
 
-	public init(reason: String) {
+package struct RecordDecodeFailure: Error, Sendable, Equatable {
+	package var reason: String
+
+	package init(reason: String) {
 		self.reason = reason
 	}
 }
 
-public final class InMemoryRecordLog: RecordLog, @unchecked Sendable {
-	public let deviceId: DeviceID
-	private let records = Mutex<[AthleteRecord]>([])
-
-	public init(deviceId: DeviceID = DeviceID()) {
-		self.deviceId = deviceId
-	}
-
-	public func append(_ record: AthleteRecord) async throws {
-		if record.locality == .deviceLocal, record.deviceId != deviceId {
-			throw ForeignDeviceLocalRecord(recordDeviceId: record.deviceId, logDeviceId: deviceId)
-		}
-		records.withLock { $0.append(record) }
-	}
-
-	public func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
-		records.withLock { $0.filter { recordMatches($0, query, logDeviceId: deviceId) } }
-	}
-}
-
-public struct SwiftDataRecordLog: RecordLog {
-	public let deviceId: DeviceID
+package struct SwiftDataRecordLog: RecordLog {
+	package let deviceId: DeviceID
 	private let synced: ModelContainer
 	private let local: ModelContainer
 
-	public init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
+	package init(deviceId: DeviceID, synced: ModelContainerHandle, local: ModelContainerHandle) {
 		self.deviceId = deviceId
 		self.synced = synced.container
 		self.local = local.container
 	}
 
-	public func append(_ record: AthleteRecord) async throws {
-		if record.locality == .deviceLocal, record.deviceId != deviceId {
-			throw ForeignDeviceLocalRecord(recordDeviceId: record.deviceId, logDeviceId: deviceId)
+	package func append(_ batch: [AthleteRecord], locality: RecordLocality) async throws {
+		let context = ModelContext(container(for: locality))
+		context.autosaveEnabled = false
+		for record in batch {
+			context.insert(try StoredAthleteRecord(record: record))
 		}
-		let context = ModelContext(container(for: record.locality))
-		context.insert(try StoredAthleteRecord(record: record))
 		try context.save()
 	}
 
-	public func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
-		if query.kinds.isEmpty {
-			return []
-		}
-		let localities = Set(query.kinds.map(\.locality))
-		guard localities.count == 1, let locality = localities.first else {
-			throw MixedRecordLocalityQuery(kinds: query.kinds)
-		}
+	package func latest(locality: RecordLocality, writtenBy: DeviceID) async throws -> RecordCursor?
+	{
+		let deviceId = writtenBy.rawValue
+		let descriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { $0.deviceId == deviceId },
+			sortBy: [
+				SortDescriptor(\.hlcWallMs, order: .reverse),
+				SortDescriptor(\.hlcLogical, order: .reverse),
+			])
 		let context = ModelContext(container(for: locality))
-		let rows = try context.fetch(FetchDescriptor<StoredAthleteRecord>())
-		return try rows.map { try $0.athleteRecord() }
-			.filter { recordMatches($0, query, logDeviceId: deviceId) }
-			.sorted { $0.hlc < $1.hlc }
+		var skipped: [SkippedRow] = []
+		let hlc = try firstValue(in: context, matching: descriptor, skipped: &skipped) { row in
+			ULID(rawValue: row.ulid) == nil ? nil : row.hlc
+		}
+		let ulidDescriptor = FetchDescriptor<StoredAthleteRecord>(
+			predicate: #Predicate { $0.deviceId == deviceId },
+			sortBy: [SortDescriptor(\.ulid, comparator: .lexical, order: .reverse)])
+		let ulid = try firstValue(in: context, matching: ulidDescriptor, skipped: &skipped) {
+			ULID(rawValue: $0.ulid)
+		}
+		guard hlc != nil || ulid != nil || !skipped.isEmpty else { return nil }
+		return RecordCursor(ulid: ulid, hlc: hlc, skipped: skipped)
+	}
+
+	private func firstValue<Value>(
+		in context: ModelContext, matching descriptor: FetchDescriptor<StoredAthleteRecord>,
+		skipped: inout [SkippedRow], decode: (StoredAthleteRecord) -> Value?
+	) throws -> Value? {
+		var descriptor = descriptor
+		descriptor.fetchLimit = 1
+		while let row = try context.fetch(descriptor).first {
+			if let value = decode(row) { return value }
+			skipped.append(.malformed(kind: row.kind, ulid: row.ulid))
+			descriptor.fetchOffset = (descriptor.fetchOffset ?? 0) + 1
+		}
+		return nil
+	}
+
+	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
+		let kinds = query.scope.isExhaustive ? [] : Array(query.scope.kindNames)
+		if kinds.isEmpty, !query.scope.isExhaustive {
+			return RecordPage(records: [], skipped: [])
+		}
+		let anyKind = kinds.isEmpty
+		let anyChat = query.chatId == nil
+		let chatId = query.chatId?.rawValue ?? ""
+		let anyTurn = query.turns == nil
+		let turns: [String?] = query.turns?.map { $0.ulid.rawValue } ?? []
+		let anyDevice = query.writtenBy == nil
+		let deviceId = query.writtenBy?.rawValue ?? ""
+		let predicate = #Predicate<StoredAthleteRecord> { row in
+			(anyKind || kinds.contains(row.kind))
+				&& (anyChat || row.chatId == chatId || row.chatId == nil)
+				&& (anyTurn || turns.contains(row.turn))
+				&& (anyDevice || row.deviceId == deviceId)
+		}
+		let context = ModelContext(container(for: query.scope.locality))
+		let rows = try context.fetch(FetchDescriptor<StoredAthleteRecord>(predicate: predicate))
+		var records: [AthleteRecord] = []
+		var skipped: [SkippedRow] = []
+		for row in rows {
+			switch row.decode() {
+			case .success(let record):
+				if recordMatches(record, query) {
+					records.append(record)
+				}
+			case .failure(let reason):
+				skipped.append(reason)
+			}
+		}
+		return RecordPage(records: records.sorted { $0.hlc < $1.hlc }, skipped: skipped)
+	}
+
+	package var imports: AsyncStream<Void> {
+		AsyncStream { continuation in
+			let urls = Set(synced.configurations.map(\.url))
+			let changes = NotificationCenter.default.notifications(
+				named: NSPersistentCloudKitContainer.eventChangedNotification)
+			let task = Task {
+				for await notification in changes {
+					guard
+						let event = notification.userInfo?[
+							NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+							as? NSPersistentCloudKitContainer.Event,
+						event.type == .import, event.endDate != nil,
+						let container = notification.object as? NSPersistentCloudKitContainer,
+						container.persistentStoreCoordinator.persistentStores.contains(where: {
+							$0.identifier == event.storeIdentifier
+								&& $0.url.map(urls.contains) == true
+						})
+					else { continue }
+					continuation.yield()
+				}
+				continuation.finish()
+			}
+			continuation.onTermination = { _ in
+				task.cancel()
+			}
+		}
 	}
 
 	private func container(for locality: RecordLocality) -> ModelContainer {
 		switch locality {
-		case .synced: return synced
-		case .deviceLocal: return local
+		case .synced: synced
+		case .deviceLocal: local
 		}
 	}
 }
 
-public struct ModelContainerHandle: Sendable {
+package struct ModelContainerHandle: Sendable {
 	let container: ModelContainer
 }
 
-@Model
-final class StoredAthleteRecord {
-	var ulid: String = ""
-	var deviceId: String = ""
-	var hlcWallMs: Int64 = 0
-	var hlcLogical: Int64 = 0
-	var hlcDeviceId: String = ""
-	var timeZone: String = ""
-	var civilDate: String = ""
-	var kind: String = ""
-	var body: Data = Data()
-
-	init(record: AthleteRecord) throws {
-		self.ulid = record.ulid.rawValue
-		self.deviceId = record.deviceId.rawValue
-		self.hlcWallMs = record.hlc.wallMs
-		self.hlcLogical = Int64(record.hlc.logical)
-		self.hlcDeviceId = record.hlc.deviceId.rawValue
-		self.timeZone = record.timeZone.identifier
-		self.civilDate = record.civilDate.rawValue
-		self.kind = record.body.kind.rawValue
-		self.body = try encodeRecordBody(record.body)
-	}
-
-	func athleteRecord() throws -> AthleteRecord {
-		guard let ulid = ULID(rawValue: ulid) else {
-			throw RecordDecodeFailure(reason: "ulid")
-		}
-		guard let timeZone = IANATimeZone(identifier: timeZone) else {
-			throw RecordDecodeFailure(reason: "timeZone")
-		}
-		guard let civilDate = CivilDate(rawValue: civilDate) else {
-			throw RecordDecodeFailure(reason: "civilDate")
-		}
-		let body = try decodeRecordBody(body)
-		if body.kind.rawValue != kind {
-			throw RecordDecodeFailure(reason: "kind")
-		}
-		return AthleteRecord(
-			ulid: ulid,
-			deviceId: DeviceID(rawValue: deviceId),
-			hlc: HybridLogicalClock(
-				wallMs: hlcWallMs,
-				logical: UInt32(hlcLogical),
-				deviceId: DeviceID(rawValue: hlcDeviceId)
-			),
-			timeZone: timeZone,
-			civilDate: civilDate,
-			body: body
-		)
-	}
-}
-
-func recordMatches(_ record: AthleteRecord, _ query: RecordQuery, logDeviceId: DeviceID) -> Bool {
-	guard query.kinds.contains(record.body.kind) else { return false }
-	if record.locality == .deviceLocal, record.deviceId != logDeviceId {
-		return false
-	}
-	if query.deviceLocalOnly, record.deviceId != logDeviceId {
+package func recordMatches(_ record: AthleteRecord, _ query: RecordQuery) -> Bool {
+	guard query.scope.admits(record.body) else { return false }
+	if let writtenBy = query.writtenBy, record.deviceId != writtenBy {
 		return false
 	}
 	if let from = query.from, record.civilDate < from {
@@ -191,55 +273,11 @@ func recordMatches(_ record: AthleteRecord, _ query: RecordQuery, logDeviceId: D
 	if let to = query.to, record.civilDate > to {
 		return false
 	}
-	if let chatId = query.chatId {
-		guard let recordChatId = recordChatId(record.body), recordChatId == chatId else {
-			return false
-		}
+	if let chatId = query.chatId, record.chatId != chatId {
+		return false
+	}
+	if let turns = query.turns {
+		guard let turn = record.body.turn, turns.contains(turn) else { return false }
 	}
 	return true
-}
-
-func recordChatId(_ body: RecordBody) -> ChatID? {
-	switch body {
-	case .userMessage(let body): return body.chatId
-	case .assistantMessage(let body): return body.chatId
-	case .windowStart(let body): return body.chatId
-	case .compactionSummary(let body): return body.chatId
-	case .pendingProposal(let body): return body.chatId
-	case .proposalCleared(let body): return body.chatId
-	case .flushPending(let body): return body.chatId
-	default: return nil
-	}
-}
-
-public enum RecordLogSamples {
-	public static func userMessage(text: String) -> RecordBody {
-		.userMessage(UserMessageBody(chatId: .main, athleteText: text, timedText: text, slash: nil))
-	}
-
-	public static func pendingProposal(expiresAt: Date) -> RecordBody {
-		.pendingProposal(
-			ProposalBody(
-				chatId: .main,
-				nonce: Nonce(),
-				tool: .intervalsCreateStrengthWorkout,
-				toolInput: .createStrengthWorkout(
-					date: "1998-06-13", name: "Core", description: "20 min"),
-				summary: "Core session",
-				description: "Core · 20 min",
-				expiresAt: expiresAt
-			)
-		)
-	}
-
-	public static func record(deviceId: DeviceID, now: Date, body: RecordBody) -> AthleteRecord {
-		AthleteRecord(
-			ulid: ULID.generate(at: now),
-			deviceId: deviceId,
-			hlc: HybridLogicalClock.tick(now: now, deviceId: deviceId, last: nil),
-			timeZone: IANATimeZone(identifier: TimeZone.current.identifier) ?? .gmt,
-			civilDate: CivilDate(date: now, timeZone: .current),
-			body: body
-		)
-	}
 }

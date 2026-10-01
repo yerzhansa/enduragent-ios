@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -155,10 +156,43 @@ struct IntervalsRESTClientTests {
 		}
 	}
 
+	@Test func selectedAthleteGoesIntoEveryAthletePath() async throws {
+		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
+		let client = try makeClient(athlete: .athlete(coached))
+		_ = try await client.fetchAthlete()
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+		_ = try await client.fetchWellness(oldest: "1998-06-12", newest: "1998-06-13")
+		#expect(
+			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
+		_ = try await client.listEvents(oldest: "1998-06-12", newest: "1998-06-13")
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/events")
+		let owner = try makeClient(athlete: .keyOwner)
+		_ = try await owner.fetchAthlete()
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/0")
+	}
+
+	@Test func vaultReadsTheSelectedAthleteThroughREST() async throws {
+		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
+		let vault = testVault(secrets, training: .rest(session: try stubSession()))
+		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
+		_ = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) { false }
+		#expect(
+			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
+		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))
+		_ = try await vault.trainingConnection().client.fetchAthlete()
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+	}
+
 	private func makeClient(
 		credential: IntervalsCredential = .apiKey("test-key"),
+		athlete: AthleteSelection = .keyOwner,
 		clock: any Clock = SystemClock()
 	) throws -> IntervalsRESTClient {
+		IntervalsRESTClient(
+			credential: credential, athlete: athlete, session: try stubSession(), clock: clock)
+	}
+
+	private func stubSession() throws -> URLSession {
 		IntervalsURLProtocolStub.reset()
 		IntervalsURLProtocolStub.handler = { request in
 			let path = request.url?.path ?? ""
@@ -201,8 +235,7 @@ struct IntervalsRESTClientTests {
 		let configuration = URLSessionConfiguration.ephemeral
 		configuration.protocolClasses = [IntervalsURLProtocolStub.self]
 		configuration.timeoutIntervalForRequest = IntervalsPolicy.requestTimeout
-		let session = URLSession(configuration: configuration)
-		return IntervalsRESTClient(credential: credential, session: session, clock: clock)
+		return URLSession(configuration: configuration)
 	}
 }
 

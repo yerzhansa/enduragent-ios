@@ -2,187 +2,390 @@ import Foundation
 
 package actor ChatMailbox {
 	package let chatId: ChatID
+	private let ledger: Ledger
 	private let runner: TurnRunner
-	private let memory: Memory
-	private let store: any RecordLog
+	private let flushes: FlushWork
 	private let clock: any Clock
-	private let transport: any ModelTransport
-	private var tail: Task<Void, Never>
-	private var current: Task<Void, Never>?
-	private var flushTask: Task<Void, Never>?
-	package private(set) var busy = false
+	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
+	private let environment: EnvironmentResolver
+	private let process: ProcessID
+	private let records: ChatRecords
+	private lazy var resets = PendingResets(
+		ConversationReset(chat: chatId, ledger: ledger, flushes: flushes, clock: clock))
+	private lazy var start = AttemptStart(
+		chat: chatId, ledger: ledger, records: records, environment: environment, process: process)
+	private let work = MailboxQueue()
+	private let door = Turnstile()
+	private let lifetime: Coach.Lifetime
+	private var finishedAway: Set<TurnID> = []
+	private var leases: LeaseSlot
+	private lazy var waits = RetryWaits(clock: clock) { [weak self] in
+		await self?.waitEnded($0, $1)
+	}
+	private let feed: SnapshotFeed<ChatSnapshot>
+	private var projection = TurnProjection()
+	private var latest: ChatSnapshot?
+	private var revision: UInt64 = 0
 
-	package init(
+	init(
 		chatId: ChatID,
+		ledger: Ledger,
 		runner: TurnRunner,
-		memory: Memory,
-		store: any RecordLog,
+		flushes: FlushWork,
 		clock: any Clock,
-		transport: any ModelTransport
-	) {
+		coalescing: CoalescingPolicy,
+		coalescingSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
+		environment: EnvironmentResolver,
+		reviews: any WorkoutReviews,
+		process: ProcessID,
+		host: any ExecutionHost, lifetime: Coach.Lifetime, feed: SnapshotFeed<ChatSnapshot>,
+		recoveryRecords: [AthleteRecord]?
+	) async throws(LedgerFailure) {
 		self.chatId = chatId
+		self.ledger = ledger
 		self.runner = runner
-		self.memory = memory
-		self.store = store
+		self.flushes = flushes
 		self.clock = clock
-		self.transport = transport
-		self.tail = Task {}
+		self.coalescing = coalescing
+		self.coalescingSleep = coalescingSleep
+		self.environment = environment
+		self.process = process
+		self.feed = feed
+		self.lifetime = lifetime
+		self.leases = LeaseSlot(host: host, chat: chatId) { await environment.appLanguage() }
+		self.records = ChatRecords(chat: chatId, ledger: ledger, clock: clock, reviews: reviews)
+		try await records.refresh(recoveryRecords: recoveryRecords)
+		publish()
 	}
 
-	package func send(_ text: String, language: LanguagePreference) -> AsyncThrowingStream<
-		CoachEvent, Error
-	> {
-		AsyncThrowingStream { continuation in
-			let task = Task {
-				await self.serializedTurn(
-					text: text, language: language, continuation: continuation)
-			}
-			continuation.onTermination = { termination in
-				guard case .cancelled = termination else { return }
-				task.cancel()
-				Task { await self.stop() }
-			}
+	var conversation: Conversation { records.conversation }
+	var jobs: [FlushJob] { records.jobs }
+
+	package func hasLocalWork() async throws(LedgerFailure) -> Bool {
+		let stored = try await ledger.hasLocalWork(in: chatId, now: clock.now)
+		return await records.hasLocalWork() || stored || work.phase.running != nil
+			|| work.phase.cause != nil
+			|| work.window != nil || !work.isEmpty || door.held
+	}
+
+	package func observe() async -> AsyncStream<ChatSnapshot> {
+		let current = snapshot()
+		latest = current
+		return feed.subscribe(from: current)
+	}
+
+	package func accept(_ draft: Draft, slash: SlashCommand?) async throws(AcceptFailure)
+		-> SendOutcome
+	{
+		return try await door.pass { () throws(AcceptFailure) in
+			try await admit(draft, slash: slash)
 		}
 	}
 
-	private func serializedTurn(
-		text: String,
-		language: LanguagePreference,
-		continuation: AsyncThrowingStream<CoachEvent, Error>.Continuation
-	) async {
-		await enqueue {
-			await self.performTurn(text: text, language: language, continuation: continuation)
-		}
-	}
-
-	private func performTurn(
-		text: String,
-		language: LanguagePreference,
-		continuation: AsyncThrowingStream<CoachEvent, Error>.Continuation
-	) async {
-		busy = true
-		defer { busy = false }
+	package func reset() async -> ResetOutcome {
 		do {
-			try await runner.run(text: text, chatId: chatId, language: language) { event in
-				continuation.yield(event)
+			let reset = try await door.pass { () throws(LedgerFailure) in
+				closeWindow()
+				let reset = ResetID(ulid: await ledger.nextULID())
+				_ = holdLease(.athlete)
+				if work.add(reset) { workAdded() }
+				return reset
 			}
-			continuation.finish()
-		} catch is CancellationError {
-			continuation.finish()
+			return await resets.outcome(of: reset)
 		} catch {
-			continuation.finish(throwing: error)
+			return .notStarted(.local(.recordStorage))
 		}
 	}
 
-	package func stop() {
-		current?.cancel()
+	private func admit(
+		_ draft: Draft, slash: SlashCommand?
+	) async throws(AcceptFailure) -> SendOutcome {
+		if let known = conversation.turn(withDraft: draft.id) {
+			return .accepted(known.turn)
+		}
+		let turn: TurnID
+		let fragment: Int
+		if let window = work.window, slash == nil, let facts = conversation.turn(window.turn) {
+			turn = facts.turn
+			fragment = facts.fragments.count
+		} else {
+			closeWindow()
+			turn = TurnID(ulid: await ledger.nextULID())
+			fragment = 0
+		}
+		let message = TurnLifecycle.accept(
+			draft, turn: turn, fragment: fragment, chat: chatId, slash: slash)
+		do {
+			let stamp = await stamp(for: turn)
+			await records.retrySettlements()
+			records.apply(try await ledger.commit(synced: [.userMessage(message)], stamp: stamp))
+		} catch {
+			throw AcceptFailure.storageUnavailable
+		}
+		holdLease(.athlete)?.add(turn)
+		armWindow(for: turn)
+		publish()
+		return .accepted(turn)
 	}
 
-	private var flushFailure: Error?
+	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
+		try await door.pass { () throws(RetryRefusal) in
+			let waiting = waits.waiting(among: conversation.current.turns)
+			let queued = work.phase.items(queued: work.waiting)
+			let overlay = TurnOverlay(
+				of: turn, window: work.window, queued: queued.compactMap(\.turn), waiting: waiting)
+			let refusal = TurnLifecycle.retryRefusal(
+				of: conversation.turn(turn), overlay: overlay, device: ledger.deviceId,
+				process: process)
+			if let refusal { throw RetryRefusal(refusal) }
+			holdLease(.athlete)?.add(turn)
+			if work.add(turn, origin: .retry) { workAdded() }
+		}
+	}
 
-	package func reset() async throws {
-		let previous = tail
-		let next = Task {
-			await previous.value
-			guard !Task.isCancelled else { return }
+	package func cancelInFlight(cause: InterruptionCause) async {
+		let terminating = cause == .appTerminating
+		let owned = work.phase.cause == nil
+		if !terminating {
+			guard owned else { return await work.joinInterruption() }
+			guard work.phase.running != nil || work.window != nil || !work.isEmpty || door.held
+			else { return }
+		}
+		if owned { work.beginInterruption(cause) }
+		publish()
+		work.phase.running?.task.cancel()
+		let settle = {
+			await self.work.phase.running?.task.value
+			if !terminating {
+				let unstarted =
+					self.work.dropWaiting() + [self.work.closeWindow()].compactMap { $0 }
+				for turn in unstarted {
+					let stamp = await self.stamp(for: turn)
+					let stopped = TurnLifecycle.stopBeforeStart(
+						stamp.attempt, on: self.conversation.turn(turn), chat: self.chatId)
+					guard case .success(let settled) = stopped else { continue }
+					await self.records.settle(settled, stamp: stamp)
+				}
+			}
+			self.leases.end { $0.interrupt() }
+			if owned { self.work.endInterruption() }
+		}
+		if terminating {
+			await settle()
+		} else {
+			await door.pass(settle)
+		}
+		publish()
+		if !terminating { drainIfIdle() }
+	}
+
+	package func enteredBackground() async {
+		await door.pass { closeWindow() }
+	}
+
+	package func recover(_ plan: RecoveryPlan) async {
+		for dead in plan.interrupt {
+			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
+			await records.settle(
+				TurnLifecycle.settled(
+					dead.attempt,
+					.interrupted(partial: "", cause: .processEnded, saved: dead.saved),
+					on: conversation.turn(dead.turn), chat: chatId), stamp: stamp)
+		}
+		for job in plan.drain {
+			if work.add(job) { workAdded() }
+		}
+		publish()
+	}
+
+	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {
+		defer { publish() }
+		return await records.refreshReview(ref)
+	}
+
+	package func refreshImports() async throws(LedgerFailure) {
+		try await records.refresh()
+		publish()
+	}
+
+	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }
+
+	private func stamp(for turn: TurnID) async -> OperationStamp {
+		.turn(turn, attempt: AttemptID(ulid: await ledger.nextULID()), clock: clock)
+	}
+
+	private func closeWindow(ifArmed armed: Int? = nil) {
+		guard let turn = work.closeWindow(ifArmed: armed) else { return }
+		if work.add(turn, origin: .send) { workAdded() }
+	}
+
+	private func armWindow(for turn: TurnID) {
+		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
+		Task {
 			do {
-				let writerWait = RecordLogReset(store: self.store, clock: self.clock)
-				try await writerWait.run(chatId: self.chatId)
+				try await coalescingSleep(coalescing.window)
 			} catch is CancellationError {
 				return
 			} catch {
-				self.noteFailure(error)
+				fatalError("Coalescing sleep failed: \(error)")
+			}
+			await door.pass { closeWindow(ifArmed: armed) }
+		}
+	}
+
+	private func workAdded() {
+		publish()
+		drainIfIdle()
+	}
+
+	private func drainIfIdle() {
+		guard case .idle = work.phase, let initiator = work.next?.initiator,
+			let lease = holdLease(initiator)
+		else { return }
+		work.start { next in
+			Task {
+				switch next {
+				case .turn(let turn, let origin):
+					await self.runTurn(turn, origin: origin, under: lease)
+				case .flush(let job):
+					let access = await self.environment.flushAccess()
+					await self.flushes.drain(job, in: self.conversation, access: access)
+					_ = await self.records.refreshJobs(from: self.flushes)
+				case .reset(let reset):
+					let access = await self.environment.flushAccess()
+					await self.resets.run(reset, on: self.records, access: access) {
+						self.publish()
+					}
+				}
+				self.workFinished()
 			}
 		}
-		tail = next
-		current = next
-		await next.value
-		try throwFlushFailure()
 	}
 
-	package func runQueuedFlush() async throws {
-		if let inFlight = flushTask {
-			await inFlight.value
-			try throwFlushFailure()
-			return
-		}
-		let previous = tail
-		let next = Task {
-			await previous.value
-			guard !Task.isCancelled else { return }
-			do {
-				try await self.memory.flush(
-					trigger: .softThreshold,
-					chatId: self.chatId,
-					transport: self.transport
-				)
-			} catch is CancellationError {
-				return
-			} catch {
-				self.noteFailure(error)
+	private func workFinished() {
+		work.finish()
+		if work.isEmpty {
+			if work.window == nil, work.phase.cause == nil, !lifetime.terminating {
+				leases.end { $0.finish() }
 			}
-		}
-		tail = next
-		current = next
-		flushTask = next
-		await next.value
-		if flushTask != nil {
-			flushTask = nil
-		}
-		try throwFlushFailure()
-	}
-
-	private func noteFailure(_ error: Error) {
-		flushFailure = error
-	}
-
-	private func throwFlushFailure() throws {
-		if let flushFailure {
-			self.flushFailure = nil
-			throw flushFailure
+			publish()
+		} else {
+			drainIfIdle()
 		}
 	}
 
-	private func enqueue(_ work: @escaping @Sendable () async -> Void) async {
-		let previous = tail
-		let next = Task {
-			await previous.value
-			guard !Task.isCancelled else { return }
-			await work()
+	private func holdLease(_ initiator: LeaseInitiator) -> DrainLease? {
+		guard !lifetime.terminating else { return nil }
+		return leases.hold(initiator) { [weak self] generation, cause in
+			await self?.expire(cause, lease: generation)
 		}
-		tail = next
-		current = next
-		await next.value
 	}
-}
 
-private struct RecordLogReset {
-	let store: any RecordLog
-	let clock: any Clock
+	private func expire(_ cause: ExpiryCause, lease generation: Int) async {
+		guard leases.holds(generation) else { return }
+		await cancelInFlight(cause: InterruptionCause(cause))
+	}
 
-	func run(chatId: ChatID) async throws {
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let marker = ULID.generate(at: clock.now)
-		let record = AthleteRecord(
-			ulid: marker,
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: .flushPending(
-				FlushPendingBody(chatId: chatId, trigger: .explicitReset, messageUlids: []))
-		)
-		try await store.append(record)
-		try await store.append(
-			AthleteRecord(
-				ulid: ULID.generate(at: clock.now),
-				deviceId: store.deviceId,
-				hlc: .tick(now: clock.now, deviceId: store.deviceId, last: record.hlc),
-				timeZone: tz,
-				civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-				body: .windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: marker))
+	private func runTurn(_ turn: TurnID, origin: AttemptOrigin, under lease: DrainLease) async {
+		guard let facts = conversation.turn(turn) else { return }
+		lease.add(turn)
+		let resolution = await environment.resolve()
+		let stamp = await stamp(for: turn).bound(to: resolution.account)
+		guard
+			let request = await start.begin(
+				facts, origin: origin, resolution: resolution, stamp: stamp, lease: await lease.kind
 			)
-		)
+		else { return finish(turn, under: lease) }
+		let attempt = stamp.attempt
+		let scope = TurnScope(stamp: stamp, policy: .npm, uptime: clock.uptime)
+		let live = LiveAttempt(
+			turn: turn, attempt: attempt, text: "", activity: .generating(step: 1))
+		work.show(RunningAttempt(live: live, scope: scope))
+		publish()
+		let settlement: Settlement
+		do {
+			let result = try await runner.run(
+				request, conversation: conversation, jobs: records.jobs, scope: scope,
+				committed: { records in
+					await self.apply(records)
+				}
+			) { progress in
+				lease.observe(progress)
+				await self.apply(progress, turn: turn, stamp: stamp)
+			}
+			settlement = Settlement(result)
+		} catch {
+			settlement = .interrupted(
+				partial: work.phase.running?.live?.text ?? "",
+				cause: work.phase.cause ?? .athleteStopped,
+				saved: await scope.interrupt())
+		}
+		await records.settle(
+			TurnLifecycle.settled(attempt, settlement, on: conversation.turn(turn), chat: chatId),
+			stamp: stamp)
+		finish(turn, under: lease)
+		if !lifetime.terminating {
+			for job in await records.refreshJobs(from: flushes) {
+				if work.add(job) { workAdded() }
+			}
+		}
+	}
+
+	private func finish(_ turn: TurnID, under lease: DrainLease) {
+		work.finishTurn()
+		let reply = conversation.turn(turn)?.reply
+		if reply != nil, !lifetime.foreground {
+			finishedAway.insert(turn)
+		}
+		lease.settle(turn, reply: reply)
+		publish()
+	}
+
+	private func apply(_ committed: [AthleteRecord]) {
+		records.apply(committed)
+		publish()
+	}
+
+	private func apply(_ progress: AttemptProgress, turn: TurnID, stamp: OperationStamp) async {
+		await records.apply(progress, turn: turn, stamp: stamp)
+		work.apply(progress, attempt: stamp.attempt)
+		switch progress {
+		case .textDelta, .attemptRestarted:
+			publishLiveText()
+		case .activity, .proposalPending:
+			publish()
+		}
+	}
+
+	private func snapshot() -> ChatSnapshot {
+		revision += 1
+		return ChatSnapshot(
+			chat: chatId, revision: revision, projection: &projection,
+			conversation: conversation, jobs: records.jobs, phase: work.phase,
+			window: work.window, queued: work.waiting,
+			waiting: waits.waiting(among: conversation.current.turns),
+			finishedAway: finishedAway, unsavedTurns: records.unsavedTurns,
+			review: records.review,
+			device: ledger.deviceId, process: process, now: clock.now, zone: clock.timeZone)
+	}
+
+	private func publish() {
+		let current = snapshot()
+		latest = current
+		feed.publish(current)
+	}
+
+	private func publishLiveText() {
+		guard var current = latest else { return publish() }
+		current.liveReply = LiveReply(work.phase.running?.live)
+		revision += 1
+		current.revision = revision
+		latest = current
+		feed.publish(current)
+	}
+
+	private func waitEnded(_ turn: TurnID, _ attempt: AttemptID) {
+		if waits.end(turn, attempt: attempt) { publish() }
 	}
 }

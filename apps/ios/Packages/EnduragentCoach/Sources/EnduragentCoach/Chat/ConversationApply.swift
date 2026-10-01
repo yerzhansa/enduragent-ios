@@ -1,0 +1,122 @@
+import Foundation
+
+extension Conversation {
+	package mutating func apply(_ records: [AthleteRecord], device: DeviceID) {
+		let ordered = records.filter {
+			$0.chatId == chat && ($0.locality != .deviceLocal || $0.deviceId == device)
+				&& appliedRecordIDs.insert($0.ulid).inserted
+		}.sorted { $0.hlc < $1.hlc }
+		if segments.isEmpty {
+			segments = [Segment(id: SegmentID(boundary: nil), openedBy: .chatStart)]
+		}
+		guard !ordered.isEmpty else { return }
+		var turns = Dictionary(
+			uniqueKeysWithValues: segments.flatMap(\.turns).map { ($0.turn, $0) })
+		for record in ordered {
+			switch record.body {
+			case .synced(.userMessage(let body)):
+				if turns[body.turn] == nil {
+					turns[body.turn] = TurnFacts(
+						turn: body.turn, chat: chat, origin: record.deviceId)
+				}
+				turns[body.turn]?.fragments.append(
+					Fragment(
+						ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+						timeZone: record.timeZone,
+						index: body.fragment, draft: body.draft, text: body.athleteText,
+						slash: body.slash))
+			case .legacy(.userMessageV1(_, let text, let slash)):
+				legacyMessageUlids.insert(record.ulid)
+				let turn = TurnID(ulid: record.ulid)
+				turns[turn] = TurnFacts(
+					turn: turn, chat: chat, origin: record.deviceId, legacy: true,
+					fragments: [
+						Fragment(
+							ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
+							timeZone: record.timeZone,
+							index: 0, draft: nil, text: text, slash: slash)
+					])
+			case .legacy(.assistantMessage):
+				legacyMessageUlids.insert(record.ulid)
+			default: break
+			}
+		}
+		let legacyTurns = turns.values.filter(\.legacy).compactMap { facts in
+			facts.fragments.first.map { (turn: facts.turn, origin: facts.origin, hlc: $0.hlc) }
+		}.sorted { $0.hlc < $1.hlc }
+		for record in ordered {
+			switch record.body {
+			case .synced(.turnSettled(let body)), .deviceLocal(.pendingSettlement(let body)):
+				turns[body.turn]?.settlements.append(
+					SettledAttempt(
+						ulid: record.ulid, hlc: record.hlc, attempt: body.attempt,
+						settlement: body.settlement))
+			case .legacy(.assistantMessage(let body)):
+				guard
+					let turn = legacyTurns.last(where: {
+						$0.origin == record.deviceId && $0.hlc < record.hlc
+					})?.turn
+				else { continue }
+				turns[turn]?.settlements.append(
+					SettledAttempt(
+						ulid: record.ulid, hlc: record.hlc, attempt: AttemptID(ulid: record.ulid),
+						settlement: .replied(
+							.model(body.text),
+							lineage: ReplyLineage(
+								templateHash: body.templateHash, assembledHash: body.assembledHash))
+					))
+			case .deviceLocal(.turnClaim(let body)):
+				turns[body.turn]?.claims.append(ClaimedAttempt(hlc: record.hlc, body: body))
+			case .deviceLocal(.replyObserved(let body)):
+				turns[body.turn]?.replyObserved.append(body)
+			case .synced(.reviewApplied(let body)):
+				let index = segmentIndex(for: record.ulid)
+				segments[index].notes.append(
+					ReviewNote(
+						ulid: record.ulid, hlc: record.hlc,
+						date: record.civilDate, summary: body.summary))
+				segments[index].notes.sort { $0.hlc < $1.hlc }
+			case .legacy(.windowStartV1(_, let firstIncluded)):
+				if legacyMessageUlids.contains(firstIncluded) {
+					segments[segmentIndex(for: firstIncluded)].legacyTrim = firstIncluded
+				} else {
+					openSegment(at: firstIncluded, openedBy: .legacyBoundary)
+				}
+			case .synced(.windowStart(let body)):
+				switch body.reason {
+				case .trim, .compaction:
+					guard record.deviceId == device else { continue }
+					let index = segmentIndex(for: record.ulid)
+					let dropped =
+						body.droppedMessageUlids
+						?? turns.values.filter {
+							$0.origin == device
+								&& $0.userRow.map { $0.ulid < body.firstIncludedUlid } == true
+								&& ($0.latestSettlement.map { $0.ulid < record.ulid } ?? true)
+						}.flatMap { $0.messageRows.map(\.ulid) }
+					let covered = (segments[index].promptWindow.trim?.messageUlids ?? []).union(
+						dropped)
+					segments[index].promptWindow = PromptWindow(
+						trim: .init(messageUlids: covered, opened: record.ulid))
+				case .reset(let reset):
+					openSegment(at: body.firstIncludedUlid, openedBy: .reset(reset))
+				}
+			case .synced(.compactionSummary(let body)) where record.deviceId == device:
+				segments[segmentIndex(for: record.ulid)].promptWindow.summarize(
+					body, at: record.ulid)
+			default: break
+			}
+		}
+		for index in segments.indices { segments[index].turns = [] }
+		let orderedTurns = turns.values.compactMap { facts in
+			facts.fragments.first.map { (facts: facts, first: $0) }
+		}.sorted { $0.first.hlc < $1.first.hlc }
+		for (facts, first) in orderedTurns {
+			segments[segmentIndex(for: first.ulid)].turns.append(facts)
+		}
+	}
+
+	func segmentIndex(for ulid: ULID) -> Int {
+		segments.lastIndex { $0.id.boundary.map { $0 <= ulid } ?? true } ?? 0
+	}
+}

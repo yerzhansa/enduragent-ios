@@ -1,63 +1,91 @@
 import EnduragentCoach
 import Foundation
 import Observation
-import StoreKit
 
 @MainActor
 @Observable
 final class ShellModel {
 	var route: ShellRoute = .onboarding(.notice)
-	var seam: ViewSeam = .empty
-	var composer = ""
+	private(set) var chat: ChatSnapshot?
+	private(set) var languageNotSaved: LanguagePreference?
+	var showLanguage = false
+	var draft = Draft(id: DraftID(), text: "")
+	var notSent = false
+	private(set) var isSending = false
+	private(set) var consentNotSaved = false
+	private(set) var isRecordingConsent = false
 	var slashListVisible = false
-	var athlete: AthleteProfile?
-	var todayWellness: WellnessDay?
-	var starterCredits: Credits?
+	private(set) var status: CoachStatus?
 	var starterLine: String?
 	var starterResolved = false
 	var balance: Credits?
 	var catalog: PackCatalog?
-	var history: [ChatSummary] = []
-	var errorLine: String?
+	var creditsNotice: AthleteNotice?
+	private(set) var history: HistoryList = .loading
+	private(set) var newConversationUncertain = false
 	var connectKey = ""
 	var connectError: String?
 	var didConnect = false
-	var confirmLine: String?
-	var chatId: ChatID = .main
+	private(set) var reviewNotice: AthleteNotice?
 	var showSidebar = false
+	var showCredits = false
 	var packPrices: [String: String] = [:]
 
-	let builder: ServicesBuilder
-	let chatIndex: ChatIndex
+	let environment: AppEnvironment
+	let lifecycle: AppLifecycle
+	let drafts: DraftStore
 	private let defaults: UserDefaults
-	private let persistSession: Bool
+	private let initialLanguage: LanguagePreference
 	private var starterLoaded = false
+	private var observation: Task<Void, Never>?
+	private var statusStart: Task<Void, Never>?
+	private var statusObservation: Task<Void, Never>?
 
-	init(
-		builder: ServicesBuilder,
-		defaults: UserDefaults = .standard,
-		persistSession: Bool? = nil
-	) {
-		self.builder = builder
-		self.defaults = defaults
-		self.persistSession = persistSession ?? !builder.isFixture
-		self.chatIndex = ChatIndex(isFixture: builder.isFixture, defaults: defaults)
-		restoreSessionIfNeeded()
+	init(environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic) {
+		self.initialLanguage = initialLanguage
+		self.environment = environment
+		self.lifecycle = AppLifecycle(environment: environment)
+		self.defaults = environment.defaults
+		self.drafts = DraftStore(defaults: environment.defaults)
+		if defaults.bool(forKey: Self.onboardingCompletedKey) {
+			route = .loading
+		}
+		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
 	}
 
-	var isWaitingForCoach: Bool {
-		seam.phase == .streaming && seam.streamingText.isEmpty
+	isolated deinit {
+		observation?.cancel()
+		statusStart?.cancel()
+		statusObservation?.cancel()
 	}
 
 	static let onboardingCompletedKey = "enduragent.onboardingCompleted"
-	static let lastChatIdKey = "enduragent.lastChatId"
 
-	var services: AppServices? {
-		builder.services
+	var services: AppServices {
+		environment.services
+	}
+
+	var languagePreference: LanguagePreference {
+		status?.language ?? initialLanguage
+	}
+
+	var phrasebook: CatalogPhrasebook {
+		languagePreference.phrasebook(device: environment.language)
+	}
+
+	var languageNotSavedLine: String? {
+		languageNotSaved.map {
+			$0.notSaved(keeping: languagePreference, in: phrasebook)
+		}
+	}
+
+	var connected: IntervalsSummary? {
+		guard case .connected(let summary, _)? = status?.training else { return nil }
+		return summary
 	}
 
 	var athleteFirstName: String {
-		guard let name = athlete?.name.trimmingCharacters(in: .whitespacesAndNewlines),
+		guard let name = connected?.athleteName?.trimmingCharacters(in: .whitespacesAndNewlines),
 			!name.isEmpty
 		else {
 			return ""
@@ -65,31 +93,36 @@ final class ShellModel {
 		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
 	}
 
+	var isWorking: Bool {
+		chat.map { $0.activity != .idle } ?? false
+	}
+
 	func continueNotice() {
 		route = .onboarding(.connect)
 	}
 
 	func connect() async {
-		do {
-			let result = try await builder.connectIntervals(apiKey: connectKey)
-			athlete = result.athlete
-			todayWellness = result.wellness
+		let outcome = await services.coach.changeTraining(
+			.replace(apiKey: connectKey, athlete: .keyOwner))
+		switch outcome {
+		case .replaced:
+			connectKey = ""
 			connectError = nil
 			didConnect = true
-		} catch {
-			connectError = "intervals.icu did not accept that key"
+		case .kept, .disconnected, .refused, .failedPreviousKept:
+			connectError = phrasebook.say(Catalog.connectErrorRejected, [:])
 			didConnect = false
 		}
 	}
 
 	func continueConnect() {
 		guard didConnect else { return }
+		connectKey = ""
 		route = .onboarding(.starter)
 	}
 
 	func skipConnect() {
-		athlete = nil
-		todayWellness = nil
+		connectKey = ""
 		didConnect = false
 		connectError = nil
 		route = .onboarding(.starter)
@@ -99,296 +132,238 @@ final class ShellModel {
 		guard !starterLoaded else { return }
 		starterLoaded = true
 		do {
-			let token = try await builder.deviceCheck.token()
-			let outcome = try await builder.credits.grant(deviceCheck: token)
-			switch outcome {
-			case .minted(let credits):
-				starterCredits = credits
-				starterLine = "\(credits.units) credits"
-			case .toppedUp(let added):
-				starterLine = "Added \(added.units) credits"
-			case .alreadyGranted:
-				starterLine =
-					try await existingBalanceLine()
-					?? "This device already used its starter credits."
-			}
+			let token = try await environment.deviceCheck.token()
+			let notice = await services.coach.claimStarter(deviceCheck: token)
+			starterLine = notice.sentence(in: phrasebook)
 		} catch {
-			starterLine = grantFailureName(error)
+			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook)
 		}
 		starterResolved = true
 	}
 
-	private func existingBalanceLine() async throws -> String? {
-		guard try builder.secrets.openRouterKey() != nil else { return nil }
-		let scale = try await builder.credits.catalog().scale
-		let balance = try await builder.credits.balance(scale: scale)
-		starterCredits = balance.credits
-		return "\(balance.credits.units) credits"
-	}
-
 	func appear() async {
-		if let loadError = chatIndex.loadError {
-			errorLine = athleteFacing(failureMessage(loadError))
+		let coach = services.coach
+		let starting =
+			statusStart
+			?? Task { [weak self] in
+				var snapshots = await coach.observeStatus().makeAsyncIterator()
+				guard let first = await snapshots.next(), let self, !Task.isCancelled else {
+					return
+				}
+				self.receiveStatus(first)
+				self.statusObservation = Task { [weak self] in
+					while let snapshot = await snapshots.next(isolation: MainActor.shared) {
+						guard let self, !Task.isCancelled else { return }
+						self.receiveStatus(snapshot)
+					}
+				}
+			}
+		statusStart = starting
+		await starting.value
+	}
+
+	private func receiveStatus(_ current: CoachStatus) {
+		status = current
+		updateRoute()
+	}
+
+	private func updateRoute() {
+		guard let status else { return }
+		switch route {
+		case .loading, .chat, .onboarding(.consent), .onboarding(.consentDeferred):
+			if status.needsProviderConsent {
+				if route == .loading || route == .chat { route = .onboarding(.consent) }
+			} else {
+				route = .chat
+				observeChat()
+			}
+		case .onboarding(.notice), .onboarding(.connect), .onboarding(.starter):
+			break
 		}
-		guard persistSession, route == .chat else { return }
+	}
+
+	func sceneChanged(_ event: AppLifecycleEvent) async {
+		await lifecycle.forward(event)
+	}
+
+	func startChatting() async {
+		defaults.set(true, forKey: Self.onboardingCompletedKey)
+		route = .loading
+		await appear()
+		updateRoute()
+	}
+
+	func acceptConsent() async {
+		guard
+			route == .onboarding(.consent) || route == .onboarding(.consentDeferred),
+			!isRecordingConsent
+		else { return }
+		isRecordingConsent = true
+		defer { isRecordingConsent = false }
+		consentNotSaved = false
 		do {
-			let services = try builder.completedServices()
-			await refreshSeam(from: services)
-			await reloadHistory()
-			try await refreshAthlete()
+			try await services.coach.recordConsent()
 		} catch {
-			errorLine = athleteFacing(failureMessage(error))
-		}
-	}
-
-	func startChatting() {
-		do {
-			_ = try builder.completedServices()
-			try beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-			saveSession()
-			route = .chat
-		} catch {
-			errorLine = athleteFacing(String(describing: error))
-		}
-	}
-
-	func newChat() {
-		do {
-			try beginChat(ChatID(rawValue: UUID().uuidString.lowercased()))
-			saveSession()
-			seam = .empty
-			confirmLine = nil
-			errorLine = nil
-			composer = ""
-			slashListVisible = false
-			showSidebar = false
-		} catch {
-			errorLine = athleteFacing(failureMessage(error))
-		}
-	}
-
-	func openChat(_ id: ChatID) async {
-		chatId = id
-		saveSession()
-		showSidebar = false
-		confirmLine = nil
-		errorLine = nil
-		composer = ""
-		slashListVisible = false
-		if let services {
-			await refreshSeam(from: services)
-		} else {
-			seam = .empty
-		}
-	}
-
-	func reloadHistory() async {
-		guard let services else {
-			history = []
+			switch error {
+			case .notSaved:
+				consentNotSaved = true
+			}
 			return
 		}
-		var rows: [ChatSummary] = []
+		await startChatting()
+	}
+
+	func declineConsent() {
+		guard route == .onboarding(.consent), !isRecordingConsent else { return }
+		consentNotSaved = false
+		route = .onboarding(.consentDeferred)
+	}
+
+	func newConversation() async {
+		reviewNotice = nil
+		showNewConversation(await services.coach.startNewConversation(in: .main))
+	}
+
+	func loadHistory() async {
 		do {
-			for entry in chatIndex.all() {
-				guard let id = ChatID(rawValue: entry.id),
-					let created = CivilDate(rawValue: entry.created)
-				else {
-					continue
-				}
-				let messages = try await services.coach.history(chatId: id)
-				let title = messages.first(where: { $0.role == .user })?.text ?? "New chat"
-				rows.append(ChatSummary(id: id, title: title, civilDate: created))
-			}
-			history = rows
+			history = .loaded(try await services.coach.history())
 		} catch {
-			errorLine = athleteFacing(failureMessage(error))
+			switch error {
+			case .storageUnavailable:
+				history = .unavailable
+			}
+		}
+	}
+
+	func loadArchivedConversation(_ ref: ArchivedConversationRef) async
+		-> ArchivedConversationContent
+	{
+		do {
+			guard let conversation = try await services.coach.archivedConversation(ref) else {
+				return .missing
+			}
+			return .loaded(conversation)
+		} catch {
+			return .unavailable
 		}
 	}
 
 	func loadCredits() async {
-		guard let services else { return }
 		do {
-			let loaded = try await services.credits.catalog()
+			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
-			let held = try await services.credits.balance(scale: loaded.scale)
+			let held = try await services.coach.credits.balance()
 			balance = held.credits
-			if services.isFixture {
-				packPrices = [:]
-			} else {
-				let products = try await Product.products(for: loaded.packs.map(\.id))
-				packPrices = Dictionary(
-					uniqueKeysWithValues: products.map { ($0.id, $0.displayPrice) })
-			}
+			creditsNotice = nil
+			packPrices = try await services.packPrices(loaded.packs.map(\.id))
 		} catch {
-			errorLine = String(describing: error)
+			creditsNotice = AthleteNotice.credits(failure: error)
 		}
 	}
 
-	func updateSlashList() {
-		slashListVisible = composer.hasPrefix("/") && !composer.contains(where: \.isWhitespace)
-	}
-
-	func fillSlash(_ command: SlashCommand) {
-		composer = command.rawValue + " "
+	func draftChanged(from previous: String) {
+		if previous.isEmpty, !draft.text.isEmpty {
+			draft = Draft(id: DraftID(), text: draft.text)
+		}
+		drafts.save(draft, for: .main)
 		updateSlashList()
 	}
 
-	func send(_ text: String) async {
-		let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !trimmed.isEmpty else { return }
-		guard let services else { return }
-		errorLine = nil
-		confirmLine = nil
-		if SlashRouting.parse(trimmed) == .plan {
-			errorLine = "Plans arrive in the next TestFlight."
-			return
-		}
-		composer = ""
+	func updateSlashList() {
+		slashListVisible = draft.text.hasPrefix("/") && !draft.text.contains(where: \.isWhitespace)
+	}
+
+	func fillSlash(_ command: SlashCommand) {
+		draft.text = command.rawValue + " "
+		drafts.save(draft, for: .main)
+		updateSlashList()
+	}
+
+	func send() async {
+		let sent = draft
+		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
+		guard !text.isEmpty, !isSending else { return }
+		isSending = true
+		defer { isSending = false }
+		notSent = false
+		newConversationUncertain = false
+		reviewNotice = nil
 		slashListVisible = false
-		if let transport = services.fixtureTransport {
-			transport.script = FirstWeekFixture.script(for: trimmed)
-		}
-		seam = seam.postingUser(
-			ChatMessage(
-				role: .user,
-				text: trimmed,
-				civilDate: CivilDates.today(clock: builder.clock)
-			)
-		)
-		await Task.yield()
 		do {
-			for try await event in services.coach.send(trimmed, chatId: chatId) {
-				switch event {
-				case .finished, .interrupted:
-					await refreshSeam(from: services)
-				case .failed(let message):
-					seam = seam.applying(event)
-					errorLine = athleteFacing(message)
-				default:
-					seam = seam.applying(event)
-				}
-				await Task.yield()
+			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
+			case .accepted:
+				clear(sent)
+			case .showLanguagePicker:
+				clear(sent)
+				languageNotSaved = nil
+				showLanguage = true
+			case .newConversation(let outcome):
+				clear(sent)
+				showNewConversation(outcome)
+			case .ignoredBlank:
+				break
 			}
 		} catch {
-			let message = String(describing: error)
-			seam = seam.applying(.failed(message: message))
-			errorLine = athleteFacing(message)
-		}
-	}
-
-	func confirmPending() async {
-		guard let services, let pending = seam.pendingWrite else { return }
-		do {
-			let outcome = try await services.coach.confirm(chatId: chatId, nonce: pending.nonce)
-			switch outcome {
-			case .executed(let summary):
-				errorLine = nil
-				confirmLine = "Done — \(summary)."
-			case .expired:
-				errorLine = nil
-				confirmLine = "That proposal expired — ask me again and I'll re-propose."
-			case .refused(let message), .failed(let message):
-				errorLine = message
-			case .mismatch, .none:
-				errorLine = String(describing: outcome)
+			switch error {
+			case .storageUnavailable:
+				notSent = true
 			}
-			await refreshSeam(from: services)
-		} catch {
-			errorLine = athleteFacing(String(describing: error))
 		}
 	}
 
-	func cancelPending() {
-		seam.pendingWrite = nil
-		if seam.phase == .awaitingConfirmation {
-			seam.phase = .idle
-		}
+	private func clear(_ sent: Draft) {
+		guard draft.id == sent.id else { return }
+		draft = Draft(id: DraftID(), text: draft == sent ? "" : draft.text)
+		drafts.save(draft, for: .main)
 	}
 
-	private func beginChat(_ id: ChatID?) throws {
-		guard let id else { return }
-		chatId = id
-		try chatIndex.add(id: id, created: CivilDates.today(clock: builder.clock))
+	func stop() async {
+		await services.coach.stop(.main)
 	}
 
-	private func restoreSessionIfNeeded() {
-		guard persistSession else { return }
-		let stored = storedChatId()
-		let indexed = chatIndex.all().first.flatMap { ChatID(rawValue: $0.id) }
-		let completed = defaults.bool(forKey: Self.onboardingCompletedKey)
-		guard completed || stored != nil || indexed != nil else { return }
-		route = .chat
-		if let stored {
-			chatId = stored
-		} else if let indexed {
-			chatId = indexed
-		} else {
-			chatId = .main
-		}
-	}
-
-	private func saveSession() {
-		guard persistSession else { return }
-		defaults.set(true, forKey: Self.onboardingCompletedKey)
-		defaults.set(chatId.rawValue, forKey: Self.lastChatIdKey)
-	}
-
-	private func storedChatId() -> ChatID? {
-		guard let raw = defaults.string(forKey: Self.lastChatIdKey) else { return nil }
-		return ChatID(rawValue: raw)
-	}
-
-	private func refreshAthlete() async throws {
-		guard let services else { return }
-		athlete = try await services.intervals.fetchAthlete()
-		let today = CivilDates.today(clock: builder.clock)
-		todayWellness = try await services.intervals.fetchWellness(oldest: today, newest: today)
-			.first
-	}
-
-	private func refreshSeam(from services: AppServices) async {
+	func chooseLanguage(_ preference: LanguagePreference) async {
 		do {
-			var next = try await services.coach.snapshot(chatId: chatId)
-			next.streamingText = ""
-			seam = next
+			try await services.coach.setLanguage(preference)
+			languageNotSaved = nil
 		} catch {
-			errorLine = athleteFacing(failureMessage(error))
-		}
-	}
-
-	private func failureMessage(_ error: Error) -> String {
-		if let intervals = error as? IntervalsError {
-			return intervals.details
-		}
-		return String(describing: error)
-	}
-
-	private func athleteFacing(_ message: String) -> String {
-		let failure = builder.phrasebook.say(Catalog.chatNoticeResponseFailure, [:])
-		switch message {
-		case "CHAT_TTFT_TIMEOUT", "CHAT_INTER_CHUNK_TIMEOUT", "CHAT_PROVIDER_ERROR":
-			return failure
-		default:
-			if message.hasPrefix("UnknownFinishReasonError")
-				|| message.hasPrefix("OpenRouterHTTPError")
-				|| message.hasPrefix("ProviderAuthError")
-			{
-				return failure
+			switch error {
+			case .notSaved:
+				languageNotSaved = preference
 			}
-			return message
 		}
 	}
 
-	private func grantFailureName(_ error: Error) -> String {
-		if let failure = error as? CreditsFailure {
-			return String(describing: failure)
-		}
-		return String(describing: error)
+	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
+		try await services.coach.setSession(settings)
 	}
-}
 
-struct ChatSummary: Identifiable, Equatable {
-	var id: ChatID
-	var title: String
-	var civilDate: CivilDate
+	func decide(_ decision: ReviewDecision) async {
+		let outcome = await services.coach.decide(decision, in: .main)
+		switch decision {
+		case .approve, .cancel, .retryRemaining, .checkAgain:
+			reviewNotice = outcome.notice
+		case .presented, .presentationFailed, .showAgain:
+			break
+		}
+	}
+
+	private func showNewConversation(_ outcome: ResetOutcome) {
+		switch outcome {
+		case .started:
+			newConversationUncertain = false
+		case .notStarted:
+			newConversationUncertain = true
+		}
+	}
+
+	private func observeChat() {
+		guard observation == nil else { return }
+		let coach = services.coach
+		observation = Task { [weak self] in
+			for await snapshot in await coach.observe(.main) {
+				guard let self, !Task.isCancelled else { return }
+				self.chat = snapshot
+			}
+		}
+	}
 }

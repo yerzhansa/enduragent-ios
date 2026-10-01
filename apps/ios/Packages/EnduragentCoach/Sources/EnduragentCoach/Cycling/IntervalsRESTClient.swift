@@ -1,29 +1,34 @@
 import Foundation
 
-public struct IntervalsRESTClient: IntervalsClient, Sendable {
+package struct IntervalsRESTClient: IntervalsClient, Sendable {
 	private let credential: IntervalsCredential
 	private let session: URLSession
+	private let baseURL: URL
 	private let athletePath: String
 	private let clock: any Clock
 
-	public init(
-		credential: IntervalsCredential, session: URLSession? = nil,
-		clock: any Clock = SystemClock()
+	package init(
+		credential: IntervalsCredential, athlete: AthleteSelection = .keyOwner,
+		session: URLSession? = nil, clock: any Clock = SystemClock(),
+		baseURL: URL = IntervalsPolicy.baseURL
 	) {
 		self.credential = credential
-		self.athletePath = IntervalsPolicy.athletePath
-		self.clock = clock
-		if let session {
-			self.session = session
-		} else {
-			let configuration = URLSessionConfiguration.ephemeral
-			configuration.timeoutIntervalForRequest = IntervalsPolicy.requestTimeout
-			configuration.timeoutIntervalForResource = IntervalsPolicy.requestTimeout
-			self.session = URLSession(configuration: configuration)
+		self.baseURL = baseURL
+		switch athlete {
+		case .keyOwner:
+			self.athletePath = IntervalsPolicy.athletePath
+		case .athlete(let id):
+			self.athletePath = id.rawValue
 		}
+		self.clock = clock
+		self.session =
+			session
+			?? ephemeralSession(
+				requestTimeout: IntervalsPolicy.requestTimeout,
+				resourceTimeout: IntervalsPolicy.requestTimeout)
 	}
 
-	public func fetchAthlete() async throws -> AthleteProfile {
+	package func fetchAthlete() async throws -> AthleteProfile {
 		let json = try await getJSON(path: ["athlete", athletePath])
 		let fields = json.objectFields
 		return AthleteProfile(
@@ -33,7 +38,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		)
 	}
 
-	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
+	package func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
 		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 		let data = try await get(
 			path: ["athlete", athletePath, "wellness"],
@@ -46,7 +51,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return rows.map(WellnessDay.init(json:))
 	}
 
-	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
+	package func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
 		-> [ActivitySummary]
 	{
 		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
@@ -60,11 +65,11 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return (json.arrayValue ?? []).compactMap(Self.activitySummary(from:))
 	}
 
-	public func fetchActivity(id: ActivityID) async throws -> JSONValue {
+	package func fetchActivity(id: ActivityID) async throws -> JSONValue {
 		try await getJSON(path: ["activity", id.rawValue])
 	}
 
-	public func fetchStreams(id: ActivityID) async throws -> JSONValue {
+	package func fetchStreams(id: ActivityID) async throws -> JSONValue {
 		let json = try await getJSON(
 			path: ["activity", id.rawValue, "streams.json"],
 			query: [
@@ -75,7 +80,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return IntervalsStreamSummary.summarize(json)
 	}
 
-	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
+	package func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
 		try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 		var query = [
 			URLQueryItem(name: "oldest", value: oldest.rawValue),
@@ -89,7 +94,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return (json.arrayValue ?? []).compactMap(Self.calendarEvent(from:))
 	}
 
-	public func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
+	package func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent {
 		let json = try await sendJSON(
 			method: "POST",
 			path: ["athlete", athletePath, "events"],
@@ -103,13 +108,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return event
 	}
 
-	public func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent {
-		_ = draft
-		throw IntervalsError(
-			code: "not_implemented", details: "Plan mirror writes are not available.")
-	}
-
-	public func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
+	package func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	{
 		let existing = try await fetchEvent(id: id)
@@ -143,7 +142,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		return event
 	}
 
-	public func deleteEvent(id: EventID) async throws {
+	package func deleteEvent(id: EventID) async throws {
 		let existing = try await fetchEvent(id: id)
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
 		try IntervalsPolicy.refuseMutableEvent(
@@ -201,7 +200,7 @@ public struct IntervalsRESTClient: IntervalsClient, Sendable {
 		query: [URLQueryItem] = [],
 		body: JSONValue? = nil
 	) async throws -> Data {
-		var url = IntervalsPolicy.baseURL
+		var url = baseURL
 		for component in path {
 			url.append(path: component)
 		}

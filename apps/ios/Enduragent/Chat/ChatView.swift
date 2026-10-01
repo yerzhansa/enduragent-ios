@@ -6,43 +6,65 @@ struct ChatView: View {
 
 	var body: some View {
 		NavigationStack {
-			VStack(spacing: 0) {
-				TranscriptView(model: model)
-				if model.slashListVisible {
-					SlashListView(model: model)
+			TranscriptView(model: model)
+				.safeAreaInset(edge: .bottom, spacing: 0) {
+					ComposerView(model: model)
 				}
-				if let pending = model.seam.pendingWrite {
-					ConfirmedPreviewCard(model: model, pending: pending)
-						.padding(.horizontal)
-						.padding(.bottom, 8)
-				}
-				if let errorLine = model.errorLine {
-					Text(errorLine)
-						.accessibilityIdentifier("chat.error")
-						.padding(.horizontal)
-						.padding(.vertical, 8)
-				}
-				ComposerView(model: model)
-			}
-			.navigationTitle(model.builder.phrasebook.say(Catalog.chatTitle, [:]))
-			.toolbar {
-				ToolbarItem(placement: .topBarLeading) {
-					Button(model.builder.phrasebook.say(Catalog.chatMenu, [:])) {
-						model.showSidebar = true
+				#if DEBUG
+					.overlay(alignment: .topLeading) {
+						if let snapshot = model.chat {
+							TurnProgressDebugView(snapshot: snapshot)
+						}
 					}
-					.accessibilityIdentifier("chat.sidebar")
-				}
-				ToolbarItem(placement: .topBarTrailing) {
-					Button(model.builder.phrasebook.say(Catalog.sidebarNewChat, [:])) {
-						model.newChat()
+				#endif
+				.navigationTitle(model.phrasebook.say(Catalog.chatViewTitle, [:]))
+				.toolbar {
+					ToolbarItem(placement: .topBarLeading) {
+						Button(model.phrasebook.say(Catalog.chatMenu, [:])) {
+							model.showSidebar = true
+						}
+						.accessibilityIdentifier("chat.sidebar")
+					}
+					ToolbarItem(placement: .topBarTrailing) {
+						Button {
+							Task { await model.newConversation() }
+						} label: {
+							Label(
+								model.phrasebook.say(Catalog.chatNewConversationLabel, [:]),
+								systemImage: "square.and.pencil")
+						}
+						.labelStyle(.iconOnly)
+						.accessibilityIdentifier("chat.newConversation")
 					}
 				}
-			}
-			.sheet(isPresented: $model.showSidebar) {
-				NavigationStack {
-					SidebarView(model: model)
+				.navigationDestination(isPresented: $model.showCredits) {
+					CreditsView(model: model)
 				}
-			}
+				.sheet(isPresented: $model.showSidebar) {
+					NavigationStack {
+						SidebarView(model: model)
+					}
+				}
+				.sheet(isPresented: $model.showLanguage) {
+					NavigationStack {
+						LanguageView(model: model)
+							.toolbar {
+								ToolbarItem(placement: .topBarTrailing) {
+									Button {
+										model.showLanguage = false
+									} label: {
+										Image(systemName: "xmark")
+									}
+									.accessibilityLabel(
+										model.phrasebook.say(Catalog.chatViewCloseContext, [:])
+									)
+									.accessibilityIdentifier("language.close")
+								}
+							}
+					}
+					.presentationDetents([.fraction(LanguageSheetLayout.heightFraction)])
+					.presentationDragIndicator(.visible)
+				}
 		}
 	}
 }

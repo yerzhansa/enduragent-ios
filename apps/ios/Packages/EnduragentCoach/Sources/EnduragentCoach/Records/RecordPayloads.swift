@@ -1,10 +1,150 @@
 import Foundation
 
-struct UserMessagePayload: Codable {
+struct UserMessageV1Payload: Codable {
 	var chatId: String
 	var athleteText: String
-	var timedText: String
 	var slash: String?
+}
+
+struct UserMessagePayload: Codable {
+	var chatId: String
+	var turn: String
+	var fragment: Int
+	var draft: UUID
+	var athleteText: String
+	var slash: String?
+}
+
+struct TurnSettledPayload: Codable {
+	var chatId: String
+	var turn: String
+	var attempt: String
+	var settlement: SettlementPayload
+}
+
+extension TurnSettledPayload {
+	init(_ body: TurnSettledBody) {
+		self.init(
+			chatId: body.chatId.rawValue, turn: body.turn.ulid.rawValue,
+			attempt: body.attempt.ulid.rawValue, settlement: SettlementPayload(body.settlement))
+	}
+
+	func body() throws -> TurnSettledBody {
+		TurnSettledBody(
+			chatId: try decodeChatID(chatId), turn: TurnID(ulid: try decodeULID(turn)),
+			attempt: AttemptID(ulid: try decodeULID(attempt)),
+			settlement: try settlement.settlement())
+	}
+}
+
+struct SettlementPayload: Codable {
+	var kind: String
+	var modelText: String?
+	var templateHash: String?
+	var assembledHash: String?
+	var failure: FailurePayload?
+	var outcome: String?
+	var partial: String?
+	var cause: String?
+	var saved: WriteSummaryPayload?
+
+	init(_ settlement: Settlement) {
+		switch settlement {
+		case .replied(let text, let lineage):
+			kind = "replied"
+			switch text {
+			case .model(let modelText):
+				self.modelText = modelText
+			}
+			templateHash = lineage?.templateHash
+			assembledHash = lineage?.assembledHash
+		case .savedWork(let outcome, let saved):
+			kind = "savedWork"
+			self.outcome = outcome.rawValue
+			self.saved = WriteSummaryPayload(saved)
+		case .failed(let failure, let saved):
+			kind = "failed"
+			self.failure = FailurePayload(failure)
+			self.saved = WriteSummaryPayload(saved)
+		case .interrupted(let partial, let cause, let saved):
+			kind = "interrupted"
+			self.partial = partial
+			self.cause = cause.rawValue
+			self.saved = WriteSummaryPayload(saved)
+		}
+	}
+
+	func settlement() throws -> Settlement {
+		switch kind {
+		case "replied":
+			guard let modelText else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			let lineage: ReplyLineage?
+			if let templateHash, let assembledHash {
+				lineage = ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
+			} else {
+				lineage = nil
+			}
+			return .replied(.model(modelText), lineage: lineage)
+		case "savedWork":
+			guard let outcome = outcome.flatMap(SavedWorkOutcome.init(rawValue:)), let saved else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .savedWork(outcome, saved: saved.summary)
+		case "failed":
+			guard let failure, let saved else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .failed(try failure.failure(), saved: saved.summary)
+		case "interrupted":
+			guard let partial, let cause = cause.flatMap(InterruptionCause.init(rawValue:)),
+				let saved
+			else {
+				throw RecordDecodeFailure(reason: "settlement")
+			}
+			return .interrupted(partial: partial, cause: cause, saved: saved.summary)
+		default:
+			throw RecordDecodeFailure(reason: "settlement")
+		}
+	}
+}
+
+struct WriteSummaryPayload: Codable {
+	var memorySections: Int
+	var ledgerEvents: Int
+	var planSaves: Int
+	var calendarWrites: Int
+
+	init(_ summary: WriteSummary) {
+		memorySections = summary.memorySections
+		ledgerEvents = summary.ledgerEvents
+		planSaves = summary.planSaves
+		calendarWrites = summary.calendarWrites
+	}
+
+	var summary: WriteSummary {
+		WriteSummary(
+			memorySections: memorySections,
+			ledgerEvents: ledgerEvents,
+			planSaves: planSaves,
+			calendarWrites: calendarWrites
+		)
+	}
+}
+
+struct TurnAttemptPayload: Codable {
+	var chatId: String
+	var turn: String
+	var attempt: String
+}
+
+struct TurnClaimPayload: Codable {
+	var chatId: String
+	var turn: String
+	var attempt: String
+	var process: String?
+	var lease: String?
 }
 
 struct AssistantMessagePayload: Codable {
@@ -14,9 +154,16 @@ struct AssistantMessagePayload: Codable {
 	var assembledHash: String
 }
 
+struct WindowStartV1Payload: Codable {
+	var chatId: String
+	var firstIncludedUlid: String
+}
+
 struct WindowStartPayload: Codable {
 	var chatId: String
 	var firstIncludedUlid: String
+	var reason: String
+	var droppedMessageUlids: [String]?
 }
 
 struct CompactionSummaryPayload: Codable {
@@ -34,6 +181,7 @@ struct DailyNotePayload: Codable {
 }
 
 struct LedgerEventPayload: Codable {
+	var date: String?
 	var kind: String
 	var text: String
 	var source: String
@@ -50,56 +198,6 @@ struct ProvenancePayload: Codable {
 	var nonGarmin: Bool
 	var unknown: Bool
 	var contentSha256: String
-}
-
-struct DurationPayload: Codable {
-	var value: Double
-	var unit: String
-}
-
-struct PowerPayload: Codable {
-	var kind: String
-	var value: Double?
-	var low: Double?
-	var high: Double?
-}
-
-struct CadencePayload: Codable {
-	var value: Int?
-	var low: Int?
-	var high: Int?
-}
-
-struct SimpleStepPayload: Codable {
-	var type: String
-	var duration: DurationPayload
-	var power: PowerPayload?
-	var cadence: CadencePayload?
-	var label: String?
-}
-
-struct SetStepPayload: Codable {
-	var repeatCount: Int
-	var interval: SimpleStepPayload
-	var recovery: SimpleStepPayload
-}
-
-enum StepPayload: Codable {
-	case simple(SimpleStepPayload)
-	case set(SetStepPayload)
-}
-
-struct WorkoutPayload: Codable {
-	var name: String
-	var steps: [StepPayload]
-}
-
-enum GatedToolInputPayload: Codable {
-	case createWorkout(date: String, workout: WorkoutPayload)
-	case createStrengthWorkout(date: String, name: String, description: String)
-	case deleteWorkout(eventId: Int)
-	case updateWorkout(eventId: Int, date: String?, name: String?, description: String?)
-	case planSave(name: String, primaryGoal: String?, totalWeeks: Int?, status: String?)
 }
 
 struct ProposalPayload: Codable {
@@ -120,8 +218,48 @@ struct ProposalClearedPayload: Codable {
 
 struct FlushPendingPayload: Codable {
 	var chatId: String
-	var trigger: String
 	var messageUlids: [String]
+	var process: String?
+}
+
+struct FlushSettledPayload: Codable {
+	var chatId: String
+	var job: String
+	var outcome: String
+	var sections: Int
+	var events: Int
+
+	init(_ body: FlushSettledBody) {
+		chatId = body.chatId.rawValue
+		job = body.job.ulid.rawValue
+		switch body.settlement {
+		case .saved(let sections, let events):
+			outcome = "saved"
+			self.sections = sections
+			self.events = events
+		case .nothingToSave:
+			outcome = "nothingToSave"
+			sections = 0
+			events = 0
+		case .abandoned:
+			outcome = "abandoned"
+			sections = 0
+			events = 0
+		}
+	}
+
+	func settlement() throws -> FlushSettlement {
+		switch outcome {
+		case "saved":
+			return .saved(sections: sections, events: events)
+		case "nothingToSave":
+			return .nothingToSave
+		case "abandoned":
+			return .abandoned
+		default:
+			throw RecordDecodeFailure(reason: "flushSettled")
+		}
+	}
 }
 
 struct CoachReplyLanguagePayload: Codable {
@@ -221,26 +359,4 @@ struct WorkoutMatchPayload: Codable {
 struct WorkoutDriftPayload: Codable {
 	var planWorkoutId: String
 	var askedAt: TimeInterval
-}
-
-enum BodyEnvelope: Codable {
-	case userMessage(UserMessagePayload)
-	case assistantMessage(AssistantMessagePayload)
-	case windowStart(WindowStartPayload)
-	case compactionSummary(CompactionSummaryPayload)
-	case memorySection(MemorySectionPayload)
-	case dailyNote(DailyNotePayload)
-	case ledgerEvent(LedgerEventPayload)
-	case journal(JournalPayload)
-	case provenance(ProvenancePayload)
-	case pendingProposal(ProposalPayload)
-	case proposalCleared(ProposalClearedPayload)
-	case flushPending(FlushPendingPayload)
-	case coachReplyLanguage(CoachReplyLanguagePayload)
-	case planningDevice(PlanningDevicePayload)
-	case planningCommand(PlanningCommandPayload)
-	case planRevision(PlanRevisionPayload)
-	case mirrorJob(MirrorJobPayload)
-	case workoutMatch(WorkoutMatchPayload)
-	case workoutDrift(WorkoutDriftPayload)
 }
