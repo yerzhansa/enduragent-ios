@@ -140,7 +140,9 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
-		let store = HeldFirstReadLog(inner: InMemoryRecordLog())
+		let local = InMemoryRecordLog()
+		_ = await makeCoach(transport: transport, store: local, clock: clock)
+		let store = HeldFirstReadLog(inner: local)
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, host: host, consent: false)
