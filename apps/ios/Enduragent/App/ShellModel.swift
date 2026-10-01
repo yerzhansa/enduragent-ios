@@ -53,7 +53,7 @@ final class ShellModel {
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
 	}
 
-	deinit {
+	isolated deinit {
 		observation?.cancel()
 		statusStart?.cancel()
 		statusObservation?.cancel()
@@ -174,7 +174,7 @@ final class ShellModel {
 				}
 				self.receiveStatus(first)
 				self.statusObservation = Task { [weak self] in
-					while let snapshot = await snapshots.next() {
+					while let snapshot = await snapshots.next(isolation: MainActor.shared) {
 						guard let self, !Task.isCancelled else { return }
 						self.receiveStatus(snapshot)
 					}

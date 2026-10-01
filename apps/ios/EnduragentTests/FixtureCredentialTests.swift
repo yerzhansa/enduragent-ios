@@ -67,9 +67,16 @@ extension FixtureLaunchTests {
 	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
 		let model = model(services)
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada Kovač"
+			}
+			return false
+		}
 		#expect(model.didConnect)
 		#expect(model.connectKey.isEmpty)
 		#expect(model.connectError == nil)
@@ -85,9 +92,16 @@ extension FixtureLaunchTests {
 
 	@Test func continuingConnectClearsAnyNewKey() async throws {
 		let model = model(try services())
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada Kovač"
+			}
+			return false
+		}
 		try #require(model.didConnect)
 		model.connectKey = "edited-after-connect"
 		model.continueConnect()
@@ -98,6 +112,7 @@ extension FixtureLaunchTests {
 
 	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
 		let model = model(try services())
+		await model.appear()
 		model.continueNotice()
 		model.connectKey = "   "
 		await model.connect()
