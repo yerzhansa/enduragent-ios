@@ -19,11 +19,11 @@ extension SingleProposalReviewsTests {
 }
 
 actor ReviewGate {
-	private let waitLimit: Duration
+	private let waitLimit: TestWaitLimit
 	private var armed = false
 	private var gate = Gate()
 
-	init(within waitLimit: Duration = .seconds(5)) {
+	init(within waitLimit: TestWaitLimit = .hangGuard) {
 		self.waitLimit = waitLimit
 	}
 

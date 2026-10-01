@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -62,7 +63,7 @@ extension FixtureLaunchTests {
 			let before = model.chat?.turns.count ?? 0
 			model.draft.text = message
 			await model.send()
-			try await waitUntil(within: .seconds(30)) {
+			try await waitUntil(within: .hangGuard) {
 				guard let turns = model.chat?.turns, turns.count == before + 1,
 					let last = turns.last
 				else {
@@ -80,9 +81,9 @@ extension FixtureLaunchTests {
 	}
 
 	private func waitUntil(
-		within limit: Duration = .seconds(10), _ condition: () async throws -> Bool
+		within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
 	) async throws {
-		let deadline = ContinuousClock.now + limit
+		let deadline = ContinuousClock.now + limit.duration
 		while try await !condition() {
 			guard ContinuousClock.now < deadline else {
 				Issue.record("condition never held in \(limit)")

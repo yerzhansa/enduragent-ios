@@ -92,7 +92,7 @@ final class ShellLanguageTests {
 		let refreshing = Task { await model.sceneChanged(.becameActive) }
 		await intervals.reads.waitUntilBlocked()
 		let choosing = Task { await model.chooseLanguage(.fixed(.es)) }
-		let deadline = ContinuousClock.now + .seconds(2)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.status?.language != .fixed(.es), ContinuousClock.now < deadline {
 			await Task.yield()
 		}
@@ -140,7 +140,7 @@ final class ShellLanguageTests {
 		await model.appear()
 		model.draft.text = "Add a core workout tomorrow."
 		await model.send()
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat?.review == nil || model.isWorking, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}

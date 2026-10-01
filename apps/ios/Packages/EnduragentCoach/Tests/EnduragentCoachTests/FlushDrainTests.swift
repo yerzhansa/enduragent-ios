@@ -268,7 +268,7 @@ import Testing
 			otherwise: transport.respond)
 		let dying = FaultInjectingRecordLog(wrapping: store)
 		let before = await makeCoach(transport: transport, store: dying, clock: clock)
-		let settled = try await before.sendAndSettle("Remember Saturdays", within: .seconds(5))
+		let settled = try await before.sendAndSettle("Remember Saturdays", within: .hangGuard)
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.synced([.ledgerEvent]), count: 1, in: store)
 		try await before.dieWithoutWriting(to: dying)
@@ -307,7 +307,7 @@ import Testing
 	}
 
 	private func waitForDiagnostic(
-		in coach: Coach, within limit: Duration = .seconds(5),
+		in coach: Coach, within limit: TestWaitLimit = .hangGuard,
 		_ matches: (DiagnosticsEvent) -> Bool
 	) async throws {
 		try await waitUntil(within: limit) {

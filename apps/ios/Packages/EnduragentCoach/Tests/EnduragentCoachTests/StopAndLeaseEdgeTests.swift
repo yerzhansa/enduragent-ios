@@ -87,7 +87,7 @@ import Testing
 			await coach.lifecycle(.willTerminate)
 			terminated.withLock { $0 = true }
 		}
-		try await waitUntil(within: .seconds(2)) { terminated.withLock { $0 } }
+		try await waitUntil(within: .hangGuard) { terminated.withLock { $0 } }
 		#expect(await coach.currentSnapshot(.main)?.activity == .stopping)
 		store.release()
 		await stopped
@@ -152,7 +152,7 @@ import Testing
 		await coach.lifecycle(.willTerminate)
 		store.release()
 		let turn = try #require(try await sent.acceptedTurn)
-		_ = await coach.settledState(of: turn, in: .main, within: .seconds(1))
+		_ = await coach.settledState(of: turn, in: .main, within: .subject(.seconds(1)))
 		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
 		#expect(try await claims(of: turn, in: store).isEmpty)
 		#expect(transport.requests.isEmpty)
@@ -175,7 +175,7 @@ import Testing
 			await coach.lifecycle(.willTerminate)
 			terminated.withLock { $0 = true }
 		}
-		try await waitUntil(within: .seconds(2)) { terminated.withLock { $0 } }
+		try await waitUntil(within: .hangGuard) { terminated.withLock { $0 } }
 		store.release()
 		await terminating.value
 		#expect(await coach.interruption(of: running) == .appTerminating)

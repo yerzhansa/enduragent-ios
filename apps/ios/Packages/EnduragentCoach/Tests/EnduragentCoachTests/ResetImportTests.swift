@@ -14,7 +14,7 @@ extension ResetWindowTests {
 			coalescing: CoalescingPolicy(window: .seconds(1)), coalescingClock: held)
 		let earlier = try #require(
 			try await coach.send(draft("Before reset"), to: .main).acceptedTurn)
-		let parked = try await beforeDeadline(within: .seconds(5)) {
+		let parked = try await beforeDeadline(within: .hangGuard) {
 			try await held.waitUntilHeld(.seconds(1))
 			return true
 		}
@@ -26,7 +26,7 @@ extension ResetWindowTests {
 		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
 		importing.notifyImport()
 		try #require(
-			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
 				$0.opening == .afterNewConversation(memorySaved: true)
 			} != nil)
 		let later = try #require(try await coach.send(draft("After reset"), to: .main).acceptedTurn)
@@ -56,7 +56,7 @@ extension ResetWindowTests {
 		try await seed(store, imported)
 		if !importBeforeLoad { store.notifyImport() }
 		try #require(
-			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
 				$0.opening == .afterNewConversation(memorySaved: true)
 			} != nil)
 		transport.respond = ScriptedReply.sequence(
@@ -68,7 +68,7 @@ extension ResetWindowTests {
 		let turn = try #require(
 			try await coach.send(draft("Behind question"), to: .main).acceptedTurn)
 		let completed = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(completed) == "Behind answer")
 		let transcript = await coach.transcript(.main)
 		#expect(transcript == ["Behind question", "Behind answer"])
@@ -90,7 +90,7 @@ extension ResetWindowTests {
 		let next = try #require(
 			try await reopened.send(draft("Next question"), to: .main).acceptedTurn)
 		let nextCompleted = try #require(
-			await reopened.settledState(of: next, in: .main, within: .seconds(5)))
+			await reopened.settledState(of: next, in: .main, within: .hangGuard))
 		#expect(replyText(nextCompleted) == "Next answer")
 		let prompt = try #require(sent(.chatAttempt, by: transport).last).messages.map(
 			\.unstampedContent)
@@ -125,7 +125,7 @@ extension ResetWindowTests {
 			[.text("Late answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let local = try #require(
 			try await coach.send(draft("Earlier question"), to: .main).acceptedTurn)
-		let parked = try await beforeDeadline(within: .seconds(5)) {
+		let parked = try await beforeDeadline(within: .hangGuard) {
 			var reached = held.reached.makeAsyncIterator()
 			return await reached.next() != nil
 		}
@@ -137,7 +137,7 @@ extension ResetWindowTests {
 		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
 		importing.notifyImport()
 		try #require(
-			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
 				$0.opening == .afterNewConversation(memorySaved: true)
 			} != nil)
 		#expect(await coach.transcript(.main).isEmpty)

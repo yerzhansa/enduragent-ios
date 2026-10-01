@@ -165,7 +165,7 @@ extension FixtureLaunchTests {
 		model.draft.text = "fixture:hang"
 		await model.send()
 		let turn = try await firstTurn(model)
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}
@@ -189,7 +189,7 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while services.fixtureTransport?.requestCount == 0, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}

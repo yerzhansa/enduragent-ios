@@ -40,7 +40,7 @@ import Testing
 		if response == .cancellation { approving.cancel() }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					server.release()
@@ -88,7 +88,7 @@ import Testing
 		approving.cancel()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					server.release()
@@ -184,7 +184,7 @@ import Testing
 			], for: .chat, otherwise: model.respond)
 		let turn = try #require(
 			try await coach.send(draft("Add a workout"), to: .main).acceptedTurn)
-		let ready = try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+		let ready = try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
 			snapshot in
 			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?.state {
 				return snapshot.liveReply?.text.isEmpty == false

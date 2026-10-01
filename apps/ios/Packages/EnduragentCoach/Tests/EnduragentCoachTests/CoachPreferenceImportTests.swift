@@ -20,7 +20,7 @@ import Testing
 		defer { read.release() }
 		store.notifyImport()
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Preference import read did not park")
@@ -53,7 +53,7 @@ import Testing
 		defer { read.release() }
 		store.notifyImport()
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Preference import read did not park")
@@ -111,7 +111,7 @@ import Testing
 		defer { read.release() }
 		let observing = Task { await coach.observeStatus() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Initial preference read did not park")

@@ -18,7 +18,7 @@ extension DurableCalendarWriteTests {
 		defer { approving.cancel() }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()
@@ -32,7 +32,7 @@ extension DurableCalendarWriteTests {
 		store.release()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()
@@ -71,7 +71,7 @@ extension DurableCalendarWriteTests {
 		defer { approving.cancel() }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()
@@ -84,7 +84,7 @@ extension DurableCalendarWriteTests {
 		store.release()
 		let outcome = try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()

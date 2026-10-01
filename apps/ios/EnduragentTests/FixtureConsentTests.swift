@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Testing
 
 @testable import Enduragent
@@ -114,7 +115,7 @@ extension FixtureLaunchTests {
 		let seeded = try services()
 		_ = try await seeded.coach.send(
 			Draft(id: DraftID(), text: TutorialCopy.weekQuestion), to: .main)
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		var snapshot = await firstSnapshot(seeded, chat: .main)
 		while snapshot?.turns.first?.state.isSettled != true, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
