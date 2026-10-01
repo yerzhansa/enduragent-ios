@@ -47,8 +47,8 @@ final class ChatRecords {
 			let imported = try await ledger.conversationRecords(chat)
 			let folded = ConversationFold.fold(
 				chat: chat, synced: imported, device: ledger.deviceId)
-			let review = try await reviews.snapshot(chat: chat)
 			let jobs = try await ledger.flushJobs(in: folded)
+			let review = try await reviews.snapshot(chat: chat)
 			for record in imported { applied[record.ulid] = record }
 			conversation = ConversationFold.fold(
 				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
