@@ -134,6 +134,9 @@ schemes:
       config: Debug
       environmentVariables:
         ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
+        ENDURAGENT_CHOICES_MESSAGE: $(ENDURAGENT_CHOICES_MESSAGE)
+        ENDURAGENT_CHOICES_MODEL: $(ENDURAGENT_CHOICES_MODEL)
+        ENDURAGENT_CHOICES_FRESH: $(ENDURAGENT_CHOICES_FRESH)
       targets:
         - EnduragentPhoneTests
   Enduragent:
