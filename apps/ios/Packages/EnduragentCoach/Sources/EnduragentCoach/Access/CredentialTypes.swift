@@ -2,25 +2,13 @@ import Foundation
 
 public enum AccessSelection: Hashable, Sendable {
 	case credits
-	case openRouterAccount(model: ModelID, consent: ProviderConsent)
+	case openRouterAccount(model: ModelID)
 
 	public var method: AccessMethod {
 		switch self {
 		case .credits: .credits
 		case .openRouterAccount: .openRouterAccount
 		}
-	}
-}
-
-public struct ProviderConsent: Hashable, Sendable {
-	public let provider: String
-	public let model: ModelID
-	public let at: Date
-
-	public init(provider: String, model: ModelID, at: Date) {
-		self.provider = provider
-		self.model = model
-		self.at = at
 	}
 }
 
@@ -91,7 +79,7 @@ public enum IntervalsConnectionChange: Sendable, Equatable {
 public enum ModelAccessChange: Sendable, Equatable {
 	case keep
 	case useCredits
-	case signInToOpenRouter(model: ModelID, consent: ProviderConsent)
+	case signInToOpenRouter(model: ModelID)
 	case selectOpenRouterModel(ModelID)
 	case disconnectOpenRouter
 }

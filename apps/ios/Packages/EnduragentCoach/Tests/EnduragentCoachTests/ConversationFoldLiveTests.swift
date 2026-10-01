@@ -23,7 +23,7 @@ extension ConversationFoldTests {
 		case .stop: transport.script = [.text("Thursday is"), .hang]
 		case .failure: transport.script = [.fail(.http(status: 400))]
 		}
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
 		if ending == .stop {

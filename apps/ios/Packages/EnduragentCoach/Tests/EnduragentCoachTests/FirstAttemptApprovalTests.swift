@@ -13,7 +13,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(23) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(23))
 		let token = try await presentReview(on: coach)
@@ -42,7 +42,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 2 ? .seconds(29) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(
 			try await coach.send(draft("Add two rides"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(29))

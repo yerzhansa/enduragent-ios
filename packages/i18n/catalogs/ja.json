@@ -2916,12 +2916,20 @@
     },
     "notice": {
       "health": "トレーニングの提案であり、医療上の助言ではありません。大きな変更を行う前に医師に相談してください。"
+    },
+    "consent": {
+      "title": "コーチはAIを使用します",
+      "body": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。",
+      "accept": "同意して続ける",
+      "decline": "今はしない",
+      "saveFailed": "同意を保存できませんでした。もう一度お試しください。"
     }
   },
   "access": {
     "error": {
       "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
       "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
+      "providerConsentRequired": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。",
       "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。"
     }
   },

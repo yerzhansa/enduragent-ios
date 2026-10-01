@@ -86,7 +86,7 @@ import Testing
 			#"{"creditsAccount":{"appAccountToken":"11111111-2222-4333-8444-555555555555","key":"test-key"},"accessSelection":"garbage"}"#
 		)
 		let store = try ICloudKeychainStore.fixture(directory: directory).store
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		#expect(try await coach.creditsIdentity().hasCreditsKey)
 		#expect(throws: KeychainStoreError.keychain(errSecDecode)) { try store.accessSelection() }
@@ -95,7 +95,7 @@ import Testing
 	@Test func v1TokenOpensWithoutOtherFields() async throws {
 		try write(#"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#)
 		let store = try ICloudKeychainStore.fixture(directory: directory).store
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: store)
 		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		#expect(

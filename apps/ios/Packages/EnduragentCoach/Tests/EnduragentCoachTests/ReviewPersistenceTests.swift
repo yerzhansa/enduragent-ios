@@ -15,7 +15,7 @@ extension TurnRunnerTests {
 			.text("I've prepared the ride. Confirm to add it."),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach()
+		let coach = await makeCoach()
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
 		let proposing = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
@@ -35,7 +35,7 @@ extension TurnRunnerTests {
 		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 1998-06-14."
 		#expect(shown.notes.map { $0.sentence(in: french) } == [frenchDone])
 
-		let reopened = makeCoach()
+		let reopened = await makeCoach()
 		let relaunched = try #require(await reopened.currentSnapshot(.main))
 		#expect(relaunched.review == nil)
 		#expect(relaunched.notes.map { $0.sentence(in: phrasebook) } == [done])
@@ -60,8 +60,8 @@ extension TurnRunnerTests {
 		#expect(archivedAfterRelaunch.notes.map { $0.sentence(in: french) } == [frenchDone])
 	}
 
-	func makeCoach(secrets: any SecretStore = keyedSecrets()) -> Coach {
-		EnduragentCoachTests.makeCoach(
+	func makeCoach(secrets: any SecretStore = keyedSecrets()) async -> Coach {
+		await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: store, clock: clock, secrets: secrets
 		)
 	}
@@ -69,7 +69,7 @@ extension TurnRunnerTests {
 
 extension SingleProposalReviewsTests {
 	@Test func approvalAfterNewConversationIsKeptInHistory() async throws {
-		let coach = coach()
+		let coach = await coach()
 		let token = try await presentedToken(on: coach)
 		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
 		#expect(

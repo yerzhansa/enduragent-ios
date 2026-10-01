@@ -14,7 +14,7 @@ extension RetryLadderTests {
 		let model = HeldApprovalTransport(base: transport, clock: held) { index, request in
 			request.charge == .chatAttempt && index == 3 ? .seconds(11) : nil
 		}
-		let coach = heldApprovalCoach(held, model: model, intervals: intervals)
+		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
 		let turn = try #require(try await coach.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)

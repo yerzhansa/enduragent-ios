@@ -8,23 +8,24 @@ import Testing
 	let store = InMemoryRecordLog()
 
 	@Test func aStampNamesWeekdayDateMinuteAndZone() throws {
-		let tokyo = try #require(TimeZone(identifier: "Asia/Tokyo"))
+		let tokyo = try #require(IANATimeZone(identifier: "Asia/Tokyo"))
 		let sent = Date(timeIntervalSince1970: 897_948_750)
 		#expect(
 			PromptAssembly.wireMessage(
-				from: ChatMessage(author: .athlete(sent: sent), text: "Intervals today."), in: tokyo
+				from: ChatMessage(
+					author: .athlete(sent: sent, timeZone: tokyo), text: "Intervals today.")
 			)
 				== WireMessage(
 					role: .user, content: "[Tue 1998-06-16 07:12 Asia/Tokyo] Intervals today.",
 					toolCalls: [], toolCallId: nil))
 		#expect(
 			PromptAssembly.wireMessage(
-				from: ChatMessage(author: .athlete(sent: sent), text: "[Tue] my own brackets"),
-				in: tokyo
+				from: ChatMessage(
+					author: .athlete(sent: sent, timeZone: tokyo), text: "[Tue] my own brackets")
 			).content == "[Tue 1998-06-16 07:12 Asia/Tokyo] [Tue] my own brackets")
 		#expect(
 			PromptAssembly.wireMessage(
-				from: ChatMessage(author: .coach, text: "Keep it easy.\nSpin only."), in: tokyo)
+				from: ChatMessage(author: .coach, text: "Keep it easy.\nSpin only."))
 				== WireMessage(
 					role: .assistant, content: "Keep it easy.\nSpin only.", toolCalls: [],
 					toolCallId: nil))
@@ -32,7 +33,7 @@ import Testing
 
 	@Test func aConversationAcrossMidnightReachesTheModelWithDatedAthleteMessages() async throws {
 		let clock = FixedClock(now: "1998-06-15T23:50:00+02:00", timeZone: "Europe/Amsterdam")
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [
 			.text("Good, keep them at 105%."), .finish(reason: .stop),
 			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
@@ -62,7 +63,7 @@ import Testing
 		#expect(flush.messages.last?.content.contains("start with a bracketed send time") == true)
 	}
 
-	@Test func stampsUseTheCurrentZoneNotTheZoneTheMessageWasSentIn() async throws {
+	@Test func stampsUseTheZoneTheMessageWasSentIn() async throws {
 		let amsterdam = FixedClock(now: "1998-06-15T20:00:00+02:00", timeZone: "Europe/Amsterdam")
 		transport.script = [
 			.text("Good, keep them at 105%."), .finish(reason: .stop),
@@ -71,12 +72,22 @@ import Testing
 		_ = try await makeCoach(transport: transport, store: store, clock: amsterdam)
 			.sendAndSettle("I'm doing intervals today.")
 		let tokyo = FixedClock(now: "1998-06-16T03:10:00+09:00", timeZone: "Asia/Tokyo")
-		_ = try await makeCoach(transport: transport, store: store, clock: tokyo)
-			.sendAndSettle("My legs are sore.")
+		let coach = makeCoach(transport: transport, store: store, clock: tokyo)
+		_ = try await coach.sendAndSettle("My legs are sore.")
 		let chat = try #require(sent(.chatAttempt, by: transport).last)
 		#expect(
 			chat.messages.dropFirst().first?.content
-				== "[Tue 1998-06-16 03:00 Asia/Tokyo] I'm doing intervals today.")
+				== "[Mon 1998-06-15 20:00 Europe/Amsterdam] I'm doing intervals today.")
+		transport.flushScript = [.finish(reason: .stop)]
+		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		let flush = try #require(sent(.memoryFlush, by: transport).last)
+		#expect(
+			flush.messages.dropFirst().dropLast().map(\.content) == [
+				"[Mon 1998-06-15 20:00 Europe/Amsterdam] I'm doing intervals today.",
+				"Good, keep them at 105%.",
+				"[Tue 1998-06-16 03:10 Asia/Tokyo] My legs are sore.",
+				"Expected after yesterday's intervals.",
+			])
 	}
 
 	@Test func aClockFromAnotherDeviceDoesNotMoveTheStamp() async throws {
@@ -99,7 +110,7 @@ import Testing
 		transport.script = [
 			.text("Good."), .finish(reason: .stop), .text("Rest."), .finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await coach.sendAndSettle("Local question")
 		_ = try await coach.sendAndSettle("Legs sore?")
 		let chat = try #require(sent(.chatAttempt, by: transport).last)
