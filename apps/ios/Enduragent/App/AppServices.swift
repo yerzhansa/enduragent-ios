@@ -3,6 +3,7 @@ import Foundation
 import StoreKit
 
 enum ShellRoute: Equatable {
+	case loading
 	case onboarding(OnboardingStep)
 	case chat
 }
@@ -11,6 +12,8 @@ enum OnboardingStep: Equatable {
 	case notice
 	case connect
 	case starter
+	case consent
+	case consentDeferred
 }
 
 enum CivilDates {

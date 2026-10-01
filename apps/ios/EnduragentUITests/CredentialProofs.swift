@@ -137,6 +137,9 @@ final class UpgradeConnectionProof: XCTestCase {
 			"-AppleLanguages", "(en)", "-AppleLocale", "en_US",
 		]
 		app.launch()
+		if TutorialHarness.named(app, "consent.accept").waitForExistence(timeout: 3) {
+			TutorialHarness.agreeToProviderConsent(app)
+		}
 		guard TutorialHarness.named(app, "chat.sidebar").waitForExistence(timeout: 10) else {
 			throw XCTSkip(TutorialHarness.connectionBeforeVaultMissing)
 		}

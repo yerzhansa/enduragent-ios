@@ -1,5 +1,19 @@
 import Foundation
 
+struct ProviderConsentPayload: Codable {
+	var version: Int
+	var at: Double
+
+	init(_ consent: ProviderConsent) {
+		self.version = consent.version
+		self.at = consent.at.timeIntervalSinceReferenceDate
+	}
+
+	func body() -> ProviderConsent {
+		ProviderConsent(version: version, at: Date(timeIntervalSinceReferenceDate: at))
+	}
+}
+
 struct SessionSettingsPayload: Codable {
 	var historyBudgetRatio: Double
 	var contextWindowTokens: Int?

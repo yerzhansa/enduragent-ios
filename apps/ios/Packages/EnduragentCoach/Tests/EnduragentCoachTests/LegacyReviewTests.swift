@@ -43,7 +43,7 @@ extension SingleProposalReviewsTests {
 					appAccountToken: UUID(), key: testKey)
 			)
 		}
-		let coach = makeCoach(
+		let coach = await makeCoach(
 			transport: transport, intervals: ada, store: records, clock: clock,
 			secrets: selectedSecrets)
 		let review = try #require(await coach.currentSnapshot(.main)?.review)

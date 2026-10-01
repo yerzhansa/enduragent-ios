@@ -894,6 +894,11 @@ Catalog.onboardingConnectFatigue
 Catalog.onboardingConnectFitness
 Catalog.onboardingConnectForm
 Catalog.onboardingConnectSkip
+Catalog.onboardingConsentAccept
+Catalog.onboardingConsentBody
+Catalog.onboardingConsentDecline
+Catalog.onboardingConsentSaveFailed
+Catalog.onboardingConsentTitle
 Catalog.onboardingNoticeHealth
 Catalog.onboardingStarterAdded
 Catalog.onboardingStarterAddedOne

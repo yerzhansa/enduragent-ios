@@ -16,7 +16,7 @@ import Testing
 		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
 
 	func relaunched(over log: (any RecordLog)? = nil) async -> Coach {
-		let coach = makeCoach(transport: transport, store: log ?? store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: log ?? store, clock: clock)
 		await coach.lifecycle(.becameActive)
 		return coach
 	}
@@ -87,7 +87,7 @@ import Testing
 			(partial ? [saturdays, .finish(reason: .toolCalls)] : [])
 			+ Array(repeating: .fail(failure), count: 4)
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
 		_ = try #require(await host.ended(0))
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
@@ -144,7 +144,7 @@ import Testing
 			process: ProcessID(ulid: fixedUlid(60)))
 		transport.flushScript = [.fail(failure)]
 		let host = ImmediateExecutionHost()
-		let coach = makeCoach(transport: transport, store: store, clock: clock, host: host)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		await coach.lifecycle(.becameActive)
 		_ = try #require(await host.ended(0))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
@@ -193,7 +193,7 @@ import Testing
 			.finish(reason: .toolCalls),
 			.finish(reason: .stop),
 		]
-		let coach = makeCoach(transport: transport, store: store, clock: clock)
+		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		_ = try await coach.sendAndSettle("Rest day?")
 		try await waitForDiagnostic(in: coach) { event in
@@ -242,7 +242,7 @@ import Testing
 		transport.script = [.text("Noted."), .finish(reason: .stop)]
 		transport.flushScript = [saturdays, .finish(reason: .toolCalls), .hang]
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let settled = try await before.sendAndSettle("Remember Saturdays", within: .seconds(5))
 		#expect(replyText(settled) == "Noted.")
 		try await waitForRecords(.synced([.ledgerEvent]), count: 1, in: store)
@@ -261,7 +261,7 @@ import Testing
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 9 / 10)
 		transport.hangUntilCancelled = true
 		let dying = FaultInjectingRecordLog(wrapping: store)
-		let before = makeCoach(transport: transport, store: dying, clock: clock)
+		let before = await makeCoach(transport: transport, store: dying, clock: clock)
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 		try await waitForRecords(.deviceLocal([.flushPending]), count: 1, in: store)
 		await before.waitUntilProcessing(turn)

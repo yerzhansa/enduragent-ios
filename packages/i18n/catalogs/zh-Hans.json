@@ -2914,12 +2914,20 @@
     },
     "notice": {
       "health": "仅提供训练建议，不构成医疗建议。进行重大调整前，请咨询医生。"
+    },
+    "consent": {
+      "title": "你的教练使用 AI",
+      "body": "为了回复你，Enduragent 会将你的消息、教练记忆以及你从 intervals.icu 连接的训练数据发送给 OpenRouter，再由 OpenRouter 传递给 AI 模型提供商（DeepSeek）。他们仅使用这些数据来生成教练的回复。在你同意之前，不会发送任何内容。",
+      "accept": "同意并继续",
+      "decline": "暂不",
+      "saveFailed": "无法保存你的同意。请重试。"
     }
   },
   "access": {
     "error": {
       "locked": "请解锁 iPhone 以继续。你的消息已保存。",
       "notConfigured": "请选择教练连接模型的方式以继续。",
+      "providerConsentRequired": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。",
       "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。"
     }
   },

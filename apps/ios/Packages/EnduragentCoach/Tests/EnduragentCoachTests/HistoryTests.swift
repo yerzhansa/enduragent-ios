@@ -8,8 +8,8 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = HistoryRecordLog()
 
-	func coach() -> Coach {
-		makeCoach(transport: transport, store: store, clock: clock)
+	func coach() async -> Coach {
+		await makeCoach(transport: transport, store: store, clock: clock)
 	}
 
 	func seedArchives() async throws {
@@ -54,7 +54,7 @@ import Testing
 
 	@Test func openingAnArchiveReadsOnlyItsReplies() async throws {
 		try await seedArchives()
-		let coach = coach()
+		let coach = await coach()
 		let summary = try #require(try await coach.history().last)
 		let archived = try #require(try await coach.archivedConversation(summary.id))
 		#expect(archived.id == summary.id)
@@ -69,7 +69,7 @@ import Testing
 	@Test func historySurvivesReplyReadFailureAndOpeningReportsIt() async throws {
 		try await seedArchives()
 		await store.rejectReplies()
-		let coach = coach()
+		let coach = await coach()
 		let history = try await coach.history()
 		#expect(history.map(\.firstQuestion) == ["Question 2", "Question 1"])
 		let ref = try #require(history.first?.id)
@@ -80,7 +80,7 @@ import Testing
 
 	@Test func openingAnUnknownOrCurrentSegmentReturnsNoArchive() async throws {
 		try await seedArchives()
-		let coach = coach()
+		let coach = await coach()
 		for boundary in [fixedUlid(22), fixedUlid(99)] {
 			let ref = ArchivedConversationRef(chat: .main, segment: SegmentID(boundary: boundary))
 			#expect(try await coach.archivedConversation(ref) == nil)

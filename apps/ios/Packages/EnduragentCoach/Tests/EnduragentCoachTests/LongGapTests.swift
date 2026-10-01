@@ -14,11 +14,11 @@ import Testing
 			.text("Good, keep them at 105%."), .finish(reason: .stop),
 			.text("Expected after yesterday's intervals."), .finish(reason: .stop),
 		]
-		let evening = makeCoach(transport: transport, store: store, clock: clock)
+		let evening = await makeCoach(transport: transport, store: store, clock: clock)
 		_ = try await evening.sendAndSettle("I'm doing intervals today.")
 		clock.advance(by: 13 * 3600)
 		let morning =
-			relaunch ? makeCoach(transport: transport, store: store, clock: clock) : evening
+			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : evening
 		_ = try await morning.sendAndSettle("My legs are sore.")
 		#expect(
 			await morning.transcript(.main) == [

@@ -2954,12 +2954,20 @@
     },
     "notice": {
       "health": "Sugerencias de entrenamiento, no asesoramiento médico. Consulta con un médico antes de hacer grandes cambios."
+    },
+    "consent": {
+      "title": "Tu entrenador usa IA",
+      "body": "Para responder, Enduragent envía tus mensajes, la memoria de tu entrenador y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los transmite al proveedor del modelo de IA (DeepSeek). Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes.",
+      "accept": "Aceptar y continuar",
+      "decline": "Ahora no",
+      "saveFailed": "No se pudo guardar tu consentimiento. Inténtalo de nuevo."
     }
   },
   "access": {
     "error": {
       "locked": "Desbloquea tu iPhone para continuar. Tu mensaje está guardado.",
       "notConfigured": "Elige cómo accede el entrenador a un modelo para continuar.",
+      "providerConsentRequired": "Necesitamos tu permiso antes de compartir datos del chat con proveedores de IA.",
       "openRouterFunds": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos."
     }
   },

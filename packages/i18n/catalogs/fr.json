@@ -2954,12 +2954,20 @@
     },
     "notice": {
       "health": "Des suggestions d’entraînement, pas des conseils médicaux. Consulte un médecin avant tout changement important."
+    },
+    "consent": {
+      "title": "Ton coach utilise l’IA",
+      "body": "Pour répondre, Enduragent envoie tes messages, la mémoire de ton coach et les données d’entraînement que tu connectes depuis intervals.icu à OpenRouter, qui les transmet au fournisseur du modèle d’IA (DeepSeek). Ils utilisent ces données uniquement pour générer les réponses de ton coach. Rien n’est envoyé sans ton accord.",
+      "accept": "Accepter et continuer",
+      "decline": "Pas maintenant",
+      "saveFailed": "Impossible d’enregistrer ton accord. Réessaie."
     }
   },
   "access": {
     "error": {
       "locked": "Déverrouille ton iPhone pour continuer. Ton message est enregistré.",
       "notConfigured": "Choisis comment le coach accède à un modèle pour continuer.",
+      "providerConsentRequired": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits."
     }
   },

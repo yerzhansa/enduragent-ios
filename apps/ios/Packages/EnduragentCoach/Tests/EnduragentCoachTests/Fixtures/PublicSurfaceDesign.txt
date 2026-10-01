@@ -12,6 +12,7 @@ AccessSummary.selection
 AccessUnavailable
 AccessUnavailable.malformedStoredCredential
 AccessUnavailable.notConfigured
+AccessUnavailable.providerConsentRequired
 AccessUnavailable.secureStorageLocked
 AccessUnavailable.secureStorageUnavailable
 AccountAuthority
@@ -54,6 +55,7 @@ AthleteSelection.athlete
 AthleteSelection.keyOwner
 AttemptID
 AttemptID.ulid
+Catalog.accessErrorProviderConsentRequired
 ChangeSetID
 ChangeSetID.ulid
 ChangeSetRevision
@@ -99,6 +101,7 @@ Coach.languagePreference()
 Coach.lifecycle(_:)
 Coach.observe(_:)
 Coach.prepareCreditsPurchase()
+Coach.recordConsent()
 Coach.recordSyncProbe()
 Coach.replaceAppAccountToken()
 Coach.retry(_:in:)
@@ -122,7 +125,9 @@ CoachPorts.secrets
 CoachPorts.training
 CoachStatus
 CoachStatus.language
+CoachStatus.needsProviderConsent
 CoachStatus.notice
+CoachStatus.providerConsent
 CoachStatus.session
 CoachStatus.setup
 CoachStatus.training
@@ -266,6 +271,7 @@ LocalFailure.recordStorage
 MemorySaveResult
 MemorySaveResult.notSaved
 MemorySaveResult.partiallySaved
+MemorySaveResult.providerConsentRequired
 MemorySaveResult.saved
 ModelAccessChange
 ModelAccessChange.disconnectOpenRouter
@@ -294,9 +300,8 @@ PreferenceWriteFailure
 PreferenceWriteFailure.notSaved
 ProviderConsent
 ProviderConsent.at
-ProviderConsent.init(provider:model:at:)
-ProviderConsent.model
-ProviderConsent.provider
+ProviderConsent.currentVersion
+ProviderConsent.version
 ProviderTrouble
 ProviderTrouble.network
 ProviderTrouble.outage
@@ -448,6 +453,7 @@ SessionSettings.text(for:)
 SetupState
 SetupState.accessTemporarilyUnavailable
 SetupState.needsAccessMethod
+SetupState.needsProviderConsent
 SetupState.ready
 SignInFailure
 SignInFailure.presentationUnavailable
