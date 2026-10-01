@@ -49,7 +49,25 @@ struct ConfirmedPreviewCard: View {
 				ConfirmedPreviewAction(
 					id: "chat.preview.add", title: Catalog.reviewAdd, decision: .approve(token)),
 			]
-		case .none, .checkAgain, .retryRemainingOrCancel: []
+		case .checkAgain(let ref):
+			[
+				ConfirmedPreviewAction(
+					id: "chat.preview.checkAgain", title: Catalog.setupTelegramCheckAgain,
+					decision: .checkAgain(ref))
+			]
+		case .retryRemainingOrCancel(let token):
+			[
+				ConfirmedPreviewAction(
+					id: "chat.preview.checkAgain", title: Catalog.setupTelegramCheckAgain,
+					decision: .checkAgain(token.ref)),
+				ConfirmedPreviewAction(
+					id: "chat.preview.cancel", title: Catalog.commonCancel, decision: .cancel(token)
+				),
+				ConfirmedPreviewAction(
+					id: "chat.preview.saveAgain", title: Catalog.reviewSaveApprovedAgain,
+					decision: .retryRemaining(token)),
+			]
+		case .none: []
 		}
 	}
 
