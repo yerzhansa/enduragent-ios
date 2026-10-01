@@ -38,7 +38,15 @@ import Testing
 		try await waitUntil { server.posts.count == 1 && server.events.count == 1 }
 		await fixture.coach.stop(.main)
 		if response == .cancellation { approving.cancel() }
-		_ = await approving.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					server.release()
+				}
+			) { await approving.value } != nil,
+			"Calendar approval did not finish within five seconds")
 		let state = try #require(await fixture.coach.state(of: turn))
 		#expect(!state.retryable)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
@@ -78,7 +86,15 @@ import Testing
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try await waitUntil { server.posts.count == 1 }
 		approving.cancel()
-		_ = await approving.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					server.release()
+				}
+			) { await approving.value } != nil,
+			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
@@ -168,7 +184,15 @@ import Testing
 			], for: .chat, otherwise: model.respond)
 		let turn = try #require(
 			try await coach.send(draft("Add a workout"), to: .main).acceptedTurn)
-		await coach.waitForLiveText(turn)
+		let ready = try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+			snapshot in
+			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?.state {
+				return snapshot.liveReply?.text.isEmpty == false
+			}
+			return false
+		}
+		if ready == nil { await coach.stop(.main) }
+		try #require(ready != nil, "Calendar review did not become live within five seconds")
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		return (turn, try #require(await coach.currentSnapshot(.main)?.review?.token))

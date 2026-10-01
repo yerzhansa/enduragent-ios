@@ -22,8 +22,13 @@ extension FixtureLaunchTests {
 		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
-		try await until { model.chat?.review?.token != nil }
-		let token = try #require(model.chat?.review?.token)
+		try await until {
+			if case .approveOrCancel? = model.chat?.review?.controls { return true }
+			return false
+		}
+		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
+			throw ReviewNotPresented()
+		}
 		intervals.writeFailure = URLError(.timedOut)
 		await model.decide(.approve(token))
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewWritePending }
@@ -76,11 +81,12 @@ extension FixtureLaunchTests {
 			actions.first { $0.id == (cancel ? "chat.preview.cancel" : "chat.preview.saveAgain") })
 		await model.decide(action.decision)
 		if cancel {
-			#expect(model.reviewNotice?.key == Catalog.reviewWritePending)
 			try await waitUntil {
 				guard case .checkAgain? = model.chat?.review?.controls else { return false }
 				return true
 			}
+			#expect(model.chat?.review?.notice?.key == Catalog.reviewWritePending)
+			#expect(model.reviewNotice == nil)
 			#expect(!intervals.calls.contains { $0.isCalendarWrite })
 		} else {
 			#expect(model.reviewNotice == nil)
@@ -247,7 +253,7 @@ extension FixtureLaunchTests {
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
 		#expect(actions.map(\.id) == expected)
-		#expect(model.reviewNotice?.key == Catalog.reviewWriteReadFailed)
+		#expect(model.reviewNotice == nil)
 		fixture.secretBacking.locked = false
 		let check = try #require(actions.first { $0.id == "chat.preview.checkAgain" })
 		await model.decide(check.decision)
@@ -271,9 +277,11 @@ extension FixtureLaunchTests {
 			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
 		try await waitUntil { model.chat?.review?.notice?.kind == .accountChanged }
 		await model.decide(.approve(token))
-		let notice = try #require(model.reviewNotice)
+		let notice = try #require(model.chat?.review?.notice)
 		#expect(notice.key == Catalog.reviewAccountChanged)
-		#expect(notice.sentence(in: model.phrasebook).hasPrefix("Cette séance a été préparée"))
+		#expect(
+			model.phrasebook.say(notice.key, notice.vars).hasPrefix("Cette séance a été préparée"))
+		#expect(model.reviewNotice == nil)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 	}
 

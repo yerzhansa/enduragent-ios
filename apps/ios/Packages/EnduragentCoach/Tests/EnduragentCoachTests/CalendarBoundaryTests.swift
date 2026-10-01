@@ -14,12 +14,30 @@ extension DurableCalendarWriteTests {
 		let fixture = await fixture(url: url, store: store)
 		let (_, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let stopping = Task { await fixture.coach.stop(.main) }
-		_ = await store.reached.first { _ in true }
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					stopping.cancel()
+					store.release()
+				}
+			) {
+				await store.reached.first { _ in true } != nil
+			} == true,
+			"Calendar write fixture did not park within five seconds")
 		#expect(await fixture.coach.decide(.approve(token), in: .main) == .blocked(.turnStopping))
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(server.posts.isEmpty)
 		store.release()
-		await stopping.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					stopping.cancel()
+					store.release()
+				}
+			) { await stopping.value } != nil,
+			"Calendar Stop did not finish within five seconds")
 		#expect(
 			await fixture.coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
@@ -37,10 +55,29 @@ extension DurableCalendarWriteTests {
 		let fixture = await fixture(url: url, store: store)
 		let (turn, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
-		_ = await store.reached.first { _ in true }
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) {
+				await store.reached.first { _ in true } != nil
+			} == true,
+			"Calendar write fixture did not park within five seconds")
 		faults.failNextAppend = true
 		store.release()
-		#expect(await approving.value.notice?.key == Catalog.reviewWritePending)
+		let outcome = try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) { await approving.value },
+			"Calendar approval did not finish within five seconds")
+		#expect(outcome.notice?.key == Catalog.reviewWritePending)
 		await fixture.coach.stop(.main)
 		#expect(await fixture.coach.state(of: turn)?.retryable == false)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)

@@ -16,11 +16,29 @@ extension DurableCalendarWriteTests {
 		let (turn, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
-		_ = await store.reached.first { _ in true }
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) {
+				await store.reached.first { _ in true } != nil
+			} == true,
+			"Calendar write fixture did not park within five seconds")
 		#expect(server.posts.isEmpty)
 		approving.cancel()
 		store.release()
-		_ = await approving.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) { await approving.value } != nil,
+			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		#expect(server.posts.isEmpty)
 		let reopened = await makeCoach(
@@ -51,10 +69,29 @@ extension DurableCalendarWriteTests {
 		let (turn, token) = try await proposal(on: fixture.coach, model: fixture.model)
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		defer { approving.cancel() }
-		_ = await store.reached.first { _ in true }
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) {
+				await store.reached.first { _ in true } != nil
+			} == true,
+			"Calendar write fixture did not park within five seconds")
 		faults.failNextAppend = true
 		store.release()
-		#expect(await approving.value == .storageUnavailable)
+		let outcome = try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approving.cancel()
+					store.release()
+				}
+			) { await approving.value },
+			"Calendar approval did not finish within five seconds")
+		#expect(outcome == .storageUnavailable)
 		#expect(server.posts.isEmpty)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.token == token)
 		await fixture.coach.stop(.main)

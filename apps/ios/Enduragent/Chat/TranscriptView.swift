@@ -34,9 +34,7 @@ struct TranscriptView: View {
 						ConfirmedPreviewCard(model: model, review: review)
 							.fixedSize(horizontal: false, vertical: true)
 					}
-					if let notice = model.reviewNotice,
-						model.chat?.review?.notice?.kind != .storageUnavailable
-					{
+					if let notice = model.reviewNotice {
 						Text(notice.sentence(in: model.phrasebook))
 							.accessibilityIdentifier("chat.review.notice")
 					}

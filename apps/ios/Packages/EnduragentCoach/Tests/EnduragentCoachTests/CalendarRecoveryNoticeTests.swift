@@ -71,11 +71,29 @@ import Testing
 		let fixture = await helpers.fixture(url: url, store: held)
 		let (turn, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
 		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
-		await gate.waitUntilParked()
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approval.cancel()
+					gate.release()
+				}
+			) {
+				await gate.reached.first { _ in true } != nil
+			} == true,
+			"Calendar confirmation fixture did not park within five seconds")
 		#expect(server.events.count == 1)
 		try faults.failAppends(ofKind: "reviewApplied")
 		gate.release()
-		let outcome = await approval.value
+		let outcome = try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approval.cancel()
+					gate.release()
+				}
+			) { await approval.value },
+			"Calendar approval did not finish within five seconds")
 		let notice = try #require(outcome.notice)
 		#expect(notice.key == Catalog.reviewWritePending)
 		#expect(!notice.sentence(in: LanguageTag.en.phrasebook).contains("Please try again"))
@@ -101,7 +119,15 @@ import Testing
 		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try await waitUntil { server.posts.count == 1 }
 		approval.cancel()
-		_ = await approval.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approval.cancel()
+					server.release()
+				}
+			) { await approval.value } != nil,
+			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
@@ -146,7 +172,15 @@ import Testing
 		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try await waitUntil { server.posts.count == 1 }
 		approval.cancel()
-		_ = await approval.value
+		try #require(
+			try await beforeDeadline(
+				within: .seconds(5),
+				onTimeout: {
+					approval.cancel()
+					server.release()
+				}
+			) { await approval.value } != nil,
+			"Calendar approval did not finish within five seconds")
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
