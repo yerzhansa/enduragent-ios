@@ -27,4 +27,22 @@ import Testing
 		store.release()
 		try await append.value
 	}
+	@Test func cancellingOneWaiterKeepsTheOtherParked() async throws {
+		let gate = Gate()
+		let completed = Mutex(false)
+		let cancelled = Task { try await gate.waitUnlessCancelled() }
+		await gate.waitUntilParked()
+		let remaining = Task {
+			await gate.wait()
+			completed.withLock { $0 = true }
+		}
+		await gate.waitUntilParked()
+		cancelled.cancel()
+		await #expect(throws: CancellationError.self) { try await cancelled.value }
+		#expect(!completed.withLock { $0 })
+		gate.release()
+		await remaining.value
+		#expect(completed.withLock { $0 })
+	}
+
 }

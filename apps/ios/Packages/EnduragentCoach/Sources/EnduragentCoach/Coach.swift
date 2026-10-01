@@ -59,14 +59,10 @@ public actor Coach {
 		self.deviceLanguage = deviceLanguage
 		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
 		self.runner = TurnRunner(
-			transport: transport,
-			ledger: ledger,
-			clock: clock,
-			diagnostics: diagnostics,
-			ladder: .npm,
+			transport: transport, ledger: ledger, clock: clock,
+			diagnostics: diagnostics, ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			watchdogSleep: ports.watchdogSleep
-		)
+			watchdogSleep: ports.watchdogSleep)
 		self.reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }

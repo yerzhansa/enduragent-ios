@@ -1,12 +1,13 @@
+import Foundation
 import Synchronization
 
 final class Gate: Sendable {
 	private enum State {
-		case closed([CheckedContinuation<Void, Never>])
+		case closed([UUID: CheckedContinuation<Void, Never>])
 		case open
 	}
 
-	private let state = Mutex<State>(.closed([]))
+	private let state = Mutex<State>(.closed([:]))
 	let reached: AsyncStream<Void>
 	private let entered: AsyncStream<Void>.Continuation
 
@@ -15,13 +16,28 @@ final class Gate: Sendable {
 	}
 
 	func wait() async {
+		await park(UUID(), cancellable: false)
+	}
+
+	func waitUnlessCancelled() async throws {
+		let id = UUID()
+		await withTaskCancellationHandler {
+			await park(id, cancellable: true)
+		} onCancel: {
+			cancel(id)
+		}
+		try Task.checkCancellation()
+	}
+
+	private func park(_ id: UUID, cancellable: Bool) async {
 		await withCheckedContinuation { continuation in
 			let open = state.withLock { state in
+				if cancellable && Task.isCancelled { return true }
 				switch state {
 				case .open:
 					return true
 				case .closed(var waiters):
-					waiters.append(continuation)
+					waiters[id] = continuation
 					state = .closed(waiters)
 					return false
 				}
@@ -31,13 +47,14 @@ final class Gate: Sendable {
 		}
 	}
 
-	func waitUnlessCancelled() async throws {
-		await withTaskCancellationHandler {
-			await wait()
-		} onCancel: {
-			release()
+	private func cancel(_ id: UUID) {
+		let waiter = state.withLock { state -> CheckedContinuation<Void, Never>? in
+			guard case .closed(var waiters) = state else { return nil }
+			let waiter = waiters.removeValue(forKey: id)
+			state = .closed(waiters)
+			return waiter
 		}
-		try Task.checkCancellation()
+		waiter?.resume()
 	}
 
 	func waitUntilParked() async {
@@ -51,7 +68,7 @@ final class Gate: Sendable {
 				return [CheckedContinuation<Void, Never>]()
 			}
 			state = .open
-			return waiters
+			return Array(waiters.values)
 		}
 		for waiter in waiters { waiter.resume() }
 	}
