@@ -23,9 +23,11 @@ package actor SingleProposalReviews: WorkoutReviews {
 		deliveries[chat]?.busy == true
 	}
 
-	package func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot? {
+	package func snapshot(chat: ChatID, records: [AthleteRecord]? = nil) async throws(LedgerFailure)
+		-> ReviewSnapshot?
+	{
 		let previous = deliveries[chat]?.ref
-		let intents = try await ledger.calendarWrites(chat)
+		let intents = try await ledger.calendarWrites(chat, synced: records)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
 		if let intent = intents.first(where: {
 			$0.body.evidence.dispatched && !$0.body.evidence.applied

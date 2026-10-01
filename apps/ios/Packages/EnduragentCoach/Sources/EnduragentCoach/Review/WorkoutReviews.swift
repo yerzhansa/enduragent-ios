@@ -2,7 +2,8 @@ import Foundation
 
 package protocol WorkoutReviews: Sendable {
 	func isExecuting(in chat: ChatID) async -> Bool
-	func snapshot(chat: ChatID) async throws(LedgerFailure) -> ReviewSnapshot?
+	func snapshot(chat: ChatID, records: [AthleteRecord]?) async throws(LedgerFailure)
+		-> ReviewSnapshot?
 }
 
 extension ReviewDecision {

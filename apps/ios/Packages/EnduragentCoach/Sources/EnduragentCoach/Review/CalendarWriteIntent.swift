@@ -15,9 +15,19 @@ struct CalendarWriteIntent: Sendable {
 }
 
 extension Ledger {
-	func calendarWrites(_ chat: ChatID) async throws(LedgerFailure) -> [CalendarWriteIntent] {
-		let records = try await read(RecordQuery(scope: .synced([.reviewWrite]), chatId: chat))
-			.records
+	func calendarWrites(_ chat: ChatID, synced: [AthleteRecord]? = nil) async throws(LedgerFailure)
+		-> [CalendarWriteIntent]
+	{
+		let records: [AthleteRecord]
+		if let synced {
+			records = synced.filter {
+				guard case .synced(.reviewWrite(let body)) = $0.body else { return false }
+				return body.chatId == chat
+			}
+		} else {
+			records = try await read(RecordQuery(scope: .synced([.reviewWrite]), chatId: chat))
+				.records
+		}
 		guard !records.isEmpty else { return [] }
 		let local = try await read(ProposalPolicy.proposalQuery(chat)).records
 		var intents: [CalendarWriteKey: CalendarWriteIntent] = [:]

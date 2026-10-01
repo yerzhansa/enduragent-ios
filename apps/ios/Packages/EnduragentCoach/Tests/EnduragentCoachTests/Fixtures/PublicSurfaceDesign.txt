@@ -65,6 +65,7 @@ ChatActivity.startingNewConversation
 ChatActivity.stopping
 ChatActivity.working
 ChatSnapshot
+ChatSnapshot.==(_:_:)
 ChatSnapshot.activity
 ChatSnapshot.chat
 ChatSnapshot.liveReply
