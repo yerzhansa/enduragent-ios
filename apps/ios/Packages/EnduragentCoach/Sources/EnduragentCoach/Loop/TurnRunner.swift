@@ -307,10 +307,11 @@ package struct TurnRunner: Sendable {
 		}
 		let records = try await ledger.commit(
 			synced: windows + [
-				.compactionSummary(CompactionSummaryBody(chatId: attempt.chat, markdown: summary))
+				.compactionSummary(
+					CompactionSummaryBody(chatId: attempt.chat, markdown: summary.markdown))
 			],
 			stamp: scope.stamp)
-		return (summary, records)
+		return (summary.markdown, records)
 	}
 
 	func tools(for attempt: TurnAttempt) -> ToolRuntime {
