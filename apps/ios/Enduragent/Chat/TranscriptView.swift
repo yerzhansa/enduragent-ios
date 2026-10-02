@@ -39,7 +39,7 @@ struct TranscriptView: View {
 					if let notice = model.reviewNotice,
 						model.chat?.review?.notice?.kind != .storageUnavailable
 					{
-						Text(notice.sentence(in: model.phrasebook))
+						Text(notice.sentence(in: model.displayLocale))
 							.accessibilityIdentifier("chat.review.notice")
 						if let action = notice.action {
 							Button(model.phrasebook.say(action.title)) {
@@ -102,7 +102,7 @@ struct TranscriptView: View {
 
 	private func notes(after turn: TurnID?) -> some View {
 		ForEach(model.chat?.notes[turn] ?? []) { note in
-			Text(note.sentence(in: model.phrasebook))
+			Text(note.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.note")
 		}
 	}

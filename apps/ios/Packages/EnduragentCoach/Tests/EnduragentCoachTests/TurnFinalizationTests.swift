@@ -27,7 +27,7 @@ extension SwiftDataSuites {
 			let settled = try await coach.sendAndSettle("Recueille mes données")
 			let snapshot = try #require(await coach.currentSnapshot(.main))
 			let turn = try #require(snapshot.turns.first?.id)
-			let french = await coach.languagePreference().phrasebook(device: .en)
+			let french = try await coach.observedStatus().displayLocale.phrasebook
 			let empty = finalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 			let expected = empty ? frenchFallback : finalText
 			guard case .completed(let completed) = settled else {
@@ -75,7 +75,7 @@ extension SwiftDataSuites {
 			let restoredTurn = try #require(restored.turns.first)
 			#expect(restoredTurn.id == turn)
 			#expect(restoredTurn.state == settled)
-			let restoredFrench = await relaunched.languagePreference().phrasebook(device: .en)
+			let restoredFrench = try await relaunched.observedStatus().displayLocale.phrasebook
 			#expect(restoredFrench.tag == .fr)
 			#expect(visibleReply(restoredTurn.state, in: restoredFrench) == expected)
 			#expect(try await relaunched.memory.prompt().view == memory)

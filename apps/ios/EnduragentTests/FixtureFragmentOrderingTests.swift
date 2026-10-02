@@ -10,7 +10,7 @@ extension FixtureLaunchTests {
 		launch.coalescing = CoalescingPolicy(window: .seconds(60))
 		let services = try fixtureServices(launch, defaults: defaults)
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()

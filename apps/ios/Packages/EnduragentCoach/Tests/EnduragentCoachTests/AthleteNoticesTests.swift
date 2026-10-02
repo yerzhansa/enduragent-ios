@@ -191,7 +191,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	func everyNoticeRendersItsEnglishAndAction(row: NoticeRow) throws {
 		let state = settledState(row.settlement)
 		let shown = try #require(turnNotice(of: state))
-		#expect(shown.sentence(in: english) == row.sentence)
+		#expect(shown.sentence(in: displayLocale()) == row.sentence)
 		#expect(shown.action == row.action)
 		#expect(shown.action.map { english.say($0.title) } == row.button)
 	}
@@ -200,7 +200,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
 		for row in NoticeRow.all {
 			let shown = try #require(turnNotice(of: settledState(row.settlement)))
-			let copy = shown.sentence(in: tag.phrasebook)
+			let copy = shown.sentence(in: displayLocale(tag))
 			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
 		}
 	}
@@ -226,7 +226,9 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			of: claimedFacts(by: ProcessID(ulid: fixedUlid(61))), live: nil,
 			overlay: .notInThisProcess, device: phone, process: thisProcess)
 		let shown = try #require(turnNotice(of: state))
-		#expect(shown.sentence(in: english) == "Conversation history is temporarily unavailable.")
+		#expect(
+			shown.sentence(in: displayLocale())
+				== "Conversation history is temporarily unavailable.")
 		#expect(shown.action == nil)
 	}
 
@@ -251,7 +253,7 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		for overlay in [TurnOverlay.notInThisProcess, .waitingToTryAgain] {
 			let state = settledState(.failed(failure, saved: memorySaved), overlay: overlay)
 			let shown = try #require(turnNotice(of: state))
-			#expect(shown.sentence(in: english) == sentence)
+			#expect(shown.sentence(in: displayLocale()) == sentence)
 			#expect(shown.action == action)
 		}
 	}
@@ -273,12 +275,12 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			waiting: false)
 		#expect(seconds.key == Catalog.coachErrorRateLimitSeconds)
 		#expect(seconds.count == 7)
-		#expect(seconds.vars == ["seconds": "7"])
+		#expect(seconds.vars == ["seconds": .integer(7)])
 		let minutes = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, waiting: false)
 		#expect(minutes.key == Catalog.coachErrorRateLimitMinutes)
 		#expect(minutes.count == 2)
-		#expect(minutes.vars == ["minutes": "2"])
+		#expect(minutes.vars == ["minutes": .integer(2)])
 		let fallback = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: nil)), turn: turn, waiting: false)
 		#expect(fallback.key == Catalog.coachErrorRateLimitDefault)
@@ -290,7 +292,8 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			.model(.rateLimited(retryAfter: .seconds(7))), saved: .none)
 		let waiting = settledState(failure, overlay: .waitingToTryAgain)
 		let shown = try #require(turnNotice(of: waiting))
-		#expect(shown.sentence(in: english) == "Rate limited — please try again in ~7 seconds.")
+		#expect(
+			shown.sentence(in: displayLocale()) == "Rate limited — please try again in ~7 seconds.")
 		#expect(shown.action == .wait(thenTryAgain: turn))
 		#expect(shown.action.map { english.say($0.title) } == tryAgain)
 		#expect(turnNotice(of: settledState(failure))?.action == .tryAgain(turn))
@@ -302,19 +305,22 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	@Test func creditsFailuresOutsideATurnReadCatalogSentences() {
 		let unavailable = "Credits are unavailable right now. Try again later."
 		for failure in [CreditsFailure.banned, .unavailable, .unexpectedResponse(status: 500)] {
-			#expect(AthleteNotice.credits(failure: failure).sentence(in: english) == unavailable)
+			#expect(
+				AthleteNotice.credits(failure: failure).sentence(in: displayLocale()) == unavailable
+			)
 		}
 		#expect(
-			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(in: english)
+			AthleteNotice.credits(failure: CreditsFailure.noAthleteKey).sentence(
+				in: displayLocale())
 				== notConfigured)
 		let changed = AthleteNotice.credits(failure: CreditsFailure.accountChanged)
 		#expect(
-			changed.sentence(in: english)
+			changed.sentence(in: displayLocale())
 				== "Your Credits account changed while this request was finishing. Your current account was kept."
 		)
 		#expect(changed.action == nil)
 		let locked = AthleteNotice.credits(failure: AccessUnavailable.secureStorageLocked)
-		#expect(locked.sentence(in: english) == lockedSentence)
+		#expect(locked.sentence(in: displayLocale()) == lockedSentence)
 		#expect(locked.action == nil)
 	}
 
@@ -325,13 +331,14 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
 			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
-			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults)
-		#expect(locked.notice?.sentence(in: english) == lockedSentence)
+			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults,
+			resolve: testDisplayLocale)
+		#expect(locked.notice?.sentence(in: displayLocale()) == lockedSentence)
 		let offline = CoachStatus(
 			setup: .ready, training: .connected(summary, account: account),
-			preferences: .npmDefaults)
+			preferences: .npmDefaults, resolve: testDisplayLocale)
 		#expect(
-			offline.notice?.sentence(in: english)
+			offline.notice?.sentence(in: displayLocale())
 				== "Your athlete profile is temporarily unavailable. Try again.")
 		let rejected = CoachStatus(
 			setup: .ready,
@@ -340,15 +347,21 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 					connectionID: testConnection.id, keySuffix: "-key",
 					profile: .failed(.credentialRejected)),
 				account: account),
-			preferences: .npmDefaults)
-		#expect(rejected.notice?.sentence(in: english) == "intervals.icu did not accept that key.")
+			preferences: .npmDefaults, resolve: testDisplayLocale)
+		#expect(
+			rejected.notice?.sentence(in: displayLocale())
+				== "intervals.icu did not accept that key.")
 		#expect(
 			CoachStatus(
-				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults
+				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults,
+				resolve: testDisplayLocale
 			)
 			.notice == nil)
 		#expect(
-			CoachStatus(setup: .ready, training: .unconnected, preferences: .npmDefaults).notice
+			CoachStatus(
+				setup: .ready, training: .unconnected, preferences: .npmDefaults,
+				resolve: testDisplayLocale
+			).notice
 				== nil)
 	}
 }

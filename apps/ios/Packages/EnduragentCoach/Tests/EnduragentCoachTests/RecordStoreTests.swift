@@ -81,7 +81,8 @@ extension SwiftDataSuites {
 						credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 						clock: FixedClock(
 							now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
-					builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
+					builtInModel: testModel, displayLocale: testDisplayLocale,
+					coalescing: quickWindow))
 		}
 	}
 }

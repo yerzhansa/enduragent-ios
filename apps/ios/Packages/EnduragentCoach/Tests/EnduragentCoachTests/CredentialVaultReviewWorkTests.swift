@@ -24,7 +24,7 @@ extension CredentialVaultTests {
 					},
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: clock),
-				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
+				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 		let review = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)

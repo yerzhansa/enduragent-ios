@@ -53,7 +53,7 @@ import Testing
 		let outcome = await coach.decide(.checkAgain(pending.ref), in: .main)
 		let notice = try #require(outcome.notice)
 		#expect(notice.key == Catalog.reviewWriteReadFailed)
-		#expect(!notice.sentence(in: LanguageTag.en.phrasebook).contains("nothing was changed"))
+		#expect(!notice.sentence(in: displayLocale()).contains("nothing was changed"))
 		#expect(server.events.count == 1)
 		#expect(server.posts.count == 1)
 		#expect(turnNotice(of: try #require(await coach.state(of: turn)))?.action == nil)
@@ -96,7 +96,7 @@ import Testing
 			"Calendar approval did not finish within five seconds")
 		let notice = try #require(outcome.notice)
 		#expect(notice.key == Catalog.reviewWritePending)
-		#expect(!notice.sentence(in: LanguageTag.en.phrasebook).contains("Please try again"))
+		#expect(!notice.sentence(in: displayLocale()).contains("Please try again"))
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
@@ -150,7 +150,7 @@ import Testing
 		#expect(await reopened.currentSnapshot(.main)?.review == nil)
 		#expect(
 			await reopened.currentSnapshot(.main)?.notes.values.flatMap { $0 }.map {
-				$0.sentence(in: LanguageTag.en.phrasebook)
+				$0.sentence(in: displayLocale())
 			} == [CancelUnknownSaveTests.sentence])
 		server.release()
 		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)

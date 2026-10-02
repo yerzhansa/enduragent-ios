@@ -33,8 +33,13 @@ extension FixtureLaunchTests {
 		try #require((override.map { setenv(name, $0, 1) } ?? unsetenv(name)) == 0)
 		try #require(ProcessInfo.processInfo.environment[name] == override)
 		try await services().coach.setLanguage(preference)
-		let launched = await AppLaunch.open(systemLanguages: preferredLanguages) { language in
-			(try fixtureServices(launch, defaults: defaults, language: language), defaults)
+		let launched = await AppLaunch.open(
+			displayLocale: testLocaleResolver(languages: preferredLanguages)
+		) { displayLocale in
+			(
+				try fixtureServices(launch, defaults: defaults, displayLocale: displayLocale),
+				defaults
+			)
 		}
 		guard case .ready(let opened) = launched else {
 			Issue.record("The language preference did not reopen into a ready shell")
@@ -56,16 +61,6 @@ extension FixtureLaunchTests {
 			instruction.contains(
 				"Write every athlete-facing sentence in \(expected.englishName), even when the athlete writes in another language."
 			))
-		switch preference {
-		case .automatic:
-			#expect(
-				instruction.hasPrefix(
-					"Automatic follows the iPhone's preferred languages. Reply in \(expected.englishName) (\(expected.endonym))."
-				))
-		case .fixed:
-			#expect(
-				instruction.hasPrefix(
-					"The athlete chose \(expected.englishName) (\(expected.endonym))."))
-		}
+		#expect(instruction.hasPrefix("Reply in \(expected.englishName) (\(expected.endonym))."))
 	}
 }

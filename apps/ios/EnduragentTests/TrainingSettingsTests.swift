@@ -19,7 +19,7 @@ struct TrainingSettingsTests {
 		let draft: Draft
 		do {
 			let services = try harness.services()
-			let model = harness.model(services)
+			let model = await harness.model(services)
 			model.continueNotice()
 			model.connectKey = "fixture"
 			await model.connect()
@@ -48,8 +48,8 @@ struct TrainingSettingsTests {
 			model.open(.training)
 		}
 		let (services, defaults) = try await harness.relaunch(.keep)
-		let model = fixtureModel(
-			environment: AppEnvironment(services: services, language: .en, defaults: defaults))
+		let model = await fixtureModel(
+			environment: AppEnvironment(services: services, defaults: defaults))
 		try await harness.observed(model)
 		model.open(.settings)
 		model.open(.training)
@@ -83,8 +83,8 @@ struct TrainingSettingsTests {
 		let fixture = try #require(model.services.fixture)
 		let previous = try #require(try fixture.secrets.intervalsConnection())
 		let identity = try await model.services.coach.creditsIdentity()
-		let setup = model.status?.setup
-		let session = model.status?.session
+		let setup = model.status.setup
+		let session = model.status.session
 		let editor = model.trainingSettings
 		editor.edit()
 		editor.key = "fixture-rotated"
@@ -117,8 +117,8 @@ struct TrainingSettingsTests {
 		#expect(try await lastClaim(model) == "unconnected")
 		#expect(model.chat?.turns.count == 3)
 		#expect(try await model.services.coach.creditsIdentity() == identity)
-		#expect(model.status?.setup == setup)
-		#expect(model.status?.session == session)
+		#expect(model.status.setup == setup)
+		#expect(model.status.session == session)
 		await model.loadHistory()
 		#expect(model.history == .loaded([]))
 	}
@@ -181,7 +181,7 @@ struct TrainingSettingsTests {
 		fixture.intervals.setProfileOutcome(
 			.failure(
 				IntervalsError(code: "http", details: "unavailable", status: rejected ? 401 : 503)))
-		let model = harness.model(services)
+		let model = await harness.model(services)
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
 		model.open(.settings)
@@ -250,7 +250,7 @@ struct TrainingSettingsTests {
 	}
 
 	@Test func unconnectedCalendarNoticeOpensConnectAboveChat() async throws {
-		let model = harness.model(try harness.services())
+		let model = await harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
 		model.draft.text =
@@ -277,7 +277,7 @@ struct TrainingSettingsTests {
 	}
 
 	private func connectedModel() async throws -> ShellModel {
-		let model = harness.model(try harness.services())
+		let model = await harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
 		model.open(.settings)

@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -172,10 +173,10 @@ import Testing
 		#expect(review.ref.chat == "main")
 		let card = try #require(review.cards.first)
 		#expect(card.action == .add)
-		#expect(card.name.sentence(in: LanguageTag.en.phrasebook) == "Endurance")
+		#expect(card.name.sentence(in: displayLocale()) == "Endurance")
 		#expect(card.date == "1998-06-14")
 		#expect(
-			card.lines(in: LanguageTag.en.phrasebook).joined(separator: "\n").hasPrefix(
+			card.lines(in: displayLocale()).joined(separator: "\n").hasPrefix(
 				"Warmup\n- 10m 55-65%"))
 		#expect(
 			review.totals
@@ -207,7 +208,7 @@ import Testing
 		let coach = await makeCoach()
 		let review = try await proposeEnduranceRide(coach)
 		#expect(
-			review.cards.map { $0.name.sentence(in: LanguageTag.en.phrasebook) } == ["Endurance"])
+			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Endurance"])
 		#expect(
 			await coach.transcript(.main).contains("I've prepared the ride. Confirm to add it."))
 	}

@@ -113,16 +113,18 @@ public struct CoachStatus: Sendable, Equatable {
 	public let training: TrainingStatus
 	public let language: LanguagePreference
 	public let session: SessionSettings
+	public let displayLocale: DisplayLocale
 
 	package init(
 		setup: SetupState, training: TrainingStatus, preferences: Preferences,
-		providerConsent: ProviderConsent? = nil
+		providerConsent: ProviderConsent? = nil, resolve: DisplayLocaleResolver
 	) {
 		self.providerConsent = providerConsent
 		self.setup = setup
 		self.training = training
 		self.language = preferences.language
 		self.session = preferences.session
+		self.displayLocale = resolve(preferences.language)
 	}
 
 	public var notice: AthleteNotice? {
@@ -251,13 +253,14 @@ public struct TranscriptNote: Sendable, Equatable, Identifiable {
 		case cancelledUnknown(CancelledUnknownReview)
 	}
 
-	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+	public func sentence(in display: DisplayLocale) -> String {
 		switch content {
 		case .applied(let summary):
-			phrasebook.say(
-				Catalog.coachConfirmationExecuted, ["summary": summary.sentence(in: phrasebook)])
+			display.say(
+				Catalog.coachConfirmationExecuted, ["summary": .text(summary.sentence(in: display))]
+			)
 		case .cancelledUnknown:
-			phrasebook.say(Catalog.reviewCancelledUnknown)
+			display.say(Catalog.reviewCancelledUnknown)
 		}
 	}
 }

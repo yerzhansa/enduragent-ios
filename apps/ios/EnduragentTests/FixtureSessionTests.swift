@@ -26,17 +26,17 @@ extension FixtureLaunchTests {
 	@Test func languageChoiceRewritesTheChatAndTheNextReplyRequest() async throws {
 		do {
 			let services = try services()
-			let model = model(services)
+			let model = await model(services)
 			await model.agreeAndStartChatting()
 			#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Chat")
 			model.draft.text = "/language"
 			await model.send()
 			#expect(model.showLanguage)
 			#expect(model.draft.text.isEmpty)
-			#expect(model.status?.language == .automatic)
+			#expect(model.status.language == .automatic)
 			await model.chooseLanguage(.fixed(.fr))
 			try await model.waitForStatus { $0.language == .fixed(.fr) }
-			#expect(model.status?.language == .fixed(.fr))
+			#expect(model.status.language == .fixed(.fr))
 			#expect(model.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 			#expect(
 				model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
@@ -46,21 +46,21 @@ extension FixtureLaunchTests {
 			_ = try await settledTurn(model)
 			#expect(
 				services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
-					"The athlete chose French (Français).") == true)
+					"Reply in French (Français).") == true)
 		}
 		let (kept, keptDefaults) = try await relaunch(.keep)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: kept, defaults: keptDefaults))
 		#expect(reopened.route == .loading)
 		await reopened.appear()
 		#expect(reopened.route == .chat)
-		#expect(reopened.status?.language == .fixed(.fr))
+		#expect(reopened.status.language == .fixed(.fr))
 		#expect(reopened.phrasebook.say(Catalog.chatViewTitle, [:]) == "Conversation")
 	}
 
 	@Test func aLanguageThatCannotBeSavedKeepsTheCurrentChoice() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let records = try #require(services.fixtureRecordFaults)
 		try records.failAppends(ofKind: "languagePreference")
@@ -69,7 +69,7 @@ extension FixtureLaunchTests {
 			model.languageNotSavedLine
 				== "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
 		)
-		#expect(model.status?.language == .automatic)
+		#expect(model.status.language == .automatic)
 		model.draft.text = "/language"
 		await model.send()
 		#expect(model.languageNotSavedLine == nil)
@@ -78,13 +78,13 @@ extension FixtureLaunchTests {
 	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
 		do {
 			let services = try services()
-			let model = model(services)
+			let model = await model(services)
 			await model.agreeAndStartChatting()
 			let stored = try #require(model.status).session
 			#expect(stored.text(for: .contextWindowOverride) == "")
 			try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
 			try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
-			#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
+			#expect(model.status.session.contextWindowOverride?.tokens == 64_000)
 		}
 		let (kept, _) = try await relaunch(.keep)
 		#expect(
@@ -97,16 +97,16 @@ extension FixtureLaunchTests {
 		evening.clock = "1998-06-15T18:00:00Z"
 		let earlier: TurnView
 		do {
-			let first = model(try fixtureServices(evening, defaults: defaults))
+			let first = await model(try fixtureServices(evening, defaults: defaults))
 			await first.agreeAndStartChatting()
 			first.draft.text = TutorialCopy.weekQuestion
 			await first.send()
 			earlier = try await settledTurn(first)
 		}
 		let (morning, keptDefaults) = try await relaunch(.keep, clock: "1998-06-16T07:00:00Z")
-		let second = fixtureModel(
+		let second = await fixtureModel(
 			environment: AppEnvironment(
-				services: morning, language: language, defaults: keptDefaults))
+				services: morning, defaults: keptDefaults))
 		try await observed(second)
 		second.draft.text = TutorialCopy.weekQuestion
 		await second.send()

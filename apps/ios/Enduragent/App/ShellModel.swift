@@ -24,7 +24,7 @@ final class ShellModel {
 		get { submission.slashListVisible }
 		set { submission.slashListVisible = newValue }
 	}
-	private(set) var status: CoachStatus?
+	private(set) var status: CoachStatus
 	var newConversationUncertain: Bool { submission.isUncertain(chat?.reset) }
 	private var reviewOutcomeNotice: AthleteNotice?
 
@@ -36,13 +36,16 @@ final class ShellModel {
 	private let onboarding: OnboardingModel
 	private let credits: CreditsModel
 	private let archive: HistoryModel
-	private let initialLanguage: LanguagePreference
+	private var statuses: AsyncStream<CoachStatus>.Iterator
 	private var observation: Task<Void, Never>?
-	private var statusStart: Task<Void, Never>?
 	private var statusObservation: Task<Void, Never>?
 
-	init(environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic) {
-		self.initialLanguage = initialLanguage
+	private init(
+		environment: AppEnvironment, status: CoachStatus,
+		statuses: AsyncStream<CoachStatus>.Iterator
+	) {
+		self.status = status
+		self.statuses = statuses
 		self.environment = environment
 		self.lifecycle = AppLifecycle(environment: environment)
 		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
@@ -57,7 +60,6 @@ final class ShellModel {
 
 	isolated deinit {
 		observation?.cancel()
-		statusStart?.cancel()
 		statusObservation?.cancel()
 	}
 
@@ -70,7 +72,7 @@ final class ShellModel {
 
 	var connectError: String? { onboarding.connectError }
 	var didConnect: Bool { onboarding.didConnect }
-	var starterLine: String? { onboarding.starterLine }
+	var starterLine: String? { onboarding.starterNotice?.sentence(in: displayLocale) }
 	var starterResolved: Bool { onboarding.starterResolved }
 	var consentNotSaved: Bool { onboarding.consentNotSaved }
 	var isRecordingConsent: Bool { onboarding.isRecordingConsent }
@@ -85,11 +87,13 @@ final class ShellModel {
 	}
 
 	var languagePreference: LanguagePreference {
-		status?.language ?? initialLanguage
+		status.language
 	}
 
+	var displayLocale: DisplayLocale { status.displayLocale }
+
 	var phrasebook: CatalogPhrasebook {
-		languagePreference.phrasebook(device: environment.language)
+		displayLocale.phrasebook
 	}
 
 	var reviewNotice: AthleteNotice? {
@@ -97,7 +101,7 @@ final class ShellModel {
 		if let cardNotice = chat?.review?.notice,
 			cardNotice.kind == .storageUnavailable
 				|| (cardNotice.key == reviewOutcomeNotice.key
-					&& cardNotice.vars == reviewOutcomeNotice.vars)
+					&& cardNotice.vars.mapValues(CatalogArgument.text) == reviewOutcomeNotice.vars)
 		{
 			return nil
 		}
@@ -109,7 +113,7 @@ final class ShellModel {
 	}
 
 	var connected: IntervalsSummary? {
-		guard case .connected(let summary, _)? = status?.training else { return nil }
+		guard case .connected(let summary, _) = status.training else { return nil }
 		return summary
 	}
 
@@ -150,28 +154,29 @@ final class ShellModel {
 	}
 
 	func loadStarter() async {
-		await onboarding.loadStarter { phrasebook }
+		await onboarding.loadStarter()
+	}
+
+	static func open(environment: AppEnvironment, statuses: AsyncStream<CoachStatus>) async
+		-> ShellModel
+	{
+		var iterator = statuses.makeAsyncIterator()
+		guard let first = await iterator.next() else {
+			preconditionFailure("The coach status subscription must provide its initial snapshot")
+		}
+		return ShellModel(environment: environment, status: first, statuses: iterator)
 	}
 
 	func appear() async {
-		let coach = services.coach
-		let starting =
-			statusStart
-			?? Task { [weak self] in
-				var snapshots = await coach.observeStatus().makeAsyncIterator()
-				guard let first = await snapshots.next(), let self, !Task.isCancelled else {
-					return
-				}
-				self.receiveStatus(first)
-				self.statusObservation = Task { [weak self] in
-					while let snapshot = await snapshots.next(isolation: MainActor.shared) {
-						guard let self, !Task.isCancelled else { return }
-						self.receiveStatus(snapshot)
-					}
-				}
+		guard statusObservation == nil else { return }
+		var snapshots = statuses
+		statusObservation = Task { [weak self] in
+			while let snapshot = await snapshots.next(isolation: MainActor.shared) {
+				guard let self, !Task.isCancelled else { return }
+				self.receiveStatus(snapshot)
 			}
-		statusStart = starting
-		await starting.value
+		}
+		updateRoute()
 	}
 
 	private func receiveStatus(_ current: CoachStatus) {
@@ -180,7 +185,6 @@ final class ShellModel {
 	}
 
 	private func updateRoute() {
-		guard let status else { return }
 		switch route {
 		case .loading, .chat, .onboarding(.consent), .onboarding(.consentDeferred):
 			if status.needsProviderConsent {

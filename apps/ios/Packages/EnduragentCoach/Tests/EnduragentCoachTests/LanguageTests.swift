@@ -90,14 +90,14 @@ import Testing
 			], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: transport, store: store)
-		let automatic = try await coach.observedStatus().language
-		#expect(automatic == .automatic)
-		#expect(automatic.phrasebook(device: .en).say(Catalog.chatViewTitle) == "Chat")
+		let automatic = try await coach.observedStatus()
+		#expect(automatic.language == .automatic)
+		#expect(automatic.displayLocale.phrasebook.say(Catalog.chatViewTitle) == "Chat")
 		_ = try await coach.sendAndSettle("How was my week?")
 		try await coach.setLanguage(.fixed(.fr))
-		let chosen = try await coach.observedStatus().language
-		#expect(chosen == .fixed(.fr))
-		let french = chosen.phrasebook(device: .en)
+		let chosen = try await coach.observedStatus()
+		#expect(chosen.language == .fixed(.fr))
+		let french = chosen.displayLocale.phrasebook
 		#expect(french.say(Catalog.chatViewTitle) == "Conversation")
 		#expect(french.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
 		#expect(
@@ -109,9 +109,8 @@ import Testing
 		_ = try await coach.sendAndSettle("How was my week?")
 		let systems = sent(.chatAttempt, by: transport).compactMap { $0.messages.first?.content }
 		try #require(systems.count == 2)
-		#expect(systems[0].contains("Automatic follows the iPhone's preferred languages."))
 		#expect(systems[0].contains("Reply in English (English)."))
-		#expect(systems[1].contains("The athlete chose French (Français)."))
+		#expect(systems[1].contains("Reply in French (Français)."))
 		#expect(
 			try await makeCoach(transport: FakeModelTransport(), store: store).observedStatus()
 				.language
@@ -140,9 +139,13 @@ import Testing
 		expected: LanguageTag, placeholder: String
 	) async throws {
 		let transport = FakeModelTransport()
-		let device = Language.uiTag(systemLanguages: preferredLanguages)
 		let coach = await makeCoach(
-			transport: transport, store: InMemoryRecordLog(), deviceLanguage: device)
+			transport: transport, store: InMemoryRecordLog(),
+			displayLocale: {
+				DisplayLocale(
+					preference: $0, preferredLanguages: preferredLanguages,
+					regionalConventions: Locale(identifier: "en_US"))
+			})
 		try await coach.setLanguage(preference)
 		for message in messages {
 			transport.respond = ScriptedReply.sequence(
@@ -150,7 +153,7 @@ import Testing
 			_ = try await coach.sendAndSettle(message)
 			let status = try await coach.observedStatus()
 			#expect(status.language == preference)
-			let phrasebook = status.language.phrasebook(device: device)
+			let phrasebook = status.displayLocale.phrasebook
 			#expect(phrasebook.tag == expected)
 			#expect(phrasebook.say(Catalog.chatComposerMessagePlaceholder) == placeholder)
 			let system = try #require(
@@ -159,17 +162,7 @@ import Testing
 				system.contains(
 					"Write every athlete-facing sentence in \(expected.englishName), even when the athlete writes in another language."
 				))
-			switch preference {
-			case .automatic:
-				#expect(
-					system.contains(
-						"Automatic follows the iPhone's preferred languages. Reply in \(expected.englishName) (\(expected.endonym))."
-					))
-			case .fixed:
-				#expect(
-					system.contains(
-						"The athlete chose \(expected.englishName) (\(expected.endonym))."))
-			}
+			#expect(system.contains("Reply in \(expected.englishName) (\(expected.endonym))."))
 		}
 	}
 
@@ -198,7 +191,7 @@ import Testing
 		#expect(try await coach.observedStatus().language == .fixed(.it))
 		_ = try await coach.sendAndSettle("How was my week?")
 		let system = try #require(sent(.chatAttempt, by: transport).first?.messages.first?.content)
-		#expect(system.contains("The athlete chose Italian (Italiano)."))
+		#expect(system.contains("Reply in Italian (Italiano)."))
 		try await coach.setLanguage(.automatic)
 		#expect(
 			try await makeCoach(transport: transport, store: store).observedStatus().language

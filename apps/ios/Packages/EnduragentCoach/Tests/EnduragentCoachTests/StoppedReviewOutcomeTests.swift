@@ -43,7 +43,7 @@ extension RetryLadderTests {
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(interrupted.notice.action == nil)
 		#expect(
-			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
+			interrupted.notice.sentence(in: displayLocale())
 				== "The calendar change may have been saved. Check your calendar before asking again."
 		)
 		for current in [coach] + (await reopenedApprovalCoaches(intervals: intervals)) {

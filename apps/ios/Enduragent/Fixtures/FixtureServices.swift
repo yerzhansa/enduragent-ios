@@ -21,7 +21,8 @@
 
 		@MainActor
 		static func fixture(
-			_ launch: FixtureLaunch, defaults: UserDefaults, language: LanguageTag,
+			_ launch: FixtureLaunch, defaults: UserDefaults,
+			displayLocale: @escaping DisplayLocaleResolver,
 			backgroundSystem: any BackgroundSystem
 		) throws -> AppServices {
 			guard launch.name == FixtureLaunch.firstWeekName else {
@@ -77,7 +78,7 @@
 					clock: clock
 				),
 				builtInModel: builtInModel,
-				deviceLanguage: language,
+				displayLocale: displayLocale,
 				coalescing: launch.coalescing
 			)
 			return AppServices(

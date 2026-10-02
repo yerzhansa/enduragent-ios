@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -21,7 +22,7 @@ extension SingleProposalReviewsTests {
 		let notice = try #require(outcome.notice)
 		#expect(notice.key == CatalogKey(rawValue: "review.saveFailed"))
 		#expect(
-			notice.sentence(in: language.phrasebook)
+			notice.sentence(in: displayLocale(language))
 				== (language == .en
 					? "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
 					: "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.")
@@ -73,7 +74,7 @@ extension SingleProposalReviewsTests {
 		#expect(notice.key == Catalog.reviewStorageUnavailable)
 		let lines =
 			[language.phrasebook.say(notice.key, notice.vars)]
-			+ snapshot.notes.values.flatMap { $0 }.map { $0.sentence(in: language.phrasebook) }
+			+ snapshot.notes.values.flatMap { $0 }.map { $0.sentence(in: displayLocale(language)) }
 		#expect(lines == [language.phrasebook.say(Catalog.reviewStorageUnavailable)])
 		#expect(!lines.contains(language.phrasebook.say(Catalog.coachErrorUnknown)))
 		#expect(ada.calls == calls)

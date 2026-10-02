@@ -72,7 +72,7 @@ struct TurnRowView: View {
 
 	private func notice(_ notice: AthleteNotice) -> some View {
 		VStack(alignment: .leading, spacing: 8) {
-			Text(notice.sentence(in: model.phrasebook))
+			Text(notice.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.turn.notice")
 			if let action = notice.action {
 				actionButton(action)

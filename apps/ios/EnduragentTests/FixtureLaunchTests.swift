@@ -35,12 +35,12 @@ final class FixtureLaunchTests {
 		return (try fixtureServices(launch, defaults: defaults), defaults)
 	}
 
-	func model(_ services: AppServices) -> ShellModel {
-		fixtureModel(environment: environment(services))
+	func model(_ services: AppServices) async -> ShellModel {
+		await fixtureModel(environment: environment(services))
 	}
 
 	func environment(_ services: AppServices) -> AppEnvironment {
-		AppEnvironment(services: services, language: language, defaults: defaults)
+		AppEnvironment(services: services, defaults: defaults)
 	}
 
 	func until(
@@ -111,7 +111,7 @@ final class FixtureLaunchTests {
 			try await #require(services.fixture).intervals.fetchAthlete().name
 				== "Ada Kovač")
 		#expect(try await services.coach.observedStatus().training == .unconnected)
-		let model = model(services)
+		let model = await model(services)
 		#expect(model.route == .onboarding(.notice))
 		#expect(model.chat == nil)
 	}
@@ -137,7 +137,7 @@ final class FixtureLaunchTests {
 		var widened = launch
 		widened.coalescing = parsed.coalescing
 		let services = try fixtureServices(widened, defaults: defaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
@@ -149,15 +149,15 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func starterScreenResolvesOnlyAfterGrant() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		#expect(model.starterResolved == false)
 		await model.loadStarter()
 		#expect(model.starterResolved)
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func skippingConnectMovesToStarterWithoutAthlete() throws {
-		let model = model(try services())
+	@Test func skippingConnectMovesToStarterWithoutAthlete() async throws {
+		let model = await model(try services())
 		model.continueNotice()
 		model.connectKey = "abandoned-key"
 		model.skipConnect()
@@ -175,20 +175,20 @@ final class FixtureLaunchTests {
 			CreditsAccount(
 				appAccountToken: UUID(),
 				key: "sk-or-test-0000"))
-		let model = model(services)
+		let model = await model(services)
 		await model.loadStarter()
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func fixtureLaunchStaysOnNotice() throws {
-		let model = model(try services())
+	@Test func fixtureLaunchStaysOnNotice() async throws {
+		let model = await model(try services())
 		#expect(model.route == .onboarding(.notice))
 	}
 
 	@Test func coldStartAfterAV1ChatOpensTheOneConversation() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		defaults.set("restored-chat", forKey: "enduragent.lastChatId")
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		try await observed(model)
 		#expect(model.route == .chat)
@@ -201,8 +201,8 @@ final class FixtureLaunchTests {
 		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let (services, kept) = try await relaunch(.keep)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: services, language: language, defaults: kept))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: services, defaults: kept))
 		await reopened.agreeAndStartChatting()
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
@@ -217,11 +217,11 @@ final class FixtureLaunchTests {
 
 	@Test func coldStartRestoresTheTypedDraft() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let first = model(try services())
+		let first = await model(try services())
 		await first.agreeAndStartChatting()
 		first.draft.text = "Is Thursday still on?"
 		first.draftChanged(from: "")
-		let second = model(try services())
+		let second = await model(try services())
 		try await observed(first)
 		try await observed(second)
 		#expect(second.draft == first.draft)
@@ -230,10 +230,10 @@ final class FixtureLaunchTests {
 
 	@Test func startChattingPersistsSessionForNextLaunch() async throws {
 		let services = try services()
-		let first = model(services)
+		let first = await model(services)
 		await first.agreeAndStartChatting()
 		#expect(first.route == .chat)
-		let second = model(services)
+		let second = await model(services)
 		try await observed(first)
 		try await observed(second)
 		#expect(second.route == .chat)
@@ -241,7 +241,7 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func chooseAccessMethodThenStartChattingKeepsTheConversation() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
@@ -257,7 +257,7 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func newConversationArchivesTheExchangeAndOpensOnTheWelcome() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
@@ -287,7 +287,7 @@ final class FixtureLaunchTests {
 
 	@Test func typedStartClearsTheDraftAndAFailedBoundaryKeepsTheConversation() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
@@ -305,7 +305,7 @@ final class FixtureLaunchTests {
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
 		do {
-			let first = model(try services())
+			let first = await model(try services())
 			await first.agreeAndStartChatting()
 			first.draft.text = TutorialCopy.weekQuestion
 			await first.send()
@@ -318,8 +318,8 @@ final class FixtureLaunchTests {
 		#expect(
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: second, language: language, defaults: kept))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: second, defaults: kept))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.chat == .main)
@@ -327,7 +327,7 @@ final class FixtureLaunchTests {
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
 		do {
-			let first = model(try services())
+			let first = await model(try services())
 			await first.agreeAndStartChatting()
 			first.draft.text = TutorialCopy.weekQuestion
 			await first.send()

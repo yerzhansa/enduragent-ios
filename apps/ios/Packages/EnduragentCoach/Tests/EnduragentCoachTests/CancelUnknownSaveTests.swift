@@ -57,7 +57,7 @@ import Testing
 		#expect(server.state.withLock { $0.requests.count } == calls)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let notes = try #require(await coach.currentSnapshot(.main)?.notes.values.flatMap { $0 })
-		#expect(notes.map { $0.sentence(in: LanguageTag.en.phrasebook) } == [Self.sentence])
+		#expect(notes.map { $0.sentence(in: displayLocale()) } == [Self.sentence])
 		#expect(await coach.decide(.cancel(token), in: .main) == .staleControl)
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		#expect(await coach.decide(.retryRemaining(token), in: .main) == .staleControl)
@@ -74,7 +74,7 @@ import Testing
 		}
 		let restored = try #require(
 			await reopened.currentSnapshot(.main)?.notes.values.flatMap { $0 })
-		#expect(restored.map { $0.sentence(in: LanguageTag.en.phrasebook) } == [Self.sentence])
+		#expect(restored.map { $0.sentence(in: displayLocale()) } == [Self.sentence])
 		server.state.withLock { $0.readResponse = .success }
 		let (freshTurn, fresh) = try await helper.proposal(
 			on: reopened, model: fixture.model, name: "Fresh")
@@ -103,7 +103,7 @@ import Testing
 		let history = try await reopened.history()
 		let archivedRef = try #require(history.first?.id)
 		let archive = try #require(try await reopened.archivedConversation(archivedRef))
-		#expect(archive.notes.map { $0.sentence(in: LanguageTag.en.phrasebook) } == [Self.sentence])
+		#expect(archive.notes.map { $0.sentence(in: displayLocale()) } == [Self.sentence])
 		await reopened.stop(.main)
 	}
 	@Test func failedCancellationMarkerKeepsTheBlockAndReportsStorageFailure() async throws {
@@ -190,7 +190,7 @@ import Testing
 		#expect(snapshots.latest?.review == nil)
 		#expect(
 			snapshots.latest?.notes.values.flatMap { $0 }.map {
-				$0.sentence(in: LanguageTag.en.phrasebook)
+				$0.sentence(in: displayLocale())
 			} == [Self.sentence])
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {

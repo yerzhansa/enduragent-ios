@@ -10,10 +10,10 @@ extension FixtureLaunchTests {
 	) async throws {
 		let services = try services()
 		let fixture = try #require(services.fixture)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		await model.chooseLanguage(.fixed(language))
-		try await until { model.status?.language == .fixed(language) }
+		try await until { model.status.language == .fixed(language) }
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		let ready = try #require(model.chat?.review)
@@ -24,7 +24,7 @@ extension FixtureLaunchTests {
 		let notice = try #require(model.reviewNotice)
 		#expect(notice.key == CatalogKey(rawValue: "review.saveFailed"))
 		#expect(
-			notice.sentence(in: model.phrasebook)
+			notice.sentence(in: model.displayLocale)
 				== (language == .en
 					? "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
 					: "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.")
@@ -42,10 +42,10 @@ extension FixtureLaunchTests {
 	) async throws {
 		let services = try services()
 		let fixture = try #require(services.fixture)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		await model.chooseLanguage(.fixed(language))
-		try await until { model.status?.language == .fixed(language) }
+		try await until { model.status.language == .fixed(language) }
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		let calls = fixture.intervals.calls

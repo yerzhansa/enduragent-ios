@@ -9,8 +9,8 @@ extension FixtureLaunchTests {
 	func stepLimitDirectiveUsesTheChosenLanguage(directive: String) async throws {
 		let services = try services()
 		try await services.coach.setLanguage(.fixed(.fr))
-		let model = fixtureModel(
-			environment: environment(services), initialLanguage: .fixed(.fr))
+		let model = await fixtureModel(
+			environment: environment(services))
 		await model.agreeAndStartChatting()
 		model.draft.text = directive
 		await model.send()

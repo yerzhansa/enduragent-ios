@@ -11,7 +11,7 @@ public actor Coach {
 	private let coalescing: CoalescingPolicy
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
-	private let deviceLanguage: LanguageTag
+	let resolveDisplayLocale: DisplayLocaleResolver
 	let preferences: CoachPreferences
 	let builtInModel: ModelID
 	let vault: CredentialVault
@@ -40,7 +40,7 @@ public actor Coach {
 		sport: SportID,
 		ports: CoachPorts,
 		builtInModel: ModelID,
-		deviceLanguage: LanguageTag,
+		displayLocale: @escaping DisplayLocaleResolver,
 		coalescing: CoalescingPolicy = .npm
 	) {
 		let clock = ports.clock
@@ -63,7 +63,7 @@ public actor Coach {
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
 		self.host = ports.host
-		self.deviceLanguage = deviceLanguage
+		self.resolveDisplayLocale = displayLocale
 		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
 		let reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
@@ -94,6 +94,7 @@ public actor Coach {
 		lifetime.apply(event)
 		switch event {
 		case .becameActive:
+			await refreshDisplayLocale()
 			await recoverOnce()
 		case .willTerminate:
 			let observation = importObservation
@@ -299,7 +300,7 @@ public actor Coach {
 					preferences: { await preferences.load() }, access: access,
 					training: { () async throws(AccessUnavailable) in
 						try await vault.trainingConnection()
-					}, deviceLanguage: deviceLanguage),
+					}, displayLocale: resolveDisplayLocale),
 				reviews: reviews,
 				process: process,
 				host: host,

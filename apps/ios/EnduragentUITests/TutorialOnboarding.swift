@@ -2,7 +2,9 @@ import EnduragentCoach
 import XCTest
 
 extension TutorialHarness {
-	static func completeOnboarding(_ app: XCUIApplication, language: LanguageTag = .en) {
+	static func completeOnboarding(
+		_ app: XCUIApplication, language: LanguageTag = .en, captureSetup: () -> Void = {}
+	) {
 		let phrasebook = CatalogPhrasebook(tag: language)
 		waitForLabel(app, phrasebook.say(Catalog.onboardingNoticeHealth))
 		named(app, "notice.continue").tap()
@@ -25,6 +27,7 @@ extension TutorialHarness {
 		XCTAssertEqual(
 			named(app, "connect.form").label,
 			phrasebook.say(Catalog.onboardingConnectForm, ["value": "-7"]))
+		captureSetup()
 		named(app, "connect.continue").tap()
 		wait(named(app, "starter.credits"))
 		XCTAssertEqual(

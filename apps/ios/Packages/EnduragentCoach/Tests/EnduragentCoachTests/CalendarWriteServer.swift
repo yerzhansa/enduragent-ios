@@ -10,6 +10,7 @@ final class CalendarWriteServer: Sendable {
 		let target: String
 		let method: String
 		let body: JSONValue
+		let bodyBytes: Data
 	}
 
 	enum Response: Sendable {
@@ -97,26 +98,28 @@ final class CalendarWriteServer: Sendable {
 				return
 			}
 			let received = data + (chunk ?? Data())
-			let raw = String(decoding: received, as: UTF8.self)
-			guard let boundary = raw.range(of: "\r\n\r\n") else {
+			guard let boundary = received.range(of: Data("\r\n\r\n".utf8)) else {
 				if complete { connection.cancel() } else { receive(connection, data: received) }
 				return
 			}
-			let header = String(raw[..<boundary.lowerBound])
-			let body = String(raw[boundary.upperBound...])
+			let header = String(decoding: received[..<boundary.lowerBound], as: UTF8.self)
+			let bytes = received[boundary.upperBound...]
 			let length =
 				header.components(separatedBy: "\r\n").first {
 					$0.lowercased().hasPrefix("content-length:")
 				}.flatMap { Int($0.dropFirst(15).trimmingCharacters(in: .whitespaces)) } ?? 0
-			guard body.utf8.count >= length else {
+			guard bytes.count >= length else {
 				receive(connection, data: received)
 				return
 			}
 			do {
 				let parts = header.components(separatedBy: "\r\n")[0].split(separator: " ")
+				let bodyBytes = Data(bytes.prefix(length))
 				let request = Request(
 					target: String(parts[1]), method: String(parts[0]),
-					body: body.isEmpty ? .null : try JSONValue.parse(body))
+					body: bodyBytes.isEmpty
+						? .null : try JSONValue.parse(String(decoding: bodyBytes, as: UTF8.self)),
+					bodyBytes: bodyBytes)
 				respond(connection, to: request)
 			} catch {
 				Issue.record(error)

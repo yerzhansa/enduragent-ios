@@ -9,13 +9,13 @@ struct TrainingSettingsView: View {
 		Form {
 			Section {
 				if let saved = settings.receipt?.saveNotice {
-					Text(saved.sentence(in: model.phrasebook))
+					Text(saved.sentence(in: model.displayLocale))
 						.accessibilityIdentifier("training.saved")
 				}
 				if let summary = model.connected {
 					profile(summary)
 					if let notice = summary.notice {
-						Text(notice.sentence(in: model.phrasebook))
+						Text(notice.sentence(in: model.displayLocale))
 							.accessibilityIdentifier("training.notice")
 					}
 					if let action = summary.action {
@@ -24,9 +24,9 @@ struct TrainingSettingsView: View {
 						}
 						.accessibilityIdentifier("training.displayAction")
 					}
-				} else if case .unavailable? = model.status?.training {
-					if let notice = model.status?.notice {
-						Text(notice.sentence(in: model.phrasebook))
+				} else if case .unavailable = model.status.training {
+					if let notice = model.status.notice {
+						Text(notice.sentence(in: model.displayLocale))
 							.accessibilityIdentifier("training.notice")
 					}
 				} else {
@@ -118,7 +118,7 @@ struct TrainingSettingsView: View {
 	@ViewBuilder
 	private func metric(_ value: Double?, title: CatalogKey, identifier: String) -> some View {
 		if let value {
-			Text(model.phrasebook.say(title, ["value": WellnessDay.formattedNumber(value)]))
+			Text(model.wellnessLine(title, value: value))
 				.accessibilityIdentifier(identifier)
 		}
 	}

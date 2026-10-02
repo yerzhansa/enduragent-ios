@@ -4,36 +4,35 @@ import Foundation
 @MainActor
 enum AppLaunch {
 	case ready(ShellModel)
-	case storageUnavailable(CatalogPhrasebook, failure: any Error)
+	case storageUnavailable(DisplayLocale, failure: any Error)
 
 	static func start() async -> AppLaunch {
-		await open(systemLanguages: Locale.preferredLanguages) { language in
+		await open(displayLocale: AppServices.resolveDisplayLocale) { displayLocale in
 			#if DEBUG
 				if let fixture = try fixtureLaunch() {
 					let defaults = try fixture.prepare()
 					return (
 						try AppServices.fixture(
-							fixture, defaults: defaults, language: language,
+							fixture, defaults: defaults, displayLocale: displayLocale,
 							backgroundSystem: LiveBackgroundSystem()),
 						defaults
 					)
 				}
 			#endif
-			return (try AppServices.live(language: language), .standard)
+			return (try AppServices.live(displayLocale: displayLocale), .standard)
 		}
 	}
 
 	static func open(
-		systemLanguages: [String], _ services: (LanguageTag) throws -> (AppServices, UserDefaults)
+		displayLocale: @escaping DisplayLocaleResolver,
+		_ services: (@escaping DisplayLocaleResolver) throws -> (AppServices, UserDefaults)
 	) async -> AppLaunch {
-		let language = Language.uiTag(systemLanguages: systemLanguages)
 		do {
-			let (built, defaults) = try services(language)
-			let preference = await built.coach.languagePreference()
-			let model = ShellModel(
-				environment: AppEnvironment(
-					services: built, language: language, defaults: defaults),
-				initialLanguage: preference)
+			let (built, defaults) = try services(displayLocale)
+			let statuses = await built.coach.observeStatus()
+			let model = await ShellModel.open(
+				environment: AppEnvironment(services: built, defaults: defaults), statuses: statuses
+			)
 			return .ready(model)
 		} catch {
 			#if DEBUG
@@ -42,7 +41,7 @@ enum AppLaunch {
 				}
 			#endif
 			return .storageUnavailable(
-				CatalogPhrasebook(tag: language), failure: error)
+				displayLocale(.automatic), failure: error)
 		}
 	}
 

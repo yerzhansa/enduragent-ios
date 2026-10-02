@@ -131,7 +131,7 @@ import Testing
 		let review = try #require(snapshot.review)
 		#expect(review.ref.chat == .main)
 		#expect(
-			review.cards.map { $0.name.sentence(in: LanguageTag.en.phrasebook) } == ["Endurance"])
+			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Endurance"])
 		#expect(review.cards.map(\.date) == ["1998-06-14"])
 		#expect(review.totals.additions == 1)
 	}

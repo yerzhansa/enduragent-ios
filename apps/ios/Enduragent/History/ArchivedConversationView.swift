@@ -60,7 +60,7 @@ struct ArchivedConversationView: View {
 
 	private func notes(_ notes: [TranscriptNote], after turn: TurnID?) -> some View {
 		ForEach(notes.filter { $0.after == turn }) { note in
-			Text(note.sentence(in: model.phrasebook))
+			Text(note.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("archive.note")
 		}
 	}
@@ -91,7 +91,7 @@ struct ArchivedConversationView: View {
 	}
 
 	private func notice(_ notice: AthleteNotice) -> some View {
-		Text(notice.sentence(in: model.phrasebook))
+		Text(notice.sentence(in: model.displayLocale))
 			.foregroundStyle(.secondary)
 	}
 

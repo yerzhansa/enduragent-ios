@@ -120,11 +120,12 @@ public struct WriteSummary: Sendable, Equatable {
 public struct AthleteNotice: Sendable, Equatable {
 	public let key: CatalogKey
 	public let count: Int?
-	public let vars: [String: String]
+	public let vars: [String: CatalogArgument]
 	public let action: RecoveryAction?
 
 	package init(
-		key: CatalogKey, count: Int? = nil, vars: [String: String] = [:], action: RecoveryAction?
+		key: CatalogKey, count: Int? = nil, vars: [String: CatalogArgument] = [:],
+		action: RecoveryAction?
 	) {
 		self.key = key
 		self.count = count
@@ -132,8 +133,13 @@ public struct AthleteNotice: Sendable, Equatable {
 		self.action = action
 	}
 
-	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
-		phrasebook.say(key, count: count, vars).trimmingCharacters(in: .whitespacesAndNewlines)
+	package var canonicalSentence: String {
+		LanguageTag.en.phrasebook.say(key, count: count, vars.mapValues(\.canonicalText))
+			.trimmingCharacters(in: .whitespacesAndNewlines)
+	}
+
+	public func sentence(in display: DisplayLocale) -> String {
+		display.say(key, count: count, vars).trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 }
 
@@ -211,14 +217,17 @@ package enum AthleteNotices {
 		case .partiallyApplied(_, _, let failure):
 			return notice(for: failure)
 		case .uncertain(let notice), .changedSinceReview(let notice):
-			return AthleteNotice(key: notice.key, vars: notice.vars, action: nil)
+			return AthleteNotice(
+				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text), action: nil)
 		case .blocked(.accountChanged):
-			return AthleteNotice(key: accountChanged.key, vars: accountChanged.vars, action: nil)
+			return AthleteNotice(
+				key: accountChanged.key, vars: accountChanged.vars.mapValues(CatalogArgument.text),
+				action: nil)
 		case .blocked(.trainingNotConnected):
 			return AthleteNotice(key: Catalog.connectMissing, action: .connectTraining)
 		case .blocked(.cannotVerify):
 			return AthleteNotice(
-				key: Catalog.reviewCannotVerify, vars: ["service": intervals], action: nil)
+				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], action: nil)
 		case .blocked(.turnStopping):
 			return AthleteNotice(key: Catalog.reviewTurnStopping, action: nil)
 		case .staleControl:
@@ -239,7 +248,7 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.creditsErrorAccessRejected, action: .restoreCredits)
 		case .model(.credentialRejected(.openRouterAccount)):
 			return AthleteNotice(
-				key: Catalog.coachErrorReauth, vars: ["provider": openRouter],
+				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)],
 				action: .signInToOpenRouter)
 		case .model(.accessExhausted(.credits)):
 			return AthleteNotice(key: Catalog.creditsErrorExhausted, action: .buyCredits)
@@ -279,14 +288,14 @@ package enum AthleteNotices {
 		if seconds < 60 {
 			return AthleteNotice(
 				key: Catalog.coachErrorRateLimitSeconds, count: seconds,
-				vars: ["seconds": "\(seconds)"],
+				vars: ["seconds": .integer(seconds)],
 				action: action
 			)
 		}
 		let minutes = (seconds + 59) / 60
 		return AthleteNotice(
 			key: Catalog.coachErrorRateLimitMinutes, count: minutes,
-			vars: ["minutes": "\(minutes)"],
+			vars: ["minutes": .integer(minutes)],
 			action: action
 		)
 	}
@@ -303,11 +312,12 @@ package enum AthleteNotices {
 		switch training {
 		case .credentialRejected, .requestRejected:
 			AthleteNotice(
-				key: Catalog.coachErrorIntervalsCredentials, vars: ["service": intervals],
+				key: Catalog.coachErrorIntervalsCredentials, vars: ["service": .text(intervals)],
 				action: nil)
 		case .temporarilyUnavailable:
 			AthleteNotice(
-				key: Catalog.coachErrorIntervalsTransient, vars: ["service": intervals], action: nil
+				key: Catalog.coachErrorIntervalsTransient, vars: ["service": .text(intervals)],
+				action: nil
 			)
 		}
 	}

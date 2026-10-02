@@ -41,8 +41,8 @@ struct ComposerView: View {
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notSent")
 			}
-			if let notice = model.status?.notice {
-				Text(notice.sentence(in: model.phrasebook))
+			if let notice = model.status.notice {
+				Text(notice.sentence(in: model.displayLocale))
 					.font(.footnote)
 					.foregroundStyle(.secondary)
 					.accessibilityIdentifier("chat.composer.notice")

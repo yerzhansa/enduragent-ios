@@ -36,24 +36,17 @@ struct ConnectView: View {
 					}
 					if let wellness = connected.today {
 						Text(
-							model.phrasebook.say(
-								Catalog.onboardingConnectFitness,
-								["value": WellnessDay.formattedNumber(wellness.fitness)]
-							)
+							model.wellnessLine(
+								Catalog.onboardingConnectFitness, value: wellness.fitness)
 						)
 						.accessibilityIdentifier("connect.fitness")
 						Text(
-							model.phrasebook.say(
-								Catalog.onboardingConnectFatigue,
-								["value": WellnessDay.formattedNumber(wellness.fatigue)]
-							)
+							model.wellnessLine(
+								Catalog.onboardingConnectFatigue, value: wellness.fatigue)
 						)
 						.accessibilityIdentifier("connect.fatigue")
 						Text(
-							model.phrasebook.say(
-								Catalog.onboardingConnectForm,
-								["value": WellnessDay.formattedNumber(wellness.form)]
-							)
+							model.wellnessLine(Catalog.onboardingConnectForm, value: wellness.form)
 						)
 						.accessibilityIdentifier("connect.form")
 					}
@@ -64,5 +57,11 @@ struct ConnectView: View {
 				}
 			}
 		}
+	}
+}
+
+extension ShellModel {
+	func wellnessLine(_ key: CatalogKey, value: Double?) -> String {
+		displayLocale.say(key, ["value": value.map { .decimal($0, .whole) } ?? "—"])
 	}
 }

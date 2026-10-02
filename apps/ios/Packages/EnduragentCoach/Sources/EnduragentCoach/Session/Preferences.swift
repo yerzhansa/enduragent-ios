@@ -28,19 +28,6 @@ public enum LanguagePreference: Sendable, Hashable, Identifiable {
 		}
 	}
 
-	public func phrasebook(device: LanguageTag) -> CatalogPhrasebook {
-		appLanguage(device: device).phrasebook
-	}
-
-	package func replyLanguage(device: LanguageTag) -> ReplyLanguage {
-		let tag = appLanguage(device: device)
-		switch self {
-		case .automatic:
-			return .automatic(tag)
-		case .fixed:
-			return .fixed(tag)
-		}
-	}
 }
 
 extension LanguageTag {

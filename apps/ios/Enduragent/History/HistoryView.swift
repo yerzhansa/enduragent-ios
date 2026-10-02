@@ -42,7 +42,8 @@ struct HistoryView: View {
 			}
 			Text(say(conversation.reason.title))
 				.font(.footnote)
-			Text(conversation.startedOn.rawValue)
+			Text(model.historyDate(conversation.startedOn))
+				.accessibilityIdentifier("history.date.\(conversation.id.rawValue)")
 				.font(.footnote)
 				.foregroundStyle(.secondary)
 		}
@@ -51,4 +52,8 @@ struct HistoryView: View {
 	private func say(_ key: CatalogKey) -> String {
 		model.phrasebook.say(key, [:])
 	}
+}
+
+extension ShellModel {
+	func historyDate(_ day: CivilDate) -> String { displayLocale.date(day, style: .named) }
 }

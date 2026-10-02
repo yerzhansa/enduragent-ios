@@ -8,7 +8,7 @@ final class OnboardingModel {
 	var connectKey = ""
 	private(set) var connectError: String?
 	private(set) var didConnect = false
-	private(set) var starterLine: String?
+	private(set) var starterNotice: AthleteNotice?
 	private(set) var starterResolved = false
 	private(set) var consentNotSaved = false
 	private(set) var isRecordingConsent = false
@@ -55,15 +55,15 @@ final class OnboardingModel {
 		connectError = nil
 	}
 
-	func loadStarter(phrasebook: () -> CatalogPhrasebook) async {
+	func loadStarter() async {
 		guard !starterLoaded else { return }
 		starterLoaded = true
 		do {
 			let token = try await environment.deviceCheck.token()
 			let notice = await environment.services.coach.claimStarter(deviceCheck: token)
-			starterLine = notice.sentence(in: phrasebook())
+			starterNotice = notice
 		} catch {
-			starterLine = AthleteNotice.credits(failure: error).sentence(in: phrasebook())
+			starterNotice = AthleteNotice.credits(failure: error)
 		}
 		starterResolved = true
 	}

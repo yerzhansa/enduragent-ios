@@ -44,7 +44,7 @@ final class LanguagePickerProof: XCTestCase {
 		TutorialHarness.openDebug(app)
 		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
-			replyLanguage.label.hasPrefix("The athlete chose French (Français)."),
+			replyLanguage.label.hasPrefix("Reply in French (Français)."),
 			"reply language reads \(replyLanguage.label)")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.attach(self, name: "m1-12-language-fr", app: app)
@@ -123,7 +123,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 			let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 			XCTAssertTrue(
 				replyLanguage.label.hasPrefix(
-					"Automatic follows the iPhone's preferred languages. Reply in French (Français)."
+					"Reply in French (Français)."
 				),
 				"reply language reads \(replyLanguage.label)")
 			XCTAssertTrue(
