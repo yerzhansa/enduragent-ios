@@ -107,13 +107,6 @@ public enum SignInFailure: Error, Sendable, Equatable {
 	case presentationUnavailable
 }
 
-public struct IntervalsSummary: Sendable, Equatable {
-	public let keySuffix: String
-	public let athleteName: String?
-	public let today: WellnessDay?
-	public let displayUnavailable: TrainingFailure?
-}
-
 public struct AccessSummary: Sendable, Equatable {
 	public let selection: AccessSelection
 }

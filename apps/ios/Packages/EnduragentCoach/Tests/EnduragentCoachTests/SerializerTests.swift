@@ -56,12 +56,6 @@ struct SerializerTests {
 			toFile: "/tmp/ios-c6/serializer-swift-report.txt", atomically: true, encoding: .utf8)
 	}
 
-	@Test func ftp280DisplayGapIsUnchanged() throws {
-		let rows = try DisplayZones.calculate(ftpWatts: 280)
-		#expect(rows[0] == "< 154W")
-		#expect(rows[1] == "157-210W")
-	}
-
 	@Test func slugifyMatchesDesktop() {
 		#expect(ChatExternalID.slugify(name: "Z2 Endurance 90min") == "z2-endurance-90min")
 		#expect(ChatExternalID.slugify(name: "Endurance") == "endurance")

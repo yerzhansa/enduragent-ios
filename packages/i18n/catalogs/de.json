@@ -2980,7 +2980,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert."
+      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert.",
+      "blank": "Gib einen intervals.icu API-Schlüssel ein. Deine aktuelle Verbindung bleibt unverändert.",
+      "notSaved": "Der Ersatz wurde nicht gespeichert. Deine bisherige Verbindung bleibt unverändert. Versuche es erneut.",
+      "profileUnavailable": "Dein Athletenprofil ist vorübergehend nicht verfügbar. Versuche es erneut.",
+      "wellnessRejected": "intervals.icu hat das Lesen der heutigen Wellnessdaten nicht erlaubt. Prüfe deine Verbindung.",
+      "wellnessUnavailable": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut."
+    },
+    "wellness": {
+      "empty": "Keine Wellnessdaten für heute.",
+      "waiting": "Heutige Wellnessdaten werden gelesen…"
+    },
+    "review": "Verbindung prüfen",
+    "profile": {
+      "waiting": "Athletenprofil wird gelesen…"
     }
   }
 }

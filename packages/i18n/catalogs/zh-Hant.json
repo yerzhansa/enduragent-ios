@@ -2940,7 +2940,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu 未接受這組金鑰。"
+      "rejected": "intervals.icu 未接受這組金鑰。",
+      "blank": "請輸入 intervals.icu API 金鑰。目前的連線未變更。",
+      "notSaved": "替換未儲存。先前的連線未變更。請重試。",
+      "profileUnavailable": "運動員資料暫時無法取得。請重試。",
+      "wellnessRejected": "intervals.icu 未允許讀取今天的健康資料。請檢查連線。",
+      "wellnessUnavailable": "今天的健康資料暫時無法取得。請重試。"
+    },
+    "wellness": {
+      "empty": "今天沒有健康資料。",
+      "waiting": "正在讀取今天的健康資料…"
+    },
+    "review": "檢查連線",
+    "profile": {
+      "waiting": "正在讀取運動員資料…"
     }
   }
 }

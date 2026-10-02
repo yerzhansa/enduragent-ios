@@ -6,29 +6,31 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	@Test func intervalsLoadFailureShowsACatalogNotice() async throws {
+	@Test func profileLoadFailureShowsItsCatalogNotice() async throws {
 		let services = try services()
 		let onboarding = model(services)
 		await onboarding.agreeAndStartChatting()
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
 		#expect(onboarding.didConnect)
-		try #require(services.fixture).intervals.loadFailure = IntervalsError(
-			code: "load_failed",
-			details: "intervals.icu could not load today's training data."
+		try #require(services.fixture).intervals.setProfileOutcome(
+			.failure(URLError(.notConnectedToInternet))
 		)
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let model = model(services)
 		await model.appear()
 		await model.sceneChanged(.becameActive)
-		try await model.waitForStatus { $0.notice?.key == Catalog.coachErrorIntervalsTransient }
+		try await model.waitForStatus { $0.notice?.key == Catalog.connectErrorProfileUnavailable }
 		try await observed(model)
 		#expect(model.route == .chat)
-		#expect(model.status?.notice?.key == Catalog.coachErrorIntervalsTransient)
+		#expect(model.status?.notice?.key == Catalog.connectErrorProfileUnavailable)
 		#expect(
 			model.status?.notice?.sentence(in: model.phrasebook)
-				== "Couldn't reach intervals.icu right now — try again shortly.")
+				== "Your athlete profile is temporarily unavailable. Try again.")
 		#expect(model.connected?.athleteName == nil)
+		#expect(model.connected?.profile == .failed(.temporarilyUnavailable))
+		let connection = try #require(model.connected)
+		#expect(connection.action == .retry(connection.connectionID))
 	}
 
 	@Test func unreadableRecordStoreShowsTheStorageNoticeInsteadOfCrashing() async throws {
@@ -67,11 +69,14 @@ extension FixtureLaunchTests {
 
 	@Test func successfulConnectClearsSubmittedKey() async throws {
 		let services = try services()
+		let wellness = try #require(services.fixture).intervals.holdNextWellnessRead()
+		defer { Task { await wellness.release() } }
 		let model = model(services)
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
 		await model.connect()
+		try await wellness.waitForRead()
 		try await model.waitForStatus {
 			if case .connected(let summary, _) = $0.training {
 				return summary.athleteName == "Ada Kovač"
@@ -82,6 +87,15 @@ extension FixtureLaunchTests {
 		#expect(model.connectKey.isEmpty)
 		#expect(model.connectError == nil)
 		#expect(model.connected?.athleteName == "Ada Kovač")
+		#expect(model.connected?.wellness == .waiting)
+		#expect(model.connected?.today == nil)
+		await wellness.release()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.today?.fitness == 42
+			}
+			return false
+		}
 		#expect(model.connected?.today?.fitness == 42)
 		#expect(model.athleteFirstName == "Ada")
 		guard case .connected(_, .intervals(_, let athlete))? = model.status?.training else {

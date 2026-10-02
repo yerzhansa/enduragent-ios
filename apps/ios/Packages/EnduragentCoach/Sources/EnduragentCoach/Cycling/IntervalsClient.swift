@@ -72,23 +72,11 @@ package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
 	package var date: CivilDate
 	package var ctl: Double?
 	package var atl: Double?
-	package var rampRate: Double?
-	package var fatigue: Int?
 
 	private enum CodingKeys: String, CodingKey {
 		case id
 		case ctl
 		case atl
-		case rampRate = "ramp_rate"
-		case fatigue
-	}
-
-	package init(date: CivilDate, ctl: Double?, atl: Double?, rampRate: Double?, fatigue: Int?) {
-		self.date = date
-		self.ctl = ctl
-		self.atl = atl
-		self.rampRate = rampRate
-		self.fatigue = fatigue
 	}
 
 	package init(from decoder: Decoder) throws {
@@ -104,8 +92,6 @@ package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
 		self.date = date
 		self.ctl = try container.decodeIfPresent(Double.self, forKey: .ctl)
 		self.atl = try container.decodeIfPresent(Double.self, forKey: .atl)
-		self.rampRate = try container.decodeIfPresent(Double.self, forKey: .rampRate)
-		self.fatigue = try container.decodeIfPresent(Int.self, forKey: .fatigue)
 	}
 }
 
@@ -243,7 +229,6 @@ public struct IntervalsError: Error, Sendable, Equatable {
 
 package enum IntervalsPolicy {
 	package static let listMaxRangeDays = 366
-	package static let reviewWindowDays = 7
 	package static let athletePath = "0"
 	package static let baseURL: URL = {
 		guard let url = URL(string: "https://intervals.icu/api/v1") else {
@@ -252,7 +237,6 @@ package enum IntervalsPolicy {
 		return url
 	}()
 	package static let coachTag = "cycling-coach"
-	package static let formRecoveryThreshold = -30.0
 	package static let ftpRange = 50...600
 	package static let requestTimeout: TimeInterval = 30
 	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]

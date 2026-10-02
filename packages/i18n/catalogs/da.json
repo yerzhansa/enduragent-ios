@@ -2980,7 +2980,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu accepterede ikke den nøgle."
+      "rejected": "intervals.icu accepterede ikke den nøgle.",
+      "blank": "Indtast en intervals.icu API-nøgle. Din nuværende forbindelse er uændret.",
+      "notSaved": "Erstatningen blev ikke gemt. Din tidligere forbindelse er uændret. Prøv igen.",
+      "profileUnavailable": "Din atletprofil er midlertidigt utilgængelig. Prøv igen.",
+      "wellnessRejected": "intervals.icu tillod ikke læsning af dagens wellness. Gennemgå din forbindelse.",
+      "wellnessUnavailable": "Dagens wellness er midlertidigt utilgængelig. Prøv igen."
+    },
+    "wellness": {
+      "empty": "Ingen wellnessdata for i dag.",
+      "waiting": "Læser dagens wellness…"
+    },
+    "review": "Gennemgå forbindelse",
+    "profile": {
+      "waiting": "Læser atletprofil…"
     }
   }
 }

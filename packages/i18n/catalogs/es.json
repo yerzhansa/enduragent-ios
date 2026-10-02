@@ -2980,7 +2980,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu no aceptó esa clave."
+      "rejected": "intervals.icu no aceptó esa clave.",
+      "blank": "Introduce una clave API de intervals.icu. Tu conexión actual no ha cambiado.",
+      "notSaved": "No se guardó la sustitución. Tu conexión anterior no ha cambiado. Inténtalo de nuevo.",
+      "profileUnavailable": "Tu perfil de deportista no está disponible temporalmente. Inténtalo de nuevo.",
+      "wellnessRejected": "intervals.icu no permitió leer los datos de bienestar de hoy. Revisa tu conexión.",
+      "wellnessUnavailable": "Los datos de bienestar de hoy no están disponibles temporalmente. Inténtalo de nuevo."
+    },
+    "wellness": {
+      "empty": "No hay datos de bienestar para hoy.",
+      "waiting": "Leyendo los datos de bienestar de hoy…"
+    },
+    "review": "Revisar conexión",
+    "profile": {
+      "waiting": "Leyendo el perfil de deportista…"
     }
   }
 }

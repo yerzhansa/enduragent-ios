@@ -48,7 +48,8 @@ extension CredentialVaultTests {
 			return
 		}
 		let connection = try #require(try store.intervalsConnection())
-		#expect(summary == adaSummary)
+		#expect(summary.profile == adaSummary.profile)
+		#expect(summary.keySuffix == adaSummary.keySuffix)
 		#expect(account == self.account(connection))
 		#expect(try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
 		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)

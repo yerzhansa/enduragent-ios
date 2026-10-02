@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -30,7 +31,7 @@ struct IntervalsRESTClientTests {
 	@Test func fetchAthleteReadsAda() async throws {
 		let client = try makeClient()
 		let athlete = try await client.fetchAthlete()
-		#expect(athlete.id == "0")
+		#expect(athlete.id == "i1001")
 		#expect(athlete.name == "Ada Kovač")
 		#expect(athlete.ftp == 250)
 	}
@@ -43,16 +44,18 @@ struct IntervalsRESTClientTests {
 		#expect(today.fitness == 55.2)
 		#expect(today.fatigue == 42.1)
 		#expect(today.form == 55.2 - 42.1)
-		let labels = Mirror(reflecting: today).children.compactMap(\.label)
-		#expect(!labels.contains("ctl"))
-		#expect(!labels.contains("atl"))
-		let wire = try JSONDecoder().decode(
-			[IntervalsWellnessJSON].self,
-			from: try fixtureData("intervals-wellness")
-		)
-		#expect(wire[0].ctl == 55.2)
-		#expect(wire[0].atl == 42.1)
-		#expect(wire[0].rampRate == 1.4)
+	}
+
+	@Test(arguments: [#""ramp_rate":"invalid""#, #""fatigue":"invalid""#, #""fatigue":2.5"#])
+	func wellnessLoadsWithMalformedUnusedFields(unusedField: String) async throws {
+		let client = try makeClient()
+		let body = #"[{"id":"1998-06-13","ctl":55.2,"atl":42.1,\#(unusedField)}]"#
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		let days = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
+		#expect(
+			days == [
+				WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
+			])
 	}
 
 	@Test func fetchActivitiesProjectsAdaRides() async throws {
@@ -122,12 +125,12 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient(
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		)
-		var draft = try CyclingTools.parseCreateWorkout(
+		var draft = try CyclingTools.parseCreateWorkoutInput(
 			try JSONValue.parse(
 				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
 			),
 			today: "1998-06-13"
-		)
+		).draft
 		draft.writeID = CalendarWriteID()
 		let event = try await client.createChatEvent(draft)
 		let request = try #require(IntervalsURLProtocolStub.lastRequest)
@@ -176,7 +179,26 @@ struct IntervalsRESTClientTests {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let vault = testVault(secrets, training: .rest(session: try stubSession()))
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		_ = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) { false }
+		let outcome = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) {
+			false
+		}
+		guard case .replaced(let summary, _) = outcome else {
+			Issue.record("Expected a saved connection")
+			return
+		}
+		#expect(summary.wellness == .waiting)
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+		let displayed = Mutex<TrainingStatus?>(nil)
+		await vault.refreshTrainingDisplay(
+			from: summary, isCurrent: { true },
+			publish: { status in
+				displayed.withLock { $0 = status }
+			})
+		guard case .connected(let refreshed, _) = displayed.withLock({ $0 }) else {
+			Issue.record("Expected the refreshed saved connection")
+			return
+		}
+		#expect(refreshed.wellness != .waiting)
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))

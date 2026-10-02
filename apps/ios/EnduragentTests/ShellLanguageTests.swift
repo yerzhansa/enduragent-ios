@@ -36,9 +36,18 @@ final class ShellLanguageTests {
 	}
 
 	@Test(arguments: [true, false])
-	func launchShowsTheSavedLanguageBeforeSlowTrainingLoads(completedOnboarding: Bool) async throws
+	func launchShowsSavedLanguageWhileProfileAndWellnessAreWaiting(completedOnboarding: Bool)
+		async throws
 	{
-		let intervals = SlowTrainingClient()
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let profile = intervals.holdNextProfileRead()
+		let wellness = intervals.holdNextWellnessRead()
+		defer {
+			Task {
+				await profile.release()
+				await wellness.release()
+			}
+		}
 		try await services(intervals: intervals).coach.setLanguage(.fixed(.es))
 		defaults.set(completedOnboarding, forKey: ShellModel.onboardingCompletedKey)
 		let launch = await AppLaunch.open(language: .en) {
@@ -48,19 +57,35 @@ final class ShellLanguageTests {
 			Issue.record("The saved language did not reopen into a ready shell")
 			return
 		}
-		#expect(await intervals.reads.calls.isEmpty)
+		#expect(intervals.profileReadCount == 0)
+		#expect(intervals.wellnessReadCount == 0)
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
 		await model.appear()
-		#expect(await intervals.reads.calls.isEmpty)
-		await model.sceneChanged(.becameActive)
+		try await profile.waitForRead()
+		#expect(model.connected?.profile == .waiting)
+		#expect(model.connected?.today == nil)
+		#expect(model.status?.language == .fixed(.es))
+		#expect(intervals.profileReadCount == 1)
+		#expect(intervals.wellnessReadCount == 0)
+		await profile.release()
+		try await wellness.waitForRead()
 		try await model.waitForStatus {
 			if case .connected(let summary, _) = $0.training { return summary.athleteName == "Ada" }
 			return false
 		}
-		#expect(await intervals.reads.calls == [.athlete, .wellness])
+		#expect(model.connected?.wellness == .waiting)
 		#expect(model.connected?.athleteName == "Ada")
+		await wellness.release()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.wellness == .available(.noData(on: "1998-06-13"))
+			}
+			return false
+		}
+		#expect(intervals.profileReadCount == 1)
+		#expect(intervals.wellnessReadCount == 1)
 		#expect(model.status?.language == .fixed(.es))
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
@@ -68,41 +93,50 @@ final class ShellLanguageTests {
 	}
 
 	@Test func languageChoiceUpdatesWhileTrainingIsBlocked() async throws {
-		let intervals = SlowTrainingClient()
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let profile = intervals.holdNextProfileRead()
+		defer { Task { await profile.release() } }
 		let model = try await returningModel(intervals: intervals)
 		await model.appear()
-		await intervals.reads.hold()
-		let refreshing = Task { await model.sceneChanged(.becameActive) }
-		await intervals.reads.waitUntilBlocked()
-		let choosing = Task { await model.chooseLanguage(.fixed(.es)) }
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.status?.language != .fixed(.es), ContinuousClock.now < deadline {
-			await Task.yield()
-		}
+		try await profile.waitForRead()
+		await model.chooseLanguage(.fixed(.es))
+		try await model.waitForStatus { $0.language == .fixed(.es) }
 		#expect(model.status?.language == .fixed(.es))
+		#expect(model.connected?.profile == .waiting)
+		#expect(intervals.wellnessReadCount == 0)
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
-		await intervals.reads.release()
-		await refreshing.value
-		await choosing.value
+		await profile.release()
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.wellness == .available(.noData(on: "1998-06-13"))
+			}
+			return false
+		}
 		#expect(model.status?.language == .fixed(.es))
 	}
 
-	@Test func activeLaunchRefreshesTrainingOnce() async throws {
-		let intervals = SlowTrainingClient()
+	@Test func activationRefreshesTrainingOnceAfterInitialObservation() async throws {
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let model = try await returningModel(intervals: intervals)
 		await model.appear()
-		await model.sceneChanged(.becameActive)
-		#expect(await intervals.reads.calls == [.athlete, .wellness])
 		try await model.waitForStatus {
-			if case .connected(let summary, _) = $0.training { return summary.athleteName == "Ada" }
+			if case .connected(let summary, _) = $0.training {
+				return summary.wellness == .available(.noData(on: "1998-06-13"))
+			}
 			return false
 		}
+		#expect(intervals.profileReadCount == 1)
+		#expect(intervals.wellnessReadCount == 1)
+		await model.sceneChanged(.becameActive)
+		#expect(intervals.profileReadCount == 2)
+		#expect(intervals.wellnessReadCount == 2)
 		#expect(model.connected?.athleteName == "Ada")
 		await model.sceneChanged(.enteredBackground)
 		await model.sceneChanged(.becameActive)
-		#expect(await intervals.reads.calls == [.athlete, .wellness, .athlete, .wellness])
+		#expect(intervals.profileReadCount == 3)
+		#expect(intervals.wellnessReadCount == 3)
 	}
 
 	@Test(arguments: [true, false])
