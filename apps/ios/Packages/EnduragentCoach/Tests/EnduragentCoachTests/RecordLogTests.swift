@@ -19,8 +19,10 @@ enum RecordLogKind: String, Sendable, CaseIterable {
 		}
 	}
 
-	static func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
-		let root = try TestTemporaryFolders.make()
+	static func makeSwiftDataLog(deviceId: DeviceID, directory: URL? = nil) throws
+		-> SwiftDataRecordLog
+	{
+		let root = try directory ?? TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 		return SwiftDataRecordLog(
 			deviceId: deviceId,
