@@ -20,10 +20,7 @@ enum RecordLogKind: String, Sendable, CaseIterable {
 	}
 
 	static func makeSwiftDataLog(deviceId: DeviceID) throws -> SwiftDataRecordLog {
-		let root = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-records-\(UUID().uuidString)",
-			directoryHint: .isDirectory
-		)
+		let root = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 		return SwiftDataRecordLog(
 			deviceId: deviceId,

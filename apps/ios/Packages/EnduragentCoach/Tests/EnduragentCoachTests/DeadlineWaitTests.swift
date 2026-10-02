@@ -1,17 +1,18 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
 
 @Suite(.timeLimit(.minutes(1))) struct DeadlineWaitTests {
 	@Test func heldClockFailsWhenNoSleepArrives() async throws {
-		let clock = HeldClock(within: .zero)
+		let clock = HeldClock(within: .subject(.zero))
 		await #expect(throws: TestWaitDeadlineExceeded.self) {
 			try await clock.waitUntilHeld(.seconds(7))
 		}
 	}
 
 	@Test func heldClockFailsWhenASleepIsNeverReleased() async throws {
-		let clock = HeldClock(within: .zero)
+		let clock = HeldClock(within: .subject(.zero))
 		await #expect(throws: CancellationError.self) {
 			try await clock.sleep(for: .seconds(7))
 		}
@@ -21,16 +22,16 @@ import Testing
 	}
 
 	@Test func reviewGateFailsWhenNoRefreshEnters() async throws {
-		let gate = ReviewGate(within: .zero)
+		let gate = ReviewGate(within: .subject(.zero))
 		let entered = try await gate.waitUntilEntered()
 		#expect(entered == false)
 	}
 
 	@Test func reviewGateFailsWhenARefreshIsNeverReleased() async throws {
-		let gate = ReviewGate(within: .zero)
+		let gate = ReviewGate(within: .subject(.zero))
 		await gate.arm()
 		let rescue = Task {
-			try await Task.sleep(for: .seconds(1))
+			try await Task.sleep(for: TestWaitLimit.hangGuard.duration)
 			await gate.release()
 		}
 		defer { rescue.cancel() }
@@ -45,17 +46,17 @@ import Testing
 		let held = Task { await gate.wait() }
 		defer { held.cancel() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await gate.waitUntilParked()
 			} != nil)
 		let rescue = Task {
-			try await Task.sleep(for: .seconds(1))
+			try await Task.sleep(for: TestWaitLimit.hangGuard.duration)
 			gate.release()
 		}
 		defer { rescue.cancel() }
 		let released = Mutex(false)
 		let value = try await beforeDeadline(
-			within: .milliseconds(20),
+			within: .subject(.milliseconds(20)),
 			onTimeout: {
 				released.withLock { $0 = true }
 				held.cancel()
@@ -71,7 +72,7 @@ import Testing
 	@Test func completedEventReturnsItsValue() async throws {
 		let gate = Gate()
 		gate.release()
-		let value = try await beforeDeadline(within: .seconds(5)) {
+		let value = try await beforeDeadline(within: .hangGuard) {
 			try await gate.waitUnlessCancelled()
 			return "arrived"
 		}
@@ -80,7 +81,7 @@ import Testing
 
 	@Test func missingEventCancelsItsWaitAtTheDeadline() async throws {
 		let gate = Gate()
-		let value = try await beforeDeadline(within: .zero) {
+		let value = try await beforeDeadline(within: .subject(.zero)) {
 			try await gate.waitUnlessCancelled()
 		}
 		#expect(value == nil)
@@ -89,16 +90,16 @@ import Testing
 	@Test func cancellingABoundedWaitCancelsItsParkedEvent() async throws {
 		let gate = Gate()
 		let waiting = Task {
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				try await gate.waitUnlessCancelled()
 			}
 		}
 		defer { waiting.cancel() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await gate.waitUntilParked()
 			} != nil,
-			"Event wait did not park within five seconds")
+			"Event wait did not park before the hang guard expired")
 		waiting.cancel()
 		await #expect(throws: CancellationError.self) { try await waiting.value }
 	}

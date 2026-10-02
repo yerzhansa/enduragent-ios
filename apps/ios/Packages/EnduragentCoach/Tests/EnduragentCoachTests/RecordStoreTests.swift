@@ -7,8 +7,11 @@ import Testing
 extension SwiftDataSuites {
 	@Suite struct RecordStoreTests {
 		let device = DeviceID(rawValue: "record-store-phone")
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-record-store-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory: URL
+
+		init() throws {
+			directory = try TestTemporaryFolders.make()
+		}
 
 		@Test func inMemoryHandleKeepsPreferencesAcrossCoachInstances() async throws {
 			let store = RecordStore.inMemory(deviceId: device)

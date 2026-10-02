@@ -7,8 +7,7 @@ import Testing
 extension SwiftDataSuites {
 	@Suite struct ResetBoundaryPersistenceTests {
 		@Test func skewedSendAfterPersistedResetSurvivesStoreReopen() async throws {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "reset-boundary-\(UUID().uuidString)")
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			let remoteLog = try open(root, device: DeviceID(rawValue: "phone-a"))
 			let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
@@ -26,7 +25,7 @@ extension SwiftDataSuites {
 			let turn = try #require(
 				try await local.send(draft("Current question"), to: .main).acceptedTurn)
 			let completed = try #require(
-				await local.settledState(of: turn, in: .main, within: .seconds(5)))
+				await local.settledState(of: turn, in: .main, within: .hangGuard))
 			#expect(replyText(completed) == "Current answer")
 			let transcript = await local.transcript(.main)
 			#expect(transcript == ["Current question", "Current answer"])

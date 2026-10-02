@@ -5,7 +5,7 @@ import Synchronization
 @testable import EnduragentCoach
 
 final class HeldClock: Clock {
-	private let waitLimit: Duration
+	private let waitLimit: TestWaitLimit
 	private let calendar: FixedClock
 	private let state = Mutex(State())
 	private let onSleep: @Sendable (Duration) -> Void
@@ -24,7 +24,7 @@ final class HeldClock: Clock {
 	}
 
 	init(
-		within waitLimit: Duration = .seconds(5),
+		within waitLimit: TestWaitLimit = .hangGuard,
 		calendar: FixedClock = FixedClock(
 			now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
 		onSleep: @escaping @Sendable (Duration) -> Void = { _ in }

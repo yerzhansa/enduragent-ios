@@ -99,7 +99,7 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:memory-then-hang"
 		await model.send()
-		let deadline = ContinuousClock.now + .seconds(10)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while ContinuousClock.now < deadline {
 			if case .processing(let running)? = model.chat?.turns.last?.state,
 				running.activity == .generating(step: 2)

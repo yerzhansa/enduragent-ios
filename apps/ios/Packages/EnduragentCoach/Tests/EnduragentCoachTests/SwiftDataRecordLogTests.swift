@@ -202,9 +202,7 @@ extension SwiftDataSuites {
 
 		@Test func syncedFaultsRejectEverySyncedKindAndLeaveLocalRecordsWritable() async throws {
 			let fixture = try FixtureRecordStore(
-				directory: FileManager.default.temporaryDirectory.appending(
-					path: "enduragent-synced-faults-\(UUID().uuidString)",
-					directoryHint: .isDirectory),
+				directory: try TestTemporaryFolders.make(),
 				deviceId: phoneA)
 			let samples = try sampleBodies()
 			fixture.faults.failSyncedAppends = true

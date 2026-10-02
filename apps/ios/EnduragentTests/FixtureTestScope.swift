@@ -50,8 +50,7 @@ final class AppTestFixture {
 		let id = UUID().uuidString
 		launch = FixtureLaunch(
 			name: FixtureLaunch.firstWeekName, store: .fresh, keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-app-test-\(id)", directoryHint: .isDirectory),
+			directory: try TestTemporaryFolders.make(),
 			defaultsSuiteName: "enduragent.app.test.\(id)")
 		defaults = try launch.prepare()
 		folder = try FixtureFolder(directory: launch.directory)
@@ -134,13 +133,14 @@ struct FixtureScopeTests {
 						return true
 					}
 					group.addTask {
-						try await Task.sleep(for: .seconds(10))
+						try await Task.sleep(for: TestWaitLimit.hangGuard.duration)
 						return false
 					}
 					for _ in 0..<2 {
 						try #require(
 							try await group.next() == true,
-							"The app fixture ownership proof did not finish within ten seconds")
+							"The app fixture ownership proof did not finish before the test hang guard expired"
+						)
 					}
 				}
 			}

@@ -93,7 +93,7 @@ extension ChatMailboxTests {
 		defer { read.release() }
 		let remote = try await importTurn(into: store)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Import read did not park within five seconds")
@@ -165,14 +165,14 @@ extension ChatMailboxTests {
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		async let stream = coach.observe(.main)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await read.waitUntilParked()
 			} != nil,
 			"Import read did not park within five seconds")
 		let remote = try await importTurn(into: store)
 		read.release()
 		let observed = try #require(
-			try await firstSnapshot(in: await stream, within: .seconds(5)) {
+			try await firstSnapshot(in: await stream, within: .hangGuard) {
 				$0.turns.map(\.id) == [remote]
 			})
 		#expect(observed.turns.map(\.athleteText) == ["Remote question"])

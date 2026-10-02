@@ -6,8 +6,7 @@ import Testing
 
 @Suite(.timeLimit(.minutes(1))) struct RecordProofHookTests {
 	@Test func nextReviewRecordReadFailsOnceAfterPresentation() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-record-hook-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do { try FileManager.default.removeItem(at: directory) } catch {

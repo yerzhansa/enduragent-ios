@@ -48,26 +48,26 @@ import Testing
 		var settled: TurnState?
 		let snapshots = await coach.observe(.main)
 		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
-			let held = try await beforeDeadline(within: .seconds(5)) {
+			let held = try await beforeDeadline(within: .hangGuard) {
 				try await pacing.waitUntilHeld(.milliseconds(1))
 				return true
 			}
 			try #require(held == true)
 			pacing.advance(by: .milliseconds(1))
 			_ = try #require(
-				try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
+				try await firstSnapshot(in: snapshots, within: .hangGuard) { snapshot in
 					guard case .processing? = snapshot.turns.first?.state else { return false }
 					return snapshot.liveReply?.text == text
 				})
 			liveTexts.append(text)
 		}
-		let finishing = try await beforeDeadline(within: .seconds(5)) {
+		let finishing = try await beforeDeadline(within: .hangGuard) {
 			try await pacing.waitUntilHeld(.milliseconds(1))
 			return true
 		}
 		try #require(finishing == true)
 		pacing.advance(by: .milliseconds(1))
-		settled = try #require(await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(liveTexts.contains("Your week: "))
 		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
 		#expect(await coach.transcript(.main).count == 2)

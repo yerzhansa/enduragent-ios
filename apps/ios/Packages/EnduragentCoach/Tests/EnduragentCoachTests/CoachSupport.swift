@@ -91,7 +91,7 @@ func draft(_ text: String) -> Draft {
 
 extension Coach {
 	func sendAndSettle(
-		_ text: String, in chat: ChatID = .main, within limit: Duration = .seconds(30)
+		_ text: String, in chat: ChatID = .main, within limit: TestWaitLimit = .hangGuard
 	) async throws -> TurnState {
 		let turn = try #require(try await send(draft(text), to: chat).acceptedTurn)
 		return try #require(await settledState(of: turn, in: chat, within: limit))
@@ -125,7 +125,7 @@ extension Coach {
 	}
 
 	func waitForState(
-		of turn: TurnID, within limit: Duration = .seconds(5),
+		of turn: TurnID, within limit: TestWaitLimit = .hangGuard,
 		until matches: @escaping @Sendable (TurnState?) -> Bool
 	) async throws -> TurnState? {
 		let snapshot = try await firstSnapshot(in: await observe(.main), within: limit) {
@@ -146,8 +146,8 @@ extension Coach {
 	}
 }
 
-func waitUntil(within limit: Duration = .seconds(5), _ condition: () -> Bool) async throws {
-	let deadline = ContinuousClock.now + limit
+func waitUntil(within limit: TestWaitLimit = .hangGuard, _ condition: () -> Bool) async throws {
+	let deadline = ContinuousClock.now + limit.duration
 	while !condition() {
 		guard ContinuousClock.now < deadline else {
 			Issue.record("condition never held")
@@ -172,9 +172,9 @@ func claims(of turn: TurnID, in store: any RecordLog) async throws -> [AthleteRe
 
 func waitForRecords(
 	_ scope: RecordQuery.Scope, count: Int, in store: any RecordLog,
-	within limit: Duration = .seconds(5)
+	within limit: TestWaitLimit = .hangGuard
 ) async throws {
-	let deadline = ContinuousClock.now + limit
+	let deadline = ContinuousClock.now + limit.duration
 	while try await store.fetch(RecordQuery(scope: scope)).records.count < count {
 		guard ContinuousClock.now < deadline else {
 			Issue.record("\(scope) never reached \(count) records")
