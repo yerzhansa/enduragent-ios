@@ -96,7 +96,7 @@ func messageText(_ record: AthleteRecord) -> String {
 	case .synced(.userMessage(let body)): body.athleteText
 	case .synced(.turnSettled(let body)):
 		switch body.settlement {
-		case .replied(.model(let text), _): text
+		case .replied(let reply, _): reply.sentence(in: CatalogPhrasebook(tag: .en))
 		case .interrupted(let partial, _, _): partial
 		case .failed, .savedWork: ""
 		}

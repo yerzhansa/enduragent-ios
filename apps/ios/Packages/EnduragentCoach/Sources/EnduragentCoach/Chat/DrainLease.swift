@@ -40,7 +40,9 @@ package final class DrainLease: Sendable {
 				case .finish(let reply):
 					let spoken = await language()
 					let notice = reply.map {
-						CompletionNotice(reply: $0.text, turn: $0.turn, language: spoken)
+						CompletionNotice(
+							reply: $0.reply.sentence(in: CatalogPhrasebook(tag: spoken)),
+							turn: $0.turn, language: spoken)
 					}
 					await lease.end(.finished(notice))
 					return
@@ -156,11 +158,8 @@ private struct LeaseTally: Sendable {
 	mutating func settle(_ turn: TurnID, reply: ReplyText?) -> LeaseProgress {
 		turns.insert(turn)
 		settled.insert(turn)
-		switch reply {
-		case .model(let text)?:
-			self.reply = LastReply(text: text, turn: turn)
-		case nil:
-			break
+		if let reply {
+			self.reply = LastReply(reply: reply, turn: turn)
 		}
 		return progress
 	}
@@ -173,6 +172,6 @@ private struct LeaseTally: Sendable {
 }
 
 private struct LastReply: Sendable {
-	let text: String
+	let reply: ReplyText
 	let turn: TurnID
 }

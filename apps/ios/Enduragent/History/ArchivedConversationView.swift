@@ -68,10 +68,9 @@ struct ArchivedConversationView: View {
 	private func reply(_ state: TurnState) -> some View {
 		switch state {
 		case .completed(let completed):
-			switch completed.reply {
-			case .model(let text):
-				ReplyView(source: text, parser: model.services.replyParser)
-			}
+			ReplyView(
+				source: completed.reply.sentence(in: model.phrasebook),
+				parser: model.services.replyParser)
 		case .interrupted(let interrupted):
 			if !interrupted.partial.isEmpty {
 				ReplyView(source: interrupted.partial, parser: model.services.replyParser)
