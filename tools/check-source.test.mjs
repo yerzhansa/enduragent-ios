@@ -27,6 +27,57 @@ const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fi
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
 const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
+
+test('rejects app tests deleting fixture folders outside their async owner', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': 'deinit { try FileManager.default.removeItem(at: directory) }' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /app-fixture-folder-ownership/);
+});
+
+test('accepts app tests awaiting fixture folder cleanup', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': 'try await folder.cleanup { await owners.release() }' });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const value of ['let directory = FileManager.default.temporaryDirectory', 'let directory = NSTemporaryDirectory()', 'try AppServices.fixture(launch, defaults: defaults)']) {
+  test(`rejects app tests bypassing the shared fixture owner: ${value}`, () => {
+    const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': value });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /app-fixture-folder-ownership/);
+  });
+}
+
+test('accepts the shared app fixture owner creating folders and services', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTestScope.swift': 'let directory = try TestTemporaryFolders.make()\ntry AppServices.fixture(launch, defaults: defaults)' });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const target of [
+  'Packages/EnduragentCoach/Tests/EnduragentCoachTests',
+  'EnduragentUITests',
+  'EnduragentPhoneTests',
+]) {
+  for (const value of ['FileManager.default.temporaryDirectory', 'NSTemporaryDirectory()']) {
+    test(`rejects tests bypassing the shared temporary folder owner in ${target}: ${value}`, () => {
+      const result = run({ [`apps/ios/${target}/FolderTests.swift`]: `let directory = ${value}` });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /app-fixture-folder-ownership/);
+    });
+  }
+}
+
+for (const value of ['FileManager.default.temporaryDirectory', 'NSTemporaryDirectory()']) {
+  test(`rejects the app fixture scope bypassing shared temporary folder allocation: ${value}`, () => {
+    const result = run({ 'apps/ios/EnduragentTests/FixtureTestScope.swift': `let directory = ${value}` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /app-fixture-folder-ownership/);
+  });
+}
+
+test('accepts the shared temporary folder helper', () => {
+  const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/TestTemporaryFolders.swift': 'let directory = FileManager.default.temporaryDirectory' });
+  assert.equal(result.status, 0, result.output);
+});
 const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 

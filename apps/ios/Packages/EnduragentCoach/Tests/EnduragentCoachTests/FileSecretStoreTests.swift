@@ -7,8 +7,7 @@ import Testing
 
 @Suite struct FileSecretStoreTests {
 	@Test func fileFailureKeepsItsCodeWithoutErrorText() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-unwritable-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -209,8 +208,7 @@ import Testing
 }
 
 private func withTemporaryDirectory(_ body: (URL) throws -> Void) throws {
-	let directory = FileManager.default.temporaryDirectory.appending(
-		path: "enduragent-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
+	let directory = try TestTemporaryFolders.make()
 	try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 	defer {
 		do {

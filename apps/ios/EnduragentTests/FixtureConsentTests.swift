@@ -35,20 +35,22 @@ extension FixtureLaunchTests {
 
 	@Test func existingInstallIsAskedForConsentOnNextLaunch() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let (services, kept) = try relaunch(.keep)
-		let launched = await AppLaunch.open(language: language) { (services, kept) }
-		guard case .ready(let model) = launched else {
-			Issue.record("Expected the existing install to open")
-			return
+		do {
+			let (services, kept) = try await relaunch(.keep)
+			let launched = await AppLaunch.open(language: language) { (services, kept) }
+			guard case .ready(let model) = launched else {
+				Issue.record("Expected the existing install to open")
+				return
+			}
+			#expect(model.route != .chat)
+			await model.appear()
+			#expect(model.route == .onboarding(.consent))
+			#expect(model.chat == nil)
+			model.declineConsent()
+			#expect(model.route != .chat)
 		}
-		#expect(model.route != .chat)
-		await model.appear()
-		#expect(model.route == .onboarding(.consent))
-		#expect(model.chat == nil)
-		model.declineConsent()
-		#expect(model.route != .chat)
-		let (next, nextDefaults) = try relaunch(.keep)
-		let reopened = ShellModel(
+		let (next, nextDefaults) = try await relaunch(.keep)
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: next, language: language, defaults: nextDefaults))
 		await reopened.appear()
 		#expect(reopened.route == .onboarding(.consent))
@@ -83,7 +85,7 @@ extension FixtureLaunchTests {
 
 	@Test func existingInstallCanDeferConsentWithoutRepeatingStarterCredits() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let (services, _) = try relaunch(.keep)
+		let (services, _) = try await relaunch(.keep)
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
@@ -111,24 +113,27 @@ extension FixtureLaunchTests {
 
 	@Test func keptConsentRefusalRetriesTheSameTurnAfterAgreement() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let seeded = try services()
-		_ = try await seeded.coach.send(
-			Draft(id: DraftID(), text: TutorialCopy.weekQuestion), to: .main)
-		let deadline = ContinuousClock.now + .seconds(5)
-		var snapshot = await firstSnapshot(seeded, chat: .main)
-		while snapshot?.turns.first?.state.isSettled != true, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-			snapshot = await firstSnapshot(seeded, chat: .main)
+		let refused: TurnView
+		do {
+			let seeded = try services()
+			_ = try await seeded.coach.send(
+				Draft(id: DraftID(), text: TutorialCopy.weekQuestion), to: .main)
+			let deadline = ContinuousClock.now + .seconds(5)
+			var snapshot = await firstSnapshot(seeded, chat: .main)
+			while snapshot?.turns.first?.state.isSettled != true, ContinuousClock.now < deadline {
+				try await Task.sleep(for: .milliseconds(20))
+				snapshot = await firstSnapshot(seeded, chat: .main)
+			}
+			refused = try #require(snapshot?.turns.first)
+			#expect(seeded.fixtureTransport?.requestCount == 0)
 		}
-		guard case .failed(let failure) = snapshot?.turns.first?.state else {
+		guard case .failed(let failure) = refused.state else {
 			Issue.record("Expected a consent refusal")
 			return
 		}
-		let refused = try #require(snapshot?.turns.first)
 		#expect(failure.notice.key == Catalog.accessErrorProviderConsentRequired)
 		#expect(failure.notice.action == .tryAgain(refused.id))
-		#expect(seeded.fixtureTransport?.requestCount == 0)
-		let (services, _) = try relaunch(.keep)
+		let (services, _) = try await relaunch(.keep)
 		let model = model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
@@ -140,7 +145,7 @@ extension FixtureLaunchTests {
 		#expect(kept.state == refused.state)
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.perform(try #require(failure.notice.action))
-		let answered = try await settledTurn(model, after: snapshot?.turns.first?.state)
+		let answered = try await settledTurn(model, after: refused.state)
 		#expect(answered.id == refused.id)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
 		#expect(model.chat?.turns.count == 1)

@@ -207,8 +207,7 @@ extension SwiftDataSuites {
 		let manifest: Manifest
 
 		static func materialize() throws -> V1Store {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-v1-\(UUID().uuidString)", directoryHint: .isDirectory)
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			for name in ["synced", "local"] {
 				let sql = try String(contentsOf: try fixture(name, "sql"), encoding: .utf8)
