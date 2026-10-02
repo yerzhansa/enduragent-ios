@@ -27,45 +27,48 @@ final class ChatRecords {
 		recoveryRecords: [AthleteRecord]? = nil,
 		isolation: isolated (any Actor)? = #isolation
 	) async throws(LedgerFailure) {
-		let imported: [AthleteRecord]
-		if let recoveryRecords {
-			let synced = try await ledger.read(
-				RecordQuery(scope: ConversationFold.syncedScope, chatId: chat)
-			).records
-			imported =
-				synced
-				+ recoveryRecords.filter {
-					$0.chatId == chat && ConversationFold.localScope.admits($0.body)
-				}
-		} else {
-			imported = try await ledger.conversationRecords(chat)
-		}
-		let saved = Set(imported.filter { $0.locality == .synced }.map(\.ulid))
-		for record in imported {
-			if case .deviceLocal(.pendingSettlement(let body)) = record.body,
-				record.deviceId == ledger.deviceId, !saved.contains(record.ulid)
-			{
-				pendingSettlements[record.ulid] = record.replacingBody(
-					.synced(.turnSettled(body)))
+		try await readingReview { () throws(LedgerFailure) in
+			let imported: [AthleteRecord]
+			if let recoveryRecords {
+				let synced = try await ledger.read(
+					RecordQuery(scope: ConversationFold.syncedScope, chatId: chat)
+				).records
+				imported =
+					synced
+					+ recoveryRecords.filter {
+						$0.chatId == chat && ConversationFold.localScope.admits($0.body)
+					}
+			} else {
+				imported = try await ledger.conversationRecords(chat)
 			}
+			let saved = Set(imported.filter { $0.locality == .synced }.map(\.ulid))
+			for record in imported {
+				if case .deviceLocal(.pendingSettlement(let body)) = record.body,
+					record.deviceId == ledger.deviceId, !saved.contains(record.ulid)
+				{
+					pendingSettlements[record.ulid] = record.replacingBody(
+						.synced(.turnSettled(body)))
+				}
+			}
+			for record in imported { applied[record.ulid] = record }
+			await retrySettlements()
+			var folded = ConversationFold.fold(
+				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
+			let jobs: [FlushJob]
+			if let recoveryRecords {
+				jobs =
+					try await ledger.flushJobsByChat(in: [chat: folded], local: recoveryRecords)[
+						chat]
+					?? []
+			} else {
+				jobs = try await ledger.flushJobs(in: folded)
+			}
+			let snapshot = try await reviews.snapshot(chat: chat, records: imported)
+			folded.apply(Array(applied.values), device: ledger.deviceId)
+			conversation = folded
+			self.jobs = jobs
+			return ((), snapshot)
 		}
-		for record in imported { applied[record.ulid] = record }
-		await retrySettlements()
-		var folded = ConversationFold.fold(
-			chat: chat, synced: Array(applied.values), device: ledger.deviceId)
-		let jobs: [FlushJob]
-		if let recoveryRecords {
-			jobs =
-				try await ledger.flushJobsByChat(in: [chat: folded], local: recoveryRecords)[chat]
-				?? []
-		} else {
-			jobs = try await ledger.flushJobs(in: folded)
-		}
-		let review = try await reviews.snapshot(chat: chat, records: imported)
-		folded.apply(Array(applied.values), device: ledger.deviceId)
-		conversation = folded
-		self.review = review
-		self.jobs = jobs
 	}
 
 	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
@@ -78,25 +81,62 @@ final class ChatRecords {
 	) async -> ReviewOutcome {
 		if let ref, review?.ref != ref { return .staleControl }
 		do {
-			try await refreshNotes()
-			review = try await reviews.snapshot(chat: chat, records: nil)
+			try await updateReview()
 			return .presentationRecorded
 		} catch {
-			reviewUnavailable(error)
 			return .storageUnavailable
 		}
 	}
 
-	private func reviewUnavailable(_ failure: LedgerFailure) {
-		if let previous = review {
-			review = ReviewSnapshot(
-				ref: previous.ref, cards: previous.cards, kept: previous.kept,
-				totals: previous.totals, receipts: previous.receipts,
-				notice: ReviewNotice(
-					kind: .storageUnavailable, key: Catalog.reviewStorageUnavailable, vars: [:]),
-				controls: .none, authority: previous.authority)
+	func decide(
+		_ decision: ReviewDecision, scope: TurnScope?,
+		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void,
+		isolation: isolated (any Actor)? = #isolation
+	) async -> ReviewOutcome {
+		var outcome = ReviewOutcome.storageUnavailable
+		do {
+			try await readingReview { () throws(LedgerFailure) in
+				outcome = try await reviews.decide(
+					decision, chat: chat, scope: scope, changed: changed)
+				return (outcome, try await savedReview())
+			}
+		} catch {
+			return outcome
 		}
-		ledger.report(.reviewUnavailable(chat, failure))
+		return outcome
+	}
+
+	func updateReview(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
+		try await readingReview { () throws(LedgerFailure) in
+			return ((), try await savedReview())
+		}
+	}
+
+	private func savedReview(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure) -> ReviewSnapshot?
+	{
+		try await refreshNotes()
+		return try await reviews.snapshot(chat: chat, records: nil)
+	}
+
+	private func readingReview<Value>(
+		isolation: isolated (any Actor)? = #isolation,
+		_ read: nonisolated(nonsending) () async throws(LedgerFailure) -> (Value, ReviewSnapshot?)
+	) async throws(LedgerFailure) -> Value {
+		let retained = review
+		do {
+			let (value, snapshot) = try await read()
+			if case .cancelledUnknown? = snapshot?.state {
+				review = nil
+			} else {
+				review = snapshot
+			}
+			return value
+		} catch {
+			review = (review?.ref == retained?.ref ? retained : review)?.disablingButtons()
+			ledger.report(.reviewUnavailable(chat, error))
+			throw error
+		}
 	}
 
 	func refreshJobs(
@@ -118,7 +158,9 @@ final class ChatRecords {
 
 	func refreshNotes(isolation: isolated (any Actor)? = #isolation) async throws(LedgerFailure) {
 		let notes = try await ledger.read(
-			RecordQuery(scope: .synced([.reviewApplied, .reviewWrite]), chatId: chat))
+			RecordQuery(
+				scope: .synced([.reviewApplied, .reviewWrite, .reviewCancelledUnknown]),
+				chatId: chat))
 		apply(notes.records)
 	}
 

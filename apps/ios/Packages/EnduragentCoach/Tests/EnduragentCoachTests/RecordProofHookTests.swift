@@ -34,6 +34,7 @@ import Testing
 		#expect(failed.cards == ready.cards)
 		#expect(failed.notice?.key == Catalog.reviewStorageUnavailable)
 		#expect(failed.controls == .none)
+		#expect(failed.state == .storageUnavailable(try #require(ready.content), .approveOrCancel))
 		#expect(await coach.decide(.checkAgain(token.ref), in: .main) == .presentationRecorded)
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
 	}

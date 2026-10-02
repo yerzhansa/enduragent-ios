@@ -164,14 +164,26 @@ package actor ChatMailbox {
 		return await records.refreshReview(ref)
 	}
 
+	package func decide(_ decision: ReviewDecision) async -> ReviewOutcome {
+		defer { publish() }
+		return await records.decide(decision, scope: reviewScope) { () throws(LedgerFailure) in
+			try await self.updateReview()
+		}
+	}
+
+	private func updateReview() async throws(LedgerFailure) {
+		defer { publish() }
+		try await records.updateReview()
+	}
+
 	package func refreshImports() async throws(LedgerFailure) {
+		defer { publish() }
 		try await records.refresh()
 		if let window = work.window,
 			!conversation.current.turns.contains(where: { $0.turn == window.turn })
 		{
 			closeWindow()
 		}
-		publish()
 	}
 
 	package var reviewScope: TurnScope? { work.phase.running?.attempt?.scope }

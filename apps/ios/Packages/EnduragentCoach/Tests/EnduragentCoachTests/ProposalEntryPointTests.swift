@@ -24,11 +24,11 @@ extension RetryLadderTests {
 			training: { TrainingConnection(account: account, client: intervals) })
 		let review = try #require(try await reviews.snapshot(chat: .main))
 		#expect(
-			await reviews.decide(.presented(review.ref), chat: .main, scope: scope)
+			try await reviews.decide(.presented(review.ref), chat: .main, scope: scope)
 				== .presentationRecorded)
 		let token = try #require(try await reviews.snapshot(chat: .main)?.token)
 		#expect(
-			await reviews.decide(.approve(token), chat: .main, scope: scope)
+			try await reviews.decide(.approve(token), chat: .main, scope: scope)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		try await scope.chargeAttempt()
 		await #expect(throws: SavedWorkReached.self) {

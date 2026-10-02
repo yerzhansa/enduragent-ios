@@ -13,10 +13,15 @@ extension SingleProposalReviews {
 		var delivery = delivery(set: intent.body.review, chat: chat, authority: authority)
 		let cards = intent.proposal.map { [ReviewCard($0.body)] } ?? []
 		let controls: ReviewControls
-		if authority != .thisDevice || block == .accountChanged || delivery.busy
+		if authority != .thisDevice || delivery.busy
 			|| intent.proposal == nil
 		{
 			controls = .none
+		} else if block == .accountChanged {
+			let secret = delivery.secret ?? UUID()
+			delivery.secret = secret
+			deliveries[chat] = delivery
+			controls = .cancelOnly(ReviewControlToken(ref: delivery.ref, secret: secret))
 		} else if canRepeat(intent) {
 			let secret = delivery.secret ?? UUID()
 			delivery.secret = secret
@@ -28,26 +33,31 @@ extension SingleProposalReviews {
 		}
 		let notice = block.map(accountNotice) ?? pendingNotice(intent.body.evidence)
 		return ReviewSnapshot(
-			ref: delivery.ref, cards: cards, kept: [], totals: ReviewTotals(cards), receipts: [],
-			notice: notice, controls: controls, authority: authority)
+			ref: delivery.ref,
+			state: .available(
+				ReviewContent(
+					cards: cards, kept: [], totals: ReviewTotals(cards), receipts: [],
+					notice: notice, authority: authority), controls))
 	}
 
 	func canRepeat(_ intent: CalendarWriteIntent) -> Bool {
-		guard intent.body.writeID != nil, !intent.canceled else { return false }
+		guard intent.body.writeID != nil, intent.cancellation == nil else { return false }
 		switch (intent.body.target, intent.body.evidence) {
 		case (.create, .unknown(.absent)), (.delete, .unknown(.found)): return true
 		default: return false
 		}
 	}
 
-	func recover(_ ref: ReviewRef, repeatWrite: Bool, scope: TurnScope?) async -> ReviewOutcome {
+	func recover(_ ref: ReviewRef, repeatWrite: Bool, scope: TurnScope?) async throws(LedgerFailure)
+		-> ReviewOutcome
+	{
 		do {
 			guard
 				let intent = try await ledger.calendarWrites(ref.chat).first(where: {
 					$0.body.review == ref.set
 				}),
 				intent.record.deviceId == ledger.deviceId, let live = intent.proposal,
-				intent.body.evidence.dispatched
+				intent.body.evidence.dispatched, intent.cancellation == nil
 			else { return unresolved(.unknown(.readFailed)) }
 			if case .applied(let id?) = intent.body.evidence {
 				return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
@@ -73,6 +83,7 @@ extension SingleProposalReviews {
 			}
 			return try await record(intent, evidence: evidence, scope: scope)
 		} catch let error as LedgerFailure {
+			if error == .unavailable { throw error }
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 			return unresolved(.unknown(.readFailed))
 		} catch {
@@ -89,7 +100,7 @@ extension SingleProposalReviews {
 				let writes = try await self.ledger.calendarWrites(chatId)
 				guard
 					!writes.contains(where: {
-						$0.body.evidence.dispatched && !$0.body.evidence.applied
+						$0.blocksNewWork
 					})
 				else {
 					throw IntervalsError(
@@ -103,7 +114,8 @@ extension SingleProposalReviews {
 					description: description, now: self.clock.now, ledger: self.ledger,
 					stamp: scope.stamp,
 					appliedWrites: Set(
-						writes.filter { $0.body.evidence.applied }.compactMap(\.body.writeID)))
+						writes.filter { $0.body.evidence.applied || $0.cancellation != nil }
+							.compactMap(\.body.writeID)))
 			}
 		}
 	}
