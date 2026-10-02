@@ -43,7 +43,7 @@ extension SwiftDataSuites {
 					} + [.finish(reason: .toolCalls), .finish(reason: .stop)],
 					for: .flush, otherwise: transport.respond)
 				let reset = try await beforeDeadline(within: .hangGuard) {
-					await before.startNewConversation(in: .main)
+					await before.resetAndSettle(in: .main)
 				}
 				#expect(try #require(reset) == .started(memory: .saved))
 				let request = try #require(sent(.memoryFlush, by: transport).last)
