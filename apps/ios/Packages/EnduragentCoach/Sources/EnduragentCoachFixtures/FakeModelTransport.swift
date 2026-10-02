@@ -92,7 +92,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 						case .keepWorking:
 							while !Task.isCancelled {
 								try await Task.sleep(for: .seconds(10))
-								continuation.yield(.textDelta(""))
+								continuation.yield(.heartbeat)
 							}
 							continuation.finish()
 							return

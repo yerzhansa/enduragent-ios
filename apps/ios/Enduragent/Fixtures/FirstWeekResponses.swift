@@ -132,6 +132,8 @@
 			guard let code = arguments.first else { return nil }
 			let rest = Array(arguments.dropFirst())
 			switch code {
+			case "400" where rest.isEmpty:
+				return .http(status: 400)
 			case "401" where rest.isEmpty:
 				return .http(status: 401)
 			case "402" where rest.isEmpty:

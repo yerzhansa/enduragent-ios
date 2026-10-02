@@ -204,6 +204,13 @@ extension FixtureLaunchTests {
 		let interrupt = try #require(task.expirationHandler)
 		interrupt()
 		try await waitForLease { !task.completed.isEmpty }
+		let settled = try await settledTurn(model)
+		guard case .interrupted(let interrupted) = settled.state else {
+			Issue.record("Expected system interruption, got \(settled.state)")
+			return
+		}
+		#expect(interrupted.cause == .systemExpired)
+		#expect(interrupted.saved.memorySections == 1)
 		#expect(task.completed == [false])
 		#expect(await services.leases().first?.ending == .interrupted(.systemExpired))
 		#expect(
@@ -227,7 +234,7 @@ enum LeaseCompletionScenario: CaseIterable, Sendable {
 		switch self {
 		case .stop, .expiry, .cancel: [.text("Still"), .hang]
 		case .success: [.text("Still on."), .finish(reason: .stop)]
-		case .failure: [.fail(.http(status: 401))]
+		case .failure: [.fail(.http(status: 400))]
 		}
 	}
 

@@ -32,6 +32,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [
+		("fixture:fail 400", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 1),
 		(
 			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
 			Catalog.chatTurnRestorePurchases, 1
