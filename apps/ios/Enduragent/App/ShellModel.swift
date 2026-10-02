@@ -30,6 +30,7 @@ final class ShellModel {
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
+	let trainingSettings: TrainingSettingsModel
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
@@ -44,6 +45,7 @@ final class ShellModel {
 		self.initialLanguage = initialLanguage
 		self.environment = environment
 		self.lifecycle = AppLifecycle(environment: environment)
+		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)

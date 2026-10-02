@@ -514,7 +514,20 @@
       }
     },
     "title": "Indstillinger",
-    "modelAccessTitle": "Modeladgang"
+    "modelAccessTitle": "Modeladgang",
+    "training": {
+      "section": "Træningsforbindelse",
+      "title": "intervals.icu",
+      "replace": "Udskift nøgle",
+      "keep": "Behold den nuværende forbindelse",
+      "disconnect": "Afbryd forbindelsen",
+      "disconnectTitle": "Afbryd intervals.icu?",
+      "disconnectDetail": "Din samtale og historik er stadig tilgængelige.",
+      "switchTitle": "Brug en anden atlet?",
+      "switchDetail": "Denne nøgle tilhører atlet {{new}}. Gemt arbejde tilhører atlet {{current}}. Skift for at bruge denne nøgle?",
+      "switch": "Skift atlet",
+      "athlete": "Atlet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -2996,6 +3009,7 @@
     "review": "Gennemgå forbindelse",
     "profile": {
       "waiting": "Læser atletprofil…"
-    }
+    },
+    "missing": "intervals.icu er ikke tilsluttet. Opret forbindelse for at føje træningspas til din kalender."
   }
 }

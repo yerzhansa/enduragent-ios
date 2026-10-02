@@ -1,6 +1,6 @@
 # Onboarding and connection
 
-The athlete accepts the health notice, connects intervals.icu or skips it, receives starter Credits, agrees to sharing with the AI providers, and enters the one ongoing conversation. A kept store without current consent opens the same consent screen before chat. Debug, Credentials provides the existing controls for replacing or disconnecting the training connection.
+The athlete accepts the health notice, connects intervals.icu or skips it, receives starter Credits, agrees to sharing with the AI providers, and enters the one ongoing conversation. A kept store without current consent opens the same consent screen before chat. Settings > intervals.icu provides replacement and confirmed disconnect.
 
 ## Sub-features
 
@@ -10,7 +10,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected.
 - `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
 - `onboarding-consent` names OpenRouter and DeepSeek and the data shared. `consent.accept` saves permission and opens chat. `consent.decline` keeps chat locked and shows the same disclosure with `consent.resume` labeled Agree and continue. One tap saves permission and opens chat without repeating the choice or requesting starter Credits. Relaunching before agreement asks again.
-- `onboarding-credentials` keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
+- `onboarding-credentials` is now proved by the [Settings connection proofs](./settings.md). Settings keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
 - `onboarding-unavailable` shows `launch.storageUnavailable` when the record store cannot open. A locked keychain on a kept store preserves the transcript and shows `chat.composer.notice`.
 
 ## How to get to it (user POV)
@@ -19,7 +19,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - Enter an intervals.icu key and choose Connect, or choose Skip for now.
 - Choose Continue after connection, then Start chatting after starter Credits.
 - Read Your coach uses AI, then choose Agree and continue or Not now. After Not now, tap Agree and continue once to open chat. A saved turn refused for missing consent stays unchanged after agreement until the athlete taps Try again.
-- From the conversation, choose Settings, Debug, Credentials. The controls are Replace, Blank key, Cancel, Switch athlete, and Disconnect. Fixture builds also offer Lock keychain and Fail next write.
+- From the conversation, choose Settings > intervals.icu. Choose Replace key, enter the masked value and save. Known owner changes and Disconnect need explicit confirmation. Debug holds only credential fault controls.
 - Choose access method under a turn notice returns to the connect step; finishing it returns to the existing conversation.
 
 ## Driving it with sim.mjs and XCUITest
@@ -37,12 +37,6 @@ Preconditions:
 | `sim.mjs test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after one Agree tap, `provider-consent`, `provider-consent-deferred`, and `provider-consent-deferred-accepted`. |
 | `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
 | `sim.mjs test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
-| `sim.mjs test <run id> CredentialTransactionProof` | Blank key, Cancel, and a failed replacement preserve Ada's key; the next reply succeeds, `credential-blank`, `credential-transaction`, `credential-transaction-reply`. |
-| `sim.mjs test <run id> DifferentAthleteProof` | Replace with `other-athlete` refuses the switch while a review exists. Confirming Switch athlete removes approval controls, `different-athlete`, `switch-confirmed`. |
-| `sim.mjs test <run id> SameAthleteRotationProof` | `fixture-rotated` keeps review authority for the same athlete, then approval succeeds, `same-athlete-rotation`, `same-athlete-rotation-added`. |
-| `sim.mjs test <run id> DisconnectProof` | The next turn's record names `unconnected`, `disconnect`. |
-| `sim.mjs test <run id> ConnectAfterLaunchProof` | Connecting after Skip affects the next turn without relaunch, `connect-after-launch`. |
-| `sim.mjs test <run id> FailedWriteRecordsProof` | A failed replacement preserves the connection stamped on the next turn, `failed-write`, `failed-write-records`. |
 | `sim.mjs test <run id> UpgradeConnectionProof` | An existing pre-vault connection reaches the next turn, `upgrade-item`. Requires its earlier store and keychain; a skip is not a pass. |
 | `sim.mjs test <run id> LockedKeychainProof` | The kept conversation remains visible with the unlock notice, `locked-keychain`. |
 | `sim.mjs test <run id> StorageUnavailableProof` | An unreadable store shows the history-unavailable and reopen notice, `storage-unavailable`. |

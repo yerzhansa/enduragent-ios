@@ -129,6 +129,7 @@ public enum ReviewOutcome: Sendable, Equatable {
 
 public enum ReviewBlock: Sendable, Equatable {
 	case turnStopping
+	case trainingNotConnected
 	case cannotVerify
 	case accountChanged
 	case pastProtected

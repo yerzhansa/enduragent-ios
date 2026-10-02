@@ -514,7 +514,20 @@
         "title": "Ta bort den befintliga webhooken"
       }
     },
-    "modelAccessTitle": "Modellåtkomst"
+    "modelAccessTitle": "Modellåtkomst",
+    "training": {
+      "section": "Träningsanslutning",
+      "title": "intervals.icu",
+      "replace": "Byt nyckel",
+      "keep": "Behåll nuvarande anslutning",
+      "disconnect": "Koppla från",
+      "disconnectTitle": "Koppla från intervals.icu?",
+      "disconnectDetail": "Din konversation och historik är fortfarande tillgängliga.",
+      "switchTitle": "Använda en annan idrottare?",
+      "switchDetail": "Denna nyckel tillhör idrottare {{new}}. Sparat arbete tillhör idrottare {{current}}. Byta för att använda denna nyckel?",
+      "switch": "Byt idrottare",
+      "athlete": "Idrottare {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -2996,6 +3009,7 @@
     "review": "Kontrollera anslutning",
     "profile": {
       "waiting": "Läser idrottsprofil…"
-    }
+    },
+    "missing": "intervals.icu är inte anslutet. Anslut för att lägga till träningspass i kalendern."
   }
 }

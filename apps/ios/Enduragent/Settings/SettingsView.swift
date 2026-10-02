@@ -12,6 +12,13 @@ struct SettingsView: View {
 				)
 				.accessibilityIdentifier("settings.credits")
 			}
+			Section(model.phrasebook.say(Catalog.settingsTrainingSection)) {
+				NavigationLink(
+					model.phrasebook.say(Catalog.settingsTrainingTitle),
+					value: ShellDestination.training
+				)
+				.accessibilityIdentifier("settings.training")
+			}
 			#if DEBUG
 				Section {
 					NavigationLink(SettingsDebugView.title, value: ShellDestination.debug)

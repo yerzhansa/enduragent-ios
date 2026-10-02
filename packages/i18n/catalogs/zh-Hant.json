@@ -513,7 +513,20 @@
         "title": "移除現有的 webhook"
       }
     },
-    "modelAccessTitle": "模型存取"
+    "modelAccessTitle": "模型存取",
+    "training": {
+      "section": "訓練連線",
+      "title": "intervals.icu",
+      "replace": "替換金鑰",
+      "keep": "保留目前連線",
+      "disconnect": "中斷連線",
+      "disconnectTitle": "中斷 intervals.icu 連線？",
+      "disconnectDetail": "對話和歷史記錄仍可查看。",
+      "switchTitle": "使用其他運動員？",
+      "switchDetail": "此金鑰屬於運動員 {{new}}。已儲存的內容屬於運動員 {{current}}。是否切換以使用此金鑰？",
+      "switch": "切換運動員",
+      "athlete": "運動員 {{id}}"
+    }
   },
   "archive": {
     "athlete": "您",
@@ -2956,6 +2969,7 @@
     "review": "檢查連線",
     "profile": {
       "waiting": "正在讀取運動員資料…"
-    }
+    },
+    "missing": "尚未連接 intervals.icu。連接後可將訓練加入行事曆。"
   }
 }

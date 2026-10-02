@@ -10,8 +10,6 @@ import SwiftUI
 			List {
 				NavigationLink("Credits", value: ShellDestination.debugCredits)
 					.accessibilityIdentifier("debug.credits")
-				NavigationLink("Credentials", value: ShellDestination.debugCredentials)
-					.accessibilityIdentifier("debug.credentials")
 				NavigationLink("Records", value: ShellDestination.debugRecords)
 					.accessibilityIdentifier("debug.records")
 				NavigationLink(

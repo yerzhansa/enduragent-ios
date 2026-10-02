@@ -10,6 +10,15 @@
 
 		var body: some View {
 			if let fixture = services.fixture {
+				Button("Fail next credential write") { fixture.secretBacking.failNextWrite = true }
+					.accessibilityIdentifier("fixture.failCredentialWrite")
+				Button(fixture.secretBacking.locked ? "Unlock keychain" : "Lock keychain") {
+					fixture.secretBacking.locked.toggle()
+					Task { await model.sceneChanged(.becameActive) }
+				}
+				.accessibilityIdentifier("fixture.toggleKeychainLock")
+				Text(connectionText)
+					.accessibilityIdentifier("fixture.connection")
 				Button("Fail next record append") { fixture.records.failNextAppend = true }
 					.accessibilityIdentifier("fixture.failNextAppend")
 				Button("Fail next review read") {
@@ -74,5 +83,15 @@
 			Text(services.fixtureTransport?.lastReplyLanguage ?? "—")
 				.accessibilityIdentifier("fixture.replyLanguage")
 		}
+		private var connectionText: String {
+			switch model.status?.training {
+			case .connected(_, .intervals(let connection, let athlete))?:
+				"intervals:\(connection.rawValue.uuidString):\(athlete?.rawValue ?? "unresolved")"
+			case .connected(_, .unconnected)?, .unconnected?: "unconnected"
+			case .unavailable?: "unavailable"
+			case nil: "waiting"
+			}
+		}
+
 	}
 #endif
