@@ -98,6 +98,11 @@ package actor ChatMailbox {
 		_ draft: Draft, slash: SlashCommand?
 	) async throws(AcceptFailure) -> SendOutcome {
 		guard !lifecycle.terminating else { throw .storageUnavailable }
+		if slash?.route == .languagePicker {
+			closeWindow()
+			publish()
+			return .showLanguagePicker
+		}
 		if let known = conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
