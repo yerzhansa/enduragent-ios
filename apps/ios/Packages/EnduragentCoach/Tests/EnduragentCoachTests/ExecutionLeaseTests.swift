@@ -56,7 +56,7 @@ import Testing
 		await coach.waitUntilProcessing(first)
 		let second = try #require(
 			try await coach.send(draft("And Sundays?"), to: .main).acceptedTurn)
-		let lease = try #require(await host.ended(0, within: .seconds(20)))
+		let lease = try #require(await host.ended(0, within: .hangGuard))
 		#expect(host.leases.count == 1)
 		#expect(lease.request == athleteLease)
 		#expect(lease.kind == .continuedProcessing)
@@ -290,7 +290,7 @@ import Testing
 		let recovery = try #require(await host.ended(0))
 		#expect(recovery.request.initiatedBy == .recovery)
 		#expect(recovery.ending == .finished(nil))
-		let athlete = try #require(await host.ended(1, within: .seconds(10)))
+		let athlete = try #require(await host.ended(1, within: .hangGuard))
 		#expect(athlete.request == athleteLease)
 		#expect(
 			athlete.ending
@@ -332,7 +332,7 @@ import Testing
 		expiryClock.release(.milliseconds(300))
 		guard
 			case .interrupted(let interrupted)? = await coach.settledState(
-				of: turn, in: .main, within: .seconds(5))
+				of: turn, in: .main, within: .hangGuard)
 		else {
 			Issue.record("the timed expiry did not interrupt the turn")
 			return

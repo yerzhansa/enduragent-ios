@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Testing
 
 @testable import EnduragentCoach
@@ -17,7 +18,7 @@ extension AsyncStream where Element == CoachStatus {
 	func status(matching matches: @escaping @Sendable (CoachStatus) -> Bool) async throws
 		-> CoachStatus?
 	{
-		try await beforeDeadline(within: .seconds(5)) {
+		try await beforeDeadline(within: .hangGuard) {
 			await first(where: matches)
 		} ?? nil
 	}

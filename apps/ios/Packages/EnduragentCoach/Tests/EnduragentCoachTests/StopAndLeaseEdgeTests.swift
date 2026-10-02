@@ -93,7 +93,7 @@ import Testing
 			await coach.lifecycle(.willTerminate)
 			terminated.withLock { $0 = true }
 		}
-		try await waitUntil(within: .seconds(2)) { terminated.withLock { $0 } }
+		try await waitUntil(within: .hangGuard) { terminated.withLock { $0 } }
 		store.release()
 		await terminating.value
 		#expect(await coach.interruption(of: running) == .appTerminating)

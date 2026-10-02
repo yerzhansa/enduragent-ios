@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Testing
 
 @testable import Enduragent
@@ -13,7 +14,7 @@ extension Coach {
 @MainActor
 extension ShellModel {
 	func waitForStatus(_ matches: (CoachStatus) -> Bool) async throws {
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while status.map(matches) != true, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}

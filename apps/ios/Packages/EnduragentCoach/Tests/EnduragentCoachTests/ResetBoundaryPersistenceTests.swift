@@ -25,7 +25,7 @@ extension SwiftDataSuites {
 			let turn = try #require(
 				try await local.send(draft("Current question"), to: .main).acceptedTurn)
 			let completed = try #require(
-				await local.settledState(of: turn, in: .main, within: .seconds(5)))
+				await local.settledState(of: turn, in: .main, within: .hangGuard))
 			#expect(replyText(completed) == "Current answer")
 			let transcript = await local.transcript(.main)
 			#expect(transcript == ["Current question", "Current answer"])

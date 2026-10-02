@@ -20,13 +20,13 @@ struct TerminationAdmissionEdgeTests {
 			} != nil)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
 		try #require(
-			try await firstSnapshot(in: await coach.observe(.main), within: .seconds(5)) {
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
 				$0.turns.last?.state == .accepted(.queued(position: 2))
 			} != nil)
 		async let sent = coach.send(draft("three"), to: .main)
 		defer { store.release() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await store.reached.first(where: { _ in true }) != nil
 			} == true)
 		async let stopped: Void = coach.stop(.main)
@@ -52,7 +52,7 @@ struct TerminationAdmissionEdgeTests {
 		async let sent = coach.send(draft("only"), to: .main)
 		defer { store.release() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await store.reached.first(where: { _ in true }) != nil
 			} == true)
 		try await terminateJoiningAdmission(coach, releasing: store.release)
@@ -79,7 +79,7 @@ struct TerminationAdmissionEdgeTests {
 		async let sent = coach.send(draft("first send"), to: .main)
 		defer { store.release() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await store.reached.first(where: { _ in true }) != nil
 			} == true)
 		try await terminateJoiningAdmission(coach, releasing: store.release)
@@ -103,14 +103,14 @@ struct TerminationAdmissionEdgeTests {
 			ended.release()
 		}
 		defer { shutdown.cancel() }
-		let returned = try await beforeDeadline(within: .milliseconds(100)) {
+		let returned = try await beforeDeadline(within: .subject(.milliseconds(100))) {
 			try await ended.waitUnlessCancelled()
 			return true
 		}
 		#expect(returned == nil, "Termination returned before joining admission")
 		release()
 		try #require(
-			try await beforeDeadline(within: .seconds(5), onTimeout: release) {
+			try await beforeDeadline(within: .hangGuard, onTimeout: release) {
 				await shutdown.value
 				return true
 			} == true)

@@ -228,9 +228,9 @@ extension FixtureLaunchTests {
 	}
 
 	private func waitUntil(
-		within limit: Duration = .seconds(10), _ condition: () async throws -> Bool
+		within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
 	) async throws {
-		let deadline = ContinuousClock.now + limit
+		let deadline = ContinuousClock.now + limit.duration
 		while try await !condition() {
 			guard ContinuousClock.now < deadline else {
 				Issue.record("the condition never held within \(limit)")

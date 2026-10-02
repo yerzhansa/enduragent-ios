@@ -44,9 +44,9 @@ final class FixtureLaunchTests {
 	}
 
 	func until(
-		within limit: Duration = .seconds(5), _ condition: () -> Bool
+		within limit: TestWaitLimit = .hangGuard, _ condition: () -> Bool
 	) async throws {
-		let deadline = ContinuousClock.now + limit
+		let deadline = ContinuousClock.now + limit.duration
 		while !condition(), ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}
@@ -54,9 +54,10 @@ final class FixtureLaunchTests {
 	}
 
 	func settledTurn(
-		_ model: ShellModel, after previous: TurnState? = nil, within limit: Duration = .seconds(20)
+		_ model: ShellModel, after previous: TurnState? = nil,
+		within limit: TestWaitLimit = .hangGuard
 	) async throws -> TurnView {
-		let deadline = ContinuousClock.now + limit
+		let deadline = ContinuousClock.now + limit.duration
 		while ContinuousClock.now < deadline {
 			if let turn = model.chat?.turns.last, turn.state.isSettled, turn.state != previous {
 				return turn
@@ -67,7 +68,7 @@ final class FixtureLaunchTests {
 	}
 
 	func settledTurn(_ model: ShellModel, at index: Int) async throws -> TurnView {
-		let deadline = ContinuousClock.now + .seconds(20)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while ContinuousClock.now < deadline {
 			if let turns = model.chat?.turns, turns.indices.contains(index),
 				turns[index].state.isSettled
@@ -83,7 +84,7 @@ final class FixtureLaunchTests {
 
 	func observed(_ model: ShellModel) async throws {
 		await model.appear()
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat == nil, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}
@@ -91,7 +92,7 @@ final class FixtureLaunchTests {
 	}
 
 	func firstTurn(_ model: ShellModel) async throws -> TurnView {
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat?.turns.isEmpty ?? true, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}
@@ -262,7 +263,7 @@ final class FixtureLaunchTests {
 		await model.send()
 		let settled = try await settledTurn(model)
 		await model.newConversation()
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat?.opening == .continuing, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(20))
 		}
@@ -362,7 +363,7 @@ extension ShellModel {
 		await startChatting()
 		if route == .onboarding(.consent) {
 			await acceptConsent()
-			let deadline = ContinuousClock.now + .seconds(5)
+			let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 			while route != .chat, ContinuousClock.now < deadline { await Task.yield() }
 		}
 		#expect(route == .chat)
