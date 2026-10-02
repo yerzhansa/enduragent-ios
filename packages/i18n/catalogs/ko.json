@@ -2941,7 +2941,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu에서 해당 키를 거부했습니다."
+      "rejected": "intervals.icu에서 해당 키를 거부했습니다.",
+      "blank": "intervals.icu API 키를 입력하세요. 현재 연결은 변경되지 않았습니다.",
+      "notSaved": "새 연결이 저장되지 않았습니다. 이전 연결은 변경되지 않았습니다. 다시 시도하세요.",
+      "profileUnavailable": "선수 프로필을 일시적으로 불러올 수 없습니다. 다시 시도하세요.",
+      "wellnessRejected": "intervals.icu가 오늘의 웰니스 데이터 읽기를 허용하지 않았습니다. 연결을 확인하세요.",
+      "wellnessUnavailable": "오늘의 웰니스 데이터를 일시적으로 불러올 수 없습니다. 다시 시도하세요."
+    },
+    "wellness": {
+      "empty": "오늘의 웰니스 데이터가 없습니다.",
+      "waiting": "오늘의 웰니스 데이터 읽는 중…"
+    },
+    "review": "연결 확인",
+    "profile": {
+      "waiting": "선수 프로필 읽는 중…"
     }
   }
 }

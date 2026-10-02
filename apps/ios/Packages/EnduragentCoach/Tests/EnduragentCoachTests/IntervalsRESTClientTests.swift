@@ -1,5 +1,6 @@
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import EnduragentCoach
@@ -30,7 +31,7 @@ struct IntervalsRESTClientTests {
 	@Test func fetchAthleteReadsAda() async throws {
 		let client = try makeClient()
 		let athlete = try await client.fetchAthlete()
-		#expect(athlete.id == "0")
+		#expect(athlete.id == "i1001")
 		#expect(athlete.name == "Ada Kovač")
 		#expect(athlete.ftp == 250)
 	}
@@ -178,7 +179,26 @@ struct IntervalsRESTClientTests {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let vault = testVault(secrets, training: .rest(session: try stubSession()))
 		let coached = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		_ = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) { false }
+		let outcome = await vault.change(.replace(apiKey: "test-key", athlete: .athlete(coached))) {
+			false
+		}
+		guard case .replaced(let summary, _) = outcome else {
+			Issue.record("Expected a saved connection")
+			return
+		}
+		#expect(summary.wellness == .waiting)
+		#expect(IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002")
+		let displayed = Mutex<TrainingStatus?>(nil)
+		await vault.refreshTrainingDisplay(
+			from: summary, isCurrent: { true },
+			publish: { status in
+				displayed.withLock { $0 = status }
+			})
+		guard case .connected(let refreshed, _) = displayed.withLock({ $0 }) else {
+			Issue.record("Expected the refreshed saved connection")
+			return
+		}
+		#expect(refreshed.wellness != .waiting)
 		#expect(
 			IntervalsURLProtocolStub.lastRequest?.url?.path == "/api/v1/athlete/i2002/wellness")
 		#expect(try secrets.intervalsConnection()?.selection == .athlete(coached))

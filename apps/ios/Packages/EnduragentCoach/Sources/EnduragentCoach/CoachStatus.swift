@@ -19,27 +19,98 @@ extension Coach {
 
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
 		observeImports()
-		return await statusChanges.pass {
-			await statusFeed.subscribe(from: statusSnapshot())
+		let (stream, snapshot, generation) = await statusChanges.pass {
+			let snapshot = await stableStatusSnapshot()
+			return (statusFeed.subscribe(from: snapshot), snapshot, trainingGeneration)
 		}
+		if generation == trainingGeneration {
+			if trainingStatus == nil { trainingStatus = snapshot.training }
+			if case .connected(let summary, _) = snapshot.training, summary.needsDisplayRead {
+				startTrainingDisplay(from: summary)
+			}
+		}
+		return stream
 	}
 
 	func publishStatus() async {
 		guard statusFeed.isObserved else { return }
 		await statusChanges.pass {
-			await statusFeed.publish(statusSnapshot())
+			statusFeed.publish(await stableStatusSnapshot())
 		}
 	}
 
-	func refreshTrainingStatus() async {
-		await publishStatus()
-		let refreshing = trainingRefresh ?? Task { await vault.trainingStatus() }
-		trainingRefresh = refreshing
-		let refreshed = await refreshing.value
-		guard trainingRefresh == refreshing else { return }
+	func invalidateTrainingDisplay() {
+		trainingGeneration += 1
+		trainingRefresh?.cancel()
 		trainingRefresh = nil
-		trainingStatus = refreshed
+		trainingReadID = nil
+	}
+
+	func refreshTrainingStatus() async {
+		invalidateTrainingDisplay()
+		let generation = trainingGeneration
+		let stored = await vault.storedTrainingStatus()
+		guard generation == trainingGeneration else { return }
+		trainingStatus = stored
 		await publishStatus()
+		guard generation == trainingGeneration, case .connected(let summary, _) = stored else {
+			return
+		}
+		startTrainingDisplay(from: summary)
+		await trainingRefresh?.value
+	}
+
+	public func retryTrainingDisplay(for connectionID: ConnectionID) async {
+		if trainingReadID?.connectionID == connectionID, let refreshing = trainingRefresh {
+			await refreshing.value
+			return
+		}
+		guard case .connected(let summary, _) = trainingStatus,
+			summary.connectionID == connectionID, summary.action == .retry(connectionID)
+		else {
+			await publishStatus()
+			return
+		}
+		invalidateTrainingDisplay()
+		startTrainingDisplay(from: summary)
+		await trainingRefresh?.value
+	}
+
+	func startTrainingDisplay(from summary: IntervalsSummary) {
+		guard trainingRefresh == nil else { return }
+		let readID = TrainingDisplayReadID(
+			connectionID: summary.connectionID, generation: trainingGeneration)
+		trainingReadID = readID
+		trainingRefresh = Task {
+			await vault.refreshTrainingDisplay(
+				from: summary,
+				isCurrent: { await self.isCurrentTrainingRead(readID) },
+				publish: { await self.acceptTrainingDisplay($0, for: readID) })
+			if isCurrentTrainingRead(readID) {
+				trainingRefresh = nil
+				trainingReadID = nil
+			}
+		}
+	}
+
+	private func isCurrentTrainingRead(_ readID: TrainingDisplayReadID) -> Bool {
+		trainingGeneration == readID.generation && trainingReadID == readID
+	}
+
+	private func acceptTrainingDisplay(_ status: TrainingStatus, for readID: TrainingDisplayReadID)
+		async
+	{
+		guard isCurrentTrainingRead(readID) else { return }
+		trainingStatus = status
+		await publishStatus()
+	}
+
+	private func stableStatusSnapshot() async -> CoachStatus {
+		while true {
+			let generation = trainingGeneration
+			let snapshot = await statusSnapshot()
+			if generation == trainingGeneration { return snapshot }
+		}
 	}
 
 	private func statusSnapshot() async -> CoachStatus {
@@ -47,15 +118,19 @@ extension Coach {
 		let setup: SetupState =
 			consent?.isCurrent == true
 			? await vault.setup(builtInModel: builtInModel) : .needsProviderConsent
+		let preferences = await preferences.load()
+		let stored = await vault.storedTrainingStatus()
 		let training: TrainingStatus
-		if let trainingStatus {
-			training = trainingStatus
+		if case .connected(let saved, let account) = stored,
+			case .connected(let displayed, _) = trainingStatus,
+			saved.connectionID == displayed.connectionID
+		{
+			training = .connected(displayed, account: account)
 		} else {
-			training = await vault.storedTrainingStatus()
+			training = stored
 		}
 		return CoachStatus(
-			setup: setup, training: training, preferences: await preferences.load(),
-			providerConsent: consent)
+			setup: setup, training: training, preferences: preferences, providerConsent: consent)
 	}
 
 	public func languagePreference() async -> LanguagePreference {

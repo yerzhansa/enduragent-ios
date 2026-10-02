@@ -28,7 +28,7 @@ import Testing
 
 	@Test func failedWellnessReadOmitsLineAndLogsDiagnostics() async throws {
 		let failure = IntervalsError(code: "http", details: "status 503", status: 503)
-		intervals.loadFailure = failure
+		intervals.setWellnessOutcome(.failure(failure))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
