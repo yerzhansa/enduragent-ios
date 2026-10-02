@@ -65,7 +65,9 @@ extension FixtureLaunchTests {
 		await model.send()
 		let source = try #require(replyText(try await settledTurn(model).state))
 		#expect(
-			services.replyParser.document(source) == .plainText(source: source, failure: .injected))
+			services.replyParser.document(source)
+				== .plainText(
+					source: source, failure: .foundation(domain: "ReplyParserFixture", code: 1)))
 		#expect(
 			try self.services().replyParser.document(source)
 				== ReplyParser.foundation.document(source))

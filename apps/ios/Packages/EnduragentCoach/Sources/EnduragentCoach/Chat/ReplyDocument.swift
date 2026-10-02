@@ -106,7 +106,4 @@ public struct ReplyTable: Sendable, Equatable {
 public enum ReplyParseFailure: Error, Sendable, Equatable {
 	case foundation(domain: String, code: Int)
 	case documentStructure
-	#if DEBUG
-		case injected
-	#endif
 }

@@ -31,7 +31,7 @@ Run `pnpm test:tools` when you change `tools/` or the `verify-ios` helper script
 
 `pnpm check:format` runs `swift format lint --strict` with `.swift-format` on tracked Swift sources. `pnpm format:swift` writes that layout. The generated catalog is left to its generator.
 
-Swift live API tests are opt-in and skipped by `pnpm test:swift`. Optional REST test evidence is written only when `ENDURAGENT_TEST_EVIDENCE_DIRECTORY` names an existing test-owned directory.
+Swift live API tests are opt-in and skipped by `pnpm test:swift`.
 
 ## Source ownership
 
