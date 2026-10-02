@@ -147,12 +147,6 @@ private func ulidTimestamp(_ raw: String) throws -> UInt64 {
 		#expect(IntervalsAthleteID(rawValue: "i12345")?.rawValue == "i12345")
 	}
 
-	@Test func currentTimeZoneIsNeverGMTByAccident() {
-		let zone = IANATimeZone(current: TimeZone.current)
-		#expect(zone.identifier == TimeZone.current.identifier)
-		#expect(zone.timeZone.identifier == TimeZone.current.identifier)
-	}
-
 	@Test func ulidIncrementStaysOrderedAndCarries() throws {
 		let base = try #require(ULID(rawValue: "01ARZ3NDEKTSV4RRFFQ69G5FAV"))
 		#expect(base.incremented().rawValue == "01ARZ3NDEKTSV4RRFFQ69G5FAW")

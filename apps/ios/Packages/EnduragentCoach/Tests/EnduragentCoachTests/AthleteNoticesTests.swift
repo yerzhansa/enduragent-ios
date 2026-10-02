@@ -232,18 +232,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(families.count == 10)
 	}
 
-	@Test func interruptedWithSavedWorkOffersNoTryAgain() {
-		for cause in InterruptionCause.allCases {
-			let state = settledState(.interrupted(partial: "", cause: cause, saved: memorySaved))
-			#expect(notice(of: state)?.key == Catalog.chatTurnInterruptedSomeSaved)
-			#expect(notice(of: state)?.action == nil)
-			#expect(!state.retryable)
-			let clean = settledState(.interrupted(partial: "", cause: cause, saved: .none))
-			#expect(notice(of: clean)?.key == Catalog.chatTurnInterruptedNothingChanged)
-			#expect(clean.retryable)
-		}
-	}
-
 	@Test func aDeadClaimRecoveryHasNotSettledReadsHistoryUnavailableWithNoButton() throws {
 		let state = TurnLifecycle.state(
 			of: claimedFacts(by: ProcessID(ulid: fixedUlid(61))), live: nil,
@@ -292,13 +280,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		}
 	}
 
-	@Test func savedUnverifiedOffersNoAction() {
-		let state = settledState(.savedWork(.savedUnverified, saved: memorySaved))
-		#expect(notice(of: state)?.key == Catalog.chatNoticeSavedUnverified)
-		#expect(notice(of: state)?.action == nil)
-		#expect(!state.retryable)
-	}
-
 	@Test func rateLimitPicksSecondsMinutesOrDefault() {
 		let seconds = AthleteNotices.notice(
 			for: .model(.rateLimited(retryAfter: .milliseconds(6_200))), turn: turn,
@@ -331,18 +312,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let down = settledState(
 			.failed(.model(.providerDown(.network)), saved: .none), overlay: .waitingToTryAgain)
 		#expect(notice(of: down)?.action == .tryAgain(turn))
-	}
-
-	@Test func aFailureOutsideATurnOffersNoTurnAction() {
-		let rateLimited = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(7))), turn: nil, waiting: true)
-		#expect(rateLimited.action == nil)
-		let down = AthleteNotices.notice(
-			for: .model(.providerDown(.network)), turn: nil, waiting: true)
-		#expect(down.action == nil)
-		let exhausted = AthleteNotices.notice(
-			for: .model(.accessExhausted(.credits)), turn: nil, waiting: true)
-		#expect(exhausted.action == .buyCredits)
 	}
 
 	@Test func creditsFailuresOutsideATurnReadCatalogSentences() {

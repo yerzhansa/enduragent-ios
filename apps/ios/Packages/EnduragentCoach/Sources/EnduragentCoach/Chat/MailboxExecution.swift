@@ -124,11 +124,11 @@ final class MailboxExecution {
 				case .turn(let turn, let origin):
 					await self.runTurn(turn, origin: origin, under: lease, on: mailbox)
 				case .flush(let job):
-					let access = await self.environment.flushAccess()
+					let access = self.environment.access
 					await self.flushes.drain(job, in: self.records.conversation, access: access)
 					_ = await self.records.refreshJobs(from: self.flushes)
 				case .reset(let reset):
-					let access = await self.environment.flushAccess()
+					let access = self.environment.access
 					await self.resets.run(reset, on: self.records, access: access) {
 						mailbox.publish()
 					}

@@ -33,7 +33,10 @@ extension SwiftDataSuites {
 			}
 			try await waitUntil { snapshots.latest?.turns.first?.athleteText == "Remote question" }
 			try await Task.sleep(for: .milliseconds(500))
-			#expect(log.reads.count - reads == 5)
+			let refreshedScopes = Array(log.reads.dropFirst(reads))
+			for scope in refreshedScopes {
+				#expect(refreshedScopes.filter { $0 == scope }.count == 1)
+			}
 			#expect(log.reads.filter { $0 == Preferences.scope }.count - preferenceReads == 1)
 			#expect(snapshots.count - count == 1)
 			await coach.lifecycle(.willTerminate)

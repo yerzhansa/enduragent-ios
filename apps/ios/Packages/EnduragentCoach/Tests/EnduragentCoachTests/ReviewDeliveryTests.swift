@@ -23,6 +23,7 @@ extension SingleProposalReviewsTests {
 
 		await staleRead.release()
 		_ = await refresh.value
+		#expect(await coach.currentSnapshot(.main)?.review?.ref == token.ref)
 		#expect(await coach.decide(.presented(token.ref), in: .main) == .presentationRecorded)
 		let redisplayed = try #require(await coach.currentSnapshot(.main)?.review)
 		_ = await coach.decide(.presented(redisplayed.ref), in: .main)

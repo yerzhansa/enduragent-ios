@@ -11,6 +11,8 @@ import Testing
 		#expect(SlashRouting.parse("/workout tomorrow") == .workout)
 		#expect(SlashRouting.parse("/start") == .start)
 		#expect(SlashRouting.parse("/language") == .language)
+		#expect(SlashRouting.parse("  /language  ") == .language)
+		#expect(SlashRouting.parse("/language it") == .language)
 		#expect(SlashRouting.parse("hello /review") == nil)
 	}
 

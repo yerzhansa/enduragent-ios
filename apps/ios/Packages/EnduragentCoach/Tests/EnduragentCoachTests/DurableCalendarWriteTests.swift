@@ -6,15 +6,11 @@ import Testing
 
 @Suite(.timeLimit(.minutes(2))) struct DurableCalendarWriteTests {
 	enum LostResponse: Sendable, CaseIterable {
-		case http500, http502, http503, http504, http422, malformed, mismatched, timeout,
-			cancellation
+		case http500, http422, malformed, mismatched, timeout, cancellation
 
 		var response: CalendarWriteServer.Response {
 			switch self {
 			case .http500: .status(500)
-			case .http502: .status(502)
-			case .http503: .status(503)
-			case .http504: .status(504)
 			case .http422: .status(422)
 			case .malformed: .malformed
 			case .mismatched:

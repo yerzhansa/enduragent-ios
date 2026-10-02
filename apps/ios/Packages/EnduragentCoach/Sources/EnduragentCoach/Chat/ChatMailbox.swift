@@ -113,8 +113,9 @@ package actor ChatMailbox {
 			turn = TurnID(ulid: await ledger.nextULID())
 			fragment = 0
 		}
-		let message = TurnLifecycle.accept(
-			draft, turn: turn, fragment: fragment, chat: chatId, slash: slash)
+		let message = UserMessageBody(
+			chatId: chatId, turn: turn, fragment: fragment, draft: draft.id,
+			athleteText: draft.text, slash: slash)
 		do {
 			let stamp = await stamp(for: turn)
 			await records.retrySettlements()

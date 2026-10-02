@@ -114,6 +114,11 @@ extension RetryLadderTests {
 				== "This reply stopped before it finished. Some information was saved first.")
 		#expect(interrupted.notice.action == nil)
 		#expect(!settled.retryable)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
+		#expect(intervals.calls.filter(\.isWrite).count == 1)
+		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let reopened = await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 		#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
 	}

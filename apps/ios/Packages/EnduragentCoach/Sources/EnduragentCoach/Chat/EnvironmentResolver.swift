@@ -48,18 +48,6 @@ package struct EnvironmentResolver: Sendable {
 	package func appLanguage() async -> LanguageTag {
 		await preferences().language.appLanguage(device: deviceLanguage)
 	}
-
-	package func flushAccess() async
-		-> @Sendable () async throws(AccessUnavailable) -> ResolvedAccess
-	{
-		let session = await preferences().session
-		let access = self.access
-		return { () async throws(AccessUnavailable) in
-			let resolved = try await access()
-			return resolved.using(
-				model: ModelRoles(response: resolved.model, session: session).flush)
-		}
-	}
 }
 
 package struct AttemptEnvironment: Sendable {
