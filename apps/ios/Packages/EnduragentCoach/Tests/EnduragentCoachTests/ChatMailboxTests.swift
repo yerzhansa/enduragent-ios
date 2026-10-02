@@ -131,7 +131,7 @@ import Testing
 		let turn = try #require(try await sending.acceptedTurn)
 		_ = await observed
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Still on.")
 		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
 		let saved = try await inner.fetch(
@@ -162,7 +162,7 @@ import Testing
 		let outcome = try await coach.send(sent, to: .main)
 		let turn = try #require(outcome.acceptedTurn)
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Still on.")
 		#expect(try #require(await coach.currentSnapshot(.main)).turns.map(\.id) == [turn])
 		let saved = try await inner.fetch(
@@ -181,7 +181,7 @@ import Testing
 		var reached = store.reached.makeAsyncIterator()
 		await reached.next()
 		async let stopped: Void = coach.stop(.main)
-		let interrupted = await coach.settledState(of: running, in: .main, within: .seconds(3))
+		let interrupted = await coach.settledState(of: running, in: .main, within: .hangGuard)
 		store.release()
 		await stopped
 		let queued = try #require(try await second.acceptedTurn)

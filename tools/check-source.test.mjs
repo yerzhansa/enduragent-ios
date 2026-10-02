@@ -166,9 +166,58 @@ test('accepts the shared temporary folder helper', () => {
 const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 
+const testWaitFiles = [
+  'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/WaitSupport.swift',
+  'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/WaitSupport.swift',
+  'apps/ios/EnduragentTests/WaitSupport.swift',
+];
+for (const file of testWaitFiles) {
+  for (const source of [
+    'try await beforeDeadline(within: .seconds(5)) { await event() }',
+    'try await beforeDeadline(\nwithin: Duration.milliseconds(20)) { await event() }',
+    'let clock = HeldClock(within: .zero)',
+    'func wait(within limit: Duration = .seconds(5)) {}',
+    'let deadline = ContinuousClock.now + .seconds(5)',
+    'let deadline = ContinuousClock().now + Duration.seconds(5)',
+    'group.addTask { try await Task.sleep(for: .seconds(10)); return false }',
+    'group.addTask {\ntry await Task.sleep(for: Duration.seconds(5))\nreturn nil\n}',
+  ]) {
+    test(`rejects a literal test hang guard in ${file}: ${source}`, () => {
+      const result = run({ [file]: source });
+      assert.equal(result.status, 1, result.output);
+      assert.match(result.output, /test-hang-guard-duration/);
+    });
+  }
+  test(`accepts named hang guards and explicit subject durations in ${file}`, () => {
+    const result = run({ [file]: `
+      try await beforeDeadline(within: .hangGuard) { await event() }
+      try await beforeDeadline(within: .subject(.milliseconds(20))) { await event() }
+      let clock = HeldClock(within: .subject(.zero))
+      func wait(within limit: TestWaitLimit = .hangGuard) {}
+      let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
+      let observation = ContinuousClock.now + TestWaitLimit.subject(.seconds(1)).duration
+      group.addTask { try await Task.sleep(for: TestWaitLimit.hangGuard.duration); return false }
+      group.addTask { try await Task.sleep(for: TestWaitLimit.subject(.milliseconds(20)).duration); return nil }
+      clock.advance(by: .seconds(7))
+      try await clock.sleep(for: .seconds(11))
+      try await Task.sleep(for: .milliseconds(10))
+      let text = "beforeDeadline(within: .seconds(5))"
+    ` });
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
+test('leaves UI proof screen waits outside the test hang guard rule', () => {
+  const result = run({
+    'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let deadline = ContinuousClock.now + .seconds(5)',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Example.swift': 'func operation(within limit: Duration = .seconds(5)) {}',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
 for (const source of [
   'while !ready { try await changed.waitUnlessCancelled() }',
-  'try await beforeDeadline(within: .seconds(5)) { return true }; while !ready { try await changed.waitUnlessCancelled() }',
+  'try await beforeDeadline(within: .hangGuard) { return true }; while !ready { try await changed.waitUnlessCancelled() }',
   'while !ready { try await changed . waitUnlessCancelled () }',
   'while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() }',
 ]) {
@@ -180,8 +229,8 @@ for (const source of [
 }
 
 for (const source of [
-  'try await beforeDeadline(within: .seconds(5)) { while !ready { try await changed.waitUnlessCancelled() } }',
-  'try await beforeDeadline(within: .seconds(5), onTimeout: { gate.release() }) { while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() } }',
+  'try await beforeDeadline(within: .hangGuard) { while !ready { try await changed.waitUnlessCancelled() } }',
+  'try await beforeDeadline(within: .hangGuard, onTimeout: { gate.release() }) { while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() } }',
   'while !ready, ContinuousClock.now < deadline { await Task.yield() }',
 ]) {
   test(`accepts a bounded gate loop: ${source}`, () => {

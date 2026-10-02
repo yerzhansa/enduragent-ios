@@ -73,7 +73,7 @@ import Testing
 		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approval.cancel()
 					gate.release()
@@ -87,7 +87,7 @@ import Testing
 		gate.release()
 		let outcome = try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approval.cancel()
 					gate.release()
@@ -121,7 +121,7 @@ import Testing
 		approval.cancel()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approval.cancel()
 					server.release()
@@ -174,7 +174,7 @@ import Testing
 		approval.cancel()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approval.cancel()
 					server.release()

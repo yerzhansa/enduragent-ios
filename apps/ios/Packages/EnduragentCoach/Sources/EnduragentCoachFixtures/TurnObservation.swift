@@ -12,7 +12,7 @@ extension SendOutcome {
 
 extension Coach {
 	package func settledState(
-		of turn: TurnID, in chat: ChatID, within limit: Duration = .seconds(30)
+		of turn: TurnID, in chat: ChatID, within limit: TestWaitLimit = .hangGuard
 	) async -> TurnState? {
 		let stream = await observe(chat)
 		return await withTaskGroup(of: TurnState?.self) { group in
@@ -29,7 +29,7 @@ extension Coach {
 			}
 			group.addTask {
 				do {
-					try await Task.sleep(for: limit)
+					try await Task.sleep(for: limit.duration)
 				} catch is CancellationError {
 					return nil
 				} catch {

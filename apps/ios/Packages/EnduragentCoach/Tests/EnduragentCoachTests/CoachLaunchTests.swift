@@ -45,7 +45,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: held, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await held.reached.first { _ in true }
 			} != nil,
 			"Conversation read did not park within five seconds")

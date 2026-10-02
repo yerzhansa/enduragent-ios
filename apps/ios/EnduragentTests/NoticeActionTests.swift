@@ -1,4 +1,5 @@
 import EnduragentCoach
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -68,7 +69,7 @@ extension FixtureLaunchTests {
 		let model = model(try services())
 		let (turn, waiting) = try await failedNotice(model, after: "fixture:fail 429 2 x4")
 		#expect(waiting.action == .wait(thenTryAgain: turn.id))
-		let opened = try await settledTurn(model, after: turn.state, within: .seconds(10))
+		let opened = try await settledTurn(model, after: turn.state, within: .hangGuard)
 		#expect(notice(ofFailed: opened.state)?.action == .tryAgain(turn.id))
 		await model.perform(.tryAgain(turn.id))
 		let retried = try await settledTurn(model, after: opened.state)

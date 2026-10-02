@@ -23,11 +23,11 @@ struct AdmissionLifetimeTests {
 				coalescing: CoalescingPolicy(window: window), host: host, coalescingClock: timer)
 			releasedCoach = coach
 			releasedLog = log
-			async let sent = beforeDeadline(within: .seconds(10), onTimeout: held.release) {
+			async let sent = beforeDeadline(within: .hangGuard, onTimeout: held.release) {
 				try await coach.send(draft("Admission interrupted"), to: .main)
 			}
 			try #require(
-				try await beforeDeadline(within: .seconds(5)) {
+				try await beforeDeadline(within: .hangGuard) {
 					await held.reached.first(where: { _ in true }) != nil
 				} == true)
 			let ended = Gate()
@@ -36,7 +36,7 @@ struct AdmissionLifetimeTests {
 				ended.release()
 			}
 			defer { shutdown.cancel() }
-			let returned = try await beforeDeadline(within: .milliseconds(100)) {
+			let returned = try await beforeDeadline(within: .subject(.milliseconds(100))) {
 				try await ended.waitUnlessCancelled()
 				return true
 			}
@@ -44,7 +44,7 @@ struct AdmissionLifetimeTests {
 			held.release()
 			let turn = try #require(try await sent?.acceptedTurn)
 			try #require(
-				try await beforeDeadline(within: .seconds(5)) {
+				try await beforeDeadline(within: .hangGuard) {
 					await shutdown.value
 					return true
 				} == true)
@@ -57,7 +57,7 @@ struct AdmissionLifetimeTests {
 				try await log.fetch(RecordQuery(scope: .synced([.userMessage]), turn: turn))
 					.records.count == 1)
 		}
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while releasedCoach != nil || releasedLog != nil, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
@@ -72,11 +72,11 @@ struct AdmissionLifetimeTests {
 		let transport = FakeModelTransport()
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(transport: transport, store: held, host: host)
-		async let opened = beforeDeadline(within: .seconds(10), onTimeout: held.gate.release) {
+		async let opened = beforeDeadline(within: .hangGuard, onTimeout: held.gate.release) {
 			await coach.observe(.main)
 		}
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await held.reached.first(where: { _ in true }) != nil
 			} == true)
 		let ended = Gate()
@@ -85,7 +85,7 @@ struct AdmissionLifetimeTests {
 			ended.release()
 		}
 		defer { shutdown.cancel() }
-		let returned = try await beforeDeadline(within: .milliseconds(100)) {
+		let returned = try await beforeDeadline(within: .subject(.milliseconds(100))) {
 			try await ended.waitUnlessCancelled()
 			return true
 		}
@@ -93,7 +93,7 @@ struct AdmissionLifetimeTests {
 		held.gate.release()
 		_ = try #require(try await opened)
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await shutdown.value
 				return true
 			} == true)

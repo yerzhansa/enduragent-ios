@@ -199,7 +199,7 @@ import Testing
 			otherwise: transport.respond)
 		_ = try await coach.sendAndSettle("Old question")
 		let resetting = startNewConversation(on: coach)
-		let parked = try await beforeDeadline(within: .seconds(5)) {
+		let parked = try await beforeDeadline(within: .hangGuard) {
 			var reached = held.reached.makeAsyncIterator()
 			return await reached.next() != nil
 		}
@@ -210,7 +210,7 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .synced([.userMessage]), turn: next)).records
 				.first)
 		held.release()
-		let reset = try await beforeDeadline(within: .seconds(5)) {
+		let reset = try await beforeDeadline(within: .hangGuard) {
 			try #require(try await outcome(resetting))
 		}
 		#expect(try #require(reset) == .started(memory: .saved))

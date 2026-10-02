@@ -20,14 +20,17 @@ public final class FixtureFolder: Sendable {
 		stores.withLock { $0.append(release) }
 	}
 
-	public func cleanup(releasing owners: @Sendable () async throws -> Void) async throws {
+	public func cleanup(
+		within limit: TestWaitLimit = .hangGuard,
+		releasing owners: @Sendable () async throws -> Void
+	) async throws {
 		try await owners()
-		try await waitUntilUnused()
+		try await waitUntilUnused(within: limit)
 		try FileManager.default.removeItem(at: directory)
 	}
 
-	public func waitUntilUnused() async throws {
-		let deadline = ContinuousClock.now + .seconds(5)
+	public func waitUntilUnused(within limit: TestWaitLimit = .hangGuard) async throws {
+		let deadline = ContinuousClock.now + limit.duration
 		for store in stores.withLock({ $0 }) {
 			waiting.yield()
 			try await store.wait(until: deadline)
@@ -56,6 +59,6 @@ public enum FixtureCleanupFailure: Error, CustomStringConvertible {
 	case storeOwnerNotReleased
 
 	public var description: String {
-		"A fixture store owner was not released within five seconds"
+		"A fixture store owner was not released before the test wait limit expired"
 	}
 }

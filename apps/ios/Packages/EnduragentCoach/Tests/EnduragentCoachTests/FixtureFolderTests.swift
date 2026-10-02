@@ -14,7 +14,7 @@ struct FixtureFolderTests {
 				let fixture = try FixtureRecordStore(
 					directory: folder.directory, deviceId: DeviceID())
 				await #expect(throws: FixtureCleanupFailure.storeOwnerNotReleased) {
-					try await folder.cleanup {}
+					try await folder.cleanup(within: .subject(.milliseconds(20))) {}
 				}
 				#expect(FileManager.default.fileExists(atPath: folder.directory.path))
 				withExtendedLifetime(fixture) {}
@@ -40,7 +40,7 @@ struct FixtureFolderTests {
 			directory: try TestTemporaryFolders.make())
 		let held = Gate()
 		let releasing = Gate()
-		let completed: Void? = try await beforeDeadline(within: .seconds(5)) {
+		let completed: Void? = try await beforeDeadline(within: .hangGuard) {
 			try await withTaskCancellationHandler {
 				try await withThrowingTaskGroup(of: Void.self) { group in
 					defer {
@@ -75,7 +75,8 @@ struct FixtureFolderTests {
 				releasing.release()
 			}
 		}
-		try #require(completed != nil, "Fixture cleanup did not finish within five seconds")
+		try #require(
+			completed != nil, "Fixture cleanup exceeded the test hang guard")
 		#expect(!FileManager.default.fileExists(atPath: folder.directory.path))
 	}
 
@@ -94,7 +95,7 @@ struct FixtureFolderTests {
 			directory: try TestTemporaryFolders.make())
 		let first = Gate()
 		let second = Gate()
-		let completed: Void? = try await beforeDeadline(within: .seconds(5)) {
+		let completed: Void? = try await beforeDeadline(within: .hangGuard) {
 			try await withTaskCancellationHandler {
 				try await withThrowingTaskGroup(of: Void.self) { group in
 					defer {
@@ -132,7 +133,8 @@ struct FixtureFolderTests {
 				second.release()
 			}
 		}
-		try #require(completed != nil, "Fixture cleanup did not finish within five seconds")
+		try #require(
+			completed != nil, "Fixture cleanup exceeded the test hang guard")
 		#expect(!FileManager.default.fileExists(atPath: folder.directory.path))
 	}
 }

@@ -16,7 +16,7 @@ extension DurableCalendarWriteTests {
 		let stopping = Task { await fixture.coach.stop(.main) }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					stopping.cancel()
 					store.release()
@@ -31,7 +31,7 @@ extension DurableCalendarWriteTests {
 		store.release()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					stopping.cancel()
 					store.release()
@@ -57,7 +57,7 @@ extension DurableCalendarWriteTests {
 		let approving = Task { await fixture.coach.decide(.approve(token), in: .main) }
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()
@@ -70,7 +70,7 @@ extension DurableCalendarWriteTests {
 		store.release()
 		let outcome = try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					approving.cancel()
 					store.release()

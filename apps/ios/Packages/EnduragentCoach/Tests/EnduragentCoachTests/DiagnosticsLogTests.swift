@@ -120,7 +120,7 @@ import Testing
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets)
 		await coach.lifecycle(.becameActive)
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		var flushFailures: [String] = []
 		while flushFailures.isEmpty, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))

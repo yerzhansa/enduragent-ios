@@ -71,7 +71,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(7))
 		let stream = await coach.observe(.main)
 		clock.release(.seconds(7))
-		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .hangGuard) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
@@ -97,7 +97,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await openTryAgain(coach, after: .seconds(7))
 		try await coach.retry(rateLimitedTurn, in: .main)
 		let answered = try #require(
-			await coach.settledState(of: rateLimitedTurn, in: .main, within: .seconds(2)))
+			await coach.settledState(of: rateLimitedTurn, in: .main, within: .hangGuard))
 		#expect(replyText(answered) == "Back on track.")
 		#expect(transport.requestCount == 1)
 	}
@@ -121,7 +121,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(.seconds(3))
 		#expect(clock.held == [.seconds(3)])
 		let failedAgain = try #require(
-			await coach.settledState(of: rateLimitedTurn, in: .main, within: .seconds(2)))
+			await coach.settledState(of: rateLimitedTurn, in: .main, within: .hangGuard))
 		guard case .failed(let failed) = failedAgain else {
 			Issue.record("expected a second rate-limit failure, got \(failedAgain)")
 			return
@@ -139,7 +139,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 		try await clock.waitUntilHeld(wait)
 		let stream = await coach.observe(.main)
 		clock.release(wait)
-		let opened = try await firstSnapshot(in: stream, within: .seconds(2)) {
+		let opened = try await firstSnapshot(in: stream, within: .hangGuard) {
 			action(in: $0) == .tryAgain(rateLimitedTurn)
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")
