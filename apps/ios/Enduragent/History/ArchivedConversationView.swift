@@ -69,14 +69,14 @@ struct ArchivedConversationView: View {
 	private func reply(_ state: TurnState) -> some View {
 		switch state {
 		case .completed(let completed):
-			switch completed.reply {
-			case .model(let text):
-				Text(text)
-			}
+			ReplyView(
+				source: completed.reply.sentence(in: model.phrasebook),
+				parser: model.services.replyParser)
 		case .interrupted(let interrupted):
 			if !interrupted.partial.isEmpty {
-				Text(interrupted.partial)
+				ReplyView(source: interrupted.partial, parser: model.services.replyParser)
 					.foregroundStyle(.secondary)
+					.opacity(0.6)
 			}
 			notice(interrupted.notice)
 		case .savedWork(let savedWork):

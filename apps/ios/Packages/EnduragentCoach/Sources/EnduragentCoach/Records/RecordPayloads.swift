@@ -40,6 +40,7 @@ extension TurnSettledPayload {
 struct SettlementPayload: Codable {
 	var kind: String
 	var modelText: String?
+	var catalogKey: String?
 	var templateHash: String?
 	var assembledHash: String?
 	var failure: FailurePayload?
@@ -55,6 +56,8 @@ struct SettlementPayload: Codable {
 			switch text {
 			case .model(let modelText):
 				self.modelText = modelText
+			case .catalog(let key):
+				catalogKey = key.rawValue
 			}
 			templateHash = lineage?.templateHash
 			assembledHash = lineage?.assembledHash
@@ -77,7 +80,13 @@ struct SettlementPayload: Codable {
 	func settlement() throws -> Settlement {
 		switch kind {
 		case "replied":
-			guard let modelText else {
+			let reply: ReplyText
+			switch (modelText, catalogKey) {
+			case (let text?, nil):
+				reply = .model(text)
+			case (nil, let key?):
+				reply = .catalog(CatalogKey(rawValue: key))
+			default:
 				throw RecordDecodeFailure(reason: "settlement")
 			}
 			let lineage: ReplyLineage?
@@ -86,7 +95,7 @@ struct SettlementPayload: Codable {
 			} else {
 				lineage = nil
 			}
-			return .replied(.model(modelText), lineage: lineage)
+			return .replied(reply, lineage: lineage)
 		case "savedWork":
 			guard let outcome = outcome.flatMap(SavedWorkOutcome.init(rawValue:)), let saved else {
 				throw RecordDecodeFailure(reason: "settlement")

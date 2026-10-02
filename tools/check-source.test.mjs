@@ -636,6 +636,34 @@ test('rejects the fixtures import outside DEBUG', () => {
 });
 
 for (const source of [
+  'enum FixtureReplyParserFault { case fail }',
+  'var replyParserFault: FixtureReplyParserFault?',
+  'let key = "EnduragentFixtureReplyParser"',
+  'let parser = ReplyParser.failingForProof',
+  'let failure = ReplyParseFailure.injected',
+  'case injected',
+  'let source = FormattedReplyFixture.source',
+]) {
+  for (const path of [
+    'apps/ios/Enduragent/App/ReplyRenderingServices.swift',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ReplyParser.swift',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift',
+  ]) {
+    for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
+      test(`rejects reply proof hooks outside DEBUG in ${path}: ${wrapped}`, () => {
+        const result = run({ [path]: wrapped });
+        assert.equal(result.status, 1, result.output);
+        assert.match(result.output, /reply-proof-hooks-debug-only/);
+      });
+    }
+    test(`accepts reply proof hooks under nested DEBUG in ${path}: ${source}`, () => {
+      const result = run({ [path]: `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
+      assert.equal(result.status, 0, result.output);
+    });
+  }
+}
+
+for (const source of [
   'var loseCalendarSaveAnswerOnce = false',
   'var failCalendarReadOnce = false',
   'func failNextReviewRead() {}',

@@ -11,6 +11,7 @@
 		let secretBacking: FixtureSecretStoreBacking
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
+		let replyParserFault: FixtureReplyParserFault?
 		let reviewProofDriver: FixtureReviewProofDriver?
 	}
 
@@ -69,6 +70,7 @@
 					transport: transport, records: records, host: host, secrets: secrets,
 					secretBacking: secretFixture.backing,
 					intervals: intervals, credits: credits,
+					replyParserFault: launch.replyParserFault,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil)
 			)

@@ -213,6 +213,8 @@ try {
       && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
     if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
       && hasReleaseReference(text, /\b(?:FixtureCalendarSaveFault|FixtureCalendarReadFault|FixtureRecordReadFault|FixtureReviewProofDriver|loseCalendarSaveAnswerOnce|failCalendarReadOnce|consumeCalendarReadFault|failNextReviewRead|calendarSaveFault|calendarReadFault|recordReadFault|reviewProofDriver|EnduragentFixtureCalendarSave|EnduragentFixtureCalendarRead|EnduragentFixtureRecordRead)\b/)) report(file, 'calendar-proof-hooks-debug-only');
+    if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
+      && hasReleaseReference(text, /\b(?:FixtureReplyParserFault|replyParserFault|EnduragentFixtureReplyParser|failingForProof|FormattedReplyFixture)\b|ReplyParseFailure\s*\.\s*injected|\bcase\s+injected\b/)) report(file, 'reply-proof-hooks-debug-only');
     if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
     if (proofFile.test(file)

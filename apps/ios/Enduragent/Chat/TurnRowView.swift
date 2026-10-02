@@ -21,14 +21,13 @@ struct TurnRowView: View {
 				working
 			case .processing:
 				if let reply = model.chat?.liveReply, reply.turn == turn.id, !reply.text.isEmpty {
-					Text(reply.text)
+					ReplyView(source: reply.text, parser: model.services.replyParser)
 				}
 				working
 			case .completed(let completed):
-				switch completed.reply {
-				case .model(let text):
-					Text(text)
-				}
+				ReplyView(
+					source: completed.reply.sentence(in: model.phrasebook),
+					parser: model.services.replyParser)
 				if turn.completedInBackground {
 					Text(say(Catalog.chatTurnFinishedWhileLocked))
 						.font(.footnote)
@@ -41,8 +40,9 @@ struct TurnRowView: View {
 				notice(failed.notice)
 			case .interrupted(let interrupted):
 				if !interrupted.partial.isEmpty {
-					Text(interrupted.partial)
+					ReplyView(source: interrupted.partial, parser: model.services.replyParser)
 						.foregroundStyle(.secondary)
+						.opacity(0.6)
 				}
 				notice(interrupted.notice)
 			case .unrecovered(let unrecovered):
