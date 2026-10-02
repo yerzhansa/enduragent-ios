@@ -122,7 +122,7 @@ import Testing
 		#expect(server.state.withLock { $0.requests.count } == calls)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review?.ref == token.ref)
 		#expect(await fixture.coach.currentSnapshot(.main)?.notes.isEmpty == true)
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: faults)
 		#expect(await reopened.currentSnapshot(.main)?.review?.ref.set == token.ref.set)

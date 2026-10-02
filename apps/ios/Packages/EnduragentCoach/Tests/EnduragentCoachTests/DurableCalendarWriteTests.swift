@@ -44,7 +44,7 @@ import Testing
 			) { await approving.value } != nil,
 			"Calendar approval did not finish within five seconds")
 		let state = try #require(await fixture.coach.state(of: turn))
-		#expect(!state.retryable)
+		#expect(turnNotice(of: state)?.action == nil)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writePending")
@@ -99,7 +99,7 @@ import Testing
 			Issue.record("empty read must offer only repetition of the captured approval")
 			return
 		}
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await fixture.coach.retry(turn, in: .main)
 		}
@@ -132,7 +132,7 @@ import Testing
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}

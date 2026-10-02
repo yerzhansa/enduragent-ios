@@ -207,6 +207,16 @@ func refusal(_ retry: @Sendable () async throws(RetryRefusal) -> Void) async -> 
 	}
 }
 
+func turnNotice(of state: TurnState) -> AthleteNotice? {
+	switch state {
+	case .failed(let failed): failed.notice
+	case .interrupted(let interrupted): interrupted.notice
+	case .savedWork(let savedWork): savedWork.notice
+	case .unrecovered(let unrecovered): unrecovered.notice
+	case .accepted, .processing, .completed: nil
+	}
+}
+
 func replyText(_ state: TurnState) -> String? {
 	guard case .completed(let completed) = state, case .model(let text) = completed.reply else {
 		return nil

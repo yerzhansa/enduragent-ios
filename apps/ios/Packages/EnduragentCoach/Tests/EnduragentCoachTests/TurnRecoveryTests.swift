@@ -64,7 +64,6 @@ import Testing
 		#expect(
 			interrupted.notice
 				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil))
-		#expect(!state.retryable)
 		let claim = try #require(try await claims(of: turn).first)
 		guard case .deviceLocal(.turnClaim(let claimed)) = claim.body else {
 			Issue.record("expected a claim, got \(claim.body)")
@@ -104,7 +103,6 @@ import Testing
 			interrupted.notice
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
-		#expect(state.retryable)
 		try await after.retry(turn, in: .main)
 		let replied = try #require(await after.settledState(of: turn, in: .main))
 		#expect(replyText(replied) == "Thursday is on.")
@@ -152,7 +150,6 @@ import Testing
 		let after = await relaunched(over: recording)
 		let state = try #require(await after.state(of: turn))
 		#expect(state == .accepted(.awaitingRestart))
-		#expect(state.retryable)
 		try await Task.sleep(for: .milliseconds(100))
 		#expect(recording.batches.isEmpty)
 		#expect(transport.requests.isEmpty)

@@ -179,7 +179,6 @@ extension RetryLadderTests {
 			#expect(saved.outcome == .writesSaved)
 			#expect(saved.saved.calendarWrites == 1)
 			#expect(saved.notice.action == nil)
-			#expect(!settled.retryable)
 		}
 	}
 }

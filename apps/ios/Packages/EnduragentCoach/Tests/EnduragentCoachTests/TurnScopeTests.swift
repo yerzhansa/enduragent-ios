@@ -123,7 +123,6 @@ import Testing
 		}
 		#expect(interrupted.saved.memorySections == 1)
 		#expect(interrupted.notice.action == nil)
-		#expect(!settled.retryable)
 	}
 
 	private func scope() -> TurnScope {
