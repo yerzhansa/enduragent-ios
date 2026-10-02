@@ -67,7 +67,8 @@ extension FixtureLaunchTests {
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewStorageUnavailable }
 		let failed = try #require(model.chat?.review)
 		let card = ConfirmedPreviewCard(model: model, review: failed)
-		#expect(card.actions.isEmpty)
+		#expect(card.actions.map(\.id) == ["chat.preview.retryRead"])
+		#expect(card.actions.first?.decision == .checkAgain(failed.ref))
 		#expect(card.disabledButtons == expected)
 		#expect(failed.cards == ready.cards)
 		#expect(model.reviewNotice == nil)
@@ -75,7 +76,17 @@ extension FixtureLaunchTests {
 			model.phrasebook.say(try #require(failed.notice?.key))
 				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
 		let calls = fixture.intervals.calls
-		await model.decide(.checkAgain(failed.ref))
+		let requests = fixture.transport.requestCount
+		fixture.records.failFetches = true
+		await model.decide(try #require(card.actions.first).decision)
+		#expect(model.chat?.review == failed)
+		#expect(model.reviewNotice == nil)
+		#expect(
+			ConfirmedPreviewCard(model: model, review: failed).actions.map(\.id) == [
+				"chat.preview.retryRead"
+			])
+		fixture.records.failFetches = false
+		await model.decide(try #require(card.actions.first).decision)
 		try await until {
 			guard let review = model.chat?.review else { return false }
 			return review.notice?.kind != .storageUnavailable
@@ -83,6 +94,7 @@ extension FixtureLaunchTests {
 					== expected
 		}
 		#expect(fixture.intervals.calls == calls)
+		#expect(fixture.transport.requestCount == requests)
 	}
 }
 

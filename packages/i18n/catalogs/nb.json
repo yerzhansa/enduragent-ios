@@ -2928,6 +2928,8 @@
     "turnStopping": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten.",
     "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
     "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
+    "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
+    "retryRead": "Prøv igjen",
     "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
     "title": "Gjennomgang av treningsøkt",
     "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",

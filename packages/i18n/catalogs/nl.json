@@ -2928,6 +2928,8 @@
     "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
     "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
     "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
+    "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
+    "retryRead": "Opnieuw proberen",
     "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
     "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",

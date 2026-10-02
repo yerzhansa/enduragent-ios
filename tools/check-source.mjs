@@ -146,7 +146,7 @@ function hasUnboundedTestWait(text) {
   const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
   const loops = trailingBlocks(code, /\bwhile\b/g);
   const deadlines = trailingBlocks(code, /\bbeforeDeadline\b/g);
-  return [...code.matchAll(/\bawait\s+[\w.]+\s*\.\s*waitUnlessCancelled\s*\(/g)]
+  return [...code.matchAll(/\bawait\s+(?:[\w.]+\s*\.\s*waitUnlessCancelled\s*\(|withCheckedContinuation\b)/g)]
     .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
       && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
 }
@@ -297,7 +297,7 @@ try {
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
-    if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
+    if (/^apps\/ios\/(?:Packages\/EnduragentCoach\/Tests\/|EnduragentTests\/).*\.swift$/.test(file)
       && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
     if (/^apps\/ios\/(?:Packages\/EnduragentCoach\/(?:Tests\/|Sources\/EnduragentCoachFixtures\/)|EnduragentTests\/).*\.swift$/.test(file)
       && hasLiteralTestHangGuard(text)) report(file, 'test-hang-guard-duration');

@@ -2928,6 +2928,8 @@
     "turnStopping": "Questa risposta si sta interrompendo. Quando si sarà interrotta, potrai approvare o annullare la revisione dell'allenamento.",
     "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
     "cancelledUnknown": "Annullato. Questo allenamento potrebbe comunque essere stato salvato. Controlla il calendario.",
+    "saveFailed": "Non è stato possibile salvare la tua scelta su questo iPhone, quindi non è stato modificato nulla. Riprova.",
+    "retryRead": "Riprova",
     "storageUnavailable": "Impossibile leggere la revisione dell'allenamento salvata. I suoi pulsanti sono temporaneamente disattivati.",
     "title": "Revisione dell'allenamento",
     "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
