@@ -202,20 +202,26 @@
 		}
 
 		@MainActor
-		private func closeSheet() throws {
-			for _ in 0..<3 {
-				if element("chat.sidebar").isHittable { return }
-				app.swipeDown(velocity: .fast)
+		private func returnToChat() throws {
+			for _ in 0..<4 {
+				if element("chat.settings").isHittable { return }
+				let bar = app.navigationBars.firstMatch
+				let title = bar.identifier
+				let back = bar.buttons.firstMatch
+				try wait("The Back button is unavailable.") { back.isHittable }
+				back.tap()
+				try wait("Back did not leave \(title).") {
+					app.navigationBars.firstMatch.identifier != title
+				}
 			}
-			guard element("chat.sidebar").isHittable else {
-				throw PhoneRunBlocked(reason: "The sheet did not close.")
+			guard element("chat.settings").isHittable else {
+				throw PhoneRunBlocked(reason: "Back did not return to the conversation.")
 			}
 		}
 
 		@MainActor
 		private func history() throws -> Set<String> {
-			try tap("chat.sidebar")
-			try tap("sidebar.history")
+			try tap("chat.history")
 			let rows = app.descendants(matching: .any).matching(
 				NSPredicate(format: "identifier BEGINSWITH %@", "history.row."))
 			try wait("History has no archived conversation.", seconds: 15) {
@@ -228,18 +234,18 @@
 				element("archive.readOnly").exists
 			}
 			shot("archive-read-only")
-			try closeSheet()
+			try returnToChat()
 			return identifiers
 		}
 
 		@MainActor
 		private func credits(_ name: String) throws {
-			try tap("chat.sidebar")
-			try tap("sidebar.credits")
+			try tap("chat.settings")
+			try tap("settings.credits")
 			try wait("Credits has no balance.", seconds: 25) { element("credits.balance").exists }
 			log.append("\(name): \(element("credits.balance").label)")
 			shot(name)
-			try closeSheet()
+			try returnToChat()
 		}
 
 		@MainActor

@@ -2163,7 +2163,8 @@
       "saving": "Saving units…",
       "title": "Units",
       "unavailable": "Units preference unavailable"
-    }
+    },
+    "modelAccessTitle": "Model access"
   },
   "setup": {
     "ai": {

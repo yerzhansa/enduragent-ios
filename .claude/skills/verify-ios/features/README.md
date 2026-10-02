@@ -20,15 +20,15 @@ A task that forbids simulators permits only the source and proof inventory check
 
 ## Debug entry points
 
-Open `chat.sidebar`, then `sidebar.debug`. These entry points exist in Debug builds only.
+Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its Debug entry exists in Debug builds only.
 
 | Entry | Handle | What to inspect |
 | --- | --- | --- |
-| Credits | Visible `Credits` link, no identifier | Developer grant, balance, identity, and purchase diagnostics. Athlete Credits is `sidebar.credits`. |
+| Credits | `debug.credits` | Developer grant, balance, identity, and purchase diagnostics. Athlete Credits is `settings.credits`. |
 | Credentials | `debug.credentials` | Connection, replacement, confirmed athlete switch, disconnect, fixture keychain lock and failed write. See [onboarding.md](./onboarding.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
-| Conversation & time | `debug.session` | Four settings in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
+| Session | `debug.session` | History ratio and context-window override in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 
@@ -42,6 +42,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
 | [Workout review](./workout-preview.md) | Approve or cancel, durable outcomes, account changes, v1 notice connected and disconnected, and French review text. |
+| [Settings](./settings.md) | Toolbar navigation, Credits under Model access, draft and setup continuity, and French icon actions in light and dark. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
 | [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, and recovery links from a turn. |
 
@@ -50,3 +51,5 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim.mjs and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
 
 Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `pnpm check:source` for the Node cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
+
+Reach every Debug list row through `TutorialHarness.debugRow` before tapping it or reading its label. The helper scrolls with a deadline. Use `direction: .down` when returning from fixture counters to a row above them. Leave Settings and its destinations with `TutorialHarness.returnToChat`.

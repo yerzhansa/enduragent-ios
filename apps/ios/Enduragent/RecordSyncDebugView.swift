@@ -9,96 +9,94 @@
 		@State private var snapshot: RecordSyncSnapshot?
 
 		var body: some View {
-			NavigationStack {
-				List {
-					Section("Device") {
-						Text(snapshot?.deviceId.rawValue ?? "—")
-							.accessibilityIdentifier("records.device")
-					}
-					Section("Newest HLC") {
-						Text(snapshot.map { $0.newestHLC.isEmpty ? "—" : $0.newestHLC } ?? "—")
-					}
-					Section("Count per kind") {
-						if let counts = snapshot?.counts, !counts.isEmpty {
-							ForEach(counts) { item in
-								HStack {
-									Text(item.kind)
-									Spacer()
-									Text("\(item.count)")
-								}
-								.accessibilityElement(children: .ignore)
-								.accessibilityLabel("\(item.kind) \(item.count)")
-								.accessibilityIdentifier("records.count.\(item.kind)")
-							}
-						} else {
-							Text("No records")
-						}
-					}
-					Section {
-						ForEach(snapshot?.rows ?? []) { row in
-							VStack(alignment: .leading, spacing: 4) {
-								Text(row.kind)
-								if !row.detail.isEmpty {
-									Text(row.detail)
-										.font(.caption)
-								}
-								Text(row.deviceId)
-									.font(.caption)
-								Text(row.hlc)
-									.font(.caption2)
-									.monospaced()
-								Text(row.account)
-									.font(.caption2)
-									.monospaced()
+			List {
+				Section("Device") {
+					Text(snapshot?.deviceId.rawValue ?? "—")
+						.accessibilityIdentifier("records.device")
+				}
+				Section("Newest HLC") {
+					Text(snapshot.map { $0.newestHLC.isEmpty ? "—" : $0.newestHLC } ?? "—")
+				}
+				Section("Count per kind") {
+					if let counts = snapshot?.counts, !counts.isEmpty {
+						ForEach(counts) { item in
+							HStack {
+								Text(item.kind)
+								Spacer()
+								Text("\(item.count)")
 							}
 							.accessibilityElement(children: .ignore)
-							.accessibilityLabel(
-								[row.kind, row.detail, row.deviceId, row.hlc, row.account].filter {
-									!$0.isEmpty
-								}
-								.joined(separator: " ")
-							)
-							.accessibilityIdentifier("records.row.\(row.id)")
+							.accessibilityLabel("\(item.kind) \(item.count)")
+							.accessibilityIdentifier("records.count.\(item.kind)")
 						}
-					} header: {
-						Text("Records")
-							.accessibilityIdentifier("records.entries")
-					}
-					if let skipped = snapshot?.skipped, skipped > 0 {
-						Section("Skipped rows") {
-							Text("\(skipped)")
-						}
-					}
-					Section("Append") {
-						Button("Append three synced records") {
-							Task { await appendSynced() }
-						}
-						Button("Append one device-local record") {
-							Task { await appendLocal() }
-						}
-					}
-					if let loadError {
-						Section("Error") {
-							Text(loadError)
-						}
-					} else if !status.isEmpty {
-						Section("Status") {
-							Text(status)
-						}
+					} else {
+						Text("No records")
 					}
 				}
-				.accessibilityIdentifier("records.list")
-				.navigationTitle("Record Sync")
-				.toolbar {
-					ToolbarItem(placement: .topBarTrailing) {
-						Button("Refresh") {
-							Task { await refresh() }
+				Section {
+					ForEach(snapshot?.rows ?? []) { row in
+						VStack(alignment: .leading, spacing: 4) {
+							Text(row.kind)
+							if !row.detail.isEmpty {
+								Text(row.detail)
+									.font(.caption)
+							}
+							Text(row.deviceId)
+								.font(.caption)
+							Text(row.hlc)
+								.font(.caption2)
+								.monospaced()
+							Text(row.account)
+								.font(.caption2)
+								.monospaced()
 						}
-						.accessibilityIdentifier("records.refresh")
+						.accessibilityElement(children: .ignore)
+						.accessibilityLabel(
+							[row.kind, row.detail, row.deviceId, row.hlc, row.account].filter {
+								!$0.isEmpty
+							}
+							.joined(separator: " ")
+						)
+						.accessibilityIdentifier("records.row.\(row.id)")
+					}
+				} header: {
+					Text("Records")
+						.accessibilityIdentifier("records.entries")
+				}
+				if let skipped = snapshot?.skipped, skipped > 0 {
+					Section("Skipped rows") {
+						Text("\(skipped)")
 					}
 				}
-				.task { await refresh() }
+				Section("Append") {
+					Button("Append three synced records") {
+						Task { await appendSynced() }
+					}
+					Button("Append one device-local record") {
+						Task { await appendLocal() }
+					}
+				}
+				if let loadError {
+					Section("Error") {
+						Text(loadError)
+					}
+				} else if !status.isEmpty {
+					Section("Status") {
+						Text(status)
+					}
+				}
 			}
+			.accessibilityIdentifier("records.list")
+			.navigationTitle("Record Sync")
+			.toolbar {
+				ToolbarItem(placement: .topBarTrailing) {
+					Button("Refresh") {
+						Task { await refresh() }
+					}
+					.accessibilityIdentifier("records.refresh")
+				}
+			}
+			.task { await refresh() }
 		}
 
 		@MainActor

@@ -22,7 +22,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 
 - Send `Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks` from the conversation.
 - Choose Cancel or Add to calendar on the resulting review.
-- Change the connected athlete through Menu, Debug, Credentials while a review exists.
+- Change the connected athlete through Settings, Debug, Credentials while a review exists.
 - Launch the committed `.v1Review` fixture with `TutorialHarness.launchUpgrade`, then inspect the earlier-version notice while disconnected and connected.
 
 ## Driving it with sim.mjs and XCUITest
@@ -59,7 +59,7 @@ For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyR
 ## Gotchas
 
 - The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
-- `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Debug controls arm the same read fault for other layouts and Refresh review restores controls without checking the calendar.
+- `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Settings > Debug controls, reached with `fixtureControl`, arm the same read fault for other layouts and Refresh review restores controls without checking the calendar.
 - The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.
 - A review expires after ten minutes. A later launch omits the expired review, while a decision on a stale on-screen review shows the expiry notice.
 - A review can survive New conversation. It is not a second ongoing conversation.

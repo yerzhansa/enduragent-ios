@@ -15,6 +15,7 @@ final class ChatSubmission {
 	init(defaults: UserDefaults) {
 		drafts = DraftStore(defaults: defaults)
 		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
+		updateSlashList()
 	}
 
 	func draftChanged(from previous: String) {

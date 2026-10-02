@@ -36,7 +36,7 @@ One language preference controls both app text and coach replies. Automatic foll
 ## How to get to it (user POV)
 
 - Type `/language` and send, or choose it from the slash list and send the filled command.
-- Choose Menu, Debug, Language through `debug.language`.
+- Choose Settings, Debug, Language through `debug.language`.
 - Select a row. Close the command sheet with `language.close`; use Back when the picker was pushed from Debug.
 
 ## Driving it with sim.mjs and XCUITest
@@ -55,7 +55,7 @@ Preconditions:
 | `sim.mjs test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
 | `sim.mjs test <run id> ReviewLanguageProof` | French review title, controls, and saved Done line, before and after relaunch, `review-french`, `review-french-relaunch`. |
 
-For the Debug entry point, open `chat.sidebar`, `sidebar.debug`, and `debug.language`, then select a row and go Back. Capture `sim.mjs shot <run id> language-debug-entry`. No dedicated XCUITest class proves this alternate entry. The hosted app test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` covers a failed save; there is no fixture directive for that write failure.
+For the Debug entry point, open `chat.settings`, `settings.debug`, and `debug.language`, then select a row and go Back. Capture `sim.mjs shot <run id> language-debug-entry`. No dedicated XCUITest class proves this alternate entry. The hosted app test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` covers a failed save; there is no fixture directive for that write failure.
 
 Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and the corresponding `language-picker-fr` command when visual parity is in scope. Compare the ordered choices and selected row.
 
@@ -64,7 +64,7 @@ Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and
 - The row's selected accessibility trait identifies the choice. Its checkmark is hidden from accessibility.
 - Scroll upward through the list to find the final rows. A downward swipe at the top can dismiss the sheet.
 - Language names stay in their own languages. The title and Automatic translate.
-- Product Menu, Credits, History, and other chrome now use catalog values. Debug-only labels can remain English.
+- Settings, Credits, History, and other chrome now use catalog values. Debug-only labels can remain English.
 - Fixture replies are scripted. `fixture.replyLanguage`, the instruction supplied to the model, proves reply-language selection more reliably than the fixture reply text.
 - `-AppleLanguages` changes the phone language for Automatic. A saved fixed preference overrides it.
 - The language switch timing includes XCUITest settling time. Compare it with the already-selected row tap from the same run.

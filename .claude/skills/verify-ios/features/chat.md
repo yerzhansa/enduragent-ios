@@ -29,7 +29,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
-- `chat-session-settings` edits four settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
+- `chat-session-settings` edits history ratio and context-window override through Settings, Debug, Session. A rejected value preserves the stored value; a saved value affects later turns.
 - `chat-no-network` keeps `fixture.requestCount` at zero through all fixture work.
 
 | Turn or composer state | Visible notice and action |
@@ -59,7 +59,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 - Tap Stop responding while work is running, or the recovery action beneath a settled notice.
 - Tap the compose icon labeled New conversation in the top bar or send `/start`.
 - Relaunch the next morning with the store kept and send another message.
-- Choose Menu, Debug, then Records, Leases, or Conversation & time for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
+- Choose Settings, Debug, then Records, Leases, or Session for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
 
 ## Driving it with sim.mjs and XCUITest
 
@@ -153,7 +153,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> SessionRejectionProof` | Both invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
 | `sim.mjs test <run id> RatioAppliesProof` | A 0.05 history ratio causes earlier compaction than the default, `ratio-applies-turns`, `m1-12-ratio-applies`. |
 
-Debug, Conversation & time uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
+Settings, Debug, Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
 
 ### Formatted replies
 
@@ -165,7 +165,7 @@ Debug, Conversation & time uses the field names `historyBudgetRatio` and `contex
 
 Compare each `reply-chat-long-<theme>` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels under G38. The markup-free assertion applies to supported formatting.
 
-Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before dismissing the sheet. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
+Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before returning with `TutorialHarness.returnToChat`. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
 
 ## Gotchas
 
@@ -175,7 +175,7 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
 - `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
 - `fixture:step-limit` performs ten tool steps and returns an empty tool-free finalization. `fixture:memory-then-step-limit` saves memory on the first step, then reads training data for the remaining nine steps before the same empty finalization.
-- In Debug, tap `fixture.failNextAppend`, close the menu, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
+- In Debug, tap `fixture.failNextAppend`, return with `TutorialHarness.returnToChat`, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
 - Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
 - The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
@@ -186,5 +186,5 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - Records and Leases read when opened or refreshed. Records has `records.refresh`; Leases has a visible Refresh button without an identifier.
 - `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
-- Menu is a sheet without a close button. Dismiss it and wait for `chat.sidebar` to become hittable before interacting with the conversation.
+- Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
 - Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.

@@ -78,9 +78,10 @@ final class HistoryOpenProbe: XCTestCase {
 	private func stampHistoryOpen(_ app: XCUIApplication, until shown: XCUIElement, name: String)
 		-> Bool
 	{
-		TutorialHarness.openSidebar(app)
+		let history = TutorialHarness.named(app, "chat.history")
+		TutorialHarness.wait(history, until: .hittable)
 		let started = Date()
-		TutorialHarness.named(app, "sidebar.history").tap()
+		history.tap()
 		TutorialHarness.wait(shown, within: .turn)
 		let sample = XCTAttachment(
 			string: String(format: "%.0f", Date().timeIntervalSince(started) * 1_000))

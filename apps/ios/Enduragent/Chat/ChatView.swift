@@ -5,7 +5,7 @@ struct ChatView: View {
 	@Bindable var model: ShellModel
 
 	var body: some View {
-		NavigationStack {
+		NavigationStack(path: $model.navigation) {
 			TranscriptView(model: model)
 				.safeAreaInset(edge: .bottom, spacing: 0) {
 					ComposerView(model: model)
@@ -20,10 +20,26 @@ struct ChatView: View {
 				.navigationTitle(model.phrasebook.say(Catalog.chatViewTitle, [:]))
 				.toolbar {
 					ToolbarItem(placement: .topBarLeading) {
-						Button(model.phrasebook.say(Catalog.chatMenu, [:])) {
-							model.showSidebar = true
+						Button {
+							model.open(.history)
+						} label: {
+							Label(
+								model.phrasebook.say(Catalog.archiveHistory, [:]),
+								systemImage: "clock.arrow.circlepath")
 						}
-						.accessibilityIdentifier("chat.sidebar")
+						.labelStyle(.iconOnly)
+						.accessibilityIdentifier("chat.history")
+					}
+					ToolbarItem(placement: .topBarLeading) {
+						Button {
+							model.open(.settings)
+						} label: {
+							Label(
+								model.phrasebook.say(Catalog.settingsTitle, [:]),
+								systemImage: "gearshape")
+						}
+						.labelStyle(.iconOnly)
+						.accessibilityIdentifier("chat.settings")
 					}
 					ToolbarItem(placement: .topBarTrailing) {
 						Button {
@@ -37,12 +53,35 @@ struct ChatView: View {
 						.accessibilityIdentifier("chat.newConversation")
 					}
 				}
-				.navigationDestination(isPresented: $model.showCredits) {
-					CreditsView(model: model)
-				}
-				.sheet(isPresented: $model.showSidebar) {
-					NavigationStack {
-						SidebarView(model: model)
+				.navigationDestination(for: ShellDestination.self) { destination in
+					switch destination {
+					case .settings:
+						SettingsView(model: model)
+					case .history:
+						HistoryView(model: model)
+					case .archivedConversation(let ref):
+						ArchivedConversationView(model: model, ref: ref)
+					case .credits:
+						CreditsView(model: model)
+					#if DEBUG
+						case .debug:
+							SettingsDebugView(model: model)
+						case .debugCredits:
+							CreditsDebugView(
+								coach: model.services.coach,
+								deviceCheck: model.environment.deviceCheck,
+								phrasebook: model.phrasebook)
+						case .debugCredentials:
+							CredentialsDebugView(model: model)
+						case .debugRecords:
+							RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
+						case .debugLanguage:
+							LanguageView(model: model)
+						case .session:
+							SessionDebugView(model: model)
+						case .debugLeases:
+							LeasesDebugView(leases: model.services.leases)
+					#endif
 					}
 				}
 				.sheet(isPresented: $model.showLanguage) {

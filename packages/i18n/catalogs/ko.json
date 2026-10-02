@@ -514,7 +514,8 @@
         "remove": "웹훅 삭제",
         "title": "기존 웹훅 삭제"
       }
-    }
+    },
+    "modelAccessTitle": "모델 접근"
   },
   "archive": {
     "athlete": "나",

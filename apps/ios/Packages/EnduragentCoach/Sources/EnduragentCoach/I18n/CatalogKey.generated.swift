@@ -1629,6 +1629,7 @@ public enum Catalog {
 	public static let settingsLanguageTitle = CatalogKey(rawValue: "settings.language.title")
 	public static let settingsLanguageUnavailable = CatalogKey(rawValue: "settings.language.unavailable")
 	public static let settingsManagedByEnvironment = CatalogKey(rawValue: "settings.managedByEnvironment")
+	public static let settingsModelAccessTitle = CatalogKey(rawValue: "settings.modelAccessTitle")
 	public static let settingsPaletteApp = CatalogKey(rawValue: "settings.palette.app")
 	public static let settingsPaletteDetail = CatalogKey(rawValue: "settings.palette.detail")
 	public static let settingsPaletteTitle = CatalogKey(rawValue: "settings.palette.title")

@@ -17,61 +17,59 @@
 		@State private var hasKey = false
 
 		var body: some View {
-			NavigationStack {
-				List {
-					Section("Balance") {
-						Text(balanceText)
+			List {
+				Section("Balance") {
+					Text(balanceText)
+				}
+				Section("Starter") {
+					Button("Get starter credits") {
+						Task { await grantStarter() }
 					}
-					Section("Starter") {
-						Button("Get starter credits") {
-							Task { await grantStarter() }
-						}
-						.accessibilityIdentifier("debug.credits.claimStarter")
-						if !starterMessage.isEmpty {
-							Text(starterMessage)
-								.accessibilityIdentifier("debug.credits.starterNotice")
-						}
-					}
-					Section {
-						if let catalog {
-							ForEach(catalog.packs) { pack in
-								HStack {
-									Text("\(pack.credits.units) credits")
-									Spacer()
-									let product = products[pack.id]
-									Button(product?.displayPrice ?? "Buy") {
-										if let product {
-											Task { await buy(product) }
-										}
-									}
-									.disabled(!catalog.purchasesEnabled || product == nil)
-								}
-							}
-						}
-					} header: {
-						Text("Packs")
-					} footer: {
-						if catalog?.purchasesEnabled == false {
-							Text("testers cannot buy packs yet")
-						}
-					}
-					if let errorText {
-						Section("Error") {
-							Text(errorText)
-						}
-					}
-					Section("Identity") {
-						Text(identityText)
-							.font(.footnote.monospaced())
-						Text(hasKey ? "Athlete key stored" : "No athlete key")
-						Button("New athlete identity", role: .destructive) {
-							Task { await newIdentity() }
-						}
+					.accessibilityIdentifier("debug.credits.claimStarter")
+					if !starterMessage.isEmpty {
+						Text(starterMessage)
+							.accessibilityIdentifier("debug.credits.starterNotice")
 					}
 				}
-				.navigationTitle("Credits")
-				.task { await bootstrap() }
+				Section {
+					if let catalog {
+						ForEach(catalog.packs) { pack in
+							HStack {
+								Text("\(pack.credits.units) credits")
+								Spacer()
+								let product = products[pack.id]
+								Button(product?.displayPrice ?? "Buy") {
+									if let product {
+										Task { await buy(product) }
+									}
+								}
+								.disabled(!catalog.purchasesEnabled || product == nil)
+							}
+						}
+					}
+				} header: {
+					Text("Packs")
+				} footer: {
+					if catalog?.purchasesEnabled == false {
+						Text("testers cannot buy packs yet")
+					}
+				}
+				if let errorText {
+					Section("Error") {
+						Text(errorText)
+					}
+				}
+				Section("Identity") {
+					Text(identityText)
+						.font(.footnote.monospaced())
+					Text(hasKey ? "Athlete key stored" : "No athlete key")
+					Button("New athlete identity", role: .destructive) {
+						Task { await newIdentity() }
+					}
+				}
 			}
+			.navigationTitle("Credits")
+			.task { await bootstrap() }
 		}
 
 		@MainActor
