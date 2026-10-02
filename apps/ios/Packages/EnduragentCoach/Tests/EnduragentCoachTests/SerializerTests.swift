@@ -48,12 +48,6 @@ struct SerializerTests {
 			}
 		}
 		#expect(mismatches.isEmpty, "\(mismatches.joined(separator: "; "))")
-		let report =
-			mismatches.isEmpty
-			? "0 mismatches across \(cases.count) cases\n"
-			: mismatches.joined(separator: "\n") + "\n"
-		try? report.write(
-			toFile: "/tmp/ios-c6/serializer-swift-report.txt", atomically: true, encoding: .utf8)
 	}
 
 	@Test func slugifyMatchesDesktop() {

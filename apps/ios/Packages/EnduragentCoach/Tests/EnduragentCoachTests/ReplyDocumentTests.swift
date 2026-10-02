@@ -117,10 +117,13 @@ import Testing
 		#expect(ReplyParser.foundation.document(source) == ReplyParser.foundation.document(source))
 	}
 
-	@Test func injectedFailureReturnsEverySourceCharacter() {
+	@Test func fixtureDecoderFailureReturnsEverySourceCharacter() {
 		let source = FormattedReplyFixture.source
-		let document = ReplyParser.failingForProof.document(source)
-		#expect(document == .plainText(source: source, failure: .injected))
+		let document = ReplyParser.failing.document(source)
+		#expect(
+			document
+				== .plainText(
+					source: source, failure: .foundation(domain: "ReplyParserFixture", code: 1)))
 		#expect(document.accessibilityText == source)
 	}
 

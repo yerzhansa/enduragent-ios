@@ -144,7 +144,6 @@ import Testing
 
 	@Test func ledgerDigestMatchesDesktop() throws {
 		let rows = try loadLedgerDigestTable()
-		var computed: [LedgerDigestRow] = []
 		for row in rows {
 			let kind = try #require(LedgerKind(rawValue: row.kind))
 			let date = try #require(CivilDate(rawValue: row.date))
@@ -159,19 +158,6 @@ import Testing
 			let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: row.text)
 			#expect(Array(digestInput.utf8) == Array(row.digestInput.utf8))
 			#expect(Array(digest.utf8) == Array(row.digest.utf8))
-			computed.append(
-				LedgerDigestRow(
-					date: row.date,
-					kind: row.kind,
-					text: row.text,
-					digestInput: digestInput,
-					digest: digest,
-					estimateTokens: estimateTokens(row.text)
-				)
-			)
-		}
-		if let path = ProcessInfo.processInfo.environment["ENDURAGENT_DIGEST_OUT"], !path.isEmpty {
-			try encodeDigestTable(computed).write(toFile: path, atomically: true, encoding: .utf8)
 		}
 	}
 
@@ -188,20 +174,4 @@ import Testing
 	private func ulid(_ offset: Int) -> ULID {
 		ULID.generate(at: Date(timeIntervalSince1970: 899_164_800 + Double(offset)))
 	}
-}
-
-private func encodeDigestTable(_ rows: [LedgerDigestRow]) -> String {
-	let objects = rows.map { row in
-		let fields = [
-			("date", JSONValue.string(row.date).canonicalDigestInput()),
-			("kind", JSONValue.string(row.kind).canonicalDigestInput()),
-			("text", JSONValue.string(row.text).canonicalDigestInput()),
-			("digestInput", JSONValue.string(row.digestInput).canonicalDigestInput()),
-			("digest", JSONValue.string(row.digest).canonicalDigestInput()),
-			("estimateTokens", String(row.estimateTokens)),
-		]
-		let inner = fields.map { "    \"\($0.0)\": \($0.1)" }.joined(separator: ",\n")
-		return "  {\n\(inner)\n  }"
-	}
-	return "[\n" + objects.joined(separator: ",\n") + "\n]\n"
 }

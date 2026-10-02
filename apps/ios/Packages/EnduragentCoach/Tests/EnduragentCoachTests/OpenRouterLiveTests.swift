@@ -43,42 +43,5 @@ import Testing
 		} else {
 			Issue.record("expected finished")
 		}
-		if let path = ProcessInfo.processInfo.environment["ENDURAGENT_LIVE_OUT"], !path.isEmpty {
-			let payload: [String: Any] = ["events": events.map(json(event:))]
-			let data = try JSONSerialization.data(
-				withJSONObject: payload, options: [.prettyPrinted, .sortedKeys])
-			try data.write(to: URL(fileURLWithPath: path))
-		}
-	}
-}
-
-private func json(event: TransportEvent) -> [String: Any] {
-	switch event {
-	case .textDelta(let text):
-		return ["type": "textDelta", "text": text]
-	case .toolCall(let call):
-		return [
-			"type": "toolCall",
-			"id": call.id,
-			"name": call.name,
-			"arguments": call.arguments,
-		]
-	case .heartbeat:
-		return ["type": "heartbeat"]
-	case .finished(let reason, let usage):
-		var payload: [String: Any] = [
-			"type": "finished",
-			"reason": reason.rawValue,
-			"usage": [
-				"inputTokens": usage.inputTokens,
-				"outputTokens": usage.outputTokens,
-			],
-		]
-		if let cost = usage.cost {
-			var usageObject = payload["usage"] as? [String: Any] ?? [:]
-			usageObject["cost"] = cost
-			payload["usage"] = usageObject
-		}
-		return payload
 	}
 }
