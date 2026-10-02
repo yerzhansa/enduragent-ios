@@ -20,6 +20,7 @@ extension FixtureLaunchTests {
 		let requests = fixture.transport.requestCount
 		fixture.records.failNextAppend = true
 		await model.decide(cancel ? .cancel(token) : .approve(token))
+		try await until { model.chat?.review == ready }
 		let notice = try #require(model.reviewNotice)
 		#expect(notice.key == CatalogKey(rawValue: "review.saveFailed"))
 		#expect(
