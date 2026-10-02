@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "언어를 선택하세요",
-    "continue": "계속"
+    "continue": "계속",
+    "saveFailed": "{{language}} 설정을 저장하지 못했습니다. 답변 언어는 {{current}}로 유지됩니다. 다시 시도하세요.",
+    "saveFailedAutomatic": "{{language}} 설정을 저장하지 못했습니다. 답변은 계속 각 메시지의 언어로 제공됩니다. 다시 시도하세요."
   },
   "settings": {
     "appearance": {
@@ -190,7 +192,8 @@
         "historyTokenBudgetRatio": "대화 기록 할당량을 0% 초과 100% 이하로 입력하세요.",
         "idleMinutes": "분 단위로 0 이상의 안전한 범위의 정수를 입력하세요.",
         "resetArchiveRetentionDays": "일 단위로 0 이상의 안전한 범위의 정수를 입력하세요.",
-        "timezone": "{{timezone}} 등의 유효한 IANA 시간대를 입력하세요."
+        "timezone": "{{timezone}} 등의 유효한 IANA 시간대를 입력하세요.",
+        "contextWindowTokens": "유효한 범위 내에서 1 이상의 정수로 토큰 수를 입력하세요."
       }
     },
     "credentials": {
@@ -529,20 +532,21 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "이전 대화를 일시적으로 사용할 수 없습니다.",
-    "loadEarlier": "이전 메시지 불러오기",
     "loading": "이전 대화 불러오는 중…",
     "pageFailure": "이 대화를 일시적으로 사용할 수 없습니다.",
     "readOnly": "이전 대화는 읽기 전용입니다.",
     "reason": {
       "explicit": "새 대화를 시작했습니다",
-      "stale": "한동안 대화가 없어 종료되었습니다"
+      "stale": "한동안 대화가 없어 종료되었습니다",
+      "earlierChat": "이전 채팅"
     },
     "retry": "다시 시도",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
     "title": "이전 채팅",
     "truncated": "가장 최근의 이전 대화만 표시됩니다.",
     "turnCount_other": "메시지 {{formattedCount}}개",
-    "unavailable": "이 대화를 더 이상 사용할 수 없습니다."
+    "unavailable": "이 대화를 더 이상 사용할 수 없습니다.",
+    "history": "기록"
   },
   "setup": {
     "ai": {
@@ -937,7 +941,8 @@
       "messagePlaceholder": "코치에게 메시지 보내기",
       "responding": "코치가 답변 중…",
       "send": "메시지 전송",
-      "stop": "답변 중지"
+      "stop": "답변 중지",
+      "notSent": "전송되지 않았습니다. 작성 중인 메시지는 그대로 있습니다."
     },
     "date": {
       "civil": "{{year}}년 {{month}} {{day}}일",
@@ -970,7 +975,6 @@
     },
     "history": {
       "failure": "대화 기록을 일시적으로 사용할 수 없습니다.",
-      "loadEarlier": "이전 메시지 불러오기",
       "retry": "기록 다시 불러오기"
     },
     "newConversation": {
@@ -979,6 +983,7 @@
       "cancel": "취소",
       "confirm": "새 대화 시작",
       "hydrated": "화면의 대화와 {{computer}}에서 복원한 이전 메시지가 지워집니다. 훈련 데이터와 저장된 코치 기억은 유지됩니다.",
+      "label": "새 대화",
       "title": "새 대화를 시작할까요?"
     },
     "notice": {
@@ -1002,13 +1007,16 @@
       "planningRequestLoadFailure": "저장된 계획 요청을 확인하지 못했습니다. 다시 연결하고 시도하세요.",
       "protocolFailure": "코칭 답변을 검증하지 못했습니다. 다시 시도하세요.",
       "questionSkipped": "질문을 건너뛰었습니다",
+      "replyUnsaved": "이 답변을 저장하지 못했습니다. 저장을 다시 시도하는 동안 앱을 열어 두세요.",
       "queueLoadFailure": "저장된 메시지를 확인하지 못했습니다. 다시 연결하고 시도하세요.",
       "queueRemoveFailure": "저장된 메시지를 삭제하지 못했습니다. 다시 시도하세요.",
       "responseFailure": "코치가 답변하지 못했습니다. 다시 시도하세요.",
-      "responseStopped": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다.",
       "retryMessage": "메시지 재시도",
       "savedChoice": "저장된 선택",
-      "working": "코치가 작업 중…"
+      "working": "코치가 작업 중…",
+      "responseStopped": "답변이 중지되었습니다. 지금까지의 답변은 유지됩니다.",
+      "calendarUnverified": "캘린더 변경 사항이 저장되었을 수 있습니다. 다시 요청하기 전에 캘린더를 확인하세요.",
+      "savedUnverified": "정보는 저장했지만 답변을 확인하지 못했습니다. 다시 시도하세요."
     },
     "planChange": {
       "activePlan": "활성 계획",
@@ -1434,7 +1442,20 @@
       "hideContext": "훈련 맥락 숨기기",
       "showContext": "훈련 맥락 보기",
       "title": "채팅"
-    }
+    },
+    "menu": "메뉴",
+    "turn": {
+      "buyCredits": "크레딧 구매",
+      "chooseAccessMethod": "연결 방법 선택",
+      "finishedWhileLocked": "휴대폰이 잠긴 동안 완료되었습니다.",
+      "interruptedNothingChanged": "이 답변은 완료되기 전에 중단되었습니다. 변경된 내용은 없습니다.",
+      "interruptedSomeSaved": "이 답변은 완료되기 전에 중단되었습니다. 일부 정보는 그전에 저장되었습니다.",
+      "receivedBeforeClose": "앱이 닫히기 전에 수신되었습니다. 전송하려면 다시 시도를 누르세요.",
+      "restorePurchases": "구매 복원",
+      "signInAgain": "다시 로그인"
+    },
+    "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{commands}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2614,7 +2635,9 @@
       "structure": "워크아웃 구성",
       "trainingLoad": "훈련 부하를 {{load}}(으)로",
       "unnamed": "이름 없는 워크아웃",
-      "update": "{{date}}의 워크아웃 \"{{name}}\" 수정: {{detail}}"
+      "update": "{{date}}의 워크아웃 \"{{name}}\" 수정: {{detail}}",
+      "deleteFallback": "워크아웃 삭제",
+      "updateFallback": "워크아웃 수정: {{detail}}"
     }
   },
   "telegram": {
@@ -2645,7 +2668,6 @@
       "start": "새 대화 시작",
       "status": "현재 체력, 피로도, 밸런스 확인",
       "sync": "{{service}}에서 훈련 데이터 강제 새로고침",
-      "update": "업데이트 확인 및 설치",
       "version": "현재 버전 표시",
       "whatsnew": "최신 버전의 변경 사항 보기",
       "workout": "오늘의 워크아웃 확인"
@@ -2759,7 +2781,6 @@
       "managedInstruction": "변경 사항을 보려면 {{whatsnew}}를 보내세요. {{notice}}",
       "prepareFailed": "지금은 업데이트를 안전하게 준비하지 못했습니다. 잠시 후 {{command}}를 다시 시도해 주세요."
     },
-    "welcome": "{{product}}에 오신 것을 환영합니다!\n\nAI 사이클링 코치입니다. {{service}} 데이터를 바탕으로 훈련 계획을 만들고, 워크아웃을 제안하고, 체력 변화를 살펴볼 수 있습니다.\n\n명령:\n{{plan}} — 훈련 계획 만들기\n{{workout}} — 오늘의 워크아웃 확인\n{{status}} — 현재 체력, 피로도, 밸런스 확인\n{{review}} — 지난 훈련 돌아보기\n{{sync}} — {{service}}에서 훈련 데이터 강제 새로고침\n{{version}} — 현재 버전 표시\n{{whatsnew}} — 최신 버전의 변경 사항 보기\n{{update}} — {{updateDescription}}\n\n편하게 훈련 이야기를 나눠도 좋습니다!",
     "workout": {
       "working": "밸런스와 계획을 확인하고 있습니다..."
     }
@@ -2847,6 +2868,74 @@
         "tokenRejected": "Telegram 토큰 거부됨",
         "transferRequired": "봇 이전 필요"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "이 운동은 {{service}}의 다른 선수 계정에 맞춰 준비되었습니다. 연결된 선수 계정에 맞춰 준비하도록 다시 요청해 주세요.",
+    "add": "캘린더에 추가",
+    "cannotVerify": "{{service}} 연결을 확인할 수 없어 아무것도 변경하지 않았습니다. 잠시 후 다시 시도해 주세요.",
+    "earlierVersion": "이 운동 검토는 이전 버전의 앱에서 생성되어 더 이상 적용할 수 없습니다.",
+    "storageUnavailable": "저장된 운동 검토를 읽지 못했습니다. 마지막 검토가 계속 표시됩니다. 버튼을 다시 사용하려면 재시도하세요.",
+    "title": "운동 검토",
+    "uncertain": "이 변경 사항이 {{service}} 캘린더에 반영되었는지 확인하지 못했습니다. 다시 요청하기 전에 캘린더를 확인해 주세요.",
+    "workout": {
+      "warmup": "웜업",
+      "mainSet": "메인 세트",
+      "cooldown": "쿨다운",
+      "ramp": "램프"
+    }
+  },
+  "credits": {
+    "buy": "구매",
+    "testers": "테스터는 아직 팩을 구매할 수 없습니다.",
+    "title": "크레딧",
+    "balance_other": "{{formattedCount}} 크레딧",
+    "pack_other": "{{formattedCount}} 크레딧",
+    "packPrice_other": "{{formattedCount}} 크레딧 · {{price}}",
+    "error": {
+      "accessRejected": "크레딧을 사용할 수 없었습니다. 계속하려면 구매를 복원하세요.",
+      "exhausted": "크레딧을 모두 사용했습니다. 추가로 구매하거나 OpenRouter 계정으로 전환하세요.",
+      "unavailable": "지금은 크레딧을 이용할 수 없습니다. 나중에 다시 시도하세요.",
+      "accountChanged": "이 요청을 마무리하는 동안 크레딧 계정이 변경되었습니다. 현재 계정은 그대로 유지되었습니다."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "연결",
+      "apiKey": "intervals.icu API 키",
+      "fatigue": "피로도 {{value}}",
+      "fitness": "체력 {{value}}",
+      "form": "컨디션 {{value}}",
+      "skip": "지금은 건너뛰기"
+    },
+    "starter": {
+      "start": "채팅 시작",
+      "progress": "시작 크레딧 요청 중",
+      "alreadyGranted": "이 기기는 이미 시작 크레딧을 사용했습니다.",
+      "added_other": "{{formattedCount}} 크레딧 추가됨"
+    },
+    "notice": {
+      "health": "훈련 제안이며 의학적 조언이 아닙니다. 큰 변화를 주기 전에 의사와 상담하세요."
+    },
+    "consent": {
+      "title": "코치는 AI를 사용해요",
+      "body": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요.",
+      "accept": "동의하고 계속하기",
+      "decline": "나중에",
+      "saveFailed": "동의를 저장하지 못했어요. 다시 시도해 주세요."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "계속하려면 iPhone의 잠금을 해제하세요. 메시지는 저장되어 있습니다.",
+      "notConfigured": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요.",
+      "providerConsentRequired": "채팅 데이터를 AI 제공업체와 공유하기 전에 동의가 필요합니다.",
+      "openRouterFunds": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu에서 해당 키를 거부했습니다."
     }
   }
 }

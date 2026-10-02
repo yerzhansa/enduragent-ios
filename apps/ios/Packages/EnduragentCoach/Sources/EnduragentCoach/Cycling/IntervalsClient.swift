@@ -56,19 +56,16 @@ public struct ChatExternalID: Hashable, Sendable {
 	}
 }
 
-public struct PlanMirrorUID: Hashable, Sendable {
-	public var planId: ULID
-	public var workoutId: ULID
-
-	public var rawValue: String {
-		"cycling-coach:plan:\(planId.rawValue):\(workoutId.rawValue)"
-	}
-}
-
 public struct AthleteProfile: Sendable, Equatable {
 	public var id: String
 	public var name: String
 	public var ftp: Int?
+
+	package init(id: String, name: String, ftp: Int?) {
+		self.id = id
+		self.name = name
+		self.ftp = ftp
+	}
 }
 
 package struct IntervalsWellnessJSON: Sendable, Equatable, Decodable {
@@ -125,6 +122,13 @@ public struct WellnessDay: Sendable, Equatable {
 		self.form = form
 	}
 
+	public static func formattedNumber(_ value: Double?, fractionDigits: Int = 0) -> String {
+		guard let value, value.isFinite else { return "—" }
+		let number = fractionDigits == 0 ? value.rounded() : value
+		return wholeInt(number).map(String.init)
+			?? String(format: "%.*f", fractionDigits, number)
+	}
+
 	package init(json: IntervalsWellnessJSON) {
 		self.date = json.date
 		self.fitness = json.ctl
@@ -164,6 +168,20 @@ public struct CalendarEvent: Sendable, Equatable {
 	public var uid: String?
 	public var tags: [String]
 	public var coachCreated: Bool
+
+	package init(
+		id: EventID, startDateLocal: String, name: String, category: String, externalId: String?,
+		uid: String?, tags: [String], coachCreated: Bool
+	) {
+		self.id = id
+		self.startDateLocal = startDateLocal
+		self.name = name
+		self.category = category
+		self.externalId = externalId
+		self.uid = uid
+		self.tags = tags
+		self.coachCreated = coachCreated
+	}
 }
 
 public struct ChatCalendarCreate: Sendable, Equatable {
@@ -180,15 +198,6 @@ public enum CalendarEventType: String, Sendable {
 	case weightTraining = "WeightTraining"
 }
 
-public struct PlanMirrorCreate: Sendable, Equatable {
-	public var date: DateKey
-	public var name: String
-	public var description: String
-	public var movingTime: Int
-	public var uid: PlanMirrorUID
-	public var workoutDoc: JSONValue
-}
-
 public protocol IntervalsClient: Sendable {
 	func fetchAthlete() async throws -> AthleteProfile
 	func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay]
@@ -197,7 +206,6 @@ public protocol IntervalsClient: Sendable {
 	func fetchStreams(id: ActivityID) async throws -> JSONValue
 	func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent]
 	func createChatEvent(_ draft: ChatCalendarCreate) async throws -> CalendarEvent
-	func createOrUpdatePlanEvent(_ draft: PlanMirrorCreate) async throws -> CalendarEvent
 	func updateEvent(id: EventID, name: String?, description: String?, date: CivilDate?)
 		async throws -> CalendarEvent
 	func deleteEvent(id: EventID) async throws
@@ -226,24 +234,24 @@ public struct IntervalsError: Error, Sendable, Equatable {
 	}
 }
 
-public enum IntervalsPolicy {
-	public static let listMaxRangeDays = 366
-	public static let reviewWindowDays = 7
-	public static let athletePath = "0"
-	public static let baseURL: URL = {
+package enum IntervalsPolicy {
+	package static let listMaxRangeDays = 366
+	package static let reviewWindowDays = 7
+	package static let athletePath = "0"
+	package static let baseURL: URL = {
 		guard let url = URL(string: "https://intervals.icu/api/v1") else {
 			fatalError("https://intervals.icu/api/v1 is invalid")
 		}
 		return url
 	}()
-	public static let coachTag = "cycling-coach"
-	public static let formRecoveryThreshold = -30.0
-	public static let ftpRange = 50...600
-	public static let requestTimeout: TimeInterval = 30
-	public static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
-	public static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
+	package static let coachTag = "cycling-coach"
+	package static let formRecoveryThreshold = -30.0
+	package static let ftpRange = 50...600
+	package static let requestTimeout: TimeInterval = 30
+	package static let defaultStreamTypes = ["watts", "heartrate", "cadence", "time", "altitude"]
+	package static let eventCategories = ["WORKOUT", "RACE_A", "RACE_B", "RACE_C"]
 
-	public static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
+	package static func chatCreateBody(_ draft: ChatCalendarCreate) -> JSONValue {
 		.object([
 			"start_date_local": .string("\(draft.date.rawValue)T00:00:00"),
 			"category": .string("WORKOUT"),
@@ -261,13 +269,19 @@ public enum IntervalsPolicy {
 
 	package static func inclusiveDayCount(from oldest: CivilDate, to newest: CivilDate) -> Int {
 		if oldest > newest { return 0 }
-		var count = 1
-		var cursor = oldest
-		while cursor < newest {
-			cursor = cursor.adding(days: 1)
-			count += 1
-		}
-		return count
+		return gregorianDayNumber(newest) - gregorianDayNumber(oldest) + 1
+	}
+
+	private static func gregorianDayNumber(_ date: CivilDate) -> Int {
+		let key = DateKey.from(date).rawValue
+		let year = key / 10_000
+		let month = key / 100 % 100
+		let day = key % 100
+		let previousYear = year - 1
+		let daysBeforeMonth = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+		let leapDay = month > 2 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) ? 1 : 0
+		return previousYear * 365 + previousYear / 4 - previousYear / 100 + previousYear / 400
+			+ daysBeforeMonth[month - 1] + leapDay + day
 	}
 
 	package static func rejectListRange(oldest: CivilDate, newest: CivilDate) throws {
@@ -277,7 +291,10 @@ public enum IntervalsPolicy {
 				details: "oldest (\(oldest)) is after newest (\(newest)). Swap the bounds."
 			)
 		}
-		let days = inclusiveDayCount(from: oldest, to: newest)
+		try rejectListDayCount(inclusiveDayCount(from: oldest, to: newest))
+	}
+
+	package static func rejectListDayCount(_ days: Int) throws {
 		if days > listMaxRangeDays {
 			throw IntervalsError(
 				code: "range_too_wide",

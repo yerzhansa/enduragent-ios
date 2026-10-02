@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Välj ditt språk",
-    "continue": "Fortsätt"
+    "continue": "Fortsätt",
+    "saveFailed": "Det gick inte att spara {{language}}. Svaren fortsätter på {{current}}. Försök igen.",
+    "saveFailedAutomatic": "Det gick inte att spara {{language}}. Svaren fortsätter på språket i varje meddelande. Försök igen."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Ange ett utrymme för historik över 0 % och högst 100 %.",
         "idleMinutes": "Ange ett säkert heltalsvärde för antal minuter, minst 0.",
         "resetArchiveRetentionDays": "Ange ett säkert heltalsvärde för antal dagar, minst 0.",
-        "timezone": "Ange en giltig IANA-tidszon, till exempel {{timezone}}."
+        "timezone": "Ange en giltig IANA-tidszon, till exempel {{timezone}}.",
+        "contextWindowTokens": "Ange ett helt antal token inom det giltiga intervallet, minst 1."
       }
     },
     "credentials": {
@@ -530,13 +533,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidigare samtal är tillfälligt otillgängliga.",
-    "loadEarlier": "Läs in äldre meddelanden",
     "loading": "Läser in tidigare samtal…",
     "pageFailure": "Det här samtalet är tillfälligt otillgängligt.",
     "readOnly": "Tidigare samtal går bara att läsa.",
     "reason": {
       "explicit": "Du startade ett nytt samtal",
-      "stale": "Avslutades efter en paus"
+      "stale": "Avslutades efter en paus",
+      "earlierChat": "Tidigare chatt"
     },
     "retry": "Försök igen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +547,8 @@
     "truncated": "Endast de senaste tidigare samtalen visas.",
     "turnCount_one": "{{formattedCount}} meddelande",
     "turnCount_other": "{{formattedCount}} meddelanden",
-    "unavailable": "Det här samtalet är inte längre tillgängligt."
+    "unavailable": "Det här samtalet är inte längre tillgängligt.",
+    "history": "Historik"
   },
   "setup": {
     "ai": {
@@ -945,7 +949,8 @@
       "messagePlaceholder": "Skriv till din tränare",
       "responding": "Tränaren svarar…",
       "send": "Skicka meddelande",
-      "stop": "Stoppa svaret"
+      "stop": "Stoppa svaret",
+      "notSent": "Inte skickat. Ditt utkast finns kvar här."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +983,6 @@
     },
     "history": {
       "failure": "Samtalshistoriken är tillfälligt otillgänglig.",
-      "loadEarlier": "Läs in tidigare meddelanden",
       "retry": "Försök läsa in historiken igen"
     },
     "newConversation": {
@@ -987,6 +991,7 @@
       "cancel": "Avbryt",
       "confirm": "Starta nytt samtal",
       "hydrated": "Ditt synliga samtal och de tidigare meddelanden som återställdes på {{computer}} rensas. Dina träningsdata och tränarens sparade minne finns kvar.",
+      "label": "Nytt samtal",
       "title": "Starta ett nytt samtal?"
     },
     "notice": {
@@ -1010,13 +1015,16 @@
       "planningRequestLoadFailure": "Det gick inte att kontrollera sparade planförfrågningar. Anslut på nytt och försök igen.",
       "protocolFailure": "Tränarens svar kunde inte verifieras. Försök igen.",
       "questionSkipped": "Frågan hoppades över",
+      "replyUnsaved": "Det gick inte att spara svaret. Håll appen öppen medan ett nytt försök att spara görs.",
       "queueLoadFailure": "Det gick inte att kontrollera dina sparade meddelanden. Anslut på nytt och försök igen.",
       "queueRemoveFailure": "Det sparade meddelandet kunde inte tas bort. Försök igen.",
       "responseFailure": "Tränaren kunde inte svara. Försök igen.",
-      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
       "retryMessage": "Försök skicka meddelandet igen",
       "savedChoice": "Sparat val",
-      "working": "Tränaren arbetar…"
+      "working": "Tränaren arbetar…",
+      "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
+      "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
+      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1447,7 +1455,20 @@
       "hideContext": "Dölj träningsunderlag",
       "showContext": "Visa träningsunderlag",
       "title": "Chatt"
-    }
+    },
+    "menu": "Meny",
+    "turn": {
+      "buyCredits": "Köp krediter",
+      "chooseAccessMethod": "Välj åtkomstmetod",
+      "finishedWhileLocked": "Blev klart medan telefonen var låst.",
+      "interruptedNothingChanged": "Svaret avbröts innan det var klart. Inget ändrades.",
+      "interruptedSomeSaved": "Svaret avbröts innan det var klart. Viss information sparades först.",
+      "receivedBeforeClose": "Mottaget innan appen stängdes. Tryck på Försök igen för att skicka meddelandet.",
+      "restorePurchases": "Återställ köp",
+      "signInAgain": "Logga in igen"
+    },
+    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{commands}}\n\nDu kan också bara prata med mig om din träning!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "training": {
     "export": {
@@ -2647,7 +2668,9 @@
       "structure": "träningspassets upplägg",
       "trainingLoad": "träningsbelastning till {{load}}",
       "unnamed": "Namnlöst träningspass",
-      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}"
+      "update": "Uppdatera träningspasset \"{{name}}\" den {{date}}. {{detail}}",
+      "deleteFallback": "Ta bort ett träningspass",
+      "updateFallback": "Uppdatera ett träningspass. {{detail}}"
     }
   },
   "telegram": {
@@ -2678,7 +2701,6 @@
       "start": "Starta en ny session",
       "status": "Kontrollera aktuell CTL, trötthet och TSB",
       "sync": "Tvinga uppdatering av träningsdata från {{service}}",
-      "update": "Sök efter och installera uppdateringar",
       "version": "Visa aktuell version",
       "whatsnew": "Se vad som ändrats i den senaste versionen",
       "workout": "Hämta dagens träningspass"
@@ -2795,7 +2817,6 @@
       "managedInstruction": "Skicka {{whatsnew}} för att se vad som ändrats. {{notice}}",
       "prepareFailed": "Kunde inte förbereda uppdateringen på ett säkert sätt just nu. Prova {{command}} igen om en liten stund."
     },
-    "welcome": "Välkommen till {{product}}!\n\nJag är din AI-cykeltränare. Jag kan skapa träningsplaner, föreslå träningspass och följa din fysiska form med data från {{service}}.\n\nKommandon:\n{{plan}} — Skapa en träningsplan\n{{workout}} — Hämta dagens träningspass\n{{status}} — Kontrollera aktuell CTL, trötthet och TSB\n{{review}} — Gå igenom ditt senaste träningspass\n{{sync}} — Tvinga uppdatering av träningsdata från {{service}}\n{{version}} — Visa aktuell version\n{{whatsnew}} — Se vad som ändrats i den senaste versionen\n{{update}} — {{updateDescription}}\n\nDu kan också bara prata med mig om din träning!",
     "workout": {
       "working": "Kontrollerar din TSB och träningsplan..."
     }
@@ -2883,6 +2904,78 @@
         "tokenRejected": "Telegram-token avvisad",
         "transferRequired": "Boten behöver överföras"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Det här träningspasset förbereddes för en annan idrottare på {{service}}. Be mig igen att förbereda det för den anslutna idrottaren.",
+    "add": "Lägg till i kalendern",
+    "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
+    "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
+    "storageUnavailable": "Det gick inte att läsa den sparade träningsgranskningen. Din senaste granskning visas fortfarande. Försök igen för att återställa kontrollerna.",
+    "title": "Granskning av träningspass",
+    "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
+    "workout": {
+      "warmup": "Uppvärmning",
+      "mainSet": "Huvuddel",
+      "cooldown": "Nedvarvning",
+      "ramp": "gradvis ökning"
+    }
+  },
+  "credits": {
+    "buy": "Köp",
+    "testers": "Testare kan inte köpa paket ännu.",
+    "title": "Krediter",
+    "balance_one": "{{formattedCount}} kredit",
+    "pack_one": "{{formattedCount}} kredit",
+    "packPrice_one": "{{formattedCount}} kredit · {{price}}",
+    "balance_other": "{{formattedCount}} krediter",
+    "pack_other": "{{formattedCount}} krediter",
+    "packPrice_other": "{{formattedCount}} krediter · {{price}}",
+    "error": {
+      "accessRejected": "Dina krediter kunde inte användas. Återställ köp för att fortsätta.",
+      "exhausted": "Dina krediter är slut. Köp fler eller byt till ditt OpenRouter-konto.",
+      "unavailable": "Krediter är inte tillgängliga just nu. Försök igen senare.",
+      "accountChanged": "Ditt kreditkonto ändrades medan den här begäran slutfördes. Ditt nuvarande konto behölls."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Anslut",
+      "apiKey": "intervals.icu API-nyckel",
+      "fatigue": "Trötthet {{value}}",
+      "fitness": "Kondition {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hoppa över tills vidare"
+    },
+    "starter": {
+      "start": "Börja chatta",
+      "progress": "Begär startkrediter",
+      "alreadyGranted": "Den här enheten har redan använt sina startkrediter.",
+      "added_one": "Lade till {{formattedCount}} kredit",
+      "added_other": "Lade till {{formattedCount}} krediter"
+    },
+    "notice": {
+      "health": "Träningsförslag, inte medicinska råd. Rådgör med en läkare före stora förändringar."
+    },
+    "consent": {
+      "title": "Din coach använder AI",
+      "body": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det.",
+      "accept": "Godkänn och fortsätt",
+      "decline": "Inte nu",
+      "saveFailed": "Det gick inte att spara ditt samtycke. Försök igen."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
+      "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
+      "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
+      "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu accepterade inte den nyckeln."
     }
   }
 }

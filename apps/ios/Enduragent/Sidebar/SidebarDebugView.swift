@@ -1,23 +1,44 @@
-#if DEBUG
-	import SwiftUI
+import EnduragentCoach
+import SwiftUI
 
+#if DEBUG
 	struct DebugMenuView: View {
+		static let title = "Debug"
 		var model: ShellModel
 
 		var body: some View {
 			List {
 				NavigationLink("Credits") {
-					CreditsDebugView()
+					CreditsDebugView(
+						coach: model.services.coach, deviceCheck: model.environment.deviceCheck,
+						phrasebook: model.phrasebook)
 				}
+				.accessibilityIdentifier("debug.credits")
+				NavigationLink("Credentials") {
+					CredentialsDebugView(model: model)
+				}
+				.accessibilityIdentifier("debug.credentials")
 				NavigationLink("Records") {
-					RecordSyncDebugView()
+					RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 				}
-				if model.builder.isFixture {
-					Text("\(FixtureBlockingURLProtocol.requestCount) requests")
-						.accessibilityIdentifier("fixture.requestCount")
+				.accessibilityIdentifier("debug.records")
+				NavigationLink(model.phrasebook.say(Catalog.settingsLanguageTitle, [:])) {
+					LanguageView(model: model)
+				}
+				.accessibilityIdentifier("debug.language")
+				NavigationLink(model.phrasebook.say(Catalog.settingsConversationTitle, [:])) {
+					SessionDebugView(model: model)
+				}
+				.accessibilityIdentifier("debug.session")
+				NavigationLink("Leases") {
+					LeasesDebugView(leases: model.services.leases)
+				}
+				.accessibilityIdentifier("debug.leases")
+				if model.services.fixture != nil {
+					FixtureCountsDebugView(services: model.services)
 				}
 			}
-			.navigationTitle("Debug")
+			.navigationTitle(Self.title)
 		}
 	}
 #endif

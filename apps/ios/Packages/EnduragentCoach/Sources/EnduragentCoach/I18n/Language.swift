@@ -63,51 +63,15 @@ public enum LanguageTag: String, Sendable, CaseIterable {
 		}
 	}
 
-	public var defaultLocale: String {
-		switch self {
-		case .en: "en-GB"
-		case .es: "es-ES"
-		case .fr: "fr-FR"
-		case .it: "it-IT"
-		case .de: "de-DE"
-		case .nl: "nl-NL"
-		case .da: "da-DK"
-		case .sv: "sv-SE"
-		case .nb: "nb-NO"
-		case .fi: "fi-FI"
-		case .ptPT: "pt-PT"
-		case .ptBR: "pt-BR"
-		case .pl: "pl-PL"
-		case .ko: "ko-KR"
-		case .ja: "ja-JP"
-		case .zhHans: "zh-Hans-CN"
-		case .zhHant: "zh-Hant-TW"
-		}
-	}
-
 	public static let contractOrder: [LanguageTag] = [
 		.en, .es, .fr, .it, .de, .nl, .da, .sv, .nb, .fi, .ptPT, .ptBR, .pl, .ko, .ja, .zhHans,
 		.zhHant,
 	]
 }
 
-public enum LanguageSource: String, Sendable {
-	case preference
-	case message
-	case surface
-	case `default`
-}
-
-public struct LanguageResolution: Sendable, Equatable {
-	public var language: LanguageTag
-	public var source: LanguageSource
-	public var locale: String
-
-	public init(language: LanguageTag, source: LanguageSource, locale: String) {
-		self.language = language
-		self.source = source
-		self.locale = locale
-	}
+package enum ReplyLanguage: Sendable, Equatable {
+	case fixed(LanguageTag)
+	case mirror(fallback: LanguageTag)
 }
 
 public struct CatalogKey: Hashable, Sendable, RawRepresentable {
@@ -119,27 +83,6 @@ public struct CatalogKey: Hashable, Sendable, RawRepresentable {
 }
 
 public struct Language {
-	public static func resolve(
-		saved: LanguageTag?,
-		messageHint: LanguageTag?,
-		surface: LanguageTag?
-	) -> LanguageResolution {
-		if let saved {
-			return LanguageResolution(
-				language: saved, source: .preference, locale: saved.defaultLocale)
-		}
-		if let messageHint {
-			return LanguageResolution(
-				language: messageHint, source: .message, locale: messageHint.defaultLocale)
-		}
-		if let surface {
-			return LanguageResolution(
-				language: surface, source: .surface, locale: surface.defaultLocale)
-		}
-		return LanguageResolution(
-			language: .en, source: .default, locale: LanguageTag.en.defaultLocale)
-	}
-
 	public static func detectMessageLanguage(_ text: String) -> LanguageTag? {
 		MessageLanguage.detect(text)
 	}
@@ -184,22 +127,17 @@ public struct Language {
 	}
 }
 
-public protocol Phrasebook: Sendable {
-	func say(_ key: CatalogKey, _ vars: [String: String]) -> String
-}
-
-public struct CatalogPhrasebook: Phrasebook {
+public struct CatalogPhrasebook: Sendable {
 	public let tag: LanguageTag
-	public let locale: String
 
-	public init(tag: LanguageTag, locale: String) {
+	public init(tag: LanguageTag) {
 		self.tag = tag
-		self.locale = locale
 	}
 
-	public func say(_ key: CatalogKey, _ vars: [String: String] = [:]) -> String {
-		let resolved = render(key.rawValue, tag: tag, vars: vars)
-		let fallback = render(key.rawValue, tag: .en, vars: vars)
+	public func say(_ key: CatalogKey, count: Int? = nil, _ vars: [String: String] = [:]) -> String
+	{
+		let resolved = render(key.rawValue, tag: tag, count: count, vars: vars)
+		let fallback = render(key.rawValue, tag: .en, count: count, vars: vars)
 		let text: String
 		if resolved.isEmpty || resolved == key.rawValue {
 			text = fallback == key.rawValue ? "" : fallback
@@ -209,10 +147,12 @@ public struct CatalogPhrasebook: Phrasebook {
 		return text
 	}
 
-	private func render(_ key: String, tag: LanguageTag, vars: [String: String]) -> String {
+	private func render(_ key: String, tag: LanguageTag, count: Int?, vars: [String: String])
+		-> String
+	{
 		guard
 			let template = CatalogStore.template(
-				key: key, tag: tag, count: parsedCount(vars["count"]))
+				key: key, tag: tag, count: count)
 		else {
 			return ""
 		}
@@ -293,14 +233,6 @@ private func splitPluralKey(_ key: String) -> (String, String?) {
 	return (String(key[..<match.range.lowerBound]), String(match.1))
 }
 
-private func parsedCount(_ raw: String?) -> Int? {
-	guard let raw else { return nil }
-	if let value = Int(raw) { return value }
-	guard let value = Double(raw) else { return nil }
-	if value.rounded(.towardZero) == value { return Int(value) }
-	return nil
-}
-
 private func pluralCategory(tag: LanguageTag, count: Int) -> String {
 	let n = abs(count)
 	switch tag {
@@ -321,7 +253,7 @@ private func pluralCategory(tag: LanguageTag, count: Int) -> String {
 
 private func interpolate(_ template: String, vars: [String: String]) -> String {
 	let named = template.replacing(/%#@([A-Za-z_][A-Za-z0-9_]*)@/) { match in
-		vars[String(match.1)] ?? ""
+		vars[String(match.1)] ?? String(match.0)
 	}
 	return named.replacingOccurrences(of: "%%", with: "%")
 }

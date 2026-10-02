@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -32,10 +33,10 @@ import Testing
 	@Test func volatileOmitsCivilDateAndFencesContext() {
 		let section = PromptAssembly.volatile(
 			context: "Ada rides on Saturdays.",
-			snapshot: AthleteSnapshot(fitness: 55.2, fatigue: 42.1, form: 13.1),
+			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
+				.mirror(fallback: .en)
 			)
 		)
 		#expect(section.contains(PromptAssembly.athleteDataOpen))
@@ -73,6 +74,38 @@ import Testing
 		#expect(once == twice)
 	}
 
+	@Test func summaryRequestsCarryThePreviousSummaryAndTheTranscript() throws {
+		let dropped = [
+			ChatMessage(
+				author: .athlete(
+					sent: Date(timeIntervalSince1970: 897_717_600), timeZone: amsterdamZone),
+				text: "FTP 262W now"),
+			ChatMessage(author: .coach, text: "Noted, 262W."),
+		].map { PromptAssembly.wireMessage(from: $0) }
+		#expect(
+			PromptAssembly.droppedSummaryRequest(
+				previous: "## Athlete Profile\n- FTP 255W",
+				transcript: PromptAssembly.transcript(dropped))
+					== """
+					Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.
+
+					Existing summary of earlier context:
+					## Athlete Profile
+					- FTP 255W
+
+					Messages to incorporate:
+					user: [Sat 1998-06-13 08:00 Europe/Amsterdam] FTP 262W now
+					assistant: Noted, 262W.
+					""")
+		#expect(
+			PromptAssembly.compactionRequest(previous: nil, transcript: "user: hi")
+				== "Summarize the conversation below into the five required sections.\n\nMessages to summarize:\nuser: hi"
+		)
+		#expect(
+			PromptAssembly.summaryMessage("- FTP 262W")
+				== "[Previous conversation summary]\n- FTP 262W")
+	}
+
 	@Test func dumpPrefixAndTrimForOracle() throws {
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let dir = URL(fileURLWithPath: "/tmp/ios-c3", isDirectory: true)
@@ -95,10 +128,10 @@ import Testing
 		)
 		let volatile = PromptAssembly.volatile(
 			context: "",
-			snapshot: nil,
+			evidence: EvidenceBlock(wellnessLine: nil),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
-				resolution: LanguageResolution(language: .en, source: .surface, locale: "en-GB")
+				.mirror(fallback: .en)
 			)
 		)
 		let system = prefix + "\n\n" + volatile
@@ -108,23 +141,26 @@ import Testing
 			encoding: .utf8
 		)
 		let messages = (0..<20).map { index in
-			ChatMessage(
+			WireMessage(
 				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: "1998-06-13 msg \(index) " + String(repeating: "x", count: 8_000)
+				content: "1998-06-13 msg \(index) " + String(repeating: "x", count: 8_000),
+				toolCalls: [], toolCallId: nil
 			)
 		}
 		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: messages, systemTokens: systemTokens)
-		let historyTokens = messages.reduce(0) { $0 + estimateTokens($1.text) }
+		let trim = HistoryWindow.trim(
+			messages: messages, systemTokens: systemTokens,
+			ratio: SessionSettings.npmDefaults.historyBudgetRatio.value)
+		let historyTokens = HistoryWindow.estimatedTokens(summary: nil, messages: messages)
 		let payload: [String: Int] = [
 			"kept": trim.kept.count,
 			"dropped": trim.dropped.count,
 			"budget": trim.budget,
 			"systemTokens": systemTokens,
-			"shouldSoftFlush": HistoryWindow.shouldSoftFlush(
-				historyTokens: historyTokens,
-				budget: trim.budget,
-				messagesSinceFlush: messages.count
+			"shouldSoftFlush": FlushGate.shouldQueueSoftFlush(
+				estimatedHistoryTokens: historyTokens,
+				historyBudget: trim.budget,
+				messagesSinceLastFlush: messages.count
 			) ? 1 : 0,
 		]
 		let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])

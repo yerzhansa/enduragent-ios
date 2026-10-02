@@ -1,0 +1,30 @@
+diff --git a/apps/ios/Enduragent/Fixtures/FirstWeekFixture.swift b/apps/ios/Enduragent/Fixtures/FirstWeekFixture.swift
+index 3f194e3..75de44f 100644
+--- a/apps/ios/Enduragent/Fixtures/FirstWeekFixture.swift
++++ b/apps/ios/Enduragent/Fixtures/FirstWeekFixture.swift
+@@ -59,6 +59,25 @@ enum FirstWeekFixture {
+ 				.finish(reason: .stop),
+ 			]
+ 		}
++		if trimmed == "Rename my Thursday ride to Recovery spin" {
++			return [
++				.toolCall(
++					name: ToolName.intervalsUpdateWorkout.rawValue,
++					arguments: #"{"eventId":42,"name":"Recovery spin"}"#),
++				.finish(reason: .toolCalls),
++				.text("I've prepared the change. Confirm to apply it."),
++				.finish(reason: .stop),
++			]
++		}
++		if trimmed == "Delete my Thursday ride" {
++			return [
++				.toolCall(
++					name: ToolName.intervalsDeleteWorkout.rawValue, arguments: #"{"eventId":42}"#),
++				.finish(reason: .toolCalls),
++				.text("I've prepared the deletion. Confirm to apply it."),
++				.finish(reason: .stop),
++			]
++		}
+ 		if isWorkoutRequest(trimmed) {
+ 			return [
+ 				.toolCall(

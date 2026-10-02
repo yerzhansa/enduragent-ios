@@ -19,25 +19,44 @@ import Testing
 
 	@Test func trimDropsOldestAndKeepsAtLeastOne() {
 		let messages = (0..<20).map { index in
-			ChatMessage(
+			WireMessage(
 				role: index.isMultiple(of: 2) ? .user : .assistant,
-				text: String(repeating: "x", count: 8_000))
+				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
 		}
-		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000)
+		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
 		#expect(!result.kept.isEmpty)
 		#expect(result.kept.count + result.dropped.count == messages.count)
 		#expect(result.dropped.count >= 1)
 		#expect(result.kept.last == messages.last)
 	}
 
-	@Test func softFlushUsesStrictThresholdAndCooldown() {
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 81, budget: 100, messagesSinceFlush: 5))
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 80, budget: 100, messagesSinceFlush: 5)
-				== false)
-		#expect(
-			HistoryWindow.shouldSoftFlush(historyTokens: 90, budget: 100, messagesSinceFlush: 4)
-				== false)
+	@Test func trimKeepsWholeTurns() {
+		let budget = HistoryWindow.historyTokenBudget(
+			systemTokens: 1_000, window: TurnPolicy.contextWindowCap, ratio: 0.3)
+		func message(_ role: WireMessage.Role, tokens: Int) -> WireMessage {
+			WireMessage(
+				role: role, content: String(repeating: "x", count: tokens * 10 / 3), toolCalls: [],
+				toolCallId: nil)
+		}
+		let messages = [
+			message(.user, tokens: budget / 2), message(.assistant, tokens: budget / 4),
+			message(.user, tokens: budget / 4), message(.assistant, tokens: budget / 4),
+		]
+		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
+		#expect(result.dropped == Array(messages.prefix(2)))
+		#expect(result.kept == Array(messages.suffix(2)))
+	}
+
+	@Test func trimUsesTheRatioItIsGiven() {
+		let messages = (0..<20).map { index in
+			WireMessage(
+				role: index.isMultiple(of: 2) ? .user : .assistant,
+				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
+		}
+		let narrow = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
+		let wide = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.6)
+		#expect(wide.budget > narrow.budget)
+		#expect(wide.dropped.isEmpty)
+		#expect(!narrow.dropped.isEmpty)
 	}
 }

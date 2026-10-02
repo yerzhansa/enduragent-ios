@@ -20,9 +20,3 @@ struct DeviceCheckTokenProvider: DeviceCheckTokenProviding {
 		return try await device.generateToken()
 	}
 }
-
-struct FakeDeviceCheckTokenProvider: DeviceCheckTokenProviding {
-	func token() async throws -> Data {
-		Data([1])
-	}
-}

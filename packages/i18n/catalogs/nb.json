@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Velg språket ditt",
-    "continue": "Fortsett"
+    "continue": "Fortsett",
+    "saveFailed": "Kunne ikke lagre {{language}}. Svarene fortsetter på {{current}}. Prøv igjen.",
+    "saveFailedAutomatic": "Kunne ikke lagre {{language}}. Svarene fortsetter på språket i hver melding. Prøv igjen."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Angi et historikkbudsjett over 0 % og ikke mer enn 100 %.",
         "idleMinutes": "Angi et sikkert heltall for antall minutter, 0 eller mer.",
         "resetArchiveRetentionDays": "Angi et sikkert heltall for antall dager, 0 eller mer.",
-        "timezone": "Skriv inn en gyldig IANA-tidssone, som {{timezone}}."
+        "timezone": "Skriv inn en gyldig IANA-tidssone, som {{timezone}}.",
+        "contextWindowTokens": "Skriv inn et helt antall tokener innenfor det gyldige området, minst 1."
       }
     },
     "credentials": {
@@ -530,13 +533,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Tidligere samtaler er midlertidig utilgjengelige.",
-    "loadEarlier": "Last inn tidligere meldinger",
     "loading": "Laster inn tidligere samtaler…",
     "pageFailure": "Denne samtalen er midlertidig utilgjengelig.",
     "readOnly": "Tidligere samtaler kan bare leses.",
     "reason": {
       "explicit": "Du startet en ny samtale",
-      "stale": "Avsluttet etter en pause"
+      "stale": "Avsluttet etter en pause",
+      "earlierChat": "Tidligere chat"
     },
     "retry": "Prøv igjen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +547,8 @@
     "truncated": "Bare de nyeste tidligere samtalene vises.",
     "turnCount_one": "{{formattedCount}} melding",
     "turnCount_other": "{{formattedCount}} meldinger",
-    "unavailable": "Denne samtalen er ikke lenger tilgjengelig."
+    "unavailable": "Denne samtalen er ikke lenger tilgjengelig.",
+    "history": "Historikk"
   },
   "setup": {
     "ai": {
@@ -945,7 +949,8 @@
       "messagePlaceholder": "Skriv til treneren din",
       "responding": "Treneren svarer…",
       "send": "Send melding",
-      "stop": "Stopp svaret"
+      "stop": "Stopp svaret",
+      "notSent": "Ikke sendt. Utkastet ditt er fortsatt her."
     },
     "date": {
       "civil": "{{day}} {{month}} {{year}}",
@@ -978,7 +983,6 @@
     },
     "history": {
       "failure": "Samtalehistorikken er midlertidig utilgjengelig.",
-      "loadEarlier": "Last inn tidligere meldinger",
       "retry": "Prøv å laste inn historikken igjen"
     },
     "newConversation": {
@@ -987,6 +991,7 @@
       "cancel": "Avbryt",
       "confirm": "Start ny samtale",
       "hydrated": "Den synlige samtalen og de tidligere meldingene som ble gjenopprettet på {{computer}}, tømmes. Treningsdata og trenerens lagrede hukommelse beholdes.",
+      "label": "Ny samtale",
       "title": "Starte en ny samtale?"
     },
     "notice": {
@@ -1010,13 +1015,16 @@
       "planningRequestLoadFailure": "Vi kunne ikke sjekke lagrede planforespørsler. Koble til på nytt og prøv igjen.",
       "protocolFailure": "Trenerens svar kunne ikke bekreftes. Prøv igjen.",
       "questionSkipped": "Spørsmålet er hoppet over",
+      "replyUnsaved": "Dette svaret kunne ikke lagres. Hold appen åpen mens lagringen forsøkes på nytt.",
       "queueLoadFailure": "Vi kunne ikke sjekke de lagrede meldingene dine. Koble til på nytt og prøv igjen.",
       "queueRemoveFailure": "Vi kunne ikke fjerne den lagrede meldingen. Prøv igjen.",
       "responseFailure": "Treneren kunne ikke svare. Prøv igjen.",
-      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
       "retryMessage": "Prøv meldingen igjen",
       "savedChoice": "Lagret valg",
-      "working": "Treneren jobber…"
+      "working": "Treneren jobber…",
+      "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
+      "calendarUnverified": "Kalenderendringen kan ha blitt lagret. Sjekk kalenderen din før du spør igjen.",
+      "savedUnverified": "Jeg lagret opplysningene dine, men kunne ikke kontrollere svaret mitt. Prøv igjen."
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -1447,7 +1455,20 @@
       "hideContext": "Skjul treningskontekst",
       "showContext": "Vis treningskontekst",
       "title": "Chat"
-    }
+    },
+    "menu": "Meny",
+    "turn": {
+      "buyCredits": "Kjøp kreditter",
+      "chooseAccessMethod": "Velg tilgangsmåte",
+      "finishedWhileLocked": "Ble ferdig mens telefonen var låst.",
+      "interruptedNothingChanged": "Dette svaret ble avbrutt før det var ferdig. Ingenting ble endret.",
+      "interruptedSomeSaved": "Dette svaret ble avbrutt før det var ferdig. Noen opplysninger ble lagret først.",
+      "receivedBeforeClose": "Mottatt før appen lukket seg. Trykk på Prøv igjen for å sende meldingen.",
+      "restorePurchases": "Gjenopprett kjøp",
+      "signInAgain": "Logg inn igjen"
+    },
+    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{commands}}\n\nDu kan også bare prate med meg om treningen din!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2464,7 +2485,6 @@
       "start": "Start en ny samtale",
       "status": "Sjekk form (CTL), tretthet (ATL) og form (TSB)",
       "sync": "Hent oppdaterte treningsdata fra {{service}}",
-      "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
       "whatsnew": "Se hva som er nytt i den nyeste versjonen",
       "workout": "Hent dagens treningsøkt"
@@ -2581,7 +2601,6 @@
       "managedInstruction": "Send {{whatsnew}} for å se hva som er nytt. {{notice}}",
       "prepareFailed": "Kunne ikke klargjøre oppdateringen trygt akkurat nå. Prøv {{command}} igjen om litt."
     },
-    "welcome": "Velkommen til {{product}}!\n\nJeg er KI-sykkeltreneren din. Jeg kan lage treningsplaner, foreslå treningsøkter og følge med på formen din med data fra {{service}}.\n\nKommandoer:\n{{plan}} — Lag en treningsplan\n{{workout}} — Hent dagens treningsøkt\n{{status}} — Sjekk form (CTL), tretthet (ATL) og form (TSB)\n{{review}} — Se gjennom den siste treningsøkten din\n{{sync}} — Hent oppdaterte treningsdata fra {{service}}\n{{version}} — Vis nåværende versjon\n{{whatsnew}} — Se hva som er nytt i den nyeste versjonen\n{{update}} — {{updateDescription}}\n\nDu kan også bare prate med meg om treningen din!",
     "workout": {
       "working": "Sjekker formen og planen din…"
     }
@@ -2639,7 +2658,9 @@
       "structure": "treningsøktens oppbygging",
       "trainingLoad": "treningsbelastning til {{load}}",
       "unnamed": "Treningsøkt uten navn",
-      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}"
+      "update": "Oppdater treningsøkten «{{name}}» den {{date}} — {{detail}}",
+      "deleteFallback": "Slett en treningsøkt",
+      "updateFallback": "Oppdater en treningsøkt — {{detail}}"
     }
   },
   "cli": {
@@ -2883,6 +2904,78 @@
         "tokenRejected": "Telegram-token avvist",
         "transferRequired": "Boten må overføres"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Denne treningsøkten ble klargjort for en annen utøver på {{service}}. Be meg på nytt om å klargjøre den for den tilkoblede utøveren.",
+    "add": "Legg til i kalender",
+    "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
+    "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
+    "storageUnavailable": "Den lagrede treningsgjennomgangen kunne ikke leses. Den siste gjennomgangen din vises fortsatt. Prøv igjen for å gjenopprette kontrollene.",
+    "title": "Gjennomgang av treningsøkt",
+    "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
+    "workout": {
+      "warmup": "Oppvarming",
+      "mainSet": "Hoveddel",
+      "cooldown": "Nedtrapping",
+      "ramp": "gradvis økning"
+    }
+  },
+  "credits": {
+    "buy": "Kjøp",
+    "testers": "Testere kan ikke kjøpe pakker ennå.",
+    "title": "Kreditter",
+    "balance_one": "{{formattedCount}} kreditt",
+    "pack_one": "{{formattedCount}} kreditt",
+    "packPrice_one": "{{formattedCount}} kreditt · {{price}}",
+    "balance_other": "{{formattedCount}} kreditter",
+    "pack_other": "{{formattedCount}} kreditter",
+    "packPrice_other": "{{formattedCount}} kreditter · {{price}}",
+    "error": {
+      "accessRejected": "Kredittene dine kunne ikke brukes. Gjenopprett kjøp for å fortsette.",
+      "exhausted": "Du er tom for kreditter. Kjøp flere, eller bytt til OpenRouter-kontoen din.",
+      "unavailable": "Kreditter er ikke tilgjengelige akkurat nå. Prøv igjen senere.",
+      "accountChanged": "Kredittkontoen din ble endret mens denne forespørselen ble fullført. Den nåværende kontoen din ble beholdt."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Koble til",
+      "apiKey": "intervals.icu API-nøkkel",
+      "fatigue": "Tretthet {{value}}",
+      "fitness": "Kondisjon {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Hopp over foreløpig"
+    },
+    "starter": {
+      "start": "Start en chat",
+      "progress": "Ber om startkreditter",
+      "alreadyGranted": "Denne enheten har allerede brukt startkredittene sine.",
+      "added_one": "La til {{formattedCount}} kreditt",
+      "added_other": "La til {{formattedCount}} kreditter"
+    },
+    "notice": {
+      "health": "Treningsforslag, ikke medisinske råd. Snakk med en lege før store endringer."
+    },
+    "consent": {
+      "title": "Treneren din bruker KI",
+      "body": "For å svare sender Enduragent meldingene dine, trenerens minne og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som sender dem videre til leverandøren av KI-modellen (DeepSeek). De bruker disse dataene bare til å lage svarene fra treneren din. Ingenting sendes før du samtykker.",
+      "accept": "Samtykk og fortsett",
+      "decline": "Ikke nå",
+      "saveFailed": "Samtykket ditt kunne ikke lagres. Prøv igjen."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Lås opp iPhonen for å fortsette. Meldingen din er lagret.",
+      "notConfigured": "Velg hvordan treneren får tilgang til en modell for å fortsette.",
+      "providerConsentRequired": "Ditt samtykke kreves før chatdata deles med KI-leverandører.",
+      "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu godtok ikke den nøkkelen."
     }
   }
 }

@@ -1,36 +1,136 @@
-import CryptoKit
 import Foundation
 
-public struct ULID: Hashable, Sendable, RawRepresentable {
-	public let rawValue: String
+public struct TurnID: Hashable, Sendable, Comparable {
+	public let ulid: ULID
 
-	public init?(rawValue: String) {
-		let alphabet = CharacterSet(charactersIn: "0123456789ABCDEFGHJKMNPQRSTVWXYZ")
-		guard rawValue.count == 26, rawValue.unicodeScalars.allSatisfy({ alphabet.contains($0) })
-		else {
-			return nil
-		}
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+
+	public static func < (lhs: TurnID, rhs: TurnID) -> Bool {
+		lhs.ulid < rhs.ulid
+	}
+}
+
+public struct AttemptID: Hashable, Sendable {
+	public let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct ProcessID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+public struct DraftID: Hashable, Sendable {
+	public let rawValue: UUID
+
+	public init() {
+		self.rawValue = UUID()
+	}
+
+	public init(rawValue: UUID) {
+		self.rawValue = rawValue
+	}
+}
+
+public struct Draft: Sendable, Equatable {
+	public let id: DraftID
+	public var text: String
+
+	public init(id: DraftID, text: String) {
+		self.id = id
+		self.text = text
+	}
+}
+
+package struct FlushJobID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct ResetID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct PreferenceChangeID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct CredentialChangeID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct LaunchID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+public struct ChangeSetID: Hashable, Sendable {
+	public let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+public struct ChangeSetRevision: Hashable, Sendable, Comparable {
+	public let rawValue: Int
+
+	package init(rawValue: Int) {
 		self.rawValue = rawValue
 	}
 
-	public static func generate(at now: Date) -> ULID {
-		let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
-		let ms = max(0, (now.timeIntervalSince1970 * 1000).rounded(.down))
-		var time = UInt64(ms)
-		var chars = [Character](repeating: "0", count: 26)
-		for index in (0..<10).reversed() {
-			chars[index] = alphabet[Int(time % 32)]
-			time /= 32
-		}
-		var rng = SystemRandomNumberGenerator()
-		for index in 10..<26 {
-			chars[index] = alphabet[Int(rng.next() % 32)]
-		}
-		return ULID(characters: chars)
+	public static func < (lhs: ChangeSetRevision, rhs: ChangeSetRevision) -> Bool {
+		lhs.rawValue < rhs.rawValue
 	}
+}
 
-	private init(characters: [Character]) {
-		self.rawValue = String(characters)
+package struct PlanningCommandID: Hashable, Sendable {
+	package let rawValue: String
+
+	package init(rawValue: String) {
+		self.rawValue = rawValue
+	}
+}
+
+package struct RefreshID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
+	}
+}
+
+package struct DebugSampleID: Hashable, Sendable {
+	package let ulid: ULID
+
+	package init(ulid: ULID) {
+		self.ulid = ulid
 	}
 }
 
@@ -66,14 +166,14 @@ public struct ChatID: Hashable, Sendable, ExpressibleByStringLiteral {
 	public static let main: ChatID = "main"
 }
 
-public struct Nonce: Hashable, Sendable, RawRepresentable {
-	public let rawValue: UUID
+package struct Nonce: Hashable, Sendable, RawRepresentable {
+	package let rawValue: UUID
 
-	public init(rawValue: UUID) {
+	package init(rawValue: UUID) {
 		self.rawValue = rawValue
 	}
 
-	public init() {
+	package init() {
 		self.rawValue = UUID()
 	}
 }
@@ -102,13 +202,28 @@ public struct CivilDate: Hashable, Sendable, Comparable, ExpressibleByStringLite
 	}
 
 	public static func isRealDateKey(_ value: String) -> Bool {
-		let formatter = DateFormatter()
-		formatter.calendar = Calendar(identifier: .gregorian)
-		formatter.locale = Locale(identifier: "en_US_POSIX")
-		formatter.timeZone = TimeZone(secondsFromGMT: 0)
-		formatter.dateFormat = "yyyy-MM-dd"
-		formatter.isLenient = false
-		return formatter.date(from: value) != nil
+		guard value.utf8.count == 10 else { return false }
+		let bytes = Array(value.utf8)
+		guard bytes[4] == UInt8(ascii: "-"), bytes[7] == UInt8(ascii: "-"),
+			bytes.enumerated().allSatisfy({ index, byte in
+				index == 4 || index == 7 || (UInt8(ascii: "0")...UInt8(ascii: "9")).contains(byte)
+			})
+		else { return false }
+		let year = bytes.prefix(4).reduce(0) { $0 * 10 + Int($1 - UInt8(ascii: "0")) }
+		let month = Int(bytes[5] - UInt8(ascii: "0")) * 10 + Int(bytes[6] - UInt8(ascii: "0"))
+		let day = Int(bytes[8] - UInt8(ascii: "0")) * 10 + Int(bytes[9] - UInt8(ascii: "0"))
+		guard year >= 1583, (1...12).contains(month) else { return false }
+		let daysInMonth: Int
+		switch month {
+		case 2:
+			let leapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+			daysInMonth = leapYear ? 29 : 28
+		case 4, 6, 9, 11:
+			daysInMonth = 30
+		default:
+			daysInMonth = 31
+		}
+		return (1...daysInMonth).contains(day)
 	}
 
 	public init(date: Date, timeZone: TimeZone) {
@@ -173,182 +288,30 @@ public struct DateKey: Hashable, Sendable, Comparable {
 	}
 }
 
-public struct IANATimeZone: Hashable, Sendable {
-	public let identifier: String
+package struct IANATimeZone: Hashable, Sendable {
+	package let identifier: String
 
-	public init?(identifier: String) {
+	package init?(identifier: String) {
 		guard TimeZone(identifier: identifier) != nil else { return nil }
 		self.identifier = identifier
 	}
 
-	public static let gmt: IANATimeZone = {
+	package static let gmt: IANATimeZone = {
 		guard let zone = IANATimeZone(identifier: "GMT") else {
 			fatalError("IANA time zone GMT is invalid")
 		}
 		return zone
 	}()
 
-	public var timeZone: TimeZone {
+	package init(current timeZone: TimeZone) {
+		self.identifier = timeZone.identifier
+	}
+
+	package var timeZone: TimeZone {
 		TimeZone(identifier: identifier) ?? .gmt
 	}
 }
 
 public enum SportID: String, Sendable {
 	case cycling
-}
-
-public enum JSONValue: Sendable, Equatable {
-	case null
-	case bool(Bool)
-	case number(Double)
-	case string(String)
-	case array([JSONValue])
-	case object([String: JSONValue])
-
-	public static func parse(_ raw: String) throws(DecodingError) -> JSONValue {
-		do {
-			guard let data = raw.data(using: .utf8) else {
-				throw DecodingError.dataCorrupted(
-					.init(codingPath: [], debugDescription: "invalid JSON")
-				)
-			}
-			let object = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
-			return try JSONValue.fromJSONObject(object)
-		} catch let error as DecodingError {
-			throw error
-		} catch {
-			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: String(describing: error))
-			)
-		}
-	}
-
-	public func canonicalDigestInput() -> String {
-		JSONValue.render(self, pretty: false, depth: 0)
-	}
-
-	private static func fromJSONObject(_ object: Any) throws -> JSONValue {
-		switch object {
-		case is NSNull:
-			return .null
-		case let number as NSNumber:
-			if CFGetTypeID(number) == CFBooleanGetTypeID() {
-				return .bool(number.boolValue)
-			}
-			return .number(number.doubleValue)
-		case let string as String:
-			return .string(string)
-		case let array as [Any]:
-			return .array(try array.map { try fromJSONObject($0) })
-		case let dictionary as [String: Any]:
-			var object: [String: JSONValue] = [:]
-			object.reserveCapacity(dictionary.count)
-			for (key, value) in dictionary {
-				object[key] = try fromJSONObject(value)
-			}
-			return .object(object)
-		default:
-			throw DecodingError.dataCorrupted(
-				.init(codingPath: [], debugDescription: "invalid JSON")
-			)
-		}
-	}
-
-	fileprivate static func render(_ value: JSONValue, pretty: Bool, depth: Int) -> String {
-		switch value {
-		case .null:
-			return "null"
-		case .bool(let flag):
-			return flag ? "true" : "false"
-		case .number(let number):
-			return encodeJSONNumber(number)
-		case .string(let string):
-			return encodeJSONString(string)
-		case .array(let items):
-			if items.isEmpty { return "[]" }
-			if !pretty {
-				return "["
-					+ items.map { render($0, pretty: false, depth: 0) }.joined(separator: ",") + "]"
-			}
-			let pad = String(repeating: "  ", count: depth + 1)
-			let close = String(repeating: "  ", count: depth)
-			let inner = items.map { pad + render($0, pretty: true, depth: depth + 1) }.joined(
-				separator: ",\n")
-			return "[\n\(inner)\n\(close)]"
-		case .object(let fields):
-			let pairs = fields.sorted { $0.key < $1.key }
-			if pairs.isEmpty { return "{}" }
-			if !pretty {
-				return "{"
-					+ pairs.map { key, value in
-						encodeJSONString(key) + ":" + render(value, pretty: false, depth: 0)
-					}
-					.joined(separator: ",")
-					+ "}"
-			}
-			let pad = String(repeating: "  ", count: depth + 1)
-			let close = String(repeating: "  ", count: depth)
-			let inner = pairs.map { key, value in
-				pad + encodeJSONString(key) + ": " + render(value, pretty: true, depth: depth + 1)
-			}.joined(separator: ",\n")
-			return "{\n\(inner)\n\(close)}"
-		}
-	}
-}
-
-public func canonicalJSON(_ value: JSONValue) -> String {
-	JSONValue.render(value, pretty: true, depth: 0)
-}
-
-public func sha256Hex(_ utf8: String) -> String {
-	SHA256.hash(data: Data(utf8.utf8)).map { byte in
-		String(byte, radix: 16).leftPadHex
-	}.joined()
-}
-
-public func estimateTokens(_ text: String) -> Int {
-	Int((Double(text.utf16.count) / 4.0 * 1.2).rounded(.up))
-}
-
-extension String {
-	fileprivate var leftPadHex: String { count == 1 ? "0" + self : self }
-}
-
-private func encodeJSONString(_ string: String) -> String {
-	var out = "\""
-	for scalar in string.unicodeScalars {
-		switch scalar.value {
-		case 0x22: out += "\\\""
-		case 0x5C: out += "\\\\"
-		case 0x08: out += "\\b"
-		case 0x0C: out += "\\f"
-		case 0x0A: out += "\\n"
-		case 0x0D: out += "\\r"
-		case 0x09: out += "\\t"
-		case 0x00..<0x20:
-			out += "\\u" + String(format: "%04x", scalar.value)
-		case 0x2028:
-			out += "\\u2028"
-		case 0x2029:
-			out += "\\u2029"
-		default:
-			out.append(Character(scalar))
-		}
-	}
-	out += "\""
-	return out
-}
-
-private func encodeJSONNumber(_ value: Double) -> String {
-	if !value.isFinite {
-		return "null"
-	}
-	if value == 0 {
-		return "0"
-	}
-	let maxSafe = 9_007_199_254_740_991.0
-	if abs(value) <= maxSafe, value.rounded(.towardZero) == value {
-		return String(Int64(value))
-	}
-	return String(value)
 }

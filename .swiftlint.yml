@@ -21,6 +21,18 @@ force_unwrapping:
   ignored_literal_argument_functions: []
 
 custom_rules:
+  starter_policy_in_package:
+    included: 'apps/ios/Enduragent/.*\.swift$'
+    regex: '\.\s*grant\s*\(\s*deviceCheck\s*:'
+    message: 'Claim starter credits through Coach.claimStarter(deviceCheck:) so the package owns the grant policy.'
+    severity: error
+  one_session_factory:
+    included: 'apps/ios/(?:Enduragent|Packages/EnduragentCoach/Sources)/'
+    excluded: 'Packages/EnduragentCoach/Sources/EnduragentCoach/Transport/HTTPSession\.swift$'
+    regex: '\bURLSessionConfiguration\b|\bURLSession\s*(?:\(|\.\s*(?:shared|init)\b)|(?<![\w)\]?!])\.(?:shared\b|init\(\s*configuration:)'
+    match_kinds: [identifier, typeidentifier]
+    message: 'Build every URLSession through ephemeralSession in Transport/HTTPSession.swift.'
+    severity: error
   no_comments:
     regex: '//|/\*'
     match_kinds: [comment, doccomment, comment.url, comment.mark]
@@ -32,7 +44,7 @@ custom_rules:
     message: 'This catch discards every error. Handle it, surface it to the user, or let it propagate. Catch a specific error type to ignore it on purpose.'
     severity: error
   optional_try:
-    regex: 'try\?(?!\s*container\.decode\b)'
+    regex: '(?m)^(?![ \t]*if let [A-Za-z_][A-Za-z_0-9]*[ \t]*=[ \t]*try\?[ \t]+container\.decode\([A-Za-z_0-9\[\]: ]+\.self\)[ \t]*\{[ \t]*$)[^\n]*\btry\?'
     excluded: '/Tests/'
     message: 'try? turns a failure into nil. Use try and handle or propagate the error. Only probing decodes on a Decoder container may use try?.'
     severity: error

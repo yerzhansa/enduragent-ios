@@ -8,7 +8,9 @@
   },
   "language": {
     "chooseTitle": "Wähle deine Sprache",
-    "continue": "Weiter"
+    "continue": "Weiter",
+    "saveFailed": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben auf {{current}}. Versuche es erneut.",
+    "saveFailedAutomatic": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben in der Sprache der jeweiligen Nachricht. Versuche es erneut."
   },
   "settings": {
     "appearance": {
@@ -191,7 +193,8 @@
         "historyTokenBudgetRatio": "Gib ein Verlaufsbudget über 0 % und höchstens 100 % ein.",
         "idleMinutes": "Gib eine sicher darstellbare ganze Zahl von Minuten ab 0 ein.",
         "resetArchiveRetentionDays": "Gib eine sicher darstellbare ganze Zahl von Tagen ab 0 ein.",
-        "timezone": "Gib eine gültige IANA-Zeitzone ein, zum Beispiel {{timezone}}."
+        "timezone": "Gib eine gültige IANA-Zeitzone ein, zum Beispiel {{timezone}}.",
+        "contextWindowTokens": "Gib eine ganze Zahl im gültigen Bereich an, mindestens 1 Token."
       }
     },
     "credentials": {
@@ -530,13 +533,13 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "Frühere Gespräche sind vorübergehend nicht verfügbar.",
-    "loadEarlier": "Frühere Nachrichten laden",
     "loading": "Frühere Gespräche werden geladen…",
     "pageFailure": "Dieses Gespräch ist vorübergehend nicht verfügbar.",
     "readOnly": "Frühere Gespräche können nur gelesen werden.",
     "reason": {
       "explicit": "Du hast ein neues Gespräch begonnen",
-      "stale": "Nach einer Pause geschlossen"
+      "stale": "Nach einer Pause geschlossen",
+      "earlierChat": "Früherer Chat"
     },
     "retry": "Erneut versuchen",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
@@ -544,7 +547,8 @@
     "truncated": "Es werden nur die neuesten früheren Gespräche angezeigt.",
     "turnCount_one": "{{formattedCount}} Nachricht",
     "turnCount_other": "{{formattedCount}} Nachrichten",
-    "unavailable": "Dieses Gespräch ist nicht mehr verfügbar."
+    "unavailable": "Dieses Gespräch ist nicht mehr verfügbar.",
+    "history": "Verlauf"
   },
   "setup": {
     "ai": {
@@ -945,7 +949,8 @@
       "messagePlaceholder": "Schreib deinem Coach",
       "responding": "Der Coach antwortet…",
       "send": "Nachricht senden",
-      "stop": "Antwort stoppen"
+      "stop": "Antwort stoppen",
+      "notSent": "Nicht gesendet. Dein Entwurf ist noch da."
     },
     "date": {
       "civil": "{{day}}. {{month}} {{year}}",
@@ -978,7 +983,6 @@
     },
     "history": {
       "failure": "Der Gesprächsverlauf ist vorübergehend nicht verfügbar.",
-      "loadEarlier": "Frühere Nachrichten laden",
       "retry": "Verlauf erneut laden"
     },
     "newConversation": {
@@ -987,6 +991,7 @@
       "cancel": "Abbrechen",
       "confirm": "Neues Gespräch starten",
       "hydrated": "Dein sichtbares Gespräch und die auf {{computer}} wiederhergestellten früheren Nachrichten werden gelöscht. Deine Trainingsdaten und die gespeicherten Erinnerungen des Coaches bleiben erhalten.",
+      "label": "Neues Gespräch",
       "title": "Neues Gespräch starten?"
     },
     "notice": {
@@ -1010,13 +1015,16 @@
       "planningRequestLoadFailure": "Gespeicherte Plananfragen konnten nicht geprüft werden. Verbinde dich erneut und versuche es noch einmal.",
       "protocolFailure": "Die Antwort des Coaches konnte nicht überprüft werden. Bitte versuche es erneut.",
       "questionSkipped": "Frage übersprungen",
+      "replyUnsaved": "Diese Antwort konnte nicht gespeichert werden. Lass die App geöffnet, während das Speichern erneut versucht wird.",
       "queueLoadFailure": "Deine gespeicherten Nachrichten konnten nicht geprüft werden. Verbinde dich erneut und versuche es noch einmal.",
       "queueRemoveFailure": "Diese gespeicherte Nachricht konnte nicht entfernt werden. Versuche es erneut.",
       "responseFailure": "Der Coach konnte nicht antworten. Bitte versuche es erneut.",
-      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "retryMessage": "Nachricht erneut senden",
       "savedChoice": "Gespeicherte Auswahl",
-      "working": "Der Coach arbeitet…"
+      "working": "Der Coach arbeitet…",
+      "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
+      "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
+      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
     },
     "planChange": {
       "activePlan": "Aktiver Plan",
@@ -1447,7 +1455,20 @@
       "hideContext": "Trainingskontext ausblenden",
       "showContext": "Trainingskontext anzeigen",
       "title": "Chat"
-    }
+    },
+    "menu": "Menü",
+    "turn": {
+      "buyCredits": "Guthaben kaufen",
+      "chooseAccessMethod": "Zugriffsmethode wählen",
+      "finishedWhileLocked": "Abgeschlossen, während das Telefon gesperrt war.",
+      "interruptedNothingChanged": "Diese Antwort wurde vorzeitig beendet. Es wurde nichts geändert.",
+      "interruptedSomeSaved": "Diese Antwort wurde vorzeitig beendet. Einige Angaben wurden zuvor gespeichert.",
+      "receivedBeforeClose": "Vor dem Schließen der App empfangen. Tippe auf Erneut versuchen, um die Nachricht zu senden.",
+      "restorePurchases": "Käufe wiederherstellen",
+      "signInAgain": "Erneut anmelden"
+    },
+    "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{commands}}\n\nOder sprich einfach mit mir über dein Training!",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2647,7 +2668,9 @@
       "structure": "Trainingsstruktur",
       "trainingLoad": "Trainingsbelastung auf {{load}}",
       "unnamed": "Unbenanntes Training",
-      "update": "Training \"{{name}}\" am {{date}} aktualisieren: {{detail}}"
+      "update": "Training \"{{name}}\" am {{date}} aktualisieren: {{detail}}",
+      "deleteFallback": "Ein Training löschen",
+      "updateFallback": "Ein Training aktualisieren: {{detail}}"
     }
   },
   "telegram": {
@@ -2678,7 +2701,6 @@
       "start": "Ein neues Gespräch starten",
       "status": "Aktuelle Fitness, Ermüdung und Form prüfen",
       "sync": "Trainingsdaten von {{service}} vollständig aktualisieren",
-      "update": "Nach Updates suchen und sie installieren",
       "version": "Aktuelle Version anzeigen",
       "whatsnew": "Änderungen der neuesten Version ansehen",
       "workout": "Heutiges Training abrufen"
@@ -2795,7 +2817,6 @@
       "managedInstruction": "Sende {{whatsnew}} für die Neuerungen. {{notice}}",
       "prepareFailed": "Das Update konnte gerade nicht sicher vorbereitet werden. Versuche {{command}} bitte gleich erneut."
     },
-    "welcome": "Willkommen bei {{product}}!\n\nIch bin dein KI-Radcoach. Ich kann Trainingspläne erstellen, Trainings vorschlagen und deine Fitness anhand von {{service}}-Daten verfolgen.\n\nBefehle:\n{{plan}} — Einen Trainingsplan erstellen\n{{workout}} — Heutiges Training abrufen\n{{status}} — Aktuelle Fitness, Ermüdung und Form prüfen\n{{review}} — Deine letzte Einheit besprechen\n{{sync}} — Trainingsdaten von {{service}} vollständig aktualisieren\n{{version}} — Aktuelle Version anzeigen\n{{whatsnew}} — Änderungen der neuesten Version ansehen\n{{update}} — {{updateDescription}}\n\nOder sprich einfach mit mir über dein Training!",
     "workout": {
       "working": "Ich prüfe deine Form und deinen Plan..."
     }
@@ -2883,6 +2904,78 @@
         "tokenRejected": "Telegram-Token abgelehnt",
         "transferRequired": "Bot-Übertragung erforderlich"
       }
+    }
+  },
+  "review": {
+    "accountChanged": "Dieses Training wurde für einen anderen Athleten bei {{service}} vorbereitet. Bitte mich erneut, es für den verbundenen Athleten vorzubereiten.",
+    "add": "Zum Kalender hinzufügen",
+    "cannotVerify": "Ich konnte deine Verbindung zu {{service}} nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal.",
+    "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
+    "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Deine letzte Prüfung bleibt sichtbar. Versuche es erneut, um die Bedienelemente wieder zu aktivieren.",
+    "title": "Training prüfen",
+    "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
+    "workout": {
+      "warmup": "Aufwärmen",
+      "mainSet": "Hauptteil",
+      "cooldown": "Cooldown",
+      "ramp": "Rampe"
+    }
+  },
+  "credits": {
+    "buy": "Kaufen",
+    "testers": "Tester können noch keine Pakete kaufen.",
+    "title": "Guthaben",
+    "balance_one": "{{formattedCount}} Guthabenpunkt",
+    "pack_one": "{{formattedCount}} Guthabenpunkt",
+    "packPrice_one": "{{formattedCount}} Guthabenpunkt · {{price}}",
+    "balance_other": "{{formattedCount}} Guthabenpunkte",
+    "pack_other": "{{formattedCount}} Guthabenpunkte",
+    "packPrice_other": "{{formattedCount}} Guthabenpunkte · {{price}}",
+    "error": {
+      "accessRejected": "Deine Guthabenpunkte konnten nicht verwendet werden. Stelle deine Käufe wieder her, um fortzufahren.",
+      "exhausted": "Du hast keine Guthabenpunkte mehr. Kaufe weitere oder wechsle zu deinem OpenRouter-Konto.",
+      "unavailable": "Guthabenpunkte sind derzeit nicht verfügbar. Versuche es später erneut.",
+      "accountChanged": "Das Konto für deine Guthabenpunkte hat sich geändert, während diese Anfrage abgeschlossen wurde. Dein aktuelles Konto wurde beibehalten."
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "Verbinden",
+      "apiKey": "intervals.icu-API-Schlüssel",
+      "fatigue": "Ermüdung {{value}}",
+      "fitness": "Fitness {{value}}",
+      "form": "Form {{value}}",
+      "skip": "Vorerst überspringen"
+    },
+    "starter": {
+      "start": "Chat starten",
+      "progress": "Startguthaben wird angefordert",
+      "alreadyGranted": "Dieses Gerät hat sein Startguthaben bereits verwendet.",
+      "added_one": "{{formattedCount}} Guthabenpunkt hinzugefügt",
+      "added_other": "{{formattedCount}} Guthabenpunkte hinzugefügt"
+    },
+    "notice": {
+      "health": "Trainingsempfehlungen, keine medizinische Beratung. Sprich vor größeren Änderungen mit einem Arzt."
+    },
+    "consent": {
+      "title": "Dein Coach nutzt KI",
+      "body": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet.",
+      "accept": "Zustimmen und fortfahren",
+      "decline": "Nicht jetzt",
+      "saveFailed": "Deine Zustimmung konnte nicht gespeichert werden. Versuche es erneut."
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
+      "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
+      "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
+      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
+    }
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert."
     }
   }
 }

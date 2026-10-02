@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -8,13 +9,17 @@ struct ReadToolsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func reviewWindowCoversSevenDays() {
+		#expect(IntervalsPolicy.reviewWindowDays == 7)
+	}
+
 	@Test func calculateZonesReturnsDesktopRows() async throws {
 		let outcome = try await runtime().execute(
 			name: .calculateZones,
 			arguments: try JSONValue.parse(#"{"ftpWatts":280}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
 			Issue.record("expected zone rows")
 			return
@@ -32,8 +37,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchActivities,
 			arguments: try JSONValue.parse(#"{"days":7}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls == [.activities(days: 7)])
 		guard case .result(let json) = outcome, let rows = unwrapData(json).arrayValue else {
 			Issue.record("expected activities")
@@ -47,8 +52,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-07"}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls == [.wellness(oldest: "1998-06-07", newest: "1998-06-13")])
 	}
 
@@ -67,8 +72,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchWellness,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-06-13","newest":"1998-06-13"}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected wellness")
 			return
@@ -115,8 +120,8 @@ struct ReadToolsTests {
 			name: .intervalsFetchAthlete,
 			arguments: .object([:]),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let athleteJSON) = athlete else {
 			Issue.record("expected athlete")
 			return
@@ -127,21 +132,21 @@ struct ReadToolsTests {
 			name: .intervalsFetchActivity,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		_ = try await tools.execute(
 			name: .intervalsFetchStreams,
 			arguments: try JSONValue.parse(#"{"activityId":"i1234567"}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		let listed = try await tools.execute(
 			name: .intervalsListEvents,
 			arguments: try JSONValue.parse(
 				#"{"oldest":"1998-06-14","newest":"1998-06-20","coachCreatedOnly":true}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		#expect(intervals.calls.contains(.activity(activityID)))
 		#expect(intervals.calls.contains(.streams(activityID)))
 		#expect(intervals.calls.contains(.events(oldest: "1998-06-14", newest: "1998-06-20")))
@@ -154,13 +159,37 @@ struct ReadToolsTests {
 		#expect(events[0].objectFields["name"]?.stringValue == "Endurance")
 	}
 
+	@Test(arguments: [
+		("1998-06-13", "1998-06-13", 1), ("1998-06-14", "1998-06-13", 0),
+		("2000-02-28", "2000-03-01", 3), ("1900-02-28", "1900-03-01", 2),
+		("1999-12-31", "2000-01-01", 2), ("1583-01-01", "1583-12-31", 365),
+	])
+	func inclusiveRangesCountGregorianDays(oldest: String, newest: String, days: Int) throws {
+		#expect(
+			IntervalsPolicy.inclusiveDayCount(
+				from: try #require(CivilDate(rawValue: oldest)),
+				to: try #require(CivilDate(rawValue: newest))) == days)
+	}
+
+	@Test func wholeCalendarRangeReturnsRangeTooWide() {
+		#expect(throws: IntervalsError.self) {
+			do {
+				try IntervalsPolicy.rejectListRange(
+					oldest: "1583-01-01", newest: "9999-12-31")
+			} catch let error as IntervalsError {
+				#expect(error.code == "range_too_wide")
+				throw error
+			}
+		}
+	}
+
 	@Test func rangeTooWideReturnsTypedError() async throws {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
 			arguments: try JSONValue.parse(#"{"oldest":"1998-01-01","newest":"1999-01-02"}"#),
 			chatId: .main,
-			state: turnState()
-		)
+			scope: turnScope()
+		).outcome
 		guard case .result(let json) = outcome else {
 			Issue.record("expected error object")
 			return
@@ -169,9 +198,8 @@ struct ReadToolsTests {
 		#expect(intervals.calls.isEmpty)
 	}
 
-	@Test func toolsForTurnSchemasHaveNoUnions() {
-		let schemas = runtime().toolsForTurn(
-			chatId: .main,
+	@Test func toolCatalogSchemasHaveNoUnions() {
+		let schemas = ToolCatalog.schemas(
 			memory: MemoryView(
 				sections: [:],
 				todayNotes: nil,
@@ -201,8 +229,6 @@ struct ReadToolsTests {
 		#expect(!encoded.contains("oneOf"))
 		#expect(!encoded.contains("allOf"))
 		#expect(schemas.contains { $0.description.contains("Form = fitness - fatigue") })
-		#expect(WorkoutReview.windowDays == IntervalsPolicy.reviewWindowDays)
-		#expect(WorkoutReview.windowDays == 7)
 	}
 
 	private func unwrapData(_ json: JSONValue) -> JSONValue {
@@ -213,22 +239,12 @@ struct ReadToolsTests {
 		let store = InMemoryRecordLog()
 		return ToolRuntime(
 			intervals: intervals,
-			store: store,
-			planning: Planning(store: store, intervals: intervals, clock: clock),
+			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock
 		)
 	}
 
-	private func turnState() -> TurnState {
-		TurnState(
-			chatId: .main,
-			messages: [],
-			windowStart: nil,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0
-		)
+	private func turnScope() -> TurnScope {
+		TurnScope(stamp: testStamp(), policy: .npm, uptime: .zero)
 	}
 }

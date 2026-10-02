@@ -1,328 +1,383 @@
 import Foundation
+import Synchronization
+
+package enum AttemptOrigin: Sendable, Equatable {
+	case send
+	case retry
+}
+
+package struct TurnAttempt: Sendable {
+	package let turn: TurnID
+	package let attempt: AttemptID
+	package let origin: AttemptOrigin
+	package let chat: ChatID
+	package let request: String
+	package let slash: SlashCommand?
+	package let language: ReplyLanguage
+	package let session: SessionSettings
+	package let access: ResolvedAccess
+	package let training: TrainingConnection
+	package let process: ProcessID
+
+	package var models: ModelRoles {
+		ModelRoles(response: access.model, session: session)
+	}
+}
+
+package enum AttemptProgress: Sendable, Equatable {
+	case textDelta(String)
+	case attemptRestarted
+	case activity(TurnActivity)
+	case proposalPending(PendingProposal)
+}
+
+package enum AttemptResult: Sendable, Equatable {
+	case replied(ReplyText, lineage: ReplyLineage)
+	case savedWork(SavedWorkOutcome, saved: WriteSummary)
+	case failed(CoachFailure, saved: WriteSummary)
+}
+
+extension Settlement {
+	package init(_ result: AttemptResult) {
+		switch result {
+		case .replied(let text, let lineage):
+			self = .replied(text, lineage: lineage)
+		case .savedWork(let outcome, let saved):
+			self = .savedWork(outcome, saved: saved)
+		case .failed(let failure, let saved):
+			self = .failed(failure, saved: saved)
+		}
+	}
+}
+
+package typealias AttemptProgressSink = @Sendable (AttemptProgress) async -> Void
 
 package struct TurnRunner: Sendable {
+	private static let droppedMessageLimit = 1_024
+
 	let transport: any ModelTransport
-	let intervals: any IntervalsClient
-	let store: any RecordLog
+	private let ledger: Ledger
 	let clock: any Clock
-	let tools: ToolRuntime
-	let planning: Planning
+	let watchdogSleep: @Sendable (Duration) async throws -> Void
+	let diagnostics: DiagnosticsLog
+	let ladder: RetryLadder
+	private let evidence: any TurnEvidence
 
 	package init(
 		transport: any ModelTransport,
-		intervals: any IntervalsClient,
-		store: any RecordLog,
+		ledger: Ledger,
 		clock: any Clock,
-		tools: ToolRuntime,
-		planning: Planning
+		diagnostics: DiagnosticsLog,
+		ladder: RetryLadder,
+		evidence: any TurnEvidence,
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
 	) {
 		self.transport = transport
-		self.intervals = intervals
-		self.store = store
+		self.ledger = ledger
 		self.clock = clock
-		self.tools = tools
-		self.planning = planning
+		self.watchdogSleep = watchdogSleep
+		self.diagnostics = diagnostics
+		self.ladder = ladder
+		self.evidence = evidence
 	}
 
 	package func run(
-		text: String,
-		chatId: ChatID,
-		language: LanguagePreference,
-		emit: @escaping @Sendable (CoachEvent) -> Void
-	) async throws {
-		_ = planning
-		let slash = SlashRouting.parse(text)
-		if slash == .plan {
-			emit(.finished)
-			return
+		_ attempt: TurnAttempt,
+		conversation: Conversation, jobs: [FlushJob],
+		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
+		progress: @escaping AttemptProgressSink
+	) async throws(CancellationError) -> AttemptResult {
+		let prompt: TurnPrompt
+		do {
+			prompt = try await assemble(
+				attempt,
+				transcript: Transcript(
+					conversation: conversation, jobs: jobs, excluding: attempt.turn),
+				scope: scope, committed: committed, progress: progress)
+		} catch {
+			let failure = try AttemptFailure(caught: error)
+			return .failed(
+				failure.coachFailure(for: attempt.access.method), saved: await scope.summary)
 		}
-		if slash == .language {
-			emit(.languagePicker)
-			emit(.finished)
-			return
-		}
+		return try await attempts(attempt, prompt: prompt, scope: scope, progress: progress)
+	}
 
-		await tools.beginTurn()
-		var writer = RecordWriter(store: store, clock: clock)
-		try await writer.refreshClock()
-
-		var transcript = try await loadTranscript(chatId: chatId)
-		if shouldDailyReset(last: transcript.lastDate) {
-			try await writer.append(
-				.flushPending(
-					FlushPendingBody(
-						chatId: chatId, trigger: .staleReset, messageUlids: transcript.ulids))
-			)
-			let marker = ULID.generate(at: clock.now)
-			try await writer.append(
-				.windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: marker))
-			)
-			transcript = Transcript(messages: [], ulids: [], lastDate: nil, windowStart: marker)
-		}
-
-		let memory = Memory(store: store, clock: clock)
-		let context = try await memory.context()
-		let view = try await memory.view()
-		let schemas = tools.toolsForTurn(chatId: chatId, memory: view)
-		let prefix = PromptAssembly.cyclingPrefix(gated: true)
-		let snapshot = try await loadSnapshot()
-		let resolution = LanguageResolution(
-			language: language.coachReply ?? language.ui,
-			source: language.coachReply == nil ? .surface : .preference,
-			locale: language.ui.rawValue
-		)
-		let replyLanguage = PromptAssembly.replyLanguageSection(resolution: resolution)
-		let volatile = PromptAssembly.volatile(
-			context: context,
-			snapshot: snapshot,
-			timeZoneName: clock.timeZone.identifier,
-			replyLanguage: replyLanguage
-		)
-		let system = prefix + "\n\n" + volatile
-		let systemTokens = estimateTokens(system)
-		let trim = HistoryWindow.trim(messages: transcript.messages, systemTokens: systemTokens)
-		if !trim.dropped.isEmpty {
-			if let first = trim.kept.first, let ulid = transcript.ulid(for: first) {
-				try await writer.append(
-					.windowStart(WindowStartBody(chatId: chatId, firstIncludedUlid: ulid))
-				)
-			}
-			try await writer.append(
-				.compactionSummary(
-					CompactionSummaryBody(chatId: chatId, markdown: compactionStub(trim.dropped)))
-			)
-			try await memory.flush(trigger: .trim, chatId: chatId, transport: transport)
-		}
-		let kept = trim.kept
-		let historyTokens = kept.reduce(0) { $0 + estimateTokens($1.text) }
-		let shouldFlush = HistoryWindow.shouldSoftFlush(
-			historyTokens: historyTokens,
-			budget: trim.budget,
-			messagesSinceFlush: kept.count
-		)
-
-		let timed = PromptAssembly.appendCurrentTime(
-			athleteText: text,
-			now: clock.now,
-			timeZone: clock.timeZone
-		)
-		var wire = kept.map(wireMessage(from:))
-		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
-
-		var state = TurnState(
-			chatId: chatId,
-			messages: kept,
-			windowStart: transcript.windowStart,
-			pending: nil,
-			writesCommitted: 0,
-			flushedThisTurn: false,
-			lastFlushMessageCount: 0,
-			steps: 0
-		)
-
-		var budget = TurnBudget.start()
-		var streamed = ""
-		var overflowTries = 0
-		var pendingProposal: PendingProposal?
-
-		attemptLoop: while true {
-			try Task.checkCancellation()
-			try budget.chargeAttempt()
-			try budget.checkDeadline()
-
-			if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-				try await writer.append(
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
+	private func attempts(
+		_ attempt: TurnAttempt,
+		prompt initial: TurnPrompt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws(CancellationError) -> AttemptResult {
+		var prompt = initial
+		var counters = RetryCounters.zero
+		var pending: RetryPlan?
+		while true {
+			let observed = TextObservation()
+			do {
+				if let pending,
+					let outcome = try await prepare(
+						pending, prompt: &prompt, attempt: attempt, scope: scope, progress: progress
 					)
+				{
+					return .savedWork(outcome, saved: await scope.summary)
+				}
+				pending = nil
+				return try await generate(
+					attempt, prompt: &prompt, scope: scope, progress: observed.watching(progress))
+			} catch let saved as SavedWorkReached {
+				return .savedWork(saved.outcome, saved: await scope.summary)
+			} catch {
+				let failure = try AttemptFailure(caught: error)
+				let situation = AttemptSituation(
+					committed: try await scope.resolvedWrites(),
+					observedText: observed.seen,
+					promptTokens: prompt.estimatedTokens,
+					effectiveWindow: prompt.window,
+					flushLatchFree: await scope.flushLatchFree,
+					accessMethod: attempt.access.method,
+					jitter: Double.random(in: 0..<1)
 				)
-				emit(.interrupted(text: streamed))
-				return
-			}
-
-			if shouldCompact(wire: wire, system: system) {
-				if overflowTries >= TurnPolicy.overflowRetries {
-					throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
-				}
-				try await compact(wire: &wire, budget: &budget, chatId: chatId, writer: &writer)
-				overflowTries += 1
-			}
-
-			streamed = ""
-			pendingProposal = nil
-			state.steps = 0
-			var lastText = ""
-			var lastReason: FinishReason = .stop
-			var lastUsage = Usage(inputTokens: 0, outputTokens: 0, cost: nil)
-
-			stepLoop: while state.steps < TurnPolicy.maxSteps {
-				try Task.checkCancellation()
-				if let remaining = clock.backgroundRemaining, remaining < ChatWatchdog.ttft {
-					try await writer.append(
-						.flushPending(
-							FlushPendingBody(
-								chatId: chatId, trigger: .softThreshold,
-								messageUlids: transcript.ulids)
-						)
-					)
-					emit(.interrupted(text: streamed))
-					return
-				}
-
-				try budget.chargeGenerate()
-				let deadline = minDuration(
-					TurnPolicy.chatCallDeadline,
-					budget.remaining(until: ContinuousClock().now)
-				)
-				var messages = [
-					WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
-				]
-				messages.append(contentsOf: wire)
-				let request = CompletionRequest.openRouter(
-					messages: messages,
-					tools: schemas,
-					deadline: deadline
-				)
-				let step: GenerateStep
-				do {
-					step = try await generateStep(request: request, emit: emit, streamed: &streamed)
-				} catch let timeout as WatchdogTimeout {
-					emit(
-						.failed(
-							message: timeout == .ttft
-								? "CHAT_TTFT_TIMEOUT" : "CHAT_INTER_CHUNK_TIMEOUT"))
-					return
-				}
-
-				state.steps += 1
-				lastText = step.text
-				lastReason = step.reason
-				lastUsage = step.usage
-
-				if step.reason == .length, step.usage.inputTokens >= TurnPolicy.contextWindowCap {
-					if overflowTries >= TurnPolicy.overflowRetries {
-						throw TurnFailure(message: PromptStaticBlocks.compactionFailureCopy)
-					}
-					overflowTries += 1
-					try await compact(wire: &wire, budget: &budget, chatId: chatId, writer: &writer)
-					continue attemptLoop
-				}
-
-				if step.toolCalls.isEmpty {
-					if step.reason == .error || step.reason == .contentFilter,
-						step.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-					{
-						emit(.failed(message: "CHAT_PROVIDER_ERROR"))
-						return
-					}
-					break stepLoop
-				}
-
-				let ids = Set(step.toolCalls.map(\.id))
-				let watchdogPause = ChatWatchdog()
-				await watchdogPause.pauseForTools(ids)
-				wire.append(
-					WireMessage(
-						role: .assistant, content: step.text, toolCalls: step.toolCalls,
-						toolCallId: nil)
-				)
-
-				let outcomes = try await runTools(
-					step.toolCalls, chatId: chatId, state: state, emit: emit)
-				for (call, outcome) in outcomes {
-					if case .pending(let proposal) = outcome {
-						pendingProposal = proposal
-						emit(.proposalPending(proposal))
-					}
-					wire.append(
-						WireMessage(
-							role: .tool,
-							content: encodeToolOutcome(outcome),
-							toolCalls: [],
-							toolCallId: call.id
-						)
-					)
-				}
-				await watchdogPause.pauseForTools([])
-				await watchdogPause.disarm()
-
-				if state.steps == TurnPolicy.maxSteps {
-					break stepLoop
+				let saved = await scope.summary
+				switch ladder.decide(failure, situation: situation, counters: counters) {
+				case .terminal(let coachFailure):
+					return .failed(coachFailure, saved: saved)
+				case .settleSavedWork(let outcome):
+					return .savedWork(outcome, saved: saved)
+				case .retry(let next, let preparations):
+					counters = next
+					pending = RetryPlan(failure: failure, preparations: preparations)
+					await progress(.attemptRestarted)
 				}
 			}
-
-			var assistantText = lastText
-			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-				lastReason == .toolCalls || lastReason == .length
-			{
-				try budget.chargeGenerate()
-				let recovery = try await generateStep(
-					request: CompletionRequest.openRouter(
-						messages: [
-							WireMessage(
-								role: .system, content: system, toolCalls: [], toolCallId: nil)
-						] + wire + [
-							WireMessage(
-								role: .user,
-								content: PromptStaticBlocks.recoveryPrompt,
-								toolCalls: [],
-								toolCallId: nil
-							)
-						],
-						tools: [],
-						deadline: minDuration(
-							TurnPolicy.chatCallDeadline,
-							budget.remaining(until: ContinuousClock().now)
-						)
-					),
-					emit: emit,
-					streamed: &streamed
-				)
-				assistantText = recovery.text
-			}
-			if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				assistantText = PromptStaticBlocks.stepLimitCopy
-				emit(.textDelta(assistantText))
-			}
-
-			if !assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-				let templateHash = sha256Hex(
-					prefix + schemas.map(\.name.rawValue).joined()
-						+ CompletionRequest.openRouterModel)
-				let assembledHash = sha256Hex(system + timed + assistantText)
-				try await writer.append(
-					.userMessage(
-						UserMessageBody(
-							chatId: chatId, athleteText: text, timedText: timed, slash: slash)
-					)
-				)
-				try await writer.append(
-					.assistantMessage(
-						AssistantMessageBody(
-							chatId: chatId,
-							text: assistantText,
-							templateHash: templateHash,
-							assembledHash: assembledHash
-						)
-					)
-				)
-			}
-
-			if shouldFlush {
-				try await writer.append(
-					.flushPending(
-						FlushPendingBody(
-							chatId: chatId, trigger: .softThreshold, messageUlids: transcript.ulids)
-					)
-				)
-			}
-
-			_ = lastUsage
-			_ = pendingProposal
-			emit(.finished)
-			return
 		}
 	}
 
+	private func prepare(
+		_ retry: RetryPlan,
+		prompt: inout TurnPrompt,
+		attempt: TurnAttempt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws -> SavedWorkOutcome? {
+		for preparation in retry.preparations {
+			switch preparation {
+			case .flushMemory:
+				try await flushOnce(
+					covering: prompt.inTurnRows, attempt: attempt, scope: scope,
+					progress: progress)
+			case .compactInTurn:
+				do {
+					try await compact(&prompt, attempt: attempt, scope: scope, progress: progress)
+				} catch is CancellationError {
+					throw CancellationError()
+				} catch {
+					throw AttemptFailure.rescueFailed(retry.failure)
+				}
+			case .wait(let duration, let reason):
+				let until = clock.now.addingTimeInterval(duration.timeInterval)
+				await progress(.activity(.waiting(RetryWait(until: until, reason: reason))))
+				try await clock.sleep(for: duration)
+				try await scope.checkDeadline(uptime: clock.uptime)
+			}
+		}
+		return try await scope.savedWork(using: ladder)
+	}
+
+	func flushOnce(
+		covering rows: [(ulid: ULID, message: ChatMessage)],
+		attempt: TurnAttempt,
+		scope: TurnScope,
+		progress: @escaping AttemptProgressSink
+	) async throws(CancellationError) {
+		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
+		await progress(.activity(.savingMemory))
+		let flushes = flushWork(attempt)
+		let job: FlushJob
+		do {
+			job = try await flushes.open(covering: rows.map(\.ulid), stamp: scope.stamp)
+		} catch {
+			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
+			return
+		}
+		_ = try await flushes.run(
+			job, messages: rows.map(\.message),
+			access: attempt.access.using(model: attempt.models.flush),
+			scope: scope)
+	}
+
+	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
+		FlushWork(
+			chat: attempt.chat, process: attempt.process, ledger: ledger,
+			memory: Memory(ledger: ledger, clock: clock, watchdogSleep: watchdogSleep),
+			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
+	}
+
+	private func assemble(
+		_ attempt: TurnAttempt, transcript: Transcript,
+		scope: TurnScope,
+		committed: @escaping @Sendable ([AthleteRecord]) async -> Void,
+		progress: @escaping AttemptProgressSink
+	) async throws -> TurnPrompt {
+		let chatId = attempt.chat
+		let stamp = scope.stamp
+
+		let memory = Memory(ledger: ledger, clock: clock)
+		let (context, view) = try await memory.prompt()
+		let schemas = ToolCatalog.schemas(memory: view)
+		let prefix = PromptAssembly.cyclingPrefix(gated: true)
+		let block = try await evidence.block(
+			for: attempt.training, attempt: attempt.attempt, now: clock.now)
+		let replyLanguage = PromptAssembly.replyLanguageSection(attempt.language)
+		let zone = clock.timeZone
+		let volatile = PromptAssembly.volatile(
+			context: context,
+			evidence: block,
+			timeZoneName: zone.identifier,
+			replyLanguage: replyLanguage
+		)
+		let system = prefix + "\n\n" + volatile
+		let history = transcript.history
+		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
+		let trim = HistoryWindow.trim(
+			messages: past, systemTokens: estimateTokens(system),
+			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
+		var summary = history.summary
+		var kept = trim.kept
+		if !trim.dropped.isEmpty {
+			try await flushOnce(
+				covering: transcript.window, attempt: attempt, scope: scope,
+				progress: progress)
+			do {
+				let firstKept =
+					trim.kept.isEmpty
+					? transcript.current?.ulid ?? attempt.turn.ulid
+					: history.ulids[trim.dropped.count]
+				let dropped = try await summarizeDropped(
+					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
+					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
+					scope: scope, progress: progress)
+				await committed(dropped.records)
+				summary = dropped.summary
+			} catch is CancellationError {
+				throw CancellationError()
+			} catch {
+				diagnostics.record(
+					.compactionFailed(chatId, detail: String(describing: error)),
+					redacting: [attempt.access.credential.secret])
+				kept = past
+			}
+		} else if !transcript.flushPending,
+			FlushGate.shouldQueueSoftFlush(
+				estimatedHistoryTokens: HistoryWindow.estimatedTokens(
+					summary: history.summary, messages: past),
+				historyBudget: trim.budget,
+				messagesSinceLastFlush: transcript.unflushed.count),
+			await scope.takeFlushLatch()
+		{
+			_ = try await flushWork(attempt).open(
+				covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+		}
+
+		let timed = PromptAssembly.appendCurrentTime(
+			athleteText: attempt.request,
+			now: clock.now,
+			timeZone: zone
+		)
+		var wire = kept
+		wire.append(WireMessage(role: .user, content: timed, toolCalls: [], toolCallId: nil))
+		return TurnPrompt(
+			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
+			wire: wire,
+			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
+			window: attempt.models.chatWindow)
+	}
+
+	private func summarizeDropped(
+		_ dropped: [WireMessage], previous: String?, firstKept: ULID, attempt: TurnAttempt,
+		droppedUlids: [ULID], scope: TurnScope, progress: @escaping AttemptProgressSink
+	) async throws -> (summary: String, records: [AthleteRecord]) {
+		await progress(.activity(.compacting))
+		try await scope.chargeCall()
+		let summary = try await Compactor(modelCall: modelCall).summarize(
+			dropped, previous: previous, purpose: .droppedHistory, attempt: attempt)
+		let windows = stride(from: 0, to: droppedUlids.count, by: Self.droppedMessageLimit).map {
+			start in
+			SyncedRecordBody.windowStart(
+				WindowStartBody(
+					chatId: attempt.chat, firstIncludedUlid: firstKept, reason: .trim,
+					droppedMessageUlids: Array(
+						droppedUlids[
+							start..<min(start + Self.droppedMessageLimit, droppedUlids.count)])))
+		}
+		let records = try await ledger.commit(
+			synced: windows + [
+				.compactionSummary(
+					CompactionSummaryBody(chatId: attempt.chat, markdown: summary.markdown))
+			],
+			stamp: scope.stamp)
+		return (summary.markdown, records)
+	}
+
+	func tools(for attempt: TurnAttempt) -> ToolRuntime {
+		ToolRuntime(
+			intervals: attempt.training.client, ledger: ledger, clock: clock)
+	}
+
+}
+
+struct TurnPrompt: Sendable {
+	let prefix: String
+	let system: String
+	let schemas: [ToolSchema]
+	let timed: String
+	var summary: String?
+	var wire: [WireMessage]
+	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let window: Int
+
+	var systemMessage: WireMessage {
+		WireMessage(role: .system, content: system, toolCalls: [], toolCallId: nil)
+	}
+
+	var summaryMessages: [WireMessage] {
+		summary.map {
+			[
+				WireMessage(
+					role: .system, content: PromptAssembly.summaryMessage($0), toolCalls: [],
+					toolCallId: nil)
+			]
+		} ?? []
+	}
+
+	var estimatedTokens: Int {
+		(summaryMessages + wire).reduce(0) { $0 + estimateTokens($1.content) }
+			+ estimateTokens(system)
+	}
+
+	var overBudget: Bool {
+		estimatedTokens > window - TurnPolicy.reserveTokens
+	}
+}
+
+private struct RetryPlan: Sendable {
+	let failure: AttemptFailure
+	let preparations: [RetryPreparation]
+}
+
+private final class TextObservation: Sendable {
+	private let state = Mutex(false)
+
+	var seen: Bool {
+		state.withLock { $0 }
+	}
+
+	func watching(_ progress: @escaping AttemptProgressSink) -> AttemptProgressSink {
+		{ event in
+			if case .textDelta(let delta) = event, !delta.isEmpty {
+				self.state.withLock { $0 = true }
+			}
+			await progress(event)
+		}
+	}
 }

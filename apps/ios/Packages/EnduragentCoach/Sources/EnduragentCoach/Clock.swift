@@ -3,7 +3,8 @@ import Foundation
 public protocol Clock: Sendable {
 	var now: Date { get }
 	var timeZone: TimeZone { get }
-	var backgroundRemaining: Duration? { get }
+	var uptime: Duration { get }
+	func sleep(for duration: Duration) async throws
 }
 
 public struct SystemClock: Clock {
@@ -11,24 +12,9 @@ public struct SystemClock: Clock {
 
 	public var now: Date { Date() }
 	public var timeZone: TimeZone { .current }
-	public var backgroundRemaining: Duration? { nil }
-}
+	public var uptime: Duration { ContinuousClock().systemEpoch.duration(to: .now) }
 
-public final class FixedClock: Clock, @unchecked Sendable {
-	public var now: Date
-	public var timeZone: TimeZone
-	public var backgroundRemaining: Duration?
-
-	public init(now: String, timeZone: String) {
-		let tz = TimeZone(identifier: timeZone) ?? .gmt
-		self.timeZone = tz
-		self.backgroundRemaining = nil
-		let formatter = ISO8601DateFormatter()
-		formatter.formatOptions = [.withInternetDateTime, .withColonSeparatorInTimeZone]
-		self.now = formatter.date(from: now) ?? Date(timeIntervalSince1970: 0)
-	}
-
-	public func advance(by interval: TimeInterval) {
-		now = now.addingTimeInterval(interval)
+	public func sleep(for duration: Duration) async throws {
+		try await Task.sleep(for: duration)
 	}
 }

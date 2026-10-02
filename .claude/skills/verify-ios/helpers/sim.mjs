@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from 'node:child_process';
-import { closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { closeSync, copyFileSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +15,7 @@ const project = join(repo, 'apps/ios/Enduragent.xcodeproj');
 const derivedData = join(repo, 'DerivedData');
 const products = join(derivedData, 'Build/Products');
 const appPath = join(products, 'Debug-iphonesimulator/Enduragent.app');
+const sourceManifest = join(derivedData, 'verify-ios-sources.json');
 const simPrefix = 'enduragent-verify-';
 const fixtureArgs = ['-EnduragentFixture', 'first-week', '-AppleLanguages', '(en)', '-AppleLocale', 'en_US'];
 const statusBar = ['--time', '9:41', '--dataNetwork', 'wifi', '--wifiMode', 'active', '--wifiBars', '3', '--cellularMode', 'active', '--cellularBars', '4', '--batteryState', 'charged', '--batteryLevel', '100'];
@@ -74,8 +76,20 @@ function activeRun(id) {
   if (!sim) throw new Error(`simulator ${simName(id)} is gone; its evidence stays in ${dir}`);
   return { dir, udid: sim.udid };
 }
-function newestMtime(paths) {
-  return paths.reduce((newest, path) => (existsSync(path) ? Math.max(newest, statSync(path).mtimeMs) : newest), 0);
+function sourceHashes() {
+  const files = capture('git', ['-C', repo, 'ls-files', '--cached', '--others', '--exclude-standard', '--', 'apps/ios', ':!apps/ios/Enduragent.xcodeproj']).split('\n').filter(Boolean).sort();
+  return Object.fromEntries(files.map(file => {
+    const path = join(repo, file);
+    return [file, existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : 'missing'];
+  }));
+}
+function staleSource() {
+  if (!existsSync(sourceManifest)) return 'no source manifest from sim.mjs build';
+  const built = JSON.parse(readFileSync(sourceManifest, 'utf8'));
+  const current = sourceHashes();
+  const files = [...new Set([...Object.keys(built), ...Object.keys(current)])].sort();
+  const changed = files.find(file => built[file] !== current[file]);
+  return changed ? `${changed} differs from the last build` : undefined;
 }
 
 function doctor(id) {
@@ -97,10 +111,8 @@ function doctor(id) {
   if (built) {
     const identifier = capture('plutil', ['-extract', 'CFBundleIdentifier', 'raw', join(appPath, 'Info.plist')]);
     check(identifier === bundleId, `bundle id ${identifier}`);
-    const sources = capture('git', ['-C', repo, 'ls-files', '--cached', '--others', '--exclude-standard', '--', 'apps/ios', ':!apps/ios/Enduragent.xcodeproj']).split('\n').filter(Boolean);
-    const newest = sources.map(file => ({ file, time: newestMtime([join(repo, file)]) })).reduce((best, item) => (item.time > best.time ? item : best), { file: '', time: 0 });
-    const builtAt = newestMtime([appPath, ...readdirSync(appPath).map(name => join(appPath, name))]);
-    check(builtAt >= newest.time, builtAt >= newest.time ? 'build is newer than every source under apps/ios' : `stale build: ${newest.file} changed after the last build; run build`);
+    const stale = staleSource();
+    check(!stale, stale ? `stale build: ${stale}; run build` : 'build matches the content of every source under apps/ios');
   }
   check(existsSync(products) && readdirSync(products).some(name => name.endsWith('.xctestrun')), 'UI test runner built (.xctestrun)');
   lines.push(`${existsSync(captures) ? 'ok  ' : 'note'} prototype captures at ${captures}`);
@@ -123,8 +135,10 @@ function build() {
   capture('xcodegen', ['generate', '--spec', join(repo, 'apps/ios/project.yml')]);
   mkdirSync(derivedData, { recursive: true });
   const log = join(derivedData, 'verify-ios-build.log');
+  const hashes = sourceHashes();
   const status = logged(log, 'xcodebuild', ['build-for-testing', '-project', project, '-scheme', 'Enduragent', '-configuration', 'Debug', '-sdk', 'iphonesimulator', '-destination', 'generic/platform=iOS Simulator', '-derivedDataPath', derivedData, 'CODE_SIGNING_ALLOWED=NO']);
   if (status !== 0) throw new Error(`build-for-testing exited ${status}; log ${log}\n${tail(log)}`);
+  writeFileSync(sourceManifest, `${JSON.stringify(hashes, null, 2)}\n`);
   console.log(`built ${appPath}\nlog ${log}`);
 }
 
@@ -154,7 +168,10 @@ function install(id) {
 
 function launch(id, ...extra) {
   const { udid } = activeRun(id);
-  console.log(capture('xcrun', ['simctl', 'launch', '--terminate-running-process', udid, bundleId, ...fixtureArgs, ...extra]));
+  const keep = extra.includes('--keep');
+  const passthrough = extra.filter(argument => argument !== '--keep');
+  const storeArgs = ['-EnduragentFixtureStore', keep ? 'keep' : 'fresh'];
+  console.log(capture('xcrun', ['simctl', 'launch', '--terminate-running-process', udid, bundleId, ...fixtureArgs, ...storeArgs, ...passthrough]));
 }
 
 function shot(id, label) {
@@ -168,6 +185,26 @@ function shot(id, label) {
 function test(id, ...proofs) {
   if (proofs.length === 0) throw new Error('test needs at least one proof, for example: test <run> FirstConversationProof');
   const { dir, udid } = activeRun(id);
+  const dark = proofs.filter(proof => /DarkProof(\/|$)/.test(proof));
+  const light = proofs.filter(proof => !dark.includes(proof));
+  const failures = [];
+  if (light.length > 0) {
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+    failures.push(...runProofs(dir, udid, light));
+  }
+  if (dark.length > 0) {
+    capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'dark']);
+    try {
+      failures.push(...runProofs(dir, udid, dark));
+    } finally {
+      capture('xcrun', ['simctl', 'ui', udid, 'appearance', 'light']);
+    }
+  }
+  if (failures.length > 0) throw new Error(failures.join('\n'));
+}
+
+function runProofs(dir, udid, proofs) {
+  spawnSync('xcrun', ['simctl', 'terminate', udid, bundleId], { stdio: 'ignore' });
   const name = `uitest-${stamp()}`;
   const bundle = join(dir, `${name}.xcresult`);
   const log = join(dir, `${name}.log`);
@@ -185,7 +222,7 @@ function test(id, ...proofs) {
     }
   }
   console.log(`result bundle ${bundle}\nlog ${log}`);
-  if (status !== 0) throw new Error(`test-without-building exited ${status}\n${tail(log)}`);
+  return status === 0 ? [] : [`test-without-building exited ${status}\n${tail(log)}`];
 }
 
 function parity(id, state, theme, flag, source) {
