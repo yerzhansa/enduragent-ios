@@ -26,6 +26,11 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var ftp: Int
 	public var writeFailure: (any Error)?
 	private let displayReads = Mutex(FakeIntervalsDisplayReads())
+	private let nextActivityReadDelay = Mutex<Duration>(.zero)
+
+	public func delayNextActivityRead(for duration: Duration) {
+		nextActivityReadDelay.withLock { $0 = duration }
+	}
 
 	public var profileReadCount: Int { displayReads.withLock { $0.profileCount } }
 	public var wellnessReadCount: Int { displayReads.withLock { $0.wellnessCount } }
@@ -100,6 +105,11 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	{
 		let days = IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest)
 		recordedCalls.withLock { $0.append(.activities(days: days)) }
+		let delay = nextActivityReadDelay.withLock { pending in
+			defer { pending = .zero }
+			return pending
+		}
+		if delay > .zero { try await Task.sleep(for: delay) }
 		return activities.filter { $0.date >= oldest && $0.date <= newest }
 	}
 
