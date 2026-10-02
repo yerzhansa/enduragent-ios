@@ -255,8 +255,7 @@ package struct Memory: Sendable {
 		let exclude = Set(excluding)
 		var parts: [String] = []
 		var blocks: [String] = []
-		for name in SectionName.cyclingEffective
-		where name.inject && !exclude.contains(name.rawValue) {
+		for name in SectionName.cyclingEffective where !exclude.contains(name.rawValue) {
 			if let content = UnionMerge.sectionText(snapshot.sections, name: name), !content.isEmpty
 			{
 				blocks.append("## \(name.rawValue)\n\(content)")
