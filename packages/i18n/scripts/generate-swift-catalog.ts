@@ -191,8 +191,6 @@ for (const key of xcstringKeys) {
 
 const swift = [
   "public enum Catalog {",
-  `\tpublic static let englishLeafCount = ${englishLeaves.length}`,
-  `\tpublic static let keyCount = ${catalogKeys.length}`,
   ...catalogKeys.map((key) => `\tpublic static let ${swiftName(key)} = CatalogKey(rawValue: ${JSON.stringify(key)})`),
   "}",
   "",
