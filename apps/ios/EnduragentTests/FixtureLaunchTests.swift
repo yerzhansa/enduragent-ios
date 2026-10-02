@@ -7,54 +7,36 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, FixtureTestScope())
 final class FixtureLaunchTests {
-	let launch = FixtureLaunch(
-		name: FixtureLaunch.firstWeekName,
-		store: .fresh,
-		keychain: .unlocked,
-		directory: FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-fixture-test", directoryHint: .isDirectory),
-		defaultsSuiteName: "enduragent.fixture.test"
-	)
-	let defaults: UserDefaults
+	var fixture: AppTestFixture { AppTestFixture.active }
+	var launch: FixtureLaunch { fixture.launch }
+	var defaults: UserDefaults { fixture.defaults }
 	let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-
-	init() throws {
-		defaults = try launch.prepare()
-	}
-
-	deinit {
-		let launch = launch
-		UserDefaults(suiteName: launch.defaultsSuiteName)?
-			.removePersistentDomain(forName: launch.defaultsSuiteName)
-		do {
-			try FileManager.default.removeItem(at: launch.directory)
-		} catch {
-			Issue.record(error, "fixture directory cleanup")
-		}
-	}
 
 	func services(keychain: FixtureKeychainPolicy = .unlocked) throws -> AppServices {
 		var launch = launch
 		launch.keychain = keychain
-		return try AppServices.fixture(launch, defaults: defaults)
+		return try fixtureServices(launch, defaults: defaults)
 	}
 
 	func relaunch(
 		_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked,
-		recovery: FixtureRecoveryPolicy = .readable
-	) throws -> (AppServices, UserDefaults) {
+		recovery: FixtureRecoveryPolicy = .readable, clock: String? = nil
+	) async throws -> (AppServices, UserDefaults) {
 		var launch = launch
 		launch.store = store
 		launch.keychain = keychain
 		launch.recovery = recovery
+		launch.clock = clock ?? launch.clock
+		await fixture.releaseOwners()
+		try await fixture.folder.waitUntilUnused()
 		let defaults = try launch.prepare()
-		return (try AppServices.fixture(launch, defaults: defaults), defaults)
+		return (try fixtureServices(launch, defaults: defaults), defaults)
 	}
 
 	func model(_ services: AppServices) -> ShellModel {
-		ShellModel(environment: environment(services))
+		fixtureModel(environment: environment(services))
 	}
 
 	func environment(_ services: AppServices) -> AppEnvironment {
@@ -138,7 +120,7 @@ final class FixtureLaunchTests {
 		var unknown = launch
 		unknown.name = "second-week"
 		#expect(throws: FixtureLaunchError.self) {
-			try AppServices.fixture(unknown, defaults: defaults)
+			try fixtureServices(unknown, defaults: defaults)
 		}
 	}
 
@@ -154,7 +136,7 @@ final class FixtureLaunchTests {
 		#expect(parsed.coalescing == CoalescingPolicy(window: .seconds(2)))
 		var widened = launch
 		widened.coalescing = parsed.coalescing
-		let services = try AppServices.fixture(widened, defaults: defaults)
+		let services = try fixtureServices(widened, defaults: defaults)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
@@ -218,8 +200,8 @@ final class FixtureLaunchTests {
 		let legacy = #"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#
 		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let (services, kept) = try relaunch(.keep)
-		let reopened = ShellModel(
+		let (services, kept) = try await relaunch(.keep)
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: services, language: language, defaults: kept))
 		await reopened.agreeAndStartChatting()
 		try await observed(reopened)
@@ -321,19 +303,21 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func keepStoreRestoresRecordsAcrossServices() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		let settled = try await settledTurn(first)
-		#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
-		let (second, kept) = try relaunch(.keep)
+		do {
+			let first = model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			let settled = try await settledTurn(first)
+			#expect(replyText(settled.state)?.contains("Tuesday sweet spot") == true)
+		}
+		let (second, kept) = try await relaunch(.keep)
 		let restored = try #require(await firstSnapshot(second, chat: .main))
 		#expect(restored.turns.map(\.athleteText) == [TutorialCopy.weekQuestion])
 		#expect(
 			replyText(try #require(restored.turns.first?.state))?.contains("Tuesday sweet spot")
 				== true)
-		let reopened = ShellModel(
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: second, language: language, defaults: kept))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
@@ -341,12 +325,14 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func freshStoreWipesRecordsAndSession() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		_ = try await settledTurn(first)
-		let (second, wiped) = try relaunch(.fresh)
+		do {
+			let first = model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			_ = try await settledTurn(first)
+		}
+		let (second, wiped) = try await relaunch(.fresh)
 		#expect(await firstSnapshot(second, chat: .main)?.turns.isEmpty == true)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}

@@ -36,7 +36,7 @@ extension FixtureLaunchTests {
 		unreadable.store = .unreadable
 		let launched = await AppLaunch.open(language: .en) {
 			let defaults = try unreadable.prepare()
-			return (try AppServices.fixture(unreadable, defaults: defaults), defaults)
+			return (try fixtureServices(unreadable, defaults: defaults), defaults)
 		}
 		guard case .storageUnavailable(let phrasebook, _) = launched else {
 			Issue.record("expected the storage notice, got a ready app")
@@ -124,13 +124,15 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func lockedKeychainOpensChatNotOnboarding() async throws {
-		let first = model(try services())
-		await first.agreeAndStartChatting()
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		_ = try await settledTurn(first)
-		let (locked, kept) = try relaunch(.keep, keychain: .locked)
-		let reopened = ShellModel(
+		do {
+			let first = model(try services())
+			await first.agreeAndStartChatting()
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			_ = try await settledTurn(first)
+		}
+		let (locked, kept) = try await relaunch(.keep, keychain: .locked)
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: locked, language: language, defaults: kept))
 		await reopened.appear()
 		try await observed(reopened)

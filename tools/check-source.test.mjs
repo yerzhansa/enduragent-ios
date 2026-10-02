@@ -27,6 +27,30 @@ const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fi
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
 const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
+
+test('rejects app tests deleting fixture folders outside their async owner', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': 'deinit { try FileManager.default.removeItem(at: directory) }' });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /app-fixture-folder-ownership/);
+});
+
+test('accepts app tests awaiting fixture folder cleanup', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': 'try await folder.cleanup { await owners.release() }' });
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const value of ['let directory = FileManager.default.temporaryDirectory', 'try AppServices.fixture(launch, defaults: defaults)']) {
+  test(`rejects app tests bypassing the shared fixture owner: ${value}`, () => {
+    const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': value });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /app-fixture-folder-ownership/);
+  });
+}
+
+test('accepts the shared app fixture owner creating folders and services', () => {
+  const result = run({ 'apps/ios/EnduragentTests/FixtureTestScope.swift': 'let directory = FileManager.default.temporaryDirectory\ntry AppServices.fixture(launch, defaults: defaults)' });
+  assert.equal(result.status, 0, result.output);
+});
 const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 
@@ -43,6 +67,8 @@ for (const file of testWaitFiles) {
     'func wait(within limit: Duration = .seconds(5)) {}',
     'let deadline = ContinuousClock.now + .seconds(5)',
     'let deadline = ContinuousClock().now + Duration.seconds(5)',
+    'group.addTask { try await Task.sleep(for: .seconds(10)); return false }',
+    'group.addTask {\ntry await Task.sleep(for: Duration.seconds(5))\nreturn nil\n}',
   ]) {
     test(`rejects a literal test hang guard in ${file}: ${source}`, () => {
       const result = run({ [file]: source });
@@ -58,6 +84,8 @@ for (const file of testWaitFiles) {
       func wait(within limit: TestWaitLimit = .hangGuard) {}
       let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
       let observation = ContinuousClock.now + TestWaitLimit.subject(.seconds(1)).duration
+      group.addTask { try await Task.sleep(for: TestWaitLimit.hangGuard.duration); return false }
+      group.addTask { try await Task.sleep(for: TestWaitLimit.subject(.milliseconds(20)).duration); return nil }
       clock.advance(by: .seconds(7))
       try await clock.sleep(for: .seconds(11))
       try await Task.sleep(for: .milliseconds(10))
