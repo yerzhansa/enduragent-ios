@@ -70,8 +70,9 @@ struct IntervalsLiveTests {
 		let key = try #require(ProcessInfo.processInfo.environment["INTERVALS_API_KEY"])
 		let client = IntervalsRESTClient(credential: .apiKey(key))
 		let today = IntervalsPolicy.today(now: Date(), timeZone: TimeZone.current)
-		let past = today.adding(days: -(IntervalsPolicy.reviewWindowDays - 1))
-		let future = today.adding(days: IntervalsPolicy.reviewWindowDays - 1)
+		let days = 7
+		let past = today.adding(days: -(days - 1))
+		let future = today.adding(days: days - 1)
 
 		let athlete = try await client.fetchAthlete()
 		let wellness = try await client.fetchWellness(oldest: past, newest: today)
