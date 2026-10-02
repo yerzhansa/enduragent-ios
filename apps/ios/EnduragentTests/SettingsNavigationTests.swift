@@ -155,7 +155,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [
-		ShellDestination.debugCredits, .debugCredentials, .debugRecords, .debugLanguage,
+		ShellDestination.debugCredits, .debugRecords, .debugLanguage,
 		.session, .debugLeases,
 	])
 	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws

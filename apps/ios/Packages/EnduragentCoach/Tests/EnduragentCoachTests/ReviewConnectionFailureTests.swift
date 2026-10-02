@@ -40,3 +40,26 @@ extension SingleProposalReviewsTests {
 		#expect(ada.calls.allSatisfy { !$0.isWrite })
 	}
 }
+
+extension SingleProposalReviewsTests {
+	@Test func unconnectedApprovalOffersConnectWithoutDispatch() async throws {
+		try secrets.delete(.intervalsConnection)
+		let coach = await coach()
+		let token = try await presentedToken(on: coach)
+
+		let outcome = await coach.decide(.approve(token), in: .main)
+
+		#expect(outcome == .blocked(.trainingNotConnected))
+		#expect(outcome.notice?.key == Catalog.connectMissing)
+		#expect(outcome.notice?.action == .connectTraining)
+		#expect(
+			outcome.notice?.sentence(in: phrasebook)
+				== "intervals.icu is not connected. Connect to add workouts to your calendar.")
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == .approveOrCancel(token))
+		#expect(
+			try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]), chatId: .main))
+				.records.isEmpty)
+		#expect(ada.calls.isEmpty)
+		#expect(bo.calls.isEmpty)
+	}
+}

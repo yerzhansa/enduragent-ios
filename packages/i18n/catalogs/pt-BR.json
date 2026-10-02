@@ -549,7 +549,20 @@
       "title": "Unidades",
       "unavailable": "Preferência de unidades indisponível"
     },
-    "modelAccessTitle": "Acesso ao modelo"
+    "modelAccessTitle": "Acesso ao modelo",
+    "training": {
+      "section": "Conexão de treino",
+      "title": "intervals.icu",
+      "replace": "Substituir chave",
+      "keep": "Manter conexão atual",
+      "disconnect": "Desconectar",
+      "disconnectTitle": "Desconectar intervals.icu?",
+      "disconnectDetail": "Sua conversa e o histórico continuam disponíveis.",
+      "switchTitle": "Usar outro atleta?",
+      "switchDetail": "Esta chave pertence ao atleta {{new}}. O trabalho salvo pertence ao atleta {{current}}. Trocar para usar esta chave?",
+      "switch": "Trocar atleta",
+      "athlete": "Atleta {{id}}"
+    }
   },
   "setup": {
     "ai": {
@@ -2998,6 +3011,7 @@
     "review": "Revisar conexão",
     "profile": {
       "waiting": "Lendo o perfil de atleta…"
-    }
+    },
+    "missing": "intervals.icu não está conectado. Conecte para adicionar treinos ao calendário."
   }
 }

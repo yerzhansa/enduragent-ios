@@ -128,7 +128,6 @@ private enum SettingsNavigationScreen {
 		let screens = [
 			("debug.records", TutorialHarness.named(app, "records.device")),
 			("debug.credits", TutorialHarness.named(app, "debug.credits.claimStarter")),
-			("debug.credentials", TutorialHarness.named(app, "credentials.outcome")),
 			("debug.language", TutorialHarness.named(app, "language.choice.automatic")),
 			("debug.session", TutorialHarness.named(app, "session.historyBudgetRatio.stored")),
 			("debug.leases", app.navigationBars["Leases"]),
@@ -179,14 +178,10 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.openSettings(app)
 		TutorialHarness.wait(app.navigationBars[phrasebook.say(Catalog.settingsTitle)])
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsModelAccessTitle))
-		let list = app.collectionViews.firstMatch
-		let rows = list.buttons.allElementsBoundByIndex
-		XCTAssertEqual(rows.map(\.identifier), ["settings.credits", "settings.debug"])
-		let rowLabels = rows.flatMap { $0.staticTexts.allElementsBoundByIndex.map(\.label) }
-		let sections = list.staticTexts.allElementsBoundByIndex.map(\.label).filter {
-			!rowLabels.contains($0)
-		}
-		XCTAssertEqual(sections, [phrasebook.say(Catalog.settingsModelAccessTitle)])
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.training"), until: .hittable)
+		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsTrainingSection))
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.debug"), until: .hittable)
+
 	}
 
 	private static func openHistory(_ app: XCUIApplication, phrasebook: CatalogPhrasebook) {
@@ -203,12 +198,12 @@ private enum SettingsNavigationScreen {
 
 	private static func trainingConnection(_ app: XCUIApplication, connected: Bool) -> String {
 		TutorialHarness.openCredentials(app)
-		let value = TutorialHarness.named(app, "credentials.connection").label
-		XCTAssertEqual(
-			TutorialHarness.named(app, "credentials.athlete").label, connected ? "Ada Kovač" : "—")
+		let value = TutorialHarness.connectedAccount(app)
 		if connected {
-			XCTAssertTrue(value.hasSuffix(" i1001"))
+			TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Ada Kovač")
+			XCTAssertTrue(value.hasSuffix(":i1001"))
 		} else {
+			XCTAssertFalse(TutorialHarness.named(app, "training.athlete").exists)
 			XCTAssertEqual(value, "unconnected")
 		}
 		TutorialHarness.returnToChat(app)

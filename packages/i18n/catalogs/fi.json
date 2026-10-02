@@ -516,7 +516,20 @@
         "title": "Poista nykyinen webhook"
       }
     },
-    "modelAccessTitle": "Mallin käyttö"
+    "modelAccessTitle": "Mallin käyttö",
+    "training": {
+      "section": "Harjoitteluyhteys",
+      "title": "intervals.icu",
+      "replace": "Vaihda avain",
+      "keep": "Säilytä nykyinen yhteys",
+      "disconnect": "Katkaise yhteys",
+      "disconnectTitle": "Katkaistaanko intervals.icu-yhteys?",
+      "disconnectDetail": "Keskustelusi ja historiasi ovat edelleen käytettävissä.",
+      "switchTitle": "Käytetäänkö toista urheilijaa?",
+      "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Tallennettu työ kuuluu urheilijalle {{current}}. Vaihdetaanko tämän avaimen käyttöön?",
+      "switch": "Vaihda urheilija",
+      "athlete": "Urheilija {{id}}"
+    }
   },
   "archive": {
     "athlete": "Sinä",
@@ -2998,6 +3011,7 @@
     "review": "Tarkista yhteys",
     "profile": {
       "waiting": "Luetaan urheilijaprofiilia…"
-    }
+    },
+    "missing": "intervals.icu ei ole yhdistetty. Yhdistä lisätäksesi harjoituksia kalenteriisi."
   }
 }

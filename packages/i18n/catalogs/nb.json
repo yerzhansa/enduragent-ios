@@ -516,7 +516,20 @@
       }
     },
     "title": "Innstillinger",
-    "modelAccessTitle": "Modelltilgang"
+    "modelAccessTitle": "Modelltilgang",
+    "training": {
+      "section": "Treningsforbindelse",
+      "title": "intervals.icu",
+      "replace": "Bytt nøkkel",
+      "keep": "Behold nåværende forbindelse",
+      "disconnect": "Koble fra",
+      "disconnectTitle": "Koble fra intervals.icu?",
+      "disconnectDetail": "Samtalen og historikken din er fortsatt tilgjengelige.",
+      "switchTitle": "Bruke en annen utøver?",
+      "switchDetail": "Denne nøkkelen tilhører utøver {{new}}. Lagret arbeid tilhører utøver {{current}}. Bytte for å bruke denne nøkkelen?",
+      "switch": "Bytt utøver",
+      "athlete": "Utøver {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -2998,6 +3011,7 @@
     "review": "Kontroller tilkobling",
     "profile": {
       "waiting": "Leser utøverprofil…"
-    }
+    },
+    "missing": "intervals.icu er ikke tilkoblet. Koble til for å legge treningsøkter i kalenderen."
   }
 }

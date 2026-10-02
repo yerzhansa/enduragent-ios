@@ -516,7 +516,20 @@
       }
     },
     "title": "Einstellungen",
-    "modelAccessTitle": "Modellzugriff"
+    "modelAccessTitle": "Modellzugriff",
+    "training": {
+      "section": "Trainingsverbindung",
+      "title": "intervals.icu",
+      "replace": "Schlüssel ersetzen",
+      "keep": "Aktuelle Verbindung behalten",
+      "disconnect": "Trennen",
+      "disconnectTitle": "intervals.icu trennen?",
+      "disconnectDetail": "Deine Unterhaltung und dein Verlauf bleiben verfügbar.",
+      "switchTitle": "Anderen Athleten verwenden?",
+      "switchDetail": "Dieser Schlüssel gehört Athlet {{new}}. Gespeicherte Arbeit gehört Athlet {{current}}. Wechseln, um diesen Schlüssel zu verwenden?",
+      "switch": "Athleten wechseln",
+      "athlete": "Athlet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Du",
@@ -2998,6 +3011,7 @@
     "review": "Verbindung prüfen",
     "profile": {
       "waiting": "Athletenprofil wird gelesen…"
-    }
+    },
+    "missing": "intervals.icu ist nicht verbunden. Verbinde es, um Trainingseinheiten zum Kalender hinzuzufügen."
   }
 }

@@ -129,6 +129,7 @@ de	settings.spend.month.june	Jun	German abbreviated month name for Juni; shared 
 de	settings.spend.month.november	Nov	German abbreviated month name for November; shared spelling.
 de	settings.spend.month.september	Sep	German abbreviated month name for September; shared spelling.
 da,de,it,nl,pl,pt-BR,pt-PT,sv	settings.telegram.channel.online	Online	Established connectivity loanword in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.training.title	intervals.icu	Service name is unchanged in every language.
 da,de,es,pt-BR,pt-PT	settings.units.imperial	Imperial	Established unit-system label in these locales; shared spelling.
 it,pt-BR,pt-PT	setup.ai.endpoint.title	Endpoint	Established technical loanword for a model API endpoint in Italian and Portuguese.
 da,nl,pl	setup.ai.model	Model	Native model noun in these locales; shared spelling.

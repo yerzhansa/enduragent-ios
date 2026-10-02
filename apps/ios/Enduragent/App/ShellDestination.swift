@@ -5,10 +5,10 @@ enum ShellDestination: Hashable {
 	case history
 	case archivedConversation(ArchivedConversationRef)
 	case credits
+	case training
 	#if DEBUG
 		case debug
 		case debugCredits
-		case debugCredentials
 		case debugRecords
 		case debugLanguage
 		case session
