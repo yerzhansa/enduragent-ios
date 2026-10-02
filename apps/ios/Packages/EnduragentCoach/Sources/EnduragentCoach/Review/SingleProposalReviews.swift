@@ -125,6 +125,9 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard Self.permits(live.account.authority(under: connection.account)) else {
 				return .refused(.blocked(.accountChanged))
 			}
+			guard connection.account != .unconnected else {
+				return .refused(.blocked(.trainingNotConnected))
+			}
 			let operation = try await CalendarWriteOperation.prepare(
 				live, client: connection.client,
 				today: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone))

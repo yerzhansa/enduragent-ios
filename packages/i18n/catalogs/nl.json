@@ -516,7 +516,20 @@
       }
     },
     "title": "Instellingen",
-    "modelAccessTitle": "Modeltoegang"
+    "modelAccessTitle": "Modeltoegang",
+    "training": {
+      "section": "Trainingsverbinding",
+      "title": "intervals.icu",
+      "replace": "Sleutel vervangen",
+      "keep": "Huidige verbinding behouden",
+      "disconnect": "Verbinding verbreken",
+      "disconnectTitle": "Verbinding met intervals.icu verbreken?",
+      "disconnectDetail": "Je gesprek en geschiedenis blijven beschikbaar.",
+      "switchTitle": "Een andere atleet gebruiken?",
+      "switchDetail": "Deze sleutel hoort bij atleet {{new}}. Opgeslagen werk hoort bij atleet {{current}}. Wisselen om deze sleutel te gebruiken?",
+      "switch": "Atleet wisselen",
+      "athlete": "Atleet {{id}}"
+    }
   },
   "archive": {
     "athlete": "Jij",
@@ -2996,6 +3009,7 @@
     "review": "Verbinding controleren",
     "profile": {
       "waiting": "Atletenprofiel lezen…"
-    }
+    },
+    "missing": "intervals.icu is niet verbonden. Maak verbinding om trainingen aan je kalender toe te voegen."
   }
 }

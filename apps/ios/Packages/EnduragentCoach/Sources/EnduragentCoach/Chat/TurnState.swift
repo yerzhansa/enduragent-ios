@@ -25,6 +25,7 @@ public enum TurnState: Sendable, Equatable {
 			case .tryAgain?:
 				return true
 			case .wait?, .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?,
+				.connectTraining?,
 				nil:
 				return false
 			}

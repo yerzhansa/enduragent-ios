@@ -515,7 +515,20 @@
         "title": "기존 웹훅 삭제"
       }
     },
-    "modelAccessTitle": "모델 접근"
+    "modelAccessTitle": "모델 접근",
+    "training": {
+      "section": "훈련 연결",
+      "title": "intervals.icu",
+      "replace": "키 교체",
+      "keep": "현재 연결 유지",
+      "disconnect": "연결 해제",
+      "disconnectTitle": "intervals.icu 연결을 해제할까요?",
+      "disconnectDetail": "대화와 기록은 계속 볼 수 있습니다.",
+      "switchTitle": "다른 선수를 사용할까요?",
+      "switchDetail": "이 키는 선수 {{new}}의 것입니다. 저장된 작업은 선수 {{current}}의 것입니다. 이 키를 사용하도록 전환할까요?",
+      "switch": "선수 전환",
+      "athlete": "선수 {{id}}"
+    }
   },
   "archive": {
     "athlete": "나",
@@ -2956,6 +2969,7 @@
     "review": "연결 확인",
     "profile": {
       "waiting": "선수 프로필 읽는 중…"
-    }
+    },
+    "missing": "intervals.icu가 연결되지 않았습니다. 운동을 캘린더에 추가하려면 연결하세요."
   }
 }

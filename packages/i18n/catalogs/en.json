@@ -883,7 +883,8 @@
     "review": "Review connection",
     "profile": {
       "waiting": "Reading athlete profile…"
-    }
+    },
+    "missing": "intervals.icu is not connected. Connect to add workouts to your calendar."
   },
   "credits": {
     "error": {
@@ -2164,7 +2165,20 @@
       "title": "Units",
       "unavailable": "Units preference unavailable"
     },
-    "modelAccessTitle": "Model access"
+    "modelAccessTitle": "Model access",
+    "training": {
+      "section": "Training connection",
+      "title": "intervals.icu",
+      "replace": "Replace key",
+      "keep": "Keep current connection",
+      "disconnect": "Disconnect",
+      "disconnectTitle": "Disconnect intervals.icu?",
+      "disconnectDetail": "Your conversation and History stay available.",
+      "switchTitle": "Use another athlete?",
+      "switchDetail": "This key belongs to athlete {{new}}. Saved work belongs to athlete {{current}}. Switch to use this key?",
+      "switch": "Switch athlete",
+      "athlete": "Athlete {{id}}"
+    }
   },
   "setup": {
     "ai": {

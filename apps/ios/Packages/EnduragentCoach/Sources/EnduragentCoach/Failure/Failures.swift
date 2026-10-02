@@ -144,6 +144,7 @@ public enum RecoveryAction: Sendable, Equatable {
 	case buyCredits
 	case chooseAccessMethod
 	case signInToOpenRouter
+	case connectTraining
 
 	public var title: CatalogKey {
 		switch self {
@@ -152,6 +153,7 @@ public enum RecoveryAction: Sendable, Equatable {
 		case .buyCredits: Catalog.chatTurnBuyCredits
 		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
 		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
+		case .connectTraining: Catalog.onboardingConnectAction
 		}
 	}
 }
@@ -212,6 +214,8 @@ package enum AthleteNotices {
 			return AthleteNotice(key: notice.key, vars: notice.vars, action: nil)
 		case .blocked(.accountChanged):
 			return AthleteNotice(key: accountChanged.key, vars: accountChanged.vars, action: nil)
+		case .blocked(.trainingNotConnected):
+			return AthleteNotice(key: Catalog.connectMissing, action: .connectTraining)
 		case .blocked(.cannotVerify):
 			return AthleteNotice(
 				key: Catalog.reviewCannotVerify, vars: ["service": intervals], action: nil)

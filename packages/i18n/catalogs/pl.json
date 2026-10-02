@@ -518,7 +518,20 @@
       }
     },
     "title": "Ustawienia",
-    "modelAccessTitle": "Dostęp do modelu"
+    "modelAccessTitle": "Dostęp do modelu",
+    "training": {
+      "section": "Połączenie treningowe",
+      "title": "intervals.icu",
+      "replace": "Zastąp klucz",
+      "keep": "Zachowaj obecne połączenie",
+      "disconnect": "Rozłącz",
+      "disconnectTitle": "Rozłączyć intervals.icu?",
+      "disconnectDetail": "Rozmowa i historia pozostają dostępne.",
+      "switchTitle": "Użyć innego sportowca?",
+      "switchDetail": "Ten klucz należy do sportowca {{new}}. Zapisana praca należy do sportowca {{current}}. Przełączyć, aby użyć tego klucza?",
+      "switch": "Zmień sportowca",
+      "athlete": "Sportowiec {{id}}"
+    }
   },
   "archive": {
     "athlete": "Ty",
@@ -3076,6 +3089,7 @@
     "review": "Sprawdź połączenie",
     "profile": {
       "waiting": "Odczytywanie profilu sportowca…"
-    }
+    },
+    "missing": "intervals.icu nie jest połączone. Połącz je, aby dodawać treningi do kalendarza."
   }
 }

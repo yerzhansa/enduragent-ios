@@ -25,7 +25,7 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Entry | Handle | What to inspect |
 | --- | --- | --- |
 | Credits | `debug.credits` | Developer grant, balance, identity, and purchase diagnostics. Athlete Credits is `settings.credits`. |
-| Credentials | `debug.credentials` | Connection, replacement, confirmed athlete switch, disconnect, fixture keychain lock and failed write. See [onboarding.md](./onboarding.md). |
+| Credential fixture controls | `fixture.connection`, `fixture.failCredentialWrite`, `fixture.toggleKeychainLock` | Connection identity, failed write and lock/unlock hooks only. Product connection actions are Settings > intervals.icu. See [settings.md](./settings.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
 | Session | `debug.session` | History ratio and context-window override in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
@@ -38,11 +38,11 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 
 | Feature | Coverage |
 | --- | --- |
-| [Onboarding](./onboarding.md) | Health notice, intervals.icu connection, starter Credits, storage availability, and credential Debug actions. |
+| [Onboarding](./onboarding.md) | Health notice, intervals.icu connection, starter Credits, and storage availability. |
 | [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
 | [Workout review](./workout-preview.md) | Approve or cancel, durable outcomes, account changes, v1 notice connected and disconnected, and French review text. |
-| [Settings](./settings.md) | Toolbar navigation, Credits under Model access, draft and setup continuity, and French icon actions in light and dark. |
+| [Settings](./settings.md) | Toolbar navigation, Credits under Model access, intervals.icu connection and calendar guidance, draft and setup continuity, and French icon actions in light and dark. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
 | [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, and recovery links from a turn. |
 

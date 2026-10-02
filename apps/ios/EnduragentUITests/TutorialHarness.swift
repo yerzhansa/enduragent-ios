@@ -42,8 +42,6 @@ enum TutorialHarness {
 	static let historyUnavailable = "Conversation history is temporarily unavailable."
 	static let receivedBeforeClose = "Received before the app closed. Tap Try again to send it."
 	static let notSent = "Not sent. Your draft is still here."
-	static let keptCurrentKey = "Kept the current key."
-	static let previousKeyKept = "Previous key kept."
 	static let tryAgain = "Try again"
 	static let summaryHead = "[Previous conversation summary]"
 	static let draft = "Is Thursday still on?"
@@ -343,10 +341,11 @@ enum TutorialHarness {
 	}
 
 	static func openCredentials(_ app: XCUIApplication) {
-		openDebug(app)
-		let credentials = debugRow(app, "debug.credentials")
-		credentials.tap()
-		wait(named(app, "credentials.outcome"))
+		openSettings(app)
+		let connection = named(app, "settings.training")
+		wait(connection, until: .hittable)
+		connection.tap()
+		wait(named(app, "training.edit"))
 	}
 
 	static func waitForIdentifier(

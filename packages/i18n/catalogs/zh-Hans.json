@@ -515,7 +515,20 @@
       }
     },
     "title": "设置",
-    "modelAccessTitle": "模型访问"
+    "modelAccessTitle": "模型访问",
+    "training": {
+      "section": "训练连接",
+      "title": "intervals.icu",
+      "replace": "替换密钥",
+      "keep": "保留当前连接",
+      "disconnect": "断开连接",
+      "disconnectTitle": "断开 intervals.icu 连接？",
+      "disconnectDetail": "对话和历史记录仍可查看。",
+      "switchTitle": "使用其他运动员？",
+      "switchDetail": "此密钥属于运动员 {{new}}。已保存的内容属于运动员 {{current}}。是否切换以使用此密钥？",
+      "switch": "切换运动员",
+      "athlete": "运动员 {{id}}"
+    }
   },
   "archive": {
     "athlete": "您",
@@ -2956,6 +2969,7 @@
     "review": "检查连接",
     "profile": {
       "waiting": "正在读取运动员资料…"
-    }
+    },
+    "missing": "尚未连接 intervals.icu。连接后可将训练添加到日历。"
   }
 }
