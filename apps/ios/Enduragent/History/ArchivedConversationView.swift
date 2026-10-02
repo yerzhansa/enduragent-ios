@@ -49,6 +49,7 @@ struct ArchivedConversationView: View {
 				}
 			}
 			.listStyle(.plain)
+			.accessibilityIdentifier("archive.content")
 			Text(say(Catalog.archiveReadOnly))
 				.font(.footnote)
 				.foregroundStyle(.secondary)

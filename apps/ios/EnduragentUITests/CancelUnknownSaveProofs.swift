@@ -102,6 +102,7 @@ enum ReviewRecoveryScreen {
 		if !locked {
 			TutorialHarness.openSidebar(app)
 			TutorialHarness.named(app, "sidebar.debug").tap()
+			TutorialHarness.scroll(app, to: TutorialHarness.named(app, "fixture.calendarReadFault"))
 			TutorialHarness.waitForIdentifier(
 				app, "fixture.calendarReadFault", reading: "Calendar read fault armed")
 			TutorialHarness.closeMenu(app)
@@ -130,7 +131,9 @@ enum ReviewRecoveryScreen {
 		row.tap()
 		TutorialHarness.waitForLabel(app, cancelled)
 		XCTAssertEqual(textCount(app, cancelled), 1)
-		assertButtons(app, .none, enabled: true)
+		let archive = TutorialHarness.named(app, "archive.content")
+		TutorialHarness.wait(archive)
+		assertButtons(archive, .none, enabled: true)
 		capture(test, app, name: "cancel-history-note", dark: dark)
 	}
 
@@ -196,8 +199,8 @@ enum ReviewRecoveryScreen {
 		return app
 	}
 
-	static func assertButtons(_ app: XCUIApplication, _ layout: Layout, enabled: Bool) {
-		let controls = app.buttons.matching(
+	static func assertButtons(_ container: XCUIElement, _ layout: Layout, enabled: Bool) {
+		let controls = container.buttons.matching(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview."))
 		let expected = layout.buttons
 		TutorialHarness.wait(
@@ -211,7 +214,7 @@ enum ReviewRecoveryScreen {
 		XCTAssertEqual(
 			Set(controls.allElementsBoundByIndex.filter(\.isEnabled).map(\.identifier)),
 			enabled ? Set(expected.keys) : [])
-		XCTAssertFalse(app.buttons["Try again"].exists)
+		XCTAssertFalse(container.buttons["Try again"].exists)
 	}
 
 	private static func assertNote(_ app: XCUIApplication) {
@@ -227,11 +230,7 @@ enum ReviewRecoveryScreen {
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
 		let target = TutorialHarness.named(app, id)
-		for _ in 0..<6 {
-			if target.exists && target.isHittable { break }
-			app.swipeUp()
-		}
-		TutorialHarness.wait(target, until: .hittable)
+		TutorialHarness.scroll(app, to: target)
 		target.tap()
 		TutorialHarness.closeMenu(app)
 	}
@@ -240,11 +239,7 @@ enum ReviewRecoveryScreen {
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
 		let count = TutorialHarness.named(app, "fixture.calendarCalls")
-		for _ in 0..<6 {
-			if count.exists && count.isHittable { break }
-			app.swipeUp()
-		}
-		TutorialHarness.wait(count)
+		TutorialHarness.scroll(app, to: count)
 		let value = count.label
 		TutorialHarness.closeMenu(app)
 		return value

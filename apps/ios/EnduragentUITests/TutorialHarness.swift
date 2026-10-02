@@ -301,13 +301,33 @@ enum TutorialHarness {
 		closeMenu(app)
 	}
 
+	enum ScrollDirection {
+		case up, down
+	}
+
+	static func scroll(
+		_ app: XCUIApplication, to element: XCUIElement, direction: ScrollDirection = .up
+	) {
+		wait(
+			until: {
+				if element.exists && element.isHittable { return true }
+				switch direction {
+				case .up: app.swipeUp()
+				case .down: app.swipeDown()
+				}
+				return element.exists && element.isHittable
+			}, message: "Could not scroll to \(element)")
+	}
+
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
 		let count = named(app, "fixture.requestCount")
-		wait(count)
+		scroll(app, to: count)
 		XCTAssertEqual(count.label, "0 requests")
-		named(app, "debug.records").tap()
+		let records = named(app, "debug.records")
+		scroll(app, to: records, direction: .down)
+		records.tap()
 		wait(named(app, "records.device"))
 	}
 
@@ -356,7 +376,7 @@ enum TutorialHarness {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
 		let count = named(app, "fixture.requestCount")
-		wait(count)
+		scroll(app, to: count)
 		XCTAssertEqual(count.label, "0 requests")
 		closeMenu(app)
 	}
