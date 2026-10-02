@@ -69,6 +69,21 @@
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
+            key = "ENDURAGENT_CHOICES_FRESH"
+            value = "$(ENDURAGENT_CHOICES_FRESH)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_CHOICES_MESSAGE"
+            value = "$(ENDURAGENT_CHOICES_MESSAGE)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_CHOICES_MODEL"
+            value = "$(ENDURAGENT_CHOICES_MODEL)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "ENDURAGENT_PHONE_MESSAGE_BUDGET"
             value = "$(ENDURAGENT_PHONE_MESSAGE_BUDGET)"
             isEnabled = "YES">

@@ -122,6 +122,11 @@ extension TurnRunnerTests {
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
 		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
+		#expect(
+			prompt.contains(
+				"Ask material choices between coaching or Plan directions as numbered text."))
+		#expect(prompt.contains("Ask ordinary questions in text."))
+		#expect(prompt.contains("Give 2–5 options"))
 		#expect(prompt.contains("Never offer numbered choices for medical red flags"))
 		#expect(
 			prompt.contains(
