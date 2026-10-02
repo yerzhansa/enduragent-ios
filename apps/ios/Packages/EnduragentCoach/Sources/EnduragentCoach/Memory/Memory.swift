@@ -302,7 +302,7 @@ package struct Memory: Sendable {
 		return MemorySnapshot(
 			sections: sections,
 			daily: daily,
-			ledgerRecords: events,
+			ledgerRecords: UnionMerge.ledger(events),
 			journalRecords: journal,
 			compaction: compaction,
 			orphanNames: orphanNames(in: sections)

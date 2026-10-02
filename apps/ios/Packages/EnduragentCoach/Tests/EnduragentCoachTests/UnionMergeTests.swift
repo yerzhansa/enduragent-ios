@@ -64,8 +64,7 @@ import Testing
 						date: "1998-06-14", kind: .illness, text: "Knee niggle.", source: .chat)))
 		)
 		let events = UnionMerge.ledger([duplicate, extra, first])
-		#expect(events.map(\.text) == ["Keep Saturdays free.", "Knee niggle."])
-		#expect(events.map(\.kind) == [.decision, .illness])
+		#expect(events == [first, extra])
 	}
 
 	@Test func proposalClearedThenAbsent() {
@@ -126,28 +125,7 @@ import Testing
 		#expect(UnionMerge.pendingProposalRecord([live, canceled], chatId: .main, now: now) == nil)
 	}
 
-	@Test func planningDeviceAndReplyLanguageHighestHLC() {
-		let firstDevice = record(
-			device: phoneA,
-			wall: 1,
-			ulid: ulid(1),
-			body: .synced(
-				.planningDevice(
-					PlanningDeviceBody(
-						planningDeviceId: phoneA, planUlid: ulid(10),
-						activatedAt: Date(timeIntervalSince1970: 10))))
-		)
-		let secondDevice = record(
-			device: phoneB,
-			wall: 2,
-			ulid: ulid(2),
-			body: .synced(
-				.planningDevice(
-					PlanningDeviceBody(
-						planningDeviceId: phoneB, planUlid: ulid(11),
-						activatedAt: Date(timeIntervalSince1970: 20))))
-		)
-		#expect(UnionMerge.planningDevice([firstDevice, secondDevice])?.planningDeviceId == phoneB)
+	@Test func replyLanguageHighestHLC() {
 		let italian = record(
 			device: phoneA,
 			wall: 3,

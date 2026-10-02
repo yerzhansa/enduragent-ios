@@ -10,14 +10,14 @@ package enum UnionMerge {
 		}.first
 	}
 
-	package static func ledger(_ records: [AthleteRecord]) -> [LedgerEventBody] {
+	package static func ledger(_ records: [AthleteRecord]) -> [AthleteRecord] {
 		var seen: Set<String> = []
-		var events: [LedgerEventBody] = []
+		var events: [AthleteRecord] = []
 		for record in inHLCOrder(records) {
 			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
 			let digest = ledgerDigest(date: body.date, kind: body.kind, text: body.text)
 			if seen.insert(digest).inserted {
-				events.append(body)
+				events.append(record)
 			}
 		}
 		return events
@@ -30,13 +30,6 @@ package enum UnionMerge {
 			.string(date.rawValue), .string(kind.rawValue), .string(normalized),
 		]).canonicalDigestInput()
 		return sha256Hex(input)
-	}
-
-	package static func planningDevice(_ records: [AthleteRecord]) -> PlanningDeviceBody? {
-		inHLCOrder(records).reversed().compactMap { record -> PlanningDeviceBody? in
-			guard case .synced(.planningDevice(let body)) = record.body else { return nil }
-			return body
-		}.first
 	}
 
 	package static func pendingProposal(
