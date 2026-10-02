@@ -32,6 +32,7 @@
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)
 			FirstWeekFixture.install(on: intervals)
+			FirstWeekFixture.install(launch.trainingDisplay, on: intervals)
 			intervals.loseCalendarSaveAnswerOnce = launch.calendarSaveFault == .loseAnswerOnce
 			intervals.failCalendarReadOnce = launch.calendarReadFault == .failOnce
 			let transport = FakeModelTransport(
@@ -48,6 +49,7 @@
 				try FirstWeekFixture.install(on: secrets)
 			}
 			secretFixture.backing.locked = launch.keychain == .locked
+			secretFixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			let host: any ExecutionHost

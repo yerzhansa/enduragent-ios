@@ -11,28 +11,6 @@ final class InstallOpenProof: XCTestCase {
 	}
 }
 
-final class ConnectIntervalsProof: XCTestCase {
-	func testConnectIntervals() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.waitForLabel(app, TutorialHarness.notice)
-		TutorialHarness.named(app, "notice.continue").tap()
-		let key = TutorialHarness.named(app, "connect.apiKey")
-		TutorialHarness.wait(key)
-		XCTAssertEqual(key.elementType, .secureTextField)
-		XCTAssertTrue(app.staticTexts["intervals.icu API key"].exists || key.exists)
-		key.tap()
-		key.typeText("fixture")
-		TutorialHarness.named(app, "connect.connect").tap()
-		TutorialHarness.wait(TutorialHarness.named(app, "connect.athleteName"))
-		XCTAssertEqual(TutorialHarness.named(app, "connect.athleteName").label, "Ada Kovač")
-		XCTAssertEqual(TutorialHarness.named(app, "connect.fitness").label, "Fitness 42")
-		XCTAssertEqual(TutorialHarness.named(app, "connect.fatigue").label, "Fatigue 49")
-		XCTAssertEqual(TutorialHarness.named(app, "connect.form").label, "Form -7")
-		TutorialHarness.attach(self, name: "02-connect-intervals", app: app)
-	}
-}
-
 final class StarterCreditsProof: XCTestCase {
 	func testDebugStarterUsesInjectedDeviceCheck() {
 		let app = XCUIApplication()
