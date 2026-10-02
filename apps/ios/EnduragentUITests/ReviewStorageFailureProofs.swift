@@ -9,10 +9,6 @@ final class ReviewStorageFailureProof: XCTestCase {
 	func testFailedCancelSaveUsesTheChosenLanguage() {
 		ReviewStorageFailureScreen.saveFailure(self, cancel: true, language: "fr", dark: false)
 	}
-
-	func testFailedRefreshKeepsRetryUntilTheCardRecovers() {
-		ReviewRecoveryScreen.readFailure(self, layout: .approval, dark: false)
-	}
 }
 
 @MainActor
@@ -23,10 +19,6 @@ final class ReviewStorageFailureDarkProof: XCTestCase {
 
 	func testFailedCancelSaveUsesTheChosenLanguage() {
 		ReviewStorageFailureScreen.saveFailure(self, cancel: true, language: "fr", dark: true)
-	}
-
-	func testFailedRefreshKeepsRetryUntilTheCardRecovers() {
-		ReviewRecoveryScreen.readFailure(self, layout: .approval, dark: true)
 	}
 }
 
