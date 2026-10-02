@@ -187,7 +187,7 @@ import Testing
 		#expect(
 			interrupted.notice
 				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil))
-		#expect(!state.retryable)
+		#expect(turnNotice(of: state)?.action == nil)
 	}
 
 	@Test func graceEndedSettlesTheRunningTurnAsGraceEnded() async throws {

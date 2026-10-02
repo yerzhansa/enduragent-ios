@@ -56,7 +56,7 @@ import Testing
 		#expect(!notice.sentence(in: LanguageTag.en.phrasebook).contains("nothing was changed"))
 		#expect(server.events.count == 1)
 		#expect(server.posts.count == 1)
-		#expect(await coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await coach.state(of: turn)))?.action == nil)
 	}
 
 	@Test func landedWritePersistenceFailureDoesNotSuggestTryAgain() async throws {
@@ -100,7 +100,7 @@ import Testing
 		await fixture.coach.stop(.main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(server.posts.count == 1)
 	}
 
@@ -154,7 +154,7 @@ import Testing
 			} == [CancelUnknownSaveTests.sentence])
 		server.release()
 		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)
-		#expect(await reopened.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await reopened.state(of: turn)))?.action == nil)
 		#expect(await reopened.currentSnapshot(.main)?.review == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)

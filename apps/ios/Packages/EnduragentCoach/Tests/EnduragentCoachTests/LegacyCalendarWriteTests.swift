@@ -32,7 +32,7 @@ extension DurableCalendarWriteTests {
 			transport: FakeModelTransport(), intervals: fixture.client, store: store)
 		let review = try #require(await reopened.currentSnapshot(.main)?.review)
 		#expect(review.controls == .checkAgain(review.ref))
-		#expect(await reopened.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await reopened.state(of: turn)))?.action == nil)
 		let outcome = await reopened.decide(.checkAgain(review.ref), in: .main)
 		if found {
 			#expect(

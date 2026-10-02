@@ -59,7 +59,6 @@ extension RetryLadderTests {
 					== WriteSummary(
 						memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 1))
 			#expect(savedWork.notice.action == nil)
-			#expect(!settled.retryable)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await coach.retry(turn, in: .main)
 			}

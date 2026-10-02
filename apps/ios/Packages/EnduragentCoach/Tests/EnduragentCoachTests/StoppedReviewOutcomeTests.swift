@@ -18,7 +18,9 @@ extension RetryLadderTests {
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
 		await original.stop(.main)
-		#expect(await settledTurn(turn, on: original)?.retryable == true)
+		#expect(
+			turnNotice(of: try #require(await settledTurn(turn, on: original)))?.action
+				== .tryAgain(turn))
 		let coach =
 			reopenBeforeApproval
 			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
@@ -37,7 +39,6 @@ extension RetryLadderTests {
 			Issue.record("expected an interrupted turn")
 			return
 		}
-		#expect(!settled.retryable)
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(interrupted.notice.action == nil)
@@ -82,7 +83,7 @@ extension RetryLadderTests {
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
 		await coach.stop(.main)
-		#expect(await settledTurn(turn, on: coach)?.retryable == false)
+		#expect(turnNotice(of: try #require(await settledTurn(turn, on: coach)))?.action == nil)
 		held.advance(by: .seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("a dispatched rejection is not proof of absence")
@@ -93,7 +94,6 @@ extension RetryLadderTests {
 			Issue.record("expected an interrupted turn")
 			return
 		}
-		#expect(!settled.retryable)
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(interrupted.saved.memorySections == (memorySaved ? 1 : 0))
