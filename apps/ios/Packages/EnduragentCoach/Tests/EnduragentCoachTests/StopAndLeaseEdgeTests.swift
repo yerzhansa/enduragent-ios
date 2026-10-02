@@ -75,7 +75,7 @@ import Testing
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		await coach.lifecycle(.willTerminate)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.appTerminating))
 		#expect(host.leases.count == 1)
 	}
 
@@ -132,9 +132,9 @@ import Testing
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let turn = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
-		let settled = try #require(await coach.settledState(of: turn, in: .main))
+		_ = try #require(await coach.settledState(of: turn, in: .main))
 		let lease = await host.ended(0)
-		#expect(lease?.ending == .finished(nil))
+		#expect(lease?.ending == .failed(nil))
 		#expect(host.leases.count == 1)
 	}
 
@@ -147,11 +147,12 @@ import Testing
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		_ = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
-		}
+		_ = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				$0.turns.last?.state == .accepted(.queued(position: 2))
+			})
 		await coach.stop(.main)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		#expect(host.leases.count == 1)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Three."), .finish(reason: .stop)])

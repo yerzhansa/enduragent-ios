@@ -5,7 +5,7 @@ History contains archived conversations and opens each one read-only. There is s
 ## Sub-features
 
 - `history-empty` shows `No past conversations yet. Starting a new conversation keeps the old one here.` when nothing has been archived.
-- `history-list` lists archived conversations newest first under the catalog title `Past chats`. Rows show the first athlete message, close reason, and start day.
+- `history-list` lists archived conversations newest first under the catalog title `History`, shared with the toolbar action. Rows show the first athlete message, close reason, and start day.
 - `history-reasons` shows `You started a new conversation` or `Earlier chat` for New conversation or v1 content respectively.
 - `history-archived` opens `Past conversation` with the saved turns and review outcomes. `archive.readOnly` says `Past conversations are read-only.` There is no active composer or recovery action in the archived content.
 - `history-formatted` uses the same reply renderer as Chat, including dimmed stopped text and the whole-source parser fallback.
@@ -14,7 +14,7 @@ History contains archived conversations and opens each one read-only. There is s
 
 ## How to get to it (user POV)
 
-- Choose Menu, then History from the ongoing conversation.
+- Tap the toolbar History icon from the ongoing conversation.
 - Tap a `history.row.<id>` to read an archived conversation.
 - Create an archive with the compose icon labeled New conversation or `/start`. The [conversation map](./chat.md) covers those paths.
 
@@ -42,5 +42,5 @@ Compare the 50-archive and empty measurements under a one-minute load below 20. 
 - Match the `history.row.` prefix. Its suffix is the boundary identifier or the earlier conversation identifier, not a stable sequence number.
 - The fixture date is 1998-06-15 unless the proof supplies another clock instant.
 - History reloads when it appears. It does not provide an action to resume an archived conversation.
-- The Menu sheet leaves the ongoing conversation's controls in the accessibility tree behind it. Assert they are not hittable while reading History.
+- History pushes onto the conversation navigation stack. The ongoing conversation controls must not be hittable while reading an archive.
 - Consecutive resets with no messages do not create empty History rows.

@@ -19,7 +19,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - Enter an intervals.icu key and choose Connect, or choose Skip for now.
 - Choose Continue after connection, then Start chatting after starter Credits.
 - Read Your coach uses AI, then choose Agree and continue or Not now. After Not now, tap Agree and continue once to open chat. A saved turn refused for missing consent stays unchanged after agreement until the athlete taps Try again.
-- From the conversation, choose Menu, Debug, Credentials. The controls are Replace, Blank key, Cancel, Switch athlete, and Disconnect. Fixture builds also offer Lock keychain and Fail next write.
+- From the conversation, choose Settings, Debug, Credentials. The controls are Replace, Blank key, Cancel, Switch athlete, and Disconnect. Fixture builds also offer Lock keychain and Fail next write.
 - Choose access method under a turn notice returns to the connect step; finishing it returns to the existing conversation.
 
 ## Driving it with sim.mjs and XCUITest

@@ -515,7 +515,8 @@
         "title": "Supprimer le webhook existant"
       }
     },
-    "title": "Paramètres"
+    "title": "Paramètres",
+    "modelAccessTitle": "Accès au modèle"
   },
   "archive": {
     "athlete": "Toi",

@@ -515,7 +515,8 @@
         "remove": "Ta bort webhook",
         "title": "Ta bort den befintliga webhooken"
       }
-    }
+    },
+    "modelAccessTitle": "Modellåtkomst"
   },
   "archive": {
     "athlete": "Du",

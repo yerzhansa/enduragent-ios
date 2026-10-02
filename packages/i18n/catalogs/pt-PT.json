@@ -548,7 +548,8 @@
       "saving": "A guardar unidades…",
       "title": "Unidades",
       "unavailable": "Preferência de unidades indisponível"
-    }
+    },
+    "modelAccessTitle": "Acesso ao modelo"
   },
   "setup": {
     "ai": {

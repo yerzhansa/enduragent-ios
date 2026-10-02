@@ -36,7 +36,7 @@ enum ReviewStorageFailureScreen {
 			TutorialHarness.wait(french, until: .hittable)
 			french.tap()
 			TutorialHarness.wait(app.navigationBars["Choisis ta langue"])
-			TutorialHarness.named(app, "language.close").tap()
+			TutorialHarness.returnToChat(app)
 			TutorialHarness.waitForLabel(app, "Vérification de la séance")
 		}
 		let calls = ReviewRecoveryScreen.calendarCalls(app)

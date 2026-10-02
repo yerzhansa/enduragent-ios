@@ -11,7 +11,6 @@ enum TutorialHarness {
 	static let weekReply = "Tuesday sweet spot"
 	static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 	static let reviewReply = "Saturday group ride"
-	static let welcomeHead = "Welcome to Cycling Coach!"
 	static let newConversationStarted = "New conversation started."
 	static let newConversationMemoryWarning =
 		"New conversation started. Some recent details may not have been saved to coach memory."
@@ -217,11 +216,13 @@ enum TutorialHarness {
 		wait(text(app, containing: label), within: limit)
 	}
 
-	static func waitForWelcome(_ app: XCUIApplication, within limit: Timeout = .screen) {
+	static func waitForWelcome(
+		_ app: XCUIApplication, within limit: Timeout = .screen, language: LanguageTag = .en
+	) {
 		let welcome = named(app, "chat.welcome")
 		wait(welcome, within: limit)
-		XCTAssertTrue(welcome.label.hasPrefix(welcomeHead), "welcome reads \(welcome.label)")
-		let phrasebook = CatalogPhrasebook(tag: .en)
+		let phrasebook = CatalogPhrasebook(tag: language)
+		XCTAssertEqual(welcome.label, Welcome.text(in: phrasebook))
 		let commands = welcome.label.split(separator: "\n").filter { $0.hasPrefix("/") }
 		XCTAssertEqual(
 			commands.map(String.init),
@@ -235,16 +236,17 @@ enum TutorialHarness {
 			})
 	}
 
-	static func startNewConversation(_ app: XCUIApplication) {
+	static func startNewConversation(_ app: XCUIApplication, language: LanguageTag = .en) {
 		let button = named(app, "chat.newConversation")
 		wait(button, until: .hittable)
 		button.tap()
-		waitForWelcome(app)
+		waitForWelcome(app, language: language)
 	}
 
 	static func openHistory(_ app: XCUIApplication) {
-		openSidebar(app)
-		named(app, "sidebar.history").tap()
+		let history = named(app, "chat.history")
+		wait(history, until: .hittable)
+		history.tap()
 	}
 
 	static func historyRows(_ app: XCUIApplication) -> XCUIElementQuery {
@@ -285,18 +287,25 @@ enum TutorialHarness {
 		wait(text(app, containing: "Day 100. This week has"))
 	}
 
-	static func openSidebar(_ app: XCUIApplication) {
-		let sidebar = named(app, "chat.sidebar")
-		wait(sidebar, until: .hittable)
-		sidebar.tap()
-		wait(named(app, "sidebar.credits"))
+	static func openSettings(_ app: XCUIApplication) {
+		let settings = named(app, "chat.settings")
+		wait(settings, until: .hittable)
+		settings.tap()
+		wait(named(app, "settings.credits"))
+	}
+
+	static func openDebug(_ app: XCUIApplication) {
+		openSettings(app)
+		let debug = named(app, "settings.debug")
+		wait(debug, until: .hittable)
+		debug.tap()
+		_ = debugRow(app, "debug.records")
 	}
 
 	static func fixtureControl(_ app: XCUIApplication, _ identifier: String) {
-		openSidebar(app)
-		named(app, "sidebar.debug").tap()
+		openDebug(app)
 		debugRow(app, identifier).tap()
-		closeMenu(app)
+		returnToChat(app)
 	}
 
 	enum ScrollDirection {
@@ -326,8 +335,7 @@ enum TutorialHarness {
 	}
 
 	static func openRecords(_ app: XCUIApplication) {
-		openSidebar(app)
-		named(app, "sidebar.debug").tap()
+		openDebug(app)
 		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
 		debugRow(app, "debug.records", direction: .down).tap()
@@ -335,10 +343,8 @@ enum TutorialHarness {
 	}
 
 	static func openCredentials(_ app: XCUIApplication) {
-		openSidebar(app)
-		named(app, "sidebar.debug").tap()
-		let credentials = named(app, "debug.credentials")
-		wait(credentials)
+		openDebug(app)
+		let credentials = debugRow(app, "debug.credentials")
 		credentials.tap()
 		wait(named(app, "credentials.outcome"))
 	}
@@ -353,32 +359,35 @@ enum TutorialHarness {
 		wait(element, within: limit)
 	}
 
-	static func closeMenu(_ app: XCUIApplication) {
-		let sidebar = named(app, "chat.sidebar")
-		for _ in 0..<3 {
-			app.swipeDown(velocity: .fast)
-			if wait(sidebar, until: .hittable, within: .probe, required: false) {
-				break
-			}
+	static func returnToChat(_ app: XCUIApplication) {
+		let settings = named(app, "chat.settings")
+		for _ in 0..<4 {
+			if settings.exists && settings.isHittable { break }
+			let bar = app.navigationBars.firstMatch
+			let title = bar.identifier
+			let back = bar.buttons.firstMatch
+			wait(back, until: .hittable)
+			back.tap()
+			wait(
+				until: { app.navigationBars.firstMatch.identifier != title },
+				message: "Back did not leave \(title)")
 		}
-		wait(sidebar, until: .hittable)
+		wait(settings, until: .hittable)
 		wait(named(app, "chat.composer"))
 	}
 
 	static func historyHead(_ app: XCUIApplication) -> String {
-		openSidebar(app)
-		named(app, "sidebar.debug").tap()
+		openDebug(app)
 		let head = debugRow(app, "fixture.historyHead")
 		let label = head.label
-		closeMenu(app)
+		returnToChat(app)
 		return label
 	}
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
-		openSidebar(app)
-		named(app, "sidebar.debug").tap()
+		openDebug(app)
 		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
-		closeMenu(app)
+		returnToChat(app)
 	}
 }

@@ -100,13 +100,12 @@ enum ReviewRecoveryScreen {
 		XCTAssertFalse(app.staticTexts["Workout review"].exists)
 		XCTAssertEqual(calendarCalls(app), before, "Cancel made a calendar request")
 		if !locked {
-			TutorialHarness.openSidebar(app)
-			TutorialHarness.named(app, "sidebar.debug").tap()
+			TutorialHarness.openDebug(app)
 			let fault = TutorialHarness.debugRow(app, "fixture.calendarReadFault")
 			TutorialHarness.wait(
 				until: { fault.label == "Calendar read fault armed" },
 				message: "Calendar read fault was consumed by Cancel")
-			TutorialHarness.closeMenu(app)
+			TutorialHarness.returnToChat(app)
 		}
 		capture(test, app, name: locked ? "cancel-locked" : "cancel-offline", dark: dark)
 		TutorialHarness.relaunchKeepingStore(app, keychain: .unlocked)
@@ -239,26 +238,21 @@ enum ReviewRecoveryScreen {
 	}
 
 	private static func control(_ app: XCUIApplication, _ id: String) {
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
-		TutorialHarness.debugRow(app, id).tap()
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.fixtureControl(app, id)
 	}
 
 	static func calendarCalls(_ app: XCUIApplication) -> String {
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
+		TutorialHarness.openDebug(app)
 		let count = TutorialHarness.debugRow(app, "fixture.calendarCalls")
 		let value = count.label
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		return value
 	}
 
 	static func modelRequests(_ app: XCUIApplication) -> String {
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
+		TutorialHarness.openDebug(app)
 		let value = TutorialHarness.debugRow(app, "fixture.modelRequestCount").label
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		return value
 	}
 

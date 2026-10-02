@@ -6,7 +6,7 @@ extension ShellModel {
 		case .tryAgain(let turn), .wait(let turn):
 			await tryAgain(turn)
 		case .restoreCredits, .buyCredits:
-			showCredits = true
+			open(.credits)
 		case .chooseAccessMethod, .signInToOpenRouter:
 			route = .onboarding(.connect)
 		}

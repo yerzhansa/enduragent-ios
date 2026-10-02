@@ -41,21 +41,19 @@ final class LanguagePickerProof: XCTestCase {
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
-		let replyLanguage = TutorialHarness.named(app, "fixture.replyLanguage")
-		TutorialHarness.wait(replyLanguage)
+		TutorialHarness.openDebug(app)
+		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
 			replyLanguage.label.hasPrefix("The athlete chose French (Français)."),
 			"reply language reads \(replyLanguage.label)")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.attach(self, name: "m1-12-language-fr", app: app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(
 			TutorialHarness.recordCount(app, "languagePreference"), "languagePreference 1")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.attach(self, name: "m1-12-language-survives", app: app)
 	}
 
@@ -109,10 +107,8 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.attach(self, name: "m1-12-automatic-fr-phone", app: app)
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
-		let replyLanguage = TutorialHarness.named(app, "fixture.replyLanguage")
-		TutorialHarness.wait(replyLanguage)
+		TutorialHarness.openDebug(app)
+		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
 			replyLanguage.label.hasPrefix(
 				"No language is saved. Reply in the language of the athlete's latest message"),
@@ -120,7 +116,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		XCTAssertTrue(
 			replyLanguage.label.hasSuffix("reply in English (English)."),
 			"reply language reads \(replyLanguage.label)")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -204,7 +200,7 @@ final class OvernightConversationProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 2")
 		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.openHistory(app)
 		TutorialHarness.waitForLabel(app, "No past conversations yet.")
 		XCTAssertFalse(TutorialHarness.historyRows(app).firstMatch.exists)
@@ -243,7 +239,7 @@ final class SessionRejectionProof: XCTestCase {
 		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -270,7 +266,7 @@ final class RatioAppliesProof: XCTestCase {
 			SessionDebug.enter(app, "historyBudgetRatio", ratio)
 			XCTAssertEqual(
 				TutorialHarness.named(app, "session.historyBudgetRatio.outcome").label, "Saved")
-			TutorialHarness.closeMenu(app)
+			TutorialHarness.returnToChat(app)
 		}
 		for turn in 1...9 {
 			TutorialHarness.exchange(app, "fixture:long", within: .longTurn)
@@ -279,7 +275,7 @@ final class RatioAppliesProof: XCTestCase {
 			if written, ratio != nil {
 				TutorialHarness.attach(self, name: "m1-12-ratio-applies", app: app)
 			}
-			TutorialHarness.closeMenu(app)
+			TutorialHarness.returnToChat(app)
 			if written {
 				return turn
 			}
@@ -290,10 +286,8 @@ final class RatioAppliesProof: XCTestCase {
 
 enum SessionDebug {
 	static func open(_ app: XCUIApplication) {
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
-		let session = TutorialHarness.named(app, "debug.session")
-		TutorialHarness.wait(session)
+		TutorialHarness.openDebug(app)
+		let session = TutorialHarness.debugRow(app, "debug.session")
 		session.tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "session.historyBudgetRatio.stored"))
 	}

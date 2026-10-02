@@ -48,8 +48,10 @@
 			switch record.ending {
 			case .finished(let notice)?:
 				parts.append(notice == nil ? "finished" : "finished with notice")
-			case .interrupted?:
-				parts.append("interrupted")
+			case .failed(let notice)?:
+				parts.append(notice == nil ? "failed" : "failed with notice")
+			case .interrupted(let cause)?:
+				parts.append("interrupted \(cause.rawValue)")
 			case nil:
 				parts.append("open")
 			}

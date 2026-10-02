@@ -106,6 +106,8 @@ private struct Lease: ExecutionLease {
 		host.update(index) { $0.progress = progress }
 	}
 
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {}
+
 	func end(_ ending: LeaseEnding) async {
 		host.update(index) { $0.ending = ending }
 	}

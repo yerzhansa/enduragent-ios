@@ -30,7 +30,7 @@ final class StopProof: XCTestCase {
 		let settled = TutorialHarness.settlementRows(app)
 		XCTAssertTrue(settled.first?.contains("interrupted athleteStopped") == true, "\(settled)")
 		TutorialHarness.attach(self, name: "stop-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
@@ -62,7 +62,7 @@ final class ExpiryProof: XCTestCase {
 		let claims = rows.filter { $0.hasPrefix("turnClaim") }
 		XCTAssertTrue(claims.first?.contains("continuedProcessing") == true, "\(claims)")
 		TutorialHarness.attach(self, name: "expiry-records", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
@@ -160,7 +160,7 @@ final class QueuedExpiryProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:hang")
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnClaim", "turnClaim 1")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.fixtureControl(app, "fixture.expire")
 		let stopped = app.staticTexts.matching(
@@ -185,7 +185,7 @@ final class ExpiryAfterSaveProof: XCTestCase {
 		TutorialHarness.send(app, "fixture:memory-then-hang")
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.fixtureControl(app, "fixture.expire")
 		TutorialHarness.wait(
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
@@ -201,8 +201,7 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.openSidebar(app)
-		TutorialHarness.named(app, "sidebar.debug").tap()
+		TutorialHarness.openDebug(app)
 		_ = TutorialHarness.debugRow(app, "fixture.requestCount")
 		TutorialHarness.debugRow(app, "debug.leases", direction: .down).tap()
 		let row = TutorialHarness.named(app, "leases.row.0")

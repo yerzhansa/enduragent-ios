@@ -98,7 +98,7 @@ import Testing
 			])
 		let lease = try #require(await host.ended(0))
 		#expect(lease.expiry == .systemExpired)
-		#expect(lease.ending == .interrupted)
+		#expect(lease.ending == .interrupted(.systemExpired))
 		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn) == state)
@@ -111,9 +111,10 @@ import Testing
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
 		let second = try #require(try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
-		}
+		_ = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				$0.turns.last?.state == .accepted(.queued(position: 2))
+			})
 		await host.expire(.systemExpired)
 		guard case .interrupted(let running)? = await coach.state(of: first),
 			case .interrupted(let queued)? = await coach.state(of: second)
@@ -128,7 +129,7 @@ import Testing
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(second)))
 		#expect(try await claims(of: second).isEmpty)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.systemExpired))
 		#expect(try #require(await coach.currentSnapshot(.main)).activity == .idle)
 	}
 
@@ -232,7 +233,7 @@ import Testing
 		#expect(
 			try #require(await coach.currentSnapshot(.main)).turns.first?.completedInBackground
 				== false)
-		#expect(await host.ended(0)?.ending == .finished(nil))
+		#expect(await host.ended(0)?.ending == .failed(nil))
 	}
 
 	@Test func aLateExpiryFromAnEndedLeaseStopsNothing() async throws {

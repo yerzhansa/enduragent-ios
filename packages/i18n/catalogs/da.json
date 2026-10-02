@@ -515,7 +515,8 @@
         "title": "Fjern den eksisterende webhook"
       }
     },
-    "title": "Indstillinger"
+    "title": "Indstillinger",
+    "modelAccessTitle": "Modeladgang"
   },
   "archive": {
     "athlete": "Du",

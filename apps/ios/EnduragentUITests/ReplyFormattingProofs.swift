@@ -46,7 +46,7 @@ private enum ReplyFormattingScreen {
 		ReplyProofScreen.scrollToEnd(app)
 		TutorialHarness.attach(test, name: "reply-formatted-history-end", app: app)
 		ReplyProofScreen.scrollToHeading(app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
@@ -93,7 +93,7 @@ final class ReplyStreamingStoppedProof: XCTestCase {
 		XCTAssertEqual(ReplyProofScreen.labels(app), stopped)
 		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.attach(self, name: "reply-formatted-stopped-history", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
@@ -113,7 +113,7 @@ final class ReplyFallbackProof: XCTestCase {
 		ReplyProofScreen.openArchive(app)
 		assertFallback(app)
 		TutorialHarness.attach(self, name: "reply-fallback-history", app: app)
-		TutorialHarness.closeMenu(app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
