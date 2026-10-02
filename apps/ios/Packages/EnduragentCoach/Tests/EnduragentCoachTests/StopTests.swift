@@ -27,7 +27,7 @@ import Testing
 			stopped.notice
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
@@ -145,7 +145,7 @@ import Testing
 		let answered = try #require(await coach.settledState(of: third, in: .main))
 		#expect(replyText(answered) == "Three.")
 		#expect(transport.requestCount == 2)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		#expect(
 			await host.ended(1)?.ending
 				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))

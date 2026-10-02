@@ -68,6 +68,8 @@
 					Array(repeating: .fail(failure), count: repeated.count) + normal)
 			case "memory-then-fail" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.fail(.http(status: 500))])
+			case "memory-until-system-interruption" where arguments.isEmpty:
+				return ScriptedReply(savedMemory + [.keepWorking])
 			case "memory-then-hang" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.hang])
 			case "step-limit" where arguments.isEmpty:

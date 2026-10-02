@@ -89,6 +89,13 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 							return
 						case .fail(let failure):
 							throw failure.failure
+						case .keepWorking:
+							while !Task.isCancelled {
+								try await Task.sleep(for: .seconds(10))
+								continuation.yield(.textDelta(""))
+							}
+							continuation.finish()
+							return
 						case .hang:
 							while !Task.isCancelled { try await Task.sleep(for: .seconds(60)) }
 							continuation.finish()

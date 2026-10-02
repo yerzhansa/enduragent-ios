@@ -157,6 +157,10 @@ package actor ChatMailbox {
 		await lifecycle.recover(plan, records: records, work: work, on: self)
 	}
 
+	package func refreshLeaseTitle() async {
+		await lifecycle.updateLanguage(await environment.appLanguage())
+	}
+
 	package var reviewReadUnavailable: Bool { records.review?.notice?.kind == .storageUnavailable }
 
 	package func reviewChanged(_ ref: ReviewRef? = nil) async -> ReviewOutcome {

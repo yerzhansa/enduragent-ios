@@ -53,7 +53,7 @@ extension StopAndLeaseEdgeTests {
 		#expect(interrupted.cause == cause)
 		#expect(interrupted.partial == "Checking your recent rides. ")
 		#expect(try await settlements(of: turn, in: store).count == 1)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(cause))
 		#expect(
 			!coach.diagnostics.entries.contains {
 				if case .toolFailed = $0.event { return true }

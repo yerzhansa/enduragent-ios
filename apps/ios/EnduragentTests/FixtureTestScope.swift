@@ -90,7 +90,9 @@ final class AppTestFixture {
 
 @MainActor
 func fixtureServices(_ launch: FixtureLaunch, defaults: UserDefaults) throws -> AppServices {
-	AppTestFixture.active.own(try AppServices.fixture(launch, defaults: defaults))
+	AppTestFixture.active.own(
+		try AppServices.fixture(
+			launch, defaults: defaults, backgroundSystem: StubBackgroundSystem()))
 }
 
 @MainActor

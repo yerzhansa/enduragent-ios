@@ -52,10 +52,10 @@ public struct ScriptedReply: Sendable {
 		var step: [ScriptedEvent] = []
 		while let event = events.first {
 			step.append(event)
-			if event != .hang || !repeatingHang { events.removeFirst() }
+			if !repeatingHang || (event != .hang && event != .keepWorking) { events.removeFirst() }
 			switch event {
 			case .text, .toolCall: continue
-			case .finish, .fail, .hang: return step
+			case .finish, .fail, .hang, .keepWorking: return step
 			}
 		}
 		return step

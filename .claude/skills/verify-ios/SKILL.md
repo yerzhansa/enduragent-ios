@@ -174,6 +174,39 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
 
+### System banner check with a scripted model
+
+Unit U1-2 adds `-EnduragentFixtureHost continued-processing`. This Debug composition keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, and uses `ContinuedProcessingHost` with the real iOS scheduler and notifications. The live-message budget is zero. Run only with the operator present on a physical iPhone. A simulator cannot show the system banner.
+
+Install a signed Debug build, then launch it without a test runner or debugger. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
+
+```sh
+xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost continued-processing -AppleLanguages '(en)' -AppleLocale en_US
+```
+
+Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, language and the lease kind in Debug > Leases. Require `continuedProcessing`; a scheduler refusal with `gracePeriodOnly` does not prove a system banner. Capture each observation. Start with the foreground probe, before judging banner changes. If iOS covers the toolbar, keep background finishing and record that limit under G19.
+
+Use `fixture:text-then-hang` for Stop and `fixture:slow` for completion. For system Cancel and natural expiry, use `fixture:memory-until-system-interruption`. That directive saves fixture memory, then sends empty model deltas every ten seconds so the reply watchdog does not settle it first. It does not extend the system lease or synthesize expiry. Check the saved memory in Debug > Records before locking. The artificial Expire current lease button is absent with the real host. A natural expiry must come from iOS.
+
+| Criterion | One action | One observation |
+| --- | --- | --- |
+| 1 | Tap Stop during partial text. | No "Task failed". |
+| 1 | Send again. | Stopped row does not return. |
+| 2 | Send immediately after success. | No previous terminal system row. |
+| 2 | Send immediately after `fixture:fail 401`. | No previous failed system row. The conversation offers Try again. |
+| 3 | Send with the app continuously in the foreground. | Toolbar coverage or absence. |
+| 3 | Return during a background reply. | Toolbar coverage or absence. |
+| 4 | Lock during `fixture:slow`. | Coach notification in Notification Center. |
+| 5 | Reopen after completion. | Full finished reply. |
+| 5 | Cancel a locked memory-until-system-interruption task in the system interface. | System progress stops. |
+| 5 | Reopen after Cancel. | Interrupted reply with saved memory retained and no false finish notification. |
+| 5 | Leave memory-until-system-interruption locked until natural expiry. | System progress stops. Record that iOS caused expiry. |
+| 5 | Reopen after expiry. | Interrupted reply with saved memory retained and no false finish notification. |
+| 6 | Choose another language mid-reply. | App language changes. |
+| 6 | Background that reply. | System title uses the chosen language. |
+
+The app reports Stop, a finished reply and a failed reply as successful system completion under G39. A failure stays visible in the conversation. System Cancel and expiry share the same argument-free expiration callback and remain unsuccessful. Do not infer which system event occurred from the stored `systemExpired` label. Record the operator's action alongside the screenshot. Criterion 2's dismissal timing, criterion 3's foreground behavior, background completion, lock, Cancel, natural expiry and title pixels remain phone gates until this procedure runs.
+
 ### ChoicesInConversationCheck
 
 Unit U11-1 adds `.claude/skills/verify-ios/helpers/choices.mjs` and `EnduragentPhoneTests/ChoicesInConversationCheck`. Run this separate proof only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. G34 leaves this proof pending while the operator is away.

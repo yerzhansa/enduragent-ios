@@ -10,6 +10,7 @@ public protocol ExecutionHost: Sendable {
 public protocol ExecutionLease: Sendable {
 	var kind: LeaseKind { get }
 	func report(_ progress: LeaseProgress) async
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async
 	func end(_ ending: LeaseEnding) async
 }
 
@@ -64,7 +65,8 @@ public struct LeaseProgress: Sendable, Equatable {
 
 public enum LeaseEnding: Sendable, Equatable {
 	case finished(CompletionNotice?)
-	case interrupted
+	case failed(CompletionNotice?)
+	case interrupted(InterruptionCause)
 }
 
 public struct CompletionNotice: Sendable, Equatable {

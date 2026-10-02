@@ -98,7 +98,7 @@ import Testing
 			])
 		let lease = try #require(await host.ended(0))
 		#expect(lease.expiry == .systemExpired)
-		#expect(lease.ending == .interrupted)
+		#expect(lease.ending == .interrupted(.systemExpired))
 		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		await reopened.lifecycle(.becameActive)
 		#expect(await reopened.state(of: turn) == state)
@@ -128,7 +128,7 @@ import Testing
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(second)))
 		#expect(try await claims(of: second).isEmpty)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.systemExpired))
 		#expect(try #require(await coach.currentSnapshot(.main)).activity == .idle)
 	}
 
@@ -232,7 +232,7 @@ import Testing
 		#expect(
 			try #require(await coach.currentSnapshot(.main)).turns.first?.completedInBackground
 				== false)
-		#expect(await host.ended(0)?.ending == .finished(nil))
+		#expect(await host.ended(0)?.ending == .failed(nil))
 	}
 
 	@Test func aLateExpiryFromAnEndedLeaseStopsNothing() async throws {
