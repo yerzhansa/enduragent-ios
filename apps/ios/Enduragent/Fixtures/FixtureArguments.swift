@@ -45,6 +45,20 @@
 		case fail
 	}
 
+	enum FixtureTrainingDisplay: String, CaseIterable {
+		case profileRejected = "profile-rejected"
+		case profileRequestRejected = "profile-request-rejected"
+		case profileUnavailable = "profile-unavailable"
+		case wellnessRejected = "wellness-rejected"
+		case wellnessUnavailable = "wellness-unavailable"
+		case emptyWellness = "empty-wellness"
+		case partialWellness = "partial-wellness"
+	}
+
+	enum FixtureCredentialWriteFault: String {
+		case failOnce = "fail-once"
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -60,6 +74,8 @@
 		var recordReadFault: FixtureRecordReadFault?
 		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
+		var trainingDisplay: FixtureTrainingDisplay?
+		var credentialWriteFault: FixtureCredentialWriteFault?
 
 		var launchArguments: [String] {
 			var values = [
@@ -86,6 +102,12 @@
 			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
 			if let replyParserFault {
 				values += ["-EnduragentFixtureReplyParser", replyParserFault.rawValue]
+			}
+			if let trainingDisplay {
+				values += ["-EnduragentFixtureTrainingDisplay", trainingDisplay.rawValue]
+			}
+			if let credentialWriteFault {
+				values += ["-EnduragentFixtureCredentialWrite", credentialWriteFault.rawValue]
 			}
 			return values
 		}
@@ -120,6 +142,8 @@
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
 			resetFault = try policy(values, "-EnduragentFixtureReset")
 			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
+			trainingDisplay = try policy(values, "-EnduragentFixtureTrainingDisplay")
+			credentialWriteFault = try policy(values, "-EnduragentFixtureCredentialWrite")
 		}
 
 		private func policy<Policy: RawRepresentable>(

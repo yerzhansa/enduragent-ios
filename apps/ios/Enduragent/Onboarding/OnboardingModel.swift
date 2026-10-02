@@ -5,9 +5,6 @@ import Observation
 @MainActor
 @Observable
 final class OnboardingModel {
-	var connectKey = ""
-	private(set) var connectError: String?
-	private(set) var didConnect = false
 	private(set) var starterNotice: AthleteNotice?
 	private(set) var starterResolved = false
 	private(set) var consentNotSaved = false
@@ -27,32 +24,6 @@ final class OnboardingModel {
 
 	func complete() {
 		environment.defaults.set(true, forKey: Self.completedKey)
-	}
-
-	func connect(phrasebook: () -> CatalogPhrasebook) async {
-		let outcome = await environment.services.coach.changeTraining(
-			.replace(apiKey: connectKey, athlete: .keyOwner))
-		switch outcome {
-		case .replaced:
-			connectKey = ""
-			connectError = nil
-			didConnect = true
-		case .kept, .disconnected, .refused, .failedPreviousKept:
-			connectError = phrasebook().say(Catalog.connectErrorRejected, [:])
-			didConnect = false
-		}
-	}
-
-	func continueConnect() -> Bool {
-		guard didConnect else { return false }
-		connectKey = ""
-		return true
-	}
-
-	func skipConnect() {
-		connectKey = ""
-		didConnect = false
-		connectError = nil
 	}
 
 	func loadStarter() async {
