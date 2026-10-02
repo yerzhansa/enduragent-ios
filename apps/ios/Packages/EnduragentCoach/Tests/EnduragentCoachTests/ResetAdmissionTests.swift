@@ -31,7 +31,12 @@ import Testing
 		}
 		try #require(reached == true)
 		let admitted = try await beforeDeadline(
-			within: .subject(.seconds(1)), onTimeout: held.release
+			within: .subject(.seconds(1)),
+			onTimeout: {
+				held.release()
+				memory.release()
+				nextReply.release()
+			}
 		) {
 			try await coach.send(draft("/start"), to: .main)
 		}
@@ -89,9 +94,11 @@ import Testing
 		_ = try await coach.send(draft("Old question"), to: .main)
 		try await parked(held)
 		try faults.failAppends(ofKind: kind)
+		let admission = try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
+			try await coach.send(draft("/start"), to: .main)
+		}
 		guard
-			case .newConversation(.accepted(let reset)) = try await coach.send(
-				draft("/start"), to: .main)
+			case .newConversation(.accepted(let reset)) = try #require(admission)
 		else {
 			Issue.record("Expected accepted admission before the later failure")
 			return
@@ -128,12 +135,29 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: held)
 		_ = try await coach.send(draft("Old question"), to: .main)
 		try await parked(held)
-		_ = try await coach.send(draft("/start"), to: .main)
+		_ = try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					held.release()
+					secondFlush.release()
+				}
+			) {
+				try await coach.send(draft("/start"), to: .main)
+			})
 		let middle = try #require(
 			try await coach.send(draft("Middle question"), to: .main).acceptedTurn)
+		let admission = try await beforeDeadline(
+			within: .hangGuard,
+			onTimeout: {
+				held.release()
+				secondFlush.release()
+			}
+		) {
+			try await coach.send(draft("/start"), to: .main)
+		}
 		guard
-			case .newConversation(.accepted(let reset)) = try await coach.send(
-				draft("/start"), to: .main)
+			case .newConversation(.accepted(let reset)) = try #require(admission)
 		else {
 			Issue.record("Expected second reset admission")
 			return
@@ -163,7 +187,10 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: importing)
 		_ = try await coach.send(draft("Old question"), to: .main)
 		try await parked(held)
-		_ = try await coach.send(draft("/start"), to: .main)
+		_ = try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
+				try await coach.send(draft("/start"), to: .main)
+			})
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)

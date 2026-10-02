@@ -17,9 +17,11 @@ struct ResetPublicationTests {
 			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: log)
 		_ = try await coach.sendAndSettle("Old question")
+		let admission = try await beforeDeadline(within: .hangGuard, onTimeout: log.release) {
+			try await coach.send(draft("/start"), to: .main)
+		}
 		guard
-			case .newConversation(.accepted(let reset)) = try await coach.send(
-				draft("/start"), to: .main)
+			case .newConversation(.accepted(let reset)) = try #require(admission)
 		else {
 			Issue.record("Expected reset admission")
 			return

@@ -28,7 +28,10 @@ extension SwiftDataSuites {
 					return await events.next() != nil
 				}
 				try #require(reached == true)
-				_ = try await coach.send(draft("/start"), to: .main)
+				_ = try #require(
+					try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
+						try await coach.send(draft("/start"), to: .main)
+					})
 				let next = try #require(
 					try await coach.send(draft("New question"), to: .main).acceptedTurn)
 				held.release()
