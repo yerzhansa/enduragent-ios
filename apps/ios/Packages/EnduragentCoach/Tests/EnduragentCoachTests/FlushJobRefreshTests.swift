@@ -116,7 +116,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: faults, clock: clock)
 		_ = try #require(await coach.currentSnapshot(.main))
 		faults.failNextFetch(in: ConversationFold.flushScope)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records

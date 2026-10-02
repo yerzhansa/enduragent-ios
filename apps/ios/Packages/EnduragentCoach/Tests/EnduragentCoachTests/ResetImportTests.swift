@@ -22,12 +22,12 @@ extension ResetWindowTests {
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)
-		#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await remote.resetAndSettle(in: .main) == .started(memory: .saved))
 		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
 		importing.notifyImport()
 		try #require(
 			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
-				$0.opening == .afterNewConversation(memorySaved: true)
+				$0.opening.notice == Catalog.chatNoticeNewConversationSuccess
 			} != nil)
 		let later = try #require(try await coach.send(draft("After reset"), to: .main).acceptedTurn)
 		#expect(later != earlier)
@@ -48,7 +48,7 @@ extension ResetWindowTests {
 		let old = try #require(
 			try await seedHistory(foreign, clock: ahead, turns: 1, tokens: 40).first)
 		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)
-		#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await remote.resetAndSettle(in: .main) == .started(memory: .saved))
 		let imported = try await foreign.fetch(RecordQuery(scope: .everySynced)).records
 		let store = ImportingRecordLog(inner: self.store)
 		let coach = await coach(over: store)
@@ -57,7 +57,7 @@ extension ResetWindowTests {
 		if !importBeforeLoad { store.notifyImport() }
 		try #require(
 			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
-				$0.opening == .afterNewConversation(memorySaved: true)
+				$0.opening.notice == Catalog.chatNoticeNewConversationSuccess
 			} != nil)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -98,7 +98,7 @@ extension ResetWindowTests {
 		#expect(prompt.last?.hasPrefix("Next question") == true)
 		#expect(!prompt.contains("Question 0"))
 		#expect(try await reopened.history().count == 1)
-		#expect(await reopened.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await reopened.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(await reopened.transcript(.main).isEmpty)
 		let localWindow = try #require(
 			try await store.fetch(
@@ -133,12 +133,12 @@ extension ResetWindowTests {
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)
-		#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await remote.resetAndSettle(in: .main) == .started(memory: .saved))
 		try await seed(importing, try await foreign.fetch(RecordQuery(scope: .everySynced)).records)
 		importing.notifyImport()
 		try #require(
 			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
-				$0.opening == .afterNewConversation(memorySaved: true)
+				$0.opening.notice == Catalog.chatNoticeNewConversationSuccess
 			} != nil)
 		#expect(await coach.transcript(.main).isEmpty)
 		held.release()

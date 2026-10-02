@@ -362,7 +362,7 @@ import Testing
 			transport.requests.map(\.model.rawValue) == [
 				testModel.rawValue, testModel.rawValue, testModel.rawValue,
 			])
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(
 			sent(.memoryFlush, by: transport).map(\.model.rawValue) == [
 				testModel.rawValue, testModel.rawValue,

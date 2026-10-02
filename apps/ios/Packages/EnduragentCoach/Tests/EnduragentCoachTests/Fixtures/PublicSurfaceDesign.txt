@@ -63,7 +63,6 @@ ChangeSetRevision.<(_:_:)
 ChangeSetRevision.rawValue
 ChatActivity
 ChatActivity.idle
-ChatActivity.startingNewConversation
 ChatActivity.stopping
 ChatActivity.working
 ChatSnapshot
@@ -73,6 +72,7 @@ ChatSnapshot.chat
 ChatSnapshot.liveReply
 ChatSnapshot.notes
 ChatSnapshot.opening
+ChatSnapshot.reset
 ChatSnapshot.review
 ChatSnapshot.revision
 ChatSnapshot.turns
@@ -412,9 +412,14 @@ ReplyText
 ReplyText.catalog
 ReplyText.model
 ReplyText.sentence(in:)
-ResetOutcome
-ResetOutcome.notStarted
-ResetOutcome.started
+ResetAdmission
+ResetAdmission.accepted
+ResetAdmission.notStarted
+ResetID
+ResetStatus
+ResetStatus.failed
+ResetStatus.idle
+ResetStatus.waiting
 RetryRefusal
 RetryRefusal.acceptedOnOtherDevice
 RetryRefusal.alreadyAnswered

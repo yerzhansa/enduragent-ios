@@ -1024,7 +1024,8 @@
       "working": "O treinador está trabalhando…",
       "responseStopped": "Resposta interrompida. A resposta parcial foi preservada.",
       "calendarUnverified": "A alteração no calendário pode ter sido salva. Confira seu calendário antes de pedir novamente.",
-      "savedUnverified": "Salvei suas informações, mas não consegui verificar minha resposta. Tente novamente."
+      "savedUnverified": "Salvei suas informações, mas não consegui verificar minha resposta. Tente novamente.",
+      "startingNewConversation": "Iniciando uma nova conversa…"
     },
     "planChange": {
       "activePlan": "Plano ativo",

@@ -1024,7 +1024,8 @@
       "working": "Treneren jobber…",
       "responseStopped": "Svaret er stoppet. Den ferdige delen av svaret er bevart.",
       "calendarUnverified": "Kalenderendringen kan ha blitt lagret. Sjekk kalenderen din før du spør igjen.",
-      "savedUnverified": "Jeg lagret opplysningene dine, men kunne ikke kontrollere svaret mitt. Prøv igjen."
+      "savedUnverified": "Jeg lagret opplysningene dine, men kunne ikke kontrollere svaret mitt. Prøv igjen.",
+      "startingNewConversation": "Starter en ny samtale…"
     },
     "planChange": {
       "activePlan": "Aktiv plan",

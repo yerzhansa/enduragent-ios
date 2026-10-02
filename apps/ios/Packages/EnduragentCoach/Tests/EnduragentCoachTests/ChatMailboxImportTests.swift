@@ -27,13 +27,15 @@ extension ChatMailboxTests {
 						)))
 			])
 		store.notifyImport()
-		try await waitUntil { observed.latest?.opening == .afterNewConversation(memorySaved: true) }
+		try await waitUntil {
+			observed.latest?.opening.notice == Catalog.chatNoticeNewConversationSuccess
+		}
 		#expect(observed.latest?.turns.isEmpty == true)
 		let remote = try await importTurn(into: store)
 		try await waitUntil { observed.latest?.turns.map(\.id) == [remote] }
 		let snapshot = try #require(observed.latest)
 		#expect(snapshot.turns.map(\.athleteText) == ["Remote question"])
-		#expect(snapshot.opening == .continuing)
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		#expect(replyText(try #require(snapshot.turns.first?.state)) == "Remote answer")
 		#expect(try await coach.history().count == 1)
 		let count = observed.count

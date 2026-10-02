@@ -19,13 +19,15 @@ xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configurat
 xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-CI runs the source checks, package tests, app tests, and Release builds on every pull request and every push to main. To run the app tests locally, choose an iPhone destination from `xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations`, then run:
+CI runs the tool tests, source checks, package tests, app tests, and Release builds on every pull request and every push to main. To run the app tests locally, choose an iPhone destination from `xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations`, then run:
 
 ```sh
 xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,arch=arm64,id=<iPhone destination ID>' -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
 ```
 
-`pnpm lint:swift` enforces the rules in `.swiftlint.yml`.
+`pnpm check:source` runs the source checker. `pnpm lint:swift` enforces the rules in `.swiftlint.yml`.
+
+Run `pnpm test:tools` when you change `tools/` or the `verify-ios` helper scripts. CI runs this gate before `pnpm check:source` on every pull request.
 
 `pnpm check:format` runs `swift format lint --strict` with `.swift-format` on tracked Swift sources. `pnpm format:swift` writes that layout. The generated catalog is left to its generator.
 

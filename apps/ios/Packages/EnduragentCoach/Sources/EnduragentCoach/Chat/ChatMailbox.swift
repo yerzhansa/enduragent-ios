@@ -77,7 +77,7 @@ package actor ChatMailbox {
 		}
 	}
 
-	package func reset() async -> ResetOutcome {
+	package func reset() async -> ResetAdmission {
 		do {
 			let reset = try await door.pass { () throws(LedgerFailure) in
 				guard !lifecycle.terminating else { throw LedgerFailure.unavailable }
@@ -88,7 +88,7 @@ package actor ChatMailbox {
 				work.add(reset, on: self)
 				return reset
 			}
-			return await work.outcome(of: reset.id, on: self)
+			return .accepted(reset.id)
 		} catch {
 			return .notStarted(.local(.recordStorage))
 		}
@@ -179,6 +179,7 @@ package actor ChatMailbox {
 	package func refreshImports() async throws(LedgerFailure) {
 		defer { publish() }
 		try await records.refresh()
+		work.reconcileResets(on: self)
 		if let window = work.window,
 			!conversation.current.turns.contains(where: { $0.turn == window.turn })
 		{
@@ -220,7 +221,8 @@ package actor ChatMailbox {
 		MailboxSnapshotInput(
 			conversation: conversation, jobs: records.jobs, phase: work.phase,
 			window: work.window, queued: work.waiting, finishedAway: lifecycle.finishedAway,
-			unsavedTurns: records.unsavedTurns, review: records.review)
+			unsavedTurns: records.unsavedTurns, review: records.review,
+			reset: work.resetStatus, resetMemory: work.resetMemory)
 	}
 
 	func publish(liveText: Bool = false) {
