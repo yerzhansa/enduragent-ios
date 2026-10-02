@@ -9,7 +9,7 @@
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func responses() -> FakeModelTransport.Response {
+		static func responses(intervals: FakeIntervalsClient) -> FakeModelTransport.Response {
 			let flushes = Mutex<[String: FakeModelTransport.Response]>([:])
 			return { request in
 				switch request.purpose {
@@ -26,6 +26,14 @@
 						return ScriptedReply([.finish(reason: .stop)])
 					}
 				case .chat:
+					if request.step == 0 {
+						intervals.delayNextActivityRead(
+							for: request.text == toolProgressDirective && !request.retry
+								? slowToolReadDelay : .zero)
+					}
+					if request.text == toolProgressDirective, !request.retry {
+						return toolProgressReply(step: request.step)
+					}
 					if request.step == 0, !request.retry {
 						let text = request.text.trimmingCharacters(in: .whitespacesAndNewlines)
 						if text == "fixture:flush-partial" {
