@@ -54,10 +54,7 @@ extension Coach {
 			let question = [turn.athleteText].compactMap { $0 }
 			switch turn.state {
 			case .completed(let completed):
-				switch completed.reply {
-				case .model(let text):
-					return question + [text]
-				}
+				return question + [completed.reply.sentence(in: CatalogPhrasebook(tag: .en))]
 			case .accepted, .processing, .savedWork, .failed, .interrupted, .unrecovered:
 				return question
 			}

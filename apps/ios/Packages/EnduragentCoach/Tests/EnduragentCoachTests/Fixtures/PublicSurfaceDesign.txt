@@ -377,7 +377,9 @@ ReplyTable.columns
 ReplyTable.header
 ReplyTable.rows
 ReplyText
+ReplyText.catalog
 ReplyText.model
+ReplyText.sentence(in:)
 ResetAdmission
 ResetAdmission.accepted
 ResetAdmission.notStarted

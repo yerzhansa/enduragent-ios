@@ -16,6 +16,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-failed` displays `chat.turn.notice` and at most one recovery action for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
 - `chat-retry` keeps working visible while the coach retries a recoverable failure. Server and network failures allow two retries, timeouts one, rate limits three, and context overflow three. Once reply text or saved work prevents replay, the coach settles instead.
 - `chat-saved-unverified` shows the saved-work notice without Try again when information was saved before the response failed. The athlete must send a new message.
+- `chat-step-limit` makes one final model request without tools after ten tool steps. An empty finalization shows the catalog fallback in the chosen language, including after relaunch and in History. A prior memory change stays saved without replay or Try again.
 - `chat-try-again` answers the same accepted message in a new attempt. It does not add another athlete-message row.
 - `chat-relaunch` keeps settled turns and the draft. `chat-accepted-relaunch` marks an accepted but unstarted message as received before close; it waits for Try again.
 - `chat-interrupted-relaunch` marks started work interrupted after a process kill. It makes no automatic model request and restores no uncommitted partial reply.
@@ -107,6 +108,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> HangWatchdogProof` | A hung reply stays working, then ends with the provider notice after the watchdog attempts, `hang-working`, `hang-watchdog`, `hang-watchdog-records`. |
 | `sim.mjs test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
 | `sim.mjs test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
+| `sim.mjs test <run id> StepLimitFallbackProof StepLimitFallbackDarkProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
 | `sim.mjs test <run id> NoticeCopyProof` | Buy Credits and Restore purchases open Credits; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
 | `sim.mjs test <run id> AccessNoticeProof` | Missing access opens Connect; locked keychain keeps the message and offers Try again, `access-not-configured-connect`, `access-locked`. |
 
@@ -172,6 +174,7 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - `fixture:fail <kind>` fails one model request. Exhaustion needs `500 x3`, `network x3`, `timeout x2`, `overflow x4`, or `429 <seconds> x4`. A single retryable failure normally ends with a successful reply.
 - Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
 - `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
+- `fixture:step-limit` performs ten tool steps and returns an empty tool-free finalization. `fixture:memory-then-step-limit` saves memory on the first step, then reads training data for the remaining nine steps before the same empty finalization.
 - In Debug, tap `fixture.failNextAppend`, close the menu, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
 - Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.

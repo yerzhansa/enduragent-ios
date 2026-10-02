@@ -70,6 +70,10 @@
 				return ScriptedReply(savedMemory + [.fail(.http(status: 500))])
 			case "memory-then-hang" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.hang])
+			case "step-limit" where arguments.isEmpty:
+				return stepLimitReply(commitsMemory: false)
+			case "memory-then-step-limit" where arguments.isEmpty:
+				return stepLimitReply(commitsMemory: true)
 			case "text-then-hang" where arguments.isEmpty:
 				return ScriptedReply([.text(partialReply), .hang])
 			case "teach" where arguments.isEmpty:
@@ -88,6 +92,17 @@
 		}
 
 		static let partialReply = "This week has Tuesday sweet spot"
+
+		private static func stepLimitReply(commitsMemory: Bool) -> ScriptedReply {
+			let read: [ScriptedEvent] = [
+				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.finish(reason: .toolCalls),
+			]
+			return ScriptedReply(
+				(commitsMemory ? savedMemory : [])
+					+ Array(repeating: read, count: commitsMemory ? 9 : 10).flatMap { $0 }
+					+ [.finish(reason: .stop)])
+		}
 
 		static let savedMemory: [ScriptedEvent] = [
 			.toolCall(

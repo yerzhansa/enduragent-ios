@@ -108,4 +108,12 @@ public enum InterruptionCause: String, Sendable, CaseIterable {
 
 public enum ReplyText: Sendable, Equatable {
 	case model(String)
+	case catalog(CatalogKey)
+
+	public func sentence(in phrasebook: CatalogPhrasebook) -> String {
+		switch self {
+		case .model(let text): text
+		case .catalog(let key): phrasebook.say(key)
+		}
+	}
 }
