@@ -50,29 +50,6 @@ import Testing
 			lease: .continuedProcessing)
 	}
 
-	@Test func acceptOfANewDraftWritesFragmentZeroOfAMintedTurn() {
-		let draft = Draft(id: DraftID(), text: "hi")
-		let result = TurnLifecycle.accept(
-			draft, turn: minted, fragment: 0, chat: .main, slash: .review)
-		#expect(
-			result
-				== UserMessageBody(
-					chatId: .main, turn: minted, fragment: 0, draft: draft.id,
-					athleteText: "hi", slash: .review))
-	}
-
-	@Test func acceptInsideTheWindowJoinsAsTheNextFragment() {
-		let draft = Draft(id: DraftID(), text: "and Friday?")
-		let facts = accepted()
-		let result = TurnLifecycle.accept(
-			draft, turn: facts.turn, fragment: facts.fragments.count, chat: .main, slash: nil)
-		#expect(
-			result
-				== UserMessageBody(
-					chatId: .main, turn: minted, fragment: 1, draft: draft.id,
-					athleteText: "and Friday?", slash: nil))
-	}
-
 	@Test func claimOfAnAcceptedTurnWritesALocalClaim() throws {
 		#expect(
 			try claim(attempt, on: accepted()).get()

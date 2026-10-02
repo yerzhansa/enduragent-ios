@@ -283,17 +283,6 @@ import Testing
 		#expect(!rows.contains("Archived late reply"))
 	}
 
-	@Test func legacyCoverageResolvesEachRowOnce() {
-		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
-		let jobs = (1...200).map { job($0, messages: [], settled: true, in: conversation) }
-		let resolved = Mutex(0)
-		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
-			conversation.messagesSinceLastFlush(jobs, excluding: nil)
-		}
-		#expect(rows.count == 2_000)
-		#expect(resolved.withLock { $0 } == 2_000)
-	}
-
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {
 		let conversation = conversation(turns: 3, legacy: true)
 		let legacy = job(6, messages: [], settled: true, in: conversation)

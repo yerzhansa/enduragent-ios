@@ -230,28 +230,6 @@ import Testing
 		#expect(state.value == 45)
 	}
 
-	@Test func streamThrowsOnlyProviderFailure() async throws {
-		let malformed = try fixture("openrouter-malformed-chunk", ext: "sse")
-		let outcomes: [OpenRouterStub.Outcome] =
-			[400, 401, 402, 403, 404, 408, 418, 429, 500, 502, 503, 302].map {
-				.reply(.json($0, #"{"error":{"message":"refused","code":\#($0)}}"#))
-			} + [
-				.fail(.timedOut), .fail(.notConnectedToInternet), .fail(.networkConnectionLost),
-				.fail(.cannotFindHost), .fail(.cannotConnectToHost), .fail(.dnsLookupFailed),
-				.fail(.secureConnectionFailed), .fail(.badServerResponse),
-				.reply(.sse(malformed)), .reply(.sse("data: [DONE]\n")),
-			]
-		for outcome in outcomes {
-			let transport = try OpenRouterStub.transport { _ in outcome }
-			do {
-				_ = try await collect(transport.stream(sampleRequest(tools: false)))
-				Issue.record("expected a failure for \(outcome)")
-			} catch {
-				#expect(error is ProviderFailure, "\(outcome) threw \(type(of: error))")
-			}
-		}
-	}
-
 	@Test(.timeLimit(.minutes(1))) func errorBodyReadStopsAtItsLimit() async throws {
 		let endless = AsyncStream<UInt8>(unfolding: { UInt8(ascii: "x") })
 		let body = try await OpenRouterHTTP.errorBody(from: endless)

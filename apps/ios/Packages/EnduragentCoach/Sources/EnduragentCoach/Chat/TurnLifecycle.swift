@@ -10,14 +10,6 @@ package enum TurnRefusal: Error, Sendable, Equatable {
 }
 
 package enum TurnLifecycle {
-	package static func accept(
-		_ draft: Draft, turn: TurnID, fragment: Int, chat: ChatID, slash: SlashCommand?
-	) -> UserMessageBody {
-		UserMessageBody(
-			chatId: chat, turn: turn, fragment: fragment, draft: draft.id,
-			athleteText: draft.text, slash: slash)
-	}
-
 	package static func claim(
 		_ attempt: AttemptID, on facts: TurnFacts?, chat: ChatID,
 		device: DeviceID, process: ProcessID, lease: LeaseKind

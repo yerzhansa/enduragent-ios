@@ -112,7 +112,8 @@ import Testing
 			### End of compaction summary
 			""", stamp: testStamp())
 		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
-		let context = try await memory.context()
+		let prompt = try await memory.prompt()
+		let context = prompt.context
 		#expect(context.contains("## Athlete Memory"))
 		#expect(context.contains("## person"))
 		#expect(context.contains("Ada Kovač"))
@@ -125,7 +126,7 @@ import Testing
 		#expect(!context.contains("### Compaction summary"))
 		#expect(!context.contains("FTP 240W"))
 		#expect(!context.contains("## Current Plan"))
-		let view = try await memory.view()
+		let view = prompt.view
 		#expect(view.orphanNames == ["random-legacy"])
 		#expect(view.planHeadline == nil)
 	}

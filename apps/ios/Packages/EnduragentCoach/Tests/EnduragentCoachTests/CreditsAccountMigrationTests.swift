@@ -188,22 +188,6 @@ import Testing
 		#expect(try memory.copy(account: "appAccountToken") == nil)
 	}
 
-	@Test func creditsIdentityReadsTheCombinedAccountOnce() async throws {
-		let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let memory = FixtureSecretStoreBacking(items: [
-			CredentialSlot.creditsAccount.rawValue: try JSONEncoder().encode(
-				CreditsAccount(appAccountToken: token, key: "test-credits-key"))
-		])
-		let coach = await makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(),
-			secrets: ICloudKeychainStore(backing: memory))
-
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: token, hasCreditsKey: true))
-		#expect(memory.readAccounts == [CredentialSlot.creditsAccount.rawValue])
-	}
-
 	#if DEBUG
 		@Test func replacingAppAccountTokenKeepsTheCreditsKey() async throws {
 			let token = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))

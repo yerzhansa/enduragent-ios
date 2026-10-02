@@ -24,7 +24,7 @@ import Testing
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
 		try await seedAda(memory)
-		let context = try await memory.context()
+		let context = try await memory.prompt().context
 		let hits = try await memory.query(from: "1998-06-01", to: "1998-06-30", contains: nil)
 		let query = MemoryQuery.render(hits, from: "1998-06-01", to: "1998-06-30")
 		let skip = injectableDailyLines(MemoryDifferentialFixture.dailyWithSkip).joined(
