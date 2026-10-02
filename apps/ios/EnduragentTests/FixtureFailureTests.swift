@@ -92,7 +92,6 @@ extension FixtureLaunchTests {
 		#expect(savedWork.saved.memorySections == 1)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.action == nil)
-		#expect(!settled.state.retryable)
 	}
 
 	@Test func memoryThenHangStoppedOffersNoTryAgain() async throws {
@@ -117,7 +116,6 @@ extension FixtureLaunchTests {
 		}
 		#expect(stopped.saved.memorySections == 1)
 		#expect(stopped.notice.action == nil)
-		#expect(!settled.state.retryable)
 	}
 
 	@Test func failDirectiveShowsTheProviderDownNoticeWithTryAgain() async throws {

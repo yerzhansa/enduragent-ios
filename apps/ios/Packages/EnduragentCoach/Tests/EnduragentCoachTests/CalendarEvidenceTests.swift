@@ -60,7 +60,7 @@ extension DurableCalendarWriteTests {
 		_ = await fixture.coach.decide(.checkAgain(review.ref), in: .main)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(server.posts.count == 1)
 	}
 
@@ -95,7 +95,7 @@ extension DurableCalendarWriteTests {
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: store)
 		#expect(await reopened.currentSnapshot(.main) == confirmed)
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(server.posts.count == 1)
 	}
 

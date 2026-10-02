@@ -21,7 +21,7 @@ import Testing
 		#expect(transport.requests.count == 4)
 		#expect(clock.slept.prefix(3) == [.seconds(7), .seconds(7), .seconds(7)])
 		#expect(failure(settled) == .model(.rateLimited(retryAfter: .seconds(7))))
-		#expect(!settled.retryable)
+		#expect(turnNotice(of: settled)?.action == .wait(thenTryAgain: turn))
 	}
 
 	@Test(arguments: [
@@ -161,7 +161,6 @@ import Testing
 		)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
 		#expect(savedWork.notice.action == nil)
-		#expect(!settled.retryable)
 		#expect(chatRequests() == 2)
 		#expect(clock.slept.isEmpty)
 		let section = try #require(
