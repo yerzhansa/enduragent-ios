@@ -12,9 +12,7 @@ public actor Coach {
 	private let coalescingSleep: @Sendable (Duration) async throws -> Void
 	private let host: any ExecutionHost
 	private let deviceLanguage: LanguageTag
-	var preferenceRecords: [AthleteRecord] = []
-	var preferencesLoaded = false
-	var preferencesRead: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
+	let preferences: CoachPreferences
 	let builtInModel: ModelID
 	let vault: CredentialVault
 	private let runner: TurnRunner
@@ -56,6 +54,9 @@ public actor Coach {
 		self.builtInModel = builtInModel
 		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
+		self.preferences = CoachPreferences(
+			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
+			builtInModel: builtInModel)
 		self.clock = clock
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
@@ -93,11 +94,16 @@ public actor Coach {
 		case .becameActive:
 			await recoverOnce()
 		case .willTerminate:
+			let observation = importObservation
+			let refresh = pendingImportRefresh
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
-			for mailbox in mailboxes.values {
+			await observation?.value
+			await refresh?.value
+			_ = await recovery?.value
+			for mailbox in await openedMailboxes() {
 				await mailbox.cancelInFlight(cause: .appTerminating)
 			}
 		case .enteredBackground:
@@ -128,13 +134,6 @@ public actor Coach {
 		return outcome
 	}
 
-	private func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		guard await providerConsent()?.isCurrent == true else {
-			throw .providerConsentRequired
-		}
-		return try await vault.modelAccess(builtInModel: builtInModel)
-	}
-
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
@@ -152,22 +151,6 @@ public actor Coach {
 		return outcome
 	}
 
-	public func changeModelAccess(_ change: ModelAccessChange) async
-		-> CredentialOutcome<AccessSummary>
-	{
-		let outcome = await vault.change(change)
-		await publishStatus()
-		return outcome
-	}
-
-	public func creditsIdentity() async throws(AccessUnavailable) -> CreditsIdentity {
-		try await vault.creditsIdentity()
-	}
-
-	public func prepareCreditsPurchase() async throws(AccessUnavailable) -> UUID {
-		try await vault.prepareCreditsAccount()
-	}
-
 	#if DEBUG
 		public func replaceAppAccountToken() async throws(AccessUnavailable) {
 			try await vault.replaceAppAccountToken()
@@ -181,6 +164,7 @@ public actor Coach {
 	#endif
 
 	private func recoverOnce() async {
+		guard !lifetime.terminating else { return }
 		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
 		recovery = recovering
 		if await !recovering.value, recovery == recovering {
@@ -258,6 +242,7 @@ public actor Coach {
 	{
 		observeImports()
 		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
+		guard !lifetime.terminating else { throw .unavailable }
 		_ = snapshotFeed(for: chatId)
 		let opening =
 			mailboxSlots[chatId]?.opening
@@ -273,9 +258,10 @@ public actor Coach {
 	{
 		do {
 			let vault = self.vault
+			let preferences = self.preferences
 			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
 				() async throws(AccessUnavailable) in
-				try await self.modelAccess()
+				try await preferences.modelAccess()
 			}
 			let created = try await ChatMailbox.open(
 				chatId: chatId,
@@ -289,7 +275,7 @@ public actor Coach {
 				coalescing: coalescing,
 				coalescingSleep: coalescingSleep,
 				environment: EnvironmentResolver(
-					preferences: { await self.loadedPreferences() }, access: access,
+					preferences: { await preferences.load() }, access: access,
 					training: { () async throws(AccessUnavailable) in
 						try await vault.trainingConnection()
 					}, deviceLanguage: deviceLanguage),

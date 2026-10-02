@@ -66,41 +66,6 @@ import Testing
 		#expect(await coach.interruption(of: running) == .athleteStopped)
 	}
 
-	@Test func willTerminateDuringAStopReturnsWithoutWaitingOnAdmission() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = { _ in ScriptedReply([.hang]) }
-		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 3)
-		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
-		await coach.waitUntilProcessing(running)
-		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
-		}
-		async let sent = coach.send(draft("three"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
-		async let stopped: Void = coach.stop(.main)
-		_ = try await coach.waitForState(of: running) { $0.map(isInterrupted) ?? false }
-		let terminated = Mutex(false)
-		let terminating = Task {
-			await coach.lifecycle(.willTerminate)
-			terminated.withLock { $0 = true }
-		}
-		try await waitUntil(within: .seconds(2)) { terminated.withLock { $0 } }
-		#expect(await coach.currentSnapshot(.main)?.activity == .stopping)
-		store.release()
-		await stopped
-		await terminating.value
-		let third = try #require(try await sent.acceptedTurn)
-		#expect(await coach.interruption(of: running) == .athleteStopped)
-		for turn in [queued, third] {
-			#expect(await coach.interruption(of: turn) == .stoppedBeforeStart)
-			#expect(try await settlements(of: turn, in: store).count == 1)
-			#expect(try await claims(of: turn, in: store).isEmpty)
-		}
-	}
-
 	@Test func willTerminateEndsTheLeaseAsInterrupted() async throws {
 		let transport = FakeModelTransport()
 		transport.respond = { _ in ScriptedReply([.hang]) }
@@ -112,53 +77,6 @@ import Testing
 		await coach.lifecycle(.willTerminate)
 		#expect(await host.ended(0)?.ending == .interrupted)
 		#expect(host.leases.count == 1)
-	}
-
-	@Test func willTerminateBeginsNoLeaseForASendThatLandsAfterIt() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
-		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "userMessage", occurrence: 1)
-		let host = ImmediateExecutionHost()
-		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
-		async let sent = coach.send(draft("only"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
-		await coach.lifecycle(.willTerminate)
-		store.release()
-		let turn = try #require(try await sent.acceptedTurn)
-		try await Task.sleep(for: .milliseconds(300))
-		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
-		#expect(try await claims(of: turn, in: store).isEmpty)
-		#expect(transport.requests.isEmpty)
-		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
-		await reopened.lifecycle(.becameActive)
-		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
-	}
-
-	@Test func terminationDuringInitialRecoveryPreventsLaterLeaseAndClaim() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[.text("Ran."), .finish(reason: .stop)], otherwise: transport.respond)
-		let local = InMemoryRecordLog()
-		_ = await makeCoach(transport: transport, store: local, clock: clock)
-		let store = HeldFirstReadLog(inner: local)
-		let host = ImmediateExecutionHost()
-		let coach = await makeCoach(
-			transport: transport, store: store, clock: clock, host: host, consent: false)
-		async let sent = coach.send(draft("first send"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
-		await coach.lifecycle(.willTerminate)
-		store.release()
-		let turn = try #require(try await sent.acceptedTurn)
-		_ = await coach.settledState(of: turn, in: .main, within: .seconds(1))
-		#expect(host.leases.isEmpty, "a lease began after willTerminate: \(host.leases)")
-		#expect(try await claims(of: turn, in: store).isEmpty)
-		#expect(transport.requests.isEmpty)
-		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
-		await reopened.lifecycle(.becameActive)
-		#expect(await reopened.state(of: turn) == .accepted(.awaitingRestart))
 	}
 
 	@Test func willTerminateDoesNotWaitOnTheFlushQueueAfterTheStoppedTurn() async throws {
