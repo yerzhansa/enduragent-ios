@@ -10,7 +10,7 @@ extension Coach {
 			return feed.subscribe(
 				from: ChatSnapshot(
 					chat: chat, opening: .welcome, turns: [], activity: .idle, review: nil,
-					notes: [:], liveReply: nil, revision: 0))
+					notes: [:], liveReply: nil, revision: 0, reset: .idle))
 		}
 	}
 
@@ -50,7 +50,7 @@ extension Coach {
 		}
 	}
 
-	public func startNewConversation(in chat: ChatID) async -> ResetOutcome {
+	public func startNewConversation(in chat: ChatID) async -> ResetAdmission {
 		do {
 			return try await mailbox(for: chat).reset()
 		} catch {

@@ -89,7 +89,7 @@ import Testing
 		}
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog())
 		#expect(replyText(try await coach.sendAndSettle("Fail")) == nil)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(replyText(try await coach.sendAndSettle("Fail")) == nil)
 	}
 

@@ -9,19 +9,26 @@ final class ShellModel {
 	private(set) var chat: ChatSnapshot?
 	private(set) var languageNotSaved: LanguagePreference?
 	var showLanguage = false
-	var draft = Draft(id: DraftID(), text: "")
-	var notSent = false
-	private(set) var isSending = false
-	var slashListVisible = false
+	var draft: Draft {
+		get { submission.draft }
+		set { submission.draft = newValue }
+	}
+	var notSent: Bool { submission.notSent }
+	var isSending: Bool { submission.isSending }
+	var slashListVisible: Bool {
+		get { submission.slashListVisible }
+		set { submission.slashListVisible = newValue }
+	}
 	private(set) var status: CoachStatus?
-	private(set) var newConversationUncertain = false
+	var newConversationUncertain: Bool { submission.isUncertain(chat?.reset) }
 	private var reviewOutcomeNotice: AthleteNotice?
 	var showSidebar = false
 	var showCredits = false
 
 	let environment: AppEnvironment
 	let lifecycle: AppLifecycle
-	let drafts: DraftStore
+	private let submission: ChatSubmission
+	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
 	private let credits: CreditsModel
 	private let archive: HistoryModel
@@ -37,11 +44,10 @@ final class ShellModel {
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)
-		self.drafts = DraftStore(defaults: environment.defaults)
+		self.submission = ChatSubmission(defaults: environment.defaults)
 		if onboarding.isCompleted {
 			route = .loading
 		}
-		draft = drafts.load(.main) ?? Draft(id: DraftID(), text: "")
 	}
 
 	isolated deinit {
@@ -206,7 +212,7 @@ final class ShellModel {
 
 	func newConversation() async {
 		reviewOutcomeNotice = nil
-		showNewConversation(await services.coach.startNewConversation(in: .main))
+		await submission.newConversation(using: services.coach)
 	}
 
 	func loadHistory() async {
@@ -223,60 +229,16 @@ final class ShellModel {
 		await credits.load()
 	}
 
-	func draftChanged(from previous: String) {
-		if previous.isEmpty, !draft.text.isEmpty {
-			draft = Draft(id: DraftID(), text: draft.text)
-		}
-		drafts.save(draft, for: .main)
-		updateSlashList()
-	}
+	func draftChanged(from previous: String) { submission.draftChanged(from: previous) }
 
-	func updateSlashList() {
-		slashListVisible = draft.text.hasPrefix("/") && !draft.text.contains(where: \.isWhitespace)
-	}
-
-	func fillSlash(_ command: SlashCommand) {
-		draft.text = command.rawValue + " "
-		drafts.save(draft, for: .main)
-		updateSlashList()
-	}
+	func fillSlash(_ command: SlashCommand) { submission.fillSlash(command) }
 
 	func send() async {
-		let sent = draft
-		let text = sent.text.trimmingCharacters(in: .whitespacesAndNewlines)
-		guard !text.isEmpty, !isSending else { return }
-		isSending = true
-		defer { isSending = false }
-		notSent = false
-		newConversationUncertain = false
 		reviewOutcomeNotice = nil
-		slashListVisible = false
-		do {
-			switch try await services.coach.send(Draft(id: sent.id, text: text), to: .main) {
-			case .accepted:
-				clear(sent)
-			case .showLanguagePicker:
-				clear(sent)
-				languageNotSaved = nil
-				showLanguage = true
-			case .newConversation(let outcome):
-				clear(sent)
-				showNewConversation(outcome)
-			case .ignoredBlank:
-				break
-			}
-		} catch {
-			switch error {
-			case .storageUnavailable:
-				notSent = true
-			}
+		if case .showLanguagePicker? = await submission.send(using: services.coach) {
+			languageNotSaved = nil
+			showLanguage = true
 		}
-	}
-
-	private func clear(_ sent: Draft) {
-		guard draft.id == sent.id else { return }
-		draft = Draft(id: DraftID(), text: draft == sent ? "" : draft.text)
-		drafts.save(draft, for: .main)
 	}
 
 	func stop() async {
@@ -314,15 +276,6 @@ final class ShellModel {
 			reviewOutcomeNotice = outcome.notice
 		case .presented, .presentationFailed, .showAgain:
 			break
-		}
-	}
-
-	private func showNewConversation(_ outcome: ResetOutcome) {
-		switch outcome {
-		case .started:
-			newConversationUncertain = false
-		case .notStarted:
-			newConversationUncertain = true
 		}
 	}
 

@@ -9,6 +9,8 @@ struct MailboxSnapshotInput {
 	let finishedAway: Set<TurnID>
 	let unsavedTurns: Set<TurnID>
 	let review: ReviewSnapshot?
+	let reset: ResetStatus
+	let resetMemory: MemorySaveResult?
 }
 
 final class MailboxSnapshots {
@@ -72,7 +74,7 @@ final class MailboxSnapshots {
 			window: input.window, queued: input.queued,
 			waiting: waits.waiting(among: input.conversation.current.turns),
 			finishedAway: input.finishedAway, unsavedTurns: input.unsavedTurns,
-			review: input.review,
+			review: input.review, reset: input.reset, resetMemory: input.resetMemory,
 			device: device, process: process, now: clock.now, zone: clock.timeZone)
 	}
 }

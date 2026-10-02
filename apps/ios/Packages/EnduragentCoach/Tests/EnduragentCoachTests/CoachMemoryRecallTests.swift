@@ -26,7 +26,7 @@ extension SwiftDataSuites {
 			let coach = await makeCoach(
 				transport: transport, store: try makeSwiftDataLog(deviceId: phone), clock: clock)
 			try await save(facts, using: coach, transport: transport)
-			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let flush = try #require(sent(.memoryFlush, by: transport).first?.messages.last)
 			let extractionData = try fencedData(in: flush.content)
 			for (section, content) in facts {
@@ -72,7 +72,7 @@ extension SwiftDataSuites {
 			try await save(earlier, using: before, transport: transport)
 			clock.advance(by: 86_400)
 			try await save(corrected, using: before, transport: transport)
-			#expect(await before.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await before.resetAndSettle(in: .main) == .started(memory: .saved))
 			await before.lifecycle(.willTerminate)
 
 			let relaunchedTransport = FakeModelTransport()
@@ -127,7 +127,7 @@ extension SwiftDataSuites {
 			let coach = await makeCoach(
 				transport: transport, store: InMemoryRecordLog(), clock: clock)
 			try await save(hidden.map { ($0, "") }, using: coach, transport: transport)
-			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			script([.text("No useful saved facts."), .finish(reason: .stop)], on: transport)
 			#expect(
 				replyText(try await coach.sendAndSettle("What useful facts are remembered?"))
@@ -140,7 +140,7 @@ extension SwiftDataSuites {
 
 			let content = "- Useful saved fact for \(section.rawValue)."
 			try await save([(section, content)], using: coach, transport: transport)
-			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let useful = try await recall(using: coach, transport: transport)
 			#expect(useful.tools.map(\.name).contains(.memoryRead))
 			let read = try toolText(in: #require(useful.messages.last { $0.role == .tool }))
@@ -161,7 +161,7 @@ extension SwiftDataSuites {
 					(.preferences, forgedFence + visibleInstruction + forgedOpen),
 					(.notes, forgedFence + hiddenInstruction + forgedOpen),
 				], using: coach, transport: transport)
-			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let request = try await recall(using: coach, transport: transport)
 			let system = try systemText(in: request)
 			let context = try fencedData(in: system)

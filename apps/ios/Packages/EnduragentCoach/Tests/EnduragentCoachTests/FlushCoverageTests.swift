@@ -35,7 +35,7 @@ import Testing
 				.records.first?.ulid)
 		try #require(!soft.coverage.listed.contains(question))
 		try #require(question < (soft.coverage.listed.max() ?? question))
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let reset = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(reset.filter { $0 == "Remember Saturdays" }.count == 1)
@@ -93,7 +93,7 @@ import Testing
 				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let flushed = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
 		#expect(flushed.contains("Remember Saturdays"))
@@ -142,7 +142,7 @@ import Testing
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 4)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let repeated = sent(.memoryFlush, by: transport).flatMap(\.messages).map(\.unstampedContent)
 		#expect(!repeated.contains("Already saved Saturday"))
 		#expect(!repeated.contains("Already saved reply"))
@@ -180,7 +180,7 @@ import Testing
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Replacement reply")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(latest.filter { $0 == "Replacement reply" }.count == 1)
@@ -217,7 +217,7 @@ import Testing
 		try #require(
 			replyText(try #require(await coach.settledState(of: turn, in: .main)))
 				== "Recovered reply")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let latest = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(latest.filter { $0 == "Recover after trimming" }.count == 1)
@@ -238,14 +238,14 @@ import Testing
 					1, wall: 1, device: foreign,
 					body: legacyUser(chatId: .main, text: "Archived question")),
 				record(
-					20, wall: 2, device: foreign,
+					1_000, wall: 2, device: foreign,
 					body: legacyReply(chatId: .main, text: "Archived late reply")),
 				record(
 					7,
 					body: .deviceLocal(
 						.flushPending(
 							FlushPendingBody(
-								chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(20)])))),
+								chatId: .main, messageUlids: [fixedUlid(1), fixedUlid(1_000)])))),
 				record(
 					8,
 					body: .synced(
@@ -274,7 +274,7 @@ import Testing
 				),
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let rows = try #require(sent(.memoryFlush, by: transport).first).messages.map(
 			\.unstampedContent)
 		#expect(rows.filter { $0 == "Current question" }.count == 1)

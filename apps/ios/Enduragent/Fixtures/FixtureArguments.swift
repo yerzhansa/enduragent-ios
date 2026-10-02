@@ -37,6 +37,10 @@
 		case failAfterPresentedOnce = "fail-after-presented-once"
 	}
 
+	enum FixtureResetFault: String {
+		case failBoundary
+	}
+
 	enum FixtureReplyParserFault: String {
 		case fail
 	}
@@ -54,6 +58,7 @@
 		var calendarSaveFault: FixtureCalendarSaveFault?
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
+		var resetFault: FixtureResetFault?
 		var replyParserFault: FixtureReplyParserFault?
 
 		var launchArguments: [String] {
@@ -78,6 +83,7 @@
 			if let recordReadFault {
 				values += ["-EnduragentFixtureRecordRead", recordReadFault.rawValue]
 			}
+			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
 			if let replyParserFault {
 				values += ["-EnduragentFixtureReplyParser", replyParserFault.rawValue]
 			}
@@ -112,6 +118,7 @@
 			calendarSaveFault = try policy(values, "-EnduragentFixtureCalendarSave")
 			calendarReadFault = try policy(values, "-EnduragentFixtureCalendarRead")
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
+			resetFault = try policy(values, "-EnduragentFixtureReset")
 			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
 		}
 

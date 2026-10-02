@@ -1016,7 +1016,8 @@
       "working": "コーチが処理中…",
       "responseStopped": "回答を停止しました。途中までの回答は残っています。",
       "calendarUnverified": "カレンダーの変更は保存されている可能性があります。もう一度依頼する前に、カレンダーを確認してください。",
-      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。"
+      "savedUnverified": "情報は保存しましたが、回答を確認できませんでした。もう一度お試しください。",
+      "startingNewConversation": "新しい会話を開始しています…"
     },
     "planChange": {
       "activePlan": "有効なプラン",

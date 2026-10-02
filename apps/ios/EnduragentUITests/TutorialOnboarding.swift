@@ -13,12 +13,15 @@ extension TutorialHarness {
 		named(app, "connect.connect").tap()
 		wait(named(app, "connect.athleteName"))
 		XCTAssertEqual(named(app, "connect.athleteName").label, "Ada Kovač")
+		wait(named(app, "connect.fitness"))
 		XCTAssertEqual(
 			named(app, "connect.fitness").label,
 			phrasebook.say(Catalog.onboardingConnectFitness, ["value": "42"]))
+		wait(named(app, "connect.fatigue"))
 		XCTAssertEqual(
 			named(app, "connect.fatigue").label,
 			phrasebook.say(Catalog.onboardingConnectFatigue, ["value": "49"]))
+		wait(named(app, "connect.form"))
 		XCTAssertEqual(
 			named(app, "connect.form").label,
 			phrasebook.say(Catalog.onboardingConnectForm, ["value": "-7"]))
