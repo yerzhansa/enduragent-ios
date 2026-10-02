@@ -253,6 +253,13 @@ package struct Memory: Sendable {
 				blocks.append("## \(orphan)\n\(content)")
 			}
 		}
+		let events = snapshot.ledgerRecords.compactMap { record -> String? in
+			guard case .synced(.ledgerEvent(let body)) = record.body else { return nil }
+			return "event: \(serializeLedger(record, body: body))"
+		}
+		if !events.isEmpty {
+			blocks.append("## Ledger Events\n" + events.joined(separator: "\n"))
+		}
 		if !blocks.isEmpty {
 			parts.append("## Athlete Memory\n" + blocks.joined(separator: "\n\n") + "\n")
 		}
@@ -302,7 +309,7 @@ package struct Memory: Sendable {
 		return MemorySnapshot(
 			sections: sections,
 			daily: daily,
-			ledgerRecords: events,
+			ledgerRecords: UnionMerge.ledger(events),
 			journalRecords: journal,
 			compaction: compaction,
 			orphanNames: orphanNames(in: sections)

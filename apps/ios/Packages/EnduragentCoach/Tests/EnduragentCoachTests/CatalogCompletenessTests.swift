@@ -21,7 +21,7 @@ import Testing
 	func cancellationAndReadFailureAreTranslated(_ tag: LanguageTag) throws {
 		let english = try leaves(in: catalogs.appending(path: "en.json"))
 		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
-		for key in ["review.cancelledUnknown", "review.storageUnavailable"] {
+		for key in ["review.cancelledUnknown", "review.storageUnavailable", "review.saveFailed"] {
 			let text = try #require(localized[key])
 			#expect(!text.isEmpty)
 			if tag != .en { #expect(text != english[key]) }
@@ -30,6 +30,9 @@ import Testing
 		#expect(
 			english["review.storageUnavailable"]
 				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
+		#expect(
+			english["review.saveFailed"]
+				== "Couldn't save your choice on this iPhone, so nothing was changed. Try again.")
 	}
 
 	@Test(arguments: ["", " \n\t"])
