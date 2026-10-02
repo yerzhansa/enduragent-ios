@@ -21,14 +21,18 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: ["fixture:fail 402", "fixture:fail 401"])
-	func creditsActionsOpenTheCreditsScreen(directive: String) async throws {
+	func creditsNoticeReturnsToConversationAfterOneBack(directive: String) async throws {
 		let model = model(try services())
 		let (_, notice) = try await failedNotice(model, after: directive)
 		let action = try #require(notice.action)
 		#expect(model.navigation.isEmpty)
 		await model.perform(action)
-		#expect(model.navigation == [.settings, .credits])
+		#expect(model.navigation == [.credits])
+		await model.loadCredits()
+		model.navigation.removeLast()
+		#expect(model.navigation.isEmpty)
 		#expect(model.route == .chat)
+		#expect(model.chat?.turns.last?.state.isSettled == true)
 	}
 
 	@Test func notConfiguredOpensTheConnectStep() async throws {

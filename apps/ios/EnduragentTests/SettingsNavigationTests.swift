@@ -21,7 +21,7 @@ extension FixtureLaunchTests {
 		first.draftChanged(from: "")
 		try #require(first.slashListVisible)
 		first.open(.settings)
-		let (kept, keptDefaults) = try relaunch(.keep)
+		let (kept, keptDefaults) = try await relaunch(.keep)
 		let reopened = ShellModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		try await observed(reopened)
@@ -61,7 +61,7 @@ extension FixtureLaunchTests {
 		let training = try await services.coach.observedStatus().training
 		try await proveSettingsNavigation(first, snapshot: snapshot, draft: draft)
 		#expect(try await services.coach.observedStatus().training == training)
-		let (kept, keptDefaults) = try relaunch(.keep)
+		let (kept, keptDefaults) = try await relaunch(.keep)
 		let reopened = ShellModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		try await observed(reopened)
@@ -118,6 +118,8 @@ extension FixtureLaunchTests {
 			return
 		}
 		let ref = try #require(archived.first?.id)
+		model.open(.archivedConversation(ref))
+		#expect(model.navigation == [.history, .archivedConversation(ref)])
 		guard case .loaded(let content) = await model.loadArchivedConversation(ref) else {
 			Issue.record("Archived conversation did not open")
 			return
@@ -131,13 +133,39 @@ extension FixtureLaunchTests {
 		#expect(model.draft.text == "/review ")
 	}
 
-	@Test func debugSessionRouteStaysOpenWhenStatusChanges() async throws {
+	@Test func creditsFromModelAccessReturnsToSettingsAfterOneBack() async throws {
 		let model = model(try services())
 		await model.agreeAndStartChatting()
-		model.open(.session)
-		#expect(model.navigation == [.settings, .debug, .session])
+		model.open(.settings)
+		model.open(.credits)
+		try #require(model.navigation == [.settings, .credits])
+		await model.loadCredits()
+		model.navigation.removeLast()
+		#expect(model.navigation == [.settings])
+		#expect(model.route == .chat)
+	}
+
+	@Test(arguments: [
+		ShellDestination.debugCredits, .debugCredentials, .debugRecords, .debugLanguage,
+		.session, .debugLeases,
+	])
+	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws {
+		let model = model(try services())
+		await model.agreeAndStartChatting()
+		model.open(.settings)
+		model.open(.debug)
+		model.open(destination)
+		let path: [ShellDestination] = [.settings, .debug, destination]
+		try #require(model.navigation == path)
 		await model.chooseLanguage(.fixed(.fr))
 		try await model.waitForStatus { $0.language == .fixed(.fr) }
-		#expect(model.navigation == [.settings, .debug, .session])
+		#expect(model.navigation == path)
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		_ = try await settledTurn(model)
+		#expect(model.navigation == path)
+		#expect(model.route == .chat)
+		model.navigation.removeLast()
+		#expect(model.navigation == [.settings, .debug])
 	}
 }

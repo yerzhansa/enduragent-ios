@@ -28,6 +28,75 @@ const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
 const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
 
+const navigationRoot = 'apps/ios/Enduragent/Chat/ChatView.swift';
+const navigationChild = 'apps/ios/Enduragent/Settings/SettingsView.swift';
+const boundNavigation = `struct ChatView: View {
+  var body: some View {
+    NavigationStack(path: $model.navigation) {
+      Text(title).navigationDestination(for: ShellDestination.self) { destination in
+        SettingsView(model: model)
+      }
+    }
+  }
+}`;
+
+test('rejects a NavigationStack in a pushed view', () => {
+  const result = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: 'struct SettingsView: View { var body: some View { NavigationStack { Text(title) } } }',
+  });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /shell-navigation-stack-owner/);
+});
+
+test('rejects a NavigationStack reached through a pushed view and its link', () => {
+  const result = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: 'struct SettingsView: View { var body: some View { NavigationLink(title) { RecordsView() } } }',
+    'apps/ios/Enduragent/Records/RecordsView.swift': 'struct RecordsView: View { var body: some View { NavigationStack { Text(title) } } }',
+  });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /RecordsView.swift.*shell-navigation-stack-owner/);
+});
+
+test('rejects a second stack inside the bound shell stack', () => {
+  const result = run({
+    [navigationRoot]: 'struct ChatView: View { var body: some View { NavigationStack(path: $model.navigation) { NavigationStack { Text(title) } } } }',
+  });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /shell-navigation-stack-owner/);
+});
+
+test('accepts a sheet owning an inline NavigationStack from a pushed view', () => {
+  const result = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: 'struct SettingsView: View { var body: some View { Text(title).sheet(isPresented: $show) { NavigationStack { Text(title) } } } }',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
+test('accepts a sheet owning a separate stack view without exempting its pushed sibling', () => {
+  const sheet = 'struct SheetView: View { var body: some View { NavigationStack { Text(title) } } }';
+  const pushed = 'struct SettingsView: View { var body: some View { Text(title).sheet(item: $selection) { item in SheetView() } } }';
+  const result = run({ [navigationRoot]: boundNavigation, [navigationChild]: pushed + sheet });
+  assert.equal(result.status, 0, result.output);
+  const nested = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: pushed.replace('Text(title).sheet', 'NavigationStack { Text(title) }.sheet') + sheet,
+  });
+  assert.equal(nested.status, 1, nested.output);
+  assert.match(nested.output, /shell-navigation-stack-owner/);
+});
+
+test('accepts independent onboarding stacks and NavigationStack inside a string', () => {
+  const result = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: 'struct SettingsView: View { var body: some View { Text("NavigationStack { RecordsView() }") } }',
+    'apps/ios/Enduragent/Onboarding/NoticeView.swift': 'struct NoticeView: View { var body: some View { NavigationStack { Text(title) } } }',
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
 test('rejects app tests deleting fixture folders outside their async owner', () => {
   const result = run({ 'apps/ios/EnduragentTests/FixtureTests.swift': 'deinit { try FileManager.default.removeItem(at: directory) }' });
   assert.equal(result.status, 1, result.output);
