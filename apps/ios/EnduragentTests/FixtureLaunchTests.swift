@@ -268,7 +268,7 @@ final class FixtureLaunchTests {
 			try await Task.sleep(for: .milliseconds(20))
 		}
 		#expect(model.chat?.turns.isEmpty == true)
-		#expect(model.chat?.opening == .afterNewConversation(memorySaved: true))
+		#expect(model.chat?.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		#expect(model.newConversationUncertain == false)
 		await model.loadHistory()
 		guard case .loaded(let archived) = model.history else {
@@ -297,6 +297,7 @@ final class FixtureLaunchTests {
 		model.draft.text = "/start"
 		await model.send()
 		#expect(model.draft.text.isEmpty)
+		try await until { model.newConversationUncertain }
 		#expect(model.newConversationUncertain)
 		#expect(model.chat?.turns.map(\.id) == [settled.id])
 		#expect(model.chat?.opening == .continuing)

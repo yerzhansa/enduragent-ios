@@ -286,31 +286,6 @@ func sent(_ charge: GenerateCharge, by transport: FakeModelTransport) -> [Comple
 	transport.requests.filter { $0.charge == charge }
 }
 
-func startNewConversation(on coach: Coach) -> PendingOutcome {
-	let pending = PendingOutcome()
-	Task { pending.land(await coach.startNewConversation(in: .main)) }
-	return pending
-}
-
-func outcome(_ pending: PendingOutcome) async throws -> ResetOutcome? {
-	try await pending.ready.waitUnlessCancelled()
-	return pending.landed
-}
-
-final class PendingOutcome: Sendable {
-	private let outcome = Mutex<ResetOutcome?>(nil)
-	let ready = Gate()
-
-	var landed: ResetOutcome? {
-		outcome.withLock { $0 }
-	}
-
-	func land(_ value: ResetOutcome) {
-		outcome.withLock { $0 = value }
-		ready.release()
-	}
-}
-
 extension WireMessage {
 	var unstampedContent: String {
 		guard role == .user,

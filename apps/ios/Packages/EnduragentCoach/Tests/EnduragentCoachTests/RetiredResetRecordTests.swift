@@ -158,7 +158,9 @@ extension SwiftDataSuites {
 			let transport = FakeModelTransport()
 			let coach = await makeCoach(transport: transport, store: log, clock: clock)
 			#expect(await coach.transcript(.main) == ["C?", "C.", "D?", "D."])
-			#expect(await coach.currentSnapshot(.main)?.opening == .continuing)
+			#expect(
+				await coach.currentSnapshot(.main)?.opening.notice
+					== Catalog.chatNoticeNewConversationSuccess)
 			let archived = try await coach.history()
 			#expect(archived.map(\.reason) == [.newConversation])
 			let ref = try #require(archived.first?.id)
@@ -172,7 +174,7 @@ extension SwiftDataSuites {
 			#expect(Set(skipped) == [fixedUlid(19).rawValue, fixedUlid(39).rawValue])
 			transport.respond = ScriptedReply.sequence(
 				[.finish(reason: .stop)], for: .flush, otherwise: transport.respond)
-			#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let saved = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 				\.unstampedContent)
 			#expect(saved.contains("D?"))

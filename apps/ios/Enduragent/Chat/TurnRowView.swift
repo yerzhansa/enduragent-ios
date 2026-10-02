@@ -59,9 +59,15 @@ struct TurnRowView: View {
 	}
 
 	private var working: some View {
-		Text(say(Catalog.chatNoticeWorking))
-			.foregroundStyle(.secondary)
-			.accessibilityIdentifier("chat.working")
+		Group {
+			if case .waiting? = model.chat?.reset {
+				EmptyView()
+			} else {
+				Text(say(Catalog.chatNoticeWorking))
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("chat.working")
+			}
+		}
 	}
 
 	private func notice(_ notice: AthleteNotice) -> some View {

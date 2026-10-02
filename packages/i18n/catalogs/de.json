@@ -1024,7 +1024,8 @@
       "working": "Der Coach arbeitet…",
       "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
-      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
+      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut.",
+      "startingNewConversation": "Eine neue Unterhaltung wird gestartet…"
     },
     "planChange": {
       "activePlan": "Aktiver Plan",

@@ -1024,7 +1024,8 @@
       "working": "Il coach sta elaborando…",
       "responseStopped": "Risposta interrotta. La risposta parziale è conservata.",
       "calendarUnverified": "La modifica al calendario potrebbe essere stata salvata. Controlla il calendario prima di chiedere di nuovo.",
-      "savedUnverified": "Ho salvato le tue informazioni, ma non ho potuto verificare la mia risposta. Riprova."
+      "savedUnverified": "Ho salvato le tue informazioni, ma non ho potuto verificare la mia risposta. Riprova.",
+      "startingNewConversation": "Avvio di una nuova conversazione…"
     },
     "planChange": {
       "activePlan": "Piano attivo",

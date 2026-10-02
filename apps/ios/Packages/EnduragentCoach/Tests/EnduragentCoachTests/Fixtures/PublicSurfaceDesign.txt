@@ -61,7 +61,6 @@ ChangeSetRevision.<(_:_:)
 ChangeSetRevision.rawValue
 ChatActivity
 ChatActivity.idle
-ChatActivity.startingNewConversation
 ChatActivity.stopping
 ChatActivity.working
 ChatSnapshot
@@ -71,6 +70,7 @@ ChatSnapshot.chat
 ChatSnapshot.liveReply
 ChatSnapshot.notes
 ChatSnapshot.opening
+ChatSnapshot.reset
 ChatSnapshot.review
 ChatSnapshot.revision
 ChatSnapshot.turns
@@ -102,6 +102,7 @@ Coach.init(sport:ports:builtInModel:deviceLanguage:coalescing:)
 Coach.languagePreference()
 Coach.lifecycle(_:)
 Coach.observe(_:)
+Coach.observeStatus()
 Coach.prepareCreditsPurchase()
 Coach.recordConsent()
 Coach.recordSyncProbe()
@@ -111,7 +112,6 @@ Coach.send(_:to:)
 Coach.setLanguage(_:)
 Coach.setSession(_:)
 Coach.startNewConversation(in:)
-Coach.observeStatus()
 Coach.stop(_:)
 CoachFailure
 CoachFailure.local
@@ -378,9 +378,14 @@ ReplyTable.header
 ReplyTable.rows
 ReplyText
 ReplyText.model
-ResetOutcome
-ResetOutcome.notStarted
-ResetOutcome.started
+ResetAdmission
+ResetAdmission.accepted
+ResetAdmission.notStarted
+ResetID
+ResetStatus
+ResetStatus.failed
+ResetStatus.idle
+ResetStatus.waiting
 RetryRefusal
 RetryRefusal.acceptedOnOtherDevice
 RetryRefusal.alreadyAnswered

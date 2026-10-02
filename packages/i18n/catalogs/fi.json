@@ -1024,7 +1024,8 @@
       "working": "Valmentaja työskentelee…",
       "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
-      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen.",
+      "startingNewConversation": "Aloitetaan uusi keskustelu…"
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",

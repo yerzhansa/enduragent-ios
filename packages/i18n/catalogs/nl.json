@@ -1024,7 +1024,8 @@
       "working": "De coach is bezig…",
       "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
       "calendarUnverified": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt.",
-      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
+      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw.",
+      "startingNewConversation": "Een nieuw gesprek wordt gestart…"
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",

@@ -80,7 +80,7 @@ extension TurnRunnerTests {
 		#expect(failure(settled) == .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
 		#expect(
-			await coach.startNewConversation(in: .main)
+			await coach.resetAndSettle(in: .main)
 				== .started(memory: .providerConsentRequired))
 		#expect(transport.requestCount == 0)
 		#expect(
