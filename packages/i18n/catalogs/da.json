@@ -2914,6 +2914,7 @@
     "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
     "cancelledUnknown": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender.",
     "saveFailed": "Dit valg kunne ikke gemmes på denne iPhone, så intet blev ændret. Prøv igen.",
+    "retryRead": "Prøv igen",
     "storageUnavailable": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",

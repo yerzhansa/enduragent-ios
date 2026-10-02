@@ -2914,6 +2914,7 @@
     "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
     "cancelledUnknown": "Abgebrochen. Dieses Training wurde möglicherweise trotzdem gespeichert. Prüfe deinen Kalender.",
     "saveFailed": "Deine Auswahl konnte auf diesem iPhone nicht gespeichert werden. Deshalb wurde nichts geändert. Versuche es erneut.",
+    "retryRead": "Erneut versuchen",
     "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert.",
     "title": "Training prüfen",
     "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",

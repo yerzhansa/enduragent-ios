@@ -2914,6 +2914,7 @@
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
     "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
     "saveFailed": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente.",
+    "retryRead": "Tentar novamente",
     "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",

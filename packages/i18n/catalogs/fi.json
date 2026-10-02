@@ -2914,6 +2914,7 @@
     "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
     "cancelledUnknown": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi.",
     "saveFailed": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen.",
+    "retryRead": "Yritä uudelleen",
     "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
     "title": "Harjoituksen tarkistus",
     "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
