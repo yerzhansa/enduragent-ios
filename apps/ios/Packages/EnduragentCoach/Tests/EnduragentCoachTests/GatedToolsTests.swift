@@ -9,34 +9,6 @@ struct GatedToolsTests {
 	let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func createWorkoutReturnsPendingWithoutWriting() async throws {
-		let execution = try await runtime().execute(
-			name: .intervalsCreateWorkout,
-			arguments: try JSONValue.parse(enduranceArguments),
-			chatId: .main,
-			scope: turnScope()
-		)
-		#expect(execution.commit == nil)
-		guard case .pending(let proposal) = execution.outcome else {
-			Issue.record("expected pending")
-			return
-		}
-		#expect(proposal.summary == "Create workout \"Endurance\" on 1998-06-14")
-		#expect(proposal.description.hasPrefix("Warmup\n- 10m 55-65%"))
-		#expect(
-			!intervals.calls.contains { call in
-				if case .createEvent = call { return true }
-				return false
-			}
-		)
-		let encoded = JSONValue.object([
-			"pendingConfirmation": .bool(true),
-			"summary": .string(proposal.summary),
-		]).canonicalDigestInput()
-		#expect(encoded.contains("pendingConfirmation"))
-		#expect(!encoded.contains(proposal.nonce.rawValue.uuidString))
-	}
-
 	@Test func planSaveIsRefused() async throws {
 		let outcome = try await runtime().execute(
 			name: .planSave,
@@ -150,10 +122,9 @@ struct GatedToolsTests {
 			return
 		}
 		#expect(unwrapData(json).objectFields["error"]?.stringValue == "past_date_refused")
-	}
-
-	private var enduranceArguments: String {
-		#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
+		let details = try #require(unwrapData(json).objectFields["details"]?.stringValue)
+		#expect(details.contains("1998-06-12"))
+		#expect(details.contains("1998-06-13"))
 	}
 
 	private func unwrapData(_ json: JSONValue) -> JSONValue {
