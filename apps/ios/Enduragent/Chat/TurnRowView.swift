@@ -100,6 +100,7 @@ struct TurnRowView: View {
 		case .buyCredits: "chat.turn.buyCredits"
 		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
 		case .signInToOpenRouter: "chat.turn.signInAgain"
+		case .connectTraining: "chat.turn.connectTraining"
 		}
 	}
 

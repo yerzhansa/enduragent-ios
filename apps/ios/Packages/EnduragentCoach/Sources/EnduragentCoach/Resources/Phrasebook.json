@@ -113801,6 +113801,112 @@
         }
       }
     },
+    "connect.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu is not connected. Connect to add workouts to your calendar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu no está conectado. Conéctalo para añadir entrenamientos al calendario."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu n’est pas connecté. Connectez-le pour ajouter des séances à votre calendrier."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu non è connesso. Connettilo per aggiungere allenamenti al calendario."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu ist nicht verbunden. Verbinde es, um Trainingseinheiten zum Kalender hinzuzufügen."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu is niet verbonden. Maak verbinding om trainingen aan je kalender toe te voegen."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu er ikke tilsluttet. Opret forbindelse for at føje træningspas til din kalender."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu är inte anslutet. Anslut för att lägga till träningspass i kalendern."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu er ikke tilkoblet. Koble til for å legge treningsøkter i kalenderen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu ei ole yhdistetty. Yhdistä lisätäksesi harjoituksia kalenteriisi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu não está ligado. Ligue para adicionar treinos ao calendário."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu não está conectado. Conecte para adicionar treinos ao calendário."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu nie jest połączone. Połącz je, aby dodawać treningi do kalendarza."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu가 연결되지 않았습니다. 운동을 캘린더에 추가하려면 연결하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuに接続されていません。ワークアウトをカレンダーに追加するには接続してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未连接 intervals.icu。连接后可将训练添加到日历。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未連接 intervals.icu。連接後可將訓練加入行事曆。"
+          }
+        }
+      }
+    },
     "connect.profile.waiting": {
       "localizations": {
         "en": {
@@ -264065,6 +264171,1444 @@
           "stringUnit": {
             "state": "translated",
             "value": "設定"
+          }
+        }
+      }
+    },
+    "settings.training.athlete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Athlete %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleta %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Athlète %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleta %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Athlet %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleet %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atlet %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idrottare %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utøver %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urheilija %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleta %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleta %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sportowiec %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선수 %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アスリート%#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运动员 %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運動員 %#@id@"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "settings.training.disconnect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnetti"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trennen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding verbreken"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afbryd forbindelsen"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppla från"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koble fra"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katkaise yhteys"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozłącz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 해제"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続解除"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷連線"
+          }
+        }
+      }
+    },
+    "settings.training.disconnectDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your conversation and History stay available."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu conversación y el historial siguen disponibles."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre conversation et l’historique restent disponibles."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La conversazione e la cronologia restano disponibili."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Unterhaltung und dein Verlauf bleiben verfügbar."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je gesprek en geschiedenis blijven beschikbaar."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din samtale og historik er stadig tilgængelige."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din konversation och historik är fortfarande tillgängliga."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Samtalen og historikken din er fortsatt tilgjengelige."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keskustelusi ja historiasi ovat edelleen käytettävissä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A conversa e o histórico continuam disponíveis."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua conversa e o histórico continuam disponíveis."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozmowa i historia pozostają dostępne."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "대화와 기록은 계속 볼 수 있습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会話と履歴は引き続き閲覧できます。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对话和历史记录仍可查看。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對話和歷史記錄仍可查看。"
+          }
+        }
+      }
+    },
+    "settings.training.disconnectTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect intervals.icu?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Desconectar intervals.icu?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter intervals.icu ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnettere intervals.icu?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu trennen?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding met intervals.icu verbreken?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afbryd intervals.icu?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koppla från intervals.icu?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koble fra intervals.icu?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katkaistaanko intervals.icu-yhteys?"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desligar intervals.icu?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar intervals.icu?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozłączyć intervals.icu?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 연결을 해제할까요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuの接続を解除しますか？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开 intervals.icu 连接？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷 intervals.icu 連線？"
+          }
+        }
+      }
+    },
+    "settings.training.keep": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep current connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener la conexión actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder la connexion actuelle"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantieni la connessione attuale"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelle Verbindung behalten"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huidige verbinding behouden"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behold den nuværende forbindelse"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behåll nuvarande anslutning"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Behold nåværende forbindelse"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Säilytä nykyinen yhteys"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter ligação atual"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter conexão atual"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zachowaj obecne połączenie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 연결 유지"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の接続を保持"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留当前连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留目前連線"
+          }
+        }
+      }
+    },
+    "settings.training.replace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace key"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reemplazar clave"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer la clé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sostituisci chiave"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schlüssel ersetzen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleutel vervangen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Udskift nøgle"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byt nyckel"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bytt nøkkel"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaihda avain"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Substituir chave"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Substituir chave"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zastąp klucz"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키 교체"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーを置き換える"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换密钥"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替換金鑰"
+          }
+        }
+      }
+    },
+    "settings.training.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexión de entrenamiento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion d’entraînement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connessione di allenamento"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trainingsverbindung"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trainingsverbinding"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Træningsforbindelse"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Träningsanslutning"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Treningsforbindelse"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Harjoitteluyhteys"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ligação de treino"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conexão de treino"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączenie treningowe"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "훈련 연결"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トレーニング接続"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "訓練連線"
+          }
+        }
+      }
+    },
+    "settings.training.switch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch athlete"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar atleta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changer d’athlète"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambia atleta"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Athleten wechseln"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atleet wisselen"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skift atlet"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byt idrottare"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bytt utøver"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaihda urheilija"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mudar atleta"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trocar atleta"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zmień sportowca"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선수 전환"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アスリートを切り替える"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切换运动员"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "切換運動員"
+          }
+        }
+      }
+    },
+    "settings.training.switchDetail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This key belongs to athlete %#@new@. Saved work belongs to athlete %#@current@. Switch to use this key?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta clave pertenece al atleta %#@new@. El trabajo guardado pertenece al atleta %#@current@. ¿Cambiar para usar esta clave?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette clé appartient à l’athlète %#@new@. Le travail enregistré appartient à l’athlète %#@current@. Changer pour utiliser cette clé ?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa chiave appartiene all’atleta %#@new@. Il lavoro salvato appartiene all’atleta %#@current@. Cambiare per usare questa chiave?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Schlüssel gehört Athlet %#@new@. Gespeicherte Arbeit gehört Athlet %#@current@. Wechseln, um diesen Schlüssel zu verwenden?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze sleutel hoort bij atleet %#@new@. Opgeslagen werk hoort bij atleet %#@current@. Wisselen om deze sleutel te gebruiken?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne nøgle tilhører atlet %#@new@. Gemt arbejde tilhører atlet %#@current@. Skift for at bruge denne nøgle?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denna nyckel tillhör idrottare %#@new@. Sparat arbete tillhör idrottare %#@current@. Byta för att använda denna nyckel?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne nøkkelen tilhører utøver %#@new@. Lagret arbeid tilhører utøver %#@current@. Bytte for å bruke denne nøkkelen?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämä avain kuuluu urheilijalle %#@new@. Tallennettu työ kuuluu urheilijalle %#@current@. Vaihdetaanko tämän avaimen käyttöön?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta chave pertence ao atleta %#@new@. O trabalho guardado pertence ao atleta %#@current@. Mudar para usar esta chave?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta chave pertence ao atleta %#@new@. O trabalho salvo pertence ao atleta %#@current@. Trocar para usar esta chave?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten klucz należy do sportowca %#@new@. Zapisana praca należy do sportowca %#@current@. Przełączyć, aby użyć tego klucza?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 키는 선수 %#@new@의 것입니다. 저장된 작업은 선수 %#@current@의 것입니다. 이 키를 사용하도록 전환할까요?"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このキーはアスリート%#@new@のものです。保存済みの内容はアスリート%#@current@のものです。このキーを使うために切り替えますか？"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此密钥属于运动员 %#@new@。已保存的内容属于运动员 %#@current@。是否切换以使用此密钥？"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此金鑰屬於運動員 %#@new@。已儲存的內容屬於運動員 %#@current@。是否切換以使用此金鑰？"
+          },
+          "substitutions": {
+            "new": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "current": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
+    "settings.training.switchTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use another athlete?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Usar otro atleta?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser un autre athlète ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usare un altro atleta?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anderen Athleten verwenden?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een andere atleet gebruiken?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brug en anden atlet?"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Använda en annan idrottare?"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bruke en annen utøver?"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Käytetäänkö toista urheilijaa?"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar outro atleta?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar outro atleta?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyć innego sportowca?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 선수를 사용할까요?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別のアスリートを使用しますか？"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用其他运动员？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用其他運動員？"
+          }
+        }
+      }
+    },
+    "settings.training.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu"
           }
         }
       }

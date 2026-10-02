@@ -63,6 +63,8 @@ struct ChatView: View {
 						ArchivedConversationView(model: model, ref: ref)
 					case .credits:
 						CreditsView(model: model)
+					case .training:
+						TrainingSettingsView(model: model, settings: model.trainingSettings)
 					#if DEBUG
 						case .debug:
 							SettingsDebugView(model: model)
@@ -71,8 +73,6 @@ struct ChatView: View {
 								coach: model.services.coach,
 								deviceCheck: model.environment.deviceCheck,
 								phrasebook: model.phrasebook)
-						case .debugCredentials:
-							CredentialsDebugView(model: model)
 						case .debugRecords:
 							RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 						case .debugLanguage:

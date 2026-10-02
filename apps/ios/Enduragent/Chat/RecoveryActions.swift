@@ -7,6 +7,9 @@ extension ShellModel {
 			await tryAgain(turn)
 		case .restoreCredits, .buyCredits:
 			open(.credits)
+		case .connectTraining:
+			open(.training)
+			trainingSettings.edit()
 		case .chooseAccessMethod, .signInToOpenRouter:
 			route = .onboarding(.connect)
 		}

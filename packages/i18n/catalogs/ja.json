@@ -515,7 +515,20 @@
         "title": "既存のWebhookを削除"
       }
     },
-    "modelAccessTitle": "モデルへのアクセス"
+    "modelAccessTitle": "モデルへのアクセス",
+    "training": {
+      "section": "トレーニング接続",
+      "title": "intervals.icu",
+      "replace": "キーを置き換える",
+      "keep": "現在の接続を保持",
+      "disconnect": "接続解除",
+      "disconnectTitle": "intervals.icuの接続を解除しますか？",
+      "disconnectDetail": "会話と履歴は引き続き閲覧できます。",
+      "switchTitle": "別のアスリートを使用しますか？",
+      "switchDetail": "このキーはアスリート{{new}}のものです。保存済みの内容はアスリート{{current}}のものです。このキーを使うために切り替えますか？",
+      "switch": "アスリートを切り替える",
+      "athlete": "アスリート{{id}}"
+    }
   },
   "archive": {
     "athlete": "あなた",
@@ -2958,6 +2971,7 @@
     "review": "接続を確認",
     "profile": {
       "waiting": "アスリートプロフィールを読み取り中…"
-    }
+    },
+    "missing": "intervals.icuに接続されていません。ワークアウトをカレンダーに追加するには接続してください。"
   }
 }

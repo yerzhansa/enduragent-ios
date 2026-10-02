@@ -374,6 +374,7 @@ ProviderTrouble.timeout
 RecoveryAction
 RecoveryAction.buyCredits
 RecoveryAction.chooseAccessMethod
+RecoveryAction.connectTraining
 RecoveryAction.restoreCredits
 RecoveryAction.signInToOpenRouter
 RecoveryAction.title
@@ -442,6 +443,7 @@ ReviewBlock.accountChanged
 ReviewBlock.cannotVerify
 ReviewBlock.coachOnly
 ReviewBlock.pastProtected
+ReviewBlock.trainingNotConnected
 ReviewBlock.turnStopping
 ReviewBlock.workoutOnly
 ReviewCard
