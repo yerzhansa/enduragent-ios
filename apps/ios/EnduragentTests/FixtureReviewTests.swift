@@ -1,7 +1,6 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
 import Foundation
-import Observation
 import Testing
 
 @testable import Enduragent
@@ -58,7 +57,7 @@ extension FixtureLaunchTests {
 		let token = try await presentedReview(on: model)
 		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
 		await model.decide(.approve(token))
-		try await waitUntil {
+		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
 			return true
 		}
@@ -70,7 +69,7 @@ extension FixtureLaunchTests {
 		#expect(model.phrasebook.say(check.title) == "Check again")
 		intervals.writeFailure = nil
 		await model.decide(check.decision)
-		try await waitUntil {
+		try await until {
 			guard case .retryRemainingOrCancel? = model.chat?.review?.controls else { return false }
 			return true
 		}
@@ -89,7 +88,7 @@ extension FixtureLaunchTests {
 			#expect(!intervals.calls.contains { $0.isCalendarWrite })
 		} else {
 			#expect(model.reviewNotice == nil)
-			try await waitUntil { model.chat?.review == nil && model.chat?.notes.count == 1 }
+			try await until { model.chat?.review == nil && model.chat?.notes.count == 1 }
 			#expect(intervals.calls.filter(\.isCalendarWrite).count == 1)
 			#expect(
 				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
@@ -106,13 +105,13 @@ extension FixtureLaunchTests {
 		let token = try await presentedReview(on: model)
 		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
 		await model.decide(.approve(token))
-		try await waitUntil {
+		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
 			return true
 		}
 		faults.failFetches = true
 		await model.decide(.presented(token.ref))
-		try await waitUntil { model.chat?.review?.notice?.kind == .storageUnavailable }
+		try await until { model.chat?.review?.notice?.kind == .storageUnavailable }
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
 		#expect(actions.map(\.id) == ["chat.preview.retryRead"])
@@ -120,7 +119,7 @@ extension FixtureLaunchTests {
 		#expect(failed.controls == .none)
 		faults.failFetches = false
 		await model.decide(.checkAgain(failed.ref))
-		try await waitUntil {
+		try await until {
 			guard case .checkAgain? = model.chat?.review?.controls else { return false }
 			return true
 		}
@@ -150,7 +149,7 @@ extension FixtureLaunchTests {
 			await model.newConversation()
 			#expect(model.reviewNotice == nil)
 			#expect(!model.newConversationUncertain)
-			try await waitUntil { model.chat?.turns.isEmpty == true }
+			try await until { model.chat?.turns.isEmpty == true }
 		} else {
 			model.draft.text = "How did Saturday go"
 			await model.send()
@@ -172,7 +171,7 @@ extension FixtureLaunchTests {
 		await model.decide(.cancel(token))
 
 		#expect(model.reviewNotice == nil)
-		try await waitUntil { model.chat?.review == nil }
+		try await until { model.chat?.review == nil }
 		let proposing = try await settledTurn(model)
 		model.draft.text = "How did Saturday go"
 		await model.send()
@@ -209,7 +208,7 @@ extension FixtureLaunchTests {
 		backing.locked = false
 		await model.decide(.approve(token))
 		#expect(model.reviewNotice == nil)
-		try await waitUntil { model.chat?.notes.values.flatMap { $0 }.count == 1 }
+		try await until { model.chat?.notes.values.flatMap { $0 }.count == 1 }
 		#expect(
 			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
 				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
@@ -273,7 +272,7 @@ extension FixtureLaunchTests {
 		#expect(model.phrasebook.say(Catalog.reviewAdd, [:]) == "Ajouter au calendrier")
 		_ = await services.coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "other-athlete", athlete: .keyOwner))
-		try await waitUntil { model.chat?.review?.notice?.kind == .accountChanged }
+		try await until { model.chat?.review?.notice?.kind == .accountChanged }
 		await model.decide(.approve(token))
 		let notice = try #require(model.chat?.review?.notice)
 		#expect(notice.key == Catalog.reviewAccountChanged)
@@ -298,19 +297,6 @@ extension FixtureLaunchTests {
 			throw ReviewNotPresented()
 		}
 		return token
-	}
-
-	private func waitUntil(_ condition: @escaping @MainActor () -> Bool) async throws {
-		while !condition() {
-			await withCheckedContinuation { continuation in
-				withObservationTracking {
-					if condition() { continuation.resume() }
-				} onChange: {
-					continuation.resume()
-				}
-			}
-		}
-		try #require(condition())
 	}
 }
 
