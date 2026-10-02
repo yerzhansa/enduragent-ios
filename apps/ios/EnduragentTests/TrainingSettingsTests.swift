@@ -233,12 +233,17 @@ struct TrainingSettingsTests {
 		editor.key = "fixture-rotated"
 		fixture.secretBacking.failNextWrite = true
 		let saving = Task { await editor.replace() }
+		defer { saving.cancel() }
 		try await gate.waitForRead()
 		editor.dismiss()
 		#expect(editor.key.isEmpty)
 		#expect(editor.isSaving)
 		await gate.release()
-		await saving.value
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
+		while editor.isSaving, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		try #require(!editor.isSaving)
 		#expect(editor.key.isEmpty)
 		#expect(editor.receipt == nil)
 		#expect(editor.state == .viewing)
