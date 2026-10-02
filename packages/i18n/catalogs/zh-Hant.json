@@ -2877,6 +2877,7 @@
     "turnStopping": "正在停止此回覆。停止後，你可以核准或取消訓練審核。",
     "earlierVersion": "此訓練審核來自舊版 App，已無法套用。",
     "cancelledUnknown": "已取消。此訓練可能仍已儲存。請檢查你的行事曆。",
+    "saveFailed": "無法在此 iPhone 上儲存你的選擇，因此未做任何變更。請重試。",
     "storageUnavailable": "無法讀取已儲存的訓練審核內容。其按鈕已暫時停用。",
     "title": "訓練審核",
     "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。",

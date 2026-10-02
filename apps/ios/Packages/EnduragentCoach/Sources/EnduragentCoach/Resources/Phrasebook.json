@@ -200341,6 +200341,112 @@
         }
       }
     },
+    "review.saveFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar tu elección en este iPhone, así que no se cambió nada. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile salvare la tua scelta su questo iPhone, quindi non è stato modificato nulla. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine Auswahl konnte auf diesem iPhone nicht gespeichert werden. Deshalb wurde nichts geändert. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit valg kunne ikke gemmes på denne iPhone, så intet blev ændret. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar sua escolha neste iPhone, então nada foi alterado. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się zapisać Twojego wyboru na tym iPhonie, więc nic nie zostało zmienione. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 iPhone에 선택 사항을 저장하지 못해 아무것도 변경되지 않았습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このiPhoneに選択内容を保存できなかったため、何も変更されていません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在此 iPhone 上保存你的选择，因此未做任何更改。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法在此 iPhone 上儲存你的選擇，因此未做任何變更。請重試。"
+          }
+        }
+      }
+    },
     "review.storageUnavailable": {
       "localizations": {
         "en": {

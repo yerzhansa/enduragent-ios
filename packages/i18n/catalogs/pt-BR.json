@@ -2913,6 +2913,7 @@
     "turnStopping": "Esta resposta está sendo interrompida. Quando parar, você poderá aprovar ou cancelar a revisão do treino.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser aplicada.",
     "cancelledUnknown": "Cancelado. Este treino pode ter sido salvo mesmo assim. Confira seu calendário.",
+    "saveFailed": "Não foi possível salvar sua escolha neste iPhone, então nada foi alterado. Tente novamente.",
     "storageUnavailable": "Não foi possível ler a revisão do treino salva. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isso chegou ao seu calendário no {{service}}. Verifique o calendário antes de pedir novamente.",

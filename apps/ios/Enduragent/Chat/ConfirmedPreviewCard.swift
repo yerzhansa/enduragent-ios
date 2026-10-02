@@ -38,6 +38,9 @@ struct ConfirmedPreviewCard: View {
 	}
 
 	var actions: [ConfirmedPreviewAction] {
+		if case .storageUnavailable = review.state {
+			return [ConfirmedPreviewAction(button: .retryRead, decision: .checkAgain(review.ref))]
+		}
 		guard review.authority == .thisDevice else { return [] }
 		return switch review.controls {
 		case .approveOrCancel(let token):
@@ -103,6 +106,7 @@ enum ConfirmedPreviewButton: String {
 	case add = "chat.preview.add"
 	case checkAgain = "chat.preview.checkAgain"
 	case saveAgain = "chat.preview.saveAgain"
+	case retryRead = "chat.preview.retryRead"
 
 	var title: CatalogKey {
 		switch self {
@@ -110,6 +114,7 @@ enum ConfirmedPreviewButton: String {
 		case .add: Catalog.reviewAdd
 		case .checkAgain: Catalog.setupTelegramCheckAgain
 		case .saveAgain: Catalog.reviewSaveApprovedAgain
+		case .retryRead: Catalog.settingsApplicationRetry
 		}
 	}
 }

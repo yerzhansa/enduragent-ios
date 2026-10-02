@@ -102,9 +102,10 @@ enum ReviewRecoveryScreen {
 		if !locked {
 			TutorialHarness.openSidebar(app)
 			TutorialHarness.named(app, "sidebar.debug").tap()
-			TutorialHarness.scroll(app, to: TutorialHarness.named(app, "fixture.calendarReadFault"))
-			TutorialHarness.waitForIdentifier(
-				app, "fixture.calendarReadFault", reading: "Calendar read fault armed")
+			let fault = TutorialHarness.debugRow(app, "fixture.calendarReadFault")
+			TutorialHarness.wait(
+				until: { fault.label == "Calendar read fault armed" },
+				message: "Calendar read fault was consumed by Cancel")
 			TutorialHarness.closeMenu(app)
 		}
 		capture(test, app, name: locked ? "cancel-locked" : "cancel-offline", dark: dark)
@@ -166,8 +167,10 @@ enum ReviewRecoveryScreen {
 		TutorialHarness.waitForIdentifier(app, "chat.preview.notice", reading: unavailable)
 		assertButtons(app, layout, enabled: false)
 		XCTAssertEqual(textCount(app, unavailable), 1)
-		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.retryRead").exists)
+		XCTAssertEqual(textCount(app, "Sorry, something went wrong. Please try again."), 0)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.retryRead"), until: .enabled)
 		let before = calendarCalls(app)
+		let modelBefore = modelRequests(app)
 		for id in layout.buttons.keys {
 			let button = TutorialHarness.named(app, id)
 			TutorialHarness.wait(button, until: .hittable)
@@ -175,8 +178,12 @@ enum ReviewRecoveryScreen {
 		}
 		assertButtons(app, layout, enabled: false)
 		XCTAssertEqual(calendarCalls(app), before, "A disabled review button sent an intent")
+		control(app, "fixture.failReviewRead")
+		TutorialHarness.waitForIdentifier(app, "chat.preview.notice", reading: unavailable)
+		assertButtons(app, layout, enabled: false)
+		XCTAssertEqual(textCount(app, unavailable), 1)
 		capture(test, app, name: "review-unreadable-" + layout.rawValue, dark: dark)
-		control(app, "fixture.refreshReview")
+		TutorialHarness.named(app, "chat.preview.retryRead").tap()
 		TutorialHarness.wait(
 			until: { textCount(app, unavailable) == 0 },
 			message: "Successful read did not clear the unavailable line")
@@ -184,6 +191,8 @@ enum ReviewRecoveryScreen {
 		XCTAssertEqual(textCount(app, unavailable), 0)
 		XCTAssertEqual(
 			calendarCalls(app), before, "Restoring saved controls requested the calendar")
+		XCTAssertEqual(
+			modelRequests(app), modelBefore, "Restoring saved controls requested the model")
 		capture(test, app, name: "review-restored-" + layout.rawValue, dark: dark)
 	}
 
@@ -202,18 +211,21 @@ enum ReviewRecoveryScreen {
 	static func assertButtons(_ container: XCUIElement, _ layout: Layout, enabled: Bool) {
 		let controls = container.buttons.matching(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview."))
-		let expected = layout.buttons
+		var expected = layout.buttons
+		if !enabled { expected["chat.preview.retryRead"] = "Retry" }
 		TutorialHarness.wait(
 			until: {
 				controls.count == expected.count
 					&& controls.allElementsBoundByIndex.allSatisfy {
-						expected[$0.identifier] == $0.label && $0.isEnabled == enabled
+						expected[$0.identifier] == $0.label
+							&& $0.isEnabled
+								== (enabled || $0.identifier == "chat.preview.retryRead")
 					}
 			}, message: "The review did not reach its exact button layout")
 		XCTAssertEqual(Set(controls.allElementsBoundByIndex.map(\.identifier)), Set(expected.keys))
 		XCTAssertEqual(
 			Set(controls.allElementsBoundByIndex.filter(\.isEnabled).map(\.identifier)),
-			enabled ? Set(expected.keys) : [])
+			enabled ? Set(expected.keys) : ["chat.preview.retryRead"])
 		XCTAssertFalse(container.buttons["Try again"].exists)
 	}
 
@@ -229,18 +241,23 @@ enum ReviewRecoveryScreen {
 	private static func control(_ app: XCUIApplication, _ id: String) {
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
-		let target = TutorialHarness.named(app, id)
-		TutorialHarness.scroll(app, to: target)
-		target.tap()
+		TutorialHarness.debugRow(app, id).tap()
 		TutorialHarness.closeMenu(app)
 	}
 
-	private static func calendarCalls(_ app: XCUIApplication) -> String {
+	static func calendarCalls(_ app: XCUIApplication) -> String {
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
-		let count = TutorialHarness.named(app, "fixture.calendarCalls")
-		TutorialHarness.scroll(app, to: count)
+		let count = TutorialHarness.debugRow(app, "fixture.calendarCalls")
 		let value = count.label
+		TutorialHarness.closeMenu(app)
+		return value
+	}
+
+	static func modelRequests(_ app: XCUIApplication) -> String {
+		TutorialHarness.openSidebar(app)
+		TutorialHarness.named(app, "sidebar.debug").tap()
+		let value = TutorialHarness.debugRow(app, "fixture.modelRequestCount").label
 		TutorialHarness.closeMenu(app)
 		return value
 	}

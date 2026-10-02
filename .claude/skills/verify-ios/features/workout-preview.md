@@ -15,7 +15,8 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
 - `preview-unknown-save` shows one pending-save sentence and only Check again. An absent observation adds Cancel and Save approved workout again. A failed calendar read keeps Check again in the same session. A never-approved card has neither approved-save sentence.
 - `preview-cancel-unknown` commits a lasting Cancel note without a calendar request, including offline and locked credentials. Fresh reviews work before and after New conversation; the note stays in History.
-- `preview-storage-unavailable` retains the previous button labels, disables every button, and shows `review.storageUnavailable` once. A successful record read restores valid controls.
+- `preview-storage-unavailable` retains and disables the previous decision buttons, shows `review.storageUnavailable` once, and keeps Retry enabled. Retry rereads saved records and restores valid controls without a model request or calendar call.
+- `preview-choice-save-failed` keeps approval controls available and shows `review.saveFailed` once when Add or Cancel cannot save the choice. The sentence follows the chosen language and no calendar write runs.
 - `preview-expired` omits an expired review after relaunch without writing a review outcome or clearing record.
 
 ## How to get to it (user POV)
@@ -38,8 +39,10 @@ Preconditions:
 | `sim.mjs test <run id> UnknownCalendarSaveDarkProof` | The same proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim.mjs test <run id> CancelUnknownSaveProof` | Offline and locked Cancel leave one buttonless note after relaunch, allow fresh reviews in both conversations, and keep the original note in History. Screenshots start with `cancel-`. |
 | `sim.mjs test <run id> CancelUnknownSaveDarkProof` | The same Cancel proofs in dark appearance, with screenshots and an asserted luminance bound. |
-| `sim.mjs test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. The one read-failure line disappears after Refresh review restores valid controls. Screenshots start with `review-unreadable-` and `review-restored-`. |
+| `sim.mjs test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. Retry remains enabled after another failed read and restores valid controls without model or calendar requests. Screenshots start with `review-unreadable-` and `review-restored-`. |
 | `sim.mjs test <run id> SavedReviewReadFailureDarkProof` | The same saved-review read proofs in dark appearance, with screenshots and an asserted luminance bound. |
+| `sim.mjs test <run id> ReviewStorageFailureProof` | Failed Add shows the G22 sentence in English; failed Cancel shows it in French. Each keeps the review, shows one notice, makes no calendar write or model request, and allows a later Cancel. Failed refresh keeps disabled decision buttons and enabled Retry until recovery. Attachments start with `review-save-failed-`, `review-unreadable-`, and `review-restored-`. |
+| `sim.mjs test <run id> ReviewStorageFailureDarkProof` | The same storage failure proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim.mjs test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
 | `sim.mjs test <run id> AddedToCalendarProof` | `Done — Create workout "Endurance with tempo" on 1998-06-16.`, `07b-added-to-calendar`; `add-to-done-ms` records the delay. |
 | `sim.mjs test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
@@ -59,6 +62,7 @@ For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyR
 ## Gotchas
 
 - The fixture needs text containing `endurance ride`; `/workout` alone produces the week summary.
+- `fixture.failNextAppend` fails the next record append. Arm it after the review is presented and the proposing turn has settled, then tap Add or Cancel. Reach every Debug row through `TutorialHarness.debugRow`.
 - `FixtureArguments(calendarSaveFault: .loseAnswerOnce)` stores the full approval under its UID before losing the answer. `calendarReadFault: .failOnce` affects only the next event list or event fetch. Relaunch with `.keep` retains the unknown write records and opens an empty fake calendar for the absent-read proof. The record-read launch hook waits for a presented, settled card. Debug controls arm the same read fault for other layouts and Refresh review restores controls without checking the calendar.
 - The fake intervals.icu client keeps calendar writes in memory. The Done line and Records are the visible evidence because the app has no calendar screen.
 - A review expires after ten minutes. A later launch omits the expired review, while a decision on a stale on-screen review shows the expiry notice.

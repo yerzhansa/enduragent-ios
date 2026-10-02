@@ -2913,6 +2913,7 @@
     "turnStopping": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance.",
     "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
     "cancelledUnknown": "Annulé. Cette séance a peut-être tout de même été enregistrée. Vérifie ton calendrier.",
+    "saveFailed": "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.",
     "storageUnavailable": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés.",
     "title": "Vérification de la séance",
     "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",

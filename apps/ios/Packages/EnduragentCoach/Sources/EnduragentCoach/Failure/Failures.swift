@@ -218,8 +218,9 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.reviewTurnStopping, action: nil)
 		case .staleControl:
 			return AthleteNotice(key: Catalog.coachConfirmationExpired, action: nil)
-		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly),
-			.storageUnavailable:
+		case .storageUnavailable:
+			return AthleteNotice(key: Catalog.reviewSaveFailed, action: nil)
+		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly):
 			return AthleteNotice(key: Catalog.coachErrorUnknown, action: nil)
 		}
 	}
