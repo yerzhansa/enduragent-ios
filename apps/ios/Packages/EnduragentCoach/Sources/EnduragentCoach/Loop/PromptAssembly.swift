@@ -196,7 +196,9 @@ package struct HistoryWindow {
 
 	package static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
 		let effective = min(window, TurnPolicy.contextWindowCap)
-		let raw = Int((Double(effective) * ratio).rounded(.down)) - systemTokens - 20_000
+		let raw =
+			Int((Double(effective) * ratio).rounded(.down)) - systemTokens
+			- TurnPolicy.reserveTokens
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 

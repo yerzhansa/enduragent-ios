@@ -1,6 +1,10 @@
 import Foundation
 
 package struct Memory: Sendable {
+	package static let snapshotScope: RecordQuery.Scope = .synced([
+		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+	])
+
 	private let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
@@ -118,10 +122,6 @@ package struct Memory: Sendable {
 		SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue)
 	}
 
-	package func context() async throws -> String {
-		renderContext(try await loadSnapshot(), excluding: hiddenSections)
-	}
-
 	package func fullContext() async throws -> String {
 		renderContext(try await loadSnapshot(), excluding: [])
 	}
@@ -210,10 +210,6 @@ package struct Memory: Sendable {
 		return true
 	}
 
-	package func view() async throws -> MemoryView {
-		view(try await loadSnapshot())
-	}
-
 	private func view(_ snapshot: MemorySnapshot) -> MemoryView {
 		var sections: [String: String] = [:]
 		for name in SectionName.cyclingEffective {
@@ -237,18 +233,6 @@ package struct Memory: Sendable {
 			planHeadline: nil,
 			orphanNames: snapshot.orphanNames
 		)
-	}
-
-	package func hiddenSectionsHaveLogicalContent() async throws -> Bool {
-		let snapshot = try await loadSnapshot()
-		for name in SectionName.cyclingEffective where !name.inject {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: name),
-				hasLogicalSectionContent(content)
-			{
-				return true
-			}
-		}
-		return false
 	}
 
 	private func renderContext(_ snapshot: MemorySnapshot, excluding: [String]) -> String {
@@ -298,10 +282,7 @@ package struct Memory: Sendable {
 
 	private func loadSnapshot() async throws -> MemorySnapshot {
 		let records = try await ledger.read(
-			RecordQuery(
-				scope: .synced([
-					.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
-				]))
+			RecordQuery(scope: Self.snapshotScope)
 		).records
 		var sections: [AthleteRecord] = []
 		var daily: [AthleteRecord] = []

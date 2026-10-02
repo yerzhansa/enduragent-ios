@@ -42,7 +42,7 @@ struct Compactor: Sendable {
 		}
 		let step = try await modelCall.run(
 			request: CompletionRequest(
-				access: attempt.access.using(model: attempt.models.compaction),
+				access: attempt.access,
 				attempt: attempt.attempt,
 				charge: charge,
 				messages: [

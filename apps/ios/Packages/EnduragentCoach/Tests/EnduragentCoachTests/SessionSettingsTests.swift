@@ -63,36 +63,6 @@ import Testing
 				== 1)
 	}
 
-	@Test func debugModelOverrideDoesNotSync() async throws {
-		let old = Data(
-			#"{"historyBudgetRatio":0.05,"compactionModel":"debug/compact","flushModel":"debug/flush"}"#
-				.utf8)
-		let decoded = try RecordCodec.decode(
-			kind: "sessionSettings", version: 2, data: old, civilDate: "1998-06-13",
-			ulid: "debug-settings"
-		).get()
-		guard case .synced(.sessionSettings(let body)) = decoded else {
-			Issue.record("Expected session settings")
-			return
-		}
-		let store = InMemoryRecordLog()
-		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
-		try await coach.setSession(body.settings)
-		let rows = try await store.fetch(RecordQuery(scope: .synced([.sessionSettings]))).records
-		let encoded = try RecordCodec.encode(try #require(rows.first).body).data
-		let payload = try #require(
-			try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
-		#expect(payload["compactionModel"] == nil)
-		#expect(payload["flushModel"] == nil)
-		let restored = try await makeCoach(transport: FakeModelTransport(), store: store)
-			.observedStatus()
-			.session
-		let roles = ModelRoles(response: testModel, session: restored)
-		#expect(roles.compaction == testModel)
-		#expect(roles.flush == testModel)
-		#expect(restored.historyBudgetRatio.value == 0.05)
-	}
-
 	@Test func failedSessionWriteKeepsTheStoredSettings() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
 		let coach = await makeCoach(transport: FakeModelTransport(), store: log)
@@ -134,19 +104,12 @@ import Testing
 				== .success(.synced(.sessionSettings(SessionSettingsBody(settings: expected)))))
 	}
 
-	@Test func modelRolesUseTheResponseModelAndCapTheWindow() throws {
-		let response = ModelID(rawValue: "test/chat")
-		let defaults = ModelRoles(response: response, session: .npmDefaults)
-		#expect(defaults.compaction == response)
-		#expect(defaults.flush == response)
-		#expect(defaults.chatWindow == 200_000)
+	@Test func contextWindowOverrideIsCapped() throws {
+		#expect(SessionSettings.npmDefaults.effectiveContextWindow == 200_000)
 		let chosen = try SessionSettings.npmDefaults
 			.replacing(.contextWindowOverride, with: "500000")
-		let roles = ModelRoles(response: response, session: chosen)
-		#expect(roles.compaction == response)
-		#expect(roles.flush == response)
-		#expect(roles.chatWindow == 200_000)
+		#expect(chosen.effectiveContextWindow == 200_000)
 		let small = try chosen.replacing(.contextWindowOverride, with: "32000")
-		#expect(ModelRoles(response: response, session: small).chatWindow == 32_000)
+		#expect(small.effectiveContextWindow == 32_000)
 	}
 }

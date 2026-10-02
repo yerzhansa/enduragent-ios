@@ -18,10 +18,6 @@ package struct TurnAttempt: Sendable {
 	package let access: ResolvedAccess
 	package let training: TrainingConnection
 	package let process: ProcessID
-
-	package var models: ModelRoles {
-		ModelRoles(response: access.model, session: session)
-	}
 }
 
 package enum AttemptProgress: Sendable, Equatable {
@@ -205,7 +201,7 @@ package struct TurnRunner: Sendable {
 		}
 		_ = try await flushes.run(
 			job, messages: rows.map(\.message),
-			access: attempt.access.using(model: attempt.models.flush),
+			access: attempt.access,
 			scope: scope)
 	}
 
@@ -244,7 +240,8 @@ package struct TurnRunner: Sendable {
 		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
 		let trim = HistoryWindow.trim(
 			messages: past, systemTokens: estimateTokens(system),
-			window: attempt.models.chatWindow, ratio: attempt.session.historyBudgetRatio.value)
+			window: attempt.session.effectiveContextWindow,
+			ratio: attempt.session.historyBudgetRatio.value)
 		var summary = history.summary
 		var kept = trim.kept
 		if !trim.dropped.isEmpty {
@@ -293,7 +290,7 @@ package struct TurnRunner: Sendable {
 			prefix: prefix, system: system, schemas: schemas, timed: timed, summary: summary,
 			wire: wire,
 			inTurnRows: transcript.window + [transcript.current].compactMap { $0 },
-			window: attempt.models.chatWindow)
+			window: attempt.session.effectiveContextWindow)
 	}
 
 	private func summarizeDropped(

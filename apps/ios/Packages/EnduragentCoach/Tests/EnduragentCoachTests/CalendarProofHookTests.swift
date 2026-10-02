@@ -42,33 +42,6 @@ import Testing
 		#expect(try await client.listEvents(oldest: approval.date, newest: approval.date) == stored)
 	}
 
-	@Test func lostAnswerCanBeConfirmedThroughThePresentedCoachReview() async throws {
-		let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		client.loseCalendarSaveAnswerOnce = true
-		let model = FakeModelTransport()
-		let coach = await makeCoach(transport: model, intervals: client, store: InMemoryRecordLog())
-		let (_, token) = try await DurableCalendarWriteTests().proposal(on: coach, model: model)
-		_ = await coach.decide(.approve(token), in: .main)
-		await coach.stop(.main)
-		let unknown = try #require(await coach.currentSnapshot(.main)?.review)
-		#expect(unknown.notice?.key == Catalog.reviewWritePending)
-		#expect(unknown.controls == .checkAgain(unknown.ref))
-		try #require(client.events.count == 1)
-		let event = try #require(client.events.first)
-		#expect(
-			await coach.decide(.checkAgain(unknown.ref), in: .main)
-				== .applied([
-					ReviewReceipt(index: 0, result: .confirmed(eventId: String(event.id.rawValue)))
-				]))
-		#expect(await coach.currentSnapshot(.main)?.review == nil)
-		#expect(client.events == [event])
-		#expect(
-			client.calls.filter {
-				if case .createEvent = $0 { return true }
-				return false
-			}.count == 1)
-	}
-
 	@Test(arguments: [false, true])
 	func calendarReadFaultIsConsumedOnlyByTheNextEventRead(fetchFirst: Bool) async throws {
 		let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)

@@ -153,8 +153,7 @@ private struct FlushedMessages {
 	}
 
 	func covers(_ ulid: ULID, legacy: Bool) -> Bool {
-		ConversationRows.didResolveRow?()
-		return listed.contains(ulid)
+		listed.contains(ulid)
 			|| (legacy
 				&& (legacyThrough.map { ulid <= $0 } ?? false
 					|| legacyBefore.map { ulid < $0 } ?? false))
