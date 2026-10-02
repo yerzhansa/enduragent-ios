@@ -56,23 +56,33 @@ import Testing
 		let events = try history.split(separator: "\n").filter { $0.hasPrefix("event: ") }.map {
 			try JSONValue.parse(String($0.dropFirst("event: ".count)))
 		}
-		#expect(
-			events == [
-				.object([
-					"date": .string("1998-06-13"), "kind": .string("decision"),
-					"text": .string("Keep Saturdays free."), "source": .string("chat"),
-					"ts": .string("1998-06-13T10:00:00.000Z"),
-				]),
-				.object([
-					"date": .string("1998-06-13"), "kind": .string("decision"),
-					"text": .string("Ride easy on Sundays."), "source": .string("chat"),
-					"ts": .string("1998-06-13T10:02:00.000Z"),
-				]),
-			])
-		let prompt = request.messages.map(\.content).joined(separator: "\n")
-		#expect(prompt.components(separatedBy: "Keep Saturdays free.").count == 2)
-		#expect(prompt.components(separatedBy: "Ride easy on Sundays.").count == 2)
-		#expect(!prompt.contains("KEEP Saturdays"))
+		let expectedEvents: [JSONValue] = [
+			.object([
+				"date": .string("1998-06-13"), "kind": .string("decision"),
+				"text": .string("Keep Saturdays free."), "source": .string("chat"),
+				"ts": .string("1998-06-13T10:00:00.000Z"),
+			]),
+			.object([
+				"date": .string("1998-06-13"), "kind": .string("decision"),
+				"text": .string("Ride easy on Sundays."), "source": .string("chat"),
+				"ts": .string("1998-06-13T10:02:00.000Z"),
+			]),
+		]
+		#expect(events == expectedEvents)
+		for request in sent(.chatAttempt, by: transport) {
+			let system = try #require(request.messages.first { $0.role == .system }).content
+			let open = try #require(system.range(of: PromptAssembly.athleteDataOpen))
+			let close = try #require(system.range(of: PromptAssembly.athleteDataClose))
+			try #require(open.upperBound <= close.lowerBound)
+			let memory = String(system[open.upperBound..<close.lowerBound])
+			#expect(memory.contains("## Athlete Memory\n"))
+			let memoryEvents = try memory.split(separator: "\n").filter {
+				$0.hasPrefix("event: ")
+			}.map {
+				try JSONValue.parse(String($0.dropFirst("event: ".count)))
+			}
+			#expect(memoryEvents == expectedEvents)
+		}
 		#expect(try await store.fetch(storedQuery).records == before)
 	}
 }
