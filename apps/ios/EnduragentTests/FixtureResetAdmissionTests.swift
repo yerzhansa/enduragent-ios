@@ -1,6 +1,7 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
 import Foundation
+import Observation
 import Testing
 
 @testable import Enduragent
@@ -61,13 +62,18 @@ struct FixtureResetAdmissionTests {
 	@Test func anEditedDraftSurvivesResetAdmission() async throws {
 		let model = try await readyModel()
 		model.draft = Draft(id: DraftID(), text: "/start")
-		let sending = Task { await model.send() }
-		await Task.yield()
-		try #require(model.isSending)
-		model.draft.text = "And on Sunday?"
-		model.draftChanged(from: "/start")
-		await sending.value
+		let submitted = model.draft
+		withObservationTracking {
+			_ = model.isSending
+		} onChange: {
+			MainActor.assumeIsolated {
+				model.draft.text = "And on Sunday?"
+				model.draftChanged(from: "/start")
+			}
+		}
+		await model.send()
 		#expect(model.draft.text == "And on Sunday?")
+		#expect(model.draft.id != submitted.id)
 		#expect(model.drafts.load(.main) == model.draft)
 		#expect(!model.isSending)
 	}

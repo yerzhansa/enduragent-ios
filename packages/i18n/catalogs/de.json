@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Wähle deine Sprache",
-    "continue": "Weiter",
-    "saveFailed": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben auf {{current}}. Versuche es erneut.",
-    "saveFailedAutomatic": "{{language}} konnte nicht gespeichert werden. Die Antworten bleiben in der Sprache der jeweiligen Nachricht. Versuche es erneut."
+    "continue": "Weiter"
   },
   "settings": {
     "appearance": {

@@ -38,7 +38,9 @@ extension FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		do {
 			let (services, kept) = try await relaunch(.keep)
-			let launched = await AppLaunch.open(language: language) { (services, kept) }
+			let launched = await AppLaunch.open(systemLanguages: [language.rawValue]) { _ in
+				(services, kept)
+			}
 			guard case .ready(let model) = launched else {
 				Issue.record("Expected the existing install to open")
 				return

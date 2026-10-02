@@ -28,7 +28,7 @@ package struct EnvironmentResolver: Sendable {
 			request: facts.requestText,
 			slash: facts.slash,
 			language: resolved.preferences.language.replyLanguage(
-				for: facts.requestText, device: deviceLanguage),
+				device: deviceLanguage),
 			session: resolved.preferences.session, access: resolved.access,
 			training: resolved.training, process: process)
 	}

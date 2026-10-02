@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Valitse kielesi",
-    "continue": "Jatka",
-    "saveFailed": "Kielivalintaa {{language}} ei voitu tallentaa. Vastausten kieli on edelleen {{current}}. Yritä uudelleen.",
-    "saveFailedAutomatic": "Kielivalintaa {{language}} ei voitu tallentaa. Vastaukset pysyvät kunkin viestin kielellä. Yritä uudelleen."
+    "continue": "Jatka"
   },
   "settings": {
     "appearance": {

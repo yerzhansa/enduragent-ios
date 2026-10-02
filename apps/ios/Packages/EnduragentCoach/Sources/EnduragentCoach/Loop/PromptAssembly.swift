@@ -95,9 +95,9 @@ package enum PromptAssembly {
 		case .fixed(let tag):
 			direction =
 				"The athlete chose \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
-		case .mirror(let tag):
+		case .automatic(let tag):
 			direction =
-				"No language is saved. Reply in the language of the athlete's latest message; that is what \"Mirror the athlete's register\" means for language. When the message carries no language signal (a bare command, numbers only), reply in \(tag.englishName) (\(tag.endonym))."
+				"Automatic follows the iPhone's preferred languages. Reply in \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
 		}
 		return """
 			# Reply language

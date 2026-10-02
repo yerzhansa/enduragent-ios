@@ -36,7 +36,7 @@ import Testing
 			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
 			timeZoneName: "Europe/Amsterdam",
 			replyLanguage: PromptAssembly.replyLanguageSection(
-				.mirror(fallback: .en)
+				.automatic(.en)
 			)
 		)
 		#expect(section.contains(PromptAssembly.athleteDataOpen))
@@ -105,5 +105,4 @@ import Testing
 			PromptAssembly.summaryMessage("- FTP 262W")
 				== "[Previous conversation summary]\n- FTP 262W")
 	}
-
 }

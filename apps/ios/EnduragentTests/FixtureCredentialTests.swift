@@ -36,7 +36,7 @@ extension FixtureLaunchTests {
 	@Test func unreadableRecordStoreShowsTheStorageNoticeInsteadOfCrashing() async throws {
 		var unreadable = launch
 		unreadable.store = .unreadable
-		let launched = await AppLaunch.open(language: .en) {
+		let launched = await AppLaunch.open(systemLanguages: ["en"]) { _ in
 			let defaults = try unreadable.prepare()
 			return (try fixtureServices(unreadable, defaults: defaults), defaults)
 		}
@@ -48,7 +48,9 @@ extension FixtureLaunchTests {
 			AthleteNotice.recordStoreUnavailable.map { $0.sentence(in: phrasebook) } == [
 				"Conversation history is temporarily unavailable.", "Quit and reopen Enduragent.",
 			])
-		let live = await AppLaunch.open(language: .en) { throw CocoaError(.fileReadNoPermission) }
+		let live = await AppLaunch.open(systemLanguages: ["en"]) { _ in
+			throw CocoaError(.fileReadNoPermission)
+		}
 		guard case .storageUnavailable = live else {
 			Issue.record("expected the storage notice for a live store failure")
 			return

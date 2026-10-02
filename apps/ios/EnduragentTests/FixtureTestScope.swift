@@ -91,11 +91,13 @@ final class AppTestFixture {
 @MainActor
 func fixtureServices(
 	_ launch: FixtureLaunch, defaults: UserDefaults,
+	language: LanguageTag = Language.uiTag(systemLanguages: Locale.preferredLanguages),
 	backgroundSystem: any BackgroundSystem = StubBackgroundSystem()
 ) throws -> AppServices {
 	AppTestFixture.active.own(
 		try AppServices.fixture(
-			launch, defaults: defaults, backgroundSystem: backgroundSystem))
+			launch, defaults: defaults, language: language,
+			backgroundSystem: backgroundSystem))
 }
 
 @MainActor

@@ -41,9 +41,7 @@
   },
   "language": {
     "chooseTitle": "Escolhe o teu idioma",
-    "continue": "Continuar",
-    "saveFailed": "Não foi possível guardar {{language}}. As respostas continuam em {{current}}. Tenta novamente.",
-    "saveFailedAutomatic": "Não foi possível guardar {{language}}. As respostas continuam no idioma de cada mensagem. Tenta novamente."
+    "continue": "Continuar"
   },
   "settings": {
     "appearance": {

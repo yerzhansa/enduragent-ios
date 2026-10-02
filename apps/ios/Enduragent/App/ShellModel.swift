@@ -111,9 +111,7 @@ final class ShellModel {
 	}
 
 	var languageNotSavedLine: String? {
-		languageNotSaved.map {
-			$0.notSaved(keeping: languagePreference, in: phrasebook)
-		}
+		languageNotSaved.map { _ in phrasebook.say(Catalog.reviewSaveFailed) }
 	}
 
 	var connected: IntervalsSummary? {

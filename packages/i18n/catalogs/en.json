@@ -990,9 +990,7 @@
   },
   "language": {
     "chooseTitle": "Choose your language",
-    "continue": "Continue",
-    "saveFailed": "Couldn't save {{language}}. Replies stay in {{current}}. Try again.",
-    "saveFailedAutomatic": "Couldn't save {{language}}. Replies stay in the language of each message. Try again."
+    "continue": "Continue"
   },
   "onboarding": {
     "notice": {

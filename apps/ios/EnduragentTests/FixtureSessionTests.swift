@@ -67,7 +67,7 @@ extension FixtureLaunchTests {
 		await model.chooseLanguage(.fixed(.de))
 		#expect(
 			model.languageNotSavedLine
-				== "Couldn't save Deutsch. Replies stay in the language of each message. Try again."
+				== "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
 		)
 		#expect(model.status?.language == .automatic)
 		model.draft.text = "/language"

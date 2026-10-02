@@ -7,14 +7,14 @@ enum AppLaunch {
 	case storageUnavailable(CatalogPhrasebook, failure: any Error)
 
 	static func start() async -> AppLaunch {
-		let language = Language.uiTag(systemLanguages: Locale.preferredLanguages)
-		return await open(language: language) {
+		await open(systemLanguages: Locale.preferredLanguages) { language in
 			#if DEBUG
 				if let fixture = try fixtureLaunch() {
 					let defaults = try fixture.prepare()
 					return (
 						try AppServices.fixture(
-							fixture, defaults: defaults, backgroundSystem: LiveBackgroundSystem()),
+							fixture, defaults: defaults, language: language,
+							backgroundSystem: LiveBackgroundSystem()),
 						defaults
 					)
 				}
@@ -24,10 +24,11 @@ enum AppLaunch {
 	}
 
 	static func open(
-		language: LanguageTag, _ services: () throws -> (AppServices, UserDefaults)
+		systemLanguages: [String], _ services: (LanguageTag) throws -> (AppServices, UserDefaults)
 	) async -> AppLaunch {
+		let language = Language.uiTag(systemLanguages: systemLanguages)
 		do {
-			let (built, defaults) = try services()
+			let (built, defaults) = try services(language)
 			let preference = await built.coach.languagePreference()
 			let model = ShellModel(
 				environment: AppEnvironment(
