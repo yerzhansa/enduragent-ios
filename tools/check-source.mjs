@@ -128,7 +128,8 @@ function hasLiteralTestHangGuard(text) {
   const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
   const duration = String.raw`(?:Duration\s*\.\s*)?\.?(?:seconds|milliseconds|microseconds|nanoseconds|zero)\b`;
   return new RegExp(String.raw`\bwithin(?:\s+\w+\s*:\s*\w+\s*=|\s*:)\s*${duration}`).test(code)
-    || new RegExp(String.raw`\bContinuousClock(?:\s*\(\s*\))?\s*\.\s*now\s*\+\s*${duration}`).test(code);
+    || new RegExp(String.raw`\bContinuousClock(?:\s*\(\s*\))?\s*\.\s*now\s*\+\s*${duration}`).test(code)
+    || new RegExp(String.raw`\baddTask\s*\{\s*try\s+await\s+Task\s*\.\s*sleep\s*\(\s*for\s*:\s*${duration}(?:\s*\([^)]*\))?\s*\)\s*;?\s*return\s+(?:false|nil)\b`).test(code);
 }
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
