@@ -22,7 +22,7 @@ extension FixtureLaunchTests {
 		try #require(first.slashListVisible)
 		first.open(.settings)
 		let (kept, keptDefaults) = try await relaunch(.keep)
-		let reopened = ShellModel(
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
@@ -62,7 +62,7 @@ extension FixtureLaunchTests {
 		try await proveSettingsNavigation(first, snapshot: snapshot, draft: draft)
 		#expect(try await services.coach.observedStatus().training == training)
 		let (kept, keptDefaults) = try await relaunch(.keep)
-		let reopened = ShellModel(
+		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		try await observed(reopened)
 		#expect(reopened.navigation.isEmpty)
@@ -149,7 +149,8 @@ extension FixtureLaunchTests {
 		ShellDestination.debugCredits, .debugCredentials, .debugRecords, .debugLanguage,
 		.session, .debugLeases,
 	])
-	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws {
+	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws
+	{
 		let model = model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)

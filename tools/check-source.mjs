@@ -124,6 +124,41 @@ function hasUnboundedTestWait(text) {
     .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
       && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
 }
+function checkNavigationStacks(sources) {
+  const views = new Map();
+  const roots = [];
+  const declarations = /\bstruct\s+(\w+)\s*:\s*View\b/g;
+  for (const [file, text] of sources) {
+    const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+    const names = [...code.matchAll(declarations)].map(match => match[1]);
+    for (const [index, [start, end]] of trailingBlocks(code, declarations).entries()) {
+      const body = code.slice(start + 1, end);
+      views.set(names[index], { file, body });
+      for (const [stackStart, stackEnd] of trailingBlocks(body, /\bNavigationStack\s*(?=\(\s*path\s*:)/g)) {
+        roots.push({ file, body: body.slice(stackStart + 1, stackEnd) });
+      }
+    }
+  }
+  const visited = new Set();
+  const reported = new Set();
+  while (roots.length) {
+    const { file, body } = roots.pop();
+    let content = body;
+    for (const [start, end] of trailingBlocks(body, /\.(?:sheet|fullScreenCover)\b/g)) {
+      content = content.slice(0, start) + ' '.repeat(end - start + 1) + content.slice(end + 1);
+    }
+    if (/\bNavigationStack\b/.test(content) && !reported.has(file)) {
+      report(file, 'shell-navigation-stack-owner');
+      reported.add(file);
+    }
+    for (const [, name] of content.matchAll(/\b(\w+)\s*\(/g)) {
+      if (views.has(name) && !visited.has(name)) {
+        visited.add(name);
+        roots.push(views.get(name));
+      }
+    }
+  }
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -177,6 +212,7 @@ function checkFeatureProofs(sources) {
 try {
   const files = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean);
   const featureProofSources = new Map();
+  const appNavigationSources = new Map();
   for (const file of files) {
     count++;
     if (forbiddenPath.test(file)) {
@@ -196,6 +232,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)) appNavigationSources.set(file, text);
     if ((/^apps\/ios\/(?:Packages\/[^/]+\/Tests\/|Enduragent(?:UI|Phone)?Tests\/).*\.swift$/.test(file)
         && /\b(?:temporaryDirectory|NSTemporaryDirectory)\b/.test(text))
       || (/^apps\/ios\/EnduragentTests\/.*\.swift$/.test(file)
@@ -237,6 +274,7 @@ try {
     if (publicText(file, text).some(value => language.test(value))) report(file, 'public-language');
   }
   checkFeatureProofs(featureProofSources);
+  checkNavigationStacks(appNavigationSources);
   console.log(`check-source: ${count} tracked files; ${violations} violations.`);
   process.exitCode = violations ? 1 : 0;
 } catch {

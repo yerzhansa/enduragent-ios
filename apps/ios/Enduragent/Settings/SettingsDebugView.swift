@@ -8,33 +8,24 @@ import SwiftUI
 
 		var body: some View {
 			List {
-				NavigationLink("Credits") {
-					CreditsDebugView(
-						coach: model.services.coach, deviceCheck: model.environment.deviceCheck,
-						phrasebook: model.phrasebook)
-				}
-				.accessibilityIdentifier("debug.credits")
-				NavigationLink("Credentials") {
-					CredentialsDebugView(model: model)
-				}
-				.accessibilityIdentifier("debug.credentials")
-				NavigationLink("Records") {
-					RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
-				}
-				.accessibilityIdentifier("debug.records")
-				NavigationLink(model.phrasebook.say(Catalog.settingsLanguageTitle, [:])) {
-					LanguageView(model: model)
-				}
+				NavigationLink("Credits", value: ShellDestination.debugCredits)
+					.accessibilityIdentifier("debug.credits")
+				NavigationLink("Credentials", value: ShellDestination.debugCredentials)
+					.accessibilityIdentifier("debug.credentials")
+				NavigationLink("Records", value: ShellDestination.debugRecords)
+					.accessibilityIdentifier("debug.records")
+				NavigationLink(
+					model.phrasebook.say(Catalog.settingsLanguageTitle, [:]),
+					value: ShellDestination.debugLanguage
+				)
 				.accessibilityIdentifier("debug.language")
 				NavigationLink(
 					model.phrasebook.say(Catalog.settingsConversationTitle, [:]),
 					value: ShellDestination.session
 				)
 				.accessibilityIdentifier("debug.session")
-				NavigationLink("Leases") {
-					LeasesDebugView(leases: model.services.leases)
-				}
-				.accessibilityIdentifier("debug.leases")
+				NavigationLink("Leases", value: ShellDestination.debugLeases)
+					.accessibilityIdentifier("debug.leases")
 				if model.services.fixture != nil {
 					FixtureCountsDebugView(services: model.services)
 				}

@@ -21,9 +21,7 @@ struct HistoryView: View {
 				Text(say(Catalog.archiveEmpty))
 			case .loaded(let conversations):
 				List(conversations) { conversation in
-					NavigationLink {
-						ArchivedConversationView(model: model, ref: conversation.id)
-					} label: {
+					NavigationLink(value: ShellDestination.archivedConversation(conversation.id)) {
 						row(conversation)
 					}
 					.accessibilityIdentifier("history.row.\(conversation.id.rawValue)")

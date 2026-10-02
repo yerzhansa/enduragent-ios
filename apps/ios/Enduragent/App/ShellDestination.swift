@@ -1,20 +1,17 @@
+import EnduragentCoach
+
 enum ShellDestination: Hashable {
 	case settings
 	case history
+	case archivedConversation(ArchivedConversationRef)
 	case credits
 	#if DEBUG
 		case debug
+		case debugCredits
+		case debugCredentials
+		case debugRecords
+		case debugLanguage
 		case session
+		case debugLeases
 	#endif
-
-	var path: [Self] {
-		switch self {
-		case .settings, .history: [self]
-		case .credits: [.settings, .credits]
-		#if DEBUG
-			case .debug: [.settings, .debug]
-			case .session: [.settings, .debug, .session]
-		#endif
-		}
-	}
 }

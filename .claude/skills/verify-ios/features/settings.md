@@ -27,16 +27,20 @@ Follow the [index](./README.md) setup. Use a 390 pt wide iPhone. The helper sets
 | Command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> SettingsNavigationProof SettingsNavigationDarkProof` | Connected setup, Skip, and French each open Settings, disabled Credits packs, and toolbar History, return to the conversation and slash draft, relaunch from Settings, preserve the working connection, select a command, and archive through New conversation. Attachments start with `settings-connected-en`, `settings-skipped-en`, or `settings-connected-fr`, followed by `light` or `dark` and `toolbar`, `page`, `credits`, `command`, or `archive`. |
+| `sim.mjs test <run id> CoalesceProof StarterCreditsProof NoticeCopyProof` | Records stays open, Credits diagnostics remains hittable, and one Back from notice recovery returns to the conversation. |
 | `sim.mjs test <run id> CreditsProof HistoryListProof HistoryArchivedProof NewConversationProof SlashStartProof ResetKeepsReviewProof` | Existing Credits, read-only History, both New conversation entries, and a reset with a pending workout review use the new routes. |
 
-The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`, `loadCredits`, `loadHistory`, `newConversation`, and `fillSlash`. Run `EnduragentTests` on the final head. The connected and skipped cases also reopen their stores and keep the draft and training setup. Status updates leave Settings and the Debug Session destination open.
+Both Settings classes also run `testEveryDebugDestinationReturnsToDebug`. They open all six Debug destinations, capture each screen, and check that one Back returns to Debug. The Credits steps check that one Back returns to Settings.
+
+The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`, `loadCredits`, `loadHistory`, `newConversation`, and `fillSlash`. Run `EnduragentTests` on the final head. The connected and skipped cases also reopen their stores and keep the draft and training setup. Status and conversation updates leave all six Debug destinations on the shell path. Credits opened from Model access returns to Settings after one Back. The notice-action tests require Credits opened from a conversation notice to return to the conversation after one Back.
 
 `TutorialHarness.openSettings` replaces `openSidebar`. `openHistory` taps `chat.history`. `openDebug`, `fixtureControl`, `openRecords`, `openCredentials`, `historyHead`, and `assertZeroFixtureRequests` enter through Settings. `returnToChat` replaces `closeMenu` and taps navigation Back with a deadline. Run every proof that calls those helpers on the final head. The suite covers these consumers, including History and New conversation. Run `HistoryOpenProbe` separately because the suite discovers proof classes only.
 
 ## Gotchas
 
 - Settings and History are navigation destinations. Swipe-down sheet dismissal cannot return to the conversation.
-- Turn recovery opens the same Settings > Credits path. It performs no purchase or restore.
+- Turn recovery opens Credits directly above the conversation. One Back returns to the conversation. Credits opened from Model access returns to Settings. Both entries use the same screen and perform no purchase or restore.
+- The shell owns one typed navigation path and one stack. Every pushed Debug screen and archived conversation has a registered shell destination. A presented Language sheet owns its separate stack.
 - Debug tools compile out of Release. A Debug screenshot does not prove their absence in a Release build.
 - The Settings proof checks fixture connection identity and zero blocked network requests. It does not prove live credentials or cross-device sync.
 - The physical `PhoneRun` uses the new History and Settings > Credits routes. Its message budget and device approval requirements still apply.

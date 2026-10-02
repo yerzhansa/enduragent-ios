@@ -88,6 +88,22 @@ test('accepts a sheet owning a separate stack view without exempting its pushed 
   assert.match(nested.output, /shell-navigation-stack-owner/);
 });
 
+test('rejects a stack outside nested sheets', () => {
+  const result = run({
+    [navigationRoot]: boundNavigation,
+    [navigationChild]: `struct SettingsView: View {
+      var body: some View {
+        Text(title).sheet(isPresented: $show) {
+          NavigationStack { Text(title).sheet(isPresented: $other) { NavigationStack { Text(title) } } }
+        }
+        NavigationStack { Text(title) }
+      }
+    }`,
+  });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /shell-navigation-stack-owner/);
+});
+
 test('accepts independent onboarding stacks and NavigationStack inside a string', () => {
   const result = run({
     [navigationRoot]: boundNavigation,

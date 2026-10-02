@@ -59,13 +59,28 @@ struct ChatView: View {
 						SettingsView(model: model)
 					case .history:
 						HistoryView(model: model)
+					case .archivedConversation(let ref):
+						ArchivedConversationView(model: model, ref: ref)
 					case .credits:
 						CreditsView(model: model)
 					#if DEBUG
 						case .debug:
 							SettingsDebugView(model: model)
+						case .debugCredits:
+							CreditsDebugView(
+								coach: model.services.coach,
+								deviceCheck: model.environment.deviceCheck,
+								phrasebook: model.phrasebook)
+						case .debugCredentials:
+							CredentialsDebugView(model: model)
+						case .debugRecords:
+							RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
+						case .debugLanguage:
+							LanguageView(model: model)
 						case .session:
 							SessionDebugView(model: model)
+						case .debugLeases:
+							LeasesDebugView(leases: model.services.leases)
 					#endif
 					}
 				}

@@ -3,6 +3,10 @@ import XCTest
 
 @MainActor
 final class SettingsNavigationProof: XCTestCase {
+	func testEveryDebugDestinationReturnsToDebug() {
+		SettingsNavigationScreen.proveDebug(self, dark: false)
+	}
+
 	func testConnectedSetupKeepsConversationAndDraft() {
 		SettingsNavigationScreen.prove(self, connected: true, dark: false)
 	}
@@ -18,6 +22,10 @@ final class SettingsNavigationProof: XCTestCase {
 
 @MainActor
 final class SettingsNavigationDarkProof: XCTestCase {
+	func testEveryDebugDestinationReturnsToDebug() {
+		SettingsNavigationScreen.proveDebug(self, dark: true)
+	}
+
 	func testConnectedSetupKeepsConversationAndDraft() {
 		SettingsNavigationScreen.prove(self, connected: true, dark: true)
 	}
@@ -69,6 +77,9 @@ private enum SettingsNavigationScreen {
 		XCTAssertEqual(buy.count, 2)
 		for button in buy.allElementsBoundByIndex { XCTAssertFalse(button.isEnabled) }
 		TutorialHarness.attach(test, name: "\(name)-credits", app: app)
+		app.navigationBars.buttons.element(boundBy: 0).tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.credits"), until: .hittable)
+		XCTAssertFalse(composer.isHittable)
 		TutorialHarness.returnToChat(app)
 		assertConversation(app)
 		openHistory(app, phrasebook: phrasebook)
@@ -105,6 +116,39 @@ private enum SettingsNavigationScreen {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.send").isHittable)
 		TutorialHarness.attach(test, name: "\(name)-archive", app: app)
 		TutorialHarness.returnToChat(app)
+		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+
+	static func proveDebug(_ test: XCTestCase, dark: Bool) {
+		let app = XCUIApplication()
+		TutorialHarness.launch(app)
+		TutorialHarness.completeOnboarding(app)
+		assertAppearance(app, dark: dark)
+		TutorialHarness.openDebug(app)
+		let screens = [
+			("debug.records", TutorialHarness.named(app, "records.device")),
+			("debug.credits", TutorialHarness.named(app, "debug.credits.claimStarter")),
+			("debug.credentials", TutorialHarness.named(app, "credentials.outcome")),
+			("debug.language", TutorialHarness.named(app, "language.choice.automatic")),
+			("debug.session", TutorialHarness.named(app, "session.historyBudgetRatio.stored")),
+			("debug.leases", app.navigationBars["Leases"]),
+		]
+		for (identifier, content) in screens {
+			let link = TutorialHarness.named(app, identifier)
+			TutorialHarness.wait(link, until: .hittable)
+			link.tap()
+			TutorialHarness.wait(content)
+			XCTAssertFalse(TutorialHarness.named(app, "chat.settings").isHittable)
+			TutorialHarness.attach(
+				test, name: "settings-\(identifier)-\(dark ? "dark" : "light")", app: app)
+			app.navigationBars.buttons.element(boundBy: 0).tap()
+			TutorialHarness.wait(TutorialHarness.named(app, "debug.records"), until: .hittable)
+			XCTAssertFalse(TutorialHarness.named(app, "settings.credits").isHittable)
+		}
+		app.navigationBars.buttons.element(boundBy: 0).tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.credits"), until: .hittable)
+		app.navigationBars.buttons.element(boundBy: 0).tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 

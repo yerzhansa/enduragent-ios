@@ -123,7 +123,7 @@ final class ShellModel {
 
 	func open(_ destination: ShellDestination) {
 		guard route == .chat else { return }
-		navigation = destination.path
+		navigation.append(destination)
 	}
 
 	func continueNotice() {

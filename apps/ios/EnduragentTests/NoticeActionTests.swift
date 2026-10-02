@@ -29,6 +29,7 @@ extension FixtureLaunchTests {
 		await model.perform(action)
 		#expect(model.navigation == [.credits])
 		await model.loadCredits()
+		try #require(model.navigation.last == .credits)
 		model.navigation.removeLast()
 		#expect(model.navigation.isEmpty)
 		#expect(model.route == .chat)
