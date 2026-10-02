@@ -62,6 +62,7 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Chat | `chat.history` labeled with `archive.history`, `chat.settings` labeled with `settings.title`, `chat.newConversation`, the compose icon labeled `New conversation`, `chat.welcome`, `chat.newConversation.notice`, `chat.composer`, `chat.send`, `chat.stop`, `chat.composer.notSent`, `chat.composer.notice` for a coach-wide notice such as a locked Keychain, `chat.working`, `chat.turn.notice`, `chat.turn.tryAgain`, `chat.turn.buyCredits`, `chat.turn.restorePurchases`, `chat.turn.chooseAccessMethod`, `chat.turn.signInAgain`, `chat.turn.receivedBeforeClose`, `chat.turn.finishedWhileLocked`, `chat.note` for a durable review outcome, `chat.review.notice` for a review action result, `chat.review.connect` for missing training connection guidance, `chat.slash.<command>`, `chat.transcript` for the List, `chat.composer.container` for the whole composer; `ReviewCardComposerProof` checks row separation and hittable Send with the keyboard open |
 | Chat turn probe | Debug builds expose the invisible `chat.turnProgress` element with accessibility value `turns <count> settled <settled count>`. `TutorialHarness.exchange` reads it before sending and waits for one more turn with every turn settled. |
 | Language sheet | `language.choice.<automatic or tag>` with the selected trait on the current choice, `language.close`, `language.saveFailed` |
+| Settings language | `settings.language` opens the same sheet as `/language`, showing the saved preference in the row |
 | Records | `debug.records` in Debug, `records.list`, `records.device` at the top, `records.entries` after the counts, `records.count.<kind>`, `records.row.<id>` whose label names a `turnSettled` row's outcome such as `interrupted processEnded` or a `turnClaim` row's lease kind, `continuedProcessing` or `gracePeriodOnly`, and ends with the row's training account, `unconnected` or `intervals:<connection id>:<athlete id>`, and the toolbar `Refresh` button identified by `records.refresh` |
 | Leases | `debug.leases` in Debug, `leases.row.<n>` whose label reads like `athlete continuedProcessing settledTurns 1 of 1 step 1 of 10 finished with notice`, and the `Refresh` button with no identifier |
 | Workout preview | `chat.preview.cancel`, `chat.preview.add` inside the `Workout review` group, disabled until presentation is acknowledged; `chat.preview.notice` replaces both controls when the training account changes or Chat restores an unexpired v1 workout review, both connected to intervals.icu and disconnected |
@@ -173,6 +174,27 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 ```
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
+
+### Prove live French replies after choosing a language
+
+Unit U9-2 adds `EnduragentPhoneTests/LanguageReplyCheck` and `helpers/language.mjs`. G34 leaves this check pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits or use the connected OpenRouter account. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
+
+Prepare the unlocked phone with working model access, consent accepted, no composer draft and no open turn or workout review. In iPhone Settings, arrange the preferred languages as Russian, French, English. French must be the first supported language. The operator handles every credential, consent and system alert. Use a plain Debug app launch without fixture arguments or language overrides.
+
+1. Open Settings > Language and choose Français. Capture the selected row, close the sheet and return to the conversation.
+2. Terminate and relaunch without deleting data. Before Send, require the French composer placeholder and reopen Settings > Language to capture Français selected.
+3. Send `What is an endurance ride?`. Capture the entire settled reply and its accessibility transcript. Require French generated prose, with no failed-turn notice or Try again.
+4. Choose Automatic through Settings > Language. Terminate and relaunch again. Require French chrome and Automatique selected before the next turn.
+5. Send `What is a recovery ride?`, `テンポ走とは何ですか？` and `/review`, one at a time after settlement. Capture every reply. All three must use French generated prose regardless of message language.
+6. Inspect every reply page and transcript before recording `pass`. Report the actual Sends, remaining budget, any failed step and the state left on the phone. The runner leaves Automatic selected and never taps Try again, New conversation or calendar Add.
+
+Supply the connected phone identifier and a new local evidence folder. Keep screenshots and transcripts local because they can include private conversations. Build products go to `/tmp/enduragent-dd/U9-2-phone`.
+
+```sh
+node .agents/skills/verify-ios/helpers/language.mjs "$DEVICE_ID" "$LANGUAGE_RUN"
+```
+
+The physical-device `EnduragentPhone` scheme includes this proof, which compiles out on simulators. Passing its capture test supplies the stored selection, relaunch and reply evidence. The operator's recorded prose verdict supplies the live-language judgment. Scripted fixture reply text cannot replace that verdict.
 
 ### System banner check with a scripted model
 

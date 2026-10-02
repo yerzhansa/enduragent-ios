@@ -9,12 +9,20 @@ final class LanguagePickerProof: XCTestCase {
 		"Português (Brasil)", "Polski", "한국어", "日本語", "简体中文", "繁體中文",
 	]
 
-	func testLanguagePicker() {
+	func testLanguagePickerFromCommand() {
+		proveLanguagePicker(from: .command)
+	}
+
+	func testLanguagePickerFromSettings() {
+		proveLanguagePicker(from: .settings)
+	}
+
+	private func proveLanguagePicker(from entry: LanguagePickerEntry) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.wait(app.navigationBars["Chat"])
-		TutorialHarness.send(app, "/language")
+		entry.open(app)
 		let automatic = TutorialHarness.named(app, "language.choice.automatic")
 		TutorialHarness.wait(automatic)
 		XCTAssertTrue(app.buttons["Sheet Grabber"].exists)
@@ -26,35 +34,38 @@ final class LanguagePickerProof: XCTestCase {
 		let visible = choiceLabels(app)
 		XCTAssertGreaterThanOrEqual(visible.count, 10)
 		XCTAssertEqual(visible, Array(english.prefix(visible.count)))
-		TutorialHarness.attach(self, name: "language-picker-auto", app: app)
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-picker-auto", app: app)
 		let french = TutorialHarness.named(app, "language.choice.fr")
 		let switched = timedChoice(french, until: app.navigationBars["Choisis ta langue"])
 		XCTAssertTrue(french.isSelected)
 		XCTAssertFalse(automatic.isSelected)
-		TutorialHarness.attach(self, name: "language-picker-fr", app: app)
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-picker-fr", app: app)
 		let unchanged = timedChoice(french, until: app.navigationBars["Choisis ta langue"])
 		XCTAssertTrue(french.isSelected)
 		record(switched: switched, unchanged: unchanged)
 		XCTAssertEqual(scrolledChoiceLabels(app), ["Automatique"] + english.dropFirst())
-		TutorialHarness.named(app, "language.close").tap()
+		entry.close(app)
+		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
+		entry.open(app)
+		XCTAssertTrue(TutorialHarness.named(app, "language.choice.fr").isSelected)
+		XCTAssertFalse(TutorialHarness.named(app, "language.choice.automatic").isSelected)
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-fixed-restored", app: app)
+		entry.close(app)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.openDebug(app)
-		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
-		XCTAssertTrue(
-			replyLanguage.label.hasPrefix("The athlete chose French (Français)."),
-			"reply language reads \(replyLanguage.label)")
-		TutorialHarness.returnToChat(app)
-		TutorialHarness.attach(self, name: "m1-12-language-fr", app: app)
+		LanguageProofFlow.assertReplyInstruction(
+			app, prefix: "The athlete chose French (Français).", test: self,
+			name: "u9-2-\(entry.rawValue)-fixed-english-instruction")
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-fixed-english", app: app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(
 			TutorialHarness.recordCount(app, "languagePreference"), "languagePreference 1")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.attach(self, name: "m1-12-language-survives", app: app)
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-fixed-survives", app: app)
 	}
 
 	private func choiceLabels(_ app: XCUIApplication) -> [String] {
@@ -64,12 +75,20 @@ final class LanguagePickerProof: XCTestCase {
 
 	private func scrolledChoiceLabels(_ app: XCUIApplication) -> [String] {
 		var labels: [String] = []
+		var selected = Set<String>()
 		for _ in 0..<4 {
+			let choices = app.buttons.matching(
+				NSPredicate(format: "identifier BEGINSWITH %@", "language.choice."))
+			for choice in choices.allElementsBoundByIndex
+			where choice.isHittable && choice.isSelected {
+				selected.insert(choice.identifier)
+			}
 			for label in choiceLabels(app) where !labels.contains(label) {
 				labels.append(label)
 			}
 			app.swipeUp(velocity: .slow)
 		}
+		XCTAssertEqual(selected, ["language.choice.fr"])
 		return labels
 	}
 
@@ -92,7 +111,15 @@ final class LanguagePickerProof: XCTestCase {
 
 @MainActor
 final class AutomaticFrenchPhoneProof: XCTestCase {
-	func testDifferentMessageLanguagesKeepFrenchOnAutomatic() {
+	func testAutomaticFromCommand() {
+		proveAutomatic(from: .command)
+	}
+
+	func testAutomaticFromSettings() {
+		proveAutomatic(from: .settings)
+	}
+
+	private func proveAutomatic(from entry: LanguagePickerEntry) {
 		let app = XCUIApplication()
 		app.launchEnvironment["ENDURAGENT_LANGUAGE"] = "de"
 		TutorialHarness.launch(app, language: "ru,fr,en", locale: "fr_FR")
@@ -100,15 +127,25 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.wait(app.navigationBars["Conversation"])
 		XCTAssertEqual(
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
-		TutorialHarness.send(app, "/language")
+		entry.open(app)
+		LanguageProofFlow.choose(app, "en")
+		entry.close(app)
+		TutorialHarness.wait(app.navigationBars["Chat"])
+		entry.open(app)
+		LanguageProofFlow.choose(app, "automatic")
 		let automatic = TutorialHarness.named(app, "language.choice.automatic")
 		TutorialHarness.wait(automatic)
 		XCTAssertTrue(automatic.isSelected)
 		XCTAssertEqual(automatic.label, "Automatique")
-		TutorialHarness.attach(self, name: "u9-1-automatic-french-selected", app: app)
-		TutorialHarness.named(app, "language.close").tap()
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-automatic-selected", app: app)
+		entry.close(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(app.navigationBars["Conversation"])
+		entry.open(app)
+		XCTAssertTrue(TutorialHarness.named(app, "language.choice.automatic").isSelected)
+		XCTAssertFalse(TutorialHarness.named(app, "language.choice.en").isSelected)
+		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-automatic-restored", app: app)
+		entry.close(app)
 		let messages = [
 			("english", TutorialHarness.weekQuestion),
 			("japanese", "今週の練習はどうでしたか？"),
@@ -118,22 +155,12 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 			TutorialHarness.exchange(app, message)
 			XCTAssertEqual(
 				TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
-			TutorialHarness.attach(self, name: "u9-1-automatic-french-\(name)", app: app)
-			TutorialHarness.openDebug(app)
-			let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
-			XCTAssertTrue(
-				replyLanguage.label.hasPrefix(
-					"Automatic follows the iPhone's preferred languages. Reply in French (Français)."
-				),
-				"reply language reads \(replyLanguage.label)")
-			XCTAssertTrue(
-				replyLanguage.label.contains(
-					"Write every athlete-facing sentence in French, even when the athlete writes in another language."
-				),
-				"reply language reads \(replyLanguage.label)")
-			TutorialHarness.attach(
-				self, name: "u9-1-automatic-french-\(name)-instruction", app: app)
-			TutorialHarness.returnToChat(app)
+			TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-automatic-\(name)", app: app)
+			LanguageProofFlow.assertReplyInstruction(
+				app,
+				prefix:
+					"Automatic follows the iPhone's preferred languages. Reply in French (Français).",
+				test: self, name: "u9-2-\(entry.rawValue)-automatic-\(name)-instruction")
 		}
 	}
 }
