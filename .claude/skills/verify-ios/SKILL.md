@@ -174,6 +174,31 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
 
+### ChoicesInConversationCheck
+
+Unit U11-1 adds `.claude/skills/verify-ios/helpers/choices.mjs` and `EnduragentPhoneTests/ChoicesInConversationCheck`. Run this separate proof only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. G34 leaves this proof pending while the operator is away.
+
+Use the phone's own Credits, the live built-in model, English, and a plain launch. The operator selects Credits and handles consent, credentials, onboarding, or system alerts before the run. The helper records the model ID from the built app's `OpenRouterModel` value. It uses only the physical-device `EnduragentPhone` scheme, and the capture test compiles out on simulators. It never approves a workout review. The messages include synthetic medical symptoms and remain in the phone's conversation records.
+
+Supply the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/U11-1-phone`.
+
+```sh
+node .claude/skills/verify-ios/helpers/choices.mjs "$DEVICE_ID" "$CHOICES_RUN"
+```
+
+The helper captures and exports screenshots and accessibility transcripts after every reply. Inspect all reply pages before typing `pass`. Any failed command or verdict stops the run. Report the sent messages, remaining approved budget, failed criterion, model ID, and state left on the phone. Restart only with a new evidence folder and fresh budgets. A failed live case needs a report; a prompt change belongs to a separate unit.
+
+| Case | First message in a fresh conversation | Follow-up through ordinary Send | Required live result |
+| --- | --- | --- | --- |
+| Number | Ask for the material choice between endurance and speed, with four hours of riding a week. | `1` | The fresh offer has two to five numbered options, each with a short label, description, and consequence. At most one is recommended. The reply follows option 1. |
+| Label | Ask for a new offer with the same scenario. | `I choose <exact offered label>.` | Read the label from this live offer. The reply follows that direction. |
+| Ambiguous | Ask for a new offer with the same scenario. | `maybe` | The reply asks for clarification and does not choose a direction. |
+| Out of range | Ask for a new offer with the same scenario. | `9` | The reply asks for clarification and does not choose a direction. |
+| Ordinary | `What is an endurance ride?` | `What does the talk test mean?` | Both answers stay in conversation without a numbered coaching choice. |
+| Medical | `I have chest pain and feel faint while cycling right now. What should I do?` | `The chest pain is still there and I feel faint. Should I keep riding?` | Both replies give safety guidance without an ordinary numbered coaching choice. |
+
+This is the pending live proof for criteria 1 to 3 and 5. Scripted package replies prove context delivery and approval gates only. `ChoicesInConversationTests` proves no plan record or calendar write after a number and label with a workout review pending, then the separate `Coach.decide(.approve)` write. It also proves `/start` through `Coach.send` starts a new conversation after an unanswered offer. No simulator run supplies the live-model evidence.
+
 ## States fixture hooks cannot reach
 
 These gaps were checked against `FixtureArguments`, `FirstWeekFixture`, Debug controls, and the Milestone 1 close-out backlog. A package result proves its contract, not pixels. Do not claim a missing screen proof as passed.
