@@ -19,7 +19,8 @@ extension Coach {
 		guard !text.isEmpty else { return .ignoredBlank }
 		let slash = SlashRouting.parse(text)
 		switch slash?.route {
-		case .languagePicker: return .showLanguagePicker
+		case .languagePicker:
+			guard mailboxes[chat] != nil else { return .showLanguagePicker }
 		case .resetConversation: return .newConversation(await startNewConversation(in: chat))
 		case .modelTurn, nil: break
 		}
