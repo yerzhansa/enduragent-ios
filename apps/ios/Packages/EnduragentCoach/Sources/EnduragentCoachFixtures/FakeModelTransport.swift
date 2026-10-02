@@ -62,7 +62,10 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 				} ?? request : request
 			let step = steps[request.attempt, default: [:]][purpose, default: 0]
 			steps[request.attempt, default: [:]][purpose] = step + 1
-			return (response, ScriptedRequest(request: context, purpose: purpose, step: step))
+			return (
+				response,
+				ScriptedRequest(request: request, context: context, purpose: purpose, step: step)
+			)
 		}
 		let reply = respond(scripted)
 		let delay = reply.requestDelay

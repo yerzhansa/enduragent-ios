@@ -64,12 +64,18 @@ final class ShellModel {
 	static let onboardingCompletedKey = OnboardingModel.completedKey
 
 	var connectKey: String {
-		get { onboarding.connectKey }
-		set { onboarding.connectKey = newValue }
+		get { trainingSettings.key }
+		set {
+			if trainingSettings.state == .viewing { trainingSettings.edit() }
+			trainingSettings.key = newValue
+		}
 	}
 
-	var connectError: String? { onboarding.connectError }
-	var didConnect: Bool { onboarding.didConnect }
+	var didConnect: Bool {
+		if connected != nil { return true }
+		if case .replaced? = trainingSettings.receipt { return true }
+		return false
+	}
 	var starterLine: String? { onboarding.starterLine }
 	var starterResolved: Bool { onboarding.starterResolved }
 	var consentNotSaved: Bool { onboarding.consentNotSaved }
@@ -134,20 +140,23 @@ final class ShellModel {
 	}
 
 	func continueNotice() {
+		trainingSettings.edit()
 		route = .onboarding(.connect)
 	}
 
 	func connect() async {
-		await onboarding.connect { phrasebook }
+		await trainingSettings.replace()
 	}
 
 	func continueConnect() {
-		guard onboarding.continueConnect() else { return }
+		guard didConnect, !trainingSettings.isSaving else { return }
+		trainingSettings.dismiss()
 		route = .onboarding(.starter)
 	}
 
 	func skipConnect() {
-		onboarding.skipConnect()
+		guard !trainingSettings.isSaving else { return }
+		trainingSettings.dismiss()
 		route = .onboarding(.starter)
 	}
 

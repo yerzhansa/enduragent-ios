@@ -26,6 +26,9 @@
 						return ScriptedReply([.finish(reason: .stop)])
 					}
 				case .chat:
+					if request.text == trainingDataDirective {
+						return trainingDataReply(request)
+					}
 					if request.step == 0 {
 						intervals.delayNextActivityRead(
 							for: request.text == toolProgressDirective && !request.retry

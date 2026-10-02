@@ -13,7 +13,8 @@ import Testing
 			clock: "1998-06-16T07:00:00Z", onboarded: true,
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
 			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
-			replyParserFault: .fail)
+			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
+			credentialWriteFault: .failOnce)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -49,6 +50,8 @@ import Testing
 		#expect(parsed.recordReadFault == expected.recordReadFault)
 		#expect(parsed.resetFault == expected.resetFault)
 		#expect(parsed.replyParserFault == expected.replyParserFault)
+		#expect(parsed.trainingDisplay == expected.trainingDisplay)
+		#expect(parsed.credentialWriteFault == expected.credentialWriteFault)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -60,7 +63,8 @@ import Testing
 	@Test func relaunchPreservesOverridesAndReplacesStorePolicy() throws {
 		var arguments = FixtureArguments(
 			store: .v1Review, keychain: .empty, coalescingMilliseconds: 1,
-			host: "expire-after 3", clock: "1998-06-16T07:00:00Z", onboarded: true)
+			host: "expire-after 3", clock: "1998-06-16T07:00:00Z", onboarded: true,
+			trainingDisplay: .profileRejected, credentialWriteFault: .failOnce)
 		var kept = FixtureArguments()
 		try kept.update(from: arguments.launchArguments)
 		kept.store = .keep
@@ -77,6 +81,7 @@ import Testing
 		FixtureLaunch.recordReadArgumentKey,
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,
+		FixtureLaunch.trainingDisplayArgumentKey, FixtureLaunch.credentialWriteArgumentKey,
 	])
 	func rejectsUnknownProofFaults(key: String) throws {
 		var builder = FixtureArguments()
@@ -99,7 +104,8 @@ import Testing
 		var restored = FixtureArguments(
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
 			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
-			replyParserFault: .fail)
+			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
+			credentialWriteFault: .failOnce)
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
 		let suite = "enduragent.fixture.no-fault.\(UUID().uuidString)"
@@ -112,5 +118,7 @@ import Testing
 		#expect(parsed.recordReadFault == nil)
 		#expect(parsed.resetFault == nil)
 		#expect(parsed.replyParserFault == nil)
+		#expect(parsed.trainingDisplay == nil)
+		#expect(parsed.credentialWriteFault == nil)
 	}
 }

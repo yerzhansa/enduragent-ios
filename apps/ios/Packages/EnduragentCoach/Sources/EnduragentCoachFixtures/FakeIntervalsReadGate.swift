@@ -1,8 +1,8 @@
 import EnduragentCoach
 
 struct FakeIntervalsDisplayReads {
-	var profile: Result<AthleteProfile, any Error>?
-	var wellness: Result<[WellnessDay], any Error>?
+	var profile: (result: Result<AthleteProfile, any Error>, once: Bool)?
+	var wellness: (result: Result<[WellnessDay], any Error>, once: Bool)?
 	var profileGate: FakeIntervalsReadGate?
 	var wellnessGate: FakeIntervalsReadGate?
 	var profileCount = 0

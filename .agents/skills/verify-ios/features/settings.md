@@ -55,6 +55,7 @@ The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`,
 - `TutorialHarness.openCredentials` now opens Settings > intervals.icu. It never opens Debug. Connection IDs are inspected only through `fixture.connection` in Debug; the helper returns to the product screen afterward.
 - Credential failure hooks are Debug-only `fixture.failCredentialWrite` and `fixture.toggleKeychainLock`. Reach them with `fixtureControl` and `debugRow`.
 - Settings uses the shared 4.1 display notices and retry intent. Remote rejection opens the empty masked editor; temporary display failure retries with the saved connection ID. No new key is required for that retry.
+- Settings and onboarding use `IntervalsKeyField` for the same secure ASCII-capable input. `ConnectIntervalsProof` and `ConnectIntervalsDarkProof` type a key in Settings after launching with `ru,fr,en`, then verify the saved result and retained conversation.
 
 - Settings and History are navigation destinations. Swipe-down sheet dismissal cannot return to the conversation.
 - Turn recovery opens Credits directly above the conversation. One Back returns to the conversation. Credits opened from Model access returns to Settings. Both entries use the same screen and perform no purchase or restore.

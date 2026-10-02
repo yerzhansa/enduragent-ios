@@ -85,7 +85,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(model.didConnect)
 		#expect(model.connectKey.isEmpty)
-		#expect(model.connectError == nil)
+		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
 		#expect(model.connected?.athleteName == "Ada Kovač")
 		#expect(model.connected?.wellness == .waiting)
 		#expect(model.connected?.today == nil)
@@ -125,7 +125,7 @@ extension FixtureLaunchTests {
 		#expect(model.connected?.athleteName == "Ada Kovač")
 	}
 
-	@Test func blankConnectKeyShowsTheCatalogRejection() async throws {
+	@Test func blankConnectKeyShowsBlankGuidance() async throws {
 		let model = model(try services())
 		await model.appear()
 		model.continueNotice()
@@ -133,7 +133,7 @@ extension FixtureLaunchTests {
 		await model.connect()
 		#expect(!model.didConnect)
 		#expect(model.connectKey == "   ")
-		#expect(model.connectError == "intervals.icu did not accept that key.")
+		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.connectErrorBlank)
 		#expect(model.connected == nil)
 	}
 
@@ -175,27 +175,42 @@ extension FixtureLaunchTests {
 		#expect(model.status?.notice == nil)
 	}
 
-	@Test func keyStoredAfterLaunchReachesNextAttempt() async throws {
+	@Test func skippingThenConnectingInSettingsKeepsConversationAndReadsKeyOwner() async throws {
 		let services = try services()
 		let fixture = try #require(services.fixture)
 		let model = model(services)
+		model.continueNotice()
+		model.connectKey = "abandoned-key"
+		model.skipConnect()
 		await model.agreeAndStartChatting()
-		model.draft.text = TutorialCopy.weekQuestion
+		model.draft.text = FirstWeekFixture.trainingDataDirective
 		await model.send()
 		let unconnected = try await settledTurn(model)
+		#expect(replyText(unconnected.state) == FirstWeekFixture.trainingDataMissing)
 		#expect(fixture.intervals.calls.isEmpty)
-		guard
-			case .replaced = await services.coach.changeTraining(
-				.replace(apiKey: "fixture", athlete: .keyOwner))
-		else {
-			Issue.record("expected the key to be stored")
-			return
+		model.open(.settings)
+		model.open(.training)
+		model.trainingSettings.edit()
+		model.trainingSettings.key = "other-athlete"
+		await model.trainingSettings.replace()
+		try await model.waitForStatus {
+			guard case .connected(let summary, _) = $0.training else { return false }
+			return summary.athleteName == "Bo Lind"
 		}
-		model.draft.text = "How was my week?"
+		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
+		model.navigation.removeAll()
+		model.draft.text = FirstWeekFixture.trainingDataDirective
 		await model.send()
-		let connected = try await settledTurn(model, after: unconnected.state)
-		#expect(replyText(connected.state) == FirstWeekFixture.weekSummary)
+		let connected = try await settledTurn(model, at: 1)
+		#expect(replyText(connected.state) == "I can read Bo Lind's training profile and calendar.")
+		#expect(model.chat?.turns.first == unconnected)
+		#expect(model.chat?.turns.count == 2)
+		await model.loadHistory()
+		#expect(model.history == .loaded([]))
+		let connection = try #require(try fixture.secrets.intervalsConnection())
+		let records = try await services.coach.recordSyncProbe().snapshot()
 		#expect(
-			fixture.intervals.calls.contains(.wellness(oldest: "1998-06-09", newest: "1998-06-15")))
+			records.rows.last { $0.kind == "turnClaim" }?.account
+				== "intervals:\(connection.id.rawValue.uuidString):i2002")
 	}
 }
