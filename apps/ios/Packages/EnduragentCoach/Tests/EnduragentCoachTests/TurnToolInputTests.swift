@@ -37,13 +37,6 @@ extension TurnRunnerTests {
 				.isEmpty)
 	}
 
-	@Test(arguments: ["1e20", "-1e20"])
-	func oversizedToolNumbersReturnErrors(days: String) async throws {
-		let result = try await toolResult(
-			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")
-		#expect(result.objectFields["error"]?.stringValue != nil)
-	}
-
 	@Test(arguments: [
 		#"[{"type":"steady","duration":{"value":1.5e17,"unit":"minutes"}}]"#,
 		#"[{"type":"steady","duration":{"value":86401,"unit":"seconds"}}]"#,
@@ -88,7 +81,7 @@ extension TurnRunnerTests {
 		#expect(result.objectFields["error"] == .string("range_too_wide"))
 	}
 
-	@Test(arguments: ["1e20", "-5", "0", "1.5"])
+	@Test(arguments: ["1e20", "-1e20", "-5", "0", "1.5"])
 	func invalidDayCountsIdentifyTheDaysValue(days: String) async throws {
 		let result = try await toolResult(
 			name: "intervals_fetch_activities", arguments: "{\"days\":\(days)}")

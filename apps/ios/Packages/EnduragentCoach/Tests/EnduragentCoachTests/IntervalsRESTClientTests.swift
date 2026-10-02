@@ -43,16 +43,18 @@ struct IntervalsRESTClientTests {
 		#expect(today.fitness == 55.2)
 		#expect(today.fatigue == 42.1)
 		#expect(today.form == 55.2 - 42.1)
-		let labels = Mirror(reflecting: today).children.compactMap(\.label)
-		#expect(!labels.contains("ctl"))
-		#expect(!labels.contains("atl"))
-		let wire = try JSONDecoder().decode(
-			[IntervalsWellnessJSON].self,
-			from: try fixtureData("intervals-wellness")
-		)
-		#expect(wire[0].ctl == 55.2)
-		#expect(wire[0].atl == 42.1)
-		#expect(wire[0].rampRate == 1.4)
+	}
+
+	@Test(arguments: [#""ramp_rate":"invalid""#, #""fatigue":"invalid""#, #""fatigue":2.5"#])
+	func wellnessLoadsWithMalformedUnusedFields(unusedField: String) async throws {
+		let client = try makeClient()
+		let body = #"[{"id":"1998-06-13","ctl":55.2,"atl":42.1,\#(unusedField)}]"#
+		IntervalsURLProtocolStub.handler = { _ in (200, Data(body.utf8)) }
+		let days = try await client.fetchWellness(oldest: "1998-06-13", newest: "1998-06-13")
+		#expect(
+			days == [
+				WellnessDay(date: "1998-06-13", fitness: 55.2, fatigue: 42.1, form: 55.2 - 42.1)
+			])
 	}
 
 	@Test func fetchActivitiesProjectsAdaRides() async throws {
@@ -122,12 +124,12 @@ struct IntervalsRESTClientTests {
 		let client = try makeClient(
 			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 		)
-		var draft = try CyclingTools.parseCreateWorkout(
+		var draft = try CyclingTools.parseCreateWorkoutInput(
 			try JSONValue.parse(
 				#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
 			),
 			today: "1998-06-13"
-		)
+		).draft
 		draft.writeID = CalendarWriteID()
 		let event = try await client.createChatEvent(draft)
 		let request = try #require(IntervalsURLProtocolStub.lastRequest)
