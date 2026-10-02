@@ -61,8 +61,7 @@ import Testing
 		#"{"credential":{"apiKey":{"_0":"icu-v1-key"}}}"#,
 	])
 	func legacyIntervalsItemGainsAStableIdOnRead(_ legacy: String) throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-legacy-connection-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {

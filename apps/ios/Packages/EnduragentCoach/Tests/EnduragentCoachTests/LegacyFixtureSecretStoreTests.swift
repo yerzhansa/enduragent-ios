@@ -9,8 +9,7 @@ import Testing
 	let directory: URL
 
 	init() throws {
-		directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-legacy-fixture-\(UUID().uuidString)", directoryHint: .isDirectory)
+		directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 	}
 
