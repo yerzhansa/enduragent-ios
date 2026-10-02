@@ -25,4 +25,3 @@
 
 - Run `pnpm check:catalogs`, `pnpm check:source`, `pnpm lint:swift`, `pnpm check:format`, `pnpm test:swift`, and the `xcodebuild` command from `README.md` before calling a change done. Compiling is not done.
 - For UI changes, run the `verify-ios` skill and look at the screen you changed.
-- Every behavior change ships with a test that fails without it. Tests call the code the way the app does and assert the visible result.
