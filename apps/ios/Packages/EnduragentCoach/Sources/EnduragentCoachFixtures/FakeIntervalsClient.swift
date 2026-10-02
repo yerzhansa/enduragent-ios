@@ -24,20 +24,6 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var athleteId: String
 	public var athleteName: String
 	public var ftp: Int
-	public var loadFailure: (any Error)? {
-		get {
-			displayReads.withLock {
-				if case .failure(let error) = $0.profile { return error }
-				return nil
-			}
-		}
-		set {
-			displayReads.withLock {
-				$0.profile = newValue.map(Result.failure)
-				$0.wellness = newValue.map(Result.failure)
-			}
-		}
-	}
 	public var writeFailure: (any Error)?
 	private let displayReads = Mutex(FakeIntervalsDisplayReads())
 
