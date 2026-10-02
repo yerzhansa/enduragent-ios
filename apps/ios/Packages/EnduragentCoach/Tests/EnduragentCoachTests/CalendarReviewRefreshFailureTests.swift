@@ -84,7 +84,7 @@ extension DurableCalendarWriteTests {
 			await fixture.coach.decide(.checkAgain(failed.ref), in: .main) == .presentationRecorded)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == ready)
 		#expect(server.posts.count == 1)
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		server.state.withLock { $0.readResponse = .success }
 		#expect(
 			await fixture.coach.decide(.checkAgain(ready.ref), in: .main)

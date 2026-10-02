@@ -40,7 +40,7 @@ extension DurableCalendarWriteTests {
 		#expect(server.writes.last?.method == (deleting ? "DELETE" : "PUT"))
 		#expect(server.events.count == (deleting ? 0 : 1))
 		if !deleting { #expect(server.events.first?["name"]?.stringValue == "Edited workout") }
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 	}
 }

@@ -39,10 +39,9 @@ extension FixtureLaunchTests {
 
 	@Test func notConfiguredOpensTheConnectStep() async throws {
 		let model = model(try services(keychain: .empty))
-		let (turn, notice) = try await failedNotice(model, after: "Hello")
+		let (_, notice) = try await failedNotice(model, after: "Hello")
 		#expect(notice.key == Catalog.accessErrorNotConfigured)
 		#expect(notice.action == .chooseAccessMethod)
-		#expect(!turn.state.retryable)
 		await model.perform(.chooseAccessMethod)
 		#expect(model.route == .onboarding(.connect))
 		#expect(model.navigation.isEmpty)

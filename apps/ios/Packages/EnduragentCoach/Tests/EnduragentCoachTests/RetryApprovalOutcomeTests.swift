@@ -48,7 +48,6 @@ extension RetryLadderTests {
 			saved.notice.sentence(in: LanguageTag.en.phrasebook)
 				== "The calendar change may have been saved. Check your calendar before asking again."
 		)
-		#expect(!settled.retryable)
 		#expect(
 			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
 		#expect(
@@ -85,7 +84,7 @@ extension RetryLadderTests {
 			return
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
-		#expect(!settled.retryable)
+		#expect(turnNotice(of: settled)?.action == nil)
 		#expect(base.calls.filter(\.isWrite).count == 1)
 	}
 
@@ -113,7 +112,7 @@ extension RetryLadderTests {
 			return
 		}
 		let settled = try #require(await settledTurn(turn, on: coach))
-		#expect(!settled.retryable)
+		#expect(turnNotice(of: settled)?.action == nil)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.count == 1)

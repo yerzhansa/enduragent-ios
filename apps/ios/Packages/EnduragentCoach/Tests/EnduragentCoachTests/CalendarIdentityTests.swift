@@ -72,7 +72,7 @@ extension DurableCalendarWriteTests {
 		imported.notifyImport()
 		try await waitUntil { snapshots.latest?.turns.first?.id == turn }
 		let state = try #require(snapshots.latest?.turns.first?.state)
-		#expect(!state.retryable)
+		#expect(turnNotice(of: state)?.action == nil)
 		let review = try #require(snapshots.latest?.review)
 		#expect(review.authority == .otherDevice)
 		#expect(review.controls == .none)
