@@ -72,8 +72,7 @@ extension SwiftDataSuites {
 		let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test func automaticallyArchivedTurnsFoldBackUntilANewConversation() async throws {
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-retired-\(UUID().uuidString)", directoryHint: .isDirectory)
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
 			let synced = root.appending(path: "synced.store")
 			let turns = ["A", "B", "C", "D"].enumerated().map { index, name in

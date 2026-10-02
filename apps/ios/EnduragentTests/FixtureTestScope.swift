@@ -50,8 +50,7 @@ final class AppTestFixture {
 		let id = UUID().uuidString
 		launch = FixtureLaunch(
 			name: FixtureLaunch.firstWeekName, store: .fresh, keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-app-test-\(id)", directoryHint: .isDirectory),
+			directory: try TestTemporaryFolders.make(),
 			defaultsSuiteName: "enduragent.app.test.\(id)")
 		defaults = try launch.prepare()
 		folder = try FixtureFolder(directory: launch.directory)

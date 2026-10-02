@@ -7,8 +7,11 @@ import Testing
 extension SwiftDataSuites {
 	@Suite struct PartialFlushFixtureTests {
 		let device = DeviceID(rawValue: "partial-flush-phone")
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-partial-flush-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory: URL
+
+		init() throws {
+			directory = try TestTemporaryFolders.make()
+		}
 		let clock = FixedClock(now: "1998-06-15T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test(

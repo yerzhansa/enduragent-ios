@@ -160,8 +160,7 @@ import Testing
 
 extension SwiftDataSuites {
 	@Test static func malformedConsentDoesNotPreventLaterAcceptance() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		let local = try ModelContainerHandle.withoutCloudKit(
 			storeURL: directory.appending(path: "local.store"))
@@ -203,8 +202,7 @@ extension SwiftDataSuites {
 	}
 
 	@Test static func providerConsentReopensFromTheDeviceLocalStore() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-consent-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		let device = DeviceID(rawValue: "consent-test-device")
 		let fixture = try FixtureRecordStore(directory: directory, deviceId: device)
 		let coach = await makeCoach(

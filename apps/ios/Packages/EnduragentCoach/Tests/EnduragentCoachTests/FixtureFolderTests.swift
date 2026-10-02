@@ -8,8 +8,7 @@ struct FixtureFolderTests {
 	@Test(.timeLimit(.minutes(1)))
 	func cleanupFailsWithinSecondsWhenAStoreOwnerIsNotReleased() async throws {
 		let folder = try FixtureFolder(
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+			directory: try TestTemporaryFolders.make())
 		try await FixtureFolder.$current.withValue(folder) {
 			do {
 				let fixture = try FixtureRecordStore(
@@ -38,8 +37,7 @@ struct FixtureFolderTests {
 
 	private func checkCleanupWaitsForTheStoreOwner(unreadable: Bool = false) async throws {
 		let folder = try FixtureFolder(
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+			directory: try TestTemporaryFolders.make())
 		let held = Gate()
 		let releasing = Gate()
 		let completed: Void? = try await beforeDeadline(within: .seconds(5)) {
@@ -83,8 +81,7 @@ struct FixtureFolderTests {
 
 	@Test func cleanupPropagatesTheRemovalError() async throws {
 		let folder = try FixtureFolder(
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+			directory: try TestTemporaryFolders.make())
 		try FileManager.default.removeItem(at: folder.directory)
 		await #expect(throws: CocoaError.self) {
 			try await folder.cleanup {}
@@ -94,8 +91,7 @@ struct FixtureFolderTests {
 	@Test(.timeLimit(.minutes(1)))
 	func cleanupWaitsForEveryStoreOpenedInTheFolder() async throws {
 		let folder = try FixtureFolder(
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-folder-\(UUID().uuidString)", directoryHint: .isDirectory))
+			directory: try TestTemporaryFolders.make())
 		let first = Gate()
 		let second = Gate()
 		let completed: Void? = try await beforeDeadline(within: .seconds(5)) {
