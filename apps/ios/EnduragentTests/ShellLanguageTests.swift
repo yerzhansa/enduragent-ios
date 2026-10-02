@@ -233,6 +233,8 @@ final class ShellLanguageTests {
 		]
 		let credits = FakeCreditsClient()
 		credits.grantResult = .success(.minted(Credits(units: 12345)))
+		credits.catalogResult = .success(
+			PackCatalog(purchasesEnabled: false, scale: CreditScale(creditsPerUsd: 100), packs: []))
 		credits.balanceResult = .success(CreditBalance(credits: Credits(units: 12345)))
 		let built = try services(
 			intervals: intervals, displayLocale: phone.resolve, credits: credits)
@@ -244,6 +246,7 @@ final class ShellLanguageTests {
 		await model.appear()
 		await model.loadStarter()
 		await model.loadCredits()
+		try #require(model.creditsNotice == nil)
 		#expect(model.starterLine == "12,345 crédits")
 		#expect(model.creditsBalanceLine == "12,345 crédits")
 		#expect(
