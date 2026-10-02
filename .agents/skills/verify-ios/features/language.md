@@ -36,7 +36,7 @@ One language preference controls both app text and coach replies. Automatic uses
 ## How to get to it (user POV)
 
 - Type `/language` and send, or choose it from the slash list and send the filled command.
-- Choose Settings, Debug, Language through `debug.language`.
+- Choose Settings > Language through `settings.language`. The row shows the current preference and opens the same sheet as `/language`.
 - Select a row. Close the command sheet with `language.close`; use Back when the picker was pushed from Debug.
 
 ## Driving it with sim.mjs and XCUITest
@@ -47,15 +47,18 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim.mjs test <run id> LanguagePickerProof` | Checks all 18 rows in order, selects French, and checks `Choisis ta langue`, `Automatique`, the Conversation title, and `Écris à ton coach`. Attachments are `language-picker-auto`, `language-picker-fr`, `m1-12-language-fr`, and `m1-12-language-survives`. |
-| The same `LanguagePickerProof` run sends the week question and taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
-| `sim.mjs test <run id> AutomaticFrenchPhoneProof` | The preferred list `(ru,fr,en)` with Automatic ignores `ENDURAGENT_LANGUAGE=de`, shows French app text and selects Automatique. After relaunch, English, Japanese and `/review` turns all receive a French reply instruction. `u9-1-automatic-french-selected` shows the choice; `u9-1-automatic-french-english`, `u9-1-automatic-french-japanese` and `u9-1-automatic-french-review` show the conversation, with corresponding `-instruction` attachments from Debug. |
+| `sim.mjs test <run id> LanguagePickerProof` | `testLanguagePickerFromCommand` and `testLanguagePickerFromSettings` each check all 18 rows in order and one accessible selected state, including distinct Portuguese and Chinese choices. French survives relaunch before the next English turn. Attachments start `u9-2-command-` and `u9-2-settings-` and end `picker-auto`, `picker-fr`, `fixed-restored`, `fixed-english`, `fixed-english-instruction` and `fixed-survives`. |
+| The same `LanguagePickerProof` taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
+| `sim.mjs test <run id> AutomaticFrenchPhoneProof` | `testAutomaticFromCommand` and `testAutomaticFromSettings` explicitly select Automatic over saved English and relaunch with `(ru,fr,en)`, ignoring `ENDURAGENT_LANGUAGE=de`. English, Japanese and `/review` each receive a French reply instruction. Attachments start `u9-2-command-automatic-` and `u9-2-settings-automatic-` and include `selected`, `restored`, each message and its `-instruction`. This is a scripted simulator proof despite its historical class name. |
+| `sim.mjs test <run id> LanguageSaveFailureProof` | `testFailuresFromCommand` and `testFailuresFromSettings` arm `fixture.failNextAppend` before fixed German and Automatic choices. Both retain English, show the exact G22 notice, keep the English instruction before and after relaunch, and clear the notice on reopening. Attachments start `u9-2-command-failed-` and `u9-2-settings-failed-`, followed by `de` or `automatic` and the restored state or instruction. |
 | `sim.mjs test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
 | `sim.mjs test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
 | `sim.mjs test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
 | `sim.mjs test <run id> ReviewLanguageProof` | French review title, controls, and saved Done line, before and after relaunch, `review-french`, `review-french-relaunch`. |
 
-For the Debug entry point, open `chat.settings`, `settings.debug`, and `debug.language`, then select a row and go Back. Capture `sim.mjs shot <run id> language-debug-entry`. No dedicated XCUITest class proves this alternate entry. The hosted app test `aLanguageThatCannotBeSavedKeepsTheCurrentChoice` covers a failed save; there is no fixture directive for that write failure.
+The existing Debug entry remains at `debug.language`. The unit's proofs cover the athlete's Settings row and command. The hosted `FixtureLaunchTests` language tests exercise both shell intents with store-preserving relaunch and the fixture append fault. `ShellLanguageTests.settingsLanguagePickerPreservesTheNavigationAndConversation` covers the Settings intent without changing the draft or conversation. No new fault hook is needed.
+
+The real-phone check is `EnduragentPhoneTests/LanguageReplyCheck/testFrenchRepliesAfterFixedAndAutomaticRelaunch`. Follow the [real-phone procedure](../SKILL.md#prove-live-french-replies-after-choosing-a-language) and run `helpers/language.mjs` only with the operator present. It asks for its message budget before launch or Send. G34 leaves live French prose pending until that session.
 
 Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and the corresponding `language-picker-fr` command when visual parity is in scope. Compare the ordered choices and selected row.
 
