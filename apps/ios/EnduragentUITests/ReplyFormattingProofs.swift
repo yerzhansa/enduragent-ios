@@ -45,6 +45,7 @@ private enum ReplyFormattingScreen {
 		TutorialHarness.attach(test, name: "reply-formatted-history-top", app: app)
 		ReplyProofScreen.scrollToEnd(app)
 		TutorialHarness.attach(test, name: "reply-formatted-history-end", app: app)
+		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.closeMenu(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
@@ -62,8 +63,15 @@ final class ReplyStreamingStoppedProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "reply.code").exists)
 		TutorialHarness.attach(self, name: "reply-formatted-streaming-deltas", app: app)
 		ReplyProofScreen.waitForPrefix(app)
-		let streaming = ReplyProofScreen.labels(app)
-		ReplyProofScreen.assertDocument(app, source: FormattedReplyFixture.streamingPrefix)
+		let heading = TutorialHarness.named(app, "reply.heading").label
+		let formatted = TutorialHarness.text(
+			app, containing: "Your Fitness is 58 and your Form is −9"
+		).label
+		XCTAssertEqual(heading, "Next week at a glance")
+		XCTAssertTrue(formatted.hasPrefix("Your Fitness is 58 and your Form is −9"))
+		XCTAssertFalse(formatted.contains("**"))
+		XCTAssertTrue(TutorialHarness.named(app, "chat.working").exists)
+		TutorialHarness.attach(self, name: "reply-formatted-streaming-prefix", app: app)
 		let stop = TutorialHarness.named(app, "chat.stop")
 		TutorialHarness.wait(stop, until: .hittable)
 		let started = ProcessInfo.processInfo.systemUptime
@@ -72,13 +80,17 @@ final class ReplyStreamingStoppedProof: XCTestCase {
 			TutorialHarness.named(app, "chat.working"), until: .absent, within: .probe)
 		XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - started, 3)
 		TutorialHarness.waitForLabel(app, TutorialHarness.interruptedNothingChanged)
-		XCTAssertEqual(ReplyProofScreen.labels(app), streaming)
+		let stopped = ReplyProofScreen.labels(app)
+		XCTAssertEqual(stopped["reply.heading"]?.first, heading)
+		XCTAssertEqual(stopped["reply.paragraph"]?.first, formatted)
+		ReplyProofScreen.assertDocument(app, source: FormattedReplyFixture.streamingPrefix)
+		TutorialHarness.attach(self, name: "reply-formatted-stopped-end", app: app)
 		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.attach(self, name: "reply-formatted-stopped-dimmed", app: app)
 		TutorialHarness.startNewConversation(app)
 		ReplyProofScreen.openArchive(app)
 		ReplyProofScreen.assertDocument(app, source: FormattedReplyFixture.streamingPrefix)
-		XCTAssertEqual(ReplyProofScreen.labels(app), streaming)
+		XCTAssertEqual(ReplyProofScreen.labels(app), stopped)
 		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.attach(self, name: "reply-formatted-stopped-history", app: app)
 		TutorialHarness.closeMenu(app)

@@ -157,10 +157,12 @@ Debug, Conversation & time uses the field names `historyBudgetRatio` and `contex
 | Command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> ReplyFormattingProof ReplyFormattingDarkProof` | Complete long reply and code, two tappable links, supported formatting without markup in accessibility labels, and identical History rendering. `reply-chat-long-light` and `reply-chat-long-dark` capture the approved `chat-long` comparison state. The chat and History end attachments show `END FORMATTED REPLY`. |
-| `sim.mjs test <run id> ReplyStreamingStoppedProof` | Formatting during deltas, Stop within three seconds, unchanged partial text, and dimmed rendering in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
+| `sim.mjs test <run id> ReplyStreamingStoppedProof` | A heading and markup-free formatted paragraph while `chat.working` shows, Stop within three seconds, unchanged partial text, and equal stopped labels in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-streaming-prefix`, `reply-formatted-stopped-end`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
 | `sim.mjs test <run id> ReplyFallbackProof` | The Debug parser fault shows the complete literal source, with zero links, in Chat and History. `reply-fallback-chat-top`, `reply-fallback-chat-end` and `reply-fallback-history` capture it. |
 
 Compare each `reply-chat-long-<theme>` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels under G38. The markup-free assertion applies to supported formatting.
+
+Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before dismissing the sheet. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
 
 ## Gotchas
 

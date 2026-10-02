@@ -48,7 +48,7 @@ enum ReplyProofScreen {
 			["threshold basics", "Training calendar"])
 		for label in ["threshold basics", "Training calendar"] {
 			let link = app.links.matching(NSPredicate(format: "label == %@", label)).firstMatch
-			scroll(until: { link.isHittable }, action: { app.swipeUp(velocity: .fast) })
+			scroll(until: { link.isHittable }, action: { app.swipeUp(velocity: .slow) })
 		}
 		scrollToHeading(app)
 	}
@@ -105,7 +105,7 @@ enum ReplyProofScreen {
 				if condition() { return true }
 				action()
 				return condition()
-			}, within: .longTurn, message: "The reply content did not scroll into view")
+			}, within: .bulk, message: "The reply content did not scroll into view")
 	}
 
 	private static func collect(_ block: ReplyBlock, into labels: inout [String: [String]]) {
