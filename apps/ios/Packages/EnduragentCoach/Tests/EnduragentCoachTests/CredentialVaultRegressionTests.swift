@@ -8,7 +8,7 @@ import Testing
 extension CredentialVaultTests {
 	@Test(
 		arguments: [false, true], [errSecInteractionNotAllowed, errSecNotAvailable, errSecDecode])
-	func athleteResolutionFailureKeepsConnectedUnresolvedAccount(
+	func athleteResolutionFailurePreservesStoredAccountAndReportsReadFailures(
 		failingWrite: Bool, statusCode: OSStatus
 	) async throws {
 		let memory = FixtureSecretStoreBacking()
@@ -31,14 +31,25 @@ extension CredentialVaultTests {
 		}
 		gate.release()
 		let training = try await status.value.training
-		#expect(training == .connected(adaSummary, account: account(unresolved)))
+		if failingWrite {
+			#expect(training == .connected(adaSummary, account: account(unresolved)))
+		} else {
+			let failure: AccessUnavailable =
+				statusCode == errSecInteractionNotAllowed
+				? .secureStorageLocked
+				: statusCode == errSecDecode
+					? .malformedStoredCredential(.intervalsConnection) : .secureStorageUnavailable
+			#expect(training == .unavailable(failure))
+		}
 		if statusCode != errSecInteractionNotAllowed {
+			let events = coach.diagnostics.entries.map(\.event)
+			#expect(!events.isEmpty)
 			#expect(
-				coach.diagnostics.entries.map(\.event) == [
-					.secureStorageFailed(
-						.intervalsConnection,
-						failure: KeychainStoreError.keychain(statusCode))
-				])
+				events.allSatisfy {
+					$0
+						== .secureStorageFailed(
+							.intervalsConnection, failure: KeychainStoreError.keychain(statusCode))
+				})
 		} else {
 			#expect(coach.diagnostics.entries.isEmpty)
 		}
@@ -53,7 +64,7 @@ extension CredentialVaultTests {
 			try secrets.intervalsConnection()?.resolvedAthlete == testConnection.resolvedAthlete)
 	}
 
-	@Test func malformedItemDuringAthleteResolutionRecordsDiagnosticAndKeepsConnected()
+	@Test func malformedItemDuringAthleteResolutionRecordsDiagnosticAndPreservesItem()
 		async throws
 	{
 		let memory = FixtureSecretStoreBacking()
@@ -72,13 +83,16 @@ extension CredentialVaultTests {
 		try memory.update(account: "intervalsCredential", data: Data([0xFF, 0xFE, 0xFD]))
 		gate.release()
 		#expect(
-			try await status.value.training == .connected(adaSummary, account: account(unresolved)))
+			try await status.value.training
+				== .unavailable(.malformedStoredCredential(.intervalsConnection)))
+		let events = coach.diagnostics.entries.map(\.event)
+		#expect(!events.isEmpty)
 		#expect(
-			coach.diagnostics.entries.map(\.event) == [
-				.secureStorageFailed(
-					.intervalsConnection,
-					failure: KeychainStoreError.keychain(errSecDecode))
-			])
+			events.allSatisfy {
+				$0
+					== .secureStorageFailed(
+						.intervalsConnection, failure: KeychainStoreError.keychain(errSecDecode))
+			})
 		#expect(memory.writes(to: "intervalsCredential") == 2)
 	}
 

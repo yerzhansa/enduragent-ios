@@ -24,7 +24,9 @@ public actor Coach {
 	let statusFeed = SnapshotFeed<CoachStatus>()
 	let statusChanges = Turnstile()
 	var trainingStatus: TrainingStatus?
-	var trainingRefresh: Task<TrainingStatus, Never>?
+	var trainingRefresh: Task<Void, Never>?
+	var trainingReadID: TrainingDisplayReadID?
+	var trainingGeneration: UInt64 = 0
 	var importObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
@@ -133,16 +135,39 @@ public actor Coach {
 	public func changeTraining(_ change: IntervalsConnectionChange) async
 		-> CredentialOutcome<IntervalsSummary>
 	{
+		invalidateTrainingDisplay()
+		let generation = trainingGeneration
 		let clock = self.clock
 		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
-		trainingRefresh?.cancel()
-		trainingRefresh = nil
-		trainingStatus = nil
+		let stored = await vault.storedTrainingStatus()
+		guard generation == trainingGeneration else { return outcome }
+		if case .connected(let saved, let account) = stored {
+			let summary: IntervalsSummary?
+			switch outcome {
+			case .replaced(let receipt, _), .kept(let receipt?),
+				.failedPreviousKept(_, let receipt?):
+				summary = receipt
+			case .kept(nil), .failedPreviousKept(_, nil), .disconnected, .refused:
+				if case .connected(let previous, _) = trainingStatus {
+					summary = previous
+				} else {
+					summary = nil
+				}
+			}
+			trainingStatus = .connected(
+				summary.flatMap { $0.connectionID == saved.connectionID ? $0 : nil } ?? saved,
+				account: account)
+		} else {
+			trainingStatus = stored
+		}
 		for mailbox in mailboxes.values {
 			_ = await mailbox.reviewChanged()
 		}
-		if statusFeed.isObserved {
-			await refreshTrainingStatus()
+		await publishStatus()
+		if statusFeed.isObserved, generation == trainingGeneration,
+			case .connected(let summary, _) = trainingStatus, summary.needsDisplayRead
+		{
+			startTrainingDisplay(from: summary)
 		}
 		return outcome
 	}

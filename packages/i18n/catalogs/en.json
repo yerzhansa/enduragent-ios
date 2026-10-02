@@ -868,7 +868,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu did not accept that key."
+      "rejected": "intervals.icu did not accept that key.",
+      "blank": "Enter an intervals.icu API key. Your current connection is unchanged.",
+      "notSaved": "The replacement wasn't saved. Your previous connection is unchanged. Try again.",
+      "profileUnavailable": "Your athlete profile is temporarily unavailable. Try again.",
+      "wellnessRejected": "intervals.icu did not allow today's wellness read. Review your connection.",
+      "wellnessUnavailable": "Today's wellness is temporarily unavailable. Try again."
+    },
+    "wellness": {
+      "empty": "No wellness data for today.",
+      "waiting": "Reading today's wellness…"
+    },
+    "review": "Review connection",
+    "profile": {
+      "waiting": "Reading athlete profile…"
     }
   },
   "credits": {

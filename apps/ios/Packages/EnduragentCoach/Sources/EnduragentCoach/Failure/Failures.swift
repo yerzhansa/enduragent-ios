@@ -62,6 +62,7 @@ public enum TrainingFailure: Sendable, Equatable {
 		}
 		switch status {
 		case 401, 403: self = .credentialRejected
+		case 408, 429: self = .temporarilyUnavailable
 		case 400..<500: self = .requestRejected
 		default: self = .temporarilyUnavailable
 		}
@@ -290,7 +291,7 @@ package enum AthleteNotices {
 			return notice(outsideTurn: unavailable)
 		}
 		guard case .connected(let summary, _) = status.training else { return nil }
-		return summary.displayUnavailable.map(notice(for:))
+		return summary.notice
 	}
 
 	package static func notice(for training: TrainingFailure) -> AthleteNotice {

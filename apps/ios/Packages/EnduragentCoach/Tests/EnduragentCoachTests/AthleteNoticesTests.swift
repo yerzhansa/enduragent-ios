@@ -366,8 +366,8 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 
 	@Test func statusNoticeNamesALockedKeychainOrAnUnreadableProfile() {
 		let summary = IntervalsSummary(
-			keySuffix: "-key", athleteName: nil, today: nil,
-			displayUnavailable: .temporarilyUnavailable)
+			connectionID: testConnection.id, keySuffix: "-key",
+			profile: .failed(.temporarilyUnavailable))
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
 			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
@@ -378,16 +378,16 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			preferences: .npmDefaults)
 		#expect(
 			offline.notice?.sentence(in: english)
-				== "Couldn't reach intervals.icu right now — try again shortly.")
+				== "Your athlete profile is temporarily unavailable. Try again.")
 		let rejected = CoachStatus(
 			setup: .ready,
 			training: .connected(
 				IntervalsSummary(
-					keySuffix: "-key", athleteName: nil, today: nil,
-					displayUnavailable: .credentialRejected),
+					connectionID: testConnection.id, keySuffix: "-key",
+					profile: .failed(.credentialRejected)),
 				account: account),
 			preferences: .npmDefaults)
-		#expect(rejected.notice?.sentence(in: english) == intervalsRejected)
+		#expect(rejected.notice?.sentence(in: english) == "intervals.icu did not accept that key.")
 		#expect(
 			CoachStatus(
 				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults

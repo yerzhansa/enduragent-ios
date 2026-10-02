@@ -2980,7 +2980,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu godtok ikke den nøkkelen."
+      "rejected": "intervals.icu godtok ikke den nøkkelen.",
+      "blank": "Skriv inn en intervals.icu API-nøkkel. Din nåværende tilkobling er uendret.",
+      "notSaved": "Erstatningen ble ikke lagret. Din tidligere tilkobling er uendret. Prøv igjen.",
+      "profileUnavailable": "Utøverprofilen din er midlertidig utilgjengelig. Prøv igjen.",
+      "wellnessRejected": "intervals.icu tillot ikke lesing av dagens velværedata. Kontroller tilkoblingen din.",
+      "wellnessUnavailable": "Dagens velværedata er midlertidig utilgjengelige. Prøv igjen."
+    },
+    "wellness": {
+      "empty": "Ingen velværedata for i dag.",
+      "waiting": "Leser dagens velværedata…"
+    },
+    "review": "Kontroller tilkobling",
+    "profile": {
+      "waiting": "Leser utøverprofil…"
     }
   }
 }
