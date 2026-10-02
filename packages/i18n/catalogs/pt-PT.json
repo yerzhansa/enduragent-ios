@@ -2912,7 +2912,8 @@
     "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
     "turnStopping": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
-    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. A tua última revisão continua visível. Tenta novamente para restaurar os controlos.",
+    "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
+    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
     "workout": {

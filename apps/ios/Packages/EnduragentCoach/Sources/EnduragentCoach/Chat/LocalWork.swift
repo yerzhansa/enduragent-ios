@@ -34,15 +34,19 @@ extension Ledger {
 				)
 			})
 		for (chat, conversation) in conversations {
-			if try await calendarWrites(chat).contains(where: {
+			let writes = try await calendarWrites(chat)
+			if writes.contains(where: {
 				$0.record.deviceId == deviceId
-					&& $0.body.evidence.dispatched && !$0.body.evidence.applied
+					&& $0.blocksNewWork
 			}) {
 				return true
 			}
-			if conversation.hasLocalWork(on: deviceId)
-				|| UnionMerge.pendingProposalRecord(local, chatId: chat, now: now) != nil
-			{
+			let proposal = UnionMerge.pendingProposalRecord(local, chatId: chat, now: now)
+			let pending =
+				proposal.map { live in
+					!writes.contains { $0.body.review.ulid == live.ulid && $0.cancellation != nil }
+				} ?? false
+			if conversation.hasLocalWork(on: deviceId) || pending {
 				return true
 			}
 		}

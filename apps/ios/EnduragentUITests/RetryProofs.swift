@@ -149,10 +149,10 @@ private func assertModelRequests(
 	TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)
 	TutorialHarness.openSidebar(app)
 	TutorialHarness.named(app, "sidebar.debug").tap()
-	let model = TutorialHarness.named(app, "fixture.modelRequestCount")
-	TutorialHarness.wait(model)
+	let count = TutorialHarness.debugRow(app, "fixture.requestCount")
+	XCTAssertEqual(count.label, "0 requests")
+	let model = TutorialHarness.debugRow(app, "fixture.modelRequestCount")
 	XCTAssertEqual(model.label, "\(expected) model requests")
-	XCTAssertEqual(TutorialHarness.named(app, "fixture.requestCount").label, "0 requests")
 	TutorialHarness.attach(test, name: name, app: app)
 	TutorialHarness.closeMenu(app)
 }
