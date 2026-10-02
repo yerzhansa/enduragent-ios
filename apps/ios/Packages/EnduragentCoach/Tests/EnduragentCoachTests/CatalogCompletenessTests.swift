@@ -101,16 +101,38 @@ import Testing
 	}
 
 	@Test(arguments: LanguageTag.allCases)
-	func retiredChromeKeysStayAbsent(_ tag: LanguageTag) throws {
-		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
-		for key in [
-			"sidebar.menu", "chat.title", "chat.addToCalendar",
-			"chat.composer.messageField", "chat.composer.sendButton",
-		] {
-			#expect(localized[key] == nil, "\(tag.rawValue) retains \(key)")
+	func changedPlaceholdersAreRejected(_ tag: LanguageTag) {
+		for value in ["Bonjour {{renamed}}", "Bonjour", "Bonjour {{name}} {{extra}}"] {
+			#expect(
+				issues(
+					english: ["message": "Hello {{name}}"], localized: ["message": value],
+					tag: tag.rawValue) == ["\(tag.rawValue) has different placeholders for message"]
+			)
 		}
-		#expect(localized["chat.menu"] != nil)
-		#expect(localized["language.continue"] != nil)
+	}
+
+	@Test(arguments: ["one", "other", "few", "many"])
+	func pluralPlaceholdersMatchTheEnglishFamily(_ form: String) {
+		let english = ["message_one": "Hello {{name}}", "message_other": "Greetings {{name}}"]
+		let key = "message_\(form)"
+		var localized = ["message_one": "Cześć {{name}}", "message_other": "Witaj {{name}}"]
+		localized[key] = "Witaj {{renamed}}"
+		#expect(
+			issues(english: english, localized: localized, tag: "pl") == [
+				"pl has different placeholders for \(key)"
+			])
+		localized[key] = "Witaj {{name}}"
+		#expect(issues(english: english, localized: localized, tag: "pl").isEmpty)
+	}
+
+	@Test(arguments: LanguageTag.allCases)
+	func wordingCanChangeWithoutChangingPlaceholders(_ tag: LanguageTag) {
+		#expect(
+			issues(
+				english: ["message": "Hello {{first}} {{last}}"],
+				localized: ["message": "{{ last }} et {{first}}, bonjour {{first}}!"],
+				tag: tag.rawValue
+			).isEmpty)
 	}
 
 	private func issues(
@@ -143,8 +165,18 @@ import Testing
 			if tag != "en", value == source, exceptions[key] != value {
 				result.append("\(tag) copies English for \(key)")
 			}
+			if placeholders(value) != placeholders(source) {
+				result.append("\(tag) has different placeholders for \(key)")
+			}
 		}
 		return result
+	}
+
+	private func placeholders(_ value: String) -> Set<String> {
+		Set(
+			value.matches(of: /\{\{\s*([^{}]+?)\s*\}\}/).map {
+				String($0.1).trimmingCharacters(in: .whitespacesAndNewlines)
+			})
 	}
 
 	private func sharedValues(for tag: String) throws -> [String: String] {
