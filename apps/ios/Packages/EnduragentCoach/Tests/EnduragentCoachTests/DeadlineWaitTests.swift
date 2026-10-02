@@ -1,8 +1,24 @@
+import EnduragentCoachFixtures
 import Foundation
 import Synchronization
 import Testing
 
+@testable import EnduragentCoach
+
 @Suite(.timeLimit(.minutes(1))) struct DeadlineWaitTests {
+	@Test func leaseWaitAllowsAReplyToFinishAfterFiveSeconds() async throws {
+		let transport = FakeModelTransport { _ in
+			ScriptedReply(
+				[.text("Finished."), .finish(reason: .stop)], requestDelay: .seconds(6))
+		}
+		let host = EndingHost()
+		let coach = await makeCoach(
+			transport: transport, store: InMemoryRecordLog(), host: host)
+		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
+		try await host.waitForEnd(0)
+		#expect(replyText(try #require(await coach.state(of: turn))) == "Finished.")
+	}
+
 	@Test func heldClockFailsWhenNoSleepArrives() async throws {
 		let clock = HeldClock(within: .zero)
 		await #expect(throws: TestWaitDeadlineExceeded.self) {

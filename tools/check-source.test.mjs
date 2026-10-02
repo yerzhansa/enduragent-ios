@@ -30,6 +30,19 @@ const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/R
 const ledgerIndexes = String.raw`#Index<StoredAthleteRecord>([\.deviceId, \.hlcWallMs, \.hlcLogical], [\.kind, \.chatId])`;
 const ledgerIndexVersion = '@Attribute(hashModifier: "ledger-indexes-v1")';
 
+for (const duration of ['.seconds(5)', '.seconds(30)', '.milliseconds(5000)']) {
+  test(`rejects a literal lease wait guard: ${duration}`, () => {
+    const result = run({ 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LeaseHosts.swift': `try await beforeDeadline(within: ${duration}) { try await ended.waitUnlessCancelled() }` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /test-lease-wait-budget/);
+  });
+}
+
+test('accepts the shared lease wait guard', () => {
+  const result = run({ 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LeaseHosts.swift': 'try await beforeDeadline { try await ended.waitUnlessCancelled() }' });
+  assert.equal(result.status, 0, result.output);
+});
+
 for (const source of [
   'while !ready { try await changed.waitUnlessCancelled() }',
   'try await beforeDeadline(within: .seconds(5)) { return true }; while !ready { try await changed.waitUnlessCancelled() }',
