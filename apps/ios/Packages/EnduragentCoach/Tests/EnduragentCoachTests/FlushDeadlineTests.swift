@@ -49,7 +49,7 @@ import Testing
 			failures(retryAfter: retryAfter), for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let reset = Task {
-			let outcome = await coach.startNewConversation(in: .main)
+			let outcome = await coach.resetAndSettle(in: .main)
 			waits.continuation.finish()
 			return outcome
 		}

@@ -69,18 +69,18 @@ import Testing
 		let resetting = startNewConversation(on: coach)
 		try await waitUntil { !sent(.memoryFlush, by: transport).isEmpty }
 		let saving = try #require(await coach.currentSnapshot(.main))
-		#expect(saving.activity == .startingNewConversation(label: Catalog.chatNoticeWorking))
+		#expect(saving.activity == .working(label: Catalog.chatNoticeStartingNewConversation))
 		#expect(saving.opening == .continuing)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		let started = try #require(await coach.currentSnapshot(.main))
 		#expect(started.activity == .idle)
-		#expect(started.opening == .afterNewConversation(memorySaved: true))
+		#expect(started.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		let snapshots = await published.value
 		#expect(snapshots.contains { $0.activity != .idle })
 		#expect(!snapshots.contains { $0.opening != .continuing && $0.activity != .idle })
 	}
 
-	@Test func aResetQueuedBehindAReplyLeavesTheWorkingRowToTheReply() async throws {
+	@Test func aResetQueuedBehindAReplyShowsTheNewConversationWorkingRow() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await coach()
@@ -90,7 +90,7 @@ import Testing
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(
 			await coach.currentSnapshot(.main)?.activity
-				== .working(label: Catalog.chatNoticeWorking))
+				== .working(label: Catalog.chatNoticeStartingNewConversation))
 		await coach.stop(.main)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 	}
@@ -119,7 +119,8 @@ import Testing
 		let archived = try #require(try await coach.archivedConversation(archivedRef))
 		#expect(archived.turns.map(\.id) == [turn])
 		#expect(
-			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: true))
+			await coach.currentSnapshot(.main)?.opening.notice
+				== Catalog.chatNoticeNewConversationSuccess)
 	}
 
 	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
@@ -142,7 +143,8 @@ import Testing
 		#expect(stopped.partial == "Thursday is")
 		#expect(await host.ended(1)?.request == athleteLease)
 		#expect(
-			await coach.currentSnapshot(.main)?.opening == .afterNewConversation(memorySaved: true))
+			await coach.currentSnapshot(.main)?.opening.notice
+				== Catalog.chatNoticeNewConversationSuccess)
 	}
 
 	@Test func expiryDuringTheResetFlushStartsTheConversationAndKeepsTheJob() async throws {
@@ -161,7 +163,7 @@ import Testing
 		#expect(try await count(.deviceLocal([.flushSettled])) == 0)
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: false))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
 		#expect(await host.ended(1)?.ending == .interrupted)
 	}
 }

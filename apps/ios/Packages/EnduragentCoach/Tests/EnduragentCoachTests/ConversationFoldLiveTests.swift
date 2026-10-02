@@ -73,7 +73,7 @@ extension ConversationFoldTests {
 			!reloaded.current.promptHistory(excluding: nil).ulids.contains(
 				try #require(preceding.first).ulid))
 		#expect(expected.contains { $0.message.text.hasPrefix("Answer 1 ") })
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let pending = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.flushPending]), chatId: .main)
 		).records

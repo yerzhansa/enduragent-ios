@@ -24,8 +24,8 @@ struct TranscriptView: View {
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
 					}
-					if case .startingNewConversation(let label)? = model.chat?.activity {
-						Text(model.phrasebook.say(label, [:]))
+					if case .waiting? = model.chat?.reset {
+						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
 							.foregroundStyle(.secondary)
 							.accessibilityIdentifier("chat.working")
 					}

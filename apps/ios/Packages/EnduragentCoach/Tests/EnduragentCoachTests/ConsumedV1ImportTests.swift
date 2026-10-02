@@ -89,7 +89,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == (belowListedMaximum ? 10 : 8))
 		try #require(sent(.memoryFlush, by: transport).isEmpty)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let extracted = sent(.memoryFlush, by: transport).flatMap(\.messages).map(
 			\.unstampedContent)
 		#expect(extracted.filter { $0 == "Never extracted imported question" }.count == 1)
@@ -129,7 +129,7 @@ import Testing
 			])
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		try #require(await coach.transcript(.main).count == 6)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 	}
 

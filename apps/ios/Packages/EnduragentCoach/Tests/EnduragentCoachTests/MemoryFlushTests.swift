@@ -50,7 +50,7 @@ import Testing
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: held)
-		let reset = Task { await coach.startNewConversation(in: .main) }
+		let reset = Task { await coach.resetAndSettle(in: .main) }
 		defer { reset.cancel() }
 		if status == 429 {
 			try await held.waitUntilHeld(.seconds(7))
@@ -76,7 +76,7 @@ import Testing
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
 		#expect(written.isEmpty)
 		let followUp = try #require(sent(.memoryFlush, by: transport).last)
@@ -90,7 +90,7 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.finish(reason: reason)], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .notSaved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .notSaved))
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 
@@ -196,7 +196,7 @@ import Testing
 				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
 		#expect(result.content.contains("requires a section and content"))
 		#expect(!result.content.contains("type='"))
