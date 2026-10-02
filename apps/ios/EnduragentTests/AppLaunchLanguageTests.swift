@@ -41,7 +41,7 @@ extension FixtureLaunchTests {
 			return
 		}
 		let model = fixture.own(opened)
-		#expect(model.route == .loading)
+		#expect(model.route == .onboarding(.notice))
 		#expect(model.languagePreference == preference)
 		#expect(model.phrasebook.tag == expected)
 		#expect(model.phrasebook.say(Catalog.chatComposerMessagePlaceholder) == placeholder)
