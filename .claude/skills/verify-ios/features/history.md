@@ -12,16 +12,16 @@ The menu's History screen lists the chats started since launch, newest first, ea
 
 - In the chat, choose `Menu`, then `History`.
 
-## Driving it with sim.mjs and XCUITest
+## Driving it with sim and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
+- `sim doctor <run id>` exits 0 and the app is installed.
 - For interactive steps, the app is on the chat after onboarding and at least one message has a reply.
 
-- **List.** Send `What did my training look like this week?`, then tap `chat.sidebar` and `sidebar.history`. Run `sim.mjs test <run id> HistoryListProof`. A row whose identifier starts with `history.row.` shows `What did my training look like this week?` and `1998-06-15`. Attachment `history-list` shows it.
-- **Untitled chat.** This step is interactive. Dismiss the menu, tap `New chat`, then open `Menu` and `History`. Two rows appear, and the newest one reads `New chat`. Capture it with `sim.mjs shot <run id> history-two-chats`.
-- **Reopen.** This step is interactive. Tap the row titled `What did my training look like this week?`. The menu closes and the transcript shows that question and its reply. Capture it with `sim.mjs shot <run id> history-reopened`.
+- **List.** Send `What did my training look like this week?`, then tap `chat.sidebar` and `sidebar.history`. Run `sim test <run id> HistoryListProof`. A row whose identifier starts with `history.row.` shows `What did my training look like this week?` and `1998-06-15`. Attachment `history-list` shows it.
+- **Untitled chat.** This step is interactive. Dismiss the menu, tap `New chat`, then open `Menu` and `History`. Two rows appear, and the newest one reads `New chat`. Capture it with `sim shot <run id> history-two-chats`.
+- **Reopen.** This step is interactive. Tap the row titled `What did my training look like this week?`. The menu closes and the transcript shows that question and its reply. Capture it with `sim shot <run id> history-reopened`.
 
 ## Gotchas
 

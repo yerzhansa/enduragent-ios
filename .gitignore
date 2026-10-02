@@ -2,7 +2,6 @@ docs/
 /.audit/
 /DESIGN.md
 /.cursor/
-node_modules/
 .build/
 DerivedData/
 dist/

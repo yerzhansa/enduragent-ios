@@ -23,20 +23,20 @@ The athlete writes to the coach in the composer, sees the message and the coach'
 - Choose `New chat` in the top bar.
 - Choose `Menu`, then `Debug`, to read the request count.
 
-## Driving it with sim.mjs and XCUITest
+## Driving it with sim and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
+- `sim doctor <run id>` exits 0 and the app is installed.
 - For interactive steps, the app is on the chat after onboarding, reached by the interactive steps in [onboarding.md](./onboarding.md).
 
-- **Send and reply.** Send `What did my training look like this week?`, then `Remember that I ride with a group on Saturdays`. Run `sim.mjs test <run id> FirstConversationProof`. The transcript shows each message, a reply containing `Tuesday sweet spot` and `Training Load`, and `Noted. I'll remember you ride with a group on Saturdays.` Attachment `04-first-conversation` shows the transcript.
-- **Review command.** Send `/review`. Run `sim.mjs test <run id> ReviewProof`. The reply contains `Saturday group ride` and `Training Load`. Attachment `05-review` shows it.
-- **Slash list.** Tap `chat.composer` and type `/`. Run `sim.mjs test <run id> SlashListNoPlanProof`. `chat.slash.review`, `chat.slash.status`, `chat.slash.workout`, and `chat.slash.language` exist, and `chat.slash.plan` does not. Attachment `slash-list-no-plan` shows the list.
-- **Fill from the list.** This step is interactive. With the list open, tap `chat.slash.status`. The composer reads `/status ` and the list disappears. Capture it with `sim.mjs shot <run id> slash-filled`.
-- **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `chat.error` reads `Plans arrive in the next TestFlight.`, no `/plan` message appears in the transcript, the composer still reads `/plan`, and the slash list stays open. Capture it with `sim.mjs shot <run id> plan-refused`.
-- **New chat.** This step is interactive. After a reply, tap the `New chat` button. The transcript returns to the greeting and the composer is empty. Capture it with `sim.mjs shot <run id> new-chat`.
-- **No network.** Tap `chat.sidebar`, then `sidebar.debug`. `fixture.requestCount` reads `0 requests`. Capture it with `sim.mjs shot <run id> request-count`. `FirstConversationProof` asserts the same value.
+- **Send and reply.** Send `What did my training look like this week?`, then `Remember that I ride with a group on Saturdays`. Run `sim test <run id> FirstConversationProof`. The transcript shows each message, a reply containing `Tuesday sweet spot` and `Training Load`, and `Noted. I'll remember you ride with a group on Saturdays.` Attachment `04-first-conversation` shows the transcript.
+- **Review command.** Send `/review`. Run `sim test <run id> ReviewProof`. The reply contains `Saturday group ride` and `Training Load`. Attachment `05-review` shows it.
+- **Slash list.** Tap `chat.composer` and type `/`. Run `sim test <run id> SlashListNoPlanProof`. `chat.slash.review`, `chat.slash.status`, `chat.slash.workout`, and `chat.slash.language` exist, and `chat.slash.plan` does not. Attachment `slash-list-no-plan` shows the list.
+- **Fill from the list.** This step is interactive. With the list open, tap `chat.slash.status`. The composer reads `/status ` and the list disappears. Capture it with `sim shot <run id> slash-filled`.
+- **Plan command.** This step is interactive. Type `/plan` and tap `chat.send`. `chat.error` reads `Plans arrive in the next TestFlight.`, no `/plan` message appears in the transcript, the composer still reads `/plan`, and the slash list stays open. Capture it with `sim shot <run id> plan-refused`.
+- **New chat.** This step is interactive. After a reply, tap the `New chat` button. The transcript returns to the greeting and the composer is empty. Capture it with `sim shot <run id> new-chat`.
+- **No network.** Tap `chat.sidebar`, then `sidebar.debug`. `fixture.requestCount` reads `0 requests`. Capture it with `sim shot <run id> request-count`. `FirstConversationProof` asserts the same value.
 
 ## Gotchas
 

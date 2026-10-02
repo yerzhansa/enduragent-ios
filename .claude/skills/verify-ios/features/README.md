@@ -4,25 +4,25 @@ This directory is the maintained source for verifying what an athlete can do in 
 
 ## Baseline preconditions
 
-- Build the checkout with `.claude/skills/verify-ios/helpers/sim.mjs build`.
-- Create a run with `sim.mjs create <slug>` and keep the printed run id.
-- Install the app with `sim.mjs install <run id>`.
-- Run `sim.mjs doctor <run id>` and require exit 0.
-- Launch with `sim.mjs launch <run id>` for interactive driving. A proof launches the app itself.
+- Build the checkout with `swift run --quiet --package-path tools sim build`.
+- Create a run with `sim create <slug>` and keep the printed run id.
+- Install the app with `sim install <run id>`.
+- Run `sim doctor <run id>` and require exit 0.
+- Launch with `sim launch <run id>` for interactive driving. A proof launches the app itself.
 - Never drive a simulator that this run did not create.
 
 ## Driving conventions
 
 - Every launch is a first launch, because fixture state lives in memory. Each recipe starts at the notice screen unless its preconditions say otherwise.
 - Find controls by accessibility identifier. Use a visible label only where the feature file says the control has no identifier.
-- Scripted steps run an existing proof with `sim.mjs test <run id> <Proof>`. Steps marked interactive use the iOS Simulator `control` tool with `device: <udid>` on every call.
+- Scripted steps run an existing proof with `sim test <run id> <Proof>`. Steps marked interactive use the iOS Simulator `control` tool with `device: <udid>` on every call.
 - Treat every command and every quoted string as literal.
 - Type `fixture` as the intervals.icu key. Any non-empty key connects in fixture mode.
 
 ## Proof and skip reporting
 
 - Capture the user action and the resulting state, not only the final screen.
-- A scripted step's proof is the `Passed` summary plus its named attachment. An interactive step's proof is a `sim.mjs shot` before and after the action.
+- A scripted step's proof is the `Passed` summary plus its named attachment. An interactive step's proof is a `sim shot` before and after the action.
 - Every proof run that reaches the chat also reads `fixture.requestCount` as `0 requests`.
 - Record the feature ID and the entry point with every artifact.
 - Report an unreachable path with the attempted command and the unmet precondition.
@@ -34,7 +34,7 @@ Each feature file starts with an H1 title and one paragraph describing the athle
 
 1. `Sub-features` lists short IDs with one line for each behavior.
 2. `How to get to it (user POV)` lists every athlete entry point.
-3. `Driving it with sim.mjs and XCUITest` starts with `Preconditions:` and uses labeled bullets that pair each athlete action with an exact command and observable result.
+3. `Driving it with sim and XCUITest` starts with `Preconditions:` and uses labeled bullets that pair each athlete action with an exact command and observable result.
 4. `Gotchas` lists traps that can waste or invalidate a verification run.
 
 Keep implementation details out of the map. Name only athlete paths, stable handles, required state, commands, and observable proof.

@@ -13,15 +13,15 @@ The menu's Credits screen shows the athlete's credit balance and the credit pack
 - In the chat, choose `Menu`, then `Credits`.
 - The starter grant during onboarding is covered in [onboarding.md](./onboarding.md).
 
-## Driving it with sim.mjs and XCUITest
+## Driving it with sim and XCUITest
 
 Preconditions:
 
-- `sim.mjs doctor <run id>` exits 0 and the app is installed.
+- `sim doctor <run id>` exits 0 and the app is installed.
 - For interactive steps, the app is on the chat after onboarding.
 
-- **Open credits.** Tap `chat.sidebar`, then `sidebar.credits`. Run `sim.mjs test <run id> CreditsProof`. `credits.balance` reads `200 credits`, `credits.note` reads `Testers cannot buy packs yet.`, and both pack rows exist. Attachment `06-credits` shows the screen.
-- **Buy is disabled.** This step is interactive. Tap `Buy` on the 500-credit row. Nothing changes and the button stays dimmed. Capture `sim.mjs shot <run id> credits-buy-disabled` after the tap.
+- **Open credits.** Tap `chat.sidebar`, then `sidebar.credits`. Run `sim test <run id> CreditsProof`. `credits.balance` reads `200 credits`, `credits.note` reads `Testers cannot buy packs yet.`, and both pack rows exist. Attachment `06-credits` shows the screen.
+- **Buy is disabled.** This step is interactive. Tap `Buy` on the 500-credit row. Nothing changes and the button stays dimmed. Capture `sim shot <run id> credits-buy-disabled` after the tap.
 
 ## Gotchas
 
