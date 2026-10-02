@@ -34,7 +34,8 @@
 			FirstWeekFixture.install(on: intervals)
 			intervals.loseCalendarSaveAnswerOnce = launch.calendarSaveFault == .loseAnswerOnce
 			intervals.failCalendarReadOnce = launch.calendarReadFault == .failOnce
-			let transport = FakeModelTransport(respond: FirstWeekFixture.responses())
+			let transport = FakeModelTransport(
+				respond: FirstWeekFixture.responses(intervals: intervals))
 			let fixture = try FixtureRecordStore(
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)
