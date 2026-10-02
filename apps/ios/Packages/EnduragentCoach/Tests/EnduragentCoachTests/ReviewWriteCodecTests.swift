@@ -65,6 +65,44 @@ import Testing
 		#expect(decoded == .failure(.malformed(kind: "reviewWrite", ulid: fixedUlid(2).rawValue)))
 	}
 
+	@Test func cancelledUnknownMatchesGoldenBytesAndPreservesVersions() throws {
+		let bytes = Data(try fixture("review-cancelled-unknown", ext: "json").utf8)
+		let decoded = try RecordCodec.decode(
+			kind: "reviewCancelledUnknown", version: 2, data: bytes, civilDate: "1998-06-14",
+			ulid: fixedUlid(2).rawValue
+		).get()
+		guard case .synced(.reviewCancelledUnknown(let body)) = decoded else {
+			Issue.record("Expected lasting Cancel marker")
+			return
+		}
+		#expect(body.chatId == .main)
+		#expect(body.review == ChangeSetID(ulid: fixedUlid(1)))
+		#expect(body.observation == .absent)
+		let encoded = try RecordCodec.encode(decoded)
+		#expect(encoded.version == 2)
+		#expect(encoded.data == bytes)
+		let row = try StoredAthleteRecord(
+			record: storedRecord(
+				device: DeviceID(rawValue: "phone"), wall: 2, body: decoded))
+		#expect(row.envelopeVersion == 2)
+		#expect(row.bodyVersion == 2)
+	}
+
+	@Test func aReaderWithoutTheCancellationKindSkipsIt() throws {
+		let bytes = Data(try fixture("review-cancelled-unknown", ext: "json").utf8)
+		let previousKinds = Set(
+			SyncedKind.allCases.filter { $0 != .reviewCancelledUnknown }.map(\.rawValue))
+		#expect(!previousKinds.contains("reviewCancelledUnknown"))
+		#expect(
+			!RecordQuery.Scope.synced([.reviewWrite]).kindNames.contains("reviewCancelledUnknown"))
+		#expect(
+			RecordCodec.decode(
+				kind: "futureReviewCancelledUnknown", version: 2, data: bytes,
+				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue)
+				== .failure(
+					.newerKind(kind: "futureReviewCancelledUnknown", ulid: fixedUlid(2).rawValue)))
+	}
+
 	private func golden(name: String, target: CalendarWriteTarget, evidence: CalendarWriteEvidence)
 		throws
 	{

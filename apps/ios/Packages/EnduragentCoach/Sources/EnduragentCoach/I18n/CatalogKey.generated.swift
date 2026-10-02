@@ -1413,6 +1413,7 @@ public enum Catalog {
 	public static let planViewWorkoutDriftUpdatingThePlan = CatalogKey(rawValue: "plan.view.workoutDrift.updatingThePlan")
 	public static let reviewAccountChanged = CatalogKey(rawValue: "review.accountChanged")
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
+	public static let reviewCancelledUnknown = CatalogKey(rawValue: "review.cancelledUnknown")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
 	public static let reviewSaveApprovedAgain = CatalogKey(rawValue: "review.saveApprovedAgain")

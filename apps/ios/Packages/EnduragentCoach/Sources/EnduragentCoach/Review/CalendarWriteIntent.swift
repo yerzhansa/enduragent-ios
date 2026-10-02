@@ -4,7 +4,11 @@ struct CalendarWriteIntent: Sendable {
 	let record: AthleteRecord
 	var body: ReviewWriteBody
 	let proposal: LiveProposal?
-	var canceled = false
+	var cancellation: ReviewCancelledUnknownBody?
+
+	var blocksNewWork: Bool {
+		body.evidence.dispatched && !body.evidence.applied && cancellation == nil
+	}
 
 	var stamp: OperationStamp? {
 		guard case .operation(let operation, let attempt) = record.cause else { return nil }
@@ -21,12 +25,15 @@ extension Ledger {
 		let records: [AthleteRecord]
 		if let synced {
 			records = synced.filter {
-				guard case .synced(.reviewWrite(let body)) = $0.body else { return false }
-				return body.chatId == chat
+				return $0.chatId == chat
+					&& RecordQuery.Scope.synced([.reviewWrite, .reviewCancelledUnknown]).admits(
+						$0.body)
 			}
 		} else {
-			records = try await read(RecordQuery(scope: .synced([.reviewWrite]), chatId: chat))
-				.records
+			records = try await read(
+				RecordQuery(scope: .synced([.reviewWrite, .reviewCancelledUnknown]), chatId: chat)
+			)
+			.records
 		}
 		guard !records.isEmpty else { return [] }
 		let local = try await read(ProposalPolicy.proposalQuery(chat)).records
@@ -55,17 +62,16 @@ extension Ledger {
 			} else {
 				proposal = nil
 			}
-			let canceled =
-				proposal.map { proposal in
-					local.contains {
-						guard case .deviceLocal(.proposalCleared(let cleared)) = $0.body else {
-							return false
-						}
-						return cleared.nonce == proposal.body.nonce && cleared.reason == .canceled
-					}
-				} ?? false
 			intents[body.key] = CalendarWriteIntent(
-				record: record, body: body, proposal: proposal, canceled: canceled)
+				record: record, body: body, proposal: proposal)
+		}
+		for marker in ReviewCancelledUnknownBody.validated(in: records) {
+			guard case .synced(.reviewCancelledUnknown(let body)) = marker.body,
+				var intent = intents[body.key], intent.body.review == body.review,
+				intent.record.deviceId == marker.deviceId, intent.record.account == marker.account
+			else { continue }
+			intent.cancellation = body
+			intents[body.key] = intent
 		}
 		return intents.values.sorted { $0.record.hlc < $1.record.hlc }
 	}

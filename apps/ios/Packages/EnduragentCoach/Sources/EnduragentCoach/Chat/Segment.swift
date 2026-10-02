@@ -14,7 +14,8 @@ package struct ReviewNote: Sendable, Equatable {
 	package let ulid: ULID
 	package let hlc: HybridLogicalClock
 	package let date: CivilDate
-	package let summary: ReviewSummary
+	package let content: TranscriptNote.Content
+	package var after: TurnID? = nil
 }
 
 package struct PromptWindow: Sendable, Equatable {

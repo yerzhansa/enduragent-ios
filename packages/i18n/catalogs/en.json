@@ -1633,7 +1633,8 @@
     "cannotVerify": "Couldn't check your {{service}} connection, so nothing was changed. Try again in a moment.",
     "turnStopping": "This reply is stopping. You can approve or cancel the workout review once it stops.",
     "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
-    "storageUnavailable": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls.",
+    "cancelledUnknown": "Cancelled. This workout may still have been saved. Check your calendar.",
+    "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
     "title": "Workout review",
     "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
     "workout": {

@@ -1,6 +1,10 @@
 import Foundation
 
 package protocol WorkoutReviews: Sendable {
+	func decide(
+		_ decision: ReviewDecision, chat: ChatID, scope: TurnScope?,
+		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure) -> ReviewOutcome
 	func isExecuting(in chat: ChatID) async -> Bool
 	func snapshot(chat: ChatID, records: [AthleteRecord]?) async throws(LedgerFailure)
 		-> ReviewSnapshot?

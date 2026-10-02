@@ -273,7 +273,6 @@ TranscriptNote
 TranscriptNote.after
 TranscriptNote.id
 TranscriptNote.sentence(in:)
-TranscriptNote.summary
 TurnBudgetExceeded
 TurnBudgetExceeded.Kind
 TurnBudgetExceeded.Kind.generateAttempts

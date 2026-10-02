@@ -105,7 +105,7 @@ import Testing
 	}
 
 	@Test(arguments: [false, true])
-	func cancelingAnAbsentWriteStopsRepetitionWithoutErasingDispatch(storageReadFails: Bool)
+	func cancelingAnAbsentWriteLeavesALastingNoteWithoutErasingDispatch(storageReadFails: Bool)
 		async throws
 	{
 		let server = try CalendarWriteServer()
@@ -139,21 +139,21 @@ import Testing
 		if storageReadFails {
 			faults.failFetches = true
 			let outcome = await fixture.coach.decide(.cancel(token), in: .main)
-			#expect(outcome.notice?.key == Catalog.reviewWriteReadFailed)
+			#expect(outcome == .storageUnavailable)
 			faults.failFetches = false
 		}
 		let canceled = await fixture.coach.decide(.cancel(token), in: .main)
-		#expect(canceled.notice?.key == Catalog.reviewWritePending)
-		let retained = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		#expect(retained.controls == .checkAgain(retained.ref))
+		#expect(canceled == .canceled(kept: []))
+		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: fixture.store)
-		let restored = try #require(await reopened.currentSnapshot(.main)?.review)
-		#expect(restored.controls == .checkAgain(restored.ref))
-		server.release()
+		#expect(await reopened.currentSnapshot(.main)?.review == nil)
 		#expect(
-			await reopened.decide(.checkAgain(restored.ref), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
+			await reopened.currentSnapshot(.main)?.notes.values.flatMap { $0 }.map {
+				$0.sentence(in: LanguageTag.en.phrasebook)
+			} == [CancelUnknownSaveTests.sentence])
+		server.release()
+		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)
 		#expect(await reopened.state(of: turn)?.retryable == false)
 		#expect(await reopened.currentSnapshot(.main)?.review == nil)
 		#expect(server.posts.count == 1)
