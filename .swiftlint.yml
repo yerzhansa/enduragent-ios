@@ -45,13 +45,11 @@ custom_rules:
     severity: error
   optional_try:
     regex: '(?m)^(?![ \t]*if let [A-Za-z_][A-Za-z_0-9]*[ \t]*=[ \t]*try\?[ \t]+container\.decode\([A-Za-z_0-9\[\]: ]+\.self\)[ \t]*\{[ \t]*$)[^\n]*\btry\?'
-    excluded: '/Tests/'
     message: 'try? turns a failure into nil. Use try and handle or propagate the error. Only probing decodes on a Decoder container may use try?.'
     severity: error
   no_print:
-    regex: '\b(?:print|debugPrint|NSLog|dump)\s*\('
+    regex: '\b(?:print|debugPrint|NSLog)\s*\(|\bdump\s*\((?!(?:[^()"]|"(?:\\.|[^"\\])*"|\([^()]*\))*?,\s*to\s*:)'
     match_kinds: [identifier]
-    excluded: '/Tests/'
     message: 'Console output does not ship. Surface the state in the UI or in a test.'
     severity: error
   view_owns_no_transport:
