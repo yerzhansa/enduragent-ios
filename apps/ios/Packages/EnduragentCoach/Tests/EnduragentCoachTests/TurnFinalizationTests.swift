@@ -41,7 +41,7 @@ extension SwiftDataSuites {
 			#expect(
 				ReplyParser.foundation.document(try #require(visibleReply(settled, in: french)))
 					.accessibilityText == expected)
-			#expect(!settled.retryable)
+			#expect(turnNotice(of: settled)?.action == nil)
 			#expect(snapshot.liveReply == nil)
 			let lease = try #require(await host.ended(0, within: .hangGuard))
 			#expect(

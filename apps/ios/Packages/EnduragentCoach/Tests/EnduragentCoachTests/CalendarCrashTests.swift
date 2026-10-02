@@ -43,7 +43,7 @@ extension DurableCalendarWriteTests {
 		#expect(server.posts.isEmpty)
 		let reopened = await makeCoach(
 			transport: FakeModelTransport(), intervals: fixture.client, store: inner)
-		#expect(await reopened.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await reopened.state(of: turn)))?.action == nil)
 		let pending = try #require(await reopened.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		_ = await reopened.decide(.checkAgain(pending.ref), in: .main)

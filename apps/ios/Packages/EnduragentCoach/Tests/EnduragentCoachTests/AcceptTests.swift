@@ -140,7 +140,6 @@ extension SwiftDataSuites {
 			let snapshot = try #require(await reopened.currentSnapshot(.main))
 			#expect(snapshot.turns.map(\.id) == [turn])
 			#expect(snapshot.turns.first?.state == .accepted(.awaitingRestart))
-			#expect(snapshot.turns.first?.state.retryable == true)
 			#expect(snapshot.activity == .idle)
 			#expect(transport.requests.isEmpty)
 			#expect(try await reopened.send(sent, to: .main) == .accepted(turn))

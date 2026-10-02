@@ -11,7 +11,7 @@ extension TurnRunnerTests {
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.credits))))
-		#expect(!settled.retryable)
+		#expect(turnNotice(of: settled)?.action == .chooseAccessMethod)
 		#expect(transport.requestCount == 0)
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn))

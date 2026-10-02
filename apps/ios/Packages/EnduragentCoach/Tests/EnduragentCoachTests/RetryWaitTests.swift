@@ -89,7 +89,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}
 		let waiting = try #require(await coach.currentSnapshot(.main)?.turns.first?.state)
-		#expect(!waiting.retryable)
+		#expect(turnNotice(of: waiting)?.action == .wait(thenTryAgain: rateLimitedTurn))
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}

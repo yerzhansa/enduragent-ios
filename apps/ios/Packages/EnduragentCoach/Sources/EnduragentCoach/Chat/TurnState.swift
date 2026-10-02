@@ -16,29 +16,6 @@ public enum TurnState: Sendable, Equatable {
 		}
 	}
 
-	public var retryable: Bool {
-		switch self {
-		case .accepted(.awaitingRestart):
-			return true
-		case .failed(let failed):
-			switch failed.notice.action {
-			case .tryAgain?:
-				return true
-			case .wait?, .restoreCredits?, .buyCredits?, .chooseAccessMethod?, .signInToOpenRouter?,
-				.connectTraining?,
-				nil:
-				return false
-			}
-		case .interrupted(let interrupted):
-			if case .tryAgain = interrupted.notice.action {
-				return true
-			}
-			return false
-		case .accepted, .processing, .completed, .savedWork, .unrecovered:
-			return false
-		}
-	}
-
 	public enum Accepted: Sendable, Equatable {
 		case collecting(until: Date)
 		case queued(position: Int)

@@ -24,7 +24,12 @@ import Testing
 		try await before.dieWithoutWriting(to: dying)
 		let after = await makeCoach(transport: FakeModelTransport(respond: respond), store: store)
 		await after.lifecycle(.becameActive)
-		try #require(await after.state(of: turn)?.retryable == true)
+		let state = try #require(await after.state(of: turn))
+		if started {
+			try #require(turnNotice(of: state)?.action == .tryAgain(turn))
+		} else {
+			try #require(state == .accepted(.awaitingRestart))
+		}
 		try await after.retry(turn, in: .main)
 		let recovered = await after.settledState(of: turn, in: .main, within: .hangGuard)
 		await after.stop(.main)

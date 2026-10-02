@@ -256,7 +256,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(failed) == .model(.providerDown(.outage)))
-		#expect(failed.retryable)
+		#expect(turnNotice(of: failed)?.action == .tryAgain(turn))
 		try await coach.retry(turn, in: .main)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Recovered.")
@@ -329,7 +329,7 @@ import Testing
 		}
 		#expect(transport.requestCount == 0)
 		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
-		#expect(!failed.retryable)
+		#expect(turnNotice(of: failed)?.action == nil)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(
@@ -356,7 +356,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved.memorySections == 1)
-		#expect(!stopped.retryable)
+		#expect(turnNotice(of: stopped)?.action == nil)
 		let requests = transport.requestCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Saved again."), .finish(reason: .stop)], for: .chat,

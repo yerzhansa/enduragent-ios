@@ -26,7 +26,6 @@ extension FixtureLaunchTests {
 				== "J’ai atteint ma limite d’étapes en recueillant les données — demande-moi de continuer et je reprendrai là où je me suis arrêté."
 		)
 		#expect(services.replyParser.document(source).accessibilityText == source)
-		#expect(!turn.state.retryable)
 		#expect(try #require(services.fixtureTransport).requestCount == 11)
 	}
 }
