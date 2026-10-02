@@ -129,14 +129,31 @@ final class ShellLanguageTests {
 		}
 		#expect(intervals.profileReadCount == 1)
 		#expect(intervals.wellnessReadCount == 1)
+		intervals.athleteName = "Ada Lovelace"
 		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada Lovelace"
+					&& summary.wellness == .available(.noData(on: "1998-06-13"))
+			}
+			return false
+		}
 		#expect(intervals.profileReadCount == 2)
 		#expect(intervals.wellnessReadCount == 2)
-		#expect(model.connected?.athleteName == "Ada")
+		#expect(model.connected?.athleteName == "Ada Lovelace")
+		intervals.athleteName = "Ada"
 		await model.sceneChanged(.enteredBackground)
 		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus {
+			if case .connected(let summary, _) = $0.training {
+				return summary.athleteName == "Ada"
+					&& summary.wellness == .available(.noData(on: "1998-06-13"))
+			}
+			return false
+		}
 		#expect(intervals.profileReadCount == 3)
 		#expect(intervals.wellnessReadCount == 3)
+		#expect(model.connected?.athleteName == "Ada")
 	}
 
 	@Test(arguments: [true, false])
