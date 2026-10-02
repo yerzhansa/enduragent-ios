@@ -58,7 +58,7 @@ extension FixtureLaunchTests {
 	@Test func launchFaultFallsBackToTheWholeActualCoachReply() async throws {
 		var configured = launch
 		configured.replyParserFault = .fail
-		let services = try AppServices.fixture(configured, defaults: defaults)
+		let services = try fixtureServices(configured, defaults: defaults)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:formatted"
