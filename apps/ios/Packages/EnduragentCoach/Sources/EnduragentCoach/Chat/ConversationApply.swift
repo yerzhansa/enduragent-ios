@@ -45,6 +45,10 @@ extension Conversation {
 			facts.fragments.first.map { (turn: facts.turn, origin: facts.origin, hlc: $0.hlc) }
 		}.sorted { $0.hlc < $1.hlc }
 		for record in ordered {
+			if RecordQuery.Scope.synced([.reviewWrite, .reviewCancelledUnknown]).admits(record.body)
+			{
+				calendarRecords[record.ulid] = record
+			}
 			switch record.body {
 			case .synced(.turnSettled(let body)), .deviceLocal(.pendingSettlement(let body)):
 				turns[body.turn]?.settlements.append(
@@ -78,7 +82,7 @@ extension Conversation {
 				segments[index].notes.append(
 					ReviewNote(
 						ulid: record.ulid, hlc: record.hlc,
-						date: record.civilDate, summary: body.summary))
+						date: record.civilDate, content: .applied(body.summary)))
 				segments[index].notes.sort { $0.hlc < $1.hlc }
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessageUlids.contains(firstIncluded) {
@@ -126,6 +130,30 @@ extension Conversation {
 		}.sorted { $0.first.hlc < $1.first.hlc }
 		for (facts, first) in orderedTurns {
 			segments[segmentIndex(for: first.ulid, at: first.hlc)].turns.append(facts)
+		}
+		guard !calendarRecords.isEmpty else { return }
+		for index in segments.indices {
+			segments[index].notes.removeAll {
+				if case .cancelledUnknown = $0.content { return true }
+				return false
+			}
+		}
+		for marker in ReviewCancelledUnknownBody.validated(in: Array(calendarRecords.values)) {
+			guard case .synced(.reviewCancelledUnknown(let body)) = marker.body else { continue }
+			let turn: TurnID?
+			if case .operation(.turn(let original), _) = marker.cause {
+				turn = original
+			} else {
+				turn = nil
+			}
+			let anchor = turn.flatMap { turns[$0]?.fragments.min(by: { $0.index < $1.index }) }
+			let index = segmentIndex(
+				for: anchor?.ulid ?? marker.ulid, at: anchor?.hlc ?? marker.hlc)
+			segments[index].notes.append(
+				ReviewNote(
+					ulid: marker.ulid, hlc: marker.hlc, date: marker.civilDate,
+					content: .cancelledUnknown(CancelledUnknownReview(body)), after: turn))
+			segments[index].notes.sort { $0.hlc < $1.hlc }
 		}
 	}
 

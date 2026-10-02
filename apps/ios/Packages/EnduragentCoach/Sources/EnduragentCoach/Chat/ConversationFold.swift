@@ -4,7 +4,7 @@ package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
 		[
 			.userMessage, .turnSettled, .windowStart, .compactionSummary, .reviewApplied,
-			.reviewWrite,
+			.reviewWrite, .reviewCancelledUnknown,
 		],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]
 	)
@@ -41,6 +41,7 @@ package struct Conversation: Sendable, Equatable {
 	package var segments: [Segment]
 	package var legacyMessageUlids: Set<ULID> = []
 	var appliedRecordIDs: Set<ULID> = []
+	var calendarRecords: [ULID: AthleteRecord] = [:]
 
 	package var current: Segment {
 		guard let last = segments.last else {

@@ -219,6 +219,8 @@ try {
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
     if (proofFile.test(file)
       && /\bXCTNSPredicateExpectation\b|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\.wait\s*\(\s*for\s*:/.test(text)) report(file, 'ui-proof-eager-waits');
+    if (proofFile.test(file)
+      && /\bnamed\s*\(\s*\w+\s*,\s*"(?:fixture\.(?:expire|historyHead|requestCount|modelRequestCount)|debug\.(?:records|leases))"/.test(text)) report(file, 'ui-proof-debug-scrolling');
     if (proofFile.test(file) && /\bXCTSkip(?:If|Unless)?\b/.test(text)) report(file, 'ui-proof-no-skips');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
       && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');

@@ -129,11 +129,7 @@ public actor Coach {
 		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
 			return await mailbox.reviewChanged(ref)
 		}
-		let outcome = await reviews.decide(
-			decision, chat: chat, scope: await mailbox.reviewScope,
-			changed: { _ = await mailbox.reviewChanged() })
-		_ = await mailbox.reviewChanged()
-		return outcome
+		return await mailbox.decide(decision)
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async

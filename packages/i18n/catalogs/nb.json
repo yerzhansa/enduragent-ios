@@ -2912,7 +2912,8 @@
     "cannotVerify": "Jeg kunne ikke kontrollere tilkoblingen din til {{service}}, så ingenting ble endret. Prøv igjen om litt.",
     "turnStopping": "Dette svaret er i ferd med å stoppe. Når det har stoppet, kan du godkjenne eller avbryte gjennomgangen av treningsøkten.",
     "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
-    "storageUnavailable": "Den lagrede treningsgjennomgangen kunne ikke leses. Den siste gjennomgangen din vises fortsatt. Prøv igjen for å gjenopprette kontrollene.",
+    "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
+    "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
     "title": "Gjennomgang av treningsøkt",
     "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
     "workout": {

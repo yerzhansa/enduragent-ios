@@ -19,6 +19,7 @@ package enum SyncedKind: String, Sendable, CaseIterable {
 	case planningDevice
 	case reviewApplied
 	case reviewWrite
+	case reviewCancelledUnknown
 	case sessionSettings
 	case languagePreference
 }
@@ -59,6 +60,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	case planningDevice(PlanningDeviceBody)
 	case reviewApplied(ReviewAppliedBody)
 	case reviewWrite(ReviewWriteBody)
+	case reviewCancelledUnknown(ReviewCancelledUnknownBody)
 	case sessionSettings(SessionSettingsBody)
 	case languagePreference(LanguagePreferenceBody)
 
@@ -77,6 +79,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .planningDevice: .planningDevice
 		case .reviewApplied: .reviewApplied
 		case .reviewWrite: .reviewWrite
+		case .reviewCancelledUnknown: .reviewCancelledUnknown
 		case .sessionSettings: .sessionSettings
 		case .languagePreference: .languagePreference
 		}
@@ -90,6 +93,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .compactionSummary(let body): body.chatId
 		case .reviewApplied(let body): body.chatId
 		case .reviewWrite(let body): body.chatId
+		case .reviewCancelledUnknown(let body): body.chatId
 		case .memorySection, .dailyNote, .ledgerEvent, .journal, .provenance,
 			.coachReplyLanguage, .planningDevice, .sessionSettings, .languagePreference:
 			nil
@@ -102,7 +106,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
 			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
-			.languagePreference, .reviewApplied, .reviewWrite:
+			.languagePreference, .reviewApplied, .reviewWrite, .reviewCancelledUnknown:
 			nil
 		}
 	}

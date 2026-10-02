@@ -60,10 +60,11 @@ private enum StepLimitFallbackScreen {
 	private static func assertRecords(_ app: XCUIApplication, modelRequests: Int) {
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
-		TutorialHarness.waitForIdentifier(
-			app, "fixture.modelRequestCount", reading: "\(modelRequests) model requests")
-		XCTAssertEqual(TutorialHarness.named(app, "fixture.requestCount").label, "0 requests")
-		TutorialHarness.named(app, "debug.records").tap()
+		XCTAssertEqual(
+			TutorialHarness.debugRow(app, "fixture.modelRequestCount").label,
+			"\(modelRequests) model requests")
+		XCTAssertEqual(TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
+		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")
 		TutorialHarness.closeMenu(app)
