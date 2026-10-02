@@ -37,6 +37,10 @@
 		case failAfterPresentedOnce = "fail-after-presented-once"
 	}
 
+	enum FixtureResetFault: String {
+		case failBoundary
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -50,6 +54,7 @@
 		var calendarSaveFault: FixtureCalendarSaveFault?
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
+		var resetFault: FixtureResetFault?
 
 		var launchArguments: [String] {
 			var values = [
@@ -73,6 +78,7 @@
 			if let recordReadFault {
 				values += ["-EnduragentFixtureRecordRead", recordReadFault.rawValue]
 			}
+			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
 			return values
 		}
 
@@ -104,6 +110,7 @@
 			calendarSaveFault = try policy(values, "-EnduragentFixtureCalendarSave")
 			calendarReadFault = try policy(values, "-EnduragentFixtureCalendarRead")
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
+			resetFault = try policy(values, "-EnduragentFixtureReset")
 		}
 
 		private func policy<Policy: RawRepresentable>(

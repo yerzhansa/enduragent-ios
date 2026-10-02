@@ -12,7 +12,7 @@ import Testing
 			recovery: "unreadable", host: "expire-after 3", language: "de", locale: "de_DE",
 			clock: "1998-06-16T07:00:00Z", onboarded: true,
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
-			recordReadFault: .failAfterPresentedOnce)
+			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -46,6 +46,7 @@ import Testing
 		#expect(parsed.calendarSaveFault == expected.calendarSaveFault)
 		#expect(parsed.calendarReadFault == expected.calendarReadFault)
 		#expect(parsed.recordReadFault == expected.recordReadFault)
+		#expect(parsed.resetFault == expected.resetFault)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -72,6 +73,7 @@ import Testing
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey,
+		FixtureLaunch.resetArgumentKey,
 	])
 	func rejectsUnknownCalendarProofFaults(key: String) throws {
 		var builder = FixtureArguments()
@@ -104,5 +106,6 @@ import Testing
 		#expect(parsed.calendarSaveFault == nil)
 		#expect(parsed.calendarReadFault == nil)
 		#expect(parsed.recordReadFault == nil)
+		#expect(parsed.resetFault == nil)
 	}
 }

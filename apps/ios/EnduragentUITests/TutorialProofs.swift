@@ -213,7 +213,7 @@ final class NewConversationWorkingProof: XCTestCase {
 		button.tap()
 		let working = TutorialHarness.named(app, "chat.working")
 		TutorialHarness.wait(working, within: .screen)
-		XCTAssertEqual(working.label, TutorialHarness.working)
+		XCTAssertEqual(working.label, "Starting a new conversation…")
 		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
 		TutorialHarness.attach(self, name: "new-conversation-working", app: app)
 		TutorialHarness.waitForWelcome(app)

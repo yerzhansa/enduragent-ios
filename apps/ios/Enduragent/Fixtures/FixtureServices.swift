@@ -34,6 +34,7 @@
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)
 			let records = fixture.faults
+			if launch.resetFault == .failBoundary { try records.failAppends(ofKind: "windowStart") }
 			records.failRecoveryReads = launch.recovery == .unreadable
 			let secretFixture = try ICloudKeychainStore.fixture(directory: launch.directory)
 			let secrets = secretFixture.store

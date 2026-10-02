@@ -24,7 +24,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-summary` summarizes older whole turns when the prompt budget is exceeded while preserving the visible transcript. Debug can show the summary at the head of the next prompt.
 - `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
 - `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` treats `/plan` as ordinary text and omits it from the list.
-- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
+- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
 - `chat-session-settings` edits four settings through Debug, Conversation & time. A rejected value preserves the stored value; a saved value affects later turns.
@@ -142,6 +142,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> SummaryFirstProof` | Records show compaction; later prompts begin `[Previous conversation summary]`, `summary-records`, `summary-first-next-turn`. |
 | `sim.mjs test <run id> NewConversationProof` | The toolbar reset archives the old messages, saves memory, and restores the welcome, `new-conversation`, `new-conversation-records`. |
 | `sim.mjs test <run id> SlashStartProof` | `/start` opens the same new-conversation path, `slash-start`, `slash-start-records`. |
+| `sim.mjs test <run id> QueuedConversationProof` | Both `/start` and toolbar admission leave the old conversation and exactly one starting row during the reply and memory save, free Send, and then show the welcome with the queued message. Its third test checks the later boundary-failure notice. Attachments use `queued-slash-*`, `queued-toolbar-*`, and `queued-reset-failure`. |
 | `sim.mjs test <run id> NewConversationWorkingProof` | The old conversation shows working while reset memory saving runs, then opens the welcome, `new-conversation-working`. |
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |

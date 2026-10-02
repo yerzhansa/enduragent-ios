@@ -42,6 +42,7 @@
 		static let coalescingArgumentKey = "EnduragentFixtureCoalescing"
 		static let recoveryArgumentKey = "EnduragentFixtureRecovery"
 		static let hostArgumentKey = "EnduragentFixtureHost"
+		static let resetArgumentKey = "EnduragentFixtureReset"
 		static let clockArgumentKey = "EnduragentFixtureClock"
 		static let calendarSaveArgumentKey = "EnduragentFixtureCalendarSave"
 		static let calendarReadArgumentKey = "EnduragentFixtureCalendarRead"
@@ -64,6 +65,7 @@
 		var calendarSaveFault: FixtureCalendarSaveFault?
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
+		var resetFault: FixtureResetFault?
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -80,7 +82,8 @@
 				clock: try clock(arguments) ?? defaultClock,
 				calendarSaveFault: try policy(arguments, key: calendarSaveArgumentKey),
 				calendarReadFault: try policy(arguments, key: calendarReadArgumentKey),
-				recordReadFault: try policy(arguments, key: recordReadArgumentKey)
+				recordReadFault: try policy(arguments, key: recordReadArgumentKey),
+				resetFault: try policy(arguments, key: resetArgumentKey)
 			)
 		}
 
