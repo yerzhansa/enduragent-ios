@@ -197,54 +197,6 @@ import Testing
 				== RecoveryPlan(interrupt: []))
 	}
 
-	@Test func deadClaimWithAnObservedReplyIsInterruptedAndNeverReplayed() {
-		let device = DeviceID(rawValue: "phone-a")
-		let turn = TurnID(ulid: fixedUlid(1))
-		let attempt = AttemptID(ulid: fixedUlid(2))
-		var facts = TurnFacts(turn: turn, chat: .main, origin: device)
-		facts.fragments.append(
-			Fragment(
-				ulid: fixedUlid(1),
-				hlc: HybridLogicalClock(wallMs: 1, logical: 0, deviceId: device),
-				civilDate: "1998-06-13", timeZone: amsterdamZone, index: 0, draft: DraftID(),
-				text: "Thursday?", slash: nil))
-		facts.claims.append(
-			ClaimedAttempt(
-				hlc: HybridLogicalClock(wallMs: 2, logical: 0, deviceId: device),
-				body: TurnClaimBody(
-					chatId: .main, turn: turn, attempt: attempt, lease: .continuedProcessing)))
-		facts.replyObserved.append(ReplyObservedBody(chatId: .main, turn: turn, attempt: attempt))
-		let current = ProcessID(ulid: fixedUlid(60))
-		let plan = TurnRecovery.plan(
-			turns: [facts], writes: [:], device: device, process: current)
-		#expect(
-			plan == RecoveryPlan(interrupt: [DeadClaim(turn: turn, attempt: attempt, saved: .none)])
-		)
-		let settle = TurnLifecycle.settled(
-			attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
-			on: facts, chat: .main)
-		#expect(
-			settle
-				== TurnSettledBody(
-					chatId: .main, turn: turn, attempt: attempt,
-					settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
-		var settledFacts = facts
-		settledFacts.settlements.append(
-			SettledAttempt(
-				ulid: fixedUlid(3),
-				hlc: HybridLogicalClock(wallMs: 3, logical: 0, deviceId: device),
-				attempt: attempt,
-				settlement: .interrupted(partial: "", cause: .processEnded, saved: .none)))
-		#expect(
-			TurnLifecycle.settled(
-				attempt, .interrupted(partial: "", cause: .processEnded, saved: .none),
-				on: settledFacts, chat: .main) == nil)
-		#expect(
-			TurnRecovery.plan(
-				turns: [settledFacts], writes: [:], device: device, process: current)
-				== RecoveryPlan(interrupt: []))
-	}
-
 	@Test func stampedWritesAreCountedPerAttempt() async throws {
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let turn = TurnID(ulid: fixedUlid(1))

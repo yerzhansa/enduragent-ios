@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const checker = fileURLToPath(new URL('./check-source.mjs', import.meta.url));
-function run(files, tracked = true) {
+function run(files, tracked = true, links = {}) {
   const root = mkdtempSync(join(tmpdir(), 'ios-source-check-'));
   try {
     execFileSync('git', ['init', '-q', root]);
@@ -15,12 +15,51 @@ function run(files, tracked = true) {
       mkdirSync(dirname(join(root, file)), { recursive: true });
       writeFileSync(join(root, file), content);
     }
-    if (tracked) execFileSync('git', ['-C', root, 'add', '-f', '.']);
-    const result = spawnSync(process.execPath, [checker, '--root', root], { encoding: 'utf8' });
+    for (const [file, target] of Object.entries(links)) {
+      mkdirSync(dirname(join(root, file)), { recursive: true });
+      symlinkSync(typeof target === 'function' ? target(root) : target, join(root, file));
+    }
+    if (tracked) execFileSync('git', ['-C', root, 'add', '-f', '--', ...(Array.isArray(tracked) ? tracked : ['.'])]);
+    const result = spawnSync(process.execPath, [checker, '--root', root], { encoding: 'utf8', timeout: 10000 });
     return { status: result.status, output: result.stdout + result.stderr };
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
+}
+
+for (const [name, files, links] of [
+  ['a relative skill-directory link to tracked content', {
+    '.agents/skills/check/SKILL.md': '# Check\n',
+  }, { '.claude/skills': '../.agents/skills' }],
+  ['a relative link to a tracked file', { 'payload.txt': 'technical CTL' }, { 'first.md': 'payload.txt' }],
+  ['a tracked two-link chain inside the repository', { 'payload.txt': 'content' }, { first: 'second', second: 'payload.txt' }],
+  ['a tracked directory link in a target path', { 'folder/payload.txt': 'content' }, { first: 'second/payload.txt', second: 'folder' }],
+  ['parent traversal after resolving a directory link', {
+    'nested/payload.txt': 'content', 'nested/deep/keep.txt': 'content',
+  }, { first: 'second/../payload.txt', second: 'nested/deep' }],
+]) {
+  test(`accepts ${name} without reading the link entry as content`, () => {
+    const result = run(files, true, links);
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
+for (const [name, files, links, tracked = true] of [
+  ['an absolute link to tracked content inside the repository', { 'payload.txt': 'content' }, { first: root => join(root, 'payload.txt') }],
+  ['a relative link outside the repository', {}, { first: '..' }],
+  ['a dangling link', {}, { first: 'missing.txt' }],
+  ['a link to an untracked file', { 'payload.txt': 'content' }, { first: 'payload.txt' }, ['first']],
+  ['a link to a directory containing only untracked files', { 'folder/payload.txt': 'content' }, { first: 'folder' }, ['first']],
+  ['a tracked two-link chain ending outside the repository', {}, { first: 'second', second: '..' }],
+  ['an untracked intermediate link to tracked content', { 'payload.txt': 'content' }, { first: 'second', second: 'payload.txt' }, ['first', 'payload.txt']],
+  ['an absolute intermediate link to tracked content', { 'payload.txt': 'content' }, { first: 'second', second: root => join(root, 'payload.txt') }],
+  ['a cyclic link chain', {}, { first: 'second', second: 'first' }],
+]) {
+  test(`rejects ${name} as an unsafe path`, () => {
+    const result = run(files, tracked, links);
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /"first" \[unsafe-path\]/);
+  });
 }
 
 const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/intervals-activity.json';
@@ -526,7 +565,7 @@ test('accepts private mailbox state, its immutable identity, and method locals',
 });
 
 const proofFile = 'apps/ios/EnduragentUITests/ChatProofs.swift';
-const featureDirectory = '.claude/skills/verify-ios/features';
+const featureDirectory = '.agents/skills/verify-ios/features';
 const featureFile = `${featureDirectory}/chat.md`;
 const featureSections = [
   'Sub-features',

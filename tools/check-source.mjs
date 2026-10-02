@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { lstatSync, readFileSync, realpathSync } from 'node:fs';
-import { basename, resolve, sep } from 'node:path';
+import { lstatSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
+import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
 
 const args = process.argv.slice(2);
 if (args.length !== 0 && (args.length !== 2 || args[0] !== '--root')) {
@@ -14,12 +14,38 @@ const fixture = /^apps\/ios\/.*\/Tests\/.*\/Fixtures\//;
 const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/AppIcon\.png$/;
 const upgradeStore = /^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee)\/(?:synced|local)-records\.store$/;
 const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
-const featureFile = /^\.claude\/skills\/verify-ios\/features\/[^/]+\.md$/;
+const featureFile = /^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$/;
 let violations = 0;
 let count = 0;
 function report(file, rule) {
   violations++;
   console.error(`${JSON.stringify(file)} [${rule}]`);
+}
+function isSafeTrackedLink(path, trackedFiles) {
+  let resolved;
+  try {
+    resolved = realpathSync.native(path);
+  } catch (error) {
+    if (['ENOENT', 'ENOTDIR', 'ELOOP'].includes(error.code)) return false;
+    throw error;
+  }
+  if (resolved !== root && !resolved.startsWith(root + sep)) return false;
+  if (!trackedFiles.has(resolved) && ![...trackedFiles].some(file => file.startsWith(resolved + sep))) return false;
+  const pending = relative(root, path).split(sep);
+  let current = root;
+  while (pending.length) {
+    const next = resolve(current, pending.shift());
+    if (next !== root && !next.startsWith(root + sep)) return false;
+    if (lstatSync(next).isSymbolicLink()) {
+      if (!trackedFiles.has(next)) return false;
+      const target = readlinkSync(next);
+      if (isAbsolute(target)) return false;
+      pending.unshift(...target.split(sep));
+    } else {
+      current = next;
+    }
+  }
+  return true;
 }
 function publicText(file, text) {
   if (file.endsWith('.md') && basename(file) !== 'NOTICE.md') {
@@ -218,6 +244,7 @@ function checkFeatureProofs(sources) {
 }
 try {
   const files = execFileSync('git', ['-C', root, 'ls-files', '-z'], { encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }).split('\0').filter(Boolean);
+  const trackedFiles = new Set(files.map(file => resolve(root, file)));
   const featureProofSources = new Map();
   const appNavigationSources = new Map();
   for (const file of files) {
@@ -227,7 +254,15 @@ try {
       continue;
     }
     const path = resolve(root, file);
-    if (!path.startsWith(root + sep) || lstatSync(path).isSymbolicLink() || !realpathSync(path).startsWith(root + sep)) {
+    if (!path.startsWith(root + sep)) {
+      report(file, 'unsafe-path');
+      continue;
+    }
+    if (lstatSync(path).isSymbolicLink()) {
+      if (!isSafeTrackedLink(path, trackedFiles)) report(file, 'unsafe-path');
+      continue;
+    }
+    if (!realpathSync(path).startsWith(root + sep)) {
       report(file, 'unsafe-path');
       continue;
     }

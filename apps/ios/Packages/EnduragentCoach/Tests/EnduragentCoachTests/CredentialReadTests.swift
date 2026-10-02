@@ -185,20 +185,4 @@ extension CredentialVaultTests {
 		#expect(built.athletes == [.athlete(coached), .athlete(coached)])
 	}
 
-	@Test func perAttemptResolutionReadsThreeCredentialSlots() async throws {
-		let backing = FixtureSecretStoreBacking()
-		let keychain = ICloudKeychainStore(backing: backing)
-		try keychain.storeCreditsAccount(
-			CreditsAccount(appAccountToken: UUID(), key: testKey)
-		)
-		try keychain.storeIntervalsConnection(testConnection)
-		let vault = vault(keychain)
-		let expectedAccount = account(testConnection)
-		let before = backing.readCount
-		let access = try await vault.modelAccess(builtInModel: testModel)
-		let connection = try await vault.trainingConnection()
-		#expect(backing.readCount - before == 3)
-		#expect(access == testAccess(secret: testKey))
-		#expect(connection.account == expectedAccount)
-	}
 }

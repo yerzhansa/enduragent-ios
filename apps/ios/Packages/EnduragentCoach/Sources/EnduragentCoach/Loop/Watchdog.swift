@@ -5,7 +5,6 @@ package actor ChatWatchdog {
 	package static let interChunk: Duration = .seconds(30)
 
 	private var timer: Task<Void, Never>?
-	private var toolIds: Set<String> = []
 	private var seenText = false
 	private var stopped = true
 	private var outcome: TimeoutKind?
@@ -27,17 +26,6 @@ package actor ChatWatchdog {
 	package func beat() {
 		seenText = true
 		schedule()
-	}
-
-	package func pauseForTools(_ ids: Set<String>) {
-		toolIds = ids
-		if ids.isEmpty {
-			if !stopped {
-				schedule()
-			}
-		} else {
-			cancelTimer()
-		}
 	}
 
 	package func disarm() {
@@ -82,7 +70,7 @@ package actor ChatWatchdog {
 
 	private func schedule() {
 		cancelTimer()
-		guard !stopped, toolIds.isEmpty else { return }
+		guard !stopped else { return }
 		let delay: Duration = seenText ? Self.interChunk : Self.firstToken
 		let kind: TimeoutKind = seenText ? .interChunk : .firstToken
 		timer = Task {

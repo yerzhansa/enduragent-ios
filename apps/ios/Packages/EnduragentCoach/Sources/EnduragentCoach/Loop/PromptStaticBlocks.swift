@@ -254,7 +254,4 @@ package enum PromptStaticBlocks {
 	package static let snapshotGuidance =
 		"Fetch wellness or activities only for a date range or history not shown here. "
 		+ "Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
-
-	package static let compactionFailureCopy =
-		"Conversation could not be shortened safely to fit the context budget. Please try again."
 }

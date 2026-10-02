@@ -85,8 +85,14 @@ import Testing
 		#expect(diagnostics.entries.isEmpty)
 	}
 
-	@Test func timedOutBecomesRequestTimeout() async throws {
-		#expect(try await failure(of: .fail(.timedOut)) == .timeout(.request))
+	@Test(arguments: [
+		(URLError.Code.timedOut, ProviderFailure.timeout(.request)),
+		(.badServerResponse, .malformedStream),
+	])
+	func requestErrorsBecomeTypedFailures(code: URLError.Code, expected: ProviderFailure)
+		async throws
+	{
+		#expect(try await failure(of: .fail(code)) == expected)
 	}
 
 	@Test(arguments: [
