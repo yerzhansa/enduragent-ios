@@ -2939,7 +2939,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icuにキーが拒否されました。"
+      "rejected": "intervals.icuにキーが拒否されました。",
+      "blank": "intervals.icuのAPIキーを入力してください。現在の接続は変更されていません。",
+      "notSaved": "新しい接続は保存されませんでした。以前の接続は変更されていません。もう一度お試しください。",
+      "profileUnavailable": "アスリートプロフィールを一時的に取得できません。もう一度お試しください。",
+      "wellnessRejected": "intervals.icuが今日のウェルネスデータの読み取りを許可しませんでした。接続を確認してください。",
+      "wellnessUnavailable": "今日のウェルネスデータを一時的に取得できません。もう一度お試しください。"
+    },
+    "wellness": {
+      "empty": "今日のウェルネスデータはありません。",
+      "waiting": "今日のウェルネスデータを読み取り中…"
+    },
+    "review": "接続を確認",
+    "profile": {
+      "waiting": "アスリートプロフィールを読み取り中…"
     }
   }
 }

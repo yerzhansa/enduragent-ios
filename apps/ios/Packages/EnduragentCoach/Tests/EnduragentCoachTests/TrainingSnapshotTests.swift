@@ -9,7 +9,7 @@ import Testing
 	let client = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 
 	@Test func wellnessCancellationPropagatesWithoutAnOutageDiagnostic() async throws {
-		client.loadFailure = CancellationError()
+		client.setWellnessOutcome(.failure(CancellationError()))
 		let diagnostics = DiagnosticsLog(clock: clock)
 		await #expect(throws: CancellationError.self) {
 			try await WellnessEvidence(clock: clock, diagnostics: diagnostics).block(
@@ -27,7 +27,7 @@ import Testing
 	) async throws {
 		let error = IntervalsError(
 			code: "failed", details: "private upstream detail", status: status)
-		client.loadFailure = error
+		client.setWellnessOutcome(.failure(error))
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let attempt = AttemptID(ulid: fixedUlid(1))
 		#expect(

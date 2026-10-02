@@ -169,8 +169,12 @@ extension CredentialVaultTests {
 			outcome
 				== .replaced(
 					IntervalsSummary(
-						keySuffix: "lete", athleteName: "Bo Lind", today: nil,
-						displayUnavailable: nil),
+						connectionID: try #require(try secrets.intervalsConnection()).id,
+						keySuffix: "lete",
+						profile: .available(
+							IntervalsProfile(
+								athleteID: try #require(IntervalsAthleteID(rawValue: "i2002")),
+								name: "Bo Lind", wellness: .waiting))),
 					authority: .changed))
 		let active = try #require(try secrets.intervalsConnection())
 		#expect(active.credential == .apiKey("other-athlete"))

@@ -1,5 +1,6 @@
 import EnduragentCoach
 import Foundation
+import Synchronization
 
 public enum FakeIntervalsCall: Sendable, Equatable {
 	case activities(days: Int)
@@ -18,12 +19,50 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var activity: JSONValue
 	public var streams: JSONValue
 	public var events: [CalendarEvent]
-	public private(set) var calls: [FakeIntervalsCall]
+	private let recordedCalls = Mutex<[FakeIntervalsCall]>([])
+	public var calls: [FakeIntervalsCall] { recordedCalls.withLock { $0 } }
 	public var athleteId: String
 	public var athleteName: String
 	public var ftp: Int
-	public var loadFailure: (any Error)?
+	public var loadFailure: (any Error)? {
+		get {
+			displayReads.withLock {
+				if case .failure(let error) = $0.profile { return error }
+				return nil
+			}
+		}
+		set {
+			displayReads.withLock {
+				$0.profile = newValue.map(Result.failure)
+				$0.wellness = newValue.map(Result.failure)
+			}
+		}
+	}
 	public var writeFailure: (any Error)?
+	private let displayReads = Mutex(FakeIntervalsDisplayReads())
+
+	public var profileReadCount: Int { displayReads.withLock { $0.profileCount } }
+	public var wellnessReadCount: Int { displayReads.withLock { $0.wellnessCount } }
+
+	public func setProfileOutcome(_ result: Result<AthleteProfile, any Error>) {
+		displayReads.withLock { $0.profile = result }
+	}
+
+	public func setWellnessOutcome(_ result: Result<[WellnessDay], any Error>) {
+		displayReads.withLock { $0.wellness = result }
+	}
+
+	public func holdNextProfileRead() -> FakeIntervalsReadGate {
+		let gate = FakeIntervalsReadGate()
+		displayReads.withLock { $0.profileGate = gate }
+		return gate
+	}
+
+	public func holdNextWellnessRead() -> FakeIntervalsReadGate {
+		let gate = FakeIntervalsReadGate()
+		displayReads.withLock { $0.wellnessGate = gate }
+		return gate
+	}
 	#if DEBUG
 		public var loseCalendarSaveAnswerOnce = false
 		public var failCalendarReadOnce = false
@@ -41,41 +80,50 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 			"channels": .object([:]),
 		])
 		self.events = []
-		self.calls = []
-		self.loadFailure = nil
 		self.writeFailure = nil
 	}
 
 	public func fetchAthlete() async throws -> AthleteProfile {
-		if let loadFailure {
-			throw loadFailure
+		let (outcome, gate) = displayReads.withLock {
+			$0.profileCount += 1
+			let result =
+				$0.profile ?? .success(AthleteProfile(id: athleteId, name: athleteName, ftp: ftp))
+			let gate = $0.profileGate
+			$0.profileGate = nil
+			return (result, gate)
 		}
-		return AthleteProfile(id: athleteId, name: athleteName, ftp: ftp)
+		await gate?.enter()
+		return try outcome.get()
 	}
 
 	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
-		if let loadFailure {
-			throw loadFailure
+		let (outcome, gate) = displayReads.withLock {
+			$0.wellnessCount += 1
+			let result = $0.wellness ?? .success(wellness)
+			let gate = $0.wellnessGate
+			$0.wellnessGate = nil
+			return (result, gate)
 		}
-		calls.append(.wellness(oldest: oldest, newest: newest))
-		return wellness.filter { $0.date >= oldest && $0.date <= newest }
+		recordedCalls.withLock { $0.append(.wellness(oldest: oldest, newest: newest)) }
+		await gate?.enter()
+		return try outcome.get().filter { $0.date >= oldest && $0.date <= newest }
 	}
 
 	public func fetchActivities(oldest: CivilDate, newest: CivilDate) async throws
 		-> [ActivitySummary]
 	{
 		let days = IntervalsPolicy.inclusiveDayCount(from: oldest, to: newest)
-		calls.append(.activities(days: days))
+		recordedCalls.withLock { $0.append(.activities(days: days)) }
 		return activities.filter { $0.date >= oldest && $0.date <= newest }
 	}
 
 	public func fetchActivity(id: ActivityID) async throws -> JSONValue {
-		calls.append(.activity(id))
+		recordedCalls.withLock { $0.append(.activity(id)) }
 		return activity
 	}
 
 	public func fetchStreams(id: ActivityID) async throws -> JSONValue {
-		calls.append(.streams(id))
+		recordedCalls.withLock { $0.append(.streams(id)) }
 		return streams
 	}
 
@@ -90,7 +138,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	}
 
 	public func listEvents(oldest: CivilDate, newest: CivilDate) async throws -> [CalendarEvent] {
-		calls.append(.events(oldest: oldest, newest: newest))
+		recordedCalls.withLock { $0.append(.events(oldest: oldest, newest: newest)) }
 		#if DEBUG
 			try consumeCalendarReadFault()
 		#endif
@@ -106,7 +154,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		if let writeFailure {
 			throw writeFailure
 		}
-		calls.append(.createEvent(date: draft.date, externalId: draft.externalId.rawValue))
+		recordedCalls.withLock {
+			$0.append(.createEvent(date: draft.date, externalId: draft.externalId.rawValue))
+		}
 		let previous = draft.writeID.flatMap { identity in
 			events.first { $0.uid == identity.uid }
 		}
@@ -150,7 +200,7 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		if let writeFailure {
 			throw writeFailure
 		}
-		calls.append(.updateEvent(id))
+		recordedCalls.withLock { $0.append(.updateEvent(id)) }
 		return CalendarEvent(
 			id: id,
 			startDateLocal: "\(date?.rawValue ?? "1998-06-14")T00:00:00",
@@ -167,6 +217,6 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		if let writeFailure {
 			throw writeFailure
 		}
-		calls.append(.deleteEvent(id))
+		recordedCalls.withLock { $0.append(.deleteEvent(id)) }
 	}
 }

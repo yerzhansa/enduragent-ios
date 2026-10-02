@@ -3059,7 +3059,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu nie zaakceptował tego klucza."
+      "rejected": "intervals.icu nie zaakceptował tego klucza.",
+      "blank": "Wpisz klucz API intervals.icu. Obecne połączenie nie zostało zmienione.",
+      "notSaved": "Nie zapisano zamiany. Poprzednie połączenie nie zostało zmienione. Spróbuj ponownie.",
+      "profileUnavailable": "Twój profil sportowca jest chwilowo niedostępny. Spróbuj ponownie.",
+      "wellnessRejected": "intervals.icu nie pozwoliło odczytać dzisiejszych danych samopoczucia. Sprawdź połączenie.",
+      "wellnessUnavailable": "Dzisiejsze dane samopoczucia są chwilowo niedostępne. Spróbuj ponownie."
+    },
+    "wellness": {
+      "empty": "Brak danych samopoczucia na dziś.",
+      "waiting": "Odczytywanie dzisiejszych danych samopoczucia…"
+    },
+    "review": "Sprawdź połączenie",
+    "profile": {
+      "waiting": "Odczytywanie profilu sportowca…"
     }
   }
 }

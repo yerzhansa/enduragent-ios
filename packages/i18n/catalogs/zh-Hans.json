@@ -2939,7 +2939,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu 未接受该密钥。"
+      "rejected": "intervals.icu 未接受该密钥。",
+      "blank": "请输入 intervals.icu API 密钥。当前连接未更改。",
+      "notSaved": "替换未保存。之前的连接未更改。请重试。",
+      "profileUnavailable": "运动员资料暂时不可用。请重试。",
+      "wellnessRejected": "intervals.icu 未允许读取今天的健康数据。请检查连接。",
+      "wellnessUnavailable": "今天的健康数据暂时不可用。请重试。"
+    },
+    "wellness": {
+      "empty": "今天没有健康数据。",
+      "waiting": "正在读取今天的健康数据…"
+    },
+    "review": "检查连接",
+    "profile": {
+      "waiting": "正在读取运动员资料…"
     }
   }
 }

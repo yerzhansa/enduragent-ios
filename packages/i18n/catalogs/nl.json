@@ -2979,7 +2979,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd."
+      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd.",
+      "blank": "Voer een intervals.icu API-sleutel in. Je huidige verbinding is ongewijzigd.",
+      "notSaved": "De vervanging is niet opgeslagen. Je vorige verbinding is ongewijzigd. Probeer opnieuw.",
+      "profileUnavailable": "Je atletenprofiel is tijdelijk niet beschikbaar. Probeer opnieuw.",
+      "wellnessRejected": "intervals.icu stond het lezen van de wellnessgegevens van vandaag niet toe. Controleer je verbinding.",
+      "wellnessUnavailable": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw."
+    },
+    "wellness": {
+      "empty": "Geen wellnessgegevens voor vandaag.",
+      "waiting": "Wellnessgegevens van vandaag lezen…"
+    },
+    "review": "Verbinding controleren",
+    "profile": {
+      "waiting": "Atletenprofiel lezen…"
     }
   }
 }
