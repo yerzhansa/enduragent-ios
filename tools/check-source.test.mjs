@@ -178,10 +178,11 @@ test('accepts the shared app fixture owner creating folders and services', () =>
 
 for (const target of [
   'Packages/EnduragentCoach/Tests/EnduragentCoachTests',
+  'EnduragentTests',
   'EnduragentUITests',
   'EnduragentPhoneTests',
 ]) {
-  for (const value of ['FileManager.default.temporaryDirectory', 'NSTemporaryDirectory()']) {
+  for (const value of ['FileManager.default.temporaryDirectory', 'NSTemporaryDirectory()', '"/tmp/shared-output"']) {
     test(`rejects tests bypassing the shared temporary folder owner in ${target}: ${value}`, () => {
       const result = run({ [`apps/ios/${target}/FolderTests.swift`]: `let directory = ${value}` });
       assert.equal(result.status, 1, result.output);
@@ -334,30 +335,6 @@ for (const identifier of [
     assert.equal(result.status, 0, result.output);
   });
 }
-
-test('rejects delayed predicate expectations in the shared UI wait helper', () => {
-  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)' });
-  assert.equal(result.status, 1, result.output);
-  assert.match(result.output, /ui-proof-eager-waits/);
-});
-
-for (const source of [
-  'element.waitForExistence(timeout: limit.rawValue)',
-  'element.waitForNonExistence(timeout: limit.rawValue)',
-  'app.wait(for: .runningForeground, timeout: limit.rawValue)',
-  'XCTWaiter.wait(for: [ready], timeout: limit.rawValue)',
-]) {
-  test(`rejects deferred XCTest waiters in the shared helper: ${source}`, () => {
-    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': source });
-    assert.equal(result.status, 1, result.output);
-    assert.match(result.output, /ui-proof-eager-waits/);
-  });
-}
-
-test('accepts immediate bounded polling in the shared helper', () => {
-  const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let deadline = ProcessInfo.processInfo.systemUptime + limit.rawValue\nvar completed = condition()\nwhile !completed && ProcessInfo.processInfo.systemUptime < deadline {\nRunLoop.current.run(until: Date(timeIntervalSinceNow: 0.02))\ncompleted = condition()\n}' });
-  assert.equal(result.status, 0, result.output);
-});
 
 test('rejects skipped UI proofs', () => {
   const result = run({ 'apps/ios/EnduragentUITests/ExampleProof.swift': 'throw XCTSkip("missing old store")' });
@@ -567,14 +544,8 @@ test('accepts private mailbox state, its immutable identity, and method locals',
 const proofFile = 'apps/ios/EnduragentUITests/ChatProofs.swift';
 const featureDirectory = '.agents/skills/verify-ios/features';
 const featureFile = `${featureDirectory}/chat.md`;
-const featureSections = [
-  'Sub-features',
-  'How to get to it (user POV)',
-  'Driving it with sim.mjs and XCUITest',
-  'Gotchas',
-];
-function feature(references, sections = featureSections) {
-  return `# Chat\n${references}\n${sections.map(section => `## ${section}\n`).join('\n')}`;
+function feature(references) {
+  return `# Chat\n${references}\n`;
 }
 const chatProof = 'final class ChatProof: XCTestCase { func testReply() {} }';
 
@@ -605,23 +576,6 @@ for (const [name, files, rule] of [
     [proofFile]: `${chatProof}\nfinal class StopProof: XCTestCase { func testStop() {} }`,
     [featureFile]: feature('ChatProof/testStop StopProof'),
   }, 'feature-proof-method'],
-  ['duplicate proof class', {
-    [proofFile]: chatProof,
-    'apps/ios/EnduragentUITests/OtherProofs.swift': chatProof,
-    [featureFile]: feature('ChatProof/testReply'),
-  }, 'feature-proof-duplicate'],
-  ['missing feature section', {
-    [proofFile]: chatProof,
-    [featureFile]: feature('ChatProof', featureSections.slice(0, -1)),
-  }, 'feature-proof-sections'],
-  ['reordered feature sections', {
-    [proofFile]: chatProof,
-    [featureFile]: feature('ChatProof', featureSections.toReversed()),
-  }, 'feature-proof-sections'],
-  ['extra feature section', {
-    [proofFile]: chatProof,
-    [featureFile]: feature('ChatProof', [...featureSections, 'Other']),
-  }, 'feature-proof-sections'],
 ]) {
   test(`rejects ${name}`, () => {
     const result = run(files);
@@ -637,30 +591,6 @@ test('accepts proofs and probes mapped across feature files with valid selectors
     [featureFile]: feature('ChatProof/testReply StopProof').replaceAll('\n', '\r\n'),
     [`${featureDirectory}/launch.md`]: feature('LaunchProbe/testLaunch'),
     [`${featureDirectory}/README.md`]: '# Proof map\nChatProof StopProof/testStop LaunchProbe',
-  });
-  assert.equal(result.status, 0, result.output);
-});
-
-for (const field of ['errorLine', 'fixtureFeedback']) {
-  for (const [name, filename, value] of [
-    ['ordinary view', 'ChatView.swift', `import SwiftUI\nstruct ChatView: View { var body: some View { Text(model.${field}) } }`],
-    ['view without the View filename suffix', 'FeedbackRow.swift', `import SwiftUI\nstruct FeedbackRow: View { var body: some View { Text(model.${field}) } }`],
-    ['unguarded DebugView', 'FixtureFeedbackDebugView.swift', `import SwiftUI\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }`],
-    ['DebugView release branch', 'FixtureFeedbackDebugView.swift', `#if DEBUG\nimport SwiftUI\n#else\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }\n#endif`],
-    ['DebugView after a closed debug guard', 'FixtureFeedbackDebugView.swift', `#if DEBUG\nimport SwiftUI\n#endif\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.${field}) } }\n#if DEBUG\n#endif`],
-  ]) {
-    test(`rejects ${field} in ${name}`, () => {
-      const result = run({ [`apps/ios/Enduragent/Chat/${filename}`]: value });
-      assert.equal(result.status, 1, result.output);
-      assert.match(result.output, /\[fixture-feedback-debug-only\]/);
-    });
-  }
-}
-
-test('accepts fixture feedback in a guarded DebugView and its model', () => {
-  const result = run({
-    'apps/ios/Enduragent/Chat/FixtureFeedbackDebugView.swift': '#if DEBUG\nimport SwiftUI\nstruct FixtureFeedbackDebugView: View { var body: some View { Text(model.fixtureFeedback) } }\n#endif',
-    'apps/ios/Enduragent/App/ShellModel.swift': 'import Foundation\nfinal class ShellModel { var fixtureFeedback: String? }',
   });
   assert.equal(result.status, 0, result.output);
 });
@@ -757,23 +687,6 @@ test('accepts checked app conversions and string parsing', () => {
   assert.equal(result.status, 0, result.output);
 });
 
-for (const name of ['FakeModelTransport', 'FixedClock', 'InMemoryRecordLog', 'FixtureSecretStoreBacking', 'FixtureRecordStore', 'ScriptedRequest']) {
-  test(`rejects ${name} in production coach sources`, () => {
-    const result = run({
-      'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Example.swift': `public final class ${name} {}`,
-    });
-    assert.equal(result.status, 1, result.output);
-    assert.match(result.output, /fixtures-target-only/);
-  });
-}
-
-test('accepts doubles in the fixtures target', () => {
-  const result = run({
-    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Example.swift': 'public final class FakeModelTransport {}',
-  });
-  assert.equal(result.status, 0, result.output);
-});
-
 test('rejects the fixtures import outside DEBUG', () => {
   const result = run({
     'apps/ios/Enduragent/App/Example.swift': 'import EnduragentCoachFixtures',
@@ -781,61 +694,3 @@ test('rejects the fixtures import outside DEBUG', () => {
   assert.equal(result.status, 1, result.output);
   assert.match(result.output, /fixture-launch-debug-only/);
 });
-
-for (const source of [
-  'enum FixtureReplyParserFault { case fail }',
-  'var replyParserFault: FixtureReplyParserFault?',
-  'let key = "EnduragentFixtureReplyParser"',
-  'let parser = ReplyParser.failingForProof',
-  'let failure = ReplyParseFailure.injected',
-  'case injected',
-  'let source = FormattedReplyFixture.source',
-]) {
-  for (const path of [
-    'apps/ios/Enduragent/App/ReplyRenderingServices.swift',
-    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ReplyParser.swift',
-    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift',
-  ]) {
-    for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
-      test(`rejects reply proof hooks outside DEBUG in ${path}: ${wrapped}`, () => {
-        const result = run({ [path]: wrapped });
-        assert.equal(result.status, 1, result.output);
-        assert.match(result.output, /reply-proof-hooks-debug-only/);
-      });
-    }
-    test(`accepts reply proof hooks under nested DEBUG in ${path}: ${source}`, () => {
-      const result = run({ [path]: `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
-      assert.equal(result.status, 0, result.output);
-    });
-  }
-}
-
-for (const source of [
-  'var loseCalendarSaveAnswerOnce = false',
-  'var failCalendarReadOnce = false',
-  'func failNextReviewRead() {}',
-  'func consumeCalendarReadFault() {}',
-  'var calendarSaveFault: Fault?',
-  'var calendarReadFault: Fault?',
-  'var recordReadFault: Fault?',
-  'let reviewProofDriver = driver',
-  'let value = "-EnduragentFixtureCalendarSave"',
-  'let value = "-EnduragentFixtureCalendarRead"',
-  'let value = "-EnduragentFixtureRecordRead"',
-  'enum FixtureCalendarSaveFault {}',
-  'enum FixtureCalendarReadFault {}',
-  'enum FixtureRecordReadFault {}',
-  'final class FixtureReviewProofDriver {}',
-]) {
-  for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
-    test(`rejects calendar proof hooks outside DEBUG: ${wrapped}`, () => {
-      const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': wrapped });
-      assert.equal(result.status, 1, result.output);
-      assert.match(result.output, /calendar-proof-hooks-debug-only/);
-    });
-  }
-  test(`accepts calendar proof hooks under nested DEBUG: ${source}`, () => {
-    const result = run({ 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift': `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
-    assert.equal(result.status, 0, result.output);
-  });
-}

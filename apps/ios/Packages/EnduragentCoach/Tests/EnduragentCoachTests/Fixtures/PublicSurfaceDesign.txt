@@ -395,10 +395,8 @@ ReplyList.unordered
 ReplyParseFailure
 ReplyParseFailure.documentStructure
 ReplyParseFailure.foundation
-ReplyParseFailure.injected
 ReplyParser
 ReplyParser.document(_:)
-ReplyParser.failingForProof
 ReplyParser.foundation
 ReplyRun
 ReplyRun.accessibilityText
