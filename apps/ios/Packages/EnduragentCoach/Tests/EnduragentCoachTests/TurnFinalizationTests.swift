@@ -8,6 +8,7 @@ extension SwiftDataSuites {
 	@Suite struct TurnFinalizationTests {
 		let transport = FakeModelTransport()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		let host = ImmediateExecutionHost()
 		let device = DeviceID(rawValue: "finalization-phone")
 		let frenchFallback =
 			"J’ai atteint ma limite d’étapes en recueillant les données — demande-moi de continuer et je reprendrai là où je me suis arrêté."
@@ -21,7 +22,7 @@ extension SwiftDataSuites {
 			transport.respond = ScriptedReply.sequence(
 				script(finalText, commitsMemory: commitsMemory))
 			let coach = await makeCoach(
-				transport: transport, intervals: intervals, store: fixture.faults.log)
+				transport: transport, intervals: intervals, store: fixture.faults.log, host: host)
 			try await coach.setLanguage(.fixed(.fr))
 			let settled = try await coach.sendAndSettle("Recueille mes données")
 			let snapshot = try #require(await coach.currentSnapshot(.main))
@@ -29,12 +30,23 @@ extension SwiftDataSuites {
 			let french = await coach.languagePreference().phrasebook(device: .en)
 			let empty = finalText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
 			let expected = empty ? frenchFallback : finalText
+			guard case .completed(let completed) = settled else {
+				Issue.record("Expected a completed finalization, got \(settled)")
+				return
+			}
+			#expect(
+				completed.reply
+					== (empty ? .catalog(Catalog.coachFallbackStepLimit) : .model(finalText)))
 			#expect(visibleReply(settled, in: french) == expected)
 			#expect(
 				ReplyParser.foundation.document(try #require(visibleReply(settled, in: french)))
 					.accessibilityText == expected)
 			#expect(!settled.retryable)
 			#expect(snapshot.liveReply == nil)
+			let lease = try #require(await host.ended(0, within: .hangGuard))
+			#expect(
+				lease.ending
+					== .finished(CompletionNotice(reply: expected, turn: turn, language: .fr)))
 			try #require(transport.requests.count == 11)
 			#expect(
 				transport.requests.map(\.charge) == Array(repeating: .chatAttempt, count: 10) + [
@@ -88,7 +100,8 @@ extension SwiftDataSuites {
 		}
 
 		private func visibleReply(_ state: TurnState, in phrasebook: CatalogPhrasebook) -> String? {
-			replyText(state)
+			guard case .completed(let completed) = state else { return nil }
+			return completed.reply.sentence(in: phrasebook)
 		}
 
 		private func script(_ finalText: String, commitsMemory: Bool) -> [ScriptedEvent] {
