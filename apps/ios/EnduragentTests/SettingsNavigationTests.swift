@@ -6,28 +6,32 @@ import Testing
 extension FixtureLaunchTests {
 	@Test(arguments: [false, true])
 	func restoredSlashDraftShowsCommandsAfterSettingsRelaunch(connected: Bool) async throws {
-		let first = model(try services())
-		first.continueNotice()
-		if connected {
-			first.connectKey = "fixture"
-			await first.connect()
-			try #require(first.didConnect)
-			first.continueConnect()
-		} else {
-			first.skipConnect()
+		let draft: Draft
+		do {
+			let first = model(try services())
+			first.continueNotice()
+			if connected {
+				first.connectKey = "fixture"
+				await first.connect()
+				try #require(first.didConnect)
+				first.continueConnect()
+			} else {
+				first.skipConnect()
+			}
+			await first.agreeAndStartChatting()
+			first.draft.text = "/"
+			first.draftChanged(from: "")
+			try #require(first.slashListVisible)
+			first.open(.settings)
+			draft = first.draft
 		}
-		await first.agreeAndStartChatting()
-		first.draft.text = "/"
-		first.draftChanged(from: "")
-		try #require(first.slashListVisible)
-		first.open(.settings)
 		let (kept, keptDefaults) = try await relaunch(.keep)
 		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.navigation.isEmpty)
-		#expect(reopened.draft == first.draft)
+		#expect(reopened.draft == draft)
 		try #require(reopened.slashListVisible)
 		reopened.fillSlash(.review)
 		#expect(reopened.draft.text == "/review ")
@@ -37,30 +41,35 @@ extension FixtureLaunchTests {
 	@Test(arguments: [false, true])
 	func settingsAndHistoryKeepConversationDraftAndSetupAfterRelaunch(connected: Bool) async throws
 	{
-		let services = try services()
-		let first = model(services)
-		first.continueNotice()
-		if connected {
-			first.connectKey = "fixture"
-			await first.connect()
-			try #require(first.didConnect)
-			first.continueConnect()
-		} else {
-			first.skipConnect()
+		let draft: Draft
+		let snapshot: ChatSnapshot
+		let training: TrainingStatus
+		do {
+			let services = try services()
+			let first = model(services)
+			first.continueNotice()
+			if connected {
+				first.connectKey = "fixture"
+				await first.connect()
+				try #require(first.didConnect)
+				first.continueConnect()
+			} else {
+				first.skipConnect()
+			}
+			await first.loadStarter()
+			await first.agreeAndStartChatting()
+			try await observed(first)
+			first.draft.text = TutorialCopy.weekQuestion
+			await first.send()
+			_ = try await settledTurn(first)
+			first.draft.text = "Is Thursday still on?"
+			first.draftChanged(from: "")
+			draft = first.draft
+			snapshot = try #require(first.chat)
+			training = try await services.coach.observedStatus().training
+			try await proveSettingsNavigation(first, snapshot: snapshot, draft: draft)
+			#expect(try await services.coach.observedStatus().training == training)
 		}
-		await first.loadStarter()
-		await first.agreeAndStartChatting()
-		try await observed(first)
-		first.draft.text = TutorialCopy.weekQuestion
-		await first.send()
-		_ = try await settledTurn(first)
-		first.draft.text = "Is Thursday still on?"
-		first.draftChanged(from: "")
-		let draft = first.draft
-		let snapshot = try #require(first.chat)
-		let training = try await services.coach.observedStatus().training
-		try await proveSettingsNavigation(first, snapshot: snapshot, draft: draft)
-		#expect(try await services.coach.observedStatus().training == training)
 		let (kept, keptDefaults) = try await relaunch(.keep)
 		let reopened = fixtureModel(
 			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
