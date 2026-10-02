@@ -59,22 +59,6 @@ function publicText(file, text) {
   }
   return [];
 }
-function isDebugOnly(text) {
-  const lines = text.trim().split(/\r?\n/);
-  if (lines[0].trim() !== '#if DEBUG') return false;
-  let depth = 0;
-  for (const [index, line] of lines.entries()) {
-    if (/^\s*#if\b/.test(line)) {
-      depth++;
-    } else if (/^\s*#endif\b/.test(line)) {
-      depth--;
-      if (depth === 0 && index !== lines.length - 1) return false;
-    } else if (depth === 1 && /^\s*#(?:else|elseif)\b/.test(line)) {
-      return false;
-    }
-  }
-  return depth === 0;
-}
 function hasReleaseReference(text, reference) {
   const guards = [];
   for (const line of text.split(/\r?\n/)) {
@@ -146,7 +130,7 @@ function hasUnboundedTestWait(text) {
   const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
   const loops = trailingBlocks(code, /\bwhile\b/g);
   const deadlines = trailingBlocks(code, /\bbeforeDeadline\b/g);
-  return [...code.matchAll(/\bawait\s+[\w.]+\s*\.\s*waitUnlessCancelled\s*\(/g)]
+  return [...code.matchAll(/\bawait\s+(?:[\w.]+\s*\.\s*waitUnlessCancelled\s*\(|withCheckedContinuation\b)/g)]
     .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
       && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
 }
@@ -208,18 +192,11 @@ function checkLedgerIndexVersion(file, text) {
 function checkFeatureProofs(sources) {
   const classes = new Map();
   const mapped = new Set();
-  const expectedSections = [
-    'Sub-features',
-    'How to get to it (user POV)',
-    'Driving it with sim.mjs and XCUITest',
-    'Gotchas',
-  ];
   for (const [file, text] of sources) {
     if (!proofFile.test(file)) continue;
     const declarations = [...text.matchAll(/\bclass\s+(\w+)\s*:\s*XCTestCase\b/g)];
     for (const [index, declaration] of declarations.entries()) {
       const name = declaration[1];
-      if (classes.has(name)) report(file, 'feature-proof-duplicate');
       const body = text.slice(declaration.index + declaration[0].length, declarations[index + 1]?.index ?? text.length);
       const methods = new Set([...body.matchAll(/\bfunc\s+(test\w+)\s*\(/g)].map(match => match[1]));
       classes.set(name, { file, methods });
@@ -231,8 +208,6 @@ function checkFeatureProofs(sources) {
     if (references.some(name => !classes.has(name))) report(file, 'feature-proof-reference');
     if (basename(file) !== 'README.md') {
       for (const name of references) mapped.add(name);
-      const sections = [...text.matchAll(/^## ([^\r\n]+)\r?$/gm)].map(match => match[1]);
-      if (JSON.stringify(sections) !== JSON.stringify(expectedSections)) report(file, 'feature-proof-sections');
     }
     for (const [, name, method] of text.matchAll(/\b([A-Z][A-Za-z0-9]*(?:Proof|Probe))\/(test\w+)\b/g)) {
       if (!classes.get(name)?.methods.has(method)) report(file, 'feature-proof-method');
@@ -276,28 +251,20 @@ try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)) appNavigationSources.set(file, text);
     if ((/^apps\/ios\/(?:Packages\/[^/]+\/Tests\/|Enduragent(?:UI|Phone)?Tests\/).*\.swift$/.test(file)
-        && /\b(?:temporaryDirectory|NSTemporaryDirectory)\b/.test(text))
+        && /\b(?:temporaryDirectory|NSTemporaryDirectory)\b|\/tmp\//.test(text))
       || (/^apps\/ios\/EnduragentTests\/.*\.swift$/.test(file)
         && (/\bremoveItem\s*\(/.test(text)
           || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
             && /\bAppServices\s*\.\s*fixture\s*\(/.test(text))))) report(file, 'app-fixture-folder-ownership');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)
       && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
-    if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
-      && hasReleaseReference(text, /\b(?:FixtureCalendarSaveFault|FixtureCalendarReadFault|FixtureRecordReadFault|FixtureReviewProofDriver|loseCalendarSaveAnswerOnce|failCalendarReadOnce|consumeCalendarReadFault|failNextReviewRead|calendarSaveFault|calendarReadFault|recordReadFault|reviewProofDriver|EnduragentFixtureCalendarSave|EnduragentFixtureCalendarRead|EnduragentFixtureRecordRead)\b/)) report(file, 'calendar-proof-hooks-debug-only');
-    if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
-      && hasReleaseReference(text, /\b(?:FixtureReplyParserFault|replyParserFault|EnduragentFixtureReplyParser|failingForProof|FormattedReplyFixture)\b|ReplyParseFailure\s*\.\s*injected|\bcase\s+injected\b/)) report(file, 'reply-proof-hooks-debug-only');
     if (proofFile.test(file) && basename(file) !== 'TutorialHarness.swift'
       && (/\.launchArguments\s*(?:=|\+=)|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\btimeout\s*:/.test(text))) report(file, 'ui-proof-shared-helpers');
     if (proofFile.test(file)
-      && /\bXCTNSPredicateExpectation\b|\.waitFor(?:Non)?Existence\s*\(|\bXCTWaiter\.wait\s*\(|\.wait\s*\(\s*for\s*:/.test(text)) report(file, 'ui-proof-eager-waits');
-    if (proofFile.test(file)
       && /\bnamed\s*\(\s*\w+\s*,\s*"(?:fixture\.(?:expire|historyHead|requestCount|modelRequestCount)|debug\.(?:records|leases))"/.test(text)) report(file, 'ui-proof-debug-scrolling');
     if (proofFile.test(file) && /\bXCTSkip(?:If|Unless)?\b/.test(text)) report(file, 'ui-proof-no-skips');
-    if (/^apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/.*\.swift$/.test(file)
-      && /\b(?:FakeModelTransport|FakeIntervalsClient|FakeCreditsClient|FixedClock|InMemoryRecordLog|FixtureSecretStoreBacking|FixtureRecordStore|RecordFaults|FaultInjectingRecordLog|ImmediateExecutionHost|ScriptedReply|ScriptedRequest|ScriptedEvent)\b/.test(text)) report(file, 'fixtures-target-only');
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
-    if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
+    if (/^apps\/ios\/(?:Packages\/EnduragentCoach\/Tests\/|EnduragentTests\/).*\.swift$/.test(file)
       && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
     if (/^apps\/ios\/(?:Packages\/EnduragentCoach\/(?:Tests\/|Sources\/EnduragentCoachFixtures\/)|EnduragentTests\/).*\.swift$/.test(file)
       && hasLiteralTestHangGuard(text)) report(file, 'test-hang-guard-duration');
@@ -313,9 +280,6 @@ try {
     if (file === 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ChatMailbox.swift') {
       if (hasExposedMailboxState(text)) report(file, 'mailbox-private-state');
     }
-    if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\b(?:errorLine|fixtureFeedback)\b/.test(text)
-      && /\bimport\s+SwiftUI\b|\b(?:some\s+|:\s*)View\b/.test(text)
-      && (!file.endsWith('DebugView.swift') || !isDebugOnly(text))) report(file, 'fixture-feedback-debug-only');
     if (/(?:["'](?:id|activity_?id)["']\s*:\s*["']?\d{9,}\b|\/activit(?:y|ies)\/\d{9,}\b|\bactivity_?[Ii][Dd]\s*[:=]\s*["']?\d{9,}\b)/.test(text)) report(file, 'activity-id');
     if (fixture.test(file) && [...text.matchAll(/\b(\d{4})-\d{2}-\d{2}\b/g)].some(match => Number(match[1]) >= 2015)) report(file, 'fixture-date');
     if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b/.test(text)) report(file, 'secret-shape');

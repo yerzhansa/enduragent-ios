@@ -3,7 +3,7 @@ import Foundation
 public struct ReplyParser: Sendable {
 	private let decode: @Sendable (String) throws -> AttributedString
 
-	init(decode: @escaping @Sendable (String) throws -> AttributedString) {
+	package init(decode: @escaping @Sendable (String) throws -> AttributedString) {
 		self.decode = decode
 	}
 
@@ -28,12 +28,6 @@ public struct ReplyParser: Sendable {
 				source: source, failure: .foundation(domain: failure.domain, code: failure.code))
 		}
 	}
-
-	#if DEBUG
-		public static var failingForProof: Self {
-			Self { _ in throw ReplyParseFailure.injected }
-		}
-	#endif
 }
 
 private struct ReplyToken {

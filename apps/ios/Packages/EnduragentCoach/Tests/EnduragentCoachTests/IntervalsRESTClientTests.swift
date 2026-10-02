@@ -91,7 +91,6 @@ struct IntervalsRESTClientTests {
 		#expect(summary.canonicalDigestInput() == expected.canonicalDigestInput())
 		let encoded = canonicalJSON(summary)
 		#expect(!encoded.contains("\"data\""))
-		writeEvidence("streams-swift.json", canonicalJSON(summary))
 	}
 
 	@Test func rangeOf367DaysIsRejected() async throws {
@@ -339,14 +338,4 @@ func fixtureData(_ name: String) throws -> Data {
 		throw URLError(.fileDoesNotExist)
 	}
 	return try Data(contentsOf: url)
-}
-
-func writeEvidence(_ name: String, _ text: String) {
-	guard
-		let path = ProcessInfo.processInfo.environment["ENDURAGENT_TEST_EVIDENCE_DIRECTORY"],
-		!path.isEmpty
-	else { return }
-	let directory = URL(fileURLWithPath: path, isDirectory: true)
-	guard FileManager.default.fileExists(atPath: directory.path) else { return }
-	try? text.write(to: directory.appendingPathComponent(name), atomically: true, encoding: .utf8)
 }

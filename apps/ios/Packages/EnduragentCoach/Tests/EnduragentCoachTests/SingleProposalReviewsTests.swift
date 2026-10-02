@@ -282,7 +282,10 @@ import Testing
 				"Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 			),
 			(.staleControl, "That proposal expired — ask me again and I'll re-propose."),
-			(.storageUnavailable, "Sorry, something went wrong. Please try again."),
+			(
+				.storageUnavailable,
+				"Couldn't save your choice on this iPhone, so nothing was changed. Try again."
+			),
 		]
 		for (outcome, sentence) in rows {
 			let notice = outcome.notice

@@ -123,3 +123,39 @@ test('one_session_factory rejects every construction outside the package factory
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('no_print rejects console output and accepts an explicit text stream in every Swift target', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ios-console-check-'));
+  const cases = [
+    ['print("value")', true],
+    ['debugPrint("value")', true],
+    ['NSLog("value")', true],
+    ['dump(request)', true],
+    ['dump("value, to: text")', true],
+    ['dump(request, to: &text)', false],
+    ['dump(request, name: "value", to: &text)', false],
+    ['dump(makeRequest(), to: &text)', false],
+  ];
+  try {
+    for (const target of [
+      'Enduragent/App',
+      'Packages/EnduragentCoach/Tests/EnduragentCoachTests',
+      'EnduragentTests',
+      'EnduragentUITests',
+      'EnduragentPhoneTests',
+    ]) {
+      const file = join(root, `apps/ios/${target}/Probe.swift`);
+      mkdirSync(dirname(file), { recursive: true });
+      writeFileSync(file, cases.map(([source]) => source).join('\n') + '\n');
+      const result = spawnSync('swiftlint', [
+        'lint', '--config', config, '--quiet', '--no-cache', '--reporter', 'json', file,
+      ], { encoding: 'utf8', timeout: 30_000 });
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      const violations = JSON.parse(result.stdout).filter(row => row.rule_id === 'no_print');
+      assert.deepEqual(violations.map(row => row.line).sort((a, b) => a - b),
+        cases.flatMap(([, rejected], index) => rejected ? [index + 1] : []), target);
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
