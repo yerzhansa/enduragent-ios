@@ -102,12 +102,16 @@ import Testing
 			try await coach.send(draft("Offer planning directions."), to: .main).acceptedTurn)
 		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == offer)
 
-		#expect(
-			try await coach.send(draft("/start"), to: .main)
-				== .newConversation(.started(memory: .saved)))
+		guard
+			case .newConversation(let admission) = try await coach.send(draft("/start"), to: .main)
+		else {
+			Issue.record("Expected reset admission")
+			return
+		}
+		#expect(await coach.resetCompletion(admission, in: .main) == .started(memory: .saved))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
-		#expect(snapshot.opening == .afterNewConversation(memorySaved: true))
+		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		let archive = try #require(try await coach.history().first?.id)
 		let archived = try #require(try await coach.archivedConversation(archive))
 		#expect(archived.reason == .newConversation)
