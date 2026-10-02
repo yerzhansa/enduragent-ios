@@ -240,7 +240,7 @@ func systemTokens(clock: any Clock) -> Int {
 		evidence: EvidenceBlock(wellnessLine: nil),
 		timeZoneName: clock.timeZone.identifier,
 		replyLanguage: PromptAssembly.replyLanguageSection(
-			.mirror(fallback: .en))
+			.automatic(.en))
 	)
 	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
 }

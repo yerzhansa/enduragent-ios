@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Choisis ta langue",
-    "continue": "Continuer",
-    "saveFailed": "Impossible d’enregistrer {{language}}. Les réponses restent en {{current}}. Réessaie.",
-    "saveFailedAutomatic": "Impossible d’enregistrer {{language}}. Les réponses restent dans la langue de chaque message. Réessaie."
+    "continue": "Continuer"
   },
   "settings": {
     "appearance": {

@@ -24,14 +24,14 @@ import Testing
 		#expect(!section.contains("TSB"))
 	}
 
-	@Test func mirrorUsesTheFallbackSentence() {
+	@Test func automaticUsesTheResolvedPhoneLanguage() {
 		let section = PromptAssembly.replyLanguageSection(
-			.mirror(fallback: .it)
+			.automatic(.it)
 		)
 		let expected = """
 			# Reply language
 
-			No language is saved. Reply in the language of the athlete's latest message; that is what "Mirror the athlete's register" means for language. When the message carries no language signal (a bare command, numbers only), reply in Italian (Italiano).
+			Automatic follows the iPhone's preferred languages. Reply in Italian (Italiano). Write every athlete-facing sentence in Italian, even when the athlete writes in another language. This rule outranks "Mirror the athlete's register": mirror register, tone, and level of detail within Italian; never mirror the language itself.
 
 			\(protected)
 			"""
@@ -45,10 +45,10 @@ import Testing
 				.fixed(tag)
 			)
 			let automatic = PromptAssembly.replyLanguageSection(
-				.mirror(fallback: tag)
+				.automatic(tag)
 			)
 			#expect(preference.contains("The athlete chose \(tag.englishName) (\(tag.endonym))"))
-			#expect(automatic.contains("reply in \(tag.englishName) (\(tag.endonym))"))
+			#expect(automatic.contains("Reply in \(tag.englishName) (\(tag.endonym))"))
 			#expect(preference.contains(protected))
 			#expect(automatic.contains(protected))
 			#expect(preference.contains("Fitness, Fatigue, Form"))

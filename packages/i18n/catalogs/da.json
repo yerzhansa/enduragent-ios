@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Vælg dit sprog",
-    "continue": "Fortsæt",
-    "saveFailed": "Kunne ikke gemme {{language}}. Svarene bliver på {{current}}. Prøv igen.",
-    "saveFailedAutomatic": "Kunne ikke gemme {{language}}. Svarene bliver på sproget i hver besked. Prøv igen."
+    "continue": "Fortsæt"
   },
   "settings": {
     "appearance": {

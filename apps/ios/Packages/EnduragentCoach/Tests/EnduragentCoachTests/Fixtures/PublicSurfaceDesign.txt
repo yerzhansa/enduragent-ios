@@ -297,7 +297,6 @@ LanguagePreference.automatic
 LanguagePreference.choices
 LanguagePreference.fixed
 LanguagePreference.id
-LanguagePreference.notSaved(keeping:in:)
 LanguagePreference.phrasebook(device:)
 LanguagePreference.title(in:)
 LeaseEnding

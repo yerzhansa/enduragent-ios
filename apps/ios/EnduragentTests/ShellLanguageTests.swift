@@ -18,7 +18,7 @@ final class ShellLanguageTests {
 	@Test func relaunchDoesNotRenderAutomaticOverASavedFixedPreference() async throws {
 		try await services().coach.setLanguage(.fixed(.es))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let launch = await AppLaunch.open(language: .en) {
+		let launch = await AppLaunch.open(systemLanguages: ["en"]) { _ in
 			(try services(), defaults)
 		}
 		guard case .ready(let model) = launch else {
@@ -50,7 +50,7 @@ final class ShellLanguageTests {
 		}
 		try await services(intervals: intervals).coach.setLanguage(.fixed(.es))
 		defaults.set(completedOnboarding, forKey: ShellModel.onboardingCompletedKey)
-		let launch = await AppLaunch.open(language: .en) {
+		let launch = await AppLaunch.open(systemLanguages: ["en"]) { _ in
 			(try services(intervals: intervals), defaults)
 		}
 		guard case .ready(let model) = launch else {

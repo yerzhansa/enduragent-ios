@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Välj ditt språk",
-    "continue": "Fortsätt",
-    "saveFailed": "Det gick inte att spara {{language}}. Svaren fortsätter på {{current}}. Försök igen.",
-    "saveFailedAutomatic": "Det gick inte att spara {{language}}. Svaren fortsätter på språket i varje meddelande. Försök igen."
+    "continue": "Fortsätt"
   },
   "settings": {
     "appearance": {

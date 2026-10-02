@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Kies je taal",
-    "continue": "Doorgaan",
-    "saveFailed": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in het {{current}}. Probeer het opnieuw.",
-    "saveFailedAutomatic": "{{language}} kon niet worden opgeslagen. Antwoorden blijven in de taal van elk bericht. Probeer het opnieuw."
+    "continue": "Doorgaan"
   },
   "settings": {
     "appearance": {

@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "言語を選んでください",
-    "continue": "続ける",
-    "saveFailed": "{{language}}を保存できませんでした。回答の言語は{{current}}のままです。もう一度お試しください。",
-    "saveFailedAutomatic": "{{language}}を保存できませんでした。引き続き各メッセージの言語で回答します。もう一度お試しください。"
+    "continue": "続ける"
   },
   "settings": {
     "appearance": {

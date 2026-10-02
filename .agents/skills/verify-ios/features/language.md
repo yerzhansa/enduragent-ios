@@ -1,15 +1,15 @@
 # Language preference
 
-One language preference controls both app text and coach replies. Automatic follows the iPhone language for app text and the athlete's latest message for the reply language. A fixed language controls both and survives a relaunch. Choosing a language does not create a turn.
+One language preference controls both app text and coach replies. Automatic uses the first supported language in the iPhone's preferred-languages list for app text and coach replies, or English when none is supported. A fixed language controls both and survives a relaunch. Choosing a language does not create a turn.
 
 ## Sub-features
 
 - `language-picker` opens Choose your language, marks the current row selected, and lists Automatic plus all 17 supported languages in the order below.
 - `language-choose` saves a different choice immediately and keeps the picker open in the selected language. The next reply receives that preference.
-- `language-automatic` has no saved fixed language. The reply follows the message language, then the iPhone language when the message gives no language evidence.
+- `language-automatic` has no saved fixed language. Every reply uses the resolved iPhone language, including bare commands and numbers.
 - `language-same` keeps the selection without adding another preference record when the current row is tapped again.
 - `language-survives` uses the saved language on the first frame after relaunch, including the welcome and composer.
-- `language-save-failed` preserves the current choice and shows `language.saveFailed` if the preference cannot be stored.
+- `language-save-failed` preserves the current choice and shows `review.saveFailed` if the preference cannot be stored.
 - `language-notices` renders notices and review outcomes through the chosen phrasebook. A notice without a translation uses its English catalog value.
 
 | Order | Choice | Identifier |
@@ -49,7 +49,7 @@ Preconditions:
 | --- | --- |
 | `sim.mjs test <run id> LanguagePickerProof` | Checks all 18 rows in order, selects French, and checks `Choisis ta langue`, `Automatique`, the Conversation title, and `Écris à ton coach`. Attachments are `language-picker-auto`, `language-picker-fr`, `m1-12-language-fr`, and `m1-12-language-survives`. |
 | The same `LanguagePickerProof` run sends the week question and taps French twice | `fixture.replyLanguage` begins `The athlete chose French (Français).`; after relaunch Records contains `languagePreference 1`. `language-switch-seconds` compares the first selection with the unchanged selection. |
-| `sim.mjs test <run id> AutomaticFrenchPhoneProof` | A French phone with Automatic shows French app text. Its English week question produces a reply instruction ending `reply in English (English).`; `m1-12-automatic-fr-phone` shows the conversation. |
+| `sim.mjs test <run id> AutomaticFrenchPhoneProof` | The preferred list `(ru,fr,en)` with Automatic ignores `ENDURAGENT_LANGUAGE=de`, shows French app text and selects Automatique. After relaunch, English, Japanese and `/review` turns all receive a French reply instruction. `u9-1-automatic-french-selected` shows the choice; `u9-1-automatic-french-english`, `u9-1-automatic-french-japanese` and `u9-1-automatic-french-review` show the conversation, with corresponding `-instruction` attachments from Debug. |
 | `sim.mjs test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
 | `sim.mjs test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
 | `sim.mjs test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |

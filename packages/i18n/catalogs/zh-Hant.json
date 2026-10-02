@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "選擇語言",
-    "continue": "繼續",
-    "saveFailed": "無法儲存{{language}}設定。回覆語言仍為{{current}}。請重試。",
-    "saveFailedAutomatic": "無法儲存{{language}}設定。回覆仍會使用每則訊息的語言。請重試。"
+    "continue": "繼續"
   },
   "settings": {
     "appearance": {

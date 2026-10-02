@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "Wybierz swój język",
-    "continue": "Kontynuuj",
-    "saveFailed": "Nie udało się zapisać ustawienia języka „{{language}}”. Język odpowiedzi nadal będzie ustawiony na „{{current}}”. Spróbuj ponownie.",
-    "saveFailedAutomatic": "Nie udało się zapisać ustawienia języka „{{language}}”. Odpowiedzi nadal będą w języku każdej wiadomości. Spróbuj ponownie."
+    "continue": "Kontynuuj"
   },
   "settings": {
     "appearance": {
