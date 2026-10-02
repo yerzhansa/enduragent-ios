@@ -33,7 +33,7 @@ import Testing
 		}
 	}
 
-	@Test func savedLanguageLoadsWithoutReadingTraining() async throws {
+	@Test func savedLanguageLoadsWhileTrainingDisplayIsBlocked() async throws {
 		let store = InMemoryRecordLog()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let first = await makeCoach(
@@ -43,8 +43,18 @@ import Testing
 			transport: FakeModelTransport(), intervals: intervals, store: store)
 		#expect(await reopened.languagePreference() == .fixed(.es))
 		#expect(intervals.calls.isEmpty)
+		let gate = intervals.holdNextProfileRead()
+		defer { Task { await gate.release() } }
 		#expect(try await reopened.observedStatus().language == .fixed(.es))
+		try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					Task { await gate.release() }
+				}
+			) { await gate.waitUntilEntered() } != nil)
 		#expect(intervals.calls.isEmpty)
+		await gate.release()
 		await reopened.lifecycle(.becameActive)
 		#expect(!intervals.calls.isEmpty)
 	}

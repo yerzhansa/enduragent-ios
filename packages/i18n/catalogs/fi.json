@@ -2981,7 +2981,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu ei hyväksynyt avainta."
+      "rejected": "intervals.icu ei hyväksynyt avainta.",
+      "blank": "Anna intervals.icu API-avain. Nykyinen yhteytesi ei muuttunut.",
+      "notSaved": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen.",
+      "profileUnavailable": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "wellnessRejected": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi.",
+      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen."
+    },
+    "wellness": {
+      "empty": "Tälle päivälle ei ole hyvinvointitietoja.",
+      "waiting": "Luetaan tämän päivän hyvinvointitietoja…"
+    },
+    "review": "Tarkista yhteys",
+    "profile": {
+      "waiting": "Luetaan urheilijaprofiilia…"
     }
   }
 }

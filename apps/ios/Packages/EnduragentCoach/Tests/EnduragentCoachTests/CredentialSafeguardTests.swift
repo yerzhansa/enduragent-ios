@@ -106,7 +106,7 @@ extension CreditsClientTests {
 		}
 
 		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: nil)
-		let fixture = CredentialVaultTests()
+		let fixture = try CredentialVaultTests()
 		let coach = await fixture.coach(secrets)
 		let outcome = await coach.changeTraining(
 			.replace(apiKey: "icu-rotated-key", athlete: .keyOwner))

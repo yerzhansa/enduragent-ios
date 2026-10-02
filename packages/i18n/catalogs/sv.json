@@ -2981,7 +2981,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu accepterade inte den nyckeln."
+      "rejected": "intervals.icu accepterade inte den nyckeln.",
+      "blank": "Ange en intervals.icu API-nyckel. Din nuvarande anslutning är oförändrad.",
+      "notSaved": "Ersättningen sparades inte. Din tidigare anslutning är oförändrad. Försök igen.",
+      "profileUnavailable": "Din idrottsprofil är tillfälligt otillgänglig. Försök igen.",
+      "wellnessRejected": "intervals.icu tillät inte läsning av dagens välmåendedata. Kontrollera din anslutning.",
+      "wellnessUnavailable": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen."
+    },
+    "wellness": {
+      "empty": "Inga välmåendedata för idag.",
+      "waiting": "Läser dagens välmåendedata…"
+    },
+    "review": "Kontrollera anslutning",
+    "profile": {
+      "waiting": "Läser idrottsprofil…"
     }
   }
 }
