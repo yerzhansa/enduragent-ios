@@ -4,7 +4,7 @@ Enduragent has one ongoing conversation. New conversation closes it into History
 
 ## Baseline preconditions
 
-Use the existing [verify-ios skill](../SKILL.md) and its helper, `.claude/skills/verify-ios/helpers/sim.mjs`, abbreviated below as `sim.mjs`. Build, create a dedicated run, install, and require `sim.mjs doctor <run id>` to pass before driving that run. Never drive another run's simulator. A proof launches the app itself; interactive steps need `sim.mjs launch <run id>` first.
+Use the existing [verify-ios skill](../SKILL.md) and its helper, `.agents/skills/verify-ios/helpers/sim.mjs`, abbreviated below as `sim.mjs`. Build, create a dedicated run, install, and require `sim.mjs doctor <run id>` to pass before driving that run. Never drive another run's simulator. A proof launches the app itself; interactive steps need `sim.mjs launch <run id>` first.
 
 A task that forbids simulators permits only the source and proof inventory checks. Record UI execution as skipped in that task's report. This map is a recipe, not evidence that its recipes ran.
 

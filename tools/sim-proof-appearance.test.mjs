@@ -62,7 +62,7 @@ test('proof commands select their appearance and restore light after a dark fail
       events.length = 0;
       failBuild = failure;
       process.argv = ['node', 'sim.mjs', 'test', 'fixture', ...proofs];
-      await import(`../.claude/skills/verify-ios/helpers/sim.mjs?appearance-test=${index}`);
+      await import(`../.agents/skills/verify-ios/helpers/sim.mjs?appearance-test=${index}`);
       assert.equal(process.exitCode ?? 0, failure ? 1 : 0);
       process.exitCode = 0;
       assert.equal(appearance, 'light');

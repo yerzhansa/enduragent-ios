@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
-import { chmodSync, cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
-const planner = () => import('../.claude/skills/verify-ios/helpers/sim-plan.mjs');
+const planner = () => import('../.agents/skills/verify-ios/helpers/sim-plan.mjs');
 
 test('build folder parsing preserves the default and lets the flag override the environment', async () => {
   const { parseOptions } = await planner();
@@ -58,8 +58,10 @@ function exportedTree(t) {
   const root = mkdtempSync(join(tmpdir(), 'enduragent-verify-test-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const tree = join(root, 'export');
-  const helper = join(tree, '.claude/skills/verify-ios/helpers');
-  cpSync(resolve('.claude/skills/verify-ios/helpers'), helper, { recursive: true });
+  const helper = join(tree, '.agents/skills/verify-ios/helpers');
+  cpSync(resolve('.agents/skills/verify-ios/helpers'), helper, { recursive: true });
+  mkdirSync(join(tree, '.claude'));
+  symlinkSync('../.agents/skills', join(tree, '.claude/skills'));
   const source = join(tree, 'apps/ios/EnduragentUITests');
   mkdirSync(source, { recursive: true });
   writeFileSync(join(source, 'Proofs.swift'), ['AlphaProof', 'BravoDarkProof', 'CharlieProof'].map(name => `final class ${name}: XCTestCase {}`).join('\n') + '\nfinal class TimingProbe: XCTestCase {}\n');
@@ -74,7 +76,7 @@ function exportedTree(t) {
   const runs = join(root, 'runs');
   const env = { ...process.env, PATH: bin, ENDURAGENT_VERIFY_FAKE_ROOT: root, ENDURAGENT_VERIFY_RUNS: runs, ENDURAGENT_VERIFY_BUILD: build };
   for (const key of Object.keys(env).filter(key => key.startsWith('VERIFY_'))) delete env[key];
-  const run = (args, extra = {}) => spawnSync(process.execPath, [join(helper, 'sim.mjs'), ...args], { cwd: root, env: { ...env, ...extra }, encoding: 'utf8', timeout: 120000 });
+  const run = (args, extra = {}, skills = '.agents/skills') => spawnSync(process.execPath, [join(tree, skills, 'verify-ios/helpers/sim.mjs'), ...args], { cwd: root, env: { ...env, ...extra }, encoding: 'utf8', timeout: 120000 });
   return { root, tree, build, runs, run };
 }
 
@@ -113,20 +115,22 @@ syncBuiltinESMExports();
   assert.deepEqual(readdirSync(devices), []);
 });
 
-test('the real build command accepts a non-git export and an external build folder', t => {
-  const fixture = exportedTree(t);
-  const result = fixture.run(['build', '--build-folder', fixture.build]);
-  assert.equal(result.status, 0, result.stderr);
-  assert.ok(existsSync(join(fixture.build, 'verify-ios-sources.json')));
-  assert.equal(existsSync(join(fixture.tree, 'DerivedData')), false);
-  assert.equal(existsSync(join(fixture.tree, '.git')), false);
-  const ready = fixture.run(['doctor']);
-  assert.equal(ready.status, 0, ready.stderr);
-  writeFileSync(join(fixture.tree, 'apps/ios/EnduragentUITests/New.swift'), 'final class NewProof: XCTestCase {}');
-  const stale = fixture.run(['doctor']);
-  assert.equal(stale.status, 1, stale.stderr);
-  assert.match(stale.stdout, /stale build.*New.swift/);
-});
+for (const skills of ['.agents/skills', '.claude/skills']) {
+  test(`the real build command through ${skills} accepts a non-git export and an external build folder`, t => {
+    const fixture = exportedTree(t);
+    const result = fixture.run(['build', '--build-folder', fixture.build], {}, skills);
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(existsSync(join(fixture.build, 'verify-ios-sources.json')));
+    assert.equal(existsSync(join(fixture.tree, 'DerivedData')), false);
+    assert.equal(existsSync(join(fixture.tree, '.git')), false);
+    const ready = fixture.run(['doctor'], {}, skills);
+    assert.equal(ready.status, 0, ready.stderr);
+    writeFileSync(join(fixture.tree, 'apps/ios/EnduragentUITests/New.swift'), 'final class NewProof: XCTestCase {}');
+    const stale = fixture.run(['doctor'], {}, skills);
+    assert.equal(stale.status, 1, stale.stderr);
+    assert.match(stale.stdout, /stale build.*New.swift/);
+  });
+}
 
 test('suite command uses the caller timing file and the requested subset', t => {
   const fixture = exportedTree(t);
