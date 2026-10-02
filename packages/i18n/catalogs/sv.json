@@ -2915,6 +2915,8 @@
     "turnStopping": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset.",
     "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
     "cancelledUnknown": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender.",
+    "saveFailed": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen.",
+    "retryRead": "Försök igen",
     "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
     "title": "Granskning av träningspass",
     "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",

@@ -267,6 +267,29 @@ for (const source of [
   });
 }
 
+const observationWait = `while !condition() {
+  await withCheckedContinuation { continuation in
+    withObservationTracking {
+      if condition() { continuation.resume() }
+    } onChange: {
+      continuation.resume()
+    }
+  }
+}`;
+
+test('rejects an unbounded observation continuation loop', () => {
+  const result = run({ 'apps/ios/EnduragentTests/WaitSupport.swift': observationWait });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /test-wait-deadline/);
+});
+
+test('accepts an observation continuation loop inside a deadline', () => {
+  const result = run({
+    'apps/ios/EnduragentTests/WaitSupport.swift': `try await beforeDeadline(within: .hangGuard, onTimeout: { release() }) { ${observationWait} }`,
+  });
+  assert.equal(result.status, 0, result.output);
+});
+
 for (const source of [
   'try await beforeDeadline(within: .hangGuard) { while !ready { try await changed.waitUnlessCancelled() } }',
   'try await beforeDeadline(within: .hangGuard, onTimeout: { gate.release() }) { while let changed = state.withLock({ state in state.changed }) { try await changed.waitUnlessCancelled() } }',
