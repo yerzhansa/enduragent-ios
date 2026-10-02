@@ -210,6 +210,8 @@ try {
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
       && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
+    if (file === 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/LeaseHosts.swift'
+      && /\bbeforeDeadline\s*\(\s*within\s*:\s*\.\w+\s*\(/.test(text)) report(file, 'test-lease-wait-budget');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');

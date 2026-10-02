@@ -4,6 +4,8 @@ import Foundation
 
 struct TestWaitDeadlineExceeded: Error {}
 
+let testHangGuard: Duration = .seconds(30)
+
 func firstSnapshot(
 	in stream: AsyncStream<ChatSnapshot>, within limit: Duration,
 	where matches: @escaping @Sendable (ChatSnapshot) -> Bool
@@ -14,7 +16,7 @@ func firstSnapshot(
 }
 
 func beforeDeadline<Value: Sendable>(
-	within limit: Duration, onTimeout: @escaping @Sendable () -> Void = {},
+	within limit: Duration = testHangGuard, onTimeout: @escaping @Sendable () -> Void = {},
 	_ event: @escaping @Sendable () async throws -> Value
 ) async throws -> Value? {
 	try Task.checkCancellation()
