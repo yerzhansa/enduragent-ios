@@ -25,10 +25,10 @@ extension FixtureLaunchTests {
 		#expect(host.leases.first?.notes.count == 1)
 		let graceEnds = try #require(system.graceExpirations.first)
 		graceEnds()
-		try await waitUntil { host.leases.first?.ending != nil }
+		try await waitForLease { host.leases.first?.ending != nil }
 		#expect(await expiries.causes == [.graceEnded])
 		#expect(host.leases.first?.expiry == .graceEnded)
-		#expect(host.leases.first?.ending == .interrupted)
+		#expect(host.leases.first?.ending == .interrupted(.graceEnded))
 		#expect(system.endedGraces == [UIBackgroundTaskIdentifier(rawValue: 1)])
 	}
 
@@ -48,13 +48,13 @@ extension FixtureLaunchTests {
 		#expect(task.progress.completedUnitCount == 13)
 		let expire = try #require(task.expirationHandler)
 		expire()
-		try await waitUntil { !task.completed.isEmpty }
+		try await waitForLease { !task.completed.isEmpty }
 		#expect(task.completed == [false])
 		#expect(await expiries.causes == [.systemExpired])
 		#expect(host.leases.first?.expiry == .systemExpired)
 		await lease.end(.finished(nil))
 		#expect(task.completed == [false])
-		#expect(host.leases.first?.ending == .interrupted)
+		#expect(host.leases.first?.ending == .interrupted(.systemExpired))
 	}
 
 	@Test func aRecoveryLeaseUsesTheGracePeriodOnly() async throws {
@@ -91,7 +91,7 @@ extension FixtureLaunchTests {
 		system.isActive = false
 		let coach = try await leaseCoach(host: leaseHost(system))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitUntil { !system.posted.isEmpty }
+		try await waitForLease { !system.posted.isEmpty }
 		#expect(system.posted.count == 1)
 		#expect(system.posted.first?.content.title == "Coach")
 		#expect(system.posted.first?.content.body == "Still on.")
@@ -104,7 +104,7 @@ extension FixtureLaunchTests {
 		let coach = try await leaseCoach(host: leaseHost(system))
 		try await coach.setLanguage(.fixed(.es))
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitUntil { !system.posted.isEmpty }
+		try await waitForLease { !system.posted.isEmpty }
 		#expect(system.submitted.map(\.title) == ["El entrenador está trabajando…"])
 		#expect(system.posted.map(\.content.title) == ["Entrenador"])
 	}
@@ -114,7 +114,7 @@ extension FixtureLaunchTests {
 		let host = leaseHost(system)
 		let coach = try await leaseCoach(host: host)
 		_ = try await reply(to: "Is Thursday on?", from: coach)
-		try await waitUntil { host.leases.first?.ending != nil }
+		try await waitForLease { host.leases.first?.ending != nil }
 		#expect(system.posted.isEmpty)
 	}
 
@@ -136,13 +136,13 @@ extension FixtureLaunchTests {
 			if case .processing = state { true } else { false }
 		}
 		let records = services.coach.recordSyncProbe()
-		try await waitUntil {
+		try await waitForLease {
 			try await records.snapshot().counts.contains {
 				$0.kind == "memorySection" && $0.count > 0
 			}
 		}
-		await services.fixture?.host.expire(.systemExpired)
-		try await waitUntil {
+		await services.fixture?.host?.expire(.systemExpired)
+		try await waitForLease {
 			guard
 				case .interrupted? = model.chat?.turns.first(where: { $0.id == running.id })?.state
 			else { return false }
@@ -160,20 +160,23 @@ extension FixtureLaunchTests {
 		await model.stop()
 	}
 
-	private var athleteRequest: LeaseRequest {
+	var athleteRequest: LeaseRequest {
 		LeaseRequest(
 			chat: .main, initiatedBy: .athlete, title: Catalog.chatNoticeWorking,
 			language: .en)
 	}
 
-	private func leaseHost(_ system: StubBackgroundSystem) -> ContinuedProcessingHost {
+	func leaseHost(_ system: StubBackgroundSystem) -> ContinuedProcessingHost {
 		ContinuedProcessingHost(bundleIdentifier: "icu.enduragent.app", system: system)
 	}
 
-	private func leaseCoach(host: ContinuedProcessingHost) async throws -> Coach {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
+	func leaseCoach(
+		host: any ExecutionHost, transport: FakeModelTransport? = nil
+	) async throws -> Coach {
+		let transport =
+			transport
+			?? FakeModelTransport(
+				respond: ScriptedReply.sequence([.text("Still on."), .finish(reason: .stop)]))
 		let secrets = try ICloudKeychainStore.fixture(directory: launch.directory).store
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
@@ -197,7 +200,7 @@ extension FixtureLaunchTests {
 		)
 		let services = AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			leases: { await host.leases }, packPrices: { _ in [:] })
+			leases: { [] }, packPrices: { _ in [:] })
 		await model(services).agreeAndStartChatting()
 		return coach
 	}
@@ -210,24 +213,24 @@ extension FixtureLaunchTests {
 			Issue.record("the message was not accepted")
 			return ""
 		}
-		for await snapshot in await coach.observe(.main) {
-			if let state = snapshot.turns.first(where: { $0.id == turn })?.state,
-				state.isSettled
-			{
-				return try #require(replyText(state), "Expected a completed reply, got \(state)")
-			}
-		}
-		return ""
+		try await waitForLease { await self.leaseState(coach, turn: turn)?.isSettled == true }
+		let state = try #require(await leaseState(coach, turn: turn))
+		return try #require(replyText(state), "Expected a completed reply, got \(state)")
+	}
+
+	func leaseState(_ coach: Coach, turn: TurnID) async -> TurnState? {
+		var iterator = await coach.observe(.main).makeAsyncIterator()
+		return await iterator.next()?.turns.first { $0.id == turn }?.state
 	}
 
 	private func leaseTurn(in model: ShellModel, where matches: (TurnState) -> Bool)
 		async throws -> TurnView
 	{
-		try await waitUntil { model.chat?.turns.last.map { matches($0.state) } ?? false }
+		try await waitForLease { model.chat?.turns.last.map { matches($0.state) } ?? false }
 		return try #require(model.chat?.turns.last)
 	}
 
-	private func waitUntil(
+	func waitForLease(
 		within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
 	) async throws {
 		let deadline = ContinuousClock.now + limit.duration
@@ -249,13 +252,22 @@ actor ExpiryLog {
 	}
 }
 
+@MainActor
 final class FakeContinuedTask: ContinuedTask {
 	let progress = Progress()
 	var expirationHandler: (() -> Void)?
 	private(set) var completed: [Bool] = []
 
+	private(set) var titles: [String] = []
+	var onCompletion: (() -> Void)?
+
+	func updateTitle(_ title: String, subtitle: String) {
+		titles.append(title)
+	}
+
 	func setTaskCompleted(success: Bool) {
 		completed.append(success)
+		onCompletion?()
 	}
 }
 
@@ -263,6 +275,9 @@ final class FakeContinuedTask: ContinuedTask {
 final class StubBackgroundSystem: BackgroundSystem {
 	var isActive = true
 	var submitFailure: (any Error)?
+	var onSubmit: (() -> Void)?
+	var postGate: ExpirySettlementGate?
+	private(set) var canceled: [String] = []
 	private(set) var launchHandlers: [String: (any ContinuedTask) -> Void] = [:]
 	private(set) var submitted: [BGContinuedProcessingTaskRequest] = []
 	private(set) var graces: [String] = []
@@ -279,10 +294,15 @@ final class StubBackgroundSystem: BackgroundSystem {
 	}
 
 	func submit(_ request: BGContinuedProcessingTaskRequest) throws {
+		onSubmit?()
 		submitted.append(request)
 		if let submitFailure {
 			throw submitFailure
 		}
+	}
+
+	func cancel(_ identifier: String) {
+		canceled.append(identifier)
 	}
 
 	func beginGrace(named name: String, expiration: @escaping () -> Void)
@@ -302,6 +322,7 @@ final class StubBackgroundSystem: BackgroundSystem {
 	}
 
 	func post(_ request: UNNotificationRequest) async throws {
+		await postGate?.wait()
 		posted.append(request)
 	}
 }

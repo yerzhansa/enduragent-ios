@@ -40,6 +40,10 @@ private struct GraceLease: ExecutionLease {
 		await inner.report(progress)
 	}
 
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
+		await inner.updateTitle(title, language: language)
+	}
+
 	func end(_ ending: LeaseEnding) async {
 		await inner.end(ending)
 	}
@@ -83,6 +87,10 @@ private struct EndingLease: ExecutionLease {
 
 	func report(_ progress: LeaseProgress) async {
 		await inner.report(progress)
+	}
+
+	func updateTitle(_ title: CatalogKey, language: LanguageTag) async {
+		await inner.updateTitle(title, language: language)
 	}
 
 	func end(_ ending: LeaseEnding) async {
