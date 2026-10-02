@@ -8,7 +8,9 @@ const command = basename(process.argv[1]);
 const args = process.argv.slice(2);
 const value = flag => args[args.indexOf(flag) + 1];
 const devices = join(root, 'devices');
+const deviceRecords = join(root, 'device-records');
 mkdirSync(devices, { recursive: true });
+mkdirSync(deviceRecords, { recursive: true });
 writeFileSync(join(root, `call-${process.pid}.json`), JSON.stringify({ command, args }));
 
 if (command === 'git') {
@@ -64,19 +66,20 @@ if (command === 'xcrun' && args[0] === 'simctl') {
   const action = args[1];
   if (action === 'list') {
     const listings = {
-      devices: { devices: { fixture: readdirSync(devices).map(file => JSON.parse(readFileSync(join(devices, file), 'utf8'))) } },
+      devices: { devices: { fixture: readdirSync(devices).map(file => JSON.parse(readFileSync(join(deviceRecords, file), 'utf8'))) } },
       runtimes: { runtimes: [{ platform: 'iOS', isAvailable: true, version: '26.5', name: 'iOS 26.5', identifier: 'fixture-runtime' }] },
       devicetypes: { devicetypes: [{ name: 'iPhone 17e' }] },
     };
     process.stdout.write(JSON.stringify(listings[args[2]]));
   } else if (action === 'create') {
     const udid = `fixture-${process.pid}`;
-    writeFileSync(join(devices, udid), JSON.stringify({ name: args[2], udid, state: 'Booted' }));
+    writeFileSync(join(deviceRecords, udid), JSON.stringify({ name: args[2], udid, state: 'Booted' }));
+    writeFileSync(join(devices, udid), '');
     process.stdout.write(udid);
   } else if (action === 'delete') {
     rmSync(join(devices, args[2]));
   } else if (action === 'bootstatus' && process.env.VERIFY_FAIL_BOOT) {
-    const device = JSON.parse(readFileSync(join(devices, args[2]), 'utf8'));
+    const device = JSON.parse(readFileSync(join(deviceRecords, args[2]), 'utf8'));
     if (device.name.endsWith('shard-2')) process.exitCode = 1;
   }
 }

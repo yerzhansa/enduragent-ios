@@ -3,6 +3,8 @@ import SwiftUI
 
 struct TranscriptView: View {
 	@Bindable var model: ShellModel
+	@Environment(\.scenePhase) private var scenePhase
+	@State private var revealedBackgroundTurns: Set<TurnID> = []
 
 	var body: some View {
 		ScrollViewReader { proxy in
@@ -62,7 +64,13 @@ struct TranscriptView: View {
 			.environment(\.defaultMinListRowHeight, 0)
 			.buttonStyle(.borderless)
 			.onChange(of: model.chat?.revision, initial: true) {
-				proxy.scrollTo("transcript.tail", anchor: .bottom)
+				scrollToEnd(proxy)
+			}
+			.onChange(of: scenePhase) { _, phase in
+				guard phase == .active, let turn = model.chat?.turns.last,
+					turn.completedInBackground, !revealedBackgroundTurns.contains(turn.id)
+				else { return }
+				scrollToEnd(proxy)
 			}
 			.onChange(of: model.slashListVisible) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
@@ -75,6 +83,14 @@ struct TranscriptView: View {
 			) { _ in
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
+		}
+	}
+
+	private func scrollToEnd(_ proxy: ScrollViewProxy) {
+		proxy.scrollTo("transcript.tail", anchor: .bottom)
+		if scenePhase == .active {
+			revealedBackgroundTurns.formUnion(
+				(model.chat?.turns ?? []).filter(\.completedInBackground).map(\.id))
 		}
 	}
 
