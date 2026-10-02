@@ -111,9 +111,10 @@ import Testing
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(first)
 		let second = try #require(try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
-		}
+		_ = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				$0.turns.last?.state == .accepted(.queued(position: 2))
+			})
 		await host.expire(.systemExpired)
 		guard case .interrupted(let running)? = await coach.state(of: first),
 			case .interrupted(let queued)? = await coach.state(of: second)

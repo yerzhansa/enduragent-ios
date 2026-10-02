@@ -98,20 +98,33 @@ extension Coach {
 	}
 
 	func waitUntilProcessing(_ turn: TurnID, in chat: ChatID = .main) async {
-		for await snapshot in await observe(chat) {
-			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?.state {
-				return
+		do {
+			let snapshot = try await firstSnapshot(in: await observe(chat), within: .hangGuard) {
+				if case .processing? = $0.turns.first(where: { $0.id == turn })?.state {
+					return true
+				}
+				return false
 			}
+			#expect(
+				snapshot != nil, "The turn did not start processing before the hang guard expired")
+		} catch {
+			Issue.record(error)
 		}
 	}
 
 	func waitForLiveText(_ turn: TurnID, in chat: ChatID = .main) async {
-		for await snapshot in await observe(chat) {
-			if case .processing? = snapshot.turns.first(where: { $0.id == turn })?
-				.state, snapshot.liveReply?.text.isEmpty == false
-			{
-				return
+		do {
+			let snapshot = try await firstSnapshot(in: await observe(chat), within: .hangGuard) {
+				if case .processing? = $0.turns.first(where: { $0.id == turn })?.state,
+					$0.liveReply?.text.isEmpty == false
+				{
+					return true
+				}
+				return false
 			}
+			#expect(snapshot != nil, "The turn did not stream text before the hang guard expired")
+		} catch {
+			Issue.record(error)
 		}
 	}
 

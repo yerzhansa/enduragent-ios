@@ -147,9 +147,10 @@ import Testing
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		_ = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
-		}
+		_ = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				$0.turns.last?.state == .accepted(.queued(position: 2))
+			})
 		await coach.stop(.main)
 		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		#expect(host.leases.count == 1)

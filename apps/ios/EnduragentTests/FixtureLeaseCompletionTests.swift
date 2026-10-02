@@ -180,8 +180,8 @@ extension FixtureLaunchTests {
 		system.isActive = false
 		var configured = launch
 		configured.host = try FixtureHostPolicy(argument: "continued-processing")
-		let services = fixture.own(
-			try AppServices.fixture(configured, defaults: defaults, backgroundSystem: system))
+		let services = try fixtureServices(
+			configured, defaults: defaults, backgroundSystem: system)
 		let model = model(services)
 		await model.agreeAndStartChatting()
 		#expect(services.fixture?.host == nil)
