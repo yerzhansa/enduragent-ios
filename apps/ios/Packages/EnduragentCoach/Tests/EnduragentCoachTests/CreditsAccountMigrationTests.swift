@@ -7,8 +7,7 @@ import Testing
 
 @Suite struct CreditsAccountMigrationTests {
 	@Test func legacyFileMigratesLikeTheKeychain() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-legacy-items-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {
@@ -54,8 +53,7 @@ import Testing
 	}
 
 	@Test func failedFixtureMigrationSurfacesStorageUnavailable() async throws {
-		let directory = FileManager.default.temporaryDirectory.appending(
-			path: "enduragent-failed-migration-\(UUID().uuidString)", directoryHint: .isDirectory)
+		let directory = try TestTemporaryFolders.make()
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		defer {
 			do {

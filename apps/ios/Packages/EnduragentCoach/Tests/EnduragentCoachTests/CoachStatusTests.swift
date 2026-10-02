@@ -34,7 +34,7 @@ import Testing
 		defer { gate.release() }
 		defer { refreshing.cancel() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await gate.waitUntilParked()
 			} != nil)
 		try await coach.setLanguage(.fixed(.es))
@@ -44,7 +44,7 @@ import Testing
 		gate.release()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					refreshing.cancel()
 					gate.release()
@@ -138,14 +138,14 @@ import Testing
 		defer { gate.release() }
 		defer { refreshing.cancel() }
 		try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await gate.waitUntilParked()
 			} != nil)
 		#expect(await coach.changeTraining(.disconnect) == .disconnected)
 		gate.release()
 		try #require(
 			try await beforeDeadline(
-				within: .seconds(5),
+				within: .hangGuard,
 				onTimeout: {
 					refreshing.cancel()
 					gate.release()

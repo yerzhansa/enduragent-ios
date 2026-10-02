@@ -26,7 +26,7 @@ import Testing
 		await after.lifecycle(.becameActive)
 		try #require(await after.state(of: turn)?.retryable == true)
 		try await after.retry(turn, in: .main)
-		let recovered = await after.settledState(of: turn, in: .main, within: .seconds(3))
+		let recovered = await after.settledState(of: turn, in: .main, within: .hangGuard)
 		await after.stop(.main)
 		#expect(recovered.flatMap(replyText) == "Recovered")
 	}

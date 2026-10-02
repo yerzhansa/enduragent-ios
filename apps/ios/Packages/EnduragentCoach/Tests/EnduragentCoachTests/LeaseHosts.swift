@@ -62,10 +62,10 @@ actor EndingHost: ExecutionHost {
 	func waitForEnd(_ index: Int) async throws {
 		let ended = ending(index)
 		try #require(
-			try await beforeDeadline {
+			try await beforeDeadline(within: .hangGuard) {
 				try await ended.waitUnlessCancelled()
 			} != nil,
-			"Lease \(index) did not end within \(testHangGuard)")
+			"Lease \(index) did not end within five seconds")
 	}
 
 	private func ending(_ index: Int) -> Gate {
