@@ -95,21 +95,20 @@ extension TurnRunner {
 			)
 			assistantText = recovery.text
 		}
-		if assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-			assistantText = PromptStaticBlocks.stepLimitCopy
-			await progress(.textDelta(assistantText))
-		}
-
 		if let outcome = try await scope.savedReviewWork() {
 			return .savedWork(outcome, saved: await scope.summary)
 		}
 
+		let reply: ReplyText =
+			assistantText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+			? .catalog(Catalog.coachFallbackStepLimit) : .model(assistantText)
 		let templateHash = sha256Hex(
 			prompt.prefix + prompt.schemas.map(\.name.rawValue).joined()
 				+ attempt.access.model.rawValue)
-		let assembledHash = sha256Hex(prompt.system + prompt.timed + assistantText)
+		let assembledHash = sha256Hex(
+			prompt.system + prompt.timed + reply.sentence(in: CatalogPhrasebook(tag: .en)))
 		return .replied(
-			.model(assistantText),
+			reply,
 			lineage: ReplyLineage(templateHash: templateHash, assembledHash: assembledHash)
 		)
 	}

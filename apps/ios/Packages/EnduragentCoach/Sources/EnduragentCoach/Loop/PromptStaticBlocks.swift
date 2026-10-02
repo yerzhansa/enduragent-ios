@@ -244,9 +244,6 @@ package enum PromptStaticBlocks {
 
 	package static let toolFailure = "The tool could not finish."
 
-	package static let stepLimitCopy =
-		"I ran out of steps gathering data — ask me to continue and I'll pick up where I left off."
-
 	package static let snapshotHeading = "# Athlete Profile & Latest Wellness"
 
 	package static let snapshotFallback =

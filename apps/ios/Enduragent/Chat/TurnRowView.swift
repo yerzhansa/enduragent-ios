@@ -25,10 +25,9 @@ struct TurnRowView: View {
 				}
 				working
 			case .completed(let completed):
-				switch completed.reply {
-				case .model(let text):
-					ReplyView(source: text, parser: model.services.replyParser)
-				}
+				ReplyView(
+					source: completed.reply.sentence(in: model.phrasebook),
+					parser: model.services.replyParser)
 				if turn.completedInBackground {
 					Text(say(Catalog.chatTurnFinishedWhileLocked))
 						.font(.footnote)

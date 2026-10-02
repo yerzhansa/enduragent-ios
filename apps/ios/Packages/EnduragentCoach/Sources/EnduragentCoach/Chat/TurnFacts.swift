@@ -71,8 +71,8 @@ package struct TurnFacts: Sendable, Equatable {
 		guard let settled = latestSettlement else { return nil }
 		let replyText: String
 		switch settled.settlement {
-		case .replied(.model(let text), _):
-			replyText = text
+		case .replied(let reply, _):
+			replyText = reply.sentence(in: Self.promptPhrasebook)
 		case .interrupted(let partial, _, _) where !partial.isEmpty:
 			replyText = partial
 		case .savedWork(let outcome, let saved):
