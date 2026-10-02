@@ -6,23 +6,12 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-@Suite struct FixtureUpgradeTests {
+@Suite(FixtureTestScope()) struct FixtureUpgradeTests {
 	@Test func preVaultPolicyCopiesTheCommittedStoreAndSeedsTheLegacyKey() throws {
 		let store = try #require(FixtureStorePolicy(rawValue: "pre-vault-5de5c782"))
-		let launch = FixtureLaunch(
-			name: FixtureLaunch.firstWeekName, store: store, keychain: .unlocked,
-			directory: FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-pre-vault-\(UUID().uuidString)", directoryHint: .isDirectory),
-			defaultsSuiteName: "enduragent.pre-vault.\(UUID().uuidString)")
+		var launch = AppTestFixture.active.launch
+		launch.store = store
 		let defaults = try launch.prepare()
-		defer {
-			defaults.removePersistentDomain(forName: launch.defaultsSuiteName)
-			do {
-				try FileManager.default.removeItem(at: launch.directory)
-			} catch {
-				Issue.record(error, "pre-vault fixture cleanup")
-			}
-		}
 		let source = try #require(Bundle.main.url(forResource: store.rawValue, withExtension: nil))
 		for name in ["synced-records.store", "local-records.store"] {
 			#expect(

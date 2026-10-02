@@ -26,7 +26,7 @@ extension DurableCalendarWriteTests {
 				.finish(reason: .toolCalls), .text("Check the existing write."),
 				.finish(reason: .stop),
 			], for: .chat, otherwise: fixture.model.respond)
-		let settled = try await fixture.coach.sendAndSettle("Replace it", within: .seconds(5))
+		let settled = try await fixture.coach.sendAndSettle("Replace it", within: .hangGuard)
 		#expect(replyText(settled) == "Check the existing write.")
 		#expect(
 			try await fixture.store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal])))

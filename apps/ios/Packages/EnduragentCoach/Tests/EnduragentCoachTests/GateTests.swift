@@ -20,7 +20,7 @@ import Testing
 				])
 			completed.withLock { $0 = true }
 		}
-		let deadline = ContinuousClock.now + .seconds(1)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while !completed.withLock({ $0 }), ContinuousClock.now < deadline {
 			await Task.yield()
 		}

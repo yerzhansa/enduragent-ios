@@ -124,6 +124,13 @@ function hasUnboundedTestWait(text) {
     .some(wait => loops.some(([start, end]) => start < wait.index && wait.index < end)
       && !deadlines.some(([start, end]) => start < wait.index && wait.index < end));
 }
+function hasLiteralTestHangGuard(text) {
+  const code = text.replace(/(#+)?("""[\s\S]*?"""|"(?:\\.|[^"\\])*")\1/g, '""');
+  const duration = String.raw`(?:Duration\s*\.\s*)?\.?(?:seconds|milliseconds|microseconds|nanoseconds|zero)\b`;
+  return new RegExp(String.raw`\bwithin(?:\s+\w+\s*:\s*\w+\s*=|\s*:)\s*${duration}`).test(code)
+    || new RegExp(String.raw`\bContinuousClock(?:\s*\(\s*\))?\s*\.\s*now\s*\+\s*${duration}`).test(code)
+    || new RegExp(String.raw`\baddTask\s*\{\s*try\s+await\s+Task\s*\.\s*sleep\s*\(\s*for\s*:\s*${duration}(?:\s*\([^)]*\))?\s*\)\s*;?\s*return\s+(?:false|nil)\b`).test(code);
+}
 function checkLedgerIndexVersion(file, text) {
   const versions = new Map([
     ['ledger-indexes-v1', ['deviceId,hlcWallMs,hlcLogical', 'kind,chatId']],
@@ -196,6 +203,12 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if ((/^apps\/ios\/(?:Packages\/[^/]+\/Tests\/|Enduragent(?:UI|Phone)?Tests\/).*\.swift$/.test(file)
+        && /\b(?:temporaryDirectory|NSTemporaryDirectory)\b/.test(text))
+      || (/^apps\/ios\/EnduragentTests\/.*\.swift$/.test(file)
+        && (/\bremoveItem\s*\(/.test(text)
+          || (file !== 'apps/ios/EnduragentTests/FixtureTestScope.swift'
+            && /\bAppServices\s*\.\s*fixture\s*\(/.test(text))))) report(file, 'app-fixture-folder-ownership');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)
       && hasReleaseReference(text, /\b(?:FixtureLaunch|EnduragentCoachFixtures)\b/)) report(file, 'fixture-launch-debug-only');
     if (/^apps\/ios\/(?:Enduragent\/|Packages\/EnduragentCoach\/Sources\/).*\.swift$/.test(file)
@@ -210,6 +223,8 @@ try {
     if (file.endsWith('.swift') && hasExtraSecretStore(text)) report(file, 'single-secret-store');
     if (/^apps\/ios\/Packages\/EnduragentCoach\/Tests\/.*\.swift$/.test(file)
       && hasUnboundedTestWait(text)) report(file, 'test-wait-deadline');
+    if (/^apps\/ios\/(?:Packages\/EnduragentCoach\/(?:Tests\/|Sources\/EnduragentCoachFixtures\/)|EnduragentTests\/).*\.swift$/.test(file)
+      && hasLiteralTestHangGuard(text)) report(file, 'test-hang-guard-duration');
     if (proofFile.test(file) || featureFile.test(file)) featureProofSources.set(file, text);
     if (/\bi\d{8,9}\b/.test(text)) report(file, 'intervals-id');
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file) && /\bInt\s*\((?!\s*exactly:)\s*(?:[^;\n]*\.rounded\s*\(|(?:floor|ceil)\s*\()/.test(text)) report(file, 'app-number-formatting');

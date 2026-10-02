@@ -6,31 +6,14 @@ import Testing
 @testable import Enduragent
 
 @MainActor
-@Suite(.serialized)
+@Suite(.serialized, FixtureTestScope())
 final class ShellLanguageTests {
-	private let directory = FileManager.default.temporaryDirectory.appending(
-		path: "enduragent-shell-secrets-\(UUID().uuidString)", directoryHint: .isDirectory)
-	private let domain = "enduragent.shell.language.tests"
-	private let defaults: UserDefaults
-	private let records = RecordStore.inMemory(deviceId: DeviceID())
+	private var directory: URL { AppTestFixture.active.launch.directory }
+	private var defaults: UserDefaults { AppTestFixture.active.defaults }
+	private var records: RecordStore { AppTestFixture.active.records }
 	private let transport = FakeModelTransport()
 	private let clock = FixedClock(
 		now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-
-	init() throws {
-		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-		defaults = try #require(UserDefaults(suiteName: domain))
-		defaults.removePersistentDomain(forName: domain)
-	}
-
-	deinit {
-		do {
-			try FileManager.default.removeItem(at: directory)
-		} catch {
-			Issue.record(error, "shell secrets directory cleanup")
-		}
-		UserDefaults(suiteName: domain)?.removePersistentDomain(forName: domain)
-	}
 
 	@Test func relaunchDoesNotRenderAutomaticOverASavedFixedPreference() async throws {
 		try await services().coach.setLanguage(.fixed(.es))
@@ -92,7 +75,7 @@ final class ShellLanguageTests {
 		let refreshing = Task { await model.sceneChanged(.becameActive) }
 		await intervals.reads.waitUntilBlocked()
 		let choosing = Task { await model.chooseLanguage(.fixed(.es)) }
-		let deadline = ContinuousClock.now + .seconds(2)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.status?.language != .fixed(.es), ContinuousClock.now < deadline {
 			await Task.yield()
 		}
@@ -133,14 +116,14 @@ final class ShellLanguageTests {
 				.text("Confirm to add the core workout."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let model = ShellModel(
+		let model = fixtureModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		)
 		await model.agreeAndStartChatting()
 		await model.appear()
 		model.draft.text = "Add a core workout tomorrow."
 		await model.send()
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat?.review == nil || model.isWorking, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
@@ -183,10 +166,10 @@ final class ShellLanguageTests {
 	}
 
 	private func returningModel(intervals: any IntervalsClient) async throws -> ShellModel {
-		await ShellModel(
+		await fixtureModel(
 			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
 		).agreeAndStartChatting()
-		return ShellModel(
+		return fixtureModel(
 			environment: AppEnvironment(
 				services: try services(intervals: intervals), language: .en, defaults: defaults))
 	}
@@ -211,8 +194,9 @@ final class ShellLanguageTests {
 				host: ImmediateExecutionHost(), clock: clock),
 			builtInModel: ModelID(rawValue: "test/coach-model"), deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
-		return AppServices(
-			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			leases: { [] }, packPrices: { _ in [:] })
+		return AppTestFixture.active.own(
+			AppServices(
+				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
+				leases: { [] }, packPrices: { _ in [:] }))
 	}
 }

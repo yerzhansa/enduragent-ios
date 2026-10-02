@@ -1,3 +1,4 @@
+import EnduragentCoachFixtures
 import Foundation
 import Testing
 
@@ -24,7 +25,7 @@ extension RetryLadderTests {
 	) async throws {
 		clock.advance(by: checkpoint == .backoff ? .seconds(7) : .seconds(11))
 		if checkpoint == .retryModelRequest { try await model.waitForToolCall(in: 3) }
-		let deadline = ContinuousClock.now + .seconds(1)
+		let deadline = ContinuousClock.now + TestWaitLimit.subject(.seconds(1)).duration
 		repeat {
 			try #require(clock.held.contains(.seconds(13)))
 			let proposals = try await store.fetch(
