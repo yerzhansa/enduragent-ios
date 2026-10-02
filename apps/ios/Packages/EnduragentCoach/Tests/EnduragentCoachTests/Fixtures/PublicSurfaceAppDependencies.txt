@@ -161,7 +161,6 @@ KeychainStoreError.keychain
 KeychainStoreError.status
 KeychainStoreError.unexpected
 Language
-Language.detectMessageLanguage(_:)
 Language.normalizeLocaleHint(_:)
 Language.normalizeLocaleHint(_:)
 Language.uiTag(systemLanguages:)

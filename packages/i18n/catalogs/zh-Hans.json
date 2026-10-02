@@ -8,9 +8,7 @@
   },
   "language": {
     "chooseTitle": "选择语言",
-    "continue": "继续",
-    "saveFailed": "无法保存{{language}}设置。回复语言仍为{{current}}。请重试。",
-    "saveFailedAutomatic": "无法保存{{language}}设置。回复仍会使用每条消息的语言。请重试。"
+    "continue": "继续"
   },
   "settings": {
     "appearance": {

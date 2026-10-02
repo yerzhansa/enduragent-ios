@@ -53,7 +53,7 @@ The reset that archives the current conversation, saves memory, and shows the we
 _Avoid_: Reset, new chat, clear
 
 **Language preference**:
-The one choice, `Automatic` or a fixed language, that sets both the app's text and the coach's replies. On Automatic, replies follow the athlete's latest message.
+The one choice, `Automatic` or a fixed language, that sets both the app's text and the coach's replies. A fixed language wins. Automatic uses the first supported language in the iPhone's preferred-languages list, or English when none is supported. The language picker is the only control. `ENDURAGENT_LANGUAGE` has no effect on iPhone, and message language never changes the result. This replaces message mirroring and the language override from B05.01 and B05.04 as an agreed difference.
 _Avoid_: App language, reply language, coach language
 
 ### Calendar changes

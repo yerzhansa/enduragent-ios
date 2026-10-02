@@ -4,32 +4,42 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct CoachLanguagePreferenceTests {
-	@Test(arguments: [LanguagePreference.automatic, .fixed(.it)])
-	func mirrorFollowsTheAthleteMessageWhileFixedKeepsItsLanguage(
-		preference: LanguagePreference
+	@Test(arguments: [
+		(
+			LanguagePreference.automatic, LanguagePreference.fixed(.de), LanguageTag.nl,
+			"Stuur je coach een bericht"
+		),
+		(.fixed(.fr), .automatic, .fr, "Écris à ton coach"),
+		(.fixed(.fr), .fixed(.de), .fr, "Écris à ton coach"),
+	])
+	func failedLanguageWritesKeepThePreviousLanguageThroughRelaunch(
+		current: LanguagePreference, attempted: LanguagePreference, expected: LanguageTag,
+		placeholder: String
 	) async throws {
 		let transport = FakeModelTransport()
-		let coach = await makeCoach(
-			transport: transport, store: InMemoryRecordLog(), deviceLanguage: .nl)
-		try await coach.setLanguage(preference)
-		for (message, detected) in [
-			("Comment était ma semaine et que dois-je faire aujourd'hui ?", LanguageTag.fr),
-			("How was my training week and what should I do today?", .en),
-			("123", .nl),
-		] {
+		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let coach = await makeCoach(transport: transport, store: log, deviceLanguage: .nl)
+		try await coach.setLanguage(current)
+		try log.failAppends(ofKind: "languagePreference")
+		await #expect(throws: PreferenceWriteFailure.notSaved) {
+			try await coach.setLanguage(attempted)
+		}
+		let reopened = await makeCoach(transport: transport, store: log, deviceLanguage: .nl)
+		for owner in [coach, reopened] {
+			let status = try await owner.observedStatus()
+			#expect(status.language == current)
+			#expect(
+				status.language.phrasebook(device: .nl).say(Catalog.chatComposerMessagePlaceholder)
+					== placeholder)
 			transport.respond = ScriptedReply.sequence(
 				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)
-			_ = try await coach.sendAndSettle(message)
+			_ = try await owner.sendAndSettle("How was my training week?")
 			let system = try #require(
 				sent(.chatAttempt, by: transport).last?.messages.first?.content)
-			switch preference {
-			case .automatic:
-				#expect(system.contains("Reply in the language of the athlete's latest message"))
-				#expect(system.contains("reply in \(detected.englishName) (\(detected.endonym))."))
-			case .fixed:
-				#expect(system.contains("The athlete chose Italian (Italiano)."))
-				#expect(system.contains("never mirror the language itself."))
-			}
+			#expect(
+				system.contains(
+					"Write every athlete-facing sentence in \(expected.englishName), even when the athlete writes in another language."
+				))
 		}
 	}
 

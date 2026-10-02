@@ -872,8 +872,6 @@ public enum Catalog {
 	public static let desktopTrayTelegramTransferRequired = CatalogKey(rawValue: "desktop.tray.telegram.transferRequired")
 	public static let languageChooseTitle = CatalogKey(rawValue: "language.chooseTitle")
 	public static let languageContinue = CatalogKey(rawValue: "language.continue")
-	public static let languageSaveFailed = CatalogKey(rawValue: "language.saveFailed")
-	public static let languageSaveFailedAutomatic = CatalogKey(rawValue: "language.saveFailedAutomatic")
 	public static let onboardingConnectAction = CatalogKey(rawValue: "onboarding.connect.action")
 	public static let onboardingConnectApiKey = CatalogKey(rawValue: "onboarding.connect.apiKey")
 	public static let onboardingConnectFatigue = CatalogKey(rawValue: "onboarding.connect.fatigue")

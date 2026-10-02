@@ -13,6 +13,7 @@ struct ConnectView: View {
 				)
 				.accessibilityIdentifier("connect.apiKey")
 				.autocorrectionDisabled()
+				.keyboardType(.asciiCapable)
 				.textInputAutocapitalization(.never)
 				Button(model.phrasebook.say(Catalog.onboardingConnectAction, [:])) {
 					Task { await model.connect() }
