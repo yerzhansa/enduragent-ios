@@ -4,7 +4,9 @@
       "locked": "Unlock your iPhone to continue. Your message is saved.",
       "notConfigured": "Choose how the coach reaches a model to continue.",
       "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
-      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits."
+      "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
+      "storageUnavailable": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",
+      "malformed": "The saved model access credential couldn't be read. Choose an access method to continue."
     }
   },
   "archive": {
@@ -874,7 +876,12 @@
       "notSaved": "The replacement wasn't saved. Your previous connection is unchanged. Try again.",
       "profileUnavailable": "Your athlete profile is temporarily unavailable. Try again.",
       "wellnessRejected": "intervals.icu did not allow today's wellness read. Review your connection.",
-      "wellnessUnavailable": "Today's wellness is temporarily unavailable. Try again."
+      "wellnessUnavailable": "Today's wellness is temporarily unavailable. Try again.",
+      "blankConnection": "Enter an intervals.icu API key.",
+      "connectionNotSaved": "The connection wasn't saved. Try again.",
+      "storageLocked": "Unlock your iPhone to read your intervals.icu connection. Then try again.",
+      "storageUnavailable": "Your intervals.icu connection is temporarily unavailable because secure storage couldn't be read. Try again.",
+      "storageMalformed": "The saved intervals.icu connection couldn't be read. Replace the key to connect again."
     },
     "wellness": {
       "empty": "No wellness data for today.",

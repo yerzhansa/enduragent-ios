@@ -75,7 +75,7 @@ struct OnboardingConnectionTests {
 				#expect(model.connectKey.isEmpty)
 				model.connectKey = "fixture-corrected"
 				await model.connect()
-			case .retry:
+			case .retry, .retryStorage:
 				#expect(try fixture.secrets.intervalsConnection()?.id == saved.id)
 				#expect(try fixture.secrets.intervalsConnection()?.credential == saved.credential)
 			}
@@ -104,6 +104,7 @@ struct OnboardingConnectionTests {
 			return summary.today?.fitness == 42
 		}
 		let previous = try #require(try fixture.secrets.intervalsConnection())
+		model.trainingSettings.edit()
 		model.connectKey = "fixture-rotated"
 		fixture.secretBacking.failNextWrite = true
 		await model.connect()
@@ -123,6 +124,22 @@ struct OnboardingConnectionTests {
 		#expect(
 			records.rows.last { $0.kind == "turnClaim" }?.account
 				== "intervals:\(previous.id.rawValue.uuidString):i1001")
+	}
+
+	@Test func failedFirstSaveDoesNotClaimAPreviousConnection() async throws {
+		var launch = harness.launch
+		launch.credentialWriteFault = .failOnce
+		let services = try fixtureServices(launch, defaults: harness.defaults)
+		let model = harness.model(services)
+		await model.appear()
+		model.continueNotice()
+		model.connectKey = "synthetic-first-key"
+		await model.connect()
+		let notice = try #require(model.trainingSettings.receipt?.saveNotice)
+		#expect(notice.sentence(in: model.phrasebook) == "The connection wasn't saved. Try again.")
+		#expect(!model.didConnect)
+		#expect(model.trainingSettings.isEditing)
+		#expect(try services.fixture?.secrets.intervalsConnection() == nil)
 	}
 }
 

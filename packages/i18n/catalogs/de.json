@@ -2990,7 +2990,9 @@
       "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
       "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
       "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
-      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten."
+      "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
+      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut.",
+      "malformed": "Die gespeicherten Zugangsdaten für den Modellzugriff konnten nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "Der Ersatz wurde nicht gespeichert. Deine bisherige Verbindung bleibt unverändert. Versuche es erneut.",
       "profileUnavailable": "Dein Athletenprofil ist vorübergehend nicht verfügbar. Versuche es erneut.",
       "wellnessRejected": "intervals.icu hat das Lesen der heutigen Wellnessdaten nicht erlaubt. Prüfe deine Verbindung.",
-      "wellnessUnavailable": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut."
+      "wellnessUnavailable": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut.",
+      "blankConnection": "Gib einen intervals.icu-API-Schlüssel ein.",
+      "connectionNotSaved": "Die Verbindung wurde nicht gespeichert. Versuche es erneut.",
+      "storageLocked": "Entsperre dein iPhone, um deine intervals.icu-Verbindung zu lesen. Versuche es dann erneut.",
+      "storageUnavailable": "Deine intervals.icu-Verbindung ist vorübergehend nicht verfügbar, weil der sichere Speicher nicht gelesen werden konnte. Versuche es erneut.",
+      "storageMalformed": "Die gespeicherte intervals.icu-Verbindung konnte nicht gelesen werden. Ersetze den Schlüssel, um dich erneut zu verbinden."
     },
     "wellness": {
       "empty": "Keine Wellnessdaten für heute.",

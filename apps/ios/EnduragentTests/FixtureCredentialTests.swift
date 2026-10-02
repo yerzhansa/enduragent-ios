@@ -9,9 +9,10 @@ extension FixtureLaunchTests {
 	@Test func profileLoadFailureShowsItsCatalogNotice() async throws {
 		let services = try services()
 		let onboarding = model(services)
-		await onboarding.agreeAndStartChatting()
+		onboarding.continueNotice()
 		onboarding.connectKey = "fixture"
 		await onboarding.connect()
+		await onboarding.agreeAndStartChatting()
 		#expect(onboarding.didConnect)
 		try #require(services.fixture).intervals.setProfileOutcome(
 			.failure(URLError(.notConnectedToInternet))
@@ -120,6 +121,7 @@ extension FixtureLaunchTests {
 			return false
 		}
 		try #require(model.didConnect)
+		model.trainingSettings.edit()
 		model.connectKey = "edited-after-connect"
 		model.continueConnect()
 		#expect(model.connectKey.isEmpty)
@@ -135,7 +137,9 @@ extension FixtureLaunchTests {
 		await model.connect()
 		#expect(!model.didConnect)
 		#expect(model.connectKey == "   ")
-		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.connectErrorBlank)
+		#expect(
+			model.trainingSettings.receipt?.saveNotice?.sentence(in: model.phrasebook)
+				== "Enter an intervals.icu API key.")
 		#expect(model.connected == nil)
 	}
 
@@ -184,6 +188,10 @@ extension FixtureLaunchTests {
 		model.continueNotice()
 		model.connectKey = "abandoned-key"
 		model.skipConnect()
+		model.connectKey = "ab"
+		#expect(model.connectKey.isEmpty)
+		#expect(model.trainingSettings.state == .viewing)
+		#expect(model.trainingSettings.receipt == nil)
 		await model.agreeAndStartChatting()
 		model.draft.text = FirstWeekFixture.trainingDataDirective
 		await model.send()
@@ -192,7 +200,10 @@ extension FixtureLaunchTests {
 		#expect(fixture.intervals.calls.isEmpty)
 		model.open(.settings)
 		model.open(.training)
+		#expect(model.trainingSettings.state == .viewing)
+		#expect(model.trainingSettings.key.isEmpty)
 		model.trainingSettings.edit()
+		#expect(model.trainingSettings.key.isEmpty)
 		model.trainingSettings.key = "other-athlete"
 		await model.trainingSettings.replace()
 		try await model.waitForStatus {

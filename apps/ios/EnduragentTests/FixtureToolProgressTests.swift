@@ -12,6 +12,7 @@ extension FixtureLaunchTests {
 		let intervals = try #require(services.fixture?.intervals)
 		let model = model(services)
 		await model.agreeAndStartChatting()
+		model.trainingSettings.edit()
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)

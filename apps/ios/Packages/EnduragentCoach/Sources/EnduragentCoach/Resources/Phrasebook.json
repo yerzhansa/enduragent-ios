@@ -107,6 +107,112 @@
         }
       }
     },
+    "access.error.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved model access credential couldn't be read. Choose an access method to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la credencial guardada de acceso al modelo. Elige un método de acceso para continuar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'identifiant d'accès au modèle enregistré n'a pas pu être lu. Choisissez une méthode d'accès pour continuer."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile leggere la credenziale salvata per l'accesso al modello. Scegli un metodo di accesso per continuare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherten Zugangsdaten für den Modellzugriff konnten nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De opgeslagen toegangsgegevens voor het model konden niet worden gelezen. Kies een toegangsmethode om verder te gaan."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De gemte legitimationsoplysninger til modeladgang kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den sparade uppgiften för modellåtkomst kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den lagrede legitimasjonen for modelltilgang kunne ikke leses. Velg en tilgangsmetode for å fortsette."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallennettua mallin käyttöön tarvittavaa tunnistetta ei voitu lukea. Valitse käyttötapa jatkaaksesi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a credencial guardada de acesso ao modelo. Escolha um método de acesso para continuar."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a credencial salva de acesso ao modelo. Escolha um método de acesso para continuar."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odczytać zapisanych danych dostępu do modelu. Wybierz metodę dostępu, aby kontynuować."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 모델 접근 자격 증명을 읽을 수 없습니다. 접근 방법을 선택하여 계속하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存されたモデルアクセスの認証情報を読み取れませんでした。アクセス方法を選択して続けてください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取已保存的模型访问凭据。请选择访问方式以继续。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取已儲存的模型存取憑證。請選擇存取方式以繼續。"
+          }
+        }
+      }
+    },
     "access.error.notConfigured": {
       "localizations": {
         "en": {
@@ -421,6 +527,112 @@
           "stringUnit": {
             "state": "translated",
             "value": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。"
+          }
+        }
+      }
+    },
+    "access.error.storageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El almacenamiento seguro no está disponible temporalmente. Tu información de entrenamiento guardada sigue aquí. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le stockage sécurisé est temporairement indisponible. Vos informations de coaching enregistrées sont toujours là. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De beveiligde opslag is tijdelijk niet beschikbaar. Je opgeslagen coachinginformatie is er nog. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sikker lagring er midlertidig utilgjengelig. Den lagrede treningsinformasjonen din er fortsatt her. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O armazenamento seguro está temporariamente indisponível. Suas informações de treinamento salvas continuam aqui. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpieczny magazyn jest tymczasowo niedostępny. Zapisane informacje trenerskie nadal tu są. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보안 저장소를 일시적으로 사용할 수 없습니다. 저장된 코칭 정보는 그대로 있습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全なストレージを一時的に利用できません。保存されたコーチング情報は残っています。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。"
           }
         }
       }
@@ -113271,6 +113483,218 @@
         }
       }
     },
+    "connect.error.blankConnection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an intervals.icu API key."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce una clave API de intervals.icu."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez une clé API intervals.icu."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci una chiave API di intervals.icu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen intervals.icu-API-Schlüssel ein."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een intervals.icu-API-sleutel in."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indtast en intervals.icu API-nøgle."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ange en intervals.icu-API-nyckel."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skriv inn en intervals.icu-API-nøkkel."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anna intervals.icu-API-avain."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduza uma chave de API do intervals.icu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insira uma chave de API do intervals.icu."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz klucz API intervals.icu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API 키를 입력하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuのAPIキーを入力してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 intervals.icu API 密钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請輸入 intervals.icu API 金鑰。"
+          }
+        }
+      }
+    },
+    "connect.error.connectionNotSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The connection wasn't saved. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se guardó la conexión. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La connexion n'a pas été enregistrée. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La connessione non è stata salvata. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Verbindung wurde nicht gespeichert. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De verbinding is niet opgeslagen. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forbindelsen blev ikke gemt. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anslutningen sparades inte. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tilkoblingen ble ikke lagret. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yhteyttä ei tallennettu. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ligação não foi guardada. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A conexão não foi salva. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączenie nie zostało zapisane. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결이 저장되지 않았습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続を保存できませんでした。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接未保存。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連線未儲存。請重試。"
+          }
+        }
+      }
+    },
     "connect.error.notSaved": {
       "localizations": {
         "en": {
@@ -113585,6 +114009,324 @@
           "stringUnit": {
             "state": "translated",
             "value": "intervals.icu 未接受這組金鑰。"
+          }
+        }
+      }
+    },
+    "connect.error.storageLocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock your iPhone to read your intervals.icu connection. Then try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquea tu iPhone para leer tu conexión de intervals.icu. Después, inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déverrouillez votre iPhone pour lire votre connexion intervals.icu. Puis réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sblocca il tuo iPhone per leggere la tua connessione intervals.icu. Poi riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entsperre dein iPhone, um deine intervals.icu-Verbindung zu lesen. Versuche es dann erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ontgrendel je iPhone om je intervals.icu-verbinding te lezen. Probeer het daarna opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås din iPhone op for at læse din intervals.icu-forbindelse. Prøv derefter igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås upp din iPhone för att läsa din intervals.icu-anslutning. Försök sedan igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lås opp iPhone for å lese intervals.icu-tilkoblingen din. Prøv deretter igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avaa iPhonen lukitus, jotta intervals.icu-yhteytesi voidaan lukea. Yritä sitten uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueie o iPhone para ler a sua ligação ao intervals.icu. Depois, tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloqueie seu iPhone para ler sua conexão com o intervals.icu. Depois, tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odblokuj iPhone'a, aby odczytać połączenie z intervals.icu. Następnie spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 연결을 읽으려면 iPhone의 잠금을 해제하세요. 그런 다음 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuの接続を読み取るには、iPhoneのロックを解除してください。その後、もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请解锁 iPhone 以读取 intervals.icu 连接，然后重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解鎖 iPhone 以讀取 intervals.icu 連線，然後重試。"
+          }
+        }
+      }
+    },
+    "connect.error.storageMalformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The saved intervals.icu connection couldn't be read. Replace the key to connect again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo leer la conexión guardada de intervals.icu. Sustituye la clave para volver a conectarte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La connexion intervals.icu enregistrée n'a pas pu être lue. Remplacez la clé pour vous reconnecter."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile leggere la connessione intervals.icu salvata. Sostituisci la chiave per connetterti di nuovo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die gespeicherte intervals.icu-Verbindung konnte nicht gelesen werden. Ersetze den Schlüssel, um dich erneut zu verbinden."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De opgeslagen intervals.icu-verbinding kon niet worden gelezen. Vervang de sleutel om opnieuw te verbinden."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den gemte intervals.icu-forbindelse kunne ikke læses. Udskift nøglen for at forbinde igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den sparade intervals.icu-anslutningen kunde inte läsas. Byt ut nyckeln för att ansluta igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Den lagrede intervals.icu-tilkoblingen kunne ikke leses. Bytt nøkkelen for å koble til igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallennettua intervals.icu-yhteyttä ei voitu lukea. Vaihda avain yhdistääksesi uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a ligação guardada ao intervals.icu. Substitua a chave para se ligar novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível ler a conexão salva com o intervals.icu. Substitua a chave para conectar novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało się odczytać zapisanego połączenia z intervals.icu. Zastąp klucz, aby połączyć się ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "저장된 intervals.icu 연결을 읽을 수 없습니다. 키를 교체하여 다시 연결하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存されたintervals.icuの接続を読み取れませんでした。キーを変更して再接続してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取已保存的 intervals.icu 连接。请替换密钥以重新连接。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法讀取已儲存的 intervals.icu 連線。請更換金鑰以重新連線。"
+          }
+        }
+      }
+    },
+    "connect.error.storageUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your intervals.icu connection is temporarily unavailable because secure storage couldn't be read. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu conexión de intervals.icu no está disponible temporalmente porque no se pudo leer el almacenamiento seguro. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre connexion intervals.icu est temporairement indisponible, car le stockage sécurisé n'a pas pu être lu. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua connessione intervals.icu è temporaneamente indisponibile perché non è stato possibile leggere l'archivio sicuro. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deine intervals.icu-Verbindung ist vorübergehend nicht verfügbar, weil der sichere Speicher nicht gelesen werden konnte. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je intervals.icu-verbinding is tijdelijk niet beschikbaar omdat de beveiligde opslag niet kon worden gelezen. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din intervals.icu-forbindelse er midlertidigt utilgængelig, fordi det sikre lager ikke kunne læses. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din intervals.icu-anslutning är tillfälligt otillgänglig eftersom säker lagring inte kunde läsas. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-tilkoblingen din er midlertidig utilgjengelig fordi sikker lagring ikke kunne leses. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu-yhteytesi on tilapäisesti poissa käytöstä, koska suojattua tallennustilaa ei voitu lukea. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sua ligação ao intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua conexão com o intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Połączenie z intervals.icu jest tymczasowo niedostępne, ponieważ nie udało się odczytać bezpiecznego magazynu. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "보안 저장소를 읽을 수 없어 intervals.icu 연결을 일시적으로 사용할 수 없습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安全なストレージを読み取れなかったため、intervals.icuの接続を一時的に利用できません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由于无法读取安全存储，intervals.icu 连接暂时不可用。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由於無法讀取安全儲存空間，intervals.icu 連線暫時無法使用。請重試。"
           }
         }
       }

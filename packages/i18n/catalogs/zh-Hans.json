@@ -2950,7 +2950,9 @@
       "locked": "请解锁 iPhone 以继续。你的消息已保存。",
       "notConfigured": "请选择教练连接模型的方式以继续。",
       "providerConsentRequired": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。",
-      "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。"
+      "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。",
+      "storageUnavailable": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。",
+      "malformed": "无法读取已保存的模型访问凭据。请选择访问方式以继续。"
     }
   },
   "connect": {
@@ -2960,7 +2962,12 @@
       "notSaved": "替换未保存。之前的连接未更改。请重试。",
       "profileUnavailable": "运动员资料暂时不可用。请重试。",
       "wellnessRejected": "intervals.icu 未允许读取今天的健康数据。请检查连接。",
-      "wellnessUnavailable": "今天的健康数据暂时不可用。请重试。"
+      "wellnessUnavailable": "今天的健康数据暂时不可用。请重试。",
+      "blankConnection": "请输入 intervals.icu API 密钥。",
+      "connectionNotSaved": "连接未保存。请重试。",
+      "storageLocked": "请解锁 iPhone 以读取 intervals.icu 连接，然后重试。",
+      "storageUnavailable": "由于无法读取安全存储，intervals.icu 连接暂时不可用。请重试。",
+      "storageMalformed": "无法读取已保存的 intervals.icu 连接。请替换密钥以重新连接。"
     },
     "wellness": {
       "empty": "今天没有健康数据。",
