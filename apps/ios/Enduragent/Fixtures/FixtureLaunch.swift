@@ -47,6 +47,7 @@
 		static let calendarSaveArgumentKey = "EnduragentFixtureCalendarSave"
 		static let calendarReadArgumentKey = "EnduragentFixtureCalendarRead"
 		static let recordReadArgumentKey = "EnduragentFixtureRecordRead"
+		static let replyParserArgumentKey = "EnduragentFixtureReplyParser"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
 		static let firstWeekName = "first-week"
@@ -66,6 +67,7 @@
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
 		var resetFault: FixtureResetFault?
+		var replyParserFault: FixtureReplyParserFault?
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -83,7 +85,8 @@
 				calendarSaveFault: try policy(arguments, key: calendarSaveArgumentKey),
 				calendarReadFault: try policy(arguments, key: calendarReadArgumentKey),
 				recordReadFault: try policy(arguments, key: recordReadArgumentKey),
-				resetFault: try policy(arguments, key: resetArgumentKey)
+				resetFault: try policy(arguments, key: resetArgumentKey),
+				replyParserFault: try policy(arguments, key: replyParserArgumentKey)
 			)
 		}
 

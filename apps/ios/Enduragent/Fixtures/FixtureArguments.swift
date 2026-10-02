@@ -41,6 +41,10 @@
 		case failBoundary
 	}
 
+	enum FixtureReplyParserFault: String {
+		case fail
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -55,6 +59,7 @@
 		var calendarReadFault: FixtureCalendarReadFault?
 		var recordReadFault: FixtureRecordReadFault?
 		var resetFault: FixtureResetFault?
+		var replyParserFault: FixtureReplyParserFault?
 
 		var launchArguments: [String] {
 			var values = [
@@ -79,6 +84,9 @@
 				values += ["-EnduragentFixtureRecordRead", recordReadFault.rawValue]
 			}
 			if let resetFault { values += ["-EnduragentFixtureReset", resetFault.rawValue] }
+			if let replyParserFault {
+				values += ["-EnduragentFixtureReplyParser", replyParserFault.rawValue]
+			}
 			return values
 		}
 
@@ -111,6 +119,7 @@
 			calendarReadFault = try policy(values, "-EnduragentFixtureCalendarRead")
 			recordReadFault = try policy(values, "-EnduragentFixtureRecordRead")
 			resetFault = try policy(values, "-EnduragentFixtureReset")
+			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
 		}
 
 		private func policy<Policy: RawRepresentable>(

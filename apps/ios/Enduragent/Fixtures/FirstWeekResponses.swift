@@ -74,6 +74,10 @@
 				return ScriptedReply([.text(partialReply), .hang])
 			case "teach" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.text(rememberReply), .finish(reason: .stop)])
+			case "formatted" where arguments.isEmpty:
+				return FormattedReplyFixture.finished
+			case "formatted-then-hang" where arguments.isEmpty:
+				return FormattedReplyFixture.streamingThenHang
 			case "long" where arguments.isEmpty:
 				return ScriptedReply([.text(longReply), .finish(reason: .stop)])
 			case "flush-partial" where arguments.isEmpty:
