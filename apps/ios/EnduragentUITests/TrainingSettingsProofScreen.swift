@@ -192,7 +192,8 @@ enum TrainingSettingsProofScreen {
 		assertEmptyKey(app)
 		capture(test, app, name: "unconnected-calendar-connect", dark: dark)
 		TutorialHarness.named(app, "training.cancel").tap()
-		TutorialHarness.returnToChat(app)
+		TutorialHarness.returnToChat(app, maximumBackSteps: 1)
+		XCTAssertEqual(TutorialHarness.named(app, "chat.review.notice").label, missing)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
@@ -219,7 +220,7 @@ enum TrainingSettingsProofScreen {
 	private static func assertEmptyKey(_ app: XCUIApplication) {
 		let key = app.secureTextFields["training.apiKey"]
 		TutorialHarness.wait(key, until: .hittable)
-		XCTAssertEqual(key.value as? String, "")
+		XCTAssertEqual(key.value as? String, key.placeholderValue)
 		XCTAssertEqual(key.placeholderValue, "intervals.icu API key")
 	}
 

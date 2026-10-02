@@ -249,7 +249,7 @@ struct TrainingSettingsTests {
 		#expect(editor.state == .viewing)
 	}
 
-	@Test func unconnectedCalendarNoticeOpensSettingsConnect() async throws {
+	@Test func unconnectedCalendarNoticeOpensConnectAboveChat() async throws {
 		let model = harness.model(try harness.services())
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
@@ -269,7 +269,7 @@ struct TrainingSettingsTests {
 		#expect(notice.key == Catalog.connectMissing)
 		await model.perform(try #require(notice.action))
 		#expect(model.route == .chat)
-		#expect(model.navigation == [.settings, .training])
+		#expect(model.navigation == [.training])
 		#expect(model.trainingSettings.isEditing)
 		#expect(model.trainingSettings.key.isEmpty)
 		#expect(model.chat?.review?.ref == review.ref)

@@ -358,9 +358,9 @@ enum TutorialHarness {
 		wait(element, within: limit)
 	}
 
-	static func returnToChat(_ app: XCUIApplication) {
+	static func returnToChat(_ app: XCUIApplication, maximumBackSteps: Int = 4) {
 		let settings = named(app, "chat.settings")
-		for _ in 0..<4 {
+		for _ in 0..<maximumBackSteps {
 			if settings.exists && settings.isHittable { break }
 			let bar = app.navigationBars.firstMatch
 			let title = bar.identifier

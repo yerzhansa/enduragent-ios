@@ -8,7 +8,6 @@ extension ShellModel {
 		case .restoreCredits, .buyCredits:
 			open(.credits)
 		case .connectTraining:
-			open(.settings)
 			open(.training)
 			trainingSettings.edit()
 		case .chooseAccessMethod, .signInToOpenRouter:
