@@ -19,7 +19,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		await original.stop(.main)
 		let before = try #require(await settledTurn(turn, on: original))
-		#expect(before.retryable)
+		#expect(turnNotice(of: before)?.action == .tryAgain(turn))
 		let coach =
 			reopenBeforeApproval
 			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
@@ -30,7 +30,6 @@ extension RetryLadderTests {
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 		#expect(await coach.decide(.approve(token), in: .main) == .staleControl)
 		let settled = try #require(await settledTurn(turn, on: coach))
-		#expect(!settled.retryable)
 		guard case .interrupted(let interrupted) = settled else {
 			Issue.record("expected interrupted turn, got \(settled)")
 			return
@@ -113,7 +112,11 @@ extension RetryLadderTests {
 			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
 				== "This reply stopped before it finished. Some information was saved first.")
 		#expect(interrupted.notice.action == nil)
-		#expect(!settled.retryable)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
+		#expect(intervals.calls.filter(\.isWrite).count == 1)
+		#expect(await coach.currentSnapshot(.main)?.review == nil)
 		let reopened = await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 		#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
 	}

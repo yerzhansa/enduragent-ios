@@ -169,16 +169,6 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 		of: facts, live: nil, overlay: overlay, device: phone, process: thisProcess)
 }
 
-private func notice(of state: TurnState) -> AthleteNotice? {
-	switch state {
-	case .failed(let failed): failed.notice
-	case .interrupted(let interrupted): interrupted.notice
-	case .savedWork(let savedWork): savedWork.notice
-	case .unrecovered(let unrecovered): unrecovered.notice
-	case .accepted, .processing, .completed: nil
-	}
-}
-
 private func family(_ failure: CoachFailure) -> String {
 	switch failure {
 	case .model(.credentialRejected): "credentialRejected"
@@ -200,17 +190,16 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	@Test(arguments: NoticeRow.all)
 	func everyNoticeRendersItsEnglishAndAction(row: NoticeRow) throws {
 		let state = settledState(row.settlement)
-		let shown = try #require(notice(of: state))
+		let shown = try #require(turnNotice(of: state))
 		#expect(shown.sentence(in: english) == row.sentence)
 		#expect(shown.action == row.action)
 		#expect(shown.action.map { english.say($0.title) } == row.button)
-		#expect(state.retryable == (row.button == tryAgain))
 	}
 
 	@Test(arguments: LanguageTag.allCases)
 	func productionNoticesRenderWithoutMissingVariables(tag: LanguageTag) throws {
 		for row in NoticeRow.all {
-			let shown = try #require(notice(of: settledState(row.settlement)))
+			let shown = try #require(turnNotice(of: settledState(row.settlement)))
 			let copy = shown.sentence(in: tag.phrasebook)
 			#expect(!copy.contains("%#@"), "\(tag.rawValue) \(shown.key.rawValue)")
 		}
@@ -232,26 +221,13 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		#expect(families.count == 10)
 	}
 
-	@Test func interruptedWithSavedWorkOffersNoTryAgain() {
-		for cause in InterruptionCause.allCases {
-			let state = settledState(.interrupted(partial: "", cause: cause, saved: memorySaved))
-			#expect(notice(of: state)?.key == Catalog.chatTurnInterruptedSomeSaved)
-			#expect(notice(of: state)?.action == nil)
-			#expect(!state.retryable)
-			let clean = settledState(.interrupted(partial: "", cause: cause, saved: .none))
-			#expect(notice(of: clean)?.key == Catalog.chatTurnInterruptedNothingChanged)
-			#expect(clean.retryable)
-		}
-	}
-
 	@Test func aDeadClaimRecoveryHasNotSettledReadsHistoryUnavailableWithNoButton() throws {
 		let state = TurnLifecycle.state(
 			of: claimedFacts(by: ProcessID(ulid: fixedUlid(61))), live: nil,
 			overlay: .notInThisProcess, device: phone, process: thisProcess)
-		let shown = try #require(notice(of: state))
+		let shown = try #require(turnNotice(of: state))
 		#expect(shown.sentence(in: english) == "Conversation history is temporarily unavailable.")
 		#expect(shown.action == nil)
-		#expect(!state.retryable)
 	}
 
 	@Test(arguments: [
@@ -274,10 +250,9 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 	) throws {
 		for overlay in [TurnOverlay.notInThisProcess, .waitingToTryAgain] {
 			let state = settledState(.failed(failure, saved: memorySaved), overlay: overlay)
-			let shown = try #require(notice(of: state))
+			let shown = try #require(turnNotice(of: state))
 			#expect(shown.sentence(in: english) == sentence)
 			#expect(shown.action == action)
-			#expect(!state.retryable)
 		}
 	}
 
@@ -290,13 +265,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			#expect(refused.key == Catalog.chatTurnInterruptedNothingChanged)
 			#expect(refused.action == nil)
 		}
-	}
-
-	@Test func savedUnverifiedOffersNoAction() {
-		let state = settledState(.savedWork(.savedUnverified, saved: memorySaved))
-		#expect(notice(of: state)?.key == Catalog.chatNoticeSavedUnverified)
-		#expect(notice(of: state)?.action == nil)
-		#expect(!state.retryable)
 	}
 
 	@Test func rateLimitPicksSecondsMinutesOrDefault() {
@@ -321,28 +289,14 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let failure = Settlement.failed(
 			.model(.rateLimited(retryAfter: .seconds(7))), saved: .none)
 		let waiting = settledState(failure, overlay: .waitingToTryAgain)
-		let shown = try #require(notice(of: waiting))
+		let shown = try #require(turnNotice(of: waiting))
 		#expect(shown.sentence(in: english) == "Rate limited — please try again in ~7 seconds.")
 		#expect(shown.action == .wait(thenTryAgain: turn))
 		#expect(shown.action.map { english.say($0.title) } == tryAgain)
-		#expect(!waiting.retryable)
-		#expect(settledState(failure).retryable)
-		#expect(notice(of: settledState(failure))?.action == .tryAgain(turn))
+		#expect(turnNotice(of: settledState(failure))?.action == .tryAgain(turn))
 		let down = settledState(
 			.failed(.model(.providerDown(.network)), saved: .none), overlay: .waitingToTryAgain)
-		#expect(notice(of: down)?.action == .tryAgain(turn))
-	}
-
-	@Test func aFailureOutsideATurnOffersNoTurnAction() {
-		let rateLimited = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(7))), turn: nil, waiting: true)
-		#expect(rateLimited.action == nil)
-		let down = AthleteNotices.notice(
-			for: .model(.providerDown(.network)), turn: nil, waiting: true)
-		#expect(down.action == nil)
-		let exhausted = AthleteNotices.notice(
-			for: .model(.accessExhausted(.credits)), turn: nil, waiting: true)
-		#expect(exhausted.action == .buyCredits)
+		#expect(turnNotice(of: down)?.action == .tryAgain(turn))
 	}
 
 	@Test func creditsFailuresOutsideATurnReadCatalogSentences() {

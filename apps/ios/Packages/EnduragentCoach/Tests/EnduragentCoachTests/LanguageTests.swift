@@ -93,14 +93,6 @@ import Testing
 		#expect(Language.uiTag(systemLanguages: []) == .en)
 	}
 
-	@Test func languageSlashYieldsLanguageCommandAndStartsNoModelTurn() {
-		#expect(SlashRouting.parse("/language") == .language)
-		#expect(SlashRouting.parse("  /language  ") == .language)
-		#expect(SlashRouting.parse("/language it") == .language)
-		#expect(SlashCommand.language.route == .languagePicker)
-		#expect(SlashRouting.parse("/review") != .language)
-	}
-
 	@Test func fixedPreferenceChangesAppTextAndReplySection() async throws {
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(

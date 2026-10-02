@@ -41,7 +41,7 @@ extension SwiftDataSuites {
 			#expect(
 				ReplyParser.foundation.document(try #require(visibleReply(settled, in: french)))
 					.accessibilityText == expected)
-			#expect(!settled.retryable)
+			#expect(turnNotice(of: settled)?.action == nil)
 			#expect(snapshot.liveReply == nil)
 			let lease = try #require(await host.ended(0, within: .hangGuard))
 			#expect(
@@ -63,7 +63,7 @@ extension SwiftDataSuites {
 			).records
 			#expect(
 				writes.filter { $0.body.kind == "memorySection" }.count == (commitsMemory ? 1 : 0))
-			let memory = try await coach.memory.view()
+			let memory = try await coach.memory.prompt().view
 			if commitsMemory {
 				#expect(memory.sections["schedule"]?.contains("Group ride on Saturdays.") == true)
 			}
@@ -78,7 +78,7 @@ extension SwiftDataSuites {
 			let restoredFrench = await relaunched.languagePreference().phrasebook(device: .en)
 			#expect(restoredFrench.tag == .fr)
 			#expect(visibleReply(restoredTurn.state, in: restoredFrench) == expected)
-			#expect(try await relaunched.memory.view() == memory)
+			#expect(try await relaunched.memory.prompt().view == memory)
 			#expect(transport.requests.count == 11)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await relaunched.retry(turn, in: .main)

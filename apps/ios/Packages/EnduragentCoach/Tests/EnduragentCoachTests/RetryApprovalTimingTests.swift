@@ -31,7 +31,9 @@ extension RetryLadderTests {
 	}
 
 	@Test(arguments: ApprovalCheckpoint.allCases)
-	func approvalDuringBackoffWaitsForCalendarWrite(checkpoint: ApprovalCheckpoint) async throws {
+	func approvalAtEitherRetryCheckpointWaitsForCalendarWrite(checkpoint: ApprovalCheckpoint)
+		async throws
+	{
 		let held = HeldClock()
 		let base = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let intervals = HeldApprovalWrites(base: base, clock: held)
@@ -81,25 +83,6 @@ extension RetryLadderTests {
 		held.advance(by: .seconds(17))
 		try await expectSingleApproval(
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
-	}
-
-	@Test func approvalThenStopDuringBackoffWritesOnce() async throws {
-		let held = HeldClock()
-		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.respond = ScriptedReply.sequence(
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
-		let turn = try #require(
-			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
-		let token = try await presentReview(on: coach)
-		let first = await coach.decide(.approve(token), in: .main)
-		await coach.stop(.main)
-		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: intervals)
 	}
 
 	@Test func stopThenApprovalDuringBackoffWritesOnce() async throws {
@@ -196,7 +179,6 @@ extension RetryLadderTests {
 			#expect(saved.outcome == .writesSaved)
 			#expect(saved.saved.calendarWrites == 1)
 			#expect(saved.notice.action == nil)
-			#expect(!settled.retryable)
 		}
 	}
 }

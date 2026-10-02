@@ -651,7 +651,6 @@ TurnState.failed
 TurnState.interrupted
 TurnState.isSettled
 TurnState.processing
-TurnState.retryable
 TurnState.savedWork
 TurnState.unrecovered
 TurnView

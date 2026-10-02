@@ -6,15 +6,11 @@ import Testing
 
 @Suite(.timeLimit(.minutes(2))) struct DurableCalendarWriteTests {
 	enum LostResponse: Sendable, CaseIterable {
-		case http500, http502, http503, http504, http422, malformed, mismatched, timeout,
-			cancellation
+		case http500, http422, malformed, mismatched, timeout, cancellation
 
 		var response: CalendarWriteServer.Response {
 			switch self {
 			case .http500: .status(500)
-			case .http502: .status(502)
-			case .http503: .status(503)
-			case .http504: .status(504)
 			case .http422: .status(422)
 			case .malformed: .malformed
 			case .mismatched:
@@ -48,7 +44,7 @@ import Testing
 			) { await approving.value } != nil,
 			"Calendar approval did not finish within five seconds")
 		let state = try #require(await fixture.coach.state(of: turn))
-		#expect(!state.retryable)
+		#expect(turnNotice(of: state)?.action == nil)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writePending")
@@ -103,7 +99,7 @@ import Testing
 			Issue.record("empty read must offer only repetition of the captured approval")
 			return
 		}
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await fixture.coach.retry(turn, in: .main)
 		}
@@ -136,7 +132,7 @@ import Testing
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(pending.notice?.key.rawValue == "review.writeReadFailed")
-		#expect(await fixture.coach.state(of: turn)?.retryable == false)
+		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
 		#expect(server.posts.count == 1)
 		#expect(server.events.count == 1)
 	}

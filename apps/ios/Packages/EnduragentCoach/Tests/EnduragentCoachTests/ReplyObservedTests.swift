@@ -82,7 +82,6 @@ import Testing
 		}
 		#expect(savedWork.outcome == .savedUnverified)
 		#expect(savedWork.notice.action == nil)
-		#expect(!settled.retryable)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
 	}
 

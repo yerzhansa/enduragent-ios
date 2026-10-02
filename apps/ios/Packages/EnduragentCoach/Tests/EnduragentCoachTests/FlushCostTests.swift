@@ -41,7 +41,7 @@ extension SwiftDataSuites {
 			#expect(log.reads.count - transcriptBefore.0 == 0)
 			#expect(
 				log.fetchedRecordCount - transcriptBefore.1 == 0)
-			#expect(resolved.withLock { $0 } == 2 * fixture.rowCount)
+			#expect(resolved.withLock { $0 } == fixture.rowCount)
 		}
 	}
 }

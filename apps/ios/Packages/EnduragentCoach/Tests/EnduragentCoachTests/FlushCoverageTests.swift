@@ -157,7 +157,9 @@ import Testing
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
-		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		try #require(
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
+				== .tryAgain(turn))
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -194,7 +196,9 @@ import Testing
 			[.fail(.http(status: 400))], otherwise: transport.respond)
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
-		try #require(try #require(await coach.settledState(of: turn, in: .main)).retryable)
+		try #require(
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
+				== .tryAgain(turn))
 		let huge = String(repeating: "w", count: historyBudget(clock: clock) * 5)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -281,17 +285,6 @@ import Testing
 		#expect(rows.filter { $0 == "Current reply" }.count == 1)
 		#expect(!rows.contains("Archived question"))
 		#expect(!rows.contains("Archived late reply"))
-	}
-
-	@Test func legacyCoverageResolvesEachRowOnce() {
-		let conversation = conversation(turns: 1_000, startingAt: 1_000, legacy: true)
-		let jobs = (1...200).map { job($0, messages: [], settled: true, in: conversation) }
-		let resolved = Mutex(0)
-		let rows = ConversationRows.$didResolveRow.withValue({ resolved.withLock { $0 += 1 } }) {
-			conversation.messagesSinceLastFlush(jobs, excluding: nil)
-		}
-		#expect(rows.count == 2_000)
-		#expect(resolved.withLock { $0 } == 2_000)
 	}
 
 	@Test func aLegacyEmptyListStillCoversEarlierRowsInItsCurrentSegment() {

@@ -26,7 +26,13 @@ extension FixtureLaunchTests {
 		let reopened = model(try await relaunch(.keep).0)
 		await reopened.appear()
 		await reopened.lifecycle.forward(.becameActive)
-		let recovered = try await turn(accepted.id, in: reopened) { $0.retryable }
+		let recovered = try await turn(accepted.id, in: reopened) { state in
+			if started {
+				guard case .interrupted(let interrupted) = state else { return false }
+				return interrupted.notice.action == .tryAgain(accepted.id)
+			}
+			return state == .accepted(.awaitingRestart)
+		}
 		#expect(recovered.athleteText == "fixture:hang")
 		await reopened.perform(.tryAgain(accepted.id))
 		let answered = try await turn(accepted.id, in: reopened, where: isCompleted)
@@ -90,7 +96,6 @@ extension FixtureLaunchTests {
 			}
 			#expect(unrecovered.notice.key == Catalog.chatHistoryFailure)
 			#expect(unrecovered.notice.action == nil)
-			#expect(!held.state.retryable)
 			let transport = try #require(unreadableServices.fixtureTransport)
 			await unreadable.perform(.tryAgain(dead.id))
 			try await Task.sleep(for: .milliseconds(200))
@@ -102,7 +107,11 @@ extension FixtureLaunchTests {
 		await readable.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
 		#expect(cause(recovered.state) == .processEnded)
-		#expect(recovered.state.retryable)
+		guard case .interrupted(let interrupted) = recovered.state else {
+			Issue.record("expected interrupted, got \(recovered.state)")
+			return
+		}
+		#expect(interrupted.notice.action == .tryAgain(dead.id))
 	}
 
 	@Test(.timeLimit(.minutes(1)))
@@ -167,7 +176,6 @@ extension FixtureLaunchTests {
 		#expect(interrupted.saved.memorySections == 1)
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedSomeSaved)
 		#expect(interrupted.notice.action == nil)
-		#expect(!state.retryable)
 	}
 
 	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {

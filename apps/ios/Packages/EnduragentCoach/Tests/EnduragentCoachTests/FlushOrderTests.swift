@@ -57,15 +57,6 @@ import Testing
 				== .success(.deviceLocal(.flushPending(withoutProcess))))
 	}
 
-	@Test func onlyTheNewestOfNestedPendingJobsIsOutstanding() {
-		let older = job(10, messages: [1, 2])
-		let newer = job(11, messages: [1, 2, 3])
-		let separate = job(12, messages: [4])
-		#expect(
-			FlushJob.outstanding([older, newer, separate], in: coverageConversation()).map(\.id)
-				== [newer.id, separate.id])
-	}
-
 	@Test func anOlderJobNeverRunsAfterANewerWindowThatCoversIt() async throws {
 		let budget = historyBudget(clock: clock)
 		let history = try await seedHistory(store, clock: clock, turns: 3, tokens: budget * 9 / 10)

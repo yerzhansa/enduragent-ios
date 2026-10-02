@@ -77,7 +77,7 @@ import Testing
 		let after = await makeCoach(transport: transport, store: log, clock: clock)
 		await after.lifecycle(.becameActive)
 		let state = try #require(await after.state(of: turn))
-		#expect(!state.retryable)
+		#expect(turnNotice(of: state)?.action == nil)
 		await #expect(throws: RetryRefusal.unrecovered) {
 			try await after.retry(turn, in: .main)
 		}
