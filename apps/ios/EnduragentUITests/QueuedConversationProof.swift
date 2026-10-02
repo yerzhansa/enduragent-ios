@@ -51,7 +51,7 @@ final class QueuedConversationProof: XCTestCase {
 		TutorialHarness.attach(
 			self, name: slash ? "queued-slash-reply" : "queued-toolbar-reply", app: app)
 		let composer = TutorialHarness.named(app, "chat.composer")
-		XCTAssertEqual(composer.value as? String, "Message your coach")
+		XCTAssertEqual(composer.value as? String, "")
 		TutorialHarness.send(app, TutorialHarness.remember)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.remember].exists)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
