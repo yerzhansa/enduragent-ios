@@ -115,7 +115,7 @@ extension FixtureLaunchTests {
 		try await waitUntil { model.chat?.review?.notice?.kind == .storageUnavailable }
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
-		#expect(actions.isEmpty)
+		#expect(actions.map(\.id) == ["chat.preview.retryRead"])
 		#expect(ConfirmedPreviewCard(model: model, review: failed).disabledButtons == [.checkAgain])
 		#expect(failed.controls == .none)
 		faults.failFetches = false
@@ -283,17 +283,17 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 	}
 
-	private func presentedReview(on model: ShellModel) async throws -> ReviewControlToken {
+	func presentedReview(on model: ShellModel) async throws -> ReviewControlToken {
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)
 		model.draft.text =
 			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
 		await model.send()
-		try await waitUntil { model.chat?.review != nil }
+		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
-		try await waitUntil { model.chat?.review?.controls != ReviewControls.none }
+		try await until { model.chat?.review?.controls != ReviewControls.none }
 		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
 			throw ReviewNotPresented()
 		}
@@ -317,7 +317,7 @@ extension FixtureLaunchTests {
 private struct ReviewNotPresented: Error {}
 
 extension FakeIntervalsCall {
-	fileprivate var isCalendarWrite: Bool {
+	var isCalendarWrite: Bool {
 		switch self {
 		case .createEvent, .updateEvent, .deleteEvent: true
 		default: false
