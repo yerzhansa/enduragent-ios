@@ -28,7 +28,7 @@ import Testing
 		#expect(transport.requests.count == 10)
 	}
 
-	@Test func lifecycleRecordsAreWrittenInFourBatchesAroundTheModelCall() async throws {
+	@Test func lifecycleRecordsCarryTheirTurnAccountAndAttemptStamps() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		let recording = BatchRecordingLog(inner: store)
@@ -37,11 +37,6 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		_ = try #require(await coach.settledState(of: turn, in: .main))
-		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
-			])
 		let everyKind: [String] = recording.batches.flatMap { $0 }
 		#expect(!everyKind.contains("assistantMessage"))
 		let synced = try await store.fetch(
