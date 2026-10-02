@@ -18,10 +18,10 @@ extension ChatMailboxTests {
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let snapshots = await coach.observe(.main)
 		let history = try #require(
-			try await firstSnapshot(in: snapshots, within: .seconds(5)) { _ in true })
+			try await firstSnapshot(in: snapshots, within: .hangGuard) { _ in true })
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		var previous = try #require(
-			try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
+			try await firstSnapshot(in: snapshots, within: .hangGuard) { snapshot in
 				if case .processing? = snapshot.turns.last?.state { return true }
 				return false
 			})
@@ -30,7 +30,7 @@ extension ChatMailboxTests {
 			let readsBeforeDelta = clock.readCount
 			pacing.advance(by: .milliseconds(1))
 			let snapshot = try #require(
-				try await firstSnapshot(in: snapshots, within: .seconds(5)) { snapshot in
+				try await firstSnapshot(in: snapshots, within: .hangGuard) { snapshot in
 					guard case .processing? = snapshot.turns.last?.state else { return false }
 					return snapshot.liveReply?.text == text
 				})
@@ -54,7 +54,7 @@ extension ChatMailboxTests {
 		try await pacing.waitUntilHeld(.milliseconds(1))
 		pacing.advance(by: .milliseconds(1))
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(5)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Thursday is on.")
 		#expect(Array(previous.turns.dropLast()) == history.turns)
 		#expect(await coach.currentSnapshot(.main)?.liveReply == nil)

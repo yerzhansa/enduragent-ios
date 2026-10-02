@@ -233,7 +233,7 @@ import Testing
 		try await clock.waitUntilHeld(.seconds(30))
 		clock.advance(by: .seconds(30))
 		let settled = try #require(
-			await coach.settledState(of: turn, in: .main, within: .seconds(60)))
+			await coach.settledState(of: turn, in: .main, within: .hangGuard))
 		#expect(replyText(settled) == "Back on track.")
 		#expect(clock.slept == [.seconds(30)])
 		#expect(transport.requests.count == 2)

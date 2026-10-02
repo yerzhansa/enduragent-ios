@@ -72,6 +72,7 @@ final class FinishedWhileAwayProof: XCTestCase {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.sendLong(app)
 		TutorialHarness.send(app, "fixture:slow")
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
 		XCUIDevice.shared.press(.home)
@@ -81,9 +82,73 @@ final class FinishedWhileAwayProof: XCTestCase {
 		let line = TutorialHarness.named(app, "chat.turn.finishedWhileLocked")
 		TutorialHarness.wait(line)
 		XCTAssertEqual(line.label, TutorialHarness.finishedWhileLocked)
+		let reply = app.staticTexts.matching(
+			NSPredicate(format: "label BEGINSWITH %@", "This week has Tuesday sweet spot")
+		).firstMatch
+		TutorialHarness.wait(reply)
+		XCTAssertTrue(reply.label.hasSuffix("quieter stretch between them."))
+		let composer = TutorialHarness.named(app, "chat.composer.container")
+		TutorialHarness.wait(composer)
+		let transcript = TutorialHarness.named(app, "chat.transcript")
+		TutorialHarness.wait(transcript)
+		TutorialHarness.wait(
+			until: {
+				line.isHittable && line.frame.height > 0
+					&& line.frame.minY >= transcript.frame.minY
+					&& line.frame.maxY <= composer.frame.minY
+			},
+			message:
+				"the background finish line is outside the visible transcript above the composer"
+		)
+		XCTAssertGreaterThan(reply.frame.maxY, transcript.frame.minY)
+		XCTAssertLessThanOrEqual(reply.frame.maxY, line.frame.minY)
+		XCTAssertLessThanOrEqual(line.frame.maxY, composer.frame.minY)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "finished-while-away", app: app)
+		transcript.swipeDown(velocity: .slow)
+		transcript.swipeDown(velocity: .slow)
+		let reading = TutorialHarness.text(app, containing: "Day 1. This week has")
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "scrolling up must leave the completion line off screen")
+		let readingFrame = reading.frame
+		let composerFrame = composer.frame
+		TutorialHarness.attach(self, name: "finished-while-away-reading-position", app: app)
+		XCUIDevice.shared.press(.home)
+		Thread.sleep(forTimeInterval: 2)
+		app.activate()
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-second-return", app: app)
+		let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+		let cover = TutorialHarness.named(system, "lockscreen-date-view")
+		app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.01))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.7)))
+		TutorialHarness.wait(cover)
+		TutorialHarness.attach(self, name: "finished-while-away-notification-center", app: system)
+		system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.98))
+			.press(
+				forDuration: 0.05,
+				thenDragTo: system.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)))
+		TutorialHarness.wait(cover, until: .absent)
+		TutorialHarness.wait(app, until: .foreground)
+		assertReadingPosition(
+			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
+		TutorialHarness.attach(self, name: "finished-while-away-after-inactive", app: app)
 		TutorialHarness.assertZeroFixtureRequests(app)
+	}
+
+	private func assertReadingPosition(
+		_ reading: XCUIElement, frame readingFrame: CGRect, line: XCUIElement,
+		composer: XCUIElement, frame composerFrame: CGRect
+	) {
+		TutorialHarness.wait(reading, until: .hittable)
+		XCTAssertFalse(line.isHittable, "an old completion moved the transcript back to the tail")
+		XCTAssertEqual(reading.frame.minY, readingFrame.minY, accuracy: 2)
+		XCTAssertEqual(reading.frame.maxY, readingFrame.maxY, accuracy: 2)
+		XCTAssertEqual(composer.frame, composerFrame)
 	}
 }
 

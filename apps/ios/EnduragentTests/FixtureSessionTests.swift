@@ -110,7 +110,7 @@ extension FixtureLaunchTests {
 		try await observed(second)
 		second.draft.text = TutorialCopy.weekQuestion
 		await second.send()
-		try await until(within: .seconds(20)) {
+		try await until(within: .hangGuard) {
 			second.chat?.turns.count == 2 && second.chat?.turns.last?.state.isSettled == true
 		}
 		#expect(second.chat?.opening == .continuing)

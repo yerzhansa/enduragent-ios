@@ -12,7 +12,7 @@ extension ExecutionLeaseTests {
 			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)), host: host)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		let deadline = ContinuousClock.now + .seconds(2)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while host.leases.isEmpty, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}

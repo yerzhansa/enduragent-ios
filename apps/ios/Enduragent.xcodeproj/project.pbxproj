@@ -115,6 +115,7 @@
 		EBD71849F4A865CB7FF851AF /* EnduragentApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33C05184A97F24A77692DE4E /* EnduragentApp.swift */; };
 		F35CDCD6A0ECF6DB7FA04083 /* FirstWeekResponses.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730750E64E51CB700A3D5C76 /* FirstWeekResponses.swift */; };
 		F58B25BCD97459A9F7D629DD /* FixtureBlockingURLProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94510F7D13924B5C4E0FFA6 /* FixtureBlockingURLProtocol.swift */; };
+		F82738FD90D4483B41FDD16C /* ChoicesInConversationCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35619E329E888973971E7063 /* ChoicesInConversationCheck.swift */; };
 		FA975CF259BD8EDB6B267FEF /* StarterLanguageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3BBBF199AEB92B6AE1ED6F /* StarterLanguageTests.swift */; };
 		FED1B95C0EBE3CA91C6A7AE9 /* FixtureCredentialTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D86E9F36A3D2CE298FDF615 /* FixtureCredentialTests.swift */; };
 /* End PBXBuildFile section */
@@ -169,6 +170,7 @@
 		30DA796E304FA8860C541078 /* ShellModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellModel.swift; sourceTree = "<group>"; };
 		335D14394F58238C2E63C9FD /* NoticeActionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoticeActionTests.swift; sourceTree = "<group>"; };
 		33C05184A97F24A77692DE4E /* EnduragentApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnduragentApp.swift; sourceTree = "<group>"; };
+		35619E329E888973971E7063 /* ChoicesInConversationCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChoicesInConversationCheck.swift; sourceTree = "<group>"; };
 		369087E8FEFAB5E7EFE6A0D3 /* AppLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLaunch.swift; sourceTree = "<group>"; };
 		36EB228C186B626D9D1D2CB5 /* FixtureFlushTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureFlushTests.swift; sourceTree = "<group>"; };
 		39319F7D61C9BFDD9C661FD2 /* PhoneRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneRun.swift; sourceTree = "<group>"; };
@@ -390,6 +392,7 @@
 		512AA2354034DA65416BD13F /* EnduragentPhoneTests */ = {
 			isa = PBXGroup;
 			children = (
+				35619E329E888973971E7063 /* ChoicesInConversationCheck.swift */,
 				39319F7D61C9BFDD9C661FD2 /* PhoneRun.swift */,
 			);
 			path = EnduragentPhoneTests;
@@ -693,6 +696,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F82738FD90D4483B41FDD16C /* ChoicesInConversationCheck.swift in Sources */,
 				2F9625D64BEAB985811C6084 /* PhoneRun.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

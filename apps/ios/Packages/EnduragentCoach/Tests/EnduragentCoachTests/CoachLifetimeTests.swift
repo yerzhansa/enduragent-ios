@@ -47,12 +47,12 @@ struct CoachLifetimeTests {
 			await coach.lifecycle(.willTerminate)
 			#expect(transport.requestCount == (pending == .collecting ? 0 : 1))
 		}
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while releasedCoach != nil || releasedLog != nil, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
-		#expect(releasedCoach == nil, "Coach was not released within five seconds")
-		#expect(releasedLog == nil, "Record log store owner was not released within five seconds")
+		#expect(releasedCoach == nil, "Coach exceeded the test hang guard")
+		#expect(releasedLog == nil, "Record log store owner exceeded the test hang guard")
 		#expect(coalescingClock.held.isEmpty, "Termination left a coalescing task asleep")
 		coalescingClock.release(window)
 	}
@@ -73,11 +73,11 @@ struct CoachLifetimeTests {
 				replyText(try await coach.sendAndSettle("Lifetime question")) == "Lifetime answer")
 			if terminating { await coach.lifecycle(.willTerminate) }
 		}
-		let deadline = ContinuousClock.now + .seconds(5)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while releasedCoach != nil || releasedLog != nil, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
-		#expect(releasedCoach == nil, "Coach was not released within five seconds")
-		#expect(releasedLog == nil, "Record log store owner was not released within five seconds")
+		#expect(releasedCoach == nil, "Coach exceeded the test hang guard")
+		#expect(releasedLog == nil, "Record log store owner exceeded the test hang guard")
 	}
 }

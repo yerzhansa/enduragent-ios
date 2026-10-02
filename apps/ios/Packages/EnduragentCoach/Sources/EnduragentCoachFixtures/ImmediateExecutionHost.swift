@@ -55,8 +55,9 @@ public final class ImmediateExecutionHost: ExecutionHost {
 		}
 	}
 
-	public func ended(_ index: Int, within limit: Duration = .seconds(5)) async -> LeaseRecord? {
-		let deadline = ContinuousClock.now + limit
+	public func ended(_ index: Int, within limit: TestWaitLimit = .hangGuard) async -> LeaseRecord?
+	{
+		let deadline = ContinuousClock.now + limit.duration
 		while ContinuousClock.now < deadline {
 			let record = state.withLock { current in
 				current.records.indices.contains(index) ? current.records[index] : nil

@@ -115,7 +115,7 @@ extension FixtureLaunchTests {
 			await model.agreeAndStartChatting()
 			model.draft.text = "fixture:slow"
 			await model.send()
-			streaming = try await turn(in: model, within: .seconds(10)) { state in
+			streaming = try await turn(in: model, within: .hangGuard) { state in
 				guard case .processing = state else { return false }
 				return model.chat?.liveReply?.text.isEmpty == false
 			}
@@ -146,7 +146,7 @@ extension FixtureLaunchTests {
 			killed.draft.text = "fixture:memory-then-hang"
 			await killed.send()
 			dead = try await turn(in: killed, where: isProcessing)
-			let deadline = ContinuousClock.now + .seconds(5)
+			let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 			while try await !records.snapshot().counts.contains(where: {
 				$0.kind == "memorySection" && $0.count > 0
 			}),
@@ -215,7 +215,7 @@ extension FixtureLaunchTests {
 	}
 
 	private func answered(_ text: String, in model: ShellModel) async throws {
-		let deadline = ContinuousClock.now + .seconds(10)
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while ContinuousClock.now < deadline {
 			if let last = model.chat?.turns.last, last.athleteText == text, isCompleted(last.state)
 			{
@@ -227,10 +227,10 @@ extension FixtureLaunchTests {
 	}
 
 	private func turn(
-		_ id: TurnID? = nil, in model: ShellModel, within limit: Duration = .seconds(5),
+		_ id: TurnID? = nil, in model: ShellModel, within limit: TestWaitLimit = .hangGuard,
 		where matches: (TurnState) -> Bool
 	) async throws -> TurnView {
-		let deadline = ContinuousClock.now + limit
+		let deadline = ContinuousClock.now + limit.duration
 		while ContinuousClock.now < deadline {
 			let candidate =
 				id.map { id in model.chat?.turns.first { $0.id == id } }

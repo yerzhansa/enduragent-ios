@@ -133,13 +133,14 @@ struct FixtureScopeTests {
 						return true
 					}
 					group.addTask {
-						try await Task.sleep(for: .seconds(10))
+						try await Task.sleep(for: TestWaitLimit.hangGuard.duration)
 						return false
 					}
 					for _ in 0..<2 {
 						try #require(
 							try await group.next() == true,
-							"The app fixture ownership proof did not finish within ten seconds")
+							"The app fixture ownership proof did not finish before the test hang guard expired"
+						)
 					}
 				}
 			}

@@ -38,7 +38,7 @@ extension FixtureLaunchTests {
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:formatted-then-hang"
 		await model.send()
-		try await until(within: .seconds(15)) {
+		try await until {
 			model.chat?.liveReply?.text == FormattedReplyFixture.streamingPrefix
 		}
 		let live = try #require(model.chat?.liveReply?.text)
