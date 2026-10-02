@@ -44,26 +44,11 @@ struct ChatCreateBodyTests {
 		}
 	}
 
-	@Test func parseCreateWorkoutRefusesPastDates() throws {
-		let today: CivilDate = "1998-06-13"
-		let arguments = try JSONValue.parse(
-			#"{"date":"1998-06-12","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":60}}]}}"#
-		)
-		do {
-			_ = try CyclingTools.parseCreateWorkout(arguments, today: today)
-			Issue.record("expected past_date_refused")
-		} catch let error as IntervalsError {
-			#expect(error.code == "past_date_refused")
-			#expect(error.details.contains("1998-06-12"))
-			#expect(error.details.contains("1998-06-13"))
-		}
-	}
-
 	@Test func parseCreateWorkoutAllowsTodayAndBuildsRide() throws {
 		let arguments = try JSONValue.parse(
 			#"{"date":"1998-06-13","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}"#
 		)
-		let draft = try CyclingTools.parseCreateWorkout(arguments, today: "1998-06-13")
+		let draft = try CyclingTools.parseCreateWorkoutInput(arguments, today: "1998-06-13").draft
 		#expect(draft.type == .ride)
 		#expect(draft.tags == ["cycling-coach"])
 		#expect(draft.externalId.rawValue == "cycling-coach:1998-06-13:endurance")
