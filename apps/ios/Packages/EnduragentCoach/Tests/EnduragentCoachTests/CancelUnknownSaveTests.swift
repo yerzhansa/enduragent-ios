@@ -94,7 +94,7 @@ import Testing
 			ScriptedReply([.text("Memory saved."), .finish(reason: .stop)])
 		}
 		_ = try #require(
-			try await beforeDeadline(within: .seconds(5)) {
+			try await beforeDeadline(within: .hangGuard) {
 				await reopened.startNewConversation(in: .main)
 			})
 		let (_, next) = try await helper.proposal(on: reopened, model: fixture.model, name: "Next")

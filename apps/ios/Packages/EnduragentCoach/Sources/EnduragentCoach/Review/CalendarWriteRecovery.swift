@@ -48,7 +48,9 @@ extension SingleProposalReviews {
 		}
 	}
 
-	func recover(_ ref: ReviewRef, repeatWrite: Bool, scope: TurnScope?) async -> ReviewOutcome {
+	func recover(_ ref: ReviewRef, repeatWrite: Bool, scope: TurnScope?) async throws(LedgerFailure)
+		-> ReviewOutcome
+	{
 		do {
 			guard
 				let intent = try await ledger.calendarWrites(ref.chat).first(where: {
@@ -81,6 +83,7 @@ extension SingleProposalReviews {
 			}
 			return try await record(intent, evidence: evidence, scope: scope)
 		} catch let error as LedgerFailure {
+			if error == .unavailable { throw error }
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 			return unresolved(.unknown(.readFailed))
 		} catch {

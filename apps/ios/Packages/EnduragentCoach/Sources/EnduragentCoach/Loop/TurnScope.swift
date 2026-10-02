@@ -104,8 +104,10 @@ package actor TurnScope {
 		commits.append(commit)
 	}
 
-	package func reviewing(_ run: @Sendable () async -> ReviewOutcome) async -> ReviewOutcome {
-		await reviewGate.pass { await run() }
+	package func reviewing<Failure: Error>(
+		_ run: @Sendable () async throws(Failure) -> ReviewOutcome
+	) async throws(Failure) -> ReviewOutcome {
+		try await reviewGate.pass { () throws(Failure) in try await run() }
 	}
 
 	package func beginReview() -> Bool {

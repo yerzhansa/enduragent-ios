@@ -23,57 +23,10 @@ package actor SingleProposalReviews: WorkoutReviews {
 		deliveries[chat]?.busy == true
 	}
 
-	package func snapshot(chat: ChatID, records: [AthleteRecord]? = nil) async throws(LedgerFailure)
-		-> ReviewSnapshot?
-	{
-		let previous = deliveries[chat]?.ref
-		let intents = try await ledger.calendarWrites(chat, synced: records)
-		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
-		if let intent = intents.first(where: {
-			$0.blocksNewWork && !closed.contains($0.body.review)
-		}) {
-			return try await recoverySnapshot(intent, chat: chat)
-		}
-		guard
-			let live = try await ProposalPolicy.live(chatId: chat, ledger: ledger, now: clock.now),
-			!closed.contains(ChangeSetID(ulid: live.ulid)),
-			!intents.contains(where: {
-				$0.body.review.ulid == live.ulid
-					&& ($0.body.evidence.applied || $0.cancellation != nil)
-			})
-		else {
-			deliveries[chat] = nil
-			guard let body = intents.last(where: { $0.cancellation != nil })?.cancellation else {
-				return nil
-			}
-			return ReviewSnapshot(
-				ref: ReviewRef(
-					chat: chat, set: body.review, revision: ChangeSetRevision(rawValue: 1),
-					delivery: UUID()),
-				state: .cancelledUnknown(CancelledUnknownReview(body)))
-		}
-		let block = await accountBlock(live.account)
-		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
-		let delivery = delivery(
-			set: ChangeSetID(ulid: live.ulid), chat: chat,
-			authority: live.cause == .legacy ? .readOnly : .thisDevice)
-		let card = ReviewCard(live.body)
-		return ReviewSnapshot(
-			ref: delivery.ref,
-			state: .available(
-				ReviewContent(
-					cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
-					notice: delivery.authority == .readOnly
-						? AthleteNotices.earlierVersion
-						: block == .accountChanged ? AthleteNotices.accountChanged : nil,
-					authority: delivery.authority),
-				block == .accountChanged ? .none : delivery.controls))
-	}
-
 	package func decide(
 		_ decision: ReviewDecision, chat: ChatID, scope: TurnScope?,
-		changed: @escaping @Sendable () async -> Void = {}
-	) async
+		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void = {}
+	) async throws(LedgerFailure)
 		-> ReviewOutcome
 	{
 		guard decision.ref.chat == chat, var delivery = deliveries[chat],
@@ -94,16 +47,17 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard !delivery.busy, delivery.secret == token.secret else { return .staleControl }
 			delivery.busy = true
 			deliveries[chat] = delivery
+			defer { finish(token.ref, outcome: .presentationRecorded) }
 			switch decision {
 			case .cancel: break
-			default: await changed()
+			default: try await changed()
 			}
 			let outcome: ReviewOutcome
 			switch decision {
-			case .approve: outcome = await approve(token, scope: scope, changed: changed)
+			case .approve: outcome = try await approve(token, scope: scope, changed: changed)
 			case .retryRemaining:
-				outcome = await recover(token.ref, repeatWrite: true, scope: scope)
-			default: outcome = await cancel(token)
+				outcome = try await recover(token.ref, repeatWrite: true, scope: scope)
+			default: outcome = try await cancel(token)
 			}
 			finish(token.ref, outcome: outcome)
 			return outcome
@@ -111,7 +65,8 @@ package actor SingleProposalReviews: WorkoutReviews {
 			guard !delivery.busy else { return .staleControl }
 			delivery.busy = true
 			deliveries[chat] = delivery
-			let outcome = await recover(ref, repeatWrite: false, scope: scope)
+			defer { finish(ref, outcome: .presentationRecorded) }
+			let outcome = try await recover(ref, repeatWrite: false, scope: scope)
 			finish(ref, outcome: outcome)
 			return outcome
 		}
@@ -121,33 +76,36 @@ package actor SingleProposalReviews: WorkoutReviews {
 
 	private func approve(
 		_ token: ReviewControlToken, scope: TurnScope?,
-		changed: @escaping @Sendable () async -> Void
-	) async -> ReviewOutcome {
+		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure) -> ReviewOutcome {
 		if let scope {
-			return await scope.reviewing {
-				await self.applyApproval(token, scope: scope, changed: changed)
+			return try await scope.reviewing { () throws(LedgerFailure) in
+				try await self.applyApproval(token, scope: scope, changed: changed)
 			}
 		}
-		return await applyApproval(token, scope: nil, changed: changed)
+		return try await applyApproval(token, scope: nil, changed: changed)
 	}
 
 	private func applyApproval(
 		_ token: ReviewControlToken, scope: TurnScope?,
-		changed: @escaping @Sendable () async -> Void
-	) async
+		changed: @escaping @Sendable () async throws(LedgerFailure) -> Void
+	) async throws(LedgerFailure)
 		-> ReviewOutcome
 	{
-		let prepared = await registration.pass { await prepareApproval(token, scope: scope) }
+		let prepared = try await registration.pass { () throws(LedgerFailure) in
+			try await prepareApproval(token, scope: scope)
+		}
 		switch prepared {
 		case .refused(let outcome): return outcome
 		case .ready(let intent, let operation, let connection):
-			await changed()
+			try await changed()
 			return await dispatch(
 				intent, operation: operation, connection: connection, scope: scope)
 		}
 	}
 
-	private func prepareApproval(_ token: ReviewControlToken, scope: TurnScope?) async
+	private func prepareApproval(_ token: ReviewControlToken, scope: TurnScope?)
+		async throws(LedgerFailure)
 		-> PreparedCalendarApproval
 	{
 		do {
@@ -193,6 +151,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 				CalendarWriteIntent(record: record, body: body, proposal: live), operation,
 				connection)
 		} catch let error as LedgerFailure {
+			if error == .unavailable { throw error }
 			diagnostics.record(.reviewOutcomeUnsaved(error))
 			return .refused(.storageUnavailable)
 		} catch {
@@ -243,8 +202,8 @@ package actor SingleProposalReviews: WorkoutReviews {
 		return unresolved(body.evidence)
 	}
 
-	private func cancel(_ token: ReviewControlToken) async -> ReviewOutcome {
-		await registration.pass {
+	private func cancel(_ token: ReviewControlToken) async throws(LedgerFailure) -> ReviewOutcome {
+		try await registration.pass { () throws(LedgerFailure) in
 			do throws(LedgerFailure) {
 				let writes = try await ledger.calendarWrites(token.ref.chat)
 				if let intent = writes.first(where: { $0.body.review == token.ref.set }) {
@@ -271,6 +230,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 					live, reason: .canceled, ledger: ledger, stamp: stamp)
 				return .canceled(kept: [])
 			} catch {
+				if error == .unavailable { throw error }
 				diagnostics.record(.reviewOutcomeUnsaved(error))
 				return .storageUnavailable
 			}
@@ -323,18 +283,6 @@ package actor SingleProposalReviews: WorkoutReviews {
 			key: evidence == .unknown(.readFailed)
 				? Catalog.reviewWriteReadFailed : Catalog.reviewWritePending,
 			vars: [:])
-	}
-}
-
-struct ReviewDelivery {
-	let authority: ReviewAuthority
-	var ref: ReviewRef
-	var secret: UUID?
-	var busy = false
-
-	var controls: ReviewControls {
-		guard authority == .thisDevice, !busy, let secret else { return .none }
-		return .approveOrCancel(ReviewControlToken(ref: ref, secret: secret))
 	}
 }
 
