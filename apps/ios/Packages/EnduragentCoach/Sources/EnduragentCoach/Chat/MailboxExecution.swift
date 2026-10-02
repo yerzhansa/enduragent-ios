@@ -11,6 +11,7 @@ final class MailboxExecution {
 	private let start: AttemptStart
 	private let resets: PendingResets
 	private let work = MailboxQueue()
+	private var coalescingTask: Task<Void, Never>?
 
 	init(
 		chat: ChatID, ledger: Ledger, runner: TurnRunner, flushes: FlushWork,
@@ -52,12 +53,43 @@ final class MailboxExecution {
 		await resets.outcome(of: reset)
 	}
 
-	func arm(_ turn: TurnID, at now: Date, for duration: Duration) -> Int {
-		work.arm(turn, at: now, for: duration)
+	func schedule(
+		_ turn: TurnID, policy: CoalescingPolicy,
+		sleep: @escaping @Sendable (Duration) async throws -> Void, on mailbox: isolated ChatMailbox
+	) {
+		if let cause = work.phase.cause {
+			if cause != .appTerminating, work.window?.turn != turn {
+				add(turn, origin: .send, on: mailbox)
+			}
+			return
+		}
+		guard !lifecycle.terminating else { return }
+		coalescingTask?.cancel()
+		let armed = work.arm(turn, at: clock.now, for: policy.window)
+		coalescingTask = Task { [weak mailbox] in
+			do {
+				try await sleep(policy.window)
+				try await mailbox?.windowEnded(armed)
+			} catch is CancellationError {
+				return
+			} catch {
+				fatalError("Coalescing sleep failed: \(error)")
+			}
+		}
 	}
 
 	func closeWindow(ifArmed generation: Int? = nil) -> TurnID? {
-		work.closeWindow(ifArmed: generation)
+		guard let turn = work.closeWindow(ifArmed: generation) else { return nil }
+		coalescingTask?.cancel()
+		coalescingTask = nil
+		return turn
+	}
+
+	func cancelCoalescing(isolation: isolated (any Actor)? = #isolation) async {
+		let task = coalescingTask
+		coalescingTask = nil
+		task?.cancel()
+		await task?.value
 	}
 
 	func beginInterruption(_ cause: InterruptionCause) { work.beginInterruption(cause) }

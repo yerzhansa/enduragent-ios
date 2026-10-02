@@ -15,7 +15,7 @@ extension FixtureLaunchTests {
 				packs: [CreditPack(id: "single-credit", credits: Credits(units: 1))]))
 		services.packPrices = { _ in price.map { ["single-credit": $0] } ?? [:] }
 		try await services.coach.setLanguage(.fixed(.es))
-		let model = ShellModel(
+		let model = fixtureModel(
 			environment: environment(services),
 			initialLanguage: await services.coach.languagePreference())
 		await model.loadCredits()
@@ -37,7 +37,7 @@ extension FixtureLaunchTests {
 		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(outcome)
 		try await services.coach.setLanguage(.fixed(.es))
-		let model = ShellModel(
+		let model = fixtureModel(
 			environment: environment(services),
 			initialLanguage: await services.coach.languagePreference())
 		await model.loadStarter()
@@ -52,7 +52,7 @@ extension FixtureLaunchTests {
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		fixture.credits.balanceResult = .success(CreditBalance(credits: Credits(units: 1)))
 		try await services.coach.setLanguage(.fixed(.es))
-		let model = ShellModel(
+		let model = fixtureModel(
 			environment: environment(services),
 			initialLanguage: await services.coach.languagePreference())
 		await model.loadStarter()
@@ -66,7 +66,7 @@ extension FixtureLaunchTests {
 		let fixture = try #require(services.fixture)
 		fixture.credits.grantResult = .success(.alreadyGranted)
 		try await services.coach.setLanguage(.fixed(.es))
-		let model = ShellModel(
+		let model = fixtureModel(
 			environment: environment(services),
 			initialLanguage: await services.coach.languagePreference())
 		await model.loadStarter()

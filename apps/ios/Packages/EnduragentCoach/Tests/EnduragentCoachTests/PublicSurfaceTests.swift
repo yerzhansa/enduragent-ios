@@ -78,8 +78,7 @@ import EnduragentCoachFixtures
 
 		private func apiRoot() throws -> APINode {
 			let modules = try moduleDirectory()
-			let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
-				"enduragent-public-surface-\(UUID().uuidString)")
+			let directory = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(
 				at: directory, withIntermediateDirectories: true)
 			defer {

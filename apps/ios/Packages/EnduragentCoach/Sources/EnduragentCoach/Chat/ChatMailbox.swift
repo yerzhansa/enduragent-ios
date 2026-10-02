@@ -80,8 +80,10 @@ package actor ChatMailbox {
 	package func reset() async -> ResetOutcome {
 		do {
 			let reset = try await door.pass { () throws(LedgerFailure) in
+				guard !lifecycle.terminating else { throw LedgerFailure.unavailable }
 				closeWindow()
 				let reset = try await ledger.reserveReset()
+				guard !lifecycle.terminating else { throw LedgerFailure.unavailable }
 				_ = lifecycle.hold(.athlete, on: self)
 				work.add(reset, on: self)
 				return reset
@@ -95,6 +97,7 @@ package actor ChatMailbox {
 	private func admit(
 		_ draft: Draft, slash: SlashCommand?
 	) async throws(AcceptFailure) -> SendOutcome {
+		guard !lifecycle.terminating else { throw .storageUnavailable }
 		if let known = conversation.turn(withDraft: draft.id) {
 			return .accepted(known.turn)
 		}
@@ -120,13 +123,14 @@ package actor ChatMailbox {
 			throw AcceptFailure.storageUnavailable
 		}
 		lifecycle.hold(.athlete, on: self)?.add(turn)
-		armWindow(for: turn)
+		work.schedule(turn, policy: coalescing, sleep: coalescingSleep, on: self)
 		publish()
 		return .accepted(turn)
 	}
 
 	package func retry(_ turn: TurnID) async throws(RetryRefusal) {
 		try await door.pass { () throws(RetryRefusal) in
+			guard !lifecycle.terminating else { throw .unrecovered }
 			let waiting = snapshots.waiting(among: conversation.current.turns)
 			let queued = work.phase.items(queued: work.waiting)
 			let overlay = TurnOverlay(
@@ -177,21 +181,14 @@ package actor ChatMailbox {
 	}
 
 	private func closeWindow(ifArmed armed: Int? = nil) {
-		guard let turn = work.closeWindow(ifArmed: armed) else { return }
+		guard !lifecycle.terminating, let turn = work.closeWindow(ifArmed: armed) else { return }
 		work.add(turn, origin: .send, on: self)
 	}
 
-	private func armWindow(for turn: TurnID) {
-		let armed = work.arm(turn, at: clock.now, for: coalescing.window)
-		Task {
-			do {
-				try await coalescingSleep(coalescing.window)
-			} catch is CancellationError {
-				return
-			} catch {
-				fatalError("Coalescing sleep failed: \(error)")
-			}
-			await door.pass { closeWindow(ifArmed: armed) }
+	func windowEnded(_ armed: Int) async throws(CancellationError) {
+		try await door.passCancellable(cancellation: CancellationError()) {
+			() throws(CancellationError) in
+			closeWindow(ifArmed: armed)
 		}
 	}
 

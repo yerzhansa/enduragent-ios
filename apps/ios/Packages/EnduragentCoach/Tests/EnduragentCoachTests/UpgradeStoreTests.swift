@@ -12,8 +12,7 @@ extension SwiftDataSuites {
 			#expect(claims.skipped.isEmpty)
 			#expect(claims.records.count == 1)
 			#expect(claims.records.allSatisfy { $0.account == .unconnected })
-			let directory = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-pre-vault-secrets-\(UUID().uuidString)")
+			let directory = try TestTemporaryFolders.make()
 			try FileManager.default.createDirectory(
 				at: directory, withIntermediateDirectories: true)
 			try Data(#"{"intervalsApiKey":"fixture-pre-vault-key"}"#.utf8).write(
@@ -112,8 +111,7 @@ extension SwiftDataSuites {
 			let source = try #require(
 				Bundle.module.url(
 					forResource: scenario, withExtension: nil, subdirectory: folder))
-			let root = FileManager.default.temporaryDirectory.appending(
-				path: "enduragent-upgrade-\(UUID().uuidString)", directoryHint: .isDirectory)
+			let root = try TestTemporaryFolders.make()
 			try FileManager.default.copyItem(at: source, to: root)
 			return SwiftDataRecordLog(
 				deviceId: DeviceID(
