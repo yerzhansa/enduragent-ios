@@ -14,7 +14,7 @@ extension SwiftDataSuites {
 			try await seedHistory(remoteLog, clock: ahead, turns: 1, tokens: 40)
 			let remote = await makeCoach(
 				transport: FakeModelTransport(), store: remoteLog, clock: ahead)
-			#expect(await remote.startNewConversation(in: .main) == .started(memory: .saved))
+			#expect(await remote.resetAndSettle(in: .main) == .started(memory: .saved))
 			await remote.lifecycle(.willTerminate)
 			let localLog = try open(root, device: DeviceID(rawValue: "phone-b"))
 			let behind = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")

@@ -26,7 +26,8 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		var syncedAcknowledgments = false
 		var appendKinds: Set<String> = []
 		var fetches = false
-		var nextFetch: RecordQuery.Scope?
+		var nextFetch: (scope: RecordQuery.Scope, skipping: Int)?
+		var failedFetches = 0
 		var recoveryReads = false
 	}
 
@@ -78,8 +79,10 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 		set { faults.withLock { $0.recoveryReads = newValue } }
 	}
 
-	package func failNextFetch(in scope: RecordQuery.Scope) {
-		faults.withLock { $0.nextFetch = scope }
+	package var failedFetchCount: Int { faults.withLock { $0.failedFetches } }
+
+	package func failNextFetch(in scope: RecordQuery.Scope, skipping: Int = 0) {
+		faults.withLock { $0.nextFetch = (scope, skipping) }
 	}
 
 	package func failAppends(ofKind kind: String) throws {
@@ -120,9 +123,13 @@ package final class FaultInjectingRecordLog: RecordLog, Sendable {
 
 	package func fetch(_ query: RecordQuery) async throws -> RecordPage {
 		let fails = faults.withLock { current -> Bool in
-			if current.nextFetch == query.scope {
-				current.nextFetch = nil
-				return true
+			if let next = current.nextFetch, next.scope == query.scope {
+				if next.skipping == 0 {
+					current.nextFetch = nil
+					current.failedFetches += 1
+					return true
+				}
+				current.nextFetch = (next.scope, next.skipping - 1)
 			}
 			return current.fetches
 				|| (current.recoveryReads && query.scope == TurnRecovery.localScope)

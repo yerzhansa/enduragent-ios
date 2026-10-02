@@ -1025,7 +1025,8 @@
       "working": "O treinador está a trabalhar…",
       "responseStopped": "Resposta interrompida. A resposta parcial mantém-se.",
       "calendarUnverified": "A alteração no calendário pode ter sido guardada. Verifica o teu calendário antes de pedires novamente.",
-      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente."
+      "savedUnverified": "Guardei as tuas informações, mas não consegui verificar a minha resposta. Tenta novamente.",
+      "startingNewConversation": "A iniciar uma nova conversa…"
     },
     "planChange": {
       "activePlan": "Plano ativo",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Não consegui verificar a tua ligação a {{service}}, por isso nada foi alterado. Tenta novamente daqui a pouco.",
     "turnStopping": "Esta resposta está a ser interrompida. Quando parar, podes aprovar ou cancelar a revisão do treino.",
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
-    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. A tua última revisão continua visível. Tenta novamente para restaurar os controlos.",
+    "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
+    "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "O intervals.icu não aceitou essa chave."
+      "rejected": "O intervals.icu não aceitou essa chave.",
+      "blank": "Introduza uma chave de API do intervals.icu. A sua ligação atual não foi alterada.",
+      "notSaved": "A substituição não foi guardada. A sua ligação anterior não foi alterada. Tente novamente.",
+      "profileUnavailable": "O seu perfil de atleta está temporariamente indisponível. Tente novamente.",
+      "wellnessRejected": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Reveja a sua ligação.",
+      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente."
+    },
+    "wellness": {
+      "empty": "Não há dados de bem-estar para hoje.",
+      "waiting": "A ler os dados de bem-estar de hoje…"
+    },
+    "review": "Rever ligação",
+    "profile": {
+      "waiting": "A ler o perfil de atleta…"
     }
   }
 }

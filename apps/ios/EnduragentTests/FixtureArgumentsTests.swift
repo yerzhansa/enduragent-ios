@@ -12,7 +12,8 @@ import Testing
 			recovery: "unreadable", host: "expire-after 3", language: "de", locale: "de_DE",
 			clock: "1998-06-16T07:00:00Z", onboarded: true,
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
-			recordReadFault: .failAfterPresentedOnce)
+			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
+			replyParserFault: .fail)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -46,6 +47,8 @@ import Testing
 		#expect(parsed.calendarSaveFault == expected.calendarSaveFault)
 		#expect(parsed.calendarReadFault == expected.calendarReadFault)
 		#expect(parsed.recordReadFault == expected.recordReadFault)
+		#expect(parsed.resetFault == expected.resetFault)
+		#expect(parsed.replyParserFault == expected.replyParserFault)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -72,8 +75,10 @@ import Testing
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey,
+		FixtureLaunch.resetArgumentKey,
+		FixtureLaunch.replyParserArgumentKey,
 	])
-	func rejectsUnknownCalendarProofFaults(key: String) throws {
+	func rejectsUnknownProofFaults(key: String) throws {
 		var builder = FixtureArguments()
 		#expect(throws: DecodingError.self) {
 			try builder.update(from: ["-\(key)", "unknown"])
@@ -89,11 +94,12 @@ import Testing
 		}
 	}
 
-	@Test func calendarProofFaultsAreOptIn() throws {
+	@Test func proofFaultsAreOptIn() throws {
 		let expected = FixtureArguments()
 		var restored = FixtureArguments(
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
-			recordReadFault: .failAfterPresentedOnce)
+			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
+			replyParserFault: .fail)
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
 		let suite = "enduragent.fixture.no-fault.\(UUID().uuidString)"
@@ -104,5 +110,7 @@ import Testing
 		#expect(parsed.calendarSaveFault == nil)
 		#expect(parsed.calendarReadFault == nil)
 		#expect(parsed.recordReadFault == nil)
+		#expect(parsed.resetFault == nil)
+		#expect(parsed.replyParserFault == nil)
 	}
 }

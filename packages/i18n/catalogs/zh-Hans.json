@@ -1017,7 +1017,8 @@
       "working": "教练正在处理…",
       "responseStopped": "已停止回复。已生成的部分回复已保留。",
       "calendarUnverified": "日历更改可能已保存。再次请求前，请先检查日历。",
-      "savedUnverified": "我已保存你的信息，但未能验证我的回复。请重试。"
+      "savedUnverified": "我已保存你的信息，但未能验证我的回复。请重试。",
+      "startingNewConversation": "正在开始新对话…"
     },
     "planChange": {
       "activePlan": "当前启用的计划",
@@ -2877,7 +2878,8 @@
     "cannotVerify": "无法检查你的 {{service}} 连接，因此未作任何更改。请稍后重试。",
     "turnStopping": "正在停止此回复。停止后，你可以批准或取消训练审核。",
     "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
-    "storageUnavailable": "无法读取已保存的训练审核。仍显示上次的审核。请重试以恢复操作按钮。",
+    "cancelledUnknown": "已取消。此训练可能仍已保存。请检查你的日历。",
+    "storageUnavailable": "无法读取已保存的训练审核内容。其按钮已暂时禁用。",
     "title": "训练审核",
     "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
     "workout": {
@@ -2940,7 +2942,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu 未接受该密钥。"
+      "rejected": "intervals.icu 未接受该密钥。",
+      "blank": "请输入 intervals.icu API 密钥。当前连接未更改。",
+      "notSaved": "替换未保存。之前的连接未更改。请重试。",
+      "profileUnavailable": "运动员资料暂时不可用。请重试。",
+      "wellnessRejected": "intervals.icu 未允许读取今天的健康数据。请检查连接。",
+      "wellnessUnavailable": "今天的健康数据暂时不可用。请重试。"
+    },
+    "wellness": {
+      "empty": "今天没有健康数据。",
+      "waiting": "正在读取今天的健康数据…"
+    },
+    "review": "检查连接",
+    "profile": {
+      "waiting": "正在读取运动员资料…"
     }
   }
 }

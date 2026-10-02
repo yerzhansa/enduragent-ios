@@ -9,7 +9,7 @@ final class MailboxExecution {
 	private let records: ChatRecords
 	private let lifecycle: MailboxLifecycle
 	private let start: AttemptStart
-	private let resets: PendingResets
+	private let resets: MailboxResets
 	private let work = MailboxQueue()
 	private var coalescingTask: Task<Void, Never>?
 
@@ -28,7 +28,7 @@ final class MailboxExecution {
 		self.start = AttemptStart(
 			chat: chat, ledger: ledger, records: records, environment: environment, process: process
 		)
-		self.resets = PendingResets(
+		self.resets = MailboxResets(
 			ConversationReset(chat: chat, ledger: ledger, flushes: flushes, clock: clock))
 	}
 
@@ -42,6 +42,7 @@ final class MailboxExecution {
 	}
 
 	func add(_ reset: ReservedReset, on mailbox: isolated ChatMailbox) {
+		resets.admit(reset)
 		if work.add(reset) { workAdded(on: mailbox) }
 	}
 
@@ -49,8 +50,14 @@ final class MailboxExecution {
 		if work.add(job) { workAdded(on: mailbox) }
 	}
 
-	func outcome(of reset: ResetID, on mailbox: isolated ChatMailbox) async -> ResetOutcome {
-		await resets.outcome(of: reset)
+	var resetStatus: ResetStatus { resets.status }
+	var resetMemory: MemorySaveResult? {
+		guard case .reset(let reset) = records.conversation.current.openedBy else { return nil }
+		return resets.memory(for: reset)
+	}
+
+	func reconcileResets(on mailbox: isolated ChatMailbox) {
+		resets.reconcile(records.conversation)
 	}
 
 	func schedule(

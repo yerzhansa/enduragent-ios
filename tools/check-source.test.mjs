@@ -257,6 +257,22 @@ test('accepts UI proofs using the argument builder and named waits', () => {
   assert.equal(result.status, 0, result.output);
 });
 
+for (const identifier of [
+  'fixture.expire', 'fixture.historyHead', 'fixture.requestCount',
+  'fixture.modelRequestCount', 'debug.records', 'debug.leases',
+]) {
+  test(`rejects an unscrolled Debug row query: ${identifier}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': `let row = TutorialHarness.named(app, "${identifier}")\nTutorialHarness.wait(row)\nrow.tap()` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ui-proof-debug-scrolling/);
+  });
+
+  test(`accepts a Debug row through bounded scrolling: ${identifier}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': `let row = TutorialHarness.debugRow(app, "${identifier}", direction: .down)\nXCTAssertEqual(row.label, "expected")\nrow.tap()` });
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
 test('rejects delayed predicate expectations in the shared UI wait helper', () => {
   const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)' });
   assert.equal(result.status, 1, result.output);
@@ -703,6 +719,34 @@ test('rejects the fixtures import outside DEBUG', () => {
   assert.equal(result.status, 1, result.output);
   assert.match(result.output, /fixture-launch-debug-only/);
 });
+
+for (const source of [
+  'enum FixtureReplyParserFault { case fail }',
+  'var replyParserFault: FixtureReplyParserFault?',
+  'let key = "EnduragentFixtureReplyParser"',
+  'let parser = ReplyParser.failingForProof',
+  'let failure = ReplyParseFailure.injected',
+  'case injected',
+  'let source = FormattedReplyFixture.source',
+]) {
+  for (const path of [
+    'apps/ios/Enduragent/App/ReplyRenderingServices.swift',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Chat/ReplyParser.swift',
+    'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoachFixtures/Hook.swift',
+  ]) {
+    for (const wrapped of [source, `#if DEBUG\nlet debug = true\n#else\n${source}\n#endif`, `#if DEBUG || os(iOS)\n${source}\n#endif`]) {
+      test(`rejects reply proof hooks outside DEBUG in ${path}: ${wrapped}`, () => {
+        const result = run({ [path]: wrapped });
+        assert.equal(result.status, 1, result.output);
+        assert.match(result.output, /reply-proof-hooks-debug-only/);
+      });
+    }
+    test(`accepts reply proof hooks under nested DEBUG in ${path}: ${source}`, () => {
+      const result = run({ [path]: `#if DEBUG\n#if os(iOS)\n${source}\n#else\n${source}\n#endif\n#endif` });
+      assert.equal(result.status, 0, result.output);
+    });
+  }
+}
 
 for (const source of [
   'var loseCalendarSaveAnswerOnce = false',

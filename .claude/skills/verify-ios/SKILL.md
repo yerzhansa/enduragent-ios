@@ -242,7 +242,8 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `interruption-draft` | After tapping `fixture.failNextAppend` in Debug and sending a message: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
 | `interruption-completed` | A reply that landed while the app was in the background: the whole reply with `Finished while the phone was locked.` under it, after `FinishedWhileAwayProof` |
 | `interruption-interrupted` | The dimmed partial reply with `This reply stopped before it finished. Nothing was changed.` and `Try again`, after `StopProof` or `ExpiryProof` |
-| `chat-long`, `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
+| `chat-long` | Formatted long reply after `ReplyFormattingProof` or `ReplyFormattingDarkProof`; use `reply-chat-long-light` or `reply-chat-long-dark` as the parity source. |
+| `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
 
 ## Evidence
 

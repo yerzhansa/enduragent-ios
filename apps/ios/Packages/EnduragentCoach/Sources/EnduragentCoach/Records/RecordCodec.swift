@@ -163,6 +163,12 @@ enum RecordCodec {
 			let payload = try payload(
 				ReviewWritePayload.self, version: version, kind: name, data: data)
 			return .reviewWrite(try payload.body())
+		case .reviewCancelledUnknown:
+			return .reviewCancelledUnknown(
+				try payload(
+					ReviewCancelledUnknownPayload.self, version: version, kind: name, data: data
+				)
+				.body())
 		case .reviewApplied:
 			let payload = try payload(
 				ReviewAppliedPayload.self, version: version, kind: name, data: data)

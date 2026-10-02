@@ -1025,7 +1025,8 @@
       "working": "Tränaren arbetar…",
       "responseStopped": "Svaret stoppades. Den del av svaret som kom fram finns kvar.",
       "calendarUnverified": "Kalenderändringen kan ha sparats. Kontrollera din kalender innan du frågar igen.",
-      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen."
+      "savedUnverified": "Jag sparade din information men kunde inte kontrollera mitt svar. Försök igen.",
+      "startingNewConversation": "Startar en ny konversation…"
     },
     "planChange": {
       "activePlan": "Aktiv plan",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Jag kunde inte kontrollera din anslutning till {{service}}, så inget ändrades. Försök igen om en liten stund.",
     "turnStopping": "Det här svaret håller på att stoppas. När det har stoppats kan du godkänna eller avbryta granskningen av träningspasset.",
     "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
-    "storageUnavailable": "Det gick inte att läsa den sparade träningsgranskningen. Din senaste granskning visas fortfarande. Försök igen för att återställa kontrollerna.",
+    "cancelledUnknown": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender.",
+    "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
     "title": "Granskning av träningspass",
     "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu accepterade inte den nyckeln."
+      "rejected": "intervals.icu accepterade inte den nyckeln.",
+      "blank": "Ange en intervals.icu API-nyckel. Din nuvarande anslutning är oförändrad.",
+      "notSaved": "Ersättningen sparades inte. Din tidigare anslutning är oförändrad. Försök igen.",
+      "profileUnavailable": "Din idrottsprofil är tillfälligt otillgänglig. Försök igen.",
+      "wellnessRejected": "intervals.icu tillät inte läsning av dagens välmåendedata. Kontrollera din anslutning.",
+      "wellnessUnavailable": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen."
+    },
+    "wellness": {
+      "empty": "Inga välmåendedata för idag.",
+      "waiting": "Läser dagens välmåendedata…"
+    },
+    "review": "Kontrollera anslutning",
+    "profile": {
+      "waiting": "Läser idrottsprofil…"
     }
   }
 }

@@ -134,20 +134,19 @@ private enum SettingsNavigationScreen {
 			("debug.leases", app.navigationBars["Leases"]),
 		]
 		for (identifier, content) in screens {
-			let link = TutorialHarness.named(app, identifier)
-			TutorialHarness.wait(link, until: .hittable)
+			let link = TutorialHarness.debugRow(app, identifier)
 			link.tap()
 			TutorialHarness.wait(content)
 			XCTAssertFalse(TutorialHarness.named(app, "chat.settings").isHittable)
 			TutorialHarness.attach(
 				test, name: "settings-\(identifier)-\(dark ? "dark" : "light")", app: app)
 			app.navigationBars.buttons.element(boundBy: 0).tap()
-			TutorialHarness.wait(TutorialHarness.named(app, "debug.records"), until: .hittable)
+			_ = TutorialHarness.debugRow(app, "debug.records", direction: .down)
 			XCTAssertFalse(TutorialHarness.named(app, "settings.credits").isHittable)
 		}
 		app.navigationBars.buttons.element(boundBy: 0).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.credits"), until: .hittable)
-		app.navigationBars.buttons.element(boundBy: 0).tap()
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}

@@ -1025,7 +1025,8 @@
       "working": "Træneren arbejder…",
       "responseStopped": "Svaret er stoppet. Det delvise svar bliver bevaret.",
       "calendarUnverified": "Ændringen i kalenderen kan være blevet gemt. Tjek din kalender, før du spørger igen.",
-      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen."
+      "savedUnverified": "Jeg gemte dine oplysninger, men kunne ikke kontrollere mit svar. Prøv igen.",
+      "startingNewConversation": "Starter en ny samtale…"
     },
     "planChange": {
       "activePlan": "Aktiv træningsplan",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Jeg kunne ikke kontrollere din forbindelse til {{service}}, så intet blev ændret. Prøv igen om lidt.",
     "turnStopping": "Dette svar er ved at stoppe. Når det er stoppet, kan du godkende eller annullere gennemgangen af træningspasset.",
     "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
-    "storageUnavailable": "Den gemte træningsgennemgang kunne ikke læses. Din seneste gennemgang vises stadig. Prøv igen for at gendanne betjeningen.",
+    "cancelledUnknown": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender.",
+    "storageUnavailable": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu accepterede ikke den nøgle."
+      "rejected": "intervals.icu accepterede ikke den nøgle.",
+      "blank": "Indtast en intervals.icu API-nøgle. Din nuværende forbindelse er uændret.",
+      "notSaved": "Erstatningen blev ikke gemt. Din tidligere forbindelse er uændret. Prøv igen.",
+      "profileUnavailable": "Din atletprofil er midlertidigt utilgængelig. Prøv igen.",
+      "wellnessRejected": "intervals.icu tillod ikke læsning af dagens wellness. Gennemgå din forbindelse.",
+      "wellnessUnavailable": "Dagens wellness er midlertidigt utilgængelig. Prøv igen."
+    },
+    "wellness": {
+      "empty": "Ingen wellnessdata for i dag.",
+      "waiting": "Læser dagens wellness…"
+    },
+    "review": "Gennemgå forbindelse",
+    "profile": {
+      "waiting": "Læser atletprofil…"
     }
   }
 }

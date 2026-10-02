@@ -124,6 +124,8 @@ targets:
     dependencies:
       - target: Enduragent
       - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
 schemes:
   EnduragentPhone:
     build:

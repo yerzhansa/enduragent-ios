@@ -24,8 +24,8 @@ struct TranscriptView: View {
 						TurnRowView(model: model, turn: turn)
 						notes(after: turn.id)
 					}
-					if case .startingNewConversation(let label)? = model.chat?.activity {
-						Text(model.phrasebook.say(label, [:]))
+					if case .waiting? = model.chat?.reset {
+						Text(model.phrasebook.say(Catalog.chatNoticeStartingNewConversation, [:]))
 							.foregroundStyle(.secondary)
 							.accessibilityIdentifier("chat.working")
 					}
@@ -36,7 +36,9 @@ struct TranscriptView: View {
 						ConfirmedPreviewCard(model: model, review: review)
 							.fixedSize(horizontal: false, vertical: true)
 					}
-					if let notice = model.reviewNotice {
+					if let notice = model.reviewNotice,
+						model.chat?.review?.notice?.kind != .storageUnavailable
+					{
 						Text(notice.sentence(in: model.phrasebook))
 							.accessibilityIdentifier("chat.review.notice")
 					}

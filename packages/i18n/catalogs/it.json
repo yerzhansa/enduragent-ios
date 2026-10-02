@@ -1025,7 +1025,8 @@
       "working": "Il coach sta elaborando…",
       "responseStopped": "Risposta interrotta. La risposta parziale è conservata.",
       "calendarUnverified": "La modifica al calendario potrebbe essere stata salvata. Controlla il calendario prima di chiedere di nuovo.",
-      "savedUnverified": "Ho salvato le tue informazioni, ma non ho potuto verificare la mia risposta. Riprova."
+      "savedUnverified": "Ho salvato le tue informazioni, ma non ho potuto verificare la mia risposta. Riprova.",
+      "startingNewConversation": "Avvio di una nuova conversazione…"
     },
     "planChange": {
       "activePlan": "Piano attivo",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Non ho potuto verificare la connessione a {{service}}, quindi non è cambiato nulla. Riprova tra poco.",
     "turnStopping": "Questa risposta si sta interrompendo. Quando si sarà interrotta, potrai approvare o annullare la revisione dell'allenamento.",
     "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
-    "storageUnavailable": "Non è stato possibile leggere la revisione salvata dell’allenamento. La tua ultima revisione resta visibile. Riprova per ripristinare i comandi.",
+    "cancelledUnknown": "Annullato. Questo allenamento potrebbe comunque essere stato salvato. Controlla il calendario.",
+    "storageUnavailable": "Impossibile leggere la revisione dell'allenamento salvata. I suoi pulsanti sono temporaneamente disattivati.",
     "title": "Revisione dell'allenamento",
     "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu non ha accettato quella chiave."
+      "rejected": "intervals.icu non ha accettato quella chiave.",
+      "blank": "Inserisci una chiave API di intervals.icu. La connessione attuale non è cambiata.",
+      "notSaved": "La sostituzione non è stata salvata. La connessione precedente non è cambiata. Riprova.",
+      "profileUnavailable": "Il tuo profilo atleta è temporaneamente non disponibile. Riprova.",
+      "wellnessRejected": "intervals.icu non ha consentito la lettura dei dati di benessere di oggi. Controlla la connessione.",
+      "wellnessUnavailable": "I dati di benessere di oggi sono temporaneamente non disponibili. Riprova."
+    },
+    "wellness": {
+      "empty": "Nessun dato di benessere per oggi.",
+      "waiting": "Lettura dei dati di benessere di oggi…"
+    },
+    "review": "Controlla connessione",
+    "profile": {
+      "waiting": "Lettura del profilo atleta…"
     }
   }
 }

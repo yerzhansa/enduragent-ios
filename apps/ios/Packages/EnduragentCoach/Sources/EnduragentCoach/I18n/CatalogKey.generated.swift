@@ -1,6 +1,6 @@
 public enum Catalog {
-	public static let englishLeafCount = 2486
-	public static let keyCount = 2526
+	public static let englishLeafCount = 2497
+	public static let keyCount = 2537
 	public static let accessErrorLocked = CatalogKey(rawValue: "access.error.locked")
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
@@ -171,6 +171,7 @@ public enum Catalog {
 	public static let chatNoticeRetryMessage = CatalogKey(rawValue: "chat.notice.retryMessage")
 	public static let chatNoticeSavedChoice = CatalogKey(rawValue: "chat.notice.savedChoice")
 	public static let chatNoticeSavedUnverified = CatalogKey(rawValue: "chat.notice.savedUnverified")
+	public static let chatNoticeStartingNewConversation = CatalogKey(rawValue: "chat.notice.startingNewConversation")
 	public static let chatNoticeWorking = CatalogKey(rawValue: "chat.notice.working")
 	public static let chatPlanChangeActivePlan = CatalogKey(rawValue: "chat.planChange.activePlan")
 	public static let chatPlanChangeAffectedWorkouts = CatalogKey(rawValue: "chat.planChange.affectedWorkouts")
@@ -775,7 +776,16 @@ public enum Catalog {
 	public static let commonCancel = CatalogKey(rawValue: "common.cancel")
 	public static let commonContinue = CatalogKey(rawValue: "common.continue")
 	public static let commonSave = CatalogKey(rawValue: "common.save")
+	public static let connectErrorBlank = CatalogKey(rawValue: "connect.error.blank")
+	public static let connectErrorNotSaved = CatalogKey(rawValue: "connect.error.notSaved")
+	public static let connectErrorProfileUnavailable = CatalogKey(rawValue: "connect.error.profileUnavailable")
 	public static let connectErrorRejected = CatalogKey(rawValue: "connect.error.rejected")
+	public static let connectErrorWellnessRejected = CatalogKey(rawValue: "connect.error.wellnessRejected")
+	public static let connectErrorWellnessUnavailable = CatalogKey(rawValue: "connect.error.wellnessUnavailable")
+	public static let connectProfileWaiting = CatalogKey(rawValue: "connect.profile.waiting")
+	public static let connectReview = CatalogKey(rawValue: "connect.review")
+	public static let connectWellnessEmpty = CatalogKey(rawValue: "connect.wellness.empty")
+	public static let connectWellnessWaiting = CatalogKey(rawValue: "connect.wellness.waiting")
 	public static let creditsBalance = CatalogKey(rawValue: "credits.balance")
 	public static let creditsBalanceOne = CatalogKey(rawValue: "credits.balance_one")
 	public static let creditsBalanceOther = CatalogKey(rawValue: "credits.balance_other")
@@ -1412,6 +1422,7 @@ public enum Catalog {
 	public static let planViewWorkoutDriftUpdatingThePlan = CatalogKey(rawValue: "plan.view.workoutDrift.updatingThePlan")
 	public static let reviewAccountChanged = CatalogKey(rawValue: "review.accountChanged")
 	public static let reviewAdd = CatalogKey(rawValue: "review.add")
+	public static let reviewCancelledUnknown = CatalogKey(rawValue: "review.cancelledUnknown")
 	public static let reviewCannotVerify = CatalogKey(rawValue: "review.cannotVerify")
 	public static let reviewEarlierVersion = CatalogKey(rawValue: "review.earlierVersion")
 	public static let reviewSaveApprovedAgain = CatalogKey(rawValue: "review.saveApprovedAgain")

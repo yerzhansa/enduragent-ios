@@ -1025,7 +1025,8 @@
       "working": "Le coach travaille…",
       "responseStopped": "Réponse arrêtée. La réponse partielle est conservée.",
       "calendarUnverified": "La modification du calendrier a peut-être été enregistrée. Vérifie ton calendrier avant de renouveler ta demande.",
-      "savedUnverified": "J’ai enregistré tes informations, mais je n’ai pas pu vérifier ma réponse. Réessaie."
+      "savedUnverified": "J’ai enregistré tes informations, mais je n’ai pas pu vérifier ma réponse. Réessaie.",
+      "startingNewConversation": "Démarrage d’une nouvelle conversation…"
     },
     "planChange": {
       "activePlan": "Plan actif",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Je n'ai pas pu vérifier ta connexion à {{service}}, donc rien n'a été modifié. Réessaie dans un instant.",
     "turnStopping": "Cette réponse est en cours d'arrêt. Une fois arrêtée, tu pourras approuver ou annuler la vérification de la séance.",
     "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
-    "storageUnavailable": "Impossible de lire la révision de séance enregistrée. Ta dernière révision reste affichée. Réessaie pour rétablir ses commandes.",
+    "cancelledUnknown": "Annulé. Cette séance a peut-être tout de même été enregistrée. Vérifie ton calendrier.",
+    "storageUnavailable": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés.",
     "title": "Vérification de la séance",
     "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu n’a pas accepté cette clé."
+      "rejected": "intervals.icu n’a pas accepté cette clé.",
+      "blank": "Saisissez une clé API intervals.icu. Votre connexion actuelle reste inchangée.",
+      "notSaved": "Le remplacement n'a pas été enregistré. Votre connexion précédente reste inchangée. Réessayez.",
+      "profileUnavailable": "Votre profil d'athlète est temporairement indisponible. Réessayez.",
+      "wellnessRejected": "intervals.icu n'a pas autorisé la lecture des données de bien-être du jour. Vérifiez votre connexion.",
+      "wellnessUnavailable": "Les données de bien-être du jour sont temporairement indisponibles. Réessayez."
+    },
+    "wellness": {
+      "empty": "Aucune donnée de bien-être pour aujourd'hui.",
+      "waiting": "Lecture des données de bien-être du jour…"
+    },
+    "review": "Vérifier la connexion",
+    "profile": {
+      "waiting": "Lecture du profil d'athlète…"
     }
   }
 }

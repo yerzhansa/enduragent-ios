@@ -1025,7 +1025,8 @@
       "working": "Valmentaja työskentelee…",
       "responseStopped": "Vastaus pysäytetty. Osittainen vastaus säilyy.",
       "calendarUnverified": "Kalenterimuutos on saatettu tallentaa. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
-      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen."
+      "savedUnverified": "Tallensin tietosi, mutta en voinut varmistaa vastaustani. Yritä uudelleen.",
+      "startingNewConversation": "Aloitetaan uusi keskustelu…"
     },
     "planChange": {
       "activePlan": "Aktiivinen suunnitelma",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "En voinut tarkistaa yhteyttäsi palveluun {{service}}, joten mitään ei muutettu. Yritä pian uudelleen.",
     "turnStopping": "Tätä vastausta pysäytetään. Kun se on pysähtynyt, voit hyväksyä tai perua harjoituksen tarkistuksen.",
     "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
-    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Viimeisin tarkistuksesi näkyy edelleen. Yritä uudelleen palauttaaksesi painikkeet käyttöön.",
+    "cancelledUnknown": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi.",
+    "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
     "title": "Harjoituksen tarkistus",
     "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu ei hyväksynyt avainta."
+      "rejected": "intervals.icu ei hyväksynyt avainta.",
+      "blank": "Anna intervals.icu API-avain. Nykyinen yhteytesi ei muuttunut.",
+      "notSaved": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen.",
+      "profileUnavailable": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "wellnessRejected": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi.",
+      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen."
+    },
+    "wellness": {
+      "empty": "Tälle päivälle ei ole hyvinvointitietoja.",
+      "waiting": "Luetaan tämän päivän hyvinvointitietoja…"
+    },
+    "review": "Tarkista yhteys",
+    "profile": {
+      "waiting": "Luetaan urheilijaprofiilia…"
     }
   }
 }

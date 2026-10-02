@@ -9,10 +9,18 @@ import Testing
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog())
+		let statuses = await coach.observeStatus()
+		try #require(
+			try await statuses.status {
+				guard case .connected(let summary, _) = $0.training else { return false }
+				return summary.wellness != .waiting
+			} != nil)
+		let reads = intervals.profileReadCount
 		try await coach.setLanguage(.fixed(.es))
 		let snapshot = try await coach.observedStatus()
 		#expect(snapshot.language == .fixed(.es))
-		#expect(intervals.calls.isEmpty)
+		#expect(intervals.profileReadCount == reads)
+		#expect(intervals.wellnessReadCount == 1)
 	}
 
 	@Test func activationRefreshesTrainingOnce() async {

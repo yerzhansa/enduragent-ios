@@ -1025,7 +1025,8 @@
       "working": "Der Coach arbeitet…",
       "responseStopped": "Antwort gestoppt. Die bisherige Antwort bleibt erhalten.",
       "calendarUnverified": "Die Kalenderänderung wurde möglicherweise gespeichert. Prüfe deinen Kalender, bevor du erneut fragst.",
-      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut."
+      "savedUnverified": "Ich habe deine Angaben gespeichert, konnte meine Antwort aber nicht überprüfen. Bitte versuche es erneut.",
+      "startingNewConversation": "Eine neue Unterhaltung wird gestartet…"
     },
     "planChange": {
       "activePlan": "Aktiver Plan",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Ich konnte deine Verbindung zu {{service}} nicht prüfen. Es wurde nichts geändert. Versuche es gleich noch einmal.",
     "turnStopping": "Diese Antwort wird gerade gestoppt. Danach kannst du die Trainingsprüfung bestätigen oder abbrechen.",
     "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
-    "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Deine letzte Prüfung bleibt sichtbar. Versuche es erneut, um die Bedienelemente wieder zu aktivieren.",
+    "cancelledUnknown": "Abgebrochen. Dieses Training wurde möglicherweise trotzdem gespeichert. Prüfe deinen Kalender.",
+    "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert.",
     "title": "Training prüfen",
     "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert."
+      "rejected": "intervals.icu hat diesen Schlüssel nicht akzeptiert.",
+      "blank": "Gib einen intervals.icu API-Schlüssel ein. Deine aktuelle Verbindung bleibt unverändert.",
+      "notSaved": "Der Ersatz wurde nicht gespeichert. Deine bisherige Verbindung bleibt unverändert. Versuche es erneut.",
+      "profileUnavailable": "Dein Athletenprofil ist vorübergehend nicht verfügbar. Versuche es erneut.",
+      "wellnessRejected": "intervals.icu hat das Lesen der heutigen Wellnessdaten nicht erlaubt. Prüfe deine Verbindung.",
+      "wellnessUnavailable": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut."
+    },
+    "wellness": {
+      "empty": "Keine Wellnessdaten für heute.",
+      "waiting": "Heutige Wellnessdaten werden gelesen…"
+    },
+    "review": "Verbindung prüfen",
+    "profile": {
+      "waiting": "Athletenprofil wird gelesen…"
     }
   }
 }

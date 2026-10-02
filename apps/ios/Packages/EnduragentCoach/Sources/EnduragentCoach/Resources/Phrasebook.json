@@ -21095,6 +21095,112 @@
         }
       }
     },
+    "chat.notice.startingNewConversation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting a new conversation…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciando una nueva conversación…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrage d’une nouvelle conversation…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvio di una nuova conversazione…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine neue Unterhaltung wird gestartet…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een nieuw gesprek wordt gestart…"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starter en ny samtale…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startar en ny konversation…"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starter en ny samtale…"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aloitetaan uusi keskustelu…"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A iniciar uma nova conversa…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciando uma nova conversa…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rozpoczynanie nowej rozmowy…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 대화를 시작하는 중…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい会話を開始しています…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在开始新对话…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在開始新對話…"
+          }
+        }
+      }
+    },
     "chat.notice.working": {
       "localizations": {
         "en": {
@@ -113059,6 +113165,324 @@
         }
       }
     },
+    "connect.error.blank": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an intervals.icu API key. Your current connection is unchanged."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce una clave API de intervals.icu. Tu conexión actual no ha cambiado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saisissez une clé API intervals.icu. Votre connexion actuelle reste inchangée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci una chiave API di intervals.icu. La connessione attuale non è cambiata."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gib einen intervals.icu API-Schlüssel ein. Deine aktuelle Verbindung bleibt unverändert."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voer een intervals.icu API-sleutel in. Je huidige verbinding is ongewijzigd."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indtast en intervals.icu API-nøgle. Din nuværende forbindelse er uændret."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ange en intervals.icu API-nyckel. Din nuvarande anslutning är oförändrad."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skriv inn en intervals.icu API-nøkkel. Din nåværende tilkobling er uendret."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anna intervals.icu API-avain. Nykyinen yhteytesi ei muuttunut."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduza uma chave de API do intervals.icu. A sua ligação atual não foi alterada."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insira uma chave de API do intervals.icu. Sua conexão atual não foi alterada."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wpisz klucz API intervals.icu. Obecne połączenie nie zostało zmienione."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu API 키를 입력하세요. 현재 연결은 변경되지 않았습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuのAPIキーを入力してください。現在の接続は変更されていません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 intervals.icu API 密钥。当前连接未更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請輸入 intervals.icu API 金鑰。目前的連線未變更。"
+          }
+        }
+      }
+    },
+    "connect.error.notSaved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The replacement wasn't saved. Your previous connection is unchanged. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se guardó la sustitución. Tu conexión anterior no ha cambiado. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le remplacement n'a pas été enregistré. Votre connexion précédente reste inchangée. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sostituzione non è stata salvata. La connessione precedente non è cambiata. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Ersatz wurde nicht gespeichert. Deine bisherige Verbindung bleibt unverändert. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De vervanging is niet opgeslagen. Je vorige verbinding is ongewijzigd. Probeer opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstatningen blev ikke gemt. Din tidligere forbindelse er uændret. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ersättningen sparades inte. Din tidigare anslutning är oförändrad. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erstatningen ble ikke lagret. Din tidligere tilkobling er uendret. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A substituição não foi guardada. A sua ligação anterior não foi alterada. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A substituição não foi salva. Sua conexão anterior não foi alterada. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zapisano zamiany. Poprzednie połączenie nie zostało zmienione. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 연결이 저장되지 않았습니다. 이전 연결은 변경되지 않았습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しい接続は保存されませんでした。以前の接続は変更されていません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换未保存。之前的连接未更改。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替換未儲存。先前的連線未變更。請重試。"
+          }
+        }
+      }
+    },
+    "connect.error.profileUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your athlete profile is temporarily unavailable. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu perfil de deportista no está disponible temporalmente. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre profil d'athlète est temporairement indisponible. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il tuo profilo atleta è temporaneamente non disponibile. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dein Athletenprofil ist vorübergehend nicht verfügbar. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je atletenprofiel is tijdelijk niet beschikbaar. Probeer opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din atletprofil er midlertidigt utilgængelig. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din idrottsprofil är tillfälligt otillgänglig. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utøverprofilen din er midlertidig utilgjengelig. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O seu perfil de atleta está temporariamente indisponível. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seu perfil de atleta está temporariamente indisponível. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój profil sportowca jest chwilowo niedostępny. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선수 프로필을 일시적으로 불러올 수 없습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アスリートプロフィールを一時的に取得できません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "运动员资料暂时不可用。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "運動員資料暫時無法取得。請重試。"
+          }
+        }
+      }
+    },
     "connect.error.rejected": {
       "localizations": {
         "en": {
@@ -113161,6 +113585,642 @@
           "stringUnit": {
             "state": "translated",
             "value": "intervals.icu 未接受這組金鑰。"
+          }
+        }
+      }
+    },
+    "connect.error.wellnessRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu did not allow today's wellness read. Review your connection."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu no permitió leer los datos de bienestar de hoy. Revisa tu conexión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu n'a pas autorisé la lecture des données de bien-être du jour. Vérifiez votre connexion."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu non ha consentito la lettura dei dati di benessere di oggi. Controlla la connessione."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu hat das Lesen der heutigen Wellnessdaten nicht erlaubt. Prüfe deine Verbindung."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu stond het lezen van de wellnessgegevens van vandaag niet toe. Controleer je verbinding."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu tillod ikke læsning af dagens wellness. Gennemgå din forbindelse."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu tillät inte läsning av dagens välmåendedata. Kontrollera din anslutning."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu tillot ikke lesing av dagens velværedata. Kontroller tilkoblingen din."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Reveja a sua ligação."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Revise sua conexão."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu nie pozwoliło odczytać dzisiejszych danych samopoczucia. Sprawdź połączenie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu가 오늘의 웰니스 데이터 읽기를 허용하지 않았습니다. 연결을 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icuが今日のウェルネスデータの読み取りを許可しませんでした。接続を確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 未允许读取今天的健康数据。请检查连接。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "intervals.icu 未允許讀取今天的健康資料。請檢查連線。"
+          }
+        }
+      }
+    },
+    "connect.error.wellnessUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's wellness is temporarily unavailable. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos de bienestar de hoy no están disponibles temporalmente. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les données de bien-être du jour sont temporairement indisponibles. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I dati di benessere di oggi sono temporaneamente non disponibili. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die heutigen Wellnessdaten sind vorübergehend nicht verfügbar. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dagens wellness er midlertidigt utilgængelig. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dagens velværedata er midlertidig utilgjengelige. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dzisiejsze dane samopoczucia są chwilowo niedostępne. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 웰니스 데이터를 일시적으로 불러올 수 없습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日のウェルネスデータを一時的に取得できません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天的健康数据暂时不可用。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天的健康資料暫時無法取得。請重試。"
+          }
+        }
+      }
+    },
+    "connect.profile.waiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading athlete profile…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leyendo el perfil de deportista…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture du profil d'athlète…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lettura del profilo atleta…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Athletenprofil wird gelesen…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atletenprofiel lezen…"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Læser atletprofil…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Läser idrottsprofil…"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leser utøverprofil…"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luetaan urheilijaprofiilia…"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ler o perfil de atleta…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lendo o perfil de atleta…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odczytywanie profilu sportowca…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선수 프로필 읽는 중…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アスリートプロフィールを読み取り中…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取运动员资料…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在讀取運動員資料…"
+          }
+        }
+      }
+    },
+    "connect.review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar conexión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérifier la connexion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla connessione"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung prüfen"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbinding controleren"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gennemgå forbindelse"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrollera anslutning"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontroller tilkobling"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarkista yhteys"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rever ligação"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar conexão"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprawdź połączenie"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 확인"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続を確認"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查连接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢查連線"
+          }
+        }
+      }
+    },
+    "connect.wellness.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No wellness data for today."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos de bienestar para hoy."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune donnée de bien-être pour aujourd'hui."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun dato di benessere per oggi."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Wellnessdaten für heute."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen wellnessgegevens voor vandaag."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen wellnessdata for i dag."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inga välmåendedata för idag."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen velværedata for i dag."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tälle päivälle ei ole hyvinvointitietoja."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há dados de bem-estar para hoje."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não há dados de bem-estar para hoje."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak danych samopoczucia na dziś."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 웰니스 데이터가 없습니다."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日のウェルネスデータはありません。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天没有健康数据。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天沒有健康資料。"
+          }
+        }
+      }
+    },
+    "connect.wellness.waiting": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading today's wellness…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leyendo los datos de bienestar de hoy…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lecture des données de bien-être du jour…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lettura dei dati di benessere di oggi…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heutige Wellnessdaten werden gelesen…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wellnessgegevens van vandaag lezen…"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Læser dagens wellness…"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Läser dagens välmåendedata…"
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leser dagens velværedata…"
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luetaan tämän päivän hyvinvointitietoja…"
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ler os dados de bem-estar de hoje…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lendo os dados de bem-estar de hoje…"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Odczytywanie dzisiejszych danych samopoczucia…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오늘의 웰니스 데이터 읽는 중…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日のウェルネスデータを読み取り中…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取今天的健康数据…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在讀取今天的健康資料…"
           }
         }
       }
@@ -199815,6 +200875,112 @@
         }
       }
     },
+    "review.cancelledUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled. This workout may still have been saved. Check your calendar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado. Es posible que este entrenamiento se haya guardado de todos modos. Revisa tu calendario."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulé. Cette séance a peut-être tout de même été enregistrée. Vérifie ton calendrier."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annullato. Questo allenamento potrebbe comunque essere stato salvato. Controlla il calendario."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abgebrochen. Dieses Training wurde möglicherweise trotzdem gespeichert. Prüfe deinen Kalender."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelado. Este treino pode ter sido salvo mesmo assim. Confira seu calendário."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anulowano. Ten trening mógł mimo to zostać zapisany. Sprawdź swój kalendarz."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소되었습니다. 이 운동이 저장되었을 수도 있습니다. 캘린더를 확인하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセルしました。このワークアウトは保存されている可能性があります。カレンダーを確認してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消。此训练可能仍已保存。请检查你的日历。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消。此訓練可能仍已儲存。請檢查你的行事曆。"
+          }
+        }
+      }
+    },
     "review.cannotVerify": {
       "localizations": {
         "en": {
@@ -200240,103 +201406,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't read the saved workout review. Your last review is still shown. Retry to restore its controls."
+            "value": "Couldn't read the saved workout review. Its buttons are temporarily disabled."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo leer la revisión del entrenamiento guardada. Se sigue mostrando tu última revisión. Vuelve a intentarlo para recuperar los controles."
+            "value": "No se pudo leer la revisión del entrenamiento guardada. Sus botones están desactivados temporalmente."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impossible de lire la révision de séance enregistrée. Ta dernière révision reste affichée. Réessaie pour rétablir ses commandes."
+            "value": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non è stato possibile leggere la revisione salvata dell’allenamento. La tua ultima revisione resta visibile. Riprova per ripristinare i comandi."
+            "value": "Impossibile leggere la revisione dell'allenamento salvata. I suoi pulsanti sono temporaneamente disattivati."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Deine letzte Prüfung bleibt sichtbar. Versuche es erneut, um die Bedienelemente wieder zu aktivieren."
+            "value": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen."
+            "value": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den gemte træningsgennemgang kunne ikke læses. Din seneste gennemgang vises stadig. Prøv igen for at gendanne betjeningen."
+            "value": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det gick inte att läsa den sparade träningsgranskningen. Din senaste granskning visas fortfarande. Försök igen för att återställa kontrollerna."
+            "value": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den lagrede treningsgjennomgangen kunne ikke leses. Den siste gjennomgangen din vises fortsatt. Prøv igjen for å gjenopprette kontrollene."
+            "value": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Viimeisin tarkistuksesi näkyy edelleen. Yritä uudelleen palauttaaksesi painikkeet käyttöön."
+            "value": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível ler a revisão do treino guardada. A tua última revisão continua visível. Tenta novamente para restaurar os controlos."
+            "value": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível ler a revisão do treino salva. Sua última revisão continua visível. Tente novamente para restaurar os controles."
+            "value": "Não foi possível ler a revisão do treino salva. Os botões estão temporariamente desativados."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie udało się odczytać zapisanego przeglądu treningu. Ostatni przegląd jest nadal widoczny. Spróbuj ponownie, aby przywrócić przyciski."
+            "value": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "저장된 운동 검토를 읽지 못했습니다. 마지막 검토가 계속 표시됩니다. 버튼을 다시 사용하려면 재시도하세요."
+            "value": "저장된 운동 검토 내용을 읽을 수 없습니다. 버튼이 일시적으로 비활성화되었습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存済みのワークアウト確認を読み取れませんでした。前回の確認を引き続き表示しています。操作ボタンを有効にするには再試行してください。"
+            "value": "保存されたワークアウトの確認内容を読み取れませんでした。ボタンは一時的に無効になっています。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法读取已保存的训练审核。仍显示上次的审核。请重试以恢复操作按钮。"
+            "value": "无法读取已保存的训练审核内容。其按钮已暂时禁用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法讀取已儲存的訓練審核。仍顯示上次的審核。請重試以恢復操作按鈕。"
+            "value": "無法讀取已儲存的訓練審核內容。其按鈕已暫時停用。"
           }
         }
       }

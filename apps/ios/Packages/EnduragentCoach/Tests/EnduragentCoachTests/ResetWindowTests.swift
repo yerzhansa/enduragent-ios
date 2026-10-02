@@ -107,7 +107,7 @@ import Testing
 			])
 		transport.respond = ScriptedReply.sequence(
 			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
-		#expect(await coach().startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach().resetAndSettle(in: .main) == .started(memory: .saved))
 		let window = try #require(flushed().first)
 		#expect(!window.contains("Question 0"))
 		#expect(window.contains("Question 1"))
@@ -118,7 +118,7 @@ import Testing
 		let (coach, user) = try await resetAcrossLateReply()
 		let next =
 			relaunch ? await makeCoach(transport: transport, store: store, clock: clock) : coach
-		#expect(await next.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await next.resetAndSettle(in: .main) == .started(memory: .saved))
 		let requests = sent(.memoryFlush, by: transport)
 		try #require(requests.count == 2)
 		#expect(!requests[0].messages.contains { $0.unstampedContent == "Remember Saturdays" })
@@ -168,7 +168,7 @@ import Testing
 		let coach = await coach()
 		let before = await coach.transcript(.main)
 		try #require(before.count == 2)
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
 		let boundary = try #require(conversation.current.id.boundary)

@@ -8,6 +8,7 @@ History contains archived conversations and opens each one read-only. There is s
 - `history-list` lists archived conversations newest first under the catalog title `History`, shared with the toolbar action. Rows show the first athlete message, close reason, and start day.
 - `history-reasons` shows `You started a new conversation` or `Earlier chat` for New conversation or v1 content respectively.
 - `history-archived` opens `Past conversation` with the saved turns and review outcomes. `archive.readOnly` says `Past conversations are read-only.` There is no active composer or recovery action in the archived content.
+- `history-formatted` uses the same reply renderer as Chat, including dimmed stopped text and the whole-source parser fallback.
 - `history-upgrade` puts v1 chats in History and opens the ongoing conversation on the welcome.
 - `history-unavailable` shows the catalog failure sentence if records cannot be read. Opening History starts no model request and runs no pending memory work.
 
@@ -26,6 +27,7 @@ Preconditions:
 | Action and command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> HistoryListProof` | History is empty after the first reply; `/start` creates one row, `history-empty`, `history-list`. |
+| `sim.mjs test <run id> ReplyFormattingProof ReplyFormattingDarkProof ReplyStreamingStoppedProof ReplyFallbackProof` | A New conversation archive preserves formatted replies, stopped prefixes and the literal fallback. The [conversation map](./chat.md) names the attachments and parity procedure. |
 | `sim.mjs test <run id> HistoryArchivedProof` | The toolbar reset creates a row; opening it shows the prior question, reply, and read-only notice, `history-row`, `history-archived`. |
 | `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A 13-hour gap across a relaunch leaves History empty, `m1-15-overnight-history`. |
 | `sim.mjs test <run id> UpgradeHistoryProof` | Two v1 rows read Earlier chat; one opens read-only, `upgrade-welcome`, `upgrade-history`, `upgrade-history-read-only`. Missing prior data makes the proof skip. |

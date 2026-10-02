@@ -26,7 +26,6 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm check:source
       - name: Install pinned SwiftLint
         run: |
           curl --fail --location --output /tmp/swiftlint.zip https://github.com/realm/SwiftLint/releases/download/0.65.1/portable_swiftlint.zip
@@ -34,6 +33,8 @@ jobs:
           unzip -q /tmp/swiftlint.zip -d /tmp/swiftlint
           echo /tmp/swiftlint >> "$GITHUB_PATH"
           /tmp/swiftlint/swiftlint version
+      - run: pnpm test:tools
+      - run: pnpm check:source
       - run: pnpm lint:swift
       - run: pnpm check:format
       - run: xcodebuild -version

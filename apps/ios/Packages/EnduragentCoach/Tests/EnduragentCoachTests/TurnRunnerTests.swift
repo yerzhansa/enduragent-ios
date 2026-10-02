@@ -75,8 +75,8 @@ import Testing
 	}
 
 	@Test func toolErrorReturnsToTheModelAsAResult() async throws {
-		intervals.loadFailure = IntervalsError(
-			code: "down", details: "intervals.icu is unavailable.")
+		let failure = IntervalsError(code: "down", details: "intervals.icu is unavailable.")
+		intervals.setWellnessOutcome(.failure(failure))
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "intervals_fetch_wellness", arguments: #"{"days":7}"#),
@@ -94,8 +94,8 @@ import Testing
 	}
 
 	@Test func failedWellnessReadKeepsTheReplyAndReportsTheTrainingFailure() async throws {
-		intervals.loadFailure = IntervalsError(
-			code: "down", details: "private upstream detail", status: 503)
+		let failure = IntervalsError(code: "down", details: "private upstream detail", status: 503)
+		intervals.setWellnessOutcome(.failure(failure))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -362,7 +362,7 @@ import Testing
 			transport.requests.map(\.model.rawValue) == [
 				testModel.rawValue, testModel.rawValue, testModel.rawValue,
 			])
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(
 			sent(.memoryFlush, by: transport).map(\.model.rawValue) == [
 				testModel.rawValue, testModel.rawValue,

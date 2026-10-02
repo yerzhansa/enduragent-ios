@@ -11,7 +11,8 @@ extension TurnEvidenceTests {
 				string:
 					"https://intervals.icu/api/v1/athlete/i424242/wellness?oldest=1998-06-07&newest=1998-06-13"
 			))
-		intervals.loadFailure = URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])
+		intervals.setWellnessOutcome(
+			.failure(URLError(.timedOut, userInfo: [NSURLErrorFailingURLErrorKey: url])))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Easy spin today."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)

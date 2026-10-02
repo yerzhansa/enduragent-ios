@@ -299,30 +299,52 @@ enum TutorialHarness {
 		let debug = named(app, "settings.debug")
 		wait(debug, until: .hittable)
 		debug.tap()
-		wait(named(app, "debug.records"))
+		_ = debugRow(app, "debug.records")
 	}
 
 	static func fixtureControl(_ app: XCUIApplication, _ identifier: String) {
 		openDebug(app)
-		let control = named(app, identifier)
-		wait(control, until: .hittable)
-		control.tap()
+		debugRow(app, identifier).tap()
 		returnToChat(app)
+	}
+
+	enum ScrollDirection {
+		case up, down
+	}
+
+	static func scroll(
+		_ app: XCUIApplication, to element: XCUIElement, direction: ScrollDirection = .up
+	) {
+		wait(
+			until: {
+				if element.exists && element.isHittable { return true }
+				switch direction {
+				case .up: app.swipeUp()
+				case .down: app.swipeDown()
+				}
+				return element.exists && element.isHittable
+			}, message: "Could not scroll to \(element)")
+	}
+
+	static func debugRow(
+		_ app: XCUIApplication, _ identifier: String, direction: ScrollDirection = .up
+	) -> XCUIElement {
+		let row = named(app, identifier)
+		scroll(app, to: row, direction: direction)
+		return row
 	}
 
 	static func openRecords(_ app: XCUIApplication) {
 		openDebug(app)
-		let count = named(app, "fixture.requestCount")
-		wait(count)
+		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
-		named(app, "debug.records").tap()
+		debugRow(app, "debug.records", direction: .down).tap()
 		wait(named(app, "records.device"))
 	}
 
 	static func openCredentials(_ app: XCUIApplication) {
 		openDebug(app)
-		let credentials = named(app, "debug.credentials")
-		wait(credentials)
+		let credentials = debugRow(app, "debug.credentials")
 		credentials.tap()
 		wait(named(app, "credentials.outcome"))
 	}
@@ -356,8 +378,7 @@ enum TutorialHarness {
 
 	static func historyHead(_ app: XCUIApplication) -> String {
 		openDebug(app)
-		let head = named(app, "fixture.historyHead")
-		wait(head)
+		let head = debugRow(app, "fixture.historyHead")
 		let label = head.label
 		returnToChat(app)
 		return label
@@ -365,8 +386,7 @@ enum TutorialHarness {
 
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
 		openDebug(app)
-		let count = named(app, "fixture.requestCount")
-		wait(count)
+		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
 		returnToChat(app)
 	}

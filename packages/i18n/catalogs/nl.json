@@ -1025,7 +1025,8 @@
       "working": "De coach is bezig…",
       "responseStopped": "Antwoord gestopt. Het gedeeltelijke antwoord blijft bewaard.",
       "calendarUnverified": "De kalenderwijziging is mogelijk opgeslagen. Controleer je kalender voordat je het opnieuw vraagt.",
-      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw."
+      "savedUnverified": "Ik heb je informatie opgeslagen, maar kon mijn antwoord niet controleren. Probeer het opnieuw.",
+      "startingNewConversation": "Een nieuw gesprek wordt gestart…"
     },
     "planChange": {
       "activePlan": "Actief trainingsschema",
@@ -2913,7 +2914,8 @@
     "cannotVerify": "Ik kon je verbinding met {{service}} niet controleren, dus er is niets gewijzigd. Probeer het zo opnieuw.",
     "turnStopping": "Dit antwoord wordt gestopt. Daarna kun je de trainingsbeoordeling goedkeuren of annuleren.",
     "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
-    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. Je laatste beoordeling blijft zichtbaar. Probeer het opnieuw om de bediening te herstellen.",
+    "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
+    "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
     "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
     "workout": {
@@ -2980,7 +2982,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd."
+      "rejected": "intervals.icu heeft die sleutel niet geaccepteerd.",
+      "blank": "Voer een intervals.icu API-sleutel in. Je huidige verbinding is ongewijzigd.",
+      "notSaved": "De vervanging is niet opgeslagen. Je vorige verbinding is ongewijzigd. Probeer opnieuw.",
+      "profileUnavailable": "Je atletenprofiel is tijdelijk niet beschikbaar. Probeer opnieuw.",
+      "wellnessRejected": "intervals.icu stond het lezen van de wellnessgegevens van vandaag niet toe. Controleer je verbinding.",
+      "wellnessUnavailable": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw."
+    },
+    "wellness": {
+      "empty": "Geen wellnessgegevens voor vandaag.",
+      "waiting": "Wellnessgegevens van vandaag lezen…"
+    },
+    "review": "Verbinding controleren",
+    "profile": {
+      "waiting": "Atletenprofiel lezen…"
     }
   }
 }

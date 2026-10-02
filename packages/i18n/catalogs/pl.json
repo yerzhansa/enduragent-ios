@@ -1041,7 +1041,8 @@
       "working": "Trener pracuje…",
       "responseStopped": "Odpowiedź zatrzymana. Częściowa odpowiedź została zachowana.",
       "calendarUnverified": "Zmiana w kalendarzu mogła zostać zapisana. Sprawdź kalendarz, zanim poprosisz ponownie.",
-      "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie."
+      "savedUnverified": "Twoje informacje zostały zapisane, ale nie udało mi się zweryfikować odpowiedzi. Spróbuj ponownie.",
+      "startingNewConversation": "Rozpoczynanie nowej rozmowy…"
     },
     "planChange": {
       "activePlan": "Aktywny plan",
@@ -2985,7 +2986,8 @@
     "cannotVerify": "Nie mogę sprawdzić Twojego połączenia z {{service}}, więc nic się nie zmieniło. Spróbuj ponownie za chwilę.",
     "turnStopping": "Ta odpowiedź jest zatrzymywana. Po jej zatrzymaniu możesz zatwierdzić lub anulować przegląd treningu.",
     "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
-    "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Ostatni przegląd jest nadal widoczny. Spróbuj ponownie, aby przywrócić przyciski.",
+    "cancelledUnknown": "Anulowano. Ten trening mógł mimo to zostać zapisany. Sprawdź swój kalendarz.",
+    "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone.",
     "title": "Przegląd treningu",
     "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
     "workout": {
@@ -3060,7 +3062,20 @@
   },
   "connect": {
     "error": {
-      "rejected": "intervals.icu nie zaakceptował tego klucza."
+      "rejected": "intervals.icu nie zaakceptował tego klucza.",
+      "blank": "Wpisz klucz API intervals.icu. Obecne połączenie nie zostało zmienione.",
+      "notSaved": "Nie zapisano zamiany. Poprzednie połączenie nie zostało zmienione. Spróbuj ponownie.",
+      "profileUnavailable": "Twój profil sportowca jest chwilowo niedostępny. Spróbuj ponownie.",
+      "wellnessRejected": "intervals.icu nie pozwoliło odczytać dzisiejszych danych samopoczucia. Sprawdź połączenie.",
+      "wellnessUnavailable": "Dzisiejsze dane samopoczucia są chwilowo niedostępne. Spróbuj ponownie."
+    },
+    "wellness": {
+      "empty": "Brak danych samopoczucia na dziś.",
+      "waiting": "Odczytywanie dzisiejszych danych samopoczucia…"
+    },
+    "review": "Sprawdź połączenie",
+    "profile": {
+      "waiting": "Odczytywanie profilu sportowca…"
     }
   }
 }

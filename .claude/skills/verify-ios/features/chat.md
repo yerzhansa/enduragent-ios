@@ -8,6 +8,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-send` saves the athlete message before it appears as accepted, then clears the composer. Send is disabled during acceptance, so another tap cannot duplicate that draft.
 - `chat-draft` keeps unsent text across relaunch. A failed save leaves the draft and shows `Not sent. Your draft is still here.` in `chat.composer.notSent`.
 - `chat-reply` shows the settled reply without a working row. `chat-working` shows `Coach is working…` during collection, queued work, generation, and retry waits. `chat-streaming` keeps that row below the growing reply until settlement.
+- `chat-formatted-reply` draws headings, inline styles, nested lists, code and aligned tables through the package reply document. Only HTTP and HTTPS links are tappable. Literal markup and parser fallback keep their literal VoiceOver text. The same renderer draws streaming and stopped replies and archived conversations.
 - `chat-coalesce` joins free-text messages sent inside the default 1.5-second collection window. A message accepted after work starts gets a later turn.
 - `chat-stop` stops the running and queued turns when the athlete taps `chat.stop`. A later message can still run. Saved work determines which interruption notice appears and whether Try again is offered.
 - `chat-expiry` settles interrupted work when its execution lease expires. The running turn keeps observed partial text; queued turns do not start.
@@ -15,6 +16,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-failed` displays `chat.turn.notice` and at most one recovery action for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
 - `chat-retry` keeps working visible while the coach retries a recoverable failure. Server and network failures allow two retries, timeouts one, rate limits three, and context overflow three. Once reply text or saved work prevents replay, the coach settles instead.
 - `chat-saved-unverified` shows the saved-work notice without Try again when information was saved before the response failed. The athlete must send a new message.
+- `chat-step-limit` makes one final model request without tools after ten tool steps. An empty finalization shows the catalog fallback in the chosen language, including after relaunch and in History. A prior memory change stays saved without replay or Try again.
 - `chat-try-again` answers the same accepted message in a new attempt. It does not add another athlete-message row.
 - `chat-relaunch` keeps settled turns and the draft. `chat-accepted-relaunch` marks an accepted but unstarted message as received before close; it waits for Try again.
 - `chat-interrupted-relaunch` marks started work interrupted after a process kill. It makes no automatic model request and restores no uncommitted partial reply.
@@ -24,7 +26,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-summary` summarizes older whole turns when the prompt budget is exceeded while preserving the visible transcript. Debug can show the summary at the head of the next prompt.
 - `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
 - `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` treats `/plan` as ordinary text and omits it from the list.
-- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. It waits behind current work, saves memory, archives earlier turns, and shows the welcome with a result notice. A pending workout review remains pending.
+- `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
 - `chat-session-settings` edits history ratio and context-window override through Settings, Debug, Session. A rejected value preserves the stored value; a saved value affects later turns.
@@ -106,6 +108,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> HangWatchdogProof` | A hung reply stays working, then ends with the provider notice after the watchdog attempts, `hang-working`, `hang-watchdog`, `hang-watchdog-records`. |
 | `sim.mjs test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
 | `sim.mjs test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
+| `sim.mjs test <run id> StepLimitFallbackProof StepLimitFallbackDarkProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
 | `sim.mjs test <run id> NoticeCopyProof` | Buy Credits and Restore purchases open Credits; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
 | `sim.mjs test <run id> AccessNoticeProof` | Missing access opens Connect; locked keychain keeps the message and offers Try again, `access-not-configured-connect`, `access-locked`. |
 
@@ -142,6 +145,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> SummaryFirstProof` | Records show compaction; later prompts begin `[Previous conversation summary]`, `summary-records`, `summary-first-next-turn`. |
 | `sim.mjs test <run id> NewConversationProof` | The toolbar reset archives the old messages, saves memory, and restores the welcome, `new-conversation`, `new-conversation-records`. |
 | `sim.mjs test <run id> SlashStartProof` | `/start` opens the same new-conversation path, `slash-start`, `slash-start-records`. |
+| `sim.mjs test <run id> QueuedConversationProof` | Both `/start` and toolbar admission leave the old conversation and exactly one starting row during the reply and memory save, free Send, and then show the welcome with the queued message. Its third test checks the later boundary-failure notice. Attachments use `queued-slash-*`, `queued-toolbar-*`, and `queued-reset-failure`. |
 | `sim.mjs test <run id> NewConversationWorkingProof` | The old conversation shows working while reset memory saving runs, then opens the welcome, `new-conversation-working`. |
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
@@ -151,13 +155,27 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 
 Settings, Debug, Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
 
+### Formatted replies
+
+| Command | Observable result and attachment |
+| --- | --- |
+| `sim.mjs test <run id> ReplyFormattingProof ReplyFormattingDarkProof` | Complete long reply and code, two tappable links, supported formatting without markup in accessibility labels, and identical History rendering. `reply-chat-long-light` and `reply-chat-long-dark` capture the approved `chat-long` comparison state. The chat and History end attachments show `END FORMATTED REPLY`. |
+| `sim.mjs test <run id> ReplyStreamingStoppedProof` | A heading and markup-free formatted paragraph while `chat.working` shows, Stop within three seconds, unchanged partial text, and equal stopped labels in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-streaming-prefix`, `reply-formatted-stopped-end`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
+| `sim.mjs test <run id> ReplyFallbackProof` | The Debug parser fault shows the complete literal source, with zero links, in Chat and History. `reply-fallback-chat-top`, `reply-fallback-chat-end` and `reply-fallback-history` capture it. |
+
+Compare each `reply-chat-long-<theme>` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels under G38. The markup-free assertion applies to supported formatting.
+
+Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before returning with `TutorialHarness.returnToChat`. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
+
 ## Gotchas
 
+- `fixture:formatted` finishes the shared long reply. `fixture:formatted-then-hang` streams its first half in 128-character deltas and then waits for Stop. `-EnduragentFixtureReplyParser fail` selects the whole-source fallback only in Debug.
 - A plain fixture reply is fast. Use `fixture:slow` for working and streaming captures, `fixture:hang` for the watchdog, `fixture:text-then-hang` for observed reply text, and `fixture:memory-then-hang` for saved work before interruption.
 - `fixture:fail <kind>` fails one model request. Exhaustion needs `500 x3`, `network x3`, `timeout x2`, `overflow x4`, or `429 <seconds> x4`. A single retryable failure normally ends with a successful reply.
 - Retry waits use real elapsed time even though the fixture date is fixed. A 90-second rate limit takes several minutes to exhaust and keeps Try again disabled after the notice appears.
 - `fixture:memory-then-fail` saves memory before the failure; `fixture:teach` saves it and replies. `fixture:long` expands replies enough to reach memory and summary budgets. `fixture:flush-partial` arms the next memory save, including a New conversation save.
-- In Debug, tap `fixture.failNextAppend`, return to the conversation with Back, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
+- `fixture:step-limit` performs ten tool steps and returns an empty tool-free finalization. `fixture:memory-then-step-limit` saves memory on the first step, then reads training data for the remaining nine steps before the same empty finalization.
+- In Debug, tap `fixture.failNextAppend`, return with `TutorialHarness.returnToChat`, then send a message. Its acceptance fails and its draft stays in the composer. Unknown model directives receive a diagnostic assistant reply. Turn failures use `chat.turn.notice`.
 - Each queued request keeps its own script and delays. To queue behind work, wait for `turnClaim 1` in Records after `fixture:hang` before sending another message.
 - Try again on a fixture directive message replays the scripted reply, not the directive. A retried hang can therefore complete.
 - The Debug button `fixture.expire` expires current leases without sending a message. `-EnduragentFixtureHost "expire-after N"` expires every lease N seconds after it starts.
@@ -168,5 +186,5 @@ Settings, Debug, Session uses the field names `historyBudgetRatio` and `contextW
 - Records and Leases read when opened or refreshed. Records has `records.refresh`; Leases has a visible Refresh button without an identifier.
 - `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
-- Settings and History push onto the conversation navigation stack. Use Back until `chat.settings` is hittable before interacting with the conversation.
+- Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
 - Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.

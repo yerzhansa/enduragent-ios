@@ -130,7 +130,7 @@ import Testing
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
 		#expect(replyText(try #require(await coach.settledState(of: turn, in: .main))) == "Noted.")
-		#expect(await coach.startNewConversation(in: .main) == .started(memory: .saved))
+		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		let window = try #require(sent(.memoryFlush, by: transport).last).messages.map(
 			\.unstampedContent)
 		#expect(window.filter { $0 == "Remember Saturdays" }.count == 1)

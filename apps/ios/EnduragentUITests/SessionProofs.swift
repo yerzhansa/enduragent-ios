@@ -42,8 +42,7 @@ final class LanguagePickerProof: XCTestCase {
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.openDebug(app)
-		let replyLanguage = TutorialHarness.named(app, "fixture.replyLanguage")
-		TutorialHarness.wait(replyLanguage)
+		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
 			replyLanguage.label.hasPrefix("The athlete chose French (Français)."),
 			"reply language reads \(replyLanguage.label)")
@@ -109,8 +108,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		TutorialHarness.attach(self, name: "m1-12-automatic-fr-phone", app: app)
 		TutorialHarness.openDebug(app)
-		let replyLanguage = TutorialHarness.named(app, "fixture.replyLanguage")
-		TutorialHarness.wait(replyLanguage)
+		let replyLanguage = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
 			replyLanguage.label.hasPrefix(
 				"No language is saved. Reply in the language of the athlete's latest message"),
@@ -238,7 +236,7 @@ final class SessionRejectionProof: XCTestCase {
 		let back = app.navigationBars["Session"].buttons["Debug"]
 		TutorialHarness.wait(back, until: .hittable)
 		back.tap()
-		TutorialHarness.named(app, "debug.records").tap()
+		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
 		TutorialHarness.returnToChat(app)
@@ -289,8 +287,7 @@ final class RatioAppliesProof: XCTestCase {
 enum SessionDebug {
 	static func open(_ app: XCUIApplication) {
 		TutorialHarness.openDebug(app)
-		let session = TutorialHarness.named(app, "debug.session")
-		TutorialHarness.wait(session)
+		let session = TutorialHarness.debugRow(app, "debug.session")
 		session.tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "session.historyBudgetRatio.stored"))
 	}

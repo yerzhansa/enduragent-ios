@@ -27,7 +27,7 @@ import SwiftUI
 				NavigationLink("Leases", value: ShellDestination.debugLeases)
 					.accessibilityIdentifier("debug.leases")
 				if model.services.fixture != nil {
-					FixtureCountsDebugView(services: model.services)
+					FixtureCountsDebugView(model: model)
 				}
 			}
 			.navigationTitle(Self.title)
