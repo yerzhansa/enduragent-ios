@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = realpathSync(fileURLToPath(new URL('../../../../', import.meta.url)));
 const [device, evidence] = process.argv.slice(2);
 if (process.argv.length !== 4 || !device || !evidence || !process.stdin.isTTY) {
-  throw new Error('Usage: node .claude/skills/verify-ios/helpers/choices.mjs <device id> <new evidence folder>. An operator terminal is required.');
+  throw new Error('Usage: node .agents/skills/verify-ios/helpers/choices.mjs <device id> <new evidence folder>. An operator terminal is required.');
 }
 const folder = resolve(evidence);
 const buildFolder = '/tmp/enduragent-dd/U11-1-phone';

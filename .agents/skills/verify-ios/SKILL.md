@@ -12,17 +12,17 @@ Simulator proofs run in fixture mode, `-EnduragentFixture first-week`. `AppServi
 Every simulator step goes through one helper. Run it by path from the checkout you are verifying. It resolves the source tree from its own location, without git, so an exported tree and a shell started elsewhere both work. Source manifests walk `apps/ios` and omit generated projects and build caches. An export needs no symlink or temporary git repository. Set `ENDURAGENT_VERIFY_REVISION` to the exported commit SHA to record its provenance. Without it, `run.json` says `exported-tree` and records a source digest.
 
 ```sh
-.claude/skills/verify-ios/helpers/sim.mjs build
-.claude/skills/verify-ios/helpers/sim.mjs create onboarding
-.claude/skills/verify-ios/helpers/sim.mjs doctor <run id>
-.claude/skills/verify-ios/helpers/sim.mjs install <run id>
-.claude/skills/verify-ios/helpers/sim.mjs test <run id> FirstConversationProof
-.claude/skills/verify-ios/helpers/sim.mjs cleanup <run id>
+.agents/skills/verify-ios/helpers/sim.mjs build
+.agents/skills/verify-ios/helpers/sim.mjs create onboarding
+.agents/skills/verify-ios/helpers/sim.mjs doctor <run id>
+.agents/skills/verify-ios/helpers/sim.mjs install <run id>
+.agents/skills/verify-ios/helpers/sim.mjs test <run id> FirstConversationProof
+.agents/skills/verify-ios/helpers/sim.mjs cleanup <run id>
 ```
 
 Every command accepts `--build-folder <path>`. The flag overrides `ENDURAGENT_VERIFY_BUILD`; both default to `<tree>/DerivedData`. Use the same folder for build, doctor, install, and test. Milestone 2 builds go under `/tmp/enduragent-dd/`, for example `ENDURAGENT_VERIFY_BUILD=/tmp/enduragent-dd/VSKILL`.
 
-Below, `sim.mjs` means `.claude/skills/verify-ios/helpers/sim.mjs`. `create` prints the run id, for example `2026-10-01-120000-a1b2c3d4-onboarding`. Commands for that simulator take its run id.
+Below, `sim.mjs` means `.agents/skills/verify-ios/helpers/sim.mjs`. `create` prints the run id, for example `2026-10-01-120000-a1b2c3d4-onboarding`. Commands for that simulator take its run id.
 
 The feature map in [features/README.md](features/README.md) is the recipe for each feature. A proof that drives one convenient entry point is incomplete when the feature file lists others.
 
@@ -96,7 +96,7 @@ Debug has two fault controls. `fixture.failNextAppend` arms the next record appe
 ## UI test run
 
 ```sh
-.claude/skills/verify-ios/helpers/sim.mjs test <run id> FirstConversationProof
+.agents/skills/verify-ios/helpers/sim.mjs test <run id> FirstConversationProof
 ```
 
 Pass one or more proof classes, or `Class/testMethod`. The helper runs `test-without-building` against the products of `sim.mjs build`, so several test runs share one build. After a source change, run `build` and `install` first. The doctor flags a stale build. The command is:
@@ -112,7 +112,7 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 **Every proof split across owned simulators.** One command builds once, discovers every UI proof class, splits them across two simulators, and deletes both after the run:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS=/Users/yerzhansagyt/Library/Logs/enduragent-m2/VSKILL/simulator-proof node .claude/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/VSKILL --shards 2
+caffeinate -i env ENDURAGENT_VERIFY_RUNS=/Users/yerzhansagyt/Library/Logs/enduragent-m2/VSKILL/simulator-proof node .agents/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/VSKILL --shards 2
 ```
 
 Change `--shards` to choose N simulators. Append class names to run a subset, for example `suite --shards 2 FirstConversationProof ConfirmedPreviewDarkProof`. A suite takes classes, not individual methods. Each shard runs light proofs first and `DarkProof` classes second, with `-parallel-testing-enabled NO` on every xcodebuild call. Its `finally` cleanup also runs after a failed proof or boot. The coordinator waits for every shard and checks cleanup again before reporting.
@@ -128,8 +128,8 @@ The history and legacy-review upgrade proofs use committed v1 stores and must pa
 **Upgrade proofs.** Build the current checkout and run both proofs together:
 
 ```sh
-.claude/skills/verify-ios/helpers/sim.mjs build
-.claude/skills/verify-ios/helpers/sim.mjs test <run id> UpgradeHistoryProof LegacyReviewNoticeProof
+.agents/skills/verify-ios/helpers/sim.mjs build
+.agents/skills/verify-ios/helpers/sim.mjs test <run id> UpgradeHistoryProof LegacyReviewNoticeProof
 ```
 
 Require `2 passed, 0 failed, 0 skipped`. `TutorialHarness.launchUpgrade` uses `FixtureArguments` with `.v1History` or `.v1Review` and completed onboarding, then accepts AI-provider consent. Debug fixture preparation copies the corresponding synced and local databases from `apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade` into the app's fixture directory before the store opens.
@@ -209,14 +209,14 @@ The app reports Stop, a finished reply and a failed reply as successful system c
 
 ### ChoicesInConversationCheck
 
-Unit U11-1 adds `.claude/skills/verify-ios/helpers/choices.mjs` and `EnduragentPhoneTests/ChoicesInConversationCheck`. Run this separate proof only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. G34 leaves this proof pending while the operator is away.
+Unit U11-1 adds `.agents/skills/verify-ios/helpers/choices.mjs` and `EnduragentPhoneTests/ChoicesInConversationCheck`. Run this separate proof only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. G34 leaves this proof pending while the operator is away.
 
 Use the phone's own Credits, the live built-in model, English, and a plain launch. The operator selects Credits and handles consent, credentials, onboarding, or system alerts before the run. The helper records the model ID from the built app's `OpenRouterModel` value. It uses only the physical-device `EnduragentPhone` scheme, and the capture test compiles out on simulators. It never approves a workout review. The messages include synthetic medical symptoms and remain in the phone's conversation records.
 
 Supply the connected phone's identifier and a new local evidence folder. The helper keeps build products under `/tmp/enduragent-dd/U11-1-phone`.
 
 ```sh
-node .claude/skills/verify-ios/helpers/choices.mjs "$DEVICE_ID" "$CHOICES_RUN"
+node .agents/skills/verify-ios/helpers/choices.mjs "$DEVICE_ID" "$CHOICES_RUN"
 ```
 
 The helper captures and exports screenshots and accessibility transcripts after every reply. Inspect all reply pages before typing `pass`. Any failed command or verdict stops the run. Report the sent messages, remaining approved budget, failed criterion, model ID, and state left on the phone. Restart only with a new evidence folder and fresh budgets. A failed live case needs a report; a prompt change belongs to a separate unit.
