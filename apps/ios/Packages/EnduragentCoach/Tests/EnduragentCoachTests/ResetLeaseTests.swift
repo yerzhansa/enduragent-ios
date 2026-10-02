@@ -164,6 +164,6 @@ import Testing
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.turns.isEmpty)
 		#expect(snapshot.opening.notice == Catalog.chatNoticeNewConversationMemoryWarning)
-		#expect(await host.ended(1)?.ending == .interrupted)
+		#expect(await host.ended(1)?.ending == .interrupted(.systemExpired))
 	}
 }

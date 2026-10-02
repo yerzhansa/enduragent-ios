@@ -6,7 +6,7 @@
 	struct FixtureServices: Sendable {
 		let transport: FakeModelTransport
 		let records: RecordFaults
-		let host: ImmediateExecutionHost
+		let host: ImmediateExecutionHost?
 		let secrets: ICloudKeychainStore
 		let secretBacking: FixtureSecretStoreBacking
 		let intervals: FakeIntervalsClient
@@ -19,7 +19,11 @@
 		var fixtureTransport: FakeModelTransport? { fixture?.transport }
 		var fixtureRecordFaults: RecordFaults? { fixture?.records }
 
-		static func fixture(_ launch: FixtureLaunch, defaults: UserDefaults) throws -> AppServices {
+		@MainActor
+		static func fixture(
+			_ launch: FixtureLaunch, defaults: UserDefaults,
+			backgroundSystem: any BackgroundSystem
+		) throws -> AppServices {
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
 			}
@@ -45,7 +49,21 @@
 			secretFixture.backing.locked = launch.keychain == .locked
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
-			let host = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
+			let host: any ExecutionHost
+			let fixtureHost: ImmediateExecutionHost?
+			let leases: @Sendable () async -> [LeaseRecord]
+			if launch.host == .continuedProcessing {
+				let continued = ContinuedProcessingHost(
+					bundleIdentifier: bundleIdentifier, system: backgroundSystem)
+				host = continued
+				fixtureHost = nil
+				leases = { await continued.leases }
+			} else {
+				let immediate = ImmediateExecutionHost(expiringAfter: launch.host.expiry)
+				host = immediate
+				fixtureHost = immediate
+				leases = { immediate.leases }
+			}
 			let coach = Coach(
 				sport: .cycling,
 				ports: CoachPorts(
@@ -65,10 +83,10 @@
 				coach: coach,
 				deviceCheck: FakeDeviceCheckTokenProvider(),
 				clock: clock,
-				leases: { host.leases },
+				leases: leases,
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
-					transport: transport, records: records, host: host, secrets: secrets,
+					transport: transport, records: records, host: fixtureHost, secrets: secrets,
 					secretBacking: secretFixture.backing,
 					intervals: intervals, credits: credits,
 					replyParserFault: launch.replyParserFault,

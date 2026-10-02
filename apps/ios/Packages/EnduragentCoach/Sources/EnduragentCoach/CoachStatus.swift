@@ -144,6 +144,9 @@ extension Coach {
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {
 		try await preferences.setLanguage(preference)
+		for mailbox in await openedMailboxes() {
+			await mailbox.refreshLeaseTitle()
+		}
 		await publishStatus()
 	}
 

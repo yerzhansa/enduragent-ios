@@ -202,8 +202,8 @@ final class MailboxExecution {
 
 	private func finish(_ turn: TurnID, under lease: DrainLease, on mailbox: isolated ChatMailbox) {
 		work.finishTurn()
-		let reply = records.conversation.turn(turn)?.reply
-		lifecycle.finish(turn, reply: reply, under: lease)
+		let settlement = records.conversation.turn(turn)?.latestSettlement?.settlement
+		lifecycle.finish(turn, settlement: settlement, under: lease)
 		mailbox.publish()
 	}
 

@@ -10,6 +10,7 @@ extension StopAndLeaseEdgeTests {
 	])
 	func interruptionCancelsInFlightRead(cause: InterruptionCause) async throws {
 		let readClock = HeldClock()
+		defer { readClock.release(.seconds(30)) }
 		let intervals = HeldReadIntervals(clock: readClock)
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
@@ -37,15 +38,21 @@ extension StopAndLeaseEdgeTests {
 			default:
 				Issue.record("unsupported interruption: \(cause)")
 			}
+			return true
 		}
-		for await snapshot in snapshots where snapshot.activity == .stopping {
-			break
-		}
+		defer { interruption.cancel() }
+		_ = try #require(
+			try await firstSnapshot(in: snapshots, within: .hangGuard) { $0.activity == .stopping })
 		_ = await coach.currentSnapshot(.main)
 		try await waitUntil { readClock.held.isEmpty }
 		#expect(readClock.held.isEmpty, "the training read did not receive cancellation")
 		readClock.release(.seconds(30))
-		await interruption.value
+		let interruptedRead = try await beforeDeadline(
+			within: .hangGuard, onTimeout: { readClock.release(.seconds(30)) }
+		) {
+			await interruption.value
+		}
+		try #require(interruptedRead == true)
 		guard case .interrupted(let interrupted)? = await coach.state(of: turn) else {
 			Issue.record("expected the reply to be interrupted")
 			return
@@ -53,7 +60,7 @@ extension StopAndLeaseEdgeTests {
 		#expect(interrupted.cause == cause)
 		#expect(interrupted.partial == "Checking your recent rides. ")
 		#expect(try await settlements(of: turn, in: store).count == 1)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(cause))
 		#expect(
 			!coach.diagnostics.entries.contains {
 				if case .toolFailed = $0.event { return true }

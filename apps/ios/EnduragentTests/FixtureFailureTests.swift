@@ -32,6 +32,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [
+		("fixture:fail 400", Catalog.coachErrorUnknown, Catalog.chatTranscriptRetry, 1),
 		(
 			"fixture:fail 401", Catalog.creditsErrorAccessRejected,
 			Catalog.chatTurnRestorePurchases, 1
@@ -141,6 +142,7 @@ extension FixtureLaunchTests {
 		async throws
 		-> Coach
 	{
+		let host = try #require(fixture.host)
 		let clock = FixtureClock(
 			calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 		let coach = Coach(
@@ -149,12 +151,12 @@ extension FixtureLaunchTests {
 				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
 				models: .scripted(transport),
 				training: FirstWeekFixture.training(fixture.intervals),
-				credits: .fake(fixture.credits), host: fixture.host, clock: clock),
+				credits: .fake(fixture.credits), host: host, clock: clock),
 			builtInModel: AppServices.builtInModel, deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))
 		let services = AppServices(
 			coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
-			leases: { fixture.host.leases }, packPrices: { _ in [:] })
+			leases: { host.leases }, packPrices: { _ in [:] })
 		await model(services).agreeAndStartChatting()
 		return coach
 	}

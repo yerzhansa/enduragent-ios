@@ -27,7 +27,7 @@ import Testing
 			stopped.notice
 				== AthleteNotice(
 					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		try await coach.retry(turn, in: .main)
@@ -118,25 +118,34 @@ import Testing
 		let transport = FakeModelTransport()
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let store = HeldAppendLog(inner: InMemoryRecordLog(), holding: "turnSettled", occurrence: 2)
+		defer { store.release() }
 		let host = ImmediateExecutionHost()
 		let coach = await makeCoach(transport: transport, store: store, clock: clock, host: host)
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		let queued = try #require(try await coach.send(draft("two"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
+		_ = try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				$0.turns.last?.state == .accepted(.queued(position: 2))
+			})
+		async let stopped = beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+			await coach.stop(.main)
+			return true
 		}
-		async let stopped: Void = coach.stop(.main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		let reached = try await beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+			await store.reached.first(where: { _ in true }) != nil
+		}
+		try #require(reached == true)
 		transport.respond = ScriptedReply.sequence(
 			[.text("Three."), .finish(reason: .stop)])
-		async let sent = coach.send(draft("three"), to: .main)
+		async let sent = beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+			try await coach.send(draft("three"), to: .main)
+		}
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(transport.requestCount == 1, "a send started while Stop was still settling")
 		store.release()
-		await stopped
-		let third = try #require(try await sent.acceptedTurn)
+		try #require(try await stopped == true)
+		let third = try #require(try await sent?.acceptedTurn)
 		guard case .interrupted(let later)? = await coach.state(of: queued) else {
 			Issue.record("the queued turn was not stopped")
 			return
@@ -145,7 +154,7 @@ import Testing
 		let answered = try #require(await coach.settledState(of: third, in: .main))
 		#expect(replyText(answered) == "Three.")
 		#expect(transport.requestCount == 2)
-		#expect(await host.ended(0)?.ending == .interrupted)
+		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		#expect(
 			await host.ended(1)?.ending
 				== .finished(CompletionNotice(reply: "Three.", turn: third, language: .en))

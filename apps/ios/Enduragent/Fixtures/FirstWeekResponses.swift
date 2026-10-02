@@ -68,6 +68,8 @@
 					Array(repeating: .fail(failure), count: repeated.count) + normal)
 			case "memory-then-fail" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.fail(.http(status: 500))])
+			case "memory-until-system-interruption" where arguments.isEmpty:
+				return ScriptedReply(savedMemory + [.keepWorking])
 			case "memory-then-hang" where arguments.isEmpty:
 				return ScriptedReply(savedMemory + [.hang])
 			case "step-limit" where arguments.isEmpty:
@@ -130,6 +132,8 @@
 			guard let code = arguments.first else { return nil }
 			let rest = Array(arguments.dropFirst())
 			switch code {
+			case "400" where rest.isEmpty:
+				return .http(status: 400)
 			case "401" where rest.isEmpty:
 				return .http(status: 401)
 			case "402" where rest.isEmpty:

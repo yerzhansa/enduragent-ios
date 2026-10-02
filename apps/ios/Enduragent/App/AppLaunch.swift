@@ -12,7 +12,11 @@ enum AppLaunch {
 			#if DEBUG
 				if let fixture = try fixtureLaunch() {
 					let defaults = try fixture.prepare()
-					return (try AppServices.fixture(fixture, defaults: defaults), defaults)
+					return (
+						try AppServices.fixture(
+							fixture, defaults: defaults, backgroundSystem: LiveBackgroundSystem()),
+						defaults
+					)
 				}
 			#endif
 			return (try AppServices.live(language: language), .standard)

@@ -38,7 +38,8 @@ final class MailboxLifecycle {
 				let unstarted = work.dropWaiting() + [work.closeWindow()].compactMap { $0 }
 				await records.stopBeforeStart(unstarted)
 			}
-			self.leases.end { $0.interrupt() }
+			let ending = self.leases.end { $0.interrupt(work.phase.cause ?? cause) }
+			await ending?.value
 			if owned { work.endInterruption() }
 		}
 		await door.pass(settle)
@@ -71,16 +72,22 @@ final class MailboxLifecycle {
 		await mailbox.cancelInFlight(cause: InterruptionCause(cause))
 	}
 
+	func updateLanguage(
+		_ language: LanguageTag, isolation: isolated (any Actor)? = #isolation
+	) async {
+		await leases.current?.updateLanguage(language)
+	}
+
 	func finishDrain(window: OpenWindow?, cause: InterruptionCause?) {
 		if window == nil, cause == nil, !lifetime.terminating {
-			leases.end { $0.finish() }
+			_ = leases.end { $0.finish() }
 		}
 	}
 
-	func finish(_ turn: TurnID, reply: ReplyText?, under lease: DrainLease) {
-		if reply != nil, !lifetime.foreground {
+	func finish(_ turn: TurnID, settlement: Settlement?, under lease: DrainLease) {
+		if case .replied? = settlement, !lifetime.foreground {
 			completedAway.insert(turn)
 		}
-		lease.settle(turn, reply: reply)
+		lease.settle(turn, settlement: settlement)
 	}
 }

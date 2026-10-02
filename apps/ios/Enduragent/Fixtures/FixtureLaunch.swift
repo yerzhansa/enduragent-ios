@@ -4,6 +4,7 @@
 
 	enum FixtureHostPolicy: Equatable {
 		case immediate
+		case continuedProcessing
 		case expireAfter(Duration)
 
 		var expiry: Duration? {
@@ -12,6 +13,10 @@
 		}
 
 		init(argument raw: String) throws {
+			if raw == "continued-processing" {
+				self = .continuedProcessing
+				return
+			}
 			let words = raw.split(separator: " ")
 			guard words.count == 2, words[0] == "expire-after", let seconds = Int(words[1]),
 				seconds > 0
