@@ -13,5 +13,6 @@ public struct FixtureRecordStore: Sendable {
 		}
 		self.faults = try RecordFaults(directory: directory, deviceId: deviceId)
 		self.store = RecordStore(log: faults.log)
+		FixtureFolder.current?.track(faults.released, in: directory)
 	}
 }

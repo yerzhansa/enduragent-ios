@@ -18,21 +18,23 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func flushPartialLeavesTheJobPendingUntilTheNextLaunchDrainsIt() async throws {
-		let services = try services()
-		let records = services.coach.recordSyncProbe()
-		let model = model(services)
-		await model.agreeAndStartChatting()
-		try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
-		try await waitUntil {
-			let leases = await services.leases()
-			return !leases.isEmpty && leases.allSatisfy { $0.ending != nil }
-		}
-		#expect(try await count("flushPending", in: records) == 1)
-		#expect(try await count("flushSettled", in: records) == 0)
-		#expect(try await count("memorySection", in: records) == 1)
-		#expect(try await count("ledgerEvent", in: records) == 1)
+		do {
+			let services = try services()
+			let records = services.coach.recordSyncProbe()
+			let model = model(services)
+			await model.agreeAndStartChatting()
+			try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
+			try await waitUntil {
+				let leases = await services.leases()
+				return !leases.isEmpty && leases.allSatisfy { $0.ending != nil }
+			}
+			#expect(try await count("flushPending", in: records) == 1)
+			#expect(try await count("flushSettled", in: records) == 0)
+			#expect(try await count("memorySection", in: records) == 1)
+			#expect(try await count("ledgerEvent", in: records) == 1)
 
-		let relaunched = self.model(try relaunch(.keep).0)
+		}
+		let relaunched = self.model(try await relaunch(.keep).0)
 		let drained = relaunched.services.coach.recordSyncProbe()
 		await relaunched.lifecycle.forward(.becameActive)
 		try await waitUntil { try await count("flushSettled", in: drained) == 1 }
