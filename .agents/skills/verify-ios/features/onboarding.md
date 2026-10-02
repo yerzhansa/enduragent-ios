@@ -5,9 +5,10 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 ## Sub-features
 
 - `onboarding-notice` shows the health notice with `notice.continue`.
-- `onboarding-connect` accepts a non-blank key, shows the connected athlete and training values, and offers `connect.continue`.
-- `onboarding-connect-empty` keeps the connect screen and shows `intervals.icu did not accept that key.` in `connect.error`.
-- `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected.
+- `onboarding-connect` saves a non-blank key and shows `connect.saved` separately from profile or wellness guidance in `connect.notice`. `connect.displayAction` opens the empty masked field after rejection or retries unavailable display data with the saved connection. Available identity and wellness values stay visible, missing values have no row, and `connect.continue` works after a saved key even when its display failed.
+- `onboarding-connect-empty` keeps the connect screen and shows `Enter an intervals.icu API key. Your current connection is unchanged.` in `connect.saved`. A failed write shows the not-saved guidance and offers another Connect or Skip.
+- `onboarding-skip` opens starter Credits without a training connection. The conversation welcome lists the supported commands whether or not intervals.icu is connected. `fixture:training-data` reads the profile and calendar and explains their absence. Connecting through Settings preserves that turn and lets the next request read the key owner's data.
+- `training-key-keyboard` uses one masked key field in onboarding and Settings, with autocorrection and capitalization disabled and an ASCII-capable keyboard. The connect-later proof launches with `ru,fr,en`, skips setup in French, and types the key in Settings.
 - `onboarding-starter` shows `200 credits` and `Start chatting` in the fixture. A failed grant shows its catalog notice rather than a raw error.
 - `onboarding-consent` names OpenRouter and DeepSeek and the data shared. `consent.accept` saves permission and opens chat. `consent.decline` keeps chat locked and shows the same disclosure with `consent.resume` labeled Agree and continue. One tap saves permission and opens chat without repeating the choice or requesting starter Credits. Relaunching before agreement asks again.
 - `onboarding-credentials` is now proved by the [Settings connection proofs](./settings.md). Settings keeps the current connection after a blank replacement, Cancel, or a failed keychain write. A different athlete requires Switch athlete while work or a workout review is pending. A replacement for the same athlete keeps the review usable.
@@ -32,7 +33,7 @@ Preconditions:
 | Action and command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> InstallOpenProof` | Health notice and Continue, `01-install-open`. |
-| `sim.mjs test <run id> ConnectIntervalsProof` | `connect.athleteName`, `.fitness`, `.fatigue`, and `.form` show the fixture values, `02-connect-intervals`. |
+| `sim.mjs test <run id> ConnectIntervalsProof ConnectIntervalsDarkProof` | Blank and failed saves, saved profile rejection, rejected profile request, temporary profile failure, wellness rejection and outage, no wellness and missing values, then correction or retry. Attachments start with `onboarding-` and end with `light` or `dark`. Skip and later Settings connection with a Russian-first language list produce `skipped-training-data-unavailable`, `settings-latin-key-saved`, and `connected-later-conversation-kept`, with the same theme suffix. |
 | `sim.mjs test <run id> StarterCreditsProof` | `starter.credits` and `starter.start`, `03-starter-credits`. |
 | `sim.mjs test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after one Agree tap, `provider-consent`, `provider-consent-deferred`, and `provider-consent-deferred-accepted`. |
 | `sim.mjs test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
@@ -42,14 +43,14 @@ Preconditions:
 | `sim.mjs test <run id> StorageUnavailableProof` | An unreadable store shows the history-unavailable and reopen notice, `storage-unavailable`. |
 | `sim.mjs test <run id> AccessNoticeProof` | An absent Credits key opens the connect step; a locked keychain preserves the message and offers Try again, `access-not-configured`, `access-not-configured-connect`, `access-locked`. |
 
-For the empty-key path, launch fresh, tap `notice.continue`, leave `connect.apiKey` empty, and tap `connect.connect`. Capture `connect.error` with `sim.mjs shot <run id> connect-empty-key`. This path has no dedicated XCUITest class. Grant-failure copy is covered by the hosted app test `creditsFailuresShowCatalogNotices`; no fixture directive reaches that failure.
+The hosted `OnboardingConnectionTests` suite drives `ShellModel.connect`, correction, display retry, Continue, and failed saves. `FixtureLaunchTests.skippingThenConnectingInSettingsKeepsConversationAndReadsKeyOwner` preserves the skipped turn and reads Bo Lind's actual profile and calendar after Settings connection. Package `ConnectLaterTests.missingTrainingToolResultsThenSavedKeyOwnerReachTheModel` checks the real model input, including both `not_connected` tool results and the saved key owner's profile and calendar. Grant-failure copy is covered by `creditsFailuresShowCatalogNotices`; no fixture directive reaches that failure.
 
 ## Gotchas
 
 - Consent is never seeded by fixtures. The shared onboarding helpers tap Agree. App tests cover a failed consent write and retrying a refused turn; those paths still need their hosted tests to run.
 - Use fixture launches. A launch without `-EnduragentFixture first-week` uses live services.
-- Any non-empty fixture key connects. This proves the connection transaction, not validation against the real intervals.icu service.
-- `credentials.apiKey`, `.replace`, `.replaceBlank`, `.cancel`, `.switchAthlete`, `.disconnect`, `.lock`, and `.failNextWrite` identify the Debug controls. Read `.outcome`, `.athlete`, `.connection`, and `.keySuffix` afterwards.
+- Any non-empty fixture key is saved. Display faults do not change that receipt. `-EnduragentFixtureTrainingDisplay` takes `profile-rejected`, `profile-request-rejected`, `profile-unavailable`, `wellness-rejected`, `wellness-unavailable`, `empty-wellness`, or `partial-wellness`. Read failures occur once, so the real correction or retry can recover. `-EnduragentFixtureCredentialWrite fail-once` fails the first connection write after fixture setup. These hooks prove the transaction and presentation, not live remote authentication.
+- Settings owns connection actions. `fixture.connection`, `fixture.failCredentialWrite`, and `fixture.toggleKeychainLock` are Debug fault controls reached with `TutorialHarness.debugRow`.
 - `-EnduragentFixtureKeychain locked` fails reads and writes. `empty` skips installing the fixture Credits key; use it with a fresh store because it does not erase a kept key.
 - The connection proof uses the fixture's default day. Other dates may have no fixture wellness values.
 - Record rows identify the account used by an attempt. The accepted athlete-message row is unconnected; claim and settlement rows carry that attempt's connection.

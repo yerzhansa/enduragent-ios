@@ -35,12 +35,12 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public var profileReadCount: Int { displayReads.withLock { $0.profileCount } }
 	public var wellnessReadCount: Int { displayReads.withLock { $0.wellnessCount } }
 
-	public func setProfileOutcome(_ result: Result<AthleteProfile, any Error>) {
-		displayReads.withLock { $0.profile = result }
+	public func setProfileOutcome(_ result: Result<AthleteProfile, any Error>, once: Bool = false) {
+		displayReads.withLock { $0.profile = (result, once) }
 	}
 
-	public func setWellnessOutcome(_ result: Result<[WellnessDay], any Error>) {
-		displayReads.withLock { $0.wellness = result }
+	public func setWellnessOutcome(_ result: Result<[WellnessDay], any Error>, once: Bool = false) {
+		displayReads.withLock { $0.wellness = (result, once) }
 	}
 
 	public func holdNextProfileRead() -> FakeIntervalsReadGate {
@@ -78,7 +78,9 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 		let (outcome, gate) = displayReads.withLock {
 			$0.profileCount += 1
 			let result =
-				$0.profile ?? .success(AthleteProfile(id: athleteId, name: athleteName, ftp: ftp))
+				$0.profile?.result
+				?? .success(AthleteProfile(id: athleteId, name: athleteName, ftp: ftp))
+			if $0.profile?.once == true { $0.profile = nil }
 			let gate = $0.profileGate
 			$0.profileGate = nil
 			return (result, gate)
@@ -90,7 +92,8 @@ public final class FakeIntervalsClient: IntervalsClient, @unchecked Sendable {
 	public func fetchWellness(oldest: CivilDate, newest: CivilDate) async throws -> [WellnessDay] {
 		let (outcome, gate) = displayReads.withLock {
 			$0.wellnessCount += 1
-			let result = $0.wellness ?? .success(wellness)
+			let result = $0.wellness?.result ?? .success(wellness)
+			if $0.wellness?.once == true { $0.wellness = nil }
 			let gate = $0.wellnessGate
 			$0.wellnessGate = nil
 			return (result, gate)
