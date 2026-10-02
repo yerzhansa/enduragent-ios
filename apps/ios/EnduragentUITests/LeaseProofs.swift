@@ -138,8 +138,8 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.openSidebar(app)
 		TutorialHarness.named(app, "sidebar.debug").tap()
-		TutorialHarness.wait(TutorialHarness.named(app, "fixture.requestCount"))
-		TutorialHarness.named(app, "debug.leases").tap()
+		_ = TutorialHarness.debugRow(app, "fixture.requestCount")
+		TutorialHarness.debugRow(app, "debug.leases", direction: .down).tap()
 		let row = TutorialHarness.named(app, "leases.row.0")
 		TutorialHarness.wait(row)
 		XCTAssertEqual(

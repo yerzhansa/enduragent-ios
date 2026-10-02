@@ -295,9 +295,7 @@ enum TutorialHarness {
 	static func fixtureControl(_ app: XCUIApplication, _ identifier: String) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		let control = named(app, identifier)
-		wait(control, until: .hittable)
-		control.tap()
+		debugRow(app, identifier).tap()
 		closeMenu(app)
 	}
 
@@ -319,15 +317,20 @@ enum TutorialHarness {
 			}, message: "Could not scroll to \(element)")
 	}
 
+	static func debugRow(
+		_ app: XCUIApplication, _ identifier: String, direction: ScrollDirection = .up
+	) -> XCUIElement {
+		let row = named(app, identifier)
+		scroll(app, to: row, direction: direction)
+		return row
+	}
+
 	static func openRecords(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		let count = named(app, "fixture.requestCount")
-		scroll(app, to: count)
+		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
-		let records = named(app, "debug.records")
-		scroll(app, to: records, direction: .down)
-		records.tap()
+		debugRow(app, "debug.records", direction: .down).tap()
 		wait(named(app, "records.device"))
 	}
 
@@ -365,8 +368,7 @@ enum TutorialHarness {
 	static func historyHead(_ app: XCUIApplication) -> String {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		let head = named(app, "fixture.historyHead")
-		wait(head)
+		let head = debugRow(app, "fixture.historyHead")
 		let label = head.label
 		closeMenu(app)
 		return label
@@ -375,8 +377,7 @@ enum TutorialHarness {
 	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
 		openSidebar(app)
 		named(app, "sidebar.debug").tap()
-		let count = named(app, "fixture.requestCount")
-		scroll(app, to: count)
+		let count = debugRow(app, "fixture.requestCount")
 		XCTAssertEqual(count.label, "0 requests")
 		closeMenu(app)
 	}

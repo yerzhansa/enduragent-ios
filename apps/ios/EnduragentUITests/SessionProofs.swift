@@ -240,7 +240,7 @@ final class SessionRejectionProof: XCTestCase {
 		let back = app.navigationBars["Session"].buttons["Debug"]
 		TutorialHarness.wait(back, until: .hittable)
 		back.tap()
-		TutorialHarness.named(app, "debug.records").tap()
+		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "records.device"))
 		XCTAssertNil(TutorialHarness.recordCount(app, "sessionSettings"))
 		TutorialHarness.closeMenu(app)

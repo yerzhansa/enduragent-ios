@@ -96,6 +96,22 @@ test('accepts UI proofs using the argument builder and named waits', () => {
   assert.equal(result.status, 0, result.output);
 });
 
+for (const identifier of [
+  'fixture.expire', 'fixture.historyHead', 'fixture.requestCount',
+  'fixture.modelRequestCount', 'debug.records', 'debug.leases',
+]) {
+  test(`rejects an unscrolled Debug row query: ${identifier}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': `let row = TutorialHarness.named(app, "${identifier}")\nTutorialHarness.wait(row)\nrow.tap()` });
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /ui-proof-debug-scrolling/);
+  });
+
+  test(`accepts a Debug row through bounded scrolling: ${identifier}`, () => {
+    const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': `let row = TutorialHarness.debugRow(app, "${identifier}", direction: .down)\nXCTAssertEqual(row.label, "expected")\nrow.tap()` });
+    assert.equal(result.status, 0, result.output);
+  });
+}
+
 test('rejects delayed predicate expectations in the shared UI wait helper', () => {
   const result = run({ 'apps/ios/EnduragentUITests/TutorialHarness.swift': 'let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)' });
   assert.equal(result.status, 1, result.output);
