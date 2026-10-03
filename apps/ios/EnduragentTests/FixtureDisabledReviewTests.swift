@@ -15,6 +15,7 @@ extension FixtureLaunchTests {
 		let fixture = try #require(services.fixture)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
+		model.trainingSettings.edit()
 		model.connectKey = "fixture"
 		await model.connect()
 		model.draft.text =

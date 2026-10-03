@@ -7,6 +7,8 @@ extension ShellModel {
 			trainingSettings.edit()
 		case .retry(let connection):
 			await services.coach.retryTrainingDisplay(for: connection)
+		case .retryStorage:
+			await sceneChanged(.becameActive)
 		}
 	}
 }

@@ -268,10 +268,16 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: tryAgain)
 		case .model(.accessUnavailable(.secureStorageLocked)):
 			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
-		case .model(.accessUnavailable(.notConfigured)),
-			.model(.accessUnavailable(.secureStorageUnavailable)),
-			.model(.accessUnavailable(.malformedStoredCredential)):
+		case .model(.accessUnavailable(.notConfigured)):
 			return AthleteNotice(key: Catalog.accessErrorNotConfigured, action: .chooseAccessMethod)
+		case .model(.accessUnavailable(.secureStorageUnavailable)):
+			return AthleteNotice(
+				key: Catalog.accessErrorStorageUnavailable, action: .chooseAccessMethod)
+		case .model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))):
+			return AthleteNotice(
+				key: Catalog.connectErrorStorageMalformed, action: .connectTraining)
+		case .model(.accessUnavailable(.malformedStoredCredential)):
+			return AthleteNotice(key: Catalog.accessErrorMalformed, action: .chooseAccessMethod)
 		case .local(.recordStorage):
 			return AthleteNotice(key: Catalog.coachHistoryDiskFull, action: nil)
 		}

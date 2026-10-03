@@ -2990,7 +2990,9 @@
       "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
       "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
       "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
-      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos."
+      "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler a credencial guardada de acesso ao modelo. Escolha um método de acesso para continuar."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "A substituição não foi guardada. A sua ligação anterior não foi alterada. Tente novamente.",
       "profileUnavailable": "O seu perfil de atleta está temporariamente indisponível. Tente novamente.",
       "wellnessRejected": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Reveja a sua ligação.",
-      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente."
+      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente.",
+      "blankConnection": "Introduza uma chave de API do intervals.icu.",
+      "connectionNotSaved": "A ligação não foi guardada. Tente novamente.",
+      "storageLocked": "Desbloqueie o iPhone para ler a sua ligação ao intervals.icu. Depois, tente novamente.",
+      "storageUnavailable": "A sua ligação ao intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente.",
+      "storageMalformed": "Não foi possível ler a ligação guardada ao intervals.icu. Substitua a chave para se ligar novamente."
     },
     "wellness": {
       "empty": "Não há dados de bem-estar para hoje.",

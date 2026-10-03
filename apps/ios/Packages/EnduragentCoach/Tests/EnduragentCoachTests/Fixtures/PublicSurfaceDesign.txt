@@ -179,6 +179,7 @@ CredentialOutcome.refused
 CredentialOutcome.replaced
 CredentialOutcome.saveNotice
 CredentialRefusal
+CredentialRefusal.blankConnection
 CredentialRefusal.blankReplacementKeepsCurrent
 CredentialRefusal.differentAthlete
 CredentialRefusal.modelNotInCatalog
@@ -618,6 +619,7 @@ TrainingAccount.intervals
 TrainingAccount.unconnected
 TrainingDisplayAction
 TrainingDisplayAction.retry
+TrainingDisplayAction.retryStorage
 TrainingDisplayAction.reviewConnection
 TrainingDisplayAction.title
 TrainingFailure
@@ -627,7 +629,10 @@ TrainingFailure.temporarilyUnavailable
 TrainingService
 TrainingService.intervalsREST
 TrainingStatus
+TrainingStatus.action
 TrainingStatus.connected
+TrainingStatus.connectionActionTitle
+TrainingStatus.notice
 TrainingStatus.unavailable
 TrainingStatus.unconnected
 TranscriptNote.Content

@@ -28,26 +28,20 @@ struct TrainingConnectionResultView: View {
 					metric(day.form, title: Catalog.onboardingConnectForm, name: "form")
 				}
 			}
-			if let notice = summary.notice {
-				Text(notice.sentence(in: model.displayLocale))
-					.accessibilityIdentifier("\(identifierPrefix).notice")
-			}
-			if let action = summary.action {
-				Button(model.phrasebook.say(action.title)) {
-					Task { await model.performTrainingDisplay(action) }
-				}
-				.accessibilityIdentifier("\(identifierPrefix).displayAction")
-			}
-		} else if case .unavailable = model.status.training {
-			if let notice = model.status.notice {
-				Text(notice.sentence(in: model.displayLocale))
-					.accessibilityIdentifier("\(identifierPrefix).notice")
-			}
-		} else {
-			Text(model.phrasebook.say(Catalog.connectMissing))
+		}
+		if let notice = training.notice {
+			Text(notice.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("\(identifierPrefix).notice")
 		}
+		if let action = training.action {
+			Button(model.phrasebook.say(action.title)) {
+				Task { await model.performTrainingDisplay(action) }
+			}
+			.accessibilityIdentifier("\(identifierPrefix).displayAction")
+		}
 	}
+
+	private var training: TrainingStatus { model.status.training }
 
 	@ViewBuilder
 	private func metric(_ value: Double?, title: CatalogKey, name: String) -> some View {

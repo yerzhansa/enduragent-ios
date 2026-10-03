@@ -12,6 +12,7 @@ extension FixtureLaunchTests {
 		let intervals = try #require(services.fixture?.intervals)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
+		model.trainingSettings.edit()
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)
@@ -283,6 +284,7 @@ extension FixtureLaunchTests {
 	}
 
 	func presentedReview(on model: ShellModel) async throws -> ReviewControlToken {
+		model.trainingSettings.edit()
 		model.connectKey = "fixture"
 		await model.connect()
 		try #require(model.didConnect)

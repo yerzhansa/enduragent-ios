@@ -13,7 +13,14 @@ final class TrainingSettingsModel {
 		case confirmingDisconnect
 	}
 
-	var key = ""
+	var key: String {
+		get { draft }
+		set {
+			guard isEditing else { return }
+			draft = newValue
+		}
+	}
+	private var draft = ""
 	private(set) var state: State = .viewing
 	private(set) var receipt: CredentialOutcome<IntervalsSummary>?
 	private let coach: Coach
@@ -27,14 +34,14 @@ final class TrainingSettingsModel {
 
 	func edit() {
 		guard !isSaving else { return }
-		key = ""
+		draft = ""
 		receipt = nil
 		state = .editing
 	}
 
 	func keep() async {
 		guard !isSaving else { return }
-		key = ""
+		draft = ""
 		await change(.keep)
 	}
 
@@ -45,7 +52,7 @@ final class TrainingSettingsModel {
 
 	func requestDisconnect() {
 		guard !isSaving else { return }
-		key = ""
+		draft = ""
 		state = .confirmingDisconnect
 	}
 
@@ -61,7 +68,7 @@ final class TrainingSettingsModel {
 	}
 
 	func dismiss() {
-		key = ""
+		draft = ""
 		receipt = nil
 		state = isSaving ? .savingAway : .viewing
 	}
@@ -76,7 +83,7 @@ final class TrainingSettingsModel {
 		state = .saving
 		let result = await coach.changeTraining(intent)
 		guard state == .saving else {
-			key = ""
+			draft = ""
 			state = .viewing
 			return
 		}
@@ -84,12 +91,12 @@ final class TrainingSettingsModel {
 		switch result {
 		case .refused(.differentAthlete(let current, let new)):
 			state = .confirmingOwner(apiKey: submittedKey, current: current, new: new)
-			key = ""
+			draft = ""
 		case .refused, .failedPreviousKept:
-			key = submittedKey
+			draft = submittedKey
 			state = .editing
 		case .kept, .replaced, .disconnected:
-			key = ""
+			draft = ""
 			state = .viewing
 		}
 	}

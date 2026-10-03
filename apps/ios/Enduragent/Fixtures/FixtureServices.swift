@@ -50,6 +50,10 @@
 				try FirstWeekFixture.install(on: secrets)
 			}
 			secretFixture.backing.locked = launch.keychain == .locked
+			secretFixture.backing.unavailable = launch.keychain == .unavailable
+			if launch.keychain == .malformedIntervals {
+				try secretFixture.backing.corruptIntervalsConnection()
+			}
 			secretFixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)

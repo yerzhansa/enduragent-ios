@@ -60,11 +60,12 @@ public enum IntervalsWellnessFailure: Sendable, Equatable {
 public enum TrainingDisplayAction: Sendable, Equatable {
 	case reviewConnection
 	case retry(ConnectionID)
+	case retryStorage
 
 	public var title: CatalogKey {
 		switch self {
 		case .reviewConnection: Catalog.connectReview
-		case .retry: Catalog.chatTranscriptRetry
+		case .retry, .retryStorage: Catalog.chatTranscriptRetry
 		}
 	}
 }

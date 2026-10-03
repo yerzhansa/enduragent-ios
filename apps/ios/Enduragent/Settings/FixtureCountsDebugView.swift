@@ -17,6 +17,19 @@
 					Task { await model.sceneChanged(.becameActive) }
 				}
 				.accessibilityIdentifier("fixture.toggleKeychainLock")
+				Button("Restore secure storage") {
+					fixture.secretBacking.unavailable = false
+				}
+				.accessibilityIdentifier("fixture.restoreSecureStorage")
+				Button("Corrupt intervals credential") {
+					do {
+						try fixture.secretBacking.corruptIntervalsConnection()
+						Task { await model.sceneChanged(.becameActive) }
+					} catch {
+						reviewHookFailure = String(describing: error)
+					}
+				}
+				.accessibilityIdentifier("fixture.corruptIntervals")
 				Text(connectionText)
 					.accessibilityIdentifier("fixture.connection")
 				Button("Fail next record append") { fixture.records.failNextAppend = true }
