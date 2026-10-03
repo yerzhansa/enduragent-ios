@@ -40,6 +40,7 @@ ArchiveReason.earlierChat
 ArchiveReason.newConversation
 ArchiveReason.title
 ArchivedConversation
+ArchivedConversation.attribution
 ArchivedConversation.id
 ArchivedConversation.notes
 ArchivedConversation.reason
@@ -48,10 +49,14 @@ ArchivedConversation.turns
 ArchivedConversationRef
 ArchivedConversationRef.rawValue
 ArchivedConversationSummary
+ArchivedConversationSummary.attribution
 ArchivedConversationSummary.firstQuestion
 ArchivedConversationSummary.id
 ArchivedConversationSummary.reason
 ArchivedConversationSummary.startedOn
+AthleteAttribution
+AthleteAttribution.historyLine(in:connectedAthlete:)
+AthleteAttribution.ownership
 AthleteNotice
 AthleteNotice.action
 AthleteNotice.count
@@ -60,6 +65,9 @@ AthleteNotice.key
 AthleteNotice.recordStoreUnavailable
 AthleteNotice.sentence(in:)
 AthleteNotice.vars
+AthleteOwnership
+AthleteOwnership.unverified
+AthleteOwnership.verified
 AthleteSelection
 AthleteSelection.athlete
 AthleteSelection.keyOwner
@@ -565,6 +573,7 @@ ReviewSnapshot.State
 ReviewSnapshot.State.available
 ReviewSnapshot.State.cancelledUnknown
 ReviewSnapshot.State.storageUnavailable
+ReviewSnapshot.attribution
 ReviewSnapshot.authority
 ReviewSnapshot.cards
 ReviewSnapshot.content

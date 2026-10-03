@@ -560,7 +560,8 @@
     "turnCount_one": "{{formattedCount}} meddelande",
     "turnCount_other": "{{formattedCount}} meddelanden",
     "unavailable": "Det här samtalet är inte längre tillgängligt.",
-    "history": "Historik"
+    "history": "Historik",
+    "savedForAnotherAthlete": "Sparat för en annan intervals.icu-idrottare ({{id}})"
   },
   "setup": {
     "ai": {

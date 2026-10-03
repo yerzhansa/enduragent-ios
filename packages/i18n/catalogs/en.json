@@ -45,7 +45,8 @@
     "turnCount_one": "{{formattedCount}} message",
     "turnCount_other": "{{formattedCount}} messages",
     "unavailable": "This conversation is no longer available.",
-    "history": "History"
+    "history": "History",
+    "savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})"
   },
   "chat": {
     "attachment": {

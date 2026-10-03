@@ -31,6 +31,7 @@ public enum Catalog {
 	public static let archiveReasonExplicit = CatalogKey(rawValue: "archive.reason.explicit")
 	public static let archiveReasonStale = CatalogKey(rawValue: "archive.reason.stale")
 	public static let archiveRetry = CatalogKey(rawValue: "archive.retry")
+	public static let archiveSavedForAnotherAthlete = CatalogKey(rawValue: "archive.savedForAnotherAthlete")
 	public static let archiveTimestamp = CatalogKey(rawValue: "archive.timestamp")
 	public static let archiveTitle = CatalogKey(rawValue: "archive.title")
 	public static let archiveTruncated = CatalogKey(rawValue: "archive.truncated")

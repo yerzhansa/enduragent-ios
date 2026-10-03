@@ -7,6 +7,18 @@ package struct UserMessageBody: Sendable, Equatable {
 	package var draft: DraftID
 	package var athleteText: String
 	package var slash: SlashCommand?
+
+	package init(
+		chatId: ChatID, turn: TurnID, fragment: Int, draft: DraftID, athleteText: String,
+		slash: SlashCommand?
+	) {
+		self.chatId = chatId
+		self.turn = turn
+		self.fragment = fragment
+		self.draft = draft
+		self.athleteText = athleteText
+		self.slash = slash
+	}
 }
 
 package struct TurnSettledBody: Sendable, Equatable {
@@ -14,6 +26,13 @@ package struct TurnSettledBody: Sendable, Equatable {
 	package var turn: TurnID
 	package var attempt: AttemptID
 	package var settlement: Settlement
+
+	package init(chatId: ChatID, turn: TurnID, attempt: AttemptID, settlement: Settlement) {
+		self.chatId = chatId
+		self.turn = turn
+		self.attempt = attempt
+		self.settlement = settlement
+	}
 }
 
 package enum Settlement: Sendable, Equatable {

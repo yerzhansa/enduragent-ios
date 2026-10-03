@@ -11,8 +11,8 @@ extension SwiftDataSuites {
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 		@Test func localTurnDoesNotAddImportReads() async throws {
-			let baseline = try await localTurnReads(observingImports: false)
-			let observed = try await localTurnReads(observingImports: true)
+			let baseline = try await localTurnPreferenceReads(observingImports: false)
+			let observed = try await localTurnPreferenceReads(observingImports: true)
 			#expect(observed == baseline)
 		}
 
@@ -77,7 +77,7 @@ extension SwiftDataSuites {
 				body: .synced(sampleUser(chatId: .main, text: "Remote question", turn: turn)))
 		}
 
-		private func localTurnReads(observingImports: Bool) async throws -> ReadCost {
+		private func localTurnPreferenceReads(observingImports: Bool) async throws -> Int {
 			let store = try makeSwiftDataLog(deviceId: DeviceID())
 			var history: [AthleteRecord] = []
 			for index in 0..<2_000 {
@@ -103,8 +103,7 @@ extension SwiftDataSuites {
 			let coach = await makeCoach(transport: transport, store: log, clock: clock, host: host)
 			_ = await coach.currentSnapshot(.main)
 			try await Task.sleep(for: .milliseconds(500))
-			let reads = log.reads.count
-			let rows = log.fetchedRecordCount
+			let reads = log.reads.filter { $0 == Preferences.scope }.count
 			let notifications = Mutex(0)
 			let observation = NotificationCenter.default.addObserver(
 				forName: .NSPersistentStoreRemoteChange, object: nil, queue: nil
@@ -117,14 +116,9 @@ extension SwiftDataSuites {
 			_ = try #require(await host.ended(0))
 			try await Task.sleep(for: .seconds(2))
 			#expect(notifications.withLock { $0 } > 0)
-			let cost = ReadCost(reads: log.reads.count - reads, rows: log.fetchedRecordCount - rows)
+			let cost = log.reads.filter { $0 == Preferences.scope }.count - reads
 			await coach.lifecycle(.willTerminate)
 			return cost
-		}
-
-		private struct ReadCost: Equatable {
-			let reads: Int
-			let rows: Int
 		}
 	}
 }

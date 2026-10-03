@@ -15,6 +15,7 @@ public struct ReviewControlToken: Hashable, Sendable {
 public struct ReviewSnapshot: Sendable, Equatable {
 	public let ref: ReviewRef
 	public let state: State
+	public let attribution: AthleteAttribution
 
 	public enum State: Sendable, Equatable {
 		case available(ReviewContent, ReviewControls)
@@ -51,7 +52,9 @@ public struct ReviewSnapshot: Sendable, Equatable {
 	func disablingButtons() -> Self {
 		switch state {
 		case .available(let content, let controls):
-			Self(ref: ref, state: .storageUnavailable(content, DisabledReviewButtons(controls)))
+			Self(
+				ref: ref, state: .storageUnavailable(content, DisabledReviewButtons(controls)),
+				attribution: attribution)
 		case .storageUnavailable, .cancelledUnknown: self
 		}
 	}
