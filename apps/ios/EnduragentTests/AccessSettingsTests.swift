@@ -107,6 +107,11 @@ struct AccessSettingsTests {
 				== (outcome == .zero
 					? Catalog.creditsErrorExhausted : Catalog.creditsErrorUnavailable))
 		#expect(model.selectedAccessMethod == .credits)
+		if outcome == .zero {
+			#expect(
+				model.creditsNotice?.sentence(in: model.displayLocale)
+					== "You're out of Credits. You can switch to your OpenRouter account.")
+		}
 	}
 
 	private func open(

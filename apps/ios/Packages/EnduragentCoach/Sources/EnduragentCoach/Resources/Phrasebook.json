@@ -116326,103 +116326,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're out of Credits. Buy more, or switch to your OpenRouter account."
+            "value": "You're out of Credits. You can switch to your OpenRouter account."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Te has quedado sin créditos. Compra más o cambia a tu cuenta de OpenRouter."
+            "value": "Te has quedado sin créditos. Puedes cambiar a tu cuenta de OpenRouter."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu n’as plus de crédits. Achètes-en d’autres ou passe à ton compte OpenRouter."
+            "value": "Tu n’as plus de crédits. Tu peux passer à ton compte OpenRouter."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hai esaurito i crediti. Acquistane altri oppure passa al tuo conto OpenRouter."
+            "value": "Hai esaurito i crediti. Puoi passare al tuo conto OpenRouter."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du hast keine Guthabenpunkte mehr. Kaufe weitere oder wechsle zu deinem OpenRouter-Konto."
+            "value": "Du hast keine Guthabenpunkte mehr. Du kannst zu deinem OpenRouter-Konto wechseln."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account."
+            "value": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er løbet tør for kreditter. Køb flere, eller skift til din OpenRouter-konto."
+            "value": "Du er løbet tør for kreditter. Du kan skifte til din OpenRouter-konto."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dina krediter är slut. Köp fler eller byt till ditt OpenRouter-konto."
+            "value": "Dina krediter är slut. Du kan byta till ditt OpenRouter-konto."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Du er tom for kreditter. Kjøp flere, eller bytt til OpenRouter-kontoen din."
+            "value": "Du er tom for kreditter. Du kan bytte til OpenRouter-kontoen din."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi."
+            "value": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os teus créditos acabaram. Compra mais ou muda para a tua conta OpenRouter."
+            "value": "Os teus créditos acabaram. Podes mudar para a tua conta OpenRouter."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seus créditos acabaram. Compre mais ou mude para sua conta OpenRouter."
+            "value": "Seus créditos acabaram. Você pode mudar para sua conta OpenRouter."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Skończyły ci się kredyty. Kup więcej lub przełącz się na swoje konto OpenRouter."
+            "value": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "크레딧을 모두 사용했습니다. 추가로 구매하거나 OpenRouter 계정으로 전환하세요."
+            "value": "크레딧을 모두 사용했습니다. OpenRouter 계정으로 전환할 수 있습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クレジットがなくなりました。追加購入するか、OpenRouterアカウントに切り替えてください。"
+            "value": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的积分已用完。请购买更多积分，或切换到你的 OpenRouter 账户。"
+            "value": "你的积分已用完。你可以切换到你的 OpenRouter 账户。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的點數已用完。請購買更多點數，或切換到你的 OpenRouter 帳戶。"
+            "value": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。"
           }
         }
       }

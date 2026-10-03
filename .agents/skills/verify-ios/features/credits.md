@@ -33,7 +33,7 @@ Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <r
 
 ## Gotchas
 
-- Fixture mode omits StoreKit price lookup and keeps available Credits at 200. These proofs do not establish live prices, spending, purchases, or restore settlement.
+- Fixture mode omits StoreKit price lookup and starts available Credits at 200; `fixture:fail 402` with Credits selected changes its Credits result to zero. These proofs do not establish live prices, spending, purchases, or restore settlement.
 - Restore purchases currently navigates to Credits. The button's label is not evidence of a restored transaction.
 - Debug, Credits uses `debug.credits` on its link. Its developer labels and StoreKit actions are outside the athlete-screen proof.
 - Credits opened from Model access sits above Settings, and one Back returns to Settings. A conversation notice pushes Credits directly above the conversation, and one Back returns there. Capture the entry point used.
@@ -51,3 +51,11 @@ Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <r
 Fixture launch arguments use `-EnduragentFixtureAccess` with `credits`, `openrouter`, `credits-needs-setup` or `openrouter-needs-credits`. OpenRouter launch states store the synthetic OpenRouter credential and saved model; the ordinary OpenRouter state also stores Credits. `-EnduragentFixtureCredits` accepts `ready`, `zero`, `unavailable`, `provisioning-failed` or `already-granted`. A minted grant persists the scripted credential through CredentialVault before returning. Keep launches never reseed either identity or the selection. `-EnduragentFixtureKeychain malformed-access` supplies an unreadable saved model selection.
 
 Choose access method and Sign in again recovery actions open this screen directly above the conversation. Buy Credits opens Credits with Buy disabled and the tester notice. These routes keep the conversation and the saved method.
+
+## Separate billing identities
+
+Run `BillingIdentityProof` in light and dark. Its Credits conversation saves schedule memory with `fixture:teach`, then uses `fixture:fail 402`. The exhausted sentence offers switching without inviting a disabled purchase. Buy Credits opens zero Credits with disabled Buy and the tester notice. Switch to OpenRouter opens Access method with Credits still marked. Relaunch retains the conversation notice, saved reply, memory record and message records. The OpenRouter case uses `fixture:fail 401`, opens Sign in again without switching, attempts another turn and reopens with OpenRouter marked.
+
+Package `CreditsClientTests.BillingIdentityTests` checks every real model request credential, saved model, memory tool output and reopened stores. Grant, claim and recovery use HTTP-stubbed worker replies through `Coach.credits`, including unavailable and failed-persistence cases. Hosted `BillingRouteTests` checks the existing fixture Credits call list after onboarding, Settings, Credits and each recovery route. No route calls claim or recover, changes selection or starts model work. Ready fixture launches store both identities. No proof contacts the live worker or OpenRouter.
+
+`AccessOnboardingProof` also checks that leaving onboarding clears its result sentence before Settings opens Access method. Hosted `AccessOnboardingTests.failedStarterAndChoicesKeepPreviousAccess` owns that lifecycle regression for all failure rows.

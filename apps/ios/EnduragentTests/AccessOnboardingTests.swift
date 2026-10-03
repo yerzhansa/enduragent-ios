@@ -104,6 +104,8 @@ struct AccessOnboardingTests {
 			model.open(.settings)
 			model.open(.accessMethod)
 			#expect(model.selectedAccessMethod == (previous.savedMethod ?? .credits))
+			#expect(model.accessSettings.notice == nil)
+			#expect(model.accessNotice == nil)
 			model.navigation.removeAll()
 			try await proveToolTurn(
 				model, method: previous.savedMethod ?? .credits,

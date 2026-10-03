@@ -72,6 +72,7 @@ final class AccessOnboardingProof: XCTestCase {
 			finishOnboarding(app)
 			openAccess(app)
 			waitForChoice(app, credits: creditsSelected)
+			XCTAssertFalse(TutorialHarness.named(app, "access.notice").exists)
 			capture(app, "settings-after-\(fault)")
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.relaunchKeepingStore(app)

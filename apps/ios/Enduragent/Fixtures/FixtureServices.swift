@@ -39,8 +39,6 @@
 			FirstWeekFixture.install(launch.trainingDisplay, on: intervals)
 			intervals.loseCalendarSaveAnswerOnce = launch.calendarSaveFault == .loseAnswerOnce
 			intervals.failCalendarReadOnce = launch.calendarReadFault == .failOnce
-			let transport = FakeModelTransport(
-				respond: FirstWeekFixture.responses(intervals: intervals))
 			let fixture = try FixtureRecordStore(
 				directory: launch.directory, deviceId: persistedDeviceID(in: defaults),
 				unreadable: launch.store == .unreadable)
@@ -60,6 +58,8 @@
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			FirstWeekFixture.install(launch.creditsOutcome, on: credits)
+			let transport = FakeModelTransport(
+				respond: FirstWeekFixture.responses(intervals: intervals, credits: credits))
 			let host: any ExecutionHost
 			let fixtureHost: ImmediateExecutionHost?
 			let leases: @Sendable () async -> [LeaseRecord]

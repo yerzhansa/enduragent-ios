@@ -2914,7 +2914,7 @@
     "packPrice_other": "{{formattedCount}} 积分 · {{price}}",
     "error": {
       "accessRejected": "无法使用你的积分。请恢复购买以继续。",
-      "exhausted": "你的积分已用完。请购买更多积分，或切换到你的 OpenRouter 账户。",
+      "exhausted": "你的积分已用完。你可以切换到你的 OpenRouter 账户。",
       "unavailable": "积分暂时不可用。请稍后重试。",
       "accountChanged": "完成此请求期间，你的积分账户发生了变更。你当前的账户已保留。"
     }

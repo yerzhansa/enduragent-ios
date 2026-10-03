@@ -2953,7 +2953,7 @@
     "packPrice_other": "{{formattedCount}} crédits · {{price}}",
     "error": {
       "accessRejected": "Tes crédits n’ont pas pu être utilisés. Restaure tes achats pour continuer.",
-      "exhausted": "Tu n’as plus de crédits. Achètes-en d’autres ou passe à ton compte OpenRouter.",
+      "exhausted": "Tu n’as plus de crédits. Tu peux passer à ton compte OpenRouter.",
       "unavailable": "Les crédits sont indisponibles pour le moment. Réessaie plus tard.",
       "accountChanged": "Ton compte de crédits a changé pendant la finalisation de cette demande. Ton compte actuel a été conservé."
     }

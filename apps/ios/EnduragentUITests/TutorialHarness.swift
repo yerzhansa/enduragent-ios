@@ -23,7 +23,7 @@ enum TutorialHarness {
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."
 	static let accessRejected = "Your Credits couldn't be used. Restore purchases to continue."
 	static let creditsExhausted =
-		"You're out of Credits. Buy more, or switch to your OpenRouter account."
+		"You're out of Credits. You can switch to your OpenRouter account."
 	static let savedUnverified =
 		"I saved your information, but couldn't verify my response. Please try again."
 	static let notConfigured = "Choose how the coach reaches a model to continue."

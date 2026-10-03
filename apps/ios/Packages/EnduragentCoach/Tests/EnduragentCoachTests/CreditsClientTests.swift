@@ -73,34 +73,6 @@ struct CreditsClientTests {
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-existing")
 	}
 
-	@Test func grantWritesCreditsKeyOnlyAndNeverTheSelection() async throws {
-		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
-		let model = ModelID(rawValue: "test/account-model")
-		let selection = SavedAccessReference(
-			.openRouter(SavedOpenRouterReference(credential: .legacy, model: model)))
-		try secrets.storeOpenRouterAccountKey("sk-or-test-account", at: .legacy)
-		try secrets.storeAccessSelection(selection)
-		let client = try makeClient(secrets: secrets)
-		_ = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"kind":"grantMinted","key":"sk-or-test-granted","credits":200}"#)
-		}) {
-			try await client.grant(deviceCheck: Data([0x01]))
-		}
-		_ = try await CreditsURLStub.withHandler({ _ in
-			.json(200, #"{"kind":"claimMinted","key":"sk-or-test-claimed","creditsAdded":500}"#)
-		}) {
-			try await client.claim(
-				signedTransaction: "header.payload.signature",
-				appAccountToken: try #require(try secrets.creditsAccount()).appAccountToken)
-		}
-		#expect(try secrets.creditsAccount()?.key == "sk-or-test-claimed")
-		#expect(try secrets.accessSelection() == selection)
-		#expect(try secrets.openRouterAccountKey(at: .legacy) == "sk-or-test-account")
-		#expect(
-			try await testVault(secrets).modelAccess(builtInModel: testModel).credential
-				== ProviderCredential(secret: "sk-or-test-account", method: .openRouterAccount))
-	}
-
 	@Test func emptyMintedKeyIsRefusedAndNothingIsWritten() async throws {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let token = try secrets.creditsAccount()?.appAccountToken

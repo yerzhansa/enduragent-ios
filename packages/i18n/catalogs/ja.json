@@ -2914,7 +2914,7 @@
     "packPrice_other": "{{formattedCount}}クレジット · {{price}}",
     "error": {
       "accessRejected": "クレジットを使用できませんでした。購入を復元して続けてください。",
-      "exhausted": "クレジットがなくなりました。追加購入するか、OpenRouterアカウントに切り替えてください。",
+      "exhausted": "クレジットがなくなりました。OpenRouterアカウントに切り替えることができます。",
       "unavailable": "現在クレジットを利用できません。しばらくしてからもう一度お試しください。",
       "accountChanged": "このリクエストの完了処理中にクレジットアカウントが変更されました。現在のアカウントは保持されました。"
     }
