@@ -39,7 +39,7 @@ final class DisplayLocaleProof: XCTestCase {
 		credits.tap()
 		let large = TutorialHarness.named(app, "credits.pack.icu.enduragent.credits.large")
 		TutorialHarness.wait(large)
-		XCTAssertTrue(large.staticTexts[pack].exists, large.debugDescription)
+		XCTAssertEqual(large.label, pack)
 		TutorialHarness.attach(self, name: "u9-3-credits-fr-\(region)", app: app)
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-15T13:05:00Z")
