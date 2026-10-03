@@ -88,7 +88,7 @@ struct TrainingSettingsTests {
 		let editor = model.trainingSettings
 		editor.edit()
 		editor.key = "fixture-rotated"
-		fixture.secretBacking.failNextWrite = true
+		try #require(fixture.secretBacking).failNextWrite = true
 		await editor.replace()
 		#expect(editor.receipt?.saveNotice?.key == Catalog.connectErrorNotSaved)
 		#expect(editor.isEditing)
@@ -231,7 +231,7 @@ struct TrainingSettingsTests {
 		let editor = model.trainingSettings
 		editor.edit()
 		editor.key = "fixture-rotated"
-		fixture.secretBacking.failNextWrite = true
+		try #require(fixture.secretBacking).failNextWrite = true
 		let saving = Task { await editor.replace() }
 		defer { saving.cancel() }
 		try await gate.waitForRead()

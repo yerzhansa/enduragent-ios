@@ -55,6 +55,13 @@ public struct ICloudKeychainStore: SecretStore {
 		self.backing = backing
 	}
 
+	package init(
+		nativeService: String, recordAttempt: @escaping @Sendable (NativeKeychainAttempt) -> Void
+	) {
+		self.backing = SecItemSecretStoreBacking(
+			service: nativeService, recordAttempt: recordAttempt)
+	}
+
 	private enum LegacyAccount: String, CaseIterable {
 		case openRouterKey
 		case appAccountToken
@@ -207,10 +214,13 @@ package enum KeychainQuery {
 
 private struct SecItemSecretStoreBacking: SecretStoreBacking {
 	var service: String
+	var recordAttempt: (@Sendable (NativeKeychainAttempt) -> Void)?
 
 	func add(account: String, data: Data) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemAdd(
 			KeychainQuery.add(service: service, account: account, data: data) as CFDictionary, nil)
+		recordAttempt?(.init(operation: "add", slot: account, status: status, start: start))
 		guard status == errSecSuccess else {
 			throw KeychainStoreError.keychain(status)
 		}
@@ -218,8 +228,10 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 
 	func copy(account: String) throws -> Data? {
 		var result: AnyObject?
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemCopyMatching(
 			KeychainQuery.copy(service: service, account: account) as CFDictionary, &result)
+		recordAttempt?(.init(operation: "copy", slot: account, status: status, start: start))
 		if status == errSecItemNotFound {
 			return nil
 		}
@@ -233,20 +245,38 @@ private struct SecItemSecretStoreBacking: SecretStoreBacking {
 	}
 
 	func update(account: String, data: Data) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemUpdate(
 			KeychainQuery.item(service: service, account: account) as CFDictionary,
 			KeychainQuery.update(data: data) as CFDictionary
 		)
+		recordAttempt?(.init(operation: "update", slot: account, status: status, start: start))
 		guard status == errSecSuccess else {
 			throw KeychainStoreError.keychain(status)
 		}
 	}
 
 	func delete(account: String) throws {
+		let start = DispatchTime.now().uptimeNanoseconds
 		let status = SecItemDelete(
 			KeychainQuery.item(service: service, account: account) as CFDictionary)
+		recordAttempt?(.init(operation: "delete", slot: account, status: status, start: start))
 		guard status == errSecSuccess || status == errSecItemNotFound else {
 			throw KeychainStoreError.keychain(status)
 		}
+	}
+}
+
+package struct NativeKeychainAttempt: Codable, Sendable {
+	package let operation: String
+	package let slot: String
+	package let status: OSStatus
+	package let milliseconds: Double
+
+	init(operation: String, slot: String, status: OSStatus, start: UInt64) {
+		self.operation = operation
+		self.slot = slot
+		self.status = status
+		self.milliseconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000
 	}
 }

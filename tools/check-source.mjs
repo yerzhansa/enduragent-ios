@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { lstatSync, readFileSync, readlinkSync, realpathSync } from 'node:fs';
-import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
 const args = process.argv.slice(2);
 if (args.length !== 0 && (args.length !== 2 || args[0] !== '--root')) {
@@ -20,6 +20,38 @@ let count = 0;
 function report(file, rule) {
   violations++;
   console.error(`${JSON.stringify(file)} [${rule}]`);
+}
+function readPlist(path) {
+  return JSON.parse(execFileSync('plutil', ['-convert', 'json', '-o', '-', '--', path], { encoding: 'utf8' }));
+}
+function checkXcodeBuildSettings(file, path) {
+  const { rootObject, objects } = readPlist(path);
+  const project = objects[rootObject];
+  const configurations = owner => objects[owner.buildConfigurationList].buildConfigurations.map(id => objects[id]);
+  const shared = new Map(configurations(project).map(config => [config.name, config.buildSettings]));
+  for (const id of project.targets) {
+    const target = objects[id];
+    for (const config of configurations(target)) {
+      const settings = { ...shared.get(config.name), ...config.buildSettings };
+      if (!settings.DEVELOPMENT_TEAM || settings.CODE_SIGN_STYLE !== 'Automatic' || settings.SWIFT_VERSION !== '6.0') {
+        report(file, 'xcode-shared-build-settings');
+      }
+      if (target.productType !== 'com.apple.product-type.application' || config.name !== 'DebugKeychainProof') continue;
+      const entitlementPath = settings.CODE_SIGN_ENTITLEMENTS;
+      if (!entitlementPath) {
+        report(file, 'keychain-proof-storage-isolation');
+        continue;
+      }
+      const entitlements = readPlist(resolve(dirname(path), '..', entitlementPath));
+      const groups = entitlements['keychain-access-groups'];
+      if (settings.PRODUCT_BUNDLE_IDENTIFIER !== 'icu.enduragent.keychainproof'
+        || !Array.isArray(groups) || groups.length !== 1
+        || groups[0] !== '$(AppIdentifierPrefix)icu.enduragent.keychainproof'
+        || Object.keys(entitlements).some(key => /^com\.apple\.developer\.(?:icloud|ubiquity)-/.test(key))) {
+        report(file, 'keychain-proof-storage-isolation');
+      }
+    }
+  }
 }
 function isSafeTrackedLink(path, trackedFiles) {
   let resolved;
@@ -249,6 +281,7 @@ try {
       continue;
     }
     const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    if (file === 'apps/ios/Enduragent.xcodeproj/project.pbxproj') checkXcodeBuildSettings(file, path);
     if (/^apps\/ios\/Enduragent\/.*\.swift$/.test(file)) appNavigationSources.set(file, text);
     if ((/^apps\/ios\/(?:Packages\/[^/]+\/Tests\/|Enduragent(?:UI|Phone)?Tests\/).*\.swift$/.test(file)
         && /\b(?:temporaryDirectory|NSTemporaryDirectory)\b|\/tmp\//.test(text))

@@ -8,7 +8,9 @@
 		let records: RecordFaults
 		let host: ImmediateExecutionHost?
 		let secrets: ICloudKeychainStore
-		let secretBacking: FixtureSecretStoreBacking
+		let secretBacking: FixtureSecretStoreBacking?
+		let nativeKeychain: NativeKeychainProof?
+		let recordStore: RecordStore
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
 		let replyParser: ReplyParser
@@ -43,17 +45,7 @@
 			let records = fixture.faults
 			if launch.resetFault == .failBoundary { try records.failAppends(ofKind: "windowStart") }
 			records.failRecoveryReads = launch.recovery == .unreadable
-			let secretFixture = try ICloudKeychainStore.fixture(directory: launch.directory)
-			let secrets = secretFixture.store
-			if launch.keychain != .empty {
-				try FirstWeekFixture.install(on: secrets)
-			}
-			secretFixture.backing.locked = launch.keychain == .locked
-			secretFixture.backing.unavailable = launch.keychain == .unavailable
-			if launch.keychain == .malformedIntervals {
-				try secretFixture.backing.corruptIntervalsConnection()
-			}
-			secretFixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
+			let (secrets, backing, native) = try fixtureSecrets(launch)
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			let host: any ExecutionHost
@@ -77,7 +69,12 @@
 					records: fixture.store,
 					secrets: secrets,
 					models: .scripted(transport),
-					training: FirstWeekFixture.training(intervals),
+					training: native.map { proof in
+						.fake { credential, selection in
+							proof.bind(credential, selection: selection)
+							return intervals
+						}
+					} ?? FirstWeekFixture.training(intervals),
 					credits: .fake(credits),
 					host: host,
 					clock: clock
@@ -94,12 +91,47 @@
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
 					transport: transport, records: records, host: fixtureHost, secrets: secrets,
-					secretBacking: secretFixture.backing,
+					secretBacking: backing, nativeKeychain: native, recordStore: fixture.store,
 					intervals: intervals, credits: credits,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil)
 			)
+		}
+
+		private static func fixtureSecrets(_ launch: FixtureLaunch) throws
+			-> (ICloudKeychainStore, FixtureSecretStoreBacking?, NativeKeychainProof?)
+		{
+			if launch.keychain == .nativeProof {
+				#if KEYCHAIN_DEVICE_PROOF && !targetEnvironment(simulator)
+					guard bundleIdentifier == "icu.enduragent.keychainproof",
+						launch.store == .fresh || launch.store == .keep
+					else { throw FixtureLaunchError.nativeProofBuildRequired }
+					let proof = NativeKeychainProof()
+					let secrets = proof.store()
+					if launch.store == .fresh {
+						for slot in [
+							CredentialSlot.creditsAccount, .openRouterAccountKey,
+							.intervalsConnection, .accessSelection,
+						] {
+							try secrets.delete(slot)
+						}
+						try FirstWeekFixture.install(on: secrets)
+					}
+					return (secrets, nil, proof)
+				#else
+					throw FixtureLaunchError.nativeProofBuildRequired
+				#endif
+			}
+			let fixture = try ICloudKeychainStore.fixture(directory: launch.directory)
+			if launch.keychain != .empty { try FirstWeekFixture.install(on: fixture.store) }
+			fixture.backing.locked = launch.keychain == .locked
+			fixture.backing.unavailable = launch.keychain == .unavailable
+			if launch.keychain == .malformedIntervals {
+				try fixture.backing.corruptIntervalsConnection()
+			}
+			fixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
+			return (fixture.store, fixture.backing, nil)
 		}
 	}
 #endif
