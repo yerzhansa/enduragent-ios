@@ -1,4 +1,8 @@
 name: Enduragent
+configs:
+  Debug: debug
+  Release: release
+  DebugKeychainProof: debug
 options:
   bundleIdPrefix: icu.enduragent
   deploymentTarget:
@@ -6,9 +10,13 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 settings:
-  DEVELOPMENT_TEAM: FA494ACVTF
-  CODE_SIGN_STYLE: Automatic
-  SWIFT_VERSION: "6.0"
+  base:
+    DEVELOPMENT_TEAM: FA494ACVTF
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+  configs:
+    DebugKeychainProof:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEBUG KEYCHAIN_DEVICE_PROOF
 packages:
   EnduragentCoach:
     path: Packages/EnduragentCoach
@@ -47,6 +55,10 @@ targets:
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
       configs:
+        DebugKeychainProof:
+          PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.keychainproof
+          INFOPLIST_KEY_CFBundleDisplayName: Enduragent Keychain Proof
+          CODE_SIGN_ENTITLEMENTS: Enduragent/KeychainProof.entitlements
         Release:
           EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade pre-vault-5de5c782
     info:
@@ -60,15 +72,6 @@ targets:
         OpenRouterModel: $(OPENROUTER_MODEL)
         BGTaskSchedulerPermittedIdentifiers:
           - $(PRODUCT_BUNDLE_IDENTIFIER).coach.*
-    entitlements:
-      path: Enduragent/Enduragent.entitlements
-      properties:
-        com.apple.developer.icloud-container-identifiers:
-          - iCloud.icu.enduragent.ios
-        com.apple.developer.icloud-services:
-          - CloudKit
-        keychain-access-groups:
-          - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
       - package: EnduragentCoach
@@ -97,6 +100,9 @@ targets:
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentPhoneTests
+      - path: EnduragentUITests/TutorialHarness.swift
+      - path: EnduragentUITests/TutorialOnboarding.swift
+      - path: Enduragent/Fixtures/FixtureArguments.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.phonetests
@@ -105,6 +111,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: Enduragent
+      - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
   EnduragentUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -127,6 +136,26 @@ targets:
       - package: EnduragentCoach
         product: EnduragentCoachFixtures
 schemes:
+  EnduragentKeychainProof:
+    run:
+      config: DebugKeychainProof
+    profile:
+      config: DebugKeychainProof
+    analyze:
+      config: DebugKeychainProof
+    archive:
+      config: DebugKeychainProof
+    build:
+      targets:
+        Enduragent: all
+        EnduragentPhoneTests: [test]
+    test:
+      config: DebugKeychainProof
+      environmentVariables:
+        ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
+        ENDURAGENT_DEVICE_UPDATE_CHECK: $(ENDURAGENT_DEVICE_UPDATE_CHECK)
+      targets:
+        - EnduragentPhoneTests
   EnduragentPhone:
     build:
       targets:

@@ -34,6 +34,7 @@
 	}
 
 	enum FixtureLaunchError: Error {
+		case nativeProofBuildRequired
 		case unknownFixture(String)
 		case unknownArgument(key: String, value: String)
 		case defaultsSuiteUnavailable(String)

@@ -106,7 +106,7 @@ struct OnboardingConnectionTests {
 		let previous = try #require(try fixture.secrets.intervalsConnection())
 		model.trainingSettings.edit()
 		model.connectKey = "fixture-rotated"
-		fixture.secretBacking.failNextWrite = true
+		try #require(fixture.secretBacking).failNextWrite = true
 		await model.connect()
 		#expect(model.trainingSettings.receipt?.saveNotice?.key == Catalog.connectErrorNotSaved)
 		#expect(model.trainingSettings.isEditing)

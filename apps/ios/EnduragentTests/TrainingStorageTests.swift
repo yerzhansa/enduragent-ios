@@ -63,8 +63,8 @@ struct TrainingStorageTests {
 			#expect(training.connectionActionTitle == nil)
 			let retry = try #require(training.action)
 			#expect(retry == .retryStorage)
-			fixture.secretBacking.locked = false
-			fixture.secretBacking.unavailable = false
+			try #require(fixture.secretBacking).locked = false
+			try #require(fixture.secretBacking).unavailable = false
 			await reopened.performTrainingDisplay(retry)
 			try await reopened.waitForStatus {
 				guard case .connected(let summary, _) = $0.training else { return false }
@@ -102,7 +102,7 @@ struct TrainingStorageTests {
 			#expect(
 				reopened.trainingSettings.receipt?.saveNotice?.key == Catalog.planViewEndedSaved)
 			#expect(reopened.trainingSettings.key.isEmpty)
-		case .empty:
+		case .empty, .nativeProof:
 			Issue.record("This matrix covers training storage, not missing model access")
 		}
 		#expect(reopened.route == .chat)
