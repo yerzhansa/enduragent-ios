@@ -2990,7 +2990,9 @@
       "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
       "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
       "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
-      "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter."
+      "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
+      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen.",
+      "malformed": "Den sparade uppgiften för modellåtkomst kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "Ersättningen sparades inte. Din tidigare anslutning är oförändrad. Försök igen.",
       "profileUnavailable": "Din idrottsprofil är tillfälligt otillgänglig. Försök igen.",
       "wellnessRejected": "intervals.icu tillät inte läsning av dagens välmåendedata. Kontrollera din anslutning.",
-      "wellnessUnavailable": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen."
+      "wellnessUnavailable": "Dagens välmåendedata är tillfälligt otillgängliga. Försök igen.",
+      "blankConnection": "Ange en intervals.icu-API-nyckel.",
+      "connectionNotSaved": "Anslutningen sparades inte. Försök igen.",
+      "storageLocked": "Lås upp din iPhone för att läsa din intervals.icu-anslutning. Försök sedan igen.",
+      "storageUnavailable": "Din intervals.icu-anslutning är tillfälligt otillgänglig eftersom säker lagring inte kunde läsas. Försök igen.",
+      "storageMalformed": "Den sparade intervals.icu-anslutningen kunde inte läsas. Byt ut nyckeln för att ansluta igen."
     },
     "wellness": {
       "empty": "Inga välmåendedata för idag.",

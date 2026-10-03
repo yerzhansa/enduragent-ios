@@ -18,6 +18,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private let file: URL?
 	private var items: [String: Data]
 	private var isLocked = false
+	private var isUnavailable = false
 	private var failsNextWrite = false
 	private var copied: [String] = []
 	private var deleted: [String] = []
@@ -28,6 +29,19 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	public var locked: Bool {
 		get { lock.withLock { isLocked } }
 		set { lock.withLock { isLocked = newValue } }
+	}
+
+	public var unavailable: Bool {
+		get { lock.withLock { isUnavailable } }
+		set { lock.withLock { isUnavailable = newValue } }
+	}
+
+	public func corruptIntervalsConnection() throws {
+		try lock.withLock {
+			let account = CredentialSlot.intervalsConnection.rawValue
+			try check(account, writing: true)
+			try persist(account: account, data: Data("fixture-malformed-secret".utf8))
+		}
 	}
 
 	public var failNextWrite: Bool {
@@ -158,6 +172,9 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private func check(_ account: String, writing: Bool = false) throws {
 		if isLocked {
 			throw KeychainStoreError.keychain(errSecInteractionNotAllowed)
+		}
+		if isUnavailable {
+			throw KeychainStoreError.keychain(errSecNotAvailable)
 		}
 		if let status = failures[account] ?? (writing ? writeFailures[account] : nil) {
 			throw KeychainStoreError.keychain(status)

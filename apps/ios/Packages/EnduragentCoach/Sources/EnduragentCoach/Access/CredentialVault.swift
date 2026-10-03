@@ -113,6 +113,16 @@ package actor CredentialVault {
 		let current: IntervalsConnection?
 		do {
 			current = try activeConnection()
+		} catch .malformedStoredCredential(.intervalsConnection) {
+			switch change {
+			case .replace, .replaceConfirmingAthleteSwitch:
+				current = nil
+			case .keep:
+				return .kept(nil)
+			case .disconnect:
+				return .failedPreviousKept(
+					.secureStorage(.malformedStoredCredential(.intervalsConnection)), previous: nil)
+			}
 		} catch {
 			return .failedPreviousKept(.secureStorage(error), previous: nil)
 		}
@@ -214,7 +224,7 @@ package actor CredentialVault {
 		switching: Bool, _ boundWork: @Sendable () async -> Bool
 	) async -> CredentialOutcome<IntervalsSummary> {
 		guard let secret = NonEmptySecret(apiKey) else {
-			return .refused(.blankReplacementKeepsCurrent)
+			return .refused(current == nil ? .blankConnection : .blankReplacementKeepsCurrent)
 		}
 		let id = ConnectionID()
 		let credential = IntervalsCredential.apiKey(secret.value)

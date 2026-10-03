@@ -15,6 +15,30 @@ final class ShellLanguageTests {
 	private let clock = FixedClock(
 		now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
+	@Test func settingsLanguagePickerPreservesTheNavigationAndConversation() async throws {
+		let model = fixtureModel(
+			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		)
+		await model.agreeAndStartChatting()
+		model.draft.text = "How was my training week?"
+		await model.send()
+		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
+		while model.chat?.turns.last?.state.isSettled != true, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(20))
+		}
+		let turn = try #require(model.chat?.turns.last)
+		try #require(turn.state.isSettled)
+		model.draft.text = "My next question"
+		model.open(.settings)
+		model.openLanguagePicker()
+		#expect(model.showLanguage)
+		#expect(model.navigation == [.settings])
+		#expect(model.chat?.turns.last?.id == turn.id)
+		#expect(model.chat?.turns.count == 1)
+		#expect(model.draft.text == "My next question")
+		#expect(model.languagePreference == .automatic)
+	}
+
 	@Test func relaunchDoesNotRenderAutomaticOverASavedFixedPreference() async throws {
 		try await services().coach.setLanguage(.fixed(.es))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)

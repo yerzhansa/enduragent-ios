@@ -93,6 +93,7 @@ public enum CredentialOutcome<Summary: Sendable & Equatable>: Sendable, Equatabl
 }
 
 public enum CredentialRefusal: Sendable, Equatable {
+	case blankConnection
 	case blankReplacementKeepsCurrent
 	case differentAthlete(current: IntervalsAthleteID, new: IntervalsAthleteID)
 	case modelNotInCatalog

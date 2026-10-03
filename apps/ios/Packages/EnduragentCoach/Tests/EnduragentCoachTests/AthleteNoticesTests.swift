@@ -96,14 +96,17 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			.model(.accessUnavailable(.notConfigured(.openRouterAccount))), notConfigured,
 			.chooseAccessMethod, "Choose access method"),
 		failed(
-			.model(.accessUnavailable(.secureStorageUnavailable)), notConfigured,
+			.model(.accessUnavailable(.secureStorageUnavailable)),
+			"Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",
 			.chooseAccessMethod, "Choose access method"),
 		failed(
-			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))), notConfigured,
+			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))),
+			"The saved model access credential couldn't be read. Choose an access method to continue.",
 			.chooseAccessMethod, "Choose access method"),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),
-			notConfigured, .chooseAccessMethod, "Choose access method"),
+			"The saved intervals.icu connection couldn't be read. Replace the key to connect again.",
+			.connectTraining, "Connect"),
 		failed(
 			.local(.recordStorage),
 			"(Heads up: my disk is full, so I couldn't save this to our history — but your message went through. Please free up some space when you can.)",

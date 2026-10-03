@@ -2990,7 +2990,9 @@
       "locked": "Ontgrendel je iPhone om door te gaan. Je bericht is opgeslagen.",
       "notConfigured": "Kies hoe de coach een model bereikt om door te gaan.",
       "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
-      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten."
+      "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten.",
+      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je opgeslagen coachinginformatie is er nog. Probeer het opnieuw.",
+      "malformed": "De opgeslagen toegangsgegevens voor het model konden niet worden gelezen. Kies een toegangsmethode om verder te gaan."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "De vervanging is niet opgeslagen. Je vorige verbinding is ongewijzigd. Probeer opnieuw.",
       "profileUnavailable": "Je atletenprofiel is tijdelijk niet beschikbaar. Probeer opnieuw.",
       "wellnessRejected": "intervals.icu stond het lezen van de wellnessgegevens van vandaag niet toe. Controleer je verbinding.",
-      "wellnessUnavailable": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw."
+      "wellnessUnavailable": "De wellnessgegevens van vandaag zijn tijdelijk niet beschikbaar. Probeer opnieuw.",
+      "blankConnection": "Voer een intervals.icu-API-sleutel in.",
+      "connectionNotSaved": "De verbinding is niet opgeslagen. Probeer het opnieuw.",
+      "storageLocked": "Ontgrendel je iPhone om je intervals.icu-verbinding te lezen. Probeer het daarna opnieuw.",
+      "storageUnavailable": "Je intervals.icu-verbinding is tijdelijk niet beschikbaar omdat de beveiligde opslag niet kon worden gelezen. Probeer het opnieuw.",
+      "storageMalformed": "De opgeslagen intervals.icu-verbinding kon niet worden gelezen. Vervang de sleutel om opnieuw te verbinden."
     },
     "wellness": {
       "empty": "Geen wellnessgegevens voor vandaag.",

@@ -65,10 +65,7 @@ final class ShellModel {
 
 	var connectKey: String {
 		get { trainingSettings.key }
-		set {
-			if trainingSettings.state == .viewing { trainingSettings.edit() }
-			trainingSettings.key = newValue
-		}
+		set { trainingSettings.key = newValue }
 	}
 
 	var didConnect: Bool {
@@ -253,9 +250,13 @@ final class ShellModel {
 	func send() async {
 		reviewOutcomeNotice = nil
 		if case .showLanguagePicker? = await submission.send(using: services.coach) {
-			languageNotSaved = nil
-			showLanguage = true
+			openLanguagePicker()
 		}
+	}
+
+	func openLanguagePicker() {
+		languageNotSaved = nil
+		showLanguage = true
 	}
 
 	func stop() async {
