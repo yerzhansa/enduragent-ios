@@ -166,8 +166,11 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive() async throws {
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let services = try services(keychain: .locked)
+		do {
+			let first = await model(try services())
+			await first.agreeAndStartChatting()
+		}
+		let (services, _) = try await relaunch(.keep, keychain: .locked)
 		let fixture = try #require(services.fixture)
 		let backing = try #require(fixture.secretBacking)
 		let model = await model(services)

@@ -97,7 +97,10 @@ struct AccessOnboardingTests {
 			#expect(model.starterResolved)
 			#expect(model.starterLine == model.phrasebook.say(expected))
 			#expect(model.starterLine != "200 credits")
-			#expect(model.status.access == previous)
+			#expect(model.status.access.selection == previous.selection)
+			#expect(model.status.access.savedMethod == previous.savedMethod)
+			#expect(model.status.access.model == previous.model)
+			#expect(model.status.access.availability == previous.availability)
 			#expect(try fixture.secrets.accessSelection() == selection)
 			if method == .openRouterNeedsCredits && fault != "selection-write" {
 				#expect(try await model.services.coach.creditsIdentity().hasCreditsKey == false)
@@ -117,7 +120,10 @@ struct AccessOnboardingTests {
 			#expect(fixture.credits.calls.allSatisfy { $0 == .grant || $0 == .balance })
 		}
 		let reopened = try await reopen()
-		#expect(reopened.status.access == previous)
+		#expect(reopened.status.access.selection == previous.selection)
+		#expect(reopened.status.access.savedMethod == previous.savedMethod)
+		#expect(reopened.status.access.model == previous.model)
+		#expect(reopened.status.access.availability == previous.availability)
 		#expect(reopened.chat?.turns == saved.turns)
 		try await proveToolTurn(
 			reopened, method: previous.savedMethod ?? .credits,

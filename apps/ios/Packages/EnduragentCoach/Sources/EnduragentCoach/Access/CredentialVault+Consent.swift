@@ -89,7 +89,6 @@ extension CredentialVault {
 
 	func declineConsent(_ challenge: ConsentChallenge) {
 		if pendingModelChoice?.challenge == challenge { pendingModelChoice = nil }
-		if consentContext?.challenge == challenge { consentContext = nil }
 	}
 
 	private func creditsEntry(_ model: ModelID) throws -> ModelCatalogEntry {

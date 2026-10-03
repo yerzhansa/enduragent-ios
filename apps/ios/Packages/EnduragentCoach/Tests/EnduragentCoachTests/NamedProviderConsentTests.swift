@@ -29,14 +29,15 @@ extension ProviderConsentTests {
 			failure(try await coach.sendAndSettle("Before agreement"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
-		let retry = try await self.challenge(coach)
 		log.failNextAppend = true
-		await #expect(throws: ConsentWriteFailure.notSaved) { try await coach.recordConsent(retry) }
+		await #expect(throws: ConsentWriteFailure.notSaved) {
+			try await coach.recordConsent(challenge)
+		}
 		#expect(
 			failure(try await coach.sendAndSettle("After failed save"))
 				== .model(.accessUnavailable(.providerConsentRequired)))
 		#expect(transport.requestCount == 0)
-		try await coach.recordConsent(retry)
+		try await coach.recordConsent(challenge)
 		transport.respond = { _ in ScriptedReply([.text("Agreed."), .finish(reason: .stop)]) }
 		#expect(replyText(try await coach.sendAndSettle("After agreement")) == "Agreed.")
 		#expect(transport.requests.last?.provider == selected.details.provider)

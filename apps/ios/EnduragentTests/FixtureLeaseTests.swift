@@ -188,13 +188,13 @@ extension FixtureLaunchTests {
 			ports: CoachPorts(
 				records: .inMemory(deviceId: DeviceID()),
 				secrets: secrets,
-				models: .scripted(transport),
+				models: .scripted(transport, catalog: .bundled),
 				training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()),
 				host: host,
 				clock: clock
 			),
-			builtInModel: ModelID(rawValue: "test/lease-model"),
+			builtInModel: AppServices.builtInModel,
 			displayLocale: testLocaleResolver(),
 			coalescing: CoalescingPolicy(window: .milliseconds(20))
 		)
