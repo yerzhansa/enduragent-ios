@@ -7,6 +7,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-welcome` shows `chat.welcome` until the first message. It lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected. The health disclaimer remains below the composer.
 - `chat-send` saves the athlete message before it appears as accepted, then clears the composer. Send is disabled during acceptance, so another tap cannot duplicate that draft.
 - `chat-draft` keeps unsent text across relaunch. A failed save leaves the draft and shows `Not sent. Your draft is still here.` in `chat.composer.notSent`.
+- `chat-composer-navigation` keeps the draft visible and hittable after returning from Settings, its children, History and an archived conversation. The composer stays above a visible keyboard or at the screen bottom when the keyboard is absent.
 - `chat-reply` shows the settled reply without a working row. `chat-working` shows `Coach is working…` during collection, queued work, generation, and retry waits. `chat-streaming` keeps that row below the growing reply until settlement.
 - `chat-formatted-reply` draws headings, inline styles, nested lists, code and aligned tables through the package reply document. Only HTTP and HTTPS links are tappable. Literal markup and parser fallback keep their literal VoiceOver text. The same renderer draws streaming and stopped replies and archived conversations.
 - `chat-coalesce` joins free-text messages inside a trailing 1.5-second collection window. Each fragment extends the window. `/review`, `/start` and `/language` close buffered text in send order; `/language` opens its picker without waiting for the reply or making its own model request.
@@ -72,6 +73,7 @@ Preconditions:
 
 | Command | Observable result and attachment |
 | --- | --- |
+| `sim.mjs test <run id> ComposerNavigationProof` | A focused draft survives every pushed destination, including a language edit under Settings. Each return checks hittability, draft value and the composer container's position within the normal screen deadline, then taps the composer and checks keyboard avoidance again. Attachments use `composer-navigation-*` with frame measurements and screenshots. Run in light appearance. |
 | `sim.mjs test <run id> FirstConversationProof` | Week question and memory reminder each receive their expected reply, `04-first-conversation`. |
 | `sim.mjs test <run id> ReceivedBeforeReplyProof` | The accepted message and working row appear before the reply, `received`. |
 | `sim.mjs test <run id> SlowReplyProof` | Working, partial reply with working, then completed reply, `slow-reply-working`, `slow-reply-streaming`, `slow-reply-done`. |
