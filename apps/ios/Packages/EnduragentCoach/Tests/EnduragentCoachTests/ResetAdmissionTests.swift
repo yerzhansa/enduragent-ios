@@ -64,7 +64,7 @@ import Testing
 		#expect(saving.activity == .working(label: Catalog.chatNoticeStartingNewConversation))
 		memory.release()
 		let opened = try await firstSnapshot(
-			in: await coach.observe(.main), within: .subject(.seconds(1))
+			in: await coach.observe(.main), within: .hangGuard
 		) {
 			$0.opening.showsWelcome && $0.turns.map(\.id) == [next]
 		}
