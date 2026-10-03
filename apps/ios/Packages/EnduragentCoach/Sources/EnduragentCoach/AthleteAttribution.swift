@@ -35,6 +35,7 @@ extension Segment {
 			turns.flatMap { facts in
 				(facts.userRow.map { [$0.account] } ?? [])
 					+ facts.questions.map(\.row.account) + facts.claims.map(\.account)
+					+ facts.settlements.compactMap { facts.replyRow(for: $0)?.account }
 			} + notes.map(\.account)
 		return AthleteAttribution(accounts: accounts, using: ownership, device: device)
 	}

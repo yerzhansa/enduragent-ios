@@ -49,11 +49,10 @@ import Testing
 		#expect(history.map(\.startedOn) == ["1998-06-13", "1998-06-13"])
 		#expect(history.map(\.reason) == [.newConversation, .newConversation])
 		#expect(!String(reflecting: history).contains("Archived reply"))
-		#expect(await store.replyReads.isEmpty)
 		#expect(transport.requests.isEmpty)
 	}
 
-	@Test func openingAnArchiveReadsOnlyItsReplies() async throws {
+	@Test func openingAnArchiveShowsOnlyItsReplies() async throws {
 		try await seedArchives()
 		let coach = await coach()
 		let summary = try #require(try await coach.history().last)
@@ -63,17 +62,18 @@ import Testing
 		#expect(archived.reason == summary.reason)
 		#expect(archived.turns.map(\.athleteText) == ["Question 1"])
 		#expect(archived.turns.compactMap { replyText($0.state) } == ["Archived reply 1"])
-		#expect(await store.replyReads.map(\.body.turn) == [TurnID(ulid: fixedUlid(10))])
 		#expect(transport.requests.isEmpty)
 	}
 
-	@Test func historySurvivesReplyReadFailureAndOpeningReportsIt() async throws {
+	@Test func historyReportsUnavailableReplyProvenance() async throws {
 		try await seedArchives()
-		await store.rejectReplies()
 		let coach = await coach()
 		let history = try await coach.history()
-		#expect(history.map(\.firstQuestion) == ["Question 2", "Question 1"])
 		let ref = try #require(history.first?.id)
+		await store.rejectReplies()
+		await #expect(throws: HistoryUnavailable.storageUnavailable) {
+			try await coach.history()
+		}
 		await #expect(throws: HistoryUnavailable.storageUnavailable) {
 			try await coach.archivedConversation(ref)
 		}
@@ -86,13 +86,11 @@ import Testing
 			let ref = ArchivedConversationRef(chat: .main, segment: SegmentID(boundary: boundary))
 			#expect(try await coach.archivedConversation(ref) == nil)
 		}
-		#expect(await store.replyReads.isEmpty)
 	}
 }
 
 actor HistoryRecordLog: RecordLog {
 	private let wrapped = InMemoryRecordLog()
-	private(set) var replyReads: [AthleteRecord] = []
 	private var rejectsReplies = false
 
 	nonisolated var deviceId: DeviceID { wrapped.deviceId }
@@ -117,7 +115,6 @@ actor HistoryRecordLog: RecordLog {
 		if rejectsReplies, !replies.isEmpty {
 			throw RecordStorageFault(operation: .fetch)
 		}
-		replyReads += replies
 		return page
 	}
 

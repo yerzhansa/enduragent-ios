@@ -86,6 +86,36 @@ extension SwiftDataSuites {
 			let unresolved: ChatID = "ownership-unbound"
 			let mixedNote: ChatID = "ownership-mixed-review-note"
 			let noteOnly: ChatID = "ownership-review-note-only"
+			let peer = DeviceID(rawValue: "ownership-importing-peer")
+			let replies: [(ChatID, TrainingAccount, TrainingAccount, Bool)] = [
+				("ownership-mixed-reply", fixture.accountA, fixture.accountB, false),
+				("ownership-unknown-reply", fixture.accountB, .unconnected, false),
+				("ownership-mixed-legacy-reply", fixture.accountA, fixture.accountB, true),
+				("ownership-unknown-legacy-reply", fixture.accountB, .unconnected, true),
+			]
+			for (offset, entry) in replies.enumerated() {
+				let (chat, questionAccount, replyAccount, legacy) = entry
+				let index = 80 + offset * 10
+				let turn = TurnID(ulid: fixedUlid(index))
+				try await seed(
+					store,
+					[
+						fixture.record(
+							index, account: questionAccount,
+							body: legacy
+								? legacyUser(chatId: chat, text: "Imported question")
+								: .synced(
+									sampleUser(chatId: chat, text: "Imported question", turn: turn)),
+							device: peer),
+						fixture.record(
+							index + 1, account: replyAccount,
+							body: legacy
+								? legacyReply(chatId: chat, text: "Imported reply")
+								: .synced(
+									sampleReply(chatId: chat, turn: turn, text: "Imported reply")),
+							device: peer),
+					])
+			}
 			let accounts = [fixture.accountA, fixture.accountB, fixture.accountA]
 			for (index, account) in accounts.enumerated() {
 				let turn = TurnID(ulid: fixedUlid(20 + index))
@@ -116,6 +146,14 @@ extension SwiftDataSuites {
 									lease: .gracePeriodOnly))),
 						cause: .operation(.turn(turn), attempt)),
 					fixture.record(
+						42, account: .unconnected,
+						body: .synced(
+							.turnSettled(
+								TurnSettledBody(
+									chatId: recovered, turn: turn, attempt: attempt,
+									settlement: .replied(.model("Original A reply"), lineage: nil)))
+						)),
+					fixture.record(
 						50, account: .unconnected,
 						body: legacyUser(chatId: unresolved, text: "Unbound earlier question")),
 					fixture.record(
@@ -134,13 +172,18 @@ extension SwiftDataSuites {
 								ReviewAppliedBody(chatId: noteOnly, summary: .deleteWorkout)))),
 				])
 			store.notifyImport()
-			for chat in [mixed, mixedNote, unresolved, AthleteOwnershipFixture.unknownChat] {
+			for chat in [mixed, mixedNote, unresolved, AthleteOwnershipFixture.unknownChat]
+				+ replies.map({ $0.0 })
+			{
 				let summary = try await summary(on: coach, chat: chat)
 				#expect(summary.attribution.ownership == .unverified)
 				#expect(line(summary, connected: athleteB) == nil)
 				let archive = try #require(try await coach.archivedConversation(summary.id))
 				#expect(archive.attribution == summary.attribution)
 				#expect(!archive.turns.isEmpty)
+				if replies.contains(where: { $0.0 == chat }) {
+					#expect(archive.turns.compactMap { replyText($0.state) } == ["Imported reply"])
+				}
 			}
 			let note = try await summary(on: coach, chat: noteOnly)
 			#expect(line(note, connected: athleteB) == savedLine)
@@ -153,6 +196,41 @@ extension SwiftDataSuites {
 			#expect(
 				try await coach.archivedConversation(original.id)?.attribution
 					== original.attribution)
+			await coach.lifecycle(.willTerminate)
+		}
+
+		@Test func importedM1SettlementOwnershipMatchesHistoryAndArchive() async throws {
+			let store = ImportingRecordLog()
+			let fixture = try AthleteScopedCoachingFixture(store: store)
+			let coach = await fixture.open()
+			await coach.lifecycle(.becameActive)
+			try fixture.peer.replace(.athleteB)
+			await coach.lifecycle(.becameActive)
+			let chat: ChatID = "ownership-m1-settlement"
+			let peer = DeviceID(rawValue: "ownership-m1-peer")
+			let turn = TurnID(ulid: fixedUlid(120))
+			try await seed(
+				store,
+				[
+					fixture.record(
+						120, account: .unconnected,
+						body: .synced(
+							sampleUser(chatId: chat, text: "Imported M1 question", turn: turn)),
+						device: peer),
+					fixture.record(
+						121, account: fixture.accountA,
+						body: .synced(
+							sampleReply(chatId: chat, turn: turn, text: "Saved M1 reply")),
+						device: peer),
+				])
+			store.notifyImport()
+			let imported = try await summary(on: coach, chat: chat)
+			#expect(imported.attribution.ownership == .verified(try #require(athleteA)))
+			#expect(line(imported, connected: athleteB) == savedLine)
+			let archive = try #require(try await coach.archivedConversation(imported.id))
+			#expect(archive.attribution == imported.attribution)
+			#expect(archive.turns.map(\.athleteText) == ["Imported M1 question"])
+			#expect(archive.turns.compactMap { replyText($0.state) } == ["Saved M1 reply"])
 			await coach.lifecycle(.willTerminate)
 		}
 
