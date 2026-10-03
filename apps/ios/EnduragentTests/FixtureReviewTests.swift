@@ -132,7 +132,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [false, true])
-	func reviewNoticeClearsWhenContinuingOrStartingANewConversation(newConversation: Bool)
+	func reviewCardNoticeClearsWhenContinuingOrStartingANewConversation(newConversation: Bool)
 		async throws
 	{
 		let services = try services()
@@ -142,8 +142,13 @@ extension FixtureLaunchTests {
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		backing.locked = true
+		defer { backing.locked = false }
 		await model.decide(.approve(token))
-		try #require(model.reviewNotice?.key == Catalog.reviewCannotVerify)
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewCannotVerify }
+		let blocked = try #require(model.chat?.review)
+		#expect(model.reviewNotice == nil)
+		#expect(blocked.controls == .none)
+		#expect(ConfirmedPreviewCard(model: model, review: blocked).actions.isEmpty)
 		backing.locked = false
 
 		if newConversation {
@@ -161,6 +166,7 @@ extension FixtureLaunchTests {
 			#expect(turn.athleteText == "How did Saturday go")
 		}
 		#expect(model.reviewNotice == nil)
+		#expect(model.chat?.review?.notice == nil)
 	}
 
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
@@ -183,36 +189,53 @@ extension FixtureLaunchTests {
 			services.fixture?.intervals.calls.contains(where: \.isCalendarWrite) == false)
 	}
 
-	@Test func onlyATapShowsTheReviewOutcome() async throws {
+	@Test func failedVerificationShowsOneCardNoticeAndUnlockRestoresApproval() async throws {
 		let services = try services()
 		let backing = try #require(services.fixture?.secretBacking)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		backing.locked = true
+		defer { backing.locked = false }
 
 		await model.decide(.approve(token))
 
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewCannotVerify }
+		let blocked = try #require(model.chat?.review)
+		let notice = try #require(blocked.notice)
+		let cardSentence = model.phrasebook.say(notice.key, notice.vars)
 		#expect(
-			model.reviewNotice?.sentence(in: model.displayLocale)
+			cardSentence
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
-		var snapshots = await services.coach.observe(.main).makeAsyncIterator()
-		let unsent = try #require(await snapshots.next()?.review)
-		#expect(unsent.notice == nil)
-		#expect(unsent.controls == .approveOrCancel(token))
 		#expect(
-			ConfirmedPreviewCard(model: model, review: unsent).actions.map(\.id)
-				== ["chat.preview.cancel", "chat.preview.add"])
+			[cardSentence, model.reviewNotice?.sentence(in: model.displayLocale)]
+				.compactMap { $0 }.count == 1)
+		#expect(blocked.ref == token.ref)
+		#expect(!blocked.cards.isEmpty)
+		#expect(blocked.controls == .none)
+		#expect(ConfirmedPreviewCard(model: model, review: blocked).actions.isEmpty)
+		#expect(services.fixture?.intervals.calls.contains(where: \.isCalendarWrite) == false)
 		await model.decide(.presented(token.ref))
-		#expect(model.reviewNotice?.key == Catalog.reviewCannotVerify)
+		#expect(model.reviewNotice == nil)
+		#expect(model.chat?.review?.notice?.key == Catalog.reviewCannotVerify)
 		backing.locked = false
-		await model.decide(.approve(token))
+		await model.decide(.presented(token.ref))
+		try await until {
+			if case .approveOrCancel? = model.chat?.review?.controls { return true }
+			return false
+		}
+		let restored = try #require(model.chat?.review)
+		#expect(restored.notice == nil)
+		let actions = ConfirmedPreviewCard(model: model, review: restored).actions
+		#expect(actions.map(\.id) == ["chat.preview.cancel", "chat.preview.add"])
+		await model.decide(try #require(actions.first { $0.button == .add }).decision)
 		#expect(model.reviewNotice == nil)
 		try await until { model.chat?.notes.values.flatMap { $0 }.count == 1 }
 		#expect(
 			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 				== "Done — Create workout \"Endurance with tempo\" on 6/16/1998.")
+		#expect(services.fixture?.intervals.calls.filter(\.isCalendarWrite).count == 1)
 	}
 
 	@Test(arguments: [false, true])

@@ -183,7 +183,7 @@ import Testing
 					training: .fake { credential, _ in peer.client(for: credential) },
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: fixture.clock),
-				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
+				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 	}
 
 	private func assertTurnUsesBo(_ coach: Coach) async throws {

@@ -23,14 +23,33 @@ extension CredentialVaultTests {
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilParked()
+		defer {
+			status.cancel()
+			gate.release()
+		}
+		try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					status.cancel()
+					gate.release()
+				}
+			) { await gate.waitUntilParked() } != nil)
 		if failingWrite {
 			memory.failWrites("intervalsCredential", with: statusCode)
 		} else {
 			memory.fail("intervalsCredential", with: statusCode)
 		}
 		gate.release()
-		let training = try await status.value.training
+		let resolved = try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					status.cancel()
+					gate.release()
+				}
+			) { try await status.value })
+		let training = resolved.training
 		if failingWrite {
 			#expect(training == .connected(adaSummary, account: account(testConnection)))
 		} else {
