@@ -101,19 +101,30 @@ package enum StoredIntervalsCredential: Codable, Equatable, Sendable {
 
 package enum StoredAccessSelection: Codable, Equatable, Sendable {
 	case credits
-	case openRouterAccount(model: String)
+	case openRouterAccount(model: String, generation: UUID? = nil)
 
-	package init(_ selection: AccessSelection) {
-		switch selection {
+	package init(_ reference: SavedAccessReference) {
+		switch reference.value {
 		case .credits: self = .credits
-		case .openRouterAccount(let model): self = .openRouterAccount(model: model.rawValue)
+		case .openRouter(let choice):
+			let generation: UUID?
+			switch choice.credential {
+			case .legacy: generation = nil
+			case .generation(let id): generation = id
+			}
+			self = .openRouterAccount(model: choice.model.rawValue, generation: generation)
 		}
 	}
 
-	package func selection() -> AccessSelection {
+	package func selection() -> SavedAccessReference {
 		switch self {
-		case .credits: .credits
-		case .openRouterAccount(let model): .openRouterAccount(model: ModelID(rawValue: model))
+		case .credits: .init(.credits)
+		case .openRouterAccount(let model, let generation):
+			.init(
+				.openRouter(
+					SavedOpenRouterReference(
+						credential: generation.map(OpenRouterCredentialRef.generation) ?? .legacy,
+						model: ModelID(rawValue: model))))
 		}
 	}
 }

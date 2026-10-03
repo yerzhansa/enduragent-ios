@@ -70,8 +70,9 @@ extension TurnRunnerTests {
 			otherwise: transport.respond)
 		let secrets = keyedSecrets()
 		if method == .openRouterAccount {
-			try secrets.storeOpenRouterAccountKey("sk-or-test-account")
-			try secrets.storeAccessSelection(.openRouterAccount(model: testModel))
+			try secrets.storeOpenRouterAccountKey("sk-or-test-account", at: .legacy)
+			try secrets.storeAccessSelection(
+				.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: testModel))))
 		}
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, secrets: secrets, consent: false)

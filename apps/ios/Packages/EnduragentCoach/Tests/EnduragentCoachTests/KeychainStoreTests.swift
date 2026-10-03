@@ -28,8 +28,8 @@ import Testing
 				appAccountToken: UUID(), key: "test-or-key-rotated")
 		)
 		#expect(try store.creditsAccount()?.key == "test-or-key-rotated")
-		try store.storeOpenRouterAccountKey("test-or-account-key")
-		#expect(try store.openRouterAccountKey() == "test-or-account-key")
+		try store.storeOpenRouterAccountKey("test-or-account-key", at: .legacy)
+		#expect(try store.openRouterAccountKey(at: .legacy) == "test-or-account-key")
 		try store.storeIntervalsConnection(testConnection)
 		#expect(try store.intervalsConnection() == testConnection)
 		let oauth = IntervalsConnection(
@@ -38,8 +38,10 @@ import Testing
 			resolvedAthlete: nil)
 		try store.storeIntervalsConnection(oauth)
 		#expect(try store.intervalsConnection() == oauth)
-		let selection = AccessSelection.openRouterAccount(
-			model: ModelID(rawValue: "test/account-model"))
+		let selection = SavedAccessReference(
+			.openRouter(
+				SavedOpenRouterReference(
+					credential: .legacy, model: ModelID(rawValue: "test/account-model"))))
 		try store.storeAccessSelection(selection)
 		#expect(try store.accessSelection() == selection)
 	}

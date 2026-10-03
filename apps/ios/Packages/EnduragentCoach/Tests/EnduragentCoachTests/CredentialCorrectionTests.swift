@@ -13,8 +13,8 @@ import Testing
 		basis = try CredentialVaultTests()
 		secrets = ICloudKeychainStore(backing: backing)
 		try secrets.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
-		try secrets.storeOpenRouterAccountKey("synthetic-router-key")
-		try secrets.storeAccessSelection(.credits)
+		try secrets.storeOpenRouterAccountKey("synthetic-router-key", at: .legacy)
+		try secrets.storeAccessSelection(.init(.credits))
 	}
 
 	@Test func malformedCorrectionIsAtomicAndUsesNewOwner() async throws {
@@ -47,8 +47,8 @@ import Testing
 		#expect(saved.credential == .apiKey("other-athlete"))
 		#expect(saved.resolvedAthlete?.rawValue == "i2002")
 		#expect(try secrets.creditsAccount() == credits)
-		#expect(try secrets.openRouterAccountKey() == "synthetic-router-key")
-		#expect(try secrets.accessSelection() == .credits)
+		#expect(try secrets.openRouterAccountKey(at: .legacy) == "synthetic-router-key")
+		#expect(try secrets.accessSelection() == .init(.credits))
 		basis.transport.respond = ScriptedReply.sequence([
 			.toolCall(name: ToolName.intervalsFetchAthlete.rawValue, arguments: "{}"),
 			.finish(reason: .toolCalls), .text("Profile read."), .finish(reason: .stop),
@@ -95,8 +95,8 @@ import Testing
 		#expect(current.session == previous.session)
 		#expect(current.setup == previous.setup)
 		#expect(try await coach.creditsIdentity() == identity)
-		#expect(try secrets.openRouterAccountKey() == "synthetic-router-key")
-		#expect(try secrets.accessSelection() == .credits)
+		#expect(try secrets.openRouterAccountKey(at: .legacy) == "synthetic-router-key")
+		#expect(try secrets.accessSelection() == .init(.credits))
 	}
 
 	@Test(arguments: [false, true])
