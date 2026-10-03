@@ -3032,7 +3032,7 @@
     "packPrice_many": "{{formattedCount}} kredytów · {{price}}",
     "error": {
       "accessRejected": "Nie udało się użyć twoich kredytów. Przywróć zakupy, aby kontynuować.",
-      "exhausted": "Skończyły ci się kredyty. Kup więcej lub przełącz się na swoje konto OpenRouter.",
+      "exhausted": "Skończyły ci się kredyty. Możesz przełączyć się na swoje konto OpenRouter.",
       "unavailable": "Kredyty są teraz niedostępne. Spróbuj ponownie później.",
       "accountChanged": "Twoje konto kredytów zmieniło się podczas kończenia tego żądania. Zachowano twoje obecne konto."
     }

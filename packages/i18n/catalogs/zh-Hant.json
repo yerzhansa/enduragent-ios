@@ -2915,7 +2915,7 @@
     "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
     "error": {
       "accessRejected": "無法使用你的點數。請回復購買項目以繼續。",
-      "exhausted": "你的點數已用完。請購買更多點數，或切換到你的 OpenRouter 帳戶。",
+      "exhausted": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。",
       "unavailable": "點數目前無法使用。請稍後重試。",
       "accountChanged": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"
     }

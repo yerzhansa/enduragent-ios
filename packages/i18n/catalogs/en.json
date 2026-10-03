@@ -902,7 +902,7 @@
   "credits": {
     "error": {
       "accessRejected": "Your Credits couldn't be used. Restore purchases to continue.",
-      "exhausted": "You're out of Credits. Buy more, or switch to your OpenRouter account.",
+      "exhausted": "You're out of Credits. You can switch to your OpenRouter account.",
       "unavailable": "Credits are unavailable right now. Try again later.",
       "accountChanged": "Your Credits account changed while this request was finishing. Your current account was kept."
     },

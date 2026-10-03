@@ -12,6 +12,10 @@ final class AccessSettingsModel {
 		self.environment = environment
 	}
 
+	func dismiss() {
+		notice = nil
+	}
+
 	func choose(_ change: ModelAccessChange) async {
 		guard !isChanging else { return }
 		isChanging = true

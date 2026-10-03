@@ -2954,7 +2954,7 @@
     "packPrice_other": "{{formattedCount}} krediittiä · {{price}}",
     "error": {
       "accessRejected": "Krediittejäsi ei voitu käyttää. Palauta ostokset jatkaaksesi.",
-      "exhausted": "Krediittisi ovat loppuneet. Osta lisää tai vaihda OpenRouter-tiliisi.",
+      "exhausted": "Krediittisi ovat loppuneet. Voit vaihtaa OpenRouter-tiliisi.",
       "unavailable": "Krediitit eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.",
       "accountChanged": "Krediittitilisi vaihtui tämän pyynnön viimeistelyn aikana. Nykyinen tilisi säilytettiin."
     }

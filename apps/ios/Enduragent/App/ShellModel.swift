@@ -218,6 +218,7 @@ final class ShellModel {
 	}
 
 	func startChatting() async {
+		accessSettings.dismiss()
 		onboarding.complete()
 		route = .loading
 		await appear()
