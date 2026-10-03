@@ -175,6 +175,33 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
 
+### Prove the OpenRouter HTTPS callback and cancellation
+
+Unit U7-3 adds `EnduragentPhoneTests/OpenRouterSignInPhoneCheck`. Run it at slice completion after 7.2 supplies `OpenRouterSignInSession` from `AppServices` and the sign-in actions are connected. G34 leaves this proof pending while the operator is away. Controlled app completions do not prove the installed phone's associated-domain handoff. No simulator proof is owed while the domain is unconfigured.
+
+The operator configures `enduragent.icu`, its site-association file, the App ID capability and the signed install's Associated Domains entitlement. The callback is `https://enduragent.icu/auth/openrouter/callback`. This unit changes no entitlement or signing setting. Use an unlocked physical iPhone, English, working model access, accepted consent, no draft, no unfinished turn and no open workout review.
+
+Before each invocation, ask for its message budget. Explain that the callback test sends zero messages. The cancel test sends one live message through the previous access method and can spend Credits or use the connected OpenRouter account. Obtain explicit approval of that usage before the cancel test. Neither test taps Try again, New conversation, a purchase or a calendar Add. A stopped or failed invocation needs a fresh budget.
+
+1. Run `testHTTPSCallbackSavesConnection` with a new local evidence folder and the approved budget, which may be zero. The test launches plainly, opens Settings, then Choose access method, and taps Sign in with OpenRouter once.
+2. Handle the system permission alert by hand. The runner waits for the browser page and saves `openrouter-authorization-page`. At the OpenRouter page, automation stops all interaction. Confirm the host is `openrouter.ai` and the authorization identifies Enduragent before continuing. Never enter credentials through automation. The operator signs in and approves by hand within the runner's 180-second deadline.
+3. Check `openrouter-callback-saved` and `openrouter-callback-reopened`. The system sheet must dismiss, OpenRouter account must stay selected after relaunch, and the conversation's turn progress must remain unchanged. Inspect the phone's earlier messages as well. Keep the callback criterion pending if the sheet remains open or the choice is not saved.
+4. Prepare a working previous method with no pending consent. Obtain a new budget of at least one live Send, then run `testCancelKeepsPreviousAccessForNextTurn` in a different evidence folder. Run once with Credits selected and once with a working OpenRouter account, with a fresh budget for each invocation.
+5. Handle the system permission alert by hand. Inspect `openrouter-cancel-page`, then cancel the system sheet by hand without approving a new connection. The runner enters no credential and taps nothing in the browser. It waits at most 180 seconds for dismissal.
+6. Inspect `openrouter-before-cancel`, `openrouter-cancel-kept-access`, `openrouter-cancel-next-turn` and `openrouter-cancel-access-reopened`. The previous method must remain selected, the conversation must remain, and the single `What is an endurance ride?` message must receive a non-empty reply without a failure notice. Inspect the earlier messages and the reply. The phone remains in the conversation.
+
+Supply the connected phone's identifier only at invocation time. Choose one test method below, set `OPENROUTER_PHONE_TEST`, obtain `MESSAGE_BUDGET`, and create a new `OPENROUTER_PHONE_RUN` folder. Do not commit identifiers, keys, authorization codes, screenshots or result bundles.
+
+```sh
+mkdir -p "$OPENROUTER_PHONE_RUN"
+xcodegen generate --spec apps/ios/project.yml
+caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentPhone -configuration Debug -sdk iphoneos -destination "platform=iOS,id=$DEVICE_ID" -derivedDataPath /tmp/enduragent-dd/U7-3 -parallel-testing-enabled NO -resultBundlePath "$OPENROUTER_PHONE_RUN/openrouter.xcresult" -only-testing:"EnduragentPhoneTests/OpenRouterSignInPhoneCheck/$OPENROUTER_PHONE_TEST" ENDURAGENT_PHONE_MESSAGE_BUDGET="$MESSAGE_BUDGET" > "$OPENROUTER_PHONE_RUN/phone.log" 2>&1
+xcrun xcresulttool get test-results summary --path "$OPENROUTER_PHONE_RUN/openrouter.xcresult" > "$OPENROUTER_PHONE_RUN/summary.json"
+xcrun xcresulttool export attachments --path "$OPENROUTER_PHONE_RUN/openrouter.xcresult" --output-path "$OPENROUTER_PHONE_RUN/attachments"
+```
+
+`OPENROUTER_PHONE_TEST` is either `testHTTPSCallbackSavesConnection` or `testCancelKeepsPreviousAccessForNextTurn`. Check that exactly that test passed without a skip. Inspect every exported screenshot before declaring the criterion passed. Record the signed build, domain setup, selected method before and after, messages used, failed step and state left on the phone. Keep private evidence in the operator's local folder. Remove this run's build products under `/tmp/enduragent-dd/U7-3` afterward.
+
 ### Prove native training persistence on one phone
 
 Unit U4-5 adds `EnduragentKeychainProof` and `EnduragentPhoneTests/TrainingKeychainDeviceProof`. This device-only proof pairs native `ICloudKeychainStore` with the existing fake model, Credits and intervals.icu ports. It proves native persistence, not live service authentication or two-device synchronization. Keep criteria 1 and 4 and the timing evidence pending until the operator runs it.
