@@ -54,6 +54,9 @@ struct ComposerView: View {
 		.background(.background)
 		.accessibilityElement(children: .contain)
 		.accessibilityIdentifier("chat.composer.container")
+		.onChange(of: model.navigation.isEmpty) { _, isEmpty in
+			if !isEmpty { composerFocused = false }
+		}
 	}
 
 	private func say(_ key: CatalogKey) -> String {
