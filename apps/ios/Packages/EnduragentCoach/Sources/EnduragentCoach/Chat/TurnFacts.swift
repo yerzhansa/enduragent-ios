@@ -36,7 +36,8 @@ package struct TurnFacts: Sendable, Equatable {
 		return SettledAttempt(
 			ulid: settled.ulid, hlc: settled.hlc, attempt: settled.attempt,
 			settlement: settled.settlement.resolvingCalendarWrites(
-				evidence: Array(reviewWrites.values)))
+				evidence: Array(reviewWrites.values)), origin: settled.origin,
+			account: settled.account)
 	}
 
 	package var reply: ReplyText? {
@@ -49,7 +50,7 @@ package struct TurnFacts: Sendable, Equatable {
 		return claims.first { $0.attempt == latest }
 	}
 
-	var messageRows: [(ulid: ULID, message: ChatMessage)] {
+	var messageRows: [ConversationRow] {
 		guard let userRow else { return [] }
 		if let replyRow {
 			return [userRow, replyRow]
@@ -57,17 +58,28 @@ package struct TurnFacts: Sendable, Equatable {
 		return legacy && latestSettlement == nil ? [userRow] : []
 	}
 
-	var userRow: (ulid: ULID, message: ChatMessage)? {
+	var userRow: ConversationRow? {
 		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
-		return (
-			first.ulid,
-			ChatMessage(
+		return ConversationRow(
+			ulid: first.ulid, origin: origin,
+			account: first.account == .unconnected
+				? originalAttemptAccount ?? first.account : first.account,
+			message: ChatMessage(
 				author: .athlete(sent: first.ulid.time, timeZone: first.timeZone), text: requestText
 			)
 		)
 	}
 
-	var replyRow: (ulid: ULID, message: ChatMessage)? {
+	private var originalAttemptAccount: TrainingAccount? {
+		guard
+			let attempt = (claims.map(\.attempt) + settlements.map(\.attempt))
+				.min(by: { $0.ulid < $1.ulid })
+		else { return nil }
+		return claims.first { $0.attempt == attempt }?.account
+			?? settlements.filter { $0.attempt == attempt }.min(by: { $0.hlc < $1.hlc })?.account
+	}
+
+	var replyRow: ConversationRow? {
 		guard let settled = latestSettlement else { return nil }
 		let replyText: String
 		switch settled.settlement {
@@ -80,16 +92,17 @@ package struct TurnFacts: Sendable, Equatable {
 		case .interrupted, .failed:
 			return nil
 		}
-		return (
-			settled.ulid,
-			ChatMessage(author: .coach, text: replyText)
-		)
+		return ConversationRow(
+			ulid: settled.ulid, origin: settled.origin,
+			account: claims.first { $0.attempt == settled.attempt }?.account ?? settled.account,
+			message: ChatMessage(author: .coach, text: replyText))
 	}
 }
 
 package struct ClaimedAttempt: Sendable, Equatable {
 	package let hlc: HybridLogicalClock
 	package let body: TurnClaimBody
+	package var account: TrainingAccount = .unconnected
 
 	package var attempt: AttemptID { body.attempt }
 	package var process: ProcessID? { body.process }
@@ -104,6 +117,7 @@ package struct Fragment: Sendable, Equatable {
 	package let draft: DraftID?
 	package let text: String
 	package let slash: SlashCommand?
+	package var account: TrainingAccount = .unconnected
 }
 
 package struct SettledAttempt: Sendable, Equatable {
@@ -111,6 +125,8 @@ package struct SettledAttempt: Sendable, Equatable {
 	package let hlc: HybridLogicalClock
 	package let attempt: AttemptID
 	package let settlement: Settlement
+	package var origin: DeviceID = DeviceID(rawValue: "unverified")
+	package var account: TrainingAccount = .unconnected
 }
 
 extension Settlement {

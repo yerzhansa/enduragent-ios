@@ -53,7 +53,8 @@ final class ChatRecords {
 			for record in imported { applied[record.ulid] = record }
 			await retrySettlements()
 			var folded = ConversationFold.fold(
-				chat: chat, synced: Array(applied.values), device: ledger.deviceId)
+				chat: chat, synced: Array(applied.values), device: ledger.deviceId,
+				ownership: try await ledger.informationOwnership())
 			let jobs: [FlushJob]
 			if let recoveryRecords {
 				jobs =
@@ -69,6 +70,16 @@ final class ChatRecords {
 			self.jobs = jobs
 			return ((), snapshot)
 		}
+	}
+
+	func refreshInformationOwnership(isolation: isolated (any Actor)? = #isolation)
+		async throws(LedgerFailure)
+	{
+		let ownership = try await ledger.informationOwnership()
+		guard ownership != conversation.ownership else { return }
+		conversation = ConversationFold.fold(
+			chat: chat, synced: Array(applied.values), device: ledger.deviceId, ownership: ownership
+		)
 	}
 
 	func hasLocalWork(isolation: isolated (any Actor)? = #isolation) async -> Bool {
@@ -195,7 +206,11 @@ final class ChatRecords {
 
 	func recover(_ claims: [DeadClaim], isolation: isolated (any Actor)? = #isolation) async {
 		for dead in claims {
-			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock)
+			let account =
+				conversation.turn(dead.turn)?.claims.first { $0.attempt == dead.attempt }?.account
+				?? .unconnected
+			let stamp = OperationStamp.turn(dead.turn, attempt: dead.attempt, clock: clock).bound(
+				to: account)
 			await settle(
 				TurnLifecycle.settled(
 					dead.attempt,

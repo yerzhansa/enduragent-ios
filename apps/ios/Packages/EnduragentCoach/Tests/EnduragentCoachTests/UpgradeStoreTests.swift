@@ -43,7 +43,8 @@ extension SwiftDataSuites {
 			let coach = await makeCoach(
 				transport: transport, store: log, clock: clock, consent: false)
 			#expect(
-				try await coach.memory.fullContext().contains("Rides with a group on Saturdays."))
+				try await coach.memory.fullContext(for: testConnection.account).contains(
+					"Rides with a group on Saturdays."))
 			let review = try #require(await coach.currentSnapshot(.main)?.review)
 			#expect(review.authority == .thisDevice)
 			#expect(review.cards.count == 1)

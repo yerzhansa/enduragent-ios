@@ -17,7 +17,7 @@ import Testing
 							memorySections: 0, ledgerEvents: 0, planSaves: 0, calendarWrites: 1,
 							unverifiedCalendarWrites: 0)))))
 		let encoded = try RecordCodec.encode(body)
-		#expect(encoded.version == 2)
+		#expect(encoded.version == 4)
 		#expect(encoded.data == golden)
 		let decoded = RecordCodec.decode(
 			kind: "turnSettled", version: 2, data: golden,

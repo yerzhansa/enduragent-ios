@@ -109,7 +109,7 @@ import Testing
 		#expect(transport.requests.count == 2)
 		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
 		let hits = try await memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
+			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays", for: .unconnected)
 		#expect(hits.count == 1)
 	}
 
@@ -284,7 +284,8 @@ import Testing
 		#expect(body.messageUlids == history.flatMap { [$0.user, $0.reply] })
 		#expect(transport.requests.map(\.charge) == [.chatAttempt, .memoryFlush, .memoryFlush])
 		let hits = try await coach.memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays")
+			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays", for: testConnection.account
+		)
 		#expect(hits.count == 1)
 	}
 

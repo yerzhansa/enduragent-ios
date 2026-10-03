@@ -11,6 +11,7 @@ import Testing
 		let store = InMemoryRecordLog(deviceId: phoneA)
 		let original = storedRecord(
 			device: phoneA, wall: 897_732_000_000, ulid: fixedUlid(1),
+			account: testConnection.account,
 			body: .synced(
 				.ledgerEvent(
 					LedgerEventBody(
@@ -18,6 +19,7 @@ import Testing
 						source: .chat))))
 		let duplicate = storedRecord(
 			device: phoneB, wall: 897_732_060_000, ulid: fixedUlid(2),
+			account: testConnection.account,
 			body: .synced(
 				.ledgerEvent(
 					LedgerEventBody(
@@ -25,6 +27,7 @@ import Testing
 						source: .flush))))
 		let distinct = storedRecord(
 			device: phoneB, wall: 897_732_120_000, ulid: fixedUlid(3),
+			account: testConnection.account,
 			body: .synced(
 				.ledgerEvent(
 					LedgerEventBody(

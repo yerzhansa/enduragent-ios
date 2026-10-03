@@ -68,15 +68,17 @@ extension ToolRuntime {
 		Memory(ledger: ledger, clock: clock)
 	}
 
-	func executeMemoryRead() async throws -> ToolExecution {
-		let text = try await memory().complementContext()
+	func executeMemoryRead(for account: TrainingAccount) async throws -> ToolExecution {
+		let text = try await memory().complementContext(for: account)
 		if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 			return .result(.string("Every stored section is already in your Athlete Context."))
 		}
 		return .result(.string(text))
 	}
 
-	func executeMemoryQuery(_ arguments: JSONValue) async throws -> ToolExecution {
+	func executeMemoryQuery(_ arguments: JSONValue, for account: TrainingAccount) async throws
+		-> ToolExecution
+	{
 		let fields = arguments.objectFields
 		let fromRaw = fields["from"]?.stringValue ?? ""
 		let toRaw = fields["to"]?.stringValue ?? ""
@@ -89,7 +91,7 @@ extension ToolRuntime {
 			)
 		}
 		do {
-			let hits = try await memory().query(from: from, to: to, contains: query)
+			let hits = try await memory().query(from: from, to: to, contains: query, for: account)
 			return .result(.string(MemoryQuery.render(hits, from: from, to: to, query: query)))
 		} catch let failure as MemoryQueryFailure {
 			return .result(.string(failure.message))

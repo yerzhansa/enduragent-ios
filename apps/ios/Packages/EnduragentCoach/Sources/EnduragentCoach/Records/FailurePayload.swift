@@ -42,6 +42,8 @@ struct FailurePayload: Codable {
 			return ("accessUnavailable", "providerConsentRequired")
 		case .accessUnavailable(.secureStorageLocked):
 			return ("accessUnavailable", "secureStorageLocked")
+		case .accessUnavailable(.recordStorageUnavailable):
+			return ("accessUnavailable", "recordStorageUnavailable")
 		case .accessUnavailable(.secureStorageUnavailable):
 			return ("accessUnavailable", "secureStorageUnavailable")
 		case .accessUnavailable(.malformedStoredCredential(let slot)):
@@ -115,6 +117,8 @@ struct FailurePayload: Codable {
 			return .providerConsentRequired
 		case "secureStorageLocked":
 			return .secureStorageLocked
+		case "recordStorageUnavailable":
+			return .recordStorageUnavailable
 		case "secureStorageUnavailable":
 			return .secureStorageUnavailable
 		case let stored? where stored.hasPrefix(Self.notConfiguredPrefix):

@@ -151,7 +151,7 @@ import Testing
 		let state = try #require(await after.state(of: turn))
 		#expect(state == .accepted(.awaitingRestart))
 		try await Task.sleep(for: .milliseconds(100))
-		#expect(recording.batches.isEmpty)
+		#expect(recording.batches == [["trainingIdentityObserved"]])
 		#expect(transport.requests.isEmpty)
 		#expect(try await claims(of: turn).isEmpty)
 	}

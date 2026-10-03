@@ -21,7 +21,8 @@ import Testing
 		_ = try await memory.appendEvent(
 			date: "1998-06-30", kind: .outcome, text: "Group ride felt strong", source: .chat,
 			stamp: testStamp())
-		let hits = try await memory.query(from: "1998-06-01", to: "1998-06-30", contains: nil)
+		let hits = try await memory.query(
+			from: "1998-06-01", to: "1998-06-30", contains: nil, for: .unconnected)
 		#expect(hits.map(\.date) == ["1998-06-30", "1998-06-13", "1998-06-01"])
 	}
 
@@ -38,7 +39,8 @@ import Testing
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
 		do {
-			_ = try await memory.query(from: "1998-06-30", to: "1998-06-01", contains: nil)
+			_ = try await memory.query(
+				from: "1998-06-30", to: "1998-06-01", contains: nil, for: .unconnected)
 			Issue.record("expected failure")
 		} catch let failure as MemoryQueryFailure {
 			#expect(
@@ -68,7 +70,8 @@ import Testing
 			source: .flush, stamp: testStamp())
 		try await memory.writeSection(
 			.person, content: "- Name: Ada Kovač", source: .chat, stamp: testStamp())
-		let hits = try await memory.query(from: "1998-06-13", to: "1998-06-13", contains: nil)
+		let hits = try await memory.query(
+			from: "1998-06-13", to: "1998-06-13", contains: nil, for: .unconnected)
 		#expect(hits.map(\.kind) == [.dailyNote, .ledger(.decision), .journal])
 		let rendered = MemoryQuery.render(hits, from: "1998-06-13", to: "1998-06-13")
 		#expect(rendered.contains("## 1998-06-13\nFelt fresh on the morning spin.\nevent: "))
@@ -81,7 +84,8 @@ import Testing
 				log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
 		do {
-			_ = try await memory.query(from: "1998-01-01", to: "1999-01-03", contains: nil)
+			_ = try await memory.query(
+				from: "1998-01-01", to: "1999-01-03", contains: nil, for: .unconnected)
 			Issue.record("expected failure")
 		} catch let failure as MemoryQueryFailure {
 			#expect(

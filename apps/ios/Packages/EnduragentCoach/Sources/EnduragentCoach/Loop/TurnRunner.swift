@@ -92,7 +92,9 @@ package struct TurnRunner: Sendable {
 			prompt = try await assemble(
 				attempt,
 				transcript: Transcript(
-					conversation: conversation, jobs: jobs, excluding: attempt.turn),
+					conversation: conversation, jobs: jobs, excluding: attempt.turn,
+					for: attempt.training.account, device: ledger.deviceId,
+					using: try await ledger.informationOwnership()),
 				scope: scope, committed: committed, progress: progress)
 		} catch {
 			let failure = try AttemptFailure(caught: error)
@@ -184,7 +186,7 @@ package struct TurnRunner: Sendable {
 	}
 
 	func flushOnce(
-		covering rows: [(ulid: ULID, message: ChatMessage)],
+		covering rows: [ConversationRow],
 		attempt: TurnAttempt,
 		scope: TurnScope,
 		progress: @escaping AttemptProgressSink
@@ -222,7 +224,7 @@ package struct TurnRunner: Sendable {
 		let stamp = scope.stamp
 
 		let memory = Memory(ledger: ledger, clock: clock)
-		let (context, view) = try await memory.prompt()
+		let (context, view) = try await memory.prompt(for: attempt.training.account)
 		let schemas = ToolCatalog.schemas(memory: view)
 		let prefix = PromptAssembly.cyclingPrefix(gated: true)
 		let block = try await evidence.block(
@@ -236,7 +238,7 @@ package struct TurnRunner: Sendable {
 		)
 		let system = prefix + "\n\n" + volatile
 		let history = transcript.history
-		let past = history.messages.map { PromptAssembly.wireMessage(from: $0) }
+		let past = history.rows.map(\.message).map { PromptAssembly.wireMessage(from: $0) }
 		let trim = HistoryWindow.trim(
 			messages: past, systemTokens: estimateTokens(system),
 			window: attempt.session.effectiveContextWindow,
@@ -251,10 +253,10 @@ package struct TurnRunner: Sendable {
 				let firstKept =
 					trim.kept.isEmpty
 					? transcript.current?.ulid ?? attempt.turn.ulid
-					: history.ulids[trim.dropped.count]
+					: history.rows.map(\.ulid)[trim.dropped.count]
 				let dropped = try await summarizeDropped(
 					trim.dropped, previous: summary, firstKept: firstKept, attempt: attempt,
-					droppedUlids: Array(history.ulids.prefix(trim.dropped.count)),
+					droppedUlids: Array(history.rows.map(\.ulid).prefix(trim.dropped.count)),
 					scope: scope, progress: progress)
 				await committed(dropped.records)
 				summary = dropped.summary
@@ -332,7 +334,7 @@ struct TurnPrompt: Sendable {
 	let timed: String
 	var summary: String?
 	var wire: [WireMessage]
-	let inTurnRows: [(ulid: ULID, message: ChatMessage)]
+	let inTurnRows: [ConversationRow]
 	let window: Int
 
 	var systemMessage: WireMessage {

@@ -63,7 +63,7 @@ extension SwiftDataSuites {
 			).records
 			#expect(
 				writes.filter { $0.body.kind == "memorySection" }.count == (commitsMemory ? 1 : 0))
-			let memory = try await coach.memory.prompt().view
+			let memory = try await coach.memory.prompt(for: testConnection.account).view
 			if commitsMemory {
 				#expect(memory.sections["schedule"]?.contains("Group ride on Saturdays.") == true)
 			}
@@ -78,7 +78,7 @@ extension SwiftDataSuites {
 			let restoredFrench = try await relaunched.observedStatus().displayLocale.phrasebook
 			#expect(restoredFrench.tag == .fr)
 			#expect(visibleReply(restoredTurn.state, in: restoredFrench) == expected)
-			#expect(try await relaunched.memory.prompt().view == memory)
+			#expect(try await relaunched.memory.prompt(for: testConnection.account).view == memory)
 			#expect(transport.requests.count == 11)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await relaunched.retry(turn, in: .main)

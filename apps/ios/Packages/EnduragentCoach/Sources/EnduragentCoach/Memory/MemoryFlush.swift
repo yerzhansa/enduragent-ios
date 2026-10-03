@@ -37,7 +37,10 @@ extension Memory {
 		async throws
 	{
 		try await scope?.chargeCall()
-		let current = try await fullContext()
+		let ownership = try await ledger.informationOwnership()
+		let current = try await fullContext(
+			for:
+				ownership.extractionReadAccount(for: run.stamp, origin: ledger.deviceId))
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: run.timeZone)
 		let fenced = PromptAssembly.wrapAthleteContext(
 			current.isEmpty ? "No athlete data stored yet." : current)

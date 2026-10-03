@@ -23,6 +23,8 @@ public actor Coach {
 	private var recovery: Task<Bool, Never>?
 	let statusFeed = SnapshotFeed<CoachStatus>()
 	let statusChanges = Turnstile()
+	let identityChanges = Turnstile()
+	var identityWriteFailure: ConnectionID?
 	var trainingStatus: TrainingStatus?
 	var trainingRefresh: Task<Void, Never>?
 	var trainingReadID: TrainingDisplayReadID?
@@ -165,6 +167,7 @@ public actor Coach {
 		} else {
 			trainingStatus = stored
 		}
+		await recordTrainingIdentity(in: stored)
 		for mailbox in mailboxes.values {
 			_ = await mailbox.reviewChanged()
 		}
@@ -283,7 +286,6 @@ public actor Coach {
 		-> Result<ChatMailbox, LedgerFailure>
 	{
 		do {
-			let vault = self.vault
 			let preferences = self.preferences
 			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
 				() async throws(AccessUnavailable) in
@@ -305,7 +307,8 @@ public actor Coach {
 					training: { [weak self] () async throws(AccessUnavailable) in
 						let resolved: Result<TrainingConnection, AccessUnavailable>
 						do throws(AccessUnavailable) {
-							resolved = .success(try await vault.trainingConnection())
+							guard let self else { throw AccessUnavailable.recordStorageUnavailable }
+							resolved = .success(try await self.coachingTrainingConnection())
 						} catch {
 							resolved = .failure(error)
 						}

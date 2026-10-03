@@ -134,7 +134,7 @@ extension ExecutionLeaseTests {
 		await relaunched.lifecycle(.willTerminate)
 
 		#expect(recoveryHost.leases.isEmpty)
-		#expect(recording.batches == [["providerConsent"]])
+		#expect(recording.batches == [["providerConsent"], ["trainingIdentityObserved"]])
 		#expect(sent(.memoryFlush, by: transport).isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))).records.count

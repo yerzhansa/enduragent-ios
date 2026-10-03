@@ -163,15 +163,12 @@ private struct FlushedMessages {
 extension Conversation {
 	package func messagesSinceLastFlush(
 		_ jobs: [FlushJob], excluding turn: TurnID?, before boundary: HybridLogicalClock? = nil
-	) -> [(ulid: ULID, message: ChatMessage)] {
+	) -> [ConversationRow] {
 		let segment = boundary.map { current.closing(at: $0) } ?? current
-		let history = segment.promptHistory(excluding: turn)
+		let rows = segment.historyRows(excluding: turn, using: ownership)
 		let coverage = FlushedMessages(jobs, in: segment.id)
-		return zip(history.ulids, history.messages).compactMap { ulid, message in
-			if coverage.covers(ulid, legacy: legacyMessageUlids.contains(ulid)) {
-				return nil
-			}
-			return (ulid, message)
+		return rows.filter { row in
+			return !coverage.covers(row.ulid, legacy: legacyMessageUlids.contains(row.ulid))
 		}
 	}
 
@@ -179,12 +176,12 @@ extension Conversation {
 		flushRows(for: job).map(\.message)
 	}
 
-	package func flushRows(for job: FlushJob) -> [(ulid: ULID, message: ChatMessage)] {
+	package func flushRows(for job: FlushJob) -> [ConversationRow] {
 		let rows = ConversationRows(self)
 		return rows.messages(for: rows.ulids(for: job.id, messages: job.coverage.listed))
 	}
 
-	package func outstandingRows(_ jobs: [FlushJob]) -> [(ulid: ULID, message: ChatMessage)] {
+	package func outstandingRows(_ jobs: [FlushJob]) -> [ConversationRow] {
 		let rows = ConversationRows(self)
 		let ulids = rows.outstanding(jobs).reduce(into: Set<ULID>()) {
 			$0.formUnion($1.coverage.resolved)

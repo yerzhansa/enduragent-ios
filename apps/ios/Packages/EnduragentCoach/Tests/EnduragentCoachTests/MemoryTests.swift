@@ -68,7 +68,7 @@ import Testing
 			[
 				storedRecord(
 					device: other,
-					wall: Int64(now.timeIntervalSince1970 * 1000),
+					wall: Int64(now.timeIntervalSince1970 * 1000), account: testConnection.account,
 					body: .synced(
 						.ledgerEvent(
 							LedgerEventBody(
@@ -81,7 +81,7 @@ import Testing
 			date: "1998-06-13",
 			kind: .decision,
 			text: "  Keep Saturdays   free.  ",
-			source: .flush, stamp: testStamp())
+			source: .flush, stamp: testStamp(account: testConnection.account))
 		#expect(recorded == false)
 		let events = try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent]))).records
 		#expect(events.count == 1)
@@ -112,7 +112,7 @@ import Testing
 			### End of compaction summary
 			""", stamp: testStamp())
 		try await memory.appendDailyNote("Knee felt fine on the evening spin.", stamp: testStamp())
-		let prompt = try await memory.prompt()
+		let prompt = try await memory.prompt(for: .unconnected)
 		let context = prompt.context
 		#expect(context.contains("## Athlete Memory"))
 		#expect(context.contains("## person"))
