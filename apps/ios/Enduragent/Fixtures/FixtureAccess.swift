@@ -13,6 +13,7 @@
 			case .creditsNeedsSetup, .openRouterNeedsCredits:
 				_ = try secrets.prepareCreditsAccount()
 			}
+			try secrets.storeOpenRouterAccountKey(openRouterKey, at: .legacy)
 			if method == .openRouter || method == .openRouterNeedsCredits {
 				try secrets.installOpenRouterChoice(model: openRouterModel, key: openRouterKey)
 			}

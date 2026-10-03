@@ -2954,7 +2954,7 @@
     "packPrice_other": "{{formattedCount}} tegoedpunten · {{price}}",
     "error": {
       "accessRejected": "Je tegoedpunten konden niet worden gebruikt. Herstel je aankopen om door te gaan.",
-      "exhausted": "Je tegoedpunten zijn op. Koop er meer of schakel over naar je OpenRouter-account.",
+      "exhausted": "Je tegoedpunten zijn op. Je kunt overschakelen naar je OpenRouter-account.",
       "unavailable": "Tegoedpunten zijn momenteel niet beschikbaar. Probeer het later opnieuw.",
       "accountChanged": "Je tegoedaccount is gewijzigd terwijl dit verzoek werd afgerond. Je huidige account is behouden."
     }

@@ -9,7 +9,9 @@
 		static let slowWordDelay: Duration = .milliseconds(250)
 		static let slowFlushDelay: Duration = .seconds(6)
 
-		static func responses(intervals: FakeIntervalsClient) -> FakeModelTransport.Response {
+		static func responses(
+			intervals: FakeIntervalsClient, credits: FakeCreditsClient
+		) -> FakeModelTransport.Response {
 			let flushes = Mutex<[String: FakeModelTransport.Response]>([:])
 			return { request in
 				switch request.purpose {
@@ -26,6 +28,11 @@
 						return ScriptedReply([.finish(reason: .stop)])
 					}
 				case .chat:
+					if request.accessMethod == .credits, !request.retry,
+						request.text == "fixture:fail 402"
+					{
+						install(.zero, on: credits)
+					}
 					if request.text == trainingDataDirective {
 						return trainingDataReply(request)
 					}
