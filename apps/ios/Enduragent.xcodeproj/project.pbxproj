@@ -119,6 +119,7 @@
 		9C2038BE1099186A0284A13B /* AppLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C817FBBA11C32739DD15F72 /* AppLifecycle.swift */; };
 		9D824167E6DDBE222B9B0B8E /* FlushProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54C69207093FE40792AD4922 /* FlushProofs.swift */; };
 		9F1F29B06C4E14EA50640935 /* SettingsDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60514C08598EFC0D657A9743 /* SettingsDebugView.swift */; };
+		A20BA1D5F46C122C3FC15740 /* ReconnectReviewProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68BDF65821ADB17D594022A0 /* ReconnectReviewProof.swift */; };
 		A21777AC90999E3C3E31D49A /* ShellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30DA796E304FA8860C541078 /* ShellModel.swift */; };
 		A3BDA4EE9E669F7FA0C4C3B9 /* AccessOnboardingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A22592F817BA1CCE6A65606 /* AccessOnboardingTests.swift */; };
 		A481F4E43A366EEAD932009D /* TutorialOnboarding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02B6C704B58D02FA0A31BEE5 /* TutorialOnboarding.swift */; };
@@ -276,6 +277,7 @@
 		648BA3E877BA7913B5A5C2A3 /* TutorialProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialProofs.swift; sourceTree = "<group>"; };
 		64F70A1718F3D853FF0B19CF /* NewConversationProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationProofs.swift; sourceTree = "<group>"; };
 		670D7955D7B47E59F772B5F3 /* FixtureAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureAccess.swift; sourceTree = "<group>"; };
+		68BDF65821ADB17D594022A0 /* ReconnectReviewProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReconnectReviewProof.swift; sourceTree = "<group>"; };
 		693C14D44F213C3559B276D0 /* FixtureLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLaunch.swift; sourceTree = "<group>"; };
 		6945966E8651AE367F932455 /* LaunchProbes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchProbes.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
@@ -518,6 +520,7 @@
 				31C33A3E92D46CADD67CE057 /* OnboardingConnectionProofScreen.swift */,
 				A7889D5D2F53A121BA191F9A /* ProviderConsentProof.swift */,
 				6130966DFE7EE2080AADFDBB /* QueuedConversationProof.swift */,
+				68BDF65821ADB17D594022A0 /* ReconnectReviewProof.swift */,
 				E9C0C6082DC2129FC43FB3DA /* RecoveryProofs.swift */,
 				9C2C913B8DEC9455C4622CBC /* ReplyFormattingProofs.swift */,
 				7989A7EDCAA7BC2E25BFB24A /* ReplyProofScreen.swift */,
@@ -916,6 +919,7 @@
 				7431E225AD6498F6E1ECCD36 /* OnboardingConnectionProofScreen.swift in Sources */,
 				05FC77B7F288BAF69B9CF5F8 /* ProviderConsentProof.swift in Sources */,
 				7B713AED5A15AB2B9E7FB278 /* QueuedConversationProof.swift in Sources */,
+				A20BA1D5F46C122C3FC15740 /* ReconnectReviewProof.swift in Sources */,
 				8FF9731D68877106F9903417 /* RecoveryProofs.swift in Sources */,
 				943C79D5572C15B515F0D404 /* ReplyFormattingProofs.swift in Sources */,
 				1AEE2E701928200944478778 /* ReplyProofScreen.swift in Sources */,

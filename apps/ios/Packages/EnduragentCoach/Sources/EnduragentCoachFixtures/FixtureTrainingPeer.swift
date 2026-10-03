@@ -77,7 +77,9 @@ public final class FixtureTrainingPeer: Sendable {
 			key: current == nil ? "deleted" : key?.rawValue ?? "athleteA",
 			athleteAProfileReads: athleteA.profileReadCount,
 			athleteBProfileReads: athleteB.profileReadCount,
-			athleteAWrites: writes(athleteA), athleteBWrites: writes(athleteB))
+			athleteAWrites: writes(athleteA), athleteBWrites: writes(athleteB),
+			athleteACalendarCalls: calendarCalls(athleteA),
+			athleteBCalendarCalls: calendarCalls(athleteB))
 		return String(decoding: try JSONEncoder().encode(receipt), as: UTF8.self)
 	}
 
@@ -90,11 +92,22 @@ public final class FixtureTrainingPeer: Sendable {
 		}.count
 	}
 
+	private func calendarCalls(_ client: FakeIntervalsClient) -> Int {
+		client.calls.filter {
+			switch $0 {
+			case .events, .createEvent, .updateEvent, .deleteEvent: true
+			default: false
+			}
+		}.count
+	}
+
 	private struct Receipt: Encodable {
 		let key: String
 		let athleteAProfileReads: Int
 		let athleteBProfileReads: Int
 		let athleteAWrites: Int
 		let athleteBWrites: Int
+		let athleteACalendarCalls: Int
+		let athleteBCalendarCalls: Int
 	}
 }
