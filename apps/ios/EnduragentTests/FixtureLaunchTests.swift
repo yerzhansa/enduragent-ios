@@ -22,7 +22,8 @@ final class FixtureLaunchTests {
 
 	func relaunch(
 		_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked,
-		recovery: FixtureRecoveryPolicy = .readable, clock: String? = nil
+		recovery: FixtureRecoveryPolicy = .readable, clock: String? = nil,
+		language: LanguageTag? = nil
 	) async throws -> (AppServices, UserDefaults) {
 		var launch = launch
 		launch.store = store
@@ -32,7 +33,10 @@ final class FixtureLaunchTests {
 		await fixture.releaseOwners()
 		try await fixture.folder.waitUntilUnused()
 		let defaults = try launch.prepare()
-		return (try fixtureServices(launch, defaults: defaults), defaults)
+		return (
+			try fixtureServices(launch, defaults: defaults, language: language ?? self.language),
+			defaults
+		)
 	}
 
 	func model(_ services: AppServices) async -> ShellModel {
