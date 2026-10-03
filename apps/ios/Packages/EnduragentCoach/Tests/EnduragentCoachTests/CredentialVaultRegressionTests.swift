@@ -290,7 +290,7 @@ extension CredentialVaultTests {
 						PhoneCreditsClient(vault: vault, workerBase: base, session: session)
 					},
 					host: ImmediateExecutionHost(), clock: clock),
-				builtInModel: testModel, deviceLanguage: .en,
+				builtInModel: testModel, displayLocale: testDisplayLocale,
 				coalescing: quickWindow))
 	}
 
@@ -305,7 +305,7 @@ extension CredentialVaultTests {
 					models: .scripted(transport),
 					training: training, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
-				builtInModel: testModel, deviceLanguage: .en,
+				builtInModel: testModel, displayLocale: testDisplayLocale,
 				coalescing: quickWindow))
 	}
 }

@@ -6,7 +6,7 @@
 	struct CreditsDebugView: View {
 		let coach: Coach
 		let deviceCheck: any DeviceCheckTokenProviding
-		let phrasebook: CatalogPhrasebook
+		let displayLocale: DisplayLocale
 		@State private var session: CreditsDebugSession?
 		@State private var balanceText = "—"
 		@State private var starterMessage = ""
@@ -135,7 +135,7 @@
 			do {
 				let token = try await deviceCheck.token()
 				let notice = await coach.claimStarter(deviceCheck: token)
-				starterMessage = notice.sentence(in: phrasebook)
+				starterMessage = notice.sentence(in: displayLocale)
 				errorText = nil
 				await refreshBalance()
 			} catch {

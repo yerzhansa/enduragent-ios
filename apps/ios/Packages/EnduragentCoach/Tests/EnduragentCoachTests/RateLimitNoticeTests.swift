@@ -20,7 +20,7 @@ extension AthleteNoticesTests {
 			waiting: false)
 		#expect(shown.key == Catalog.coachErrorRateLimitMinutes)
 		#expect(shown.count == 153_722_867_280_912_896)
-		#expect(shown.vars == ["minutes": "153722867280912896"])
+		#expect(shown.vars == ["minutes": .integer(153_722_867_280_912_896)])
 	}
 
 }

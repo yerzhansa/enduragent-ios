@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -18,18 +19,30 @@ import Testing
 	) async throws {
 		let transport = FakeModelTransport()
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let coach = await makeCoach(transport: transport, store: log, deviceLanguage: .nl)
+		let coach = await makeCoach(
+			transport: transport, store: log,
+			displayLocale: {
+				DisplayLocale(
+					preference: $0, preferredLanguages: ["nl"],
+					regionalConventions: Locale(identifier: "en_US"))
+			})
 		try await coach.setLanguage(current)
 		try log.failAppends(ofKind: "languagePreference")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setLanguage(attempted)
 		}
-		let reopened = await makeCoach(transport: transport, store: log, deviceLanguage: .nl)
+		let reopened = await makeCoach(
+			transport: transport, store: log,
+			displayLocale: {
+				DisplayLocale(
+					preference: $0, preferredLanguages: ["nl"],
+					regionalConventions: Locale(identifier: "en_US"))
+			})
 		for owner in [coach, reopened] {
 			let status = try await owner.observedStatus()
 			#expect(status.language == current)
 			#expect(
-				status.language.phrasebook(device: .nl).say(Catalog.chatComposerMessagePlaceholder)
+				status.displayLocale.phrasebook.say(Catalog.chatComposerMessagePlaceholder)
 					== placeholder)
 			transport.respond = ScriptedReply.sequence(
 				[.text("Reply"), .finish(reason: .stop)], otherwise: transport.respond)

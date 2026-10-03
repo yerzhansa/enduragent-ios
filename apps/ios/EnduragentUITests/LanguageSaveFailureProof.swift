@@ -34,7 +34,7 @@ final class LanguageSaveFailureProof: XCTestCase {
 			entry.close(app)
 			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 			LanguageProofFlow.assertReplyInstruction(
-				app, prefix: "The athlete chose English (English).", test: self,
+				app, language: .en, test: self,
 				name: "u9-2-\(entry.rawValue)-failed-\(attempted)-instruction")
 			entry.open(app)
 			XCTAssertFalse(TutorialHarness.named(app, "language.saveFailed").exists)
@@ -51,7 +51,7 @@ final class LanguageSaveFailureProof: XCTestCase {
 			entry.close(app)
 			TutorialHarness.exchange(app, "How should I pace an easy ride?")
 			LanguageProofFlow.assertReplyInstruction(
-				app, prefix: "The athlete chose English (English).", test: self,
+				app, language: .en, test: self,
 				name: "u9-2-\(entry.rawValue)-failed-\(attempted)-restored-instruction")
 		}
 	}

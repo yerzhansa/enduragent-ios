@@ -137,7 +137,7 @@ extension RetryLadderTests {
 				records: RecordStore(log: store), secrets: keyedSecrets(),
 				models: ModelService { _ in model }, training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, deviceLanguage: .en,
+			builtInModel: testModel, displayLocale: testDisplayLocale,
 			coalescing: CoalescingPolicy(window: .zero))
 		return await consentingCoach(coach)
 	}

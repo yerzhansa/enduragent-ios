@@ -8,7 +8,7 @@ extension FixtureLaunchTests {
 		var configured = launch
 		configured.recordReadFault = .failAfterPresentedOnce
 		let services = try fixtureServices(configured, defaults: defaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.trainingSettings.edit()
 		model.connectKey = "fixture"

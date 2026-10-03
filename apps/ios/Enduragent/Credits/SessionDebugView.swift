@@ -41,11 +41,11 @@
 		}
 
 		private var stored: String {
-			model.status?.session.text(for: field) ?? ""
+			model.status.session.text(for: field)
 		}
 
 		private func save() async {
-			guard let current = model.status?.session else { return }
+			let current = model.status.session
 			let next: SessionSettings
 			do {
 				next = try current.replacing(field, with: text)

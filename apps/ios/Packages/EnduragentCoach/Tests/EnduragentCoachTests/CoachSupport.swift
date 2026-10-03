@@ -55,7 +55,7 @@ func makeCoach(
 	coalescing: CoalescingPolicy = quickWindow,
 	secrets: any SecretStore = keyedSecrets(),
 	host: any ExecutionHost = ImmediateExecutionHost(),
-	deviceLanguage: LanguageTag = .en,
+	displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale,
 	watchdogClock: HeldClock = HeldClock(),
 	coalescingClock: HeldClock? = nil,
 	consent: Bool = true
@@ -70,7 +70,7 @@ func makeCoach(
 		sport: .cycling,
 		ports: ports,
 		builtInModel: testModel,
-		deviceLanguage: deviceLanguage,
+		displayLocale: displayLocale,
 		coalescing: coalescing
 	)
 	return consent ? await consentingCoach(coach) : coach
@@ -239,8 +239,7 @@ func systemTokens(clock: any Clock) -> Int {
 		context: "",
 		evidence: EvidenceBlock(wellnessLine: nil),
 		timeZoneName: clock.timeZone.identifier,
-		replyLanguage: PromptAssembly.replyLanguageSection(
-			.automatic(.en))
+		displayLocale: testDisplayLocale(.automatic)
 	)
 	return estimateTokens(PromptAssembly.cyclingPrefix(gated: true) + "\n\n" + volatile)
 }
@@ -318,4 +317,16 @@ extension WireMessage {
 		else { return content }
 		return String(content[stamp.upperBound...])
 	}
+}
+
+let testDisplayLocale: DisplayLocaleResolver = { preference in
+	DisplayLocale(
+		preference: preference, preferredLanguages: ["en"],
+		regionalConventions: Locale(identifier: "en_US"))
+}
+
+func displayLocale(_ tag: LanguageTag = .en, region: String = "en_US") -> DisplayLocale {
+	DisplayLocale(
+		preference: .fixed(tag), preferredLanguages: [],
+		regionalConventions: Locale(identifier: region))
 }

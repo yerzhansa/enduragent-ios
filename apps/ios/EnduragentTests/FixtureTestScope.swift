@@ -92,20 +92,23 @@ final class AppTestFixture {
 func fixtureServices(
 	_ launch: FixtureLaunch, defaults: UserDefaults,
 	language: LanguageTag = Language.uiTag(systemLanguages: Locale.preferredLanguages),
-	backgroundSystem: any BackgroundSystem = StubBackgroundSystem()
+	backgroundSystem: any BackgroundSystem = StubBackgroundSystem(),
+	displayLocale: DisplayLocaleResolver? = nil
 ) throws -> AppServices {
 	AppTestFixture.active.own(
 		try AppServices.fixture(
-			launch, defaults: defaults, language: language,
+			launch, defaults: defaults,
+			displayLocale: displayLocale ?? testLocaleResolver(languages: [language.rawValue]),
 			backgroundSystem: backgroundSystem))
 }
 
 @MainActor
 func fixtureModel(
-	environment: AppEnvironment, initialLanguage: LanguagePreference = .automatic
-) -> ShellModel {
+	environment: AppEnvironment
+) async -> ShellModel {
 	AppTestFixture.active.own(
-		ShellModel(environment: environment, initialLanguage: initialLanguage))
+		await ShellModel.open(
+			environment: environment, statuses: await environment.services.coach.observeStatus()))
 }
 
 @MainActor
@@ -161,9 +164,9 @@ struct FixtureScopeTests {
 		let records = try FixtureRecordStore(
 			directory: fixture.launch.directory, deviceId: DeviceID())
 		let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
-		let model = fixtureModel(
+		let model = await fixtureModel(
 			environment: AppEnvironment(
-				services: services, language: .en, defaults: fixture.defaults))
+				services: services, defaults: fixture.defaults))
 		await model.appear()
 		opened.finish()
 		for await _ in held {}
@@ -181,5 +184,15 @@ struct FixtureScopeTests {
 		held.finish()
 		try await cleanup.value
 		#expect(!FileManager.default.fileExists(atPath: fixture.launch.directory.path))
+	}
+}
+
+func testLocaleResolver(languages: [String] = ["en"], region: String = "en_US")
+	-> DisplayLocaleResolver
+{
+	{ preference in
+		DisplayLocale(
+			preference: preference, preferredLanguages: languages,
+			regionalConventions: Locale(identifier: region))
 	}
 }

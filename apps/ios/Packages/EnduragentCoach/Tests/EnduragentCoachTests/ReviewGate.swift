@@ -14,7 +14,7 @@ extension SingleProposalReviewsTests {
 					training: TrainingService { _, _, _ in client },
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: clock),
-				builtInModel: testModel, deviceLanguage: .en, coalescing: quickWindow))
+				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
 	}
 }
 

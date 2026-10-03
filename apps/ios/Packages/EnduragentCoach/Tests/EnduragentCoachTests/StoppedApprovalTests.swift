@@ -38,7 +38,7 @@ extension RetryLadderTests {
 		#expect(interrupted.saved.unverifiedCalendarWrites == 0)
 		#expect(interrupted.notice.action == nil)
 		#expect(
-			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
+			interrupted.notice.sentence(in: displayLocale())
 				== "This reply stopped before it finished. Some information was saved first.")
 		let reopened = await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 		#expect(await reopened.currentSnapshot(.main)?.turns.first?.state == settled)
@@ -71,7 +71,7 @@ extension RetryLadderTests {
 		let outcome = await coach.decide(.approve(token), in: .main)
 		#expect(outcome == .blocked(.turnStopping))
 		#expect(
-			outcome.notice?.sentence(in: LanguageTag.en.phrasebook)
+			outcome.notice?.sentence(in: displayLocale())
 				== "This reply is stopping. You can approve or cancel the workout review once it stops."
 		)
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
@@ -109,7 +109,7 @@ extension RetryLadderTests {
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 0)
 		#expect(
-			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
+			interrupted.notice.sentence(in: displayLocale())
 				== "This reply stopped before it finished. Some information was saved first.")
 		#expect(interrupted.notice.action == nil)
 		#expect(

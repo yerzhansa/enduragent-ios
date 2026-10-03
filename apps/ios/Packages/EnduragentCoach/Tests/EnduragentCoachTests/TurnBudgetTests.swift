@@ -185,7 +185,7 @@ import Testing
 			chat: .main,
 			request: request,
 			slash: nil,
-			language: LanguagePreference.automatic.replyLanguage(device: .en),
+			displayLocale: testDisplayLocale(.automatic),
 			session: .npmDefaults,
 			access: testAccess,
 			training: TrainingConnection(

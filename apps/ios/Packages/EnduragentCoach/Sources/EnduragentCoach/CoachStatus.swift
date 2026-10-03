@@ -130,7 +130,15 @@ extension Coach {
 			training = stored
 		}
 		return CoachStatus(
-			setup: setup, training: training, preferences: preferences, providerConsent: consent)
+			setup: setup, training: training, preferences: preferences, providerConsent: consent,
+			resolve: resolveDisplayLocale)
+	}
+
+	public func refreshDisplayLocale() async {
+		await publishStatus()
+		for mailbox in await openedMailboxes() {
+			await mailbox.refreshLeaseTitle()
+		}
 	}
 
 	public func languagePreference() async -> LanguagePreference {

@@ -134,7 +134,7 @@ final class HistoryListProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.historyRows(app).count, 1)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.startedNewConversation)
-		TutorialHarness.waitForLabel(app, "1998-06-15")
+		TutorialHarness.waitForLabel(app, "Monday, June 15, 1998")
 		TutorialHarness.attach(self, name: "history-list", app: app)
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)

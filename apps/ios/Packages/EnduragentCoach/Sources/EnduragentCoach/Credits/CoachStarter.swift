@@ -21,7 +21,7 @@ extension Coach {
 				amount = try await credits.balance().credits
 			}
 			return AthleteNotice(
-				key: key, count: amount.units, vars: ["formattedCount": String(amount.units)],
+				key: key, count: amount.units, vars: ["formattedCount": .integer(amount.units)],
 				action: nil)
 		} catch {
 			return AthleteNotice.credits(failure: error)

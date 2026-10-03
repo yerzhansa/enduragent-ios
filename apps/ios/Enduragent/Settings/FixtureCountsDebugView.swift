@@ -104,12 +104,11 @@
 				.accessibilityIdentifier("fixture.replyLanguage")
 		}
 		private var connectionText: String {
-			switch model.status?.training {
-			case .connected(_, .intervals(let connection, let athlete))?:
+			switch model.status.training {
+			case .connected(_, .intervals(let connection, let athlete)):
 				"intervals:\(connection.rawValue.uuidString):\(athlete?.rawValue ?? "unresolved")"
-			case .connected(_, .unconnected)?, .unconnected?: "unconnected"
-			case .unavailable?: "unavailable"
-			case nil: "waiting"
+			case .connected(_, .unconnected), .unconnected: "unconnected"
+			case .unavailable: "unavailable"
 			}
 		}
 

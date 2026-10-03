@@ -56,7 +56,7 @@ final class LanguagePickerProof: XCTestCase {
 			TutorialHarness.named(app, "chat.composer").placeholderValue, "Écris à ton coach")
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		LanguageProofFlow.assertReplyInstruction(
-			app, prefix: "The athlete chose French (Français).", test: self,
+			app, language: .fr, test: self,
 			name: "u9-2-\(entry.rawValue)-fixed-english-instruction")
 		TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-fixed-english", app: app)
 		TutorialHarness.relaunchKeepingStore(app)
@@ -158,8 +158,7 @@ final class AutomaticFrenchPhoneProof: XCTestCase {
 			TutorialHarness.attach(self, name: "u9-2-\(entry.rawValue)-automatic-\(name)", app: app)
 			LanguageProofFlow.assertReplyInstruction(
 				app,
-				prefix:
-					"Automatic follows the iPhone's preferred languages. Reply in French (Français).",
+				language: .fr,
 				test: self, name: "u9-2-\(entry.rawValue)-automatic-\(name)-instruction")
 		}
 	}

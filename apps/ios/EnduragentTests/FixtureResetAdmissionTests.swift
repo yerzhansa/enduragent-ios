@@ -13,9 +13,9 @@ struct FixtureResetAdmissionTests {
 	func slashStartClearsTheDraftAndFreesSendWhileAReplyWaits(toolbar: Bool) async throws {
 		let fixture = AppTestFixture.active
 		let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
-		let model = fixtureModel(
+		let model = await fixtureModel(
 			environment: AppEnvironment(
-				services: services, language: .en, defaults: fixture.defaults))
+				services: services, defaults: fixture.defaults))
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:hang"
 		await model.send()
@@ -101,9 +101,9 @@ struct FixtureResetAdmissionTests {
 	private func readyModel() async throws -> ShellModel {
 		let fixture = AppTestFixture.active
 		let services = try fixtureServices(fixture.launch, defaults: fixture.defaults)
-		let model = fixtureModel(
+		let model = await fixtureModel(
 			environment: AppEnvironment(
-				services: services, language: .en, defaults: fixture.defaults))
+				services: services, defaults: fixture.defaults))
 		await model.agreeAndStartChatting()
 		try await until { model.chat != nil }
 		return model

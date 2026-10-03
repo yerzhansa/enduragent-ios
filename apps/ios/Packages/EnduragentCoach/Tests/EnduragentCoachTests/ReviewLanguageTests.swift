@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -47,14 +48,14 @@ extension FirstTurnTests {
 		let review = try await proposeEnduranceRide(coach)
 		let card = try #require(review.cards.first)
 		try await coach.setLanguage(.fixed(.fr))
-		let french = try await coach.observedStatus().language.phrasebook(device: .en)
+		let french = try await coach.observedStatus().displayLocale
 		#expect(
 			card.lines(in: french) == [
 				"Échauffement", "- 10m 50%", "", "Bloc principal",
 				"- 20m progressif 60-80% Warmup ramp", "", "Retour au calme", "- 10m 50%",
 			])
 		#expect(
-			card.lines(in: LanguageTag.en.phrasebook) == [
+			card.lines(in: displayLocale()) == [
 				"Warmup", "- 10m 50%", "", "Main set", "- 20m ramp 60-80% Warmup ramp",
 				"", "Cooldown", "- 10m 50%",
 			])

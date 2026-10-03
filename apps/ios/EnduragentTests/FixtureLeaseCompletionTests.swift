@@ -182,7 +182,7 @@ extension FixtureLaunchTests {
 		configured.host = try FixtureHostPolicy(argument: "continued-processing")
 		let services = try fixtureServices(
 			configured, defaults: defaults, backgroundSystem: system)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		#expect(services.fixture?.host == nil)
 		model.draft.text = "fixture:memory-until-system-interruption"

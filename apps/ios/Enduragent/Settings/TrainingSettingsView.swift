@@ -12,7 +12,7 @@ struct TrainingSettingsView: View {
 					model: model, identifierPrefix: "training",
 					athleteIdentifier: "training.athlete")
 			}
-			if let actionTitle = model.status?.training.connectionActionTitle {
+			if let actionTitle = model.status.training.connectionActionTitle {
 				Section {
 					if settings.isEditing {
 						IntervalsKeyField(phrasebook: model.phrasebook, text: $settings.key)

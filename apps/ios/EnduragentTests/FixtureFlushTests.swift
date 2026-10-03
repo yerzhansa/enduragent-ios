@@ -9,7 +9,7 @@ extension FixtureLaunchTests {
 	@Test func teachSavesTheScheduleThenReplies() async throws {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:teach"
 		await model.send()
@@ -22,7 +22,7 @@ extension FixtureLaunchTests {
 		do {
 			let services = try services()
 			let records = services.coach.recordSyncProbe()
-			let model = model(services)
+			let model = await model(services)
 			await model.agreeAndStartChatting()
 			try await exchange(model, ["fixture:flush-partial", "fixture:fail overflow"])
 			try await waitUntil {
@@ -35,7 +35,7 @@ extension FixtureLaunchTests {
 			#expect(try await count("ledgerEvent", in: records) == 1)
 
 		}
-		let relaunched = self.model(try await relaunch(.keep).0)
+		let relaunched = await self.model(try await relaunch(.keep).0)
 		let drained = relaunched.services.coach.recordSyncProbe()
 		await relaunched.lifecycle.forward(.becameActive)
 		try await waitUntil { try await count("flushSettled", in: drained) == 1 }
@@ -47,7 +47,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let records = services.coach.recordSyncProbe()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		try await exchange(model, longs(6) + ["How was my week?", "And Saturday?"])
 		#expect(try await count("compactionSummary", in: records) == 1)

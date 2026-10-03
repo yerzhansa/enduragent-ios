@@ -18,7 +18,7 @@ struct OnboardingConnectionTests {
 		launch.trainingDisplay = display
 		let services = try fixtureServices(launch, defaults: harness.defaults)
 		let fixture = try #require(services.fixture)
-		let model = harness.model(services)
+		let model = await harness.model(services)
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
@@ -94,7 +94,7 @@ struct OnboardingConnectionTests {
 	@Test func failedWriteKeepsThePreviousConnectionAvailableToContinue() async throws {
 		let services = try harness.services()
 		let fixture = try #require(services.fixture)
-		let model = harness.model(services)
+		let model = await harness.model(services)
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "fixture"
@@ -130,13 +130,14 @@ struct OnboardingConnectionTests {
 		var launch = harness.launch
 		launch.credentialWriteFault = .failOnce
 		let services = try fixtureServices(launch, defaults: harness.defaults)
-		let model = harness.model(services)
+		let model = await harness.model(services)
 		await model.appear()
 		model.continueNotice()
 		model.connectKey = "synthetic-first-key"
 		await model.connect()
 		let notice = try #require(model.trainingSettings.receipt?.saveNotice)
-		#expect(notice.sentence(in: model.phrasebook) == "The connection wasn't saved. Try again.")
+		#expect(
+			notice.sentence(in: model.displayLocale) == "The connection wasn't saved. Try again.")
 		#expect(!model.didConnect)
 		#expect(model.trainingSettings.isEditing)
 		#expect(try services.fixture?.secrets.intervalsConnection() == nil)

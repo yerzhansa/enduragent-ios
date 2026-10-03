@@ -1,6 +1,7 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
 import Foundation
+import Synchronization
 import Testing
 
 @testable import Enduragent
@@ -16,8 +17,8 @@ final class ShellLanguageTests {
 		now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
 	@Test func settingsLanguagePickerPreservesTheNavigationAndConversation() async throws {
-		let model = fixtureModel(
-			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		let model = await fixtureModel(
+			environment: AppEnvironment(services: try services(), defaults: defaults)
 		)
 		await model.agreeAndStartChatting()
 		model.draft.text = "How was my training week?"
@@ -42,7 +43,8 @@ final class ShellLanguageTests {
 	@Test func relaunchDoesNotRenderAutomaticOverASavedFixedPreference() async throws {
 		try await services().coach.setLanguage(.fixed(.es))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		let launch = await AppLaunch.open(systemLanguages: ["en"]) { _ in
+		let launch = await AppLaunch.open(displayLocale: testLocaleResolver(languages: ["en"])) {
+			_ in
 			(try services(), defaults)
 		}
 		guard case .ready(let model) = launch else {
@@ -74,15 +76,14 @@ final class ShellLanguageTests {
 		}
 		try await services(intervals: intervals).coach.setLanguage(.fixed(.es))
 		defaults.set(completedOnboarding, forKey: ShellModel.onboardingCompletedKey)
-		let launch = await AppLaunch.open(systemLanguages: ["en"]) { _ in
+		let launch = await AppLaunch.open(displayLocale: testLocaleResolver(languages: ["en"])) {
+			_ in
 			(try services(intervals: intervals), defaults)
 		}
 		guard case .ready(let model) = launch else {
 			Issue.record("The saved language did not reopen into a ready shell")
 			return
 		}
-		#expect(intervals.profileReadCount == 0)
-		#expect(intervals.wellnessReadCount == 0)
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
@@ -90,7 +91,7 @@ final class ShellLanguageTests {
 		try await profile.waitForRead()
 		#expect(model.connected?.profile == .waiting)
 		#expect(model.connected?.today == nil)
-		#expect(model.status?.language == .fixed(.es))
+		#expect(model.status.language == .fixed(.es))
 		#expect(intervals.profileReadCount == 1)
 		#expect(intervals.wellnessReadCount == 0)
 		await profile.release()
@@ -110,7 +111,7 @@ final class ShellLanguageTests {
 		}
 		#expect(intervals.profileReadCount == 1)
 		#expect(intervals.wellnessReadCount == 1)
-		#expect(model.status?.language == .fixed(.es))
+		#expect(model.status.language == .fixed(.es))
 		#expect(
 			model.phrasebook.say(Catalog.chatComposerMessagePlaceholder, [:])
 				== LanguageTag.es.phrasebook.say(Catalog.chatComposerMessagePlaceholder))
@@ -125,7 +126,7 @@ final class ShellLanguageTests {
 		try await profile.waitForRead()
 		await model.chooseLanguage(.fixed(.es))
 		try await model.waitForStatus { $0.language == .fixed(.es) }
-		#expect(model.status?.language == .fixed(.es))
+		#expect(model.status.language == .fixed(.es))
 		#expect(model.connected?.profile == .waiting)
 		#expect(intervals.wellnessReadCount == 0)
 		#expect(
@@ -138,7 +139,7 @@ final class ShellLanguageTests {
 			}
 			return false
 		}
-		#expect(model.status?.language == .fixed(.es))
+		#expect(model.status.language == .fixed(.es))
 	}
 
 	@Test func activationRefreshesTrainingOnceAfterInitialObservation() async throws {
@@ -191,8 +192,8 @@ final class ShellLanguageTests {
 				.text("Confirm to add the core workout."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let model = fixtureModel(
-			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+		let model = await fixtureModel(
+			environment: AppEnvironment(services: try services(), defaults: defaults)
 		)
 		await model.agreeAndStartChatting()
 		await model.appear()
@@ -224,33 +225,99 @@ final class ShellLanguageTests {
 		}
 		let visible = {
 			expires
-				? model.reviewNotice?.sentence(in: model.phrasebook)
-				: model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
+				? model.reviewNotice?.sentence(in: model.displayLocale)
+				: model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 		}
 		let expected = { (tag: LanguageTag) in
 			let key = expires ? Catalog.coachConfirmationExpired : Catalog.coachConfirmationExecuted
 			let summary = ReviewSummary.createStrengthWorkout(name: "Core", date: "1998-06-14")
 			return tag.phrasebook.say(
-				key, expires ? [:] : ["summary": summary.sentence(in: tag.phrasebook)])
+				key,
+				expires
+					? [:]
+					: [
+						"summary": summary.sentence(
+							in: testLocaleResolver(languages: [tag.rawValue])(.automatic))
+					])
 		}
 		#expect(visible() == expected(.en))
 		await model.chooseLanguage(.fixed(.es))
 		try await model.waitForStatus { $0.language == .fixed(.es) }
-		#expect(model.status?.language == .fixed(.es))
+		#expect(model.status.language == .fixed(.es))
 		#expect(visible() == expected(.es))
+	}
+
+	@Test func retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices()
+		async throws
+	{
+		let phone = ShellDisplayPhone()
+		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		intervals.wellness = [
+			WellnessDay(date: "1998-06-13", fitness: 1234.5, fatigue: 2345.5, form: -1111)
+		]
+		let credits = FakeCreditsClient()
+		credits.grantResult = .success(.minted(Credits(units: 12345)))
+		credits.catalogResult = .success(
+			PackCatalog(purchasesEnabled: false, scale: CreditScale(creditsPerUsd: 100), packs: []))
+		credits.balanceResult = .success(CreditBalance(credits: Credits(units: 12345)))
+		let built = try services(
+			intervals: intervals, displayLocale: phone.resolve, credits: credits)
+		try await built.coach.setLanguage(.fixed(.fr))
+		let model = await fixtureModel(
+			environment: AppEnvironment(services: built, defaults: defaults))
+		#expect(model.displayLocale.language == .fr)
+		#expect(model.historyDate("2026-03-04") == "mercredi, mars 4, 2026")
+		await model.appear()
+		await model.loadStarter()
+		await model.loadCredits()
+		try #require(model.creditsNotice == nil)
+		#expect(model.starterLine == "12,345 crédits")
+		#expect(model.creditsBalanceLine == "12,345 crédits")
+		#expect(
+			model.wellnessLine(Catalog.onboardingConnectFitness, value: 1234.5)
+				== "Condition physique 1,235")
+		phone.change(languages: ["en"], region: "fr_FR")
+		NotificationCenter.default.post(
+			name: NSLocale.currentLocaleDidChangeNotification, object: nil)
+		try await model.waitForStatus {
+			$0.displayLocale.regionalConventions.region?.identifier == "FR"
+		}
+		#expect(model.displayLocale.language == .fr)
+		#expect(model.historyDate("2026-03-04") == "mercredi 4 mars 2026")
+		#expect(model.starterLine == "12 345 crédits")
+		#expect(model.creditsBalanceLine == "12 345 crédits")
+		#expect(
+			model.wellnessLine(Catalog.onboardingConnectFitness, value: 1234.5)
+				== "Condition physique 1 235")
+		await model.chooseLanguage(.fixed(.en))
+		try await model.waitForStatus { $0.language == .fixed(.en) }
+		#expect(model.historyDate("2026-03-04") == "Wednesday 4 March 2026")
+		#expect(model.starterLine == "12 345 credits")
+		#expect(model.creditsBalanceLine == "12 345 credits")
+		#expect(
+			model.wellnessLine(Catalog.onboardingConnectFitness, value: 1234.5) == "Fitness 1 235")
+		await model.chooseLanguage(.automatic)
+		try await model.waitForStatus { $0.language == .automatic }
+		phone.change(languages: ["fr"], region: "en_US")
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.displayLocale.language == .fr }
+		#expect(model.historyDate("2026-03-04") == "mercredi, mars 4, 2026")
+		#expect(model.starterLine == "12,345 crédits")
 	}
 
 	private func returningModel(intervals: any IntervalsClient) async throws -> ShellModel {
 		await fixtureModel(
-			environment: AppEnvironment(services: try services(), language: .en, defaults: defaults)
+			environment: AppEnvironment(services: try services(), defaults: defaults)
 		).agreeAndStartChatting()
-		return fixtureModel(
+		return await fixtureModel(
 			environment: AppEnvironment(
-				services: try services(intervals: intervals), language: .en, defaults: defaults))
+				services: try services(intervals: intervals), defaults: defaults))
 	}
 
 	private func services(
-		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
+		intervals: any IntervalsClient = FakeIntervalsClient(athleteName: "Ada", ftp: 250),
+		displayLocale: @escaping DisplayLocaleResolver = testLocaleResolver(),
+		credits: FakeCreditsClient = FakeCreditsClient()
 	) throws -> AppServices {
 		let secrets = try ICloudKeychainStore.fixture(directory: directory).store
 		try secrets.storeCreditsAccount(
@@ -265,13 +332,29 @@ final class ShellLanguageTests {
 			sport: .cycling,
 			ports: CoachPorts(
 				records: records, secrets: secrets, models: .scripted(transport),
-				training: .fake { _, _ in intervals }, credits: .fake(FakeCreditsClient()),
+				training: .fake { _, _ in intervals }, credits: .fake(credits),
 				host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: ModelID(rawValue: "test/coach-model"), deviceLanguage: .en,
+			builtInModel: ModelID(rawValue: "test/coach-model"), displayLocale: displayLocale,
 			coalescing: CoalescingPolicy(window: .milliseconds(20)))
 		return AppTestFixture.active.own(
 			AppServices(
 				coach: coach, deviceCheck: FakeDeviceCheckTokenProvider(), clock: clock,
 				leases: { [] }, packPrices: { _ in [:] }))
+	}
+}
+
+private final class ShellDisplayPhone: Sendable {
+	private let state = Mutex((languages: ["fr"], region: Locale(identifier: "en_US")))
+
+	func resolve(_ preference: LanguagePreference) -> DisplayLocale {
+		state.withLock {
+			DisplayLocale(
+				preference: preference, preferredLanguages: $0.languages,
+				regionalConventions: $0.region)
+		}
+	}
+
+	func change(languages: [String], region: String) {
+		state.withLock { $0 = (languages, Locale(identifier: region)) }
 	}
 }

@@ -26,15 +26,15 @@ extension TurnRunnerTests {
 		#expect(
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		let done = "Done — Create workout \"Endurance\" on 1998-06-14."
-		let phrasebook = CatalogPhrasebook(tag: .en)
+		let done = "Done — Create workout \"Endurance\" on 6/14/1998."
+		let phrasebook = displayLocale()
 		let shown = try #require(await coach.currentSnapshot(.main))
 		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: phrasebook) } == [done])
 		#expect(shown.notes[proposing]?.first?.after == proposing)
 
 		try await coach.setLanguage(.fixed(.fr))
-		let french = try await coach.observedStatus().language.phrasebook(device: .en)
-		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 1998-06-14."
+		let french = try await coach.observedStatus().displayLocale
+		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 6/14/1998."
 		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
 
 		let reopened = await makeCoach()

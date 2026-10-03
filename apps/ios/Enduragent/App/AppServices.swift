@@ -56,7 +56,7 @@ struct AppServices: Sendable {
 	#endif
 
 	@MainActor
-	static func live(language: LanguageTag) throws -> AppServices {
+	static func live(displayLocale: @escaping DisplayLocaleResolver) throws -> AppServices {
 		let clock = SystemClock()
 		let store = try RecordStore.onDevice(deviceId: persistedDeviceID(in: .standard))
 		let host = ContinuedProcessingHost(
@@ -73,7 +73,7 @@ struct AppServices: Sendable {
 				clock: clock
 			),
 			builtInModel: builtInModel,
-			deviceLanguage: language
+			displayLocale: displayLocale
 		)
 		return AppServices(
 			coach: coach,
@@ -99,7 +99,6 @@ struct AppServices: Sendable {
 
 @MainActor
 final class AppEnvironment {
-	let language: LanguageTag
 	let defaults: UserDefaults
 	let services: AppServices
 
@@ -107,8 +106,7 @@ final class AppEnvironment {
 		services.deviceCheck
 	}
 
-	init(services: AppServices, language: LanguageTag, defaults: UserDefaults) {
-		self.language = language
+	init(services: AppServices, defaults: UserDefaults) {
 		self.defaults = defaults
 		self.services = services
 	}

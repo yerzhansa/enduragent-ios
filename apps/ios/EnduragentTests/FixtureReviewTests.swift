@@ -10,7 +10,7 @@ extension FixtureLaunchTests {
 	func unknownWriteNoticeAppearsOnlyOnTheCard(failedRead: Bool) async throws {
 		let services = try services()
 		let intervals = try #require(services.fixture?.intervals)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.trainingSettings.edit()
 		model.connectKey = "fixture"
@@ -41,7 +41,7 @@ extension FixtureLaunchTests {
 		}
 		let notice = try #require(model.chat?.review?.notice)
 		let cardSentence = model.phrasebook.say(notice.key, notice.vars)
-		let transcriptSentence = model.reviewNotice?.sentence(in: model.phrasebook)
+		let transcriptSentence = model.reviewNotice?.sentence(in: model.displayLocale)
 		#expect([cardSentence, transcriptSentence].compactMap { $0 }.count == 1)
 		#expect(
 			cardSentence
@@ -53,7 +53,7 @@ extension FixtureLaunchTests {
 	func unknownWriteCanBeRecoveredThroughTheCard(cancel: Bool) async throws {
 		let services = try services()
 		let intervals = try #require(services.fixture?.intervals)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
@@ -83,7 +83,7 @@ extension FixtureLaunchTests {
 		if cancel {
 			try await until { model.chat?.review == nil && model.chat?.notes.count == 1 }
 			#expect(
-				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
+				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 					== "Cancelled. This workout may still have been saved. Check your calendar.")
 			#expect(model.reviewNotice == nil)
 			#expect(!intervals.calls.contains { $0.isCalendarWrite })
@@ -92,7 +92,7 @@ extension FixtureLaunchTests {
 			try await until { model.chat?.review == nil && model.chat?.notes.count == 1 }
 			#expect(intervals.calls.filter(\.isCalendarWrite).count == 1)
 			#expect(
-				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
+				model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 					.hasPrefix("Done") == true)
 		}
 	}
@@ -101,7 +101,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let intervals = try #require(services.fixture?.intervals)
 		let faults = try #require(services.fixture?.records)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		intervals.writeFailure = IntervalsError(code: "http", details: "Lost response", status: 502)
@@ -137,7 +137,7 @@ extension FixtureLaunchTests {
 	{
 		let services = try services()
 		let backing = try #require(services.fixture?.secretBacking)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
@@ -165,7 +165,7 @@ extension FixtureLaunchTests {
 
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 
@@ -186,7 +186,7 @@ extension FixtureLaunchTests {
 	@Test func onlyATapShowsTheReviewOutcome() async throws {
 		let services = try services()
 		let backing = try #require(services.fixture?.secretBacking)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		backing.locked = true
@@ -194,7 +194,7 @@ extension FixtureLaunchTests {
 		await model.decide(.approve(token))
 
 		#expect(
-			model.reviewNotice?.sentence(in: model.phrasebook)
+			model.reviewNotice?.sentence(in: model.displayLocale)
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
 		var snapshots = await services.coach.observe(.main).makeAsyncIterator()
@@ -211,15 +211,15 @@ extension FixtureLaunchTests {
 		#expect(model.reviewNotice == nil)
 		try await until { model.chat?.notes.values.flatMap { $0 }.count == 1 }
 		#expect(
-			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.phrasebook)
-				== "Done — Create workout \"Endurance with tempo\" on 1998-06-16.")
+			model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
+				== "Done — Create workout \"Endurance with tempo\" on 6/16/1998.")
 	}
 
 	@Test(arguments: [false, true])
 	func failedConnectionCheckKeepsTheCardsRecoveryActions(absent: Bool) async throws {
 		let services = try services()
 		let fixture = try #require(services.fixture)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		fixture.intervals.writeFailure = URLError(.timedOut)
@@ -265,7 +265,7 @@ extension FixtureLaunchTests {
 
 	@Test func reviewUsesTheChosenLanguageAfterAnAccountChange() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		let token = try await presentedReview(on: model)
 		await model.chooseLanguage(.fixed(.fr))

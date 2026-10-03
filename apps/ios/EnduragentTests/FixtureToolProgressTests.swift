@@ -10,7 +10,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let intervals = try #require(services.fixture?.intervals)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.trainingSettings.edit()
 		model.connectKey = "fixture"
@@ -50,7 +50,9 @@ extension FixtureLaunchTests {
 		let review = try #require(model.chat?.review)
 		#expect(review.ref.chat == .main)
 		#expect(
-			review.cards.map { $0.name.sentence(in: model.phrasebook) } == ["Endurance with tempo"])
+			review.cards.map { $0.name.sentence(in: model.displayLocale) } == [
+				"Endurance with tempo"
+			])
 		#expect(review.cards.map(\.date) == ["1998-06-16"])
 		#expect(review.totals.additions == 1)
 		#expect(transport.requestCount == 3)

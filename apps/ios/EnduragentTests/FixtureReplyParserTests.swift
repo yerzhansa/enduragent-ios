@@ -9,7 +9,7 @@ import Testing
 extension FixtureLaunchTests {
 	@Test func formattedDirectiveRendersTheCompleteReplyAndArchivesIt() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:formatted"
 		await model.send()
@@ -34,7 +34,7 @@ extension FixtureLaunchTests {
 
 	@Test func formattedDeltasAndStoppedPartialUseTheSameDocument() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:formatted-then-hang"
 		await model.send()
@@ -59,7 +59,7 @@ extension FixtureLaunchTests {
 		var configured = launch
 		configured.replyParserFault = .fail
 		let services = try fixtureServices(configured, defaults: defaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:formatted"
 		await model.send()

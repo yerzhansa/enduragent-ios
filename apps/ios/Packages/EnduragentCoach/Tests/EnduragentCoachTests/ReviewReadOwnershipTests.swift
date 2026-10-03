@@ -1,4 +1,5 @@
 import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -123,7 +124,7 @@ import Testing
 				LanguageTag.en.phrasebook.say($0.key, $0.vars)
 			}
 			+ snapshot.notes.values.flatMap { $0 }.map {
-				$0.sentence(in: LanguageTag.en.phrasebook)
+				$0.sentence(in: displayLocale())
 			}
 		#expect(lines.filter { $0 == sentence }.count == 1)
 		#expect(server.state.withLock { $0.requests.count } == calls)

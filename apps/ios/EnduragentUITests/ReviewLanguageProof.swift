@@ -22,7 +22,7 @@ final class ReviewLanguageProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.named(app, "chat.preview.cancel").label, "Annuler")
 		TutorialHarness.attach(self, name: "review-french", app: app)
 		add.tap()
-		let done = "C’est fait — Créer l’entraînement « Endurance with tempo » le 1998-06-16."
+		let done = "C’est fait — Créer l’entraînement « Endurance with tempo » le 6/16/1998."
 		TutorialHarness.waitForLabel(app, done)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.waitForLabel(app, done)

@@ -19,7 +19,7 @@ import Testing
 
 	@Test(arguments: LanguageTag.allCases.filter { $0 != .en })
 	func reviewCopyUsesEverySelectedLanguage(_ tag: LanguageTag) {
-		let book = LanguagePreference.fixed(tag).phrasebook(device: .en)
+		let book = tag.phrasebook
 		let english = CatalogPhrasebook(tag: .en)
 		for key in [
 			Catalog.reviewTitle, Catalog.reviewAdd, Catalog.reviewAccountChanged,

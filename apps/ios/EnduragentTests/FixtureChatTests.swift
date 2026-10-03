@@ -8,7 +8,7 @@ import Testing
 extension FixtureLaunchTests {
 	@Test func sendClearsDraftOnAccepted() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		model.draftChanged(from: "")
@@ -32,7 +32,7 @@ extension FixtureLaunchTests {
 	@Test func sendIsDisabledWhileTheMessageIsBeingAccepted() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		#expect(!model.isSending)
@@ -48,7 +48,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func textTypedWhileTheMessageIsBeingAcceptedStaysInTheComposer() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		model.draftChanged(from: "")
@@ -71,7 +71,7 @@ extension FixtureLaunchTests {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
 		let records = try #require(services.fixtureRecordFaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		records.failNextAppend = true
 		model.draft.text = TutorialCopy.weekQuestion
@@ -96,7 +96,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func unknownFinishReasonDoesNotShowSwiftErrorDump() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:fail finish"
 		await model.send()
@@ -114,7 +114,7 @@ extension FixtureLaunchTests {
 		held.coalescing = CoalescingPolicy(window: .seconds(60))
 		let accepted: TurnView
 		do {
-			let first = model(try fixtureServices(held, defaults: defaults))
+			let first = await model(try fixtureServices(held, defaults: defaults))
 			await first.agreeAndStartChatting()
 			first.draft.text = "fixture:hang"
 			await first.send()
@@ -130,7 +130,7 @@ extension FixtureLaunchTests {
 	@Test func slowDirectiveStreamsTheWeekSummaryWordByWord() async throws {
 		let services = try services()
 		let transport = try #require(services.fixtureTransport)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()
@@ -147,7 +147,7 @@ extension FixtureLaunchTests {
 	])
 	func unknownDirectiveRepliesWithItsDiagnostic(_ text: String) async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = text
 		await model.send()
@@ -158,7 +158,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func plainTextAfterHangDirectiveAnswersNormally() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:hang"
 		await model.send()
@@ -183,7 +183,7 @@ extension FixtureLaunchTests {
 		var launch = launch
 		launch.coalescing = CoalescingPolicy(window: .milliseconds(100))
 		let services = try fixtureServices(launch, defaults: defaults)
-		let model = model(services)
+		let model = await model(services)
 		await model.agreeAndStartChatting()
 		model.draft.text = "fixture:slow"
 		await model.send()
