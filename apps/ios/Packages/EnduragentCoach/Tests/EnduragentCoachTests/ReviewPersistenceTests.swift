@@ -6,6 +6,8 @@ import Testing
 
 extension TurnRunnerTests {
 	@Test func outcomeLineSurvivesRelaunch() async throws {
+		let phone = DisplayPhone()
+		phone.change(languages: ["en"], region: "en_US")
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(
@@ -17,7 +19,7 @@ extension TurnRunnerTests {
 				.text("I've prepared the ride. Confirm to add it."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let coach = await makeCoach()
+		let coach = await makeCoach(displayLocale: phone.resolve)
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")
 		let proposing = try #require(await coach.currentSnapshot(.main)?.turns.first?.id)
 		let review = try #require(await coach.currentSnapshot(.main)?.review)
@@ -37,12 +39,22 @@ extension TurnRunnerTests {
 		let frenchDone = "C’est fait — Créer l’entraînement « Endurance » le 6/14/1998."
 		#expect((shown.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
 
-		let reopened = await makeCoach()
+		let reopened = await makeCoach(displayLocale: phone.resolve)
+		#expect(try await reopened.observedStatus().displayLocale == french)
 		let relaunched = try #require(await reopened.currentSnapshot(.main))
 		#expect(relaunched.review == nil)
 		#expect((relaunched.notes[proposing] ?? []).map { $0.sentence(in: phrasebook) } == [done])
 		#expect(relaunched.notes[proposing]?.first?.after == proposing)
 		#expect((relaunched.notes[proposing] ?? []).map { $0.sentence(in: french) } == [frenchDone])
+		let calls = transport.requests.count
+		try await reopened.setLanguage(.fixed(.en))
+		phone.change(languages: ["fr"], region: "fr_FR")
+		await reopened.refreshDisplayLocale()
+		let regional = try await reopened.observedStatus().displayLocale
+		let regionalDone = "Done — Create workout \"Endurance\" on 14/06/1998."
+		#expect(
+			(relaunched.notes[proposing] ?? []).map { $0.sentence(in: regional) } == [regionalDone])
+		#expect(transport.requests.count == calls)
 		let synced = try await store.fetch(
 			RecordQuery(scope: .synced([.reviewApplied]), chatId: "main")
 		).records
@@ -60,17 +72,66 @@ extension TurnRunnerTests {
 		#expect(await reopened.currentSnapshot(.main)?.notes.isEmpty == true)
 		let archivedRef = try #require(try await reopened.history().first?.id)
 		let archived = try #require(try await reopened.archivedConversation(archivedRef))
-		#expect(archived.notes.map { $0.sentence(in: french) } == [frenchDone])
+		#expect(archived.notes.map { $0.sentence(in: regional) } == [regionalDone])
 		#expect(archived.notes.first?.after == proposing)
-		let archivedAfterRelaunchRef = try #require(try await makeCoach().history().first?.id)
+		try await reopened.setLanguage(.fixed(.fr))
+		let laterFrench = try await reopened.observedStatus().displayLocale
+		let laterFrenchDone = "C’est fait — Créer l’entraînement « Endurance » le 14/06/1998."
+		#expect(archived.notes.map { $0.sentence(in: laterFrench) } == [laterFrenchDone])
+		let historyCoach = await makeCoach(displayLocale: phone.resolve)
+		#expect(try await historyCoach.observedStatus().displayLocale == laterFrench)
+		let archivedAfterRelaunchRef = try #require(try await historyCoach.history().first?.id)
 		let archivedAfterRelaunch = try #require(
-			try await makeCoach().archivedConversation(archivedAfterRelaunchRef))
-		#expect(archivedAfterRelaunch.notes.map { $0.sentence(in: french) } == [frenchDone])
+			try await historyCoach.archivedConversation(archivedAfterRelaunchRef))
+		#expect(
+			archivedAfterRelaunch.notes.map { $0.sentence(in: laterFrench) } == [laterFrenchDone])
 	}
 
-	func makeCoach(secrets: any SecretStore = keyedSecrets()) async -> Coach {
+	@Test func legacySuppliedOutcomeAndInstructionsStayUnchanged() async throws {
+		let legacy = "Create workout Legacy on 1998-06-14 at 1.5w"
+		let decoded = try RecordCodec.decode(
+			kind: "reviewApplied", version: 2,
+			data: Data(
+				#"{"chatId":"main","summary":"Create workout Legacy on 1998-06-14 at 1.5w"}"#.utf8),
+			civilDate: "1998-06-13", ulid: fixedUlid(1).rawValue
+		).get()
+		try await seed(
+			store, [seededRecord(store, at: clock.now, ulid: fixedUlid(1), body: decoded)])
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(
+					name: "intervals_create_strength_workout",
+					arguments:
+						#"{"date":"1998-06-14","name":"Copied Core","description":"10.5 minutes\nCopied label 1.5"}"#
+				),
+				.finish(reason: .toolCalls), .text("Ready."), .finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		_ = try await coach.sendAndSettle("Add a core workout tomorrow")
+		let calls = transport.requests.count
+		try await coach.setLanguage(.fixed(.fr))
+		let reopened = await makeCoach()
+		let display = try await reopened.observedStatus().displayLocale
+		let snapshot = try #require(await reopened.currentSnapshot(.main))
+		let card = try #require(snapshot.review?.cards.first)
+		#expect(card.name.sentence(in: display) == "Copied Core")
+		#expect(card.lines(in: display) == ["10.5 minutes", "Copied label 1.5"])
+		#expect(
+			snapshot.notes.values.flatMap { $0 }.map { $0.sentence(in: display) } == [
+				"C’est fait — " + legacy + "."
+			])
+		#expect(transport.requests.count == calls)
+		#expect(intervals.calls.allSatisfy { !$0.isWrite })
+	}
+
+	func makeCoach(
+		secrets: any SecretStore = keyedSecrets(),
+		displayLocale: @escaping DisplayLocaleResolver = testDisplayLocale
+	) async -> Coach {
 		await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: store, clock: clock, secrets: secrets
+			transport: transport, intervals: intervals, store: store, clock: clock,
+			secrets: secrets,
+			displayLocale: displayLocale
 		)
 	}
 }

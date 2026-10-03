@@ -183,21 +183,23 @@ final class ShellLanguageTests {
 
 	@Test(arguments: [true, false])
 	func visibleReviewOutcomeChangesWithTheLanguagePreference(expires: Bool) async throws {
+		let phone = ShellDisplayPhone()
+		phone.change(languages: ["en"], region: "en_US")
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(
-					name: "intervals_create_strength_workout",
-					arguments: #"{"date":"1998-06-14","name":"Core","description":"20 minutes"}"#),
+					name: "intervals_create_workout", arguments: FirstWeekFixture.workoutArguments),
 				.finish(reason: .toolCalls),
-				.text("Confirm to add the core workout."),
+				.text("Confirm to add the workout."),
 				.finish(reason: .stop),
 			], otherwise: transport.respond)
-		let model = await fixtureModel(
-			environment: AppEnvironment(services: try services(), defaults: defaults)
+		var model = await fixtureModel(
+			environment: AppEnvironment(
+				services: try services(displayLocale: phone.resolve), defaults: defaults)
 		)
 		await model.agreeAndStartChatting()
 		await model.appear()
-		model.draft.text = "Add a core workout tomorrow."
+		model.draft.text = "Add a workout tomorrow."
 		await model.send()
 		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
 		while model.chat?.review == nil || model.isWorking, ContinuousClock.now < deadline {
@@ -205,7 +207,35 @@ final class ShellLanguageTests {
 		}
 		let review = try #require(model.chat?.review)
 		try #require(!model.isWorking)
-		await model.decide(.presented(review.ref))
+		let calls = transport.requestCount
+		await model.chooseLanguage(.fixed(.fr))
+		try await model.waitForStatus { $0.language == .fixed(.fr) }
+		model = await fixtureModel(
+			environment: AppEnvironment(
+				services: try services(displayLocale: phone.resolve), defaults: defaults))
+		#expect(model.displayLocale.language == .fr)
+		await model.appear()
+		while model.chat?.review == nil, ContinuousClock.now < deadline {
+			try await Task.sleep(for: .milliseconds(10))
+		}
+		let restored = try #require(model.chat?.review)
+		#expect(restored.ref.set == review.ref.set)
+		#expect(
+			restored.cards.first?.lines(in: model.displayLocale).contains(
+				"- 10m progressif 60.5-80.5% 90rpm Warmup ramp 1.5") == true)
+		phone.change(languages: ["en"], region: "fr_FR")
+		NotificationCenter.default.post(
+			name: NSLocale.currentLocaleDidChangeNotification, object: nil)
+		try await model.waitForStatus {
+			$0.displayLocale.regionalConventions.region?.identifier == "FR"
+		}
+		#expect(
+			restored.cards.first?.lines(in: model.displayLocale).contains(
+				"- 10m progressif 60,5-80,5% 90rpm Warmup ramp 1.5") == true)
+		await model.chooseLanguage(.fixed(.en))
+		try await model.waitForStatus { $0.language == .fixed(.en) }
+		#expect(transport.requestCount == calls)
+		await model.decide(.presented(restored.ref))
 		while model.chat?.review?.controls == ReviewControls.none, ContinuousClock.now < deadline {
 			try await Task.sleep(for: .milliseconds(10))
 		}
@@ -228,23 +258,19 @@ final class ShellLanguageTests {
 				? model.reviewNotice?.sentence(in: model.displayLocale)
 				: model.chat?.notes.values.flatMap { $0 }.first?.sentence(in: model.displayLocale)
 		}
-		let expected = { (tag: LanguageTag) in
-			let key = expires ? Catalog.coachConfirmationExpired : Catalog.coachConfirmationExecuted
-			let summary = ReviewSummary.createStrengthWorkout(name: "Core", date: "1998-06-14")
-			return tag.phrasebook.say(
-				key,
-				expires
-					? [:]
-					: [
-						"summary": summary.sentence(
-							in: testLocaleResolver(languages: [tag.rawValue])(.automatic))
-					])
-		}
-		#expect(visible() == expected(.en))
+		#expect(
+			visible()
+				== (expires
+					? "That proposal expired — ask me again and I'll re-propose."
+					: "Done — Create workout \"Endurance with tempo\" on 16/06/1998."))
 		await model.chooseLanguage(.fixed(.es))
 		try await model.waitForStatus { $0.language == .fixed(.es) }
 		#expect(model.status.language == .fixed(.es))
-		#expect(visible() == expected(.es))
+		#expect(
+			visible()
+				== (expires
+					? "Esa propuesta ha caducado. Pídemela otra vez y volveré a proponerla."
+					: "Hecho: Crear el entrenamiento \"Endurance with tempo\" el 16/06/1998."))
 	}
 
 	@Test func retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices()
