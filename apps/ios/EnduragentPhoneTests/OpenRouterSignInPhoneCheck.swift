@@ -9,8 +9,17 @@
 			try prepare(minimumBudget: 0)
 			let conversation = try progress()
 			try openAccess()
+			guard element("access.credits").isSelected,
+				!element("access.openRouter").isSelected
+			else {
+				throw PhoneRunBlocked(
+					reason:
+						"Select Credits before this run so the callback must change the access method."
+				)
+			}
 			try signInWaitingForOperator(cancel: false)
 			XCTAssertTrue(element("access.openRouter").isSelected)
+			XCTAssertFalse(element("access.credits").isSelected)
 			XCTAssertFalse(element("access.notice").exists)
 			capture("openrouter-callback-saved")
 			TutorialHarness.returnToChat(app)
@@ -20,6 +29,7 @@
 			XCTAssertEqual(try progress(), conversation)
 			try openAccess()
 			XCTAssertTrue(element("access.openRouter").isSelected)
+			XCTAssertFalse(element("access.credits").isSelected)
 			capture("openrouter-callback-reopened")
 			TutorialHarness.returnToChat(app)
 		}
