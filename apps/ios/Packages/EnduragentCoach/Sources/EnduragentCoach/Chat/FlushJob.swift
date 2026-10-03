@@ -207,10 +207,6 @@ extension Conversation {
 		}
 	}
 
-	package func flushMessages(for job: FlushJob) -> [ChatMessage] {
-		flushRows(for: job).map(\.message)
-	}
-
 	package func flushRows(for job: FlushJob) -> [ConversationRow] {
 		let rows = ConversationRows(self)
 		return rows.messages(for: rows.ulids(for: job.id, messages: job.coverage.listed))
