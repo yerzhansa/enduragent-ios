@@ -333,36 +333,46 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			profile: .failed(.temporarilyUnavailable))
 		let account = TrainingAccount.intervals(connection: ConnectionID(), athlete: nil)
 		let locked = CoachStatus(
-			setup: .accessTemporarilyUnavailable(.secureStorageLocked),
+			access: AccessStatus(state: .unreadable(.secureStorageLocked), builtInModel: testModel),
 			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults,
+			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 			resolve: testDisplayLocale)
 		#expect(locked.notice?.sentence(in: displayLocale()) == lockedSentence)
 		let offline = CoachStatus(
-			setup: .ready, training: .connected(summary, account: account),
-			preferences: .npmDefaults, resolve: testDisplayLocale)
+			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+			training: .connected(summary, account: account),
+			preferences: .npmDefaults,
+			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
+			resolve: testDisplayLocale)
 		#expect(
 			offline.notice?.sentence(in: displayLocale())
 				== "Your athlete profile is temporarily unavailable. Try again.")
 		let rejected = CoachStatus(
-			setup: .ready,
+			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
 			training: .connected(
 				IntervalsSummary(
 					connectionID: testConnection.id, keySuffix: "-key",
 					profile: .failed(.credentialRejected)),
 				account: account),
-			preferences: .npmDefaults, resolve: testDisplayLocale)
+			preferences: .npmDefaults,
+			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
+			resolve: testDisplayLocale)
 		#expect(
 			rejected.notice?.sentence(in: displayLocale())
 				== "intervals.icu did not accept that key.")
 		#expect(
 			CoachStatus(
-				setup: .needsAccessMethod, training: .unconnected, preferences: .npmDefaults,
+				access: AccessStatus(state: .defaultCredits(.needsSetup), builtInModel: testModel),
+				training: .unconnected, preferences: .npmDefaults,
+				providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 				resolve: testDisplayLocale
 			)
 			.notice == nil)
 		#expect(
 			CoachStatus(
-				setup: .ready, training: .unconnected, preferences: .npmDefaults,
+				access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
+				training: .unconnected, preferences: .npmDefaults,
+				providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 				resolve: testDisplayLocale
 			).notice
 				== nil)

@@ -5,12 +5,13 @@ public protocol SecretStore: Sendable {
 	func creditsAccount() throws -> CreditsAccount?
 	func prepareCreditsAccount() throws -> CreditsAccount
 	func storeCreditsAccount(_ account: CreditsAccount) throws
-	func openRouterAccountKey() throws -> String?
-	func storeOpenRouterAccountKey(_ key: String) throws
+	func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String?
+	func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef) throws
+	func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws
 	func intervalsConnection() throws -> IntervalsConnection?
 	func storeIntervalsConnection(_ connection: IntervalsConnection) throws
-	func accessSelection() throws -> AccessSelection?
-	func storeAccessSelection(_ selection: AccessSelection) throws
+	func accessSelection() throws -> SavedAccessReference?
+	func storeAccessSelection(_ reference: SavedAccessReference) throws
 	func delete(_ slot: CredentialSlot) throws
 }
 
@@ -118,28 +119,34 @@ public struct ICloudKeychainStore: SecretStore {
 		return token
 	}
 
-	public func openRouterAccountKey() throws -> String? {
-		try readString(account: CredentialSlot.openRouterAccountKey.rawValue)
+	public func openRouterAccountKey(at reference: OpenRouterCredentialRef) throws -> String? {
+		try readString(account: reference.account)
 	}
 
-	public func storeOpenRouterAccountKey(_ key: String) throws {
-		try write(.openRouterAccountKey, Data(key.utf8))
+	public func storeOpenRouterAccountKey(_ key: String, at reference: OpenRouterCredentialRef)
+		throws
+	{
+		try write(account: reference.account, Data(key.utf8))
 	}
 
 	public func intervalsConnection() throws -> IntervalsConnection? {
 		try readItem(StoredIntervalsConnection.self, .intervalsConnection)?.connection()
 	}
 
+	public func deleteOpenRouterAccountKey(at reference: OpenRouterCredentialRef) throws {
+		try backing.delete(account: reference.account)
+	}
+
 	public func storeIntervalsConnection(_ connection: IntervalsConnection) throws {
 		try writeItem(StoredIntervalsConnection(connection), .intervalsConnection)
 	}
 
-	public func accessSelection() throws -> AccessSelection? {
+	public func accessSelection() throws -> SavedAccessReference? {
 		try readItem(StoredAccessSelection.self, .accessSelection)?.selection()
 	}
 
-	public func storeAccessSelection(_ selection: AccessSelection) throws {
-		try writeItem(StoredAccessSelection(selection), .accessSelection)
+	public func storeAccessSelection(_ reference: SavedAccessReference) throws {
+		try writeItem(StoredAccessSelection(reference), .accessSelection)
 	}
 
 	public func delete(_ slot: CredentialSlot) throws {
@@ -172,10 +179,14 @@ public struct ICloudKeychainStore: SecretStore {
 	}
 
 	private func write(_ slot: CredentialSlot, _ data: Data) throws {
-		if try backing.copy(account: slot.rawValue) == nil {
-			try backing.add(account: slot.rawValue, data: data)
+		try write(account: slot.rawValue, data)
+	}
+
+	private func write(account: String, _ data: Data) throws {
+		if try backing.copy(account: account) == nil {
+			try backing.add(account: account, data: data)
 		} else {
-			try backing.update(account: slot.rawValue, data: data)
+			try backing.update(account: account, data: data)
 		}
 	}
 }

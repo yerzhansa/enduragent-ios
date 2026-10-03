@@ -114,10 +114,10 @@ extension CredentialVaultTests {
 		let secrets = ICloudKeychainStore(backing: backing)
 		try secrets.storeCreditsAccount(
 			CreditsAccount(appAccountToken: UUID(), key: "sk-or-credits"))
-		try secrets.storeOpenRouterAccountKey("sk-or-account")
+		try secrets.storeOpenRouterAccountKey("sk-or-account", at: .legacy)
 		let model = ModelID(rawValue: "test/account-model")
 		try secrets.storeAccessSelection(
-			.openRouterAccount(model: model))
+			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: model))))
 		let readsBeforeResolving = backing.readCount
 		let vault = vault(secrets)
 		#expect(
@@ -138,7 +138,7 @@ extension CredentialVaultTests {
 		#expect(
 			!backing.readAccounts.dropFirst(readsBeforeResolving).contains(
 				CredentialSlot.creditsAccount.rawValue))
-		try secrets.storeAccessSelection(.credits)
+		try secrets.storeAccessSelection(.init(.credits))
 		#expect(
 			try await vault.modelAccess(builtInModel: testModel)
 				== testAccess(secret: "sk-or-credits"))
