@@ -36,16 +36,11 @@ import Testing
 		let recording = BatchRecordingLog(inner: InMemoryRecordLog())
 		let coach = await makeCoach(transport: transport, store: recording, clock: clock)
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		var sawText = false
-		for await snapshot in await coach.observe(.main) {
-			if case .processing? = snapshot.turns.first?.state,
-				snapshot.liveReply?.text.isEmpty == false
-			{
-				sawText = true
-				break
-			}
-		}
-		#expect(sawText)
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing? = $0.turns.first?.state else { return false }
+				return $0.liveReply?.text.isEmpty == false
+			} != nil)
 		await coach.stop(.main)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		guard case .interrupted(let interrupted) = settled else {
@@ -125,8 +120,10 @@ import Testing
 		let store = HeldConversationReadLog(inner: inner)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		async let observed = coach.currentSnapshot(.main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		async let sending = coach.send(draft("Is Thursday on?"), to: .main)
 		store.gate.release()
 		let turn = try #require(try await sending.acceptedTurn)
@@ -151,8 +148,10 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		faulty.failFetches = true
 		async let observed = coach.currentSnapshot(.main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.gate.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		store.gate.release()
 		let sent = draft("Is Thursday on?")
 		await #expect(throws: AcceptFailure.storageUnavailable) {
@@ -179,8 +178,10 @@ import Testing
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
 		async let second = coach.send(draft("two"), to: .main)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { store.release() }) {
+				await store.reached.first { _ in true } != nil
+			} == true)
 		async let stopped: Void = coach.stop(.main)
 		let interrupted = await coach.settledState(of: running, in: .main, within: .hangGuard)
 		store.release()
@@ -344,13 +345,11 @@ import Testing
 			], otherwise: transport.respond)
 		let stoppedTurn = try #require(
 			try await coach.send(draft("Remember my Saturday ride"), to: .main).acceptedTurn)
-		for await snapshot in await coach.observe(.main) {
-			if case .processing(let processing)? = snapshot.turns.last?.state,
-				processing.activity == .generating(step: 2)
-			{
-				break
-			}
-		}
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				guard case .processing(let processing)? = $0.turns.last?.state else { return false }
+				return processing.activity == .generating(step: 2)
+			} != nil)
 		await coach.stop(.main)
 		let stopped = try #require(await coach.settledState(of: stoppedTurn, in: .main))
 		guard case .interrupted(let interrupted) = stopped else {
@@ -382,9 +381,11 @@ import Testing
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let coach = await makeCoach(transport: transport, store: InMemoryRecordLog(), clock: clock)
 		_ = try await coach.send(draft("hang"), to: .main)
-		for await snapshot in await coach.observe(.main) {
-			if case .processing? = snapshot.turns.first?.state { break }
-		}
+		try #require(
+			try await firstSnapshot(in: await coach.observe(.main), within: .hangGuard) {
+				if case .processing? = $0.turns.first?.state { return true }
+				return false
+			} != nil)
 		let stale = ReviewRef(
 			chat: .main, set: ChangeSetID(ulid: fixedUlid(1)),
 			revision: ChangeSetRevision(rawValue: 1),

@@ -34,7 +34,8 @@ extension SwiftDataSuites {
 			await coach.lifecycle(.willTerminate)
 		}
 
-		@Test func rotationReopenAndImportKeepOriginalAccounts() async throws {
+		@Test(arguments: [false, true])
+		func rotationReopenAndImportKeepOriginalAccounts(retriedForB: Bool) async throws {
 			let phone = DeviceID(rawValue: "scoped-rotation-phone")
 			let directory = try TestTemporaryFolders.make()
 			let store = try makeSwiftDataLog(deviceId: phone, directory: directory)
@@ -63,18 +64,37 @@ extension SwiftDataSuites {
 			let imported = fixture.record(
 				61, account: .intervals(connection: originalConnection, athlete: nil),
 				body: .synced(.dailyNote(DailyNoteBody(note: "A_ONLY_IMPORTED"))), device: peer)
-			let peerTurn = TurnID(ulid: fixedUlid(62))
-			let question = fixture.record(
-				62, account: fixture.accountA,
-				body: .synced(
-					sampleUser(chatId: .main, text: "A_ONLY_IMPORTED_QUESTION", turn: peerTurn)),
-				device: peer)
-			let reply = fixture.record(
-				63, account: fixture.accountA,
-				body: .synced(
-					sampleReply(chatId: .main, turn: peerTurn, text: "A_ONLY_IMPORTED_REPLY")),
-				device: peer)
-			try await seed(reopened, [observation, imported, question, reply])
+			let source = InMemoryRecordLog(deviceId: peer)
+			let sourceFixture = try AthleteScopedCoachingFixture(store: source)
+			let sourceCoach = await sourceFixture.open()
+			sourceFixture.transport.respond = { _ in
+				ScriptedReply(
+					retriedForB
+						? [.fail(.http(status: 400))]
+						: [.text("A_ONLY_IMPORTED_REPLY"), .finish(reason: .stop)])
+			}
+			let peerTurn = try #require(
+				try await sourceCoach.send(draft("A_ONLY_IMPORTED_QUESTION"), to: .main)
+					.acceptedTurn)
+			let first = try #require(await sourceCoach.settledState(of: peerTurn, in: .main))
+			if retriedForB {
+				#expect(failure(first) != nil)
+				try await sourceFixture.connect(.athleteB, using: sourceCoach)
+				sourceFixture.transport.respond = { _ in
+					ScriptedReply([.text("B_ONLY_IMPORTED_REPLY"), .finish(reason: .stop)])
+				}
+				try await sourceCoach.retry(peerTurn, in: .main)
+				#expect(
+					replyText(try #require(await sourceCoach.settledState(of: peerTurn, in: .main)))
+						== "B_ONLY_IMPORTED_REPLY")
+			} else {
+				#expect(replyText(first) == "A_ONLY_IMPORTED_REPLY")
+			}
+			let synced = try await source.fetch(RecordQuery(scope: .everySynced)).records
+			let question = try #require(synced.first { $0.body.kind == "userMessage" })
+			#expect(question.account == .unconnected)
+			await sourceCoach.lifecycle(.willTerminate)
+			try await seed(reopened, [observation, imported] + synced)
 			reopened.notifyImport()
 			try #require(
 				try await firstSnapshot(in: await after.observe(.main), within: .hangGuard) {
@@ -83,14 +103,23 @@ extension SwiftDataSuites {
 			let request = try await fixture.read(using: after)
 			try fixture.assertInformation("A_ONLY", excluding: "B_ONLY", in: request)
 			#expect(request.messages.contains { $0.content.contains("A_ONLY_IMPORTED_QUESTION") })
+			if !retriedForB {
+				#expect(request.messages.contains { $0.content.contains("A_ONLY_IMPORTED_REPLY") })
+			}
 			#expect(request.messages.contains { $0.content.contains("A_ONLY_LIVE_QUESTION") })
 			#expect(try fixture.toolText("memory_query", in: request).contains("A_ONLY_IMPORTED"))
 			let saved = try await reopened.fetch(RecordQuery(scope: .everySynced)).records
-			for record in original + [observation, imported, question, reply] {
+			for record in original + [observation, imported] + synced {
 				#expect(saved.first { $0.ulid == record.ulid } == record)
 			}
 			#expect(original.allSatisfy { $0.account == fixture.accountA })
 			#expect(try fixture.secrets.intervalsConnection()?.account != fixture.accountA)
+			try await fixture.connect(.athleteB, using: after)
+			let b = try await fixture.read(using: after)
+			fixture.assertAbsent("A_ONLY", from: b)
+			if retriedForB {
+				#expect(b.messages.contains { $0.content.contains("B_ONLY_IMPORTED_REPLY") })
+			}
 			await after.lifecycle(.willTerminate)
 		}
 

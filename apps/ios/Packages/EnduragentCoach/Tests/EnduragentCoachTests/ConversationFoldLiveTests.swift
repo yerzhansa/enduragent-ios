@@ -47,8 +47,10 @@ extension ConversationFoldTests {
 		}
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
-		var saving = flush.reached.makeAsyncIterator()
-		_ = await saving.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { flush.release() }) {
+				await flush.reached.first { _ in true } != nil
+			} == true)
 		faults.failNextAppend = true
 		flush.release()
 		if ending == .stop {

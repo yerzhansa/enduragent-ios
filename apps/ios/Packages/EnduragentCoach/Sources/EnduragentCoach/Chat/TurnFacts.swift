@@ -62,11 +62,21 @@ package struct TurnFacts: Sendable, Equatable {
 		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
 		return ConversationRow(
 			ulid: first.ulid, origin: origin,
-			account: claims.min(by: { $0.hlc < $1.hlc })?.account ?? first.account,
+			account: first.account == .unconnected
+				? originalAttemptAccount ?? first.account : first.account,
 			message: ChatMessage(
 				author: .athlete(sent: first.ulid.time, timeZone: first.timeZone), text: requestText
 			)
 		)
+	}
+
+	private var originalAttemptAccount: TrainingAccount? {
+		guard
+			let attempt = (claims.map(\.attempt) + settlements.map(\.attempt))
+				.min(by: { $0.ulid < $1.ulid })
+		else { return nil }
+		return claims.first { $0.attempt == attempt }?.account
+			?? settlements.filter { $0.attempt == attempt }.min(by: { $0.hlc < $1.hlc })?.account
 	}
 
 	var replyRow: ConversationRow? {
