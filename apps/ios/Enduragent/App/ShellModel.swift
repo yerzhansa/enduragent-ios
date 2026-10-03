@@ -65,10 +65,7 @@ final class ShellModel {
 
 	var connectKey: String {
 		get { trainingSettings.key }
-		set {
-			if trainingSettings.state == .viewing { trainingSettings.edit() }
-			trainingSettings.key = newValue
-		}
+		set { trainingSettings.key = newValue }
 	}
 
 	var didConnect: Bool {

@@ -2990,7 +2990,9 @@
       "locked": "Desbloqueie seu iPhone para continuar. Sua mensagem está salva.",
       "notConfigured": "Escolha como o treinador acessa um modelo para continuar.",
       "providerConsentRequired": "Precisamos da sua permissão antes de compartilhar dados da conversa com provedores de IA.",
-      "openRouterFunds": "Sua conta OpenRouter está sem saldo. Adicione saldo no OpenRouter ou mude para Créditos."
+      "openRouterFunds": "Sua conta OpenRouter está sem saldo. Adicione saldo no OpenRouter ou mude para Créditos.",
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. Suas informações de treinamento salvas continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler a credencial salva de acesso ao modelo. Escolha um método de acesso para continuar."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "A substituição não foi salva. Sua conexão anterior não foi alterada. Tente novamente.",
       "profileUnavailable": "Seu perfil de atleta está temporariamente indisponível. Tente novamente.",
       "wellnessRejected": "O intervals.icu não permitiu a leitura dos dados de bem-estar de hoje. Revise sua conexão.",
-      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente."
+      "wellnessUnavailable": "Os dados de bem-estar de hoje estão temporariamente indisponíveis. Tente novamente.",
+      "blankConnection": "Insira uma chave de API do intervals.icu.",
+      "connectionNotSaved": "A conexão não foi salva. Tente novamente.",
+      "storageLocked": "Desbloqueie seu iPhone para ler sua conexão com o intervals.icu. Depois, tente novamente.",
+      "storageUnavailable": "Sua conexão com o intervals.icu está temporariamente indisponível porque não foi possível ler o armazenamento seguro. Tente novamente.",
+      "storageMalformed": "Não foi possível ler a conexão salva com o intervals.icu. Substitua a chave para conectar novamente."
     },
     "wellness": {
       "empty": "Não há dados de bem-estar para hoje.",

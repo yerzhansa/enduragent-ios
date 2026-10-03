@@ -23,6 +23,8 @@
 		case unlocked
 		case locked
 		case empty
+		case unavailable
+		case malformedIntervals = "malformed-intervals"
 	}
 
 	enum FixtureCalendarSaveFault: String {

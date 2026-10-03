@@ -9,7 +9,7 @@ enum OnboardingConnectionProofScreen {
 		enterConnect(app)
 		TutorialHarness.named(app, "connect.connect").tap()
 		TutorialHarness.waitForIdentifier(
-			app, "connect.saved", reading: TrainingSettingsProofScreen.blank)
+			app, "connect.saved", reading: "Enter an intervals.icu API key.")
 		XCTAssertFalse(TutorialHarness.named(app, "connect.continue").exists)
 		capture(test, app, name: "onboarding-blank", dark: dark)
 		save(app)
@@ -23,7 +23,7 @@ enum OnboardingConnectionProofScreen {
 		TutorialHarness.type(app, "fixture", into: "connect.apiKey")
 		TutorialHarness.named(app, "connect.connect").tap()
 		TutorialHarness.waitForIdentifier(
-			app, "connect.saved", reading: TrainingSettingsProofScreen.notSaved)
+			app, "connect.saved", reading: "The connection wasn't saved. Try again.")
 		XCTAssertFalse(TutorialHarness.named(app, "connect.continue").exists)
 		XCTAssertTrue(TutorialHarness.named(app, "connect.skip").exists)
 		capture(test, app, name: "onboarding-not-saved", dark: dark)
@@ -72,12 +72,19 @@ enum OnboardingConnectionProofScreen {
 		let phrasebook = CatalogPhrasebook(tag: .fr)
 		TutorialHarness.launch(app, language: "ru,fr,en", locale: "fr_FR")
 		enterConnect(app, language: .fr)
-		TutorialHarness.named(app, "connect.skip").tap()
+		TutorialHarness.type(app, "ab", into: "connect.apiKey")
+		let skip = TutorialHarness.named(app, "connect.skip")
+		TutorialHarness.scroll(app, to: skip)
+		skip.tap()
 		startChatting(app, language: .fr)
 		TutorialHarness.exchange(app, "fixture:training-data")
 		TutorialHarness.waitForLabel(app, "I can discuss general training. Connect in Settings")
 		capture(test, app, name: "skipped-training-data-unavailable", dark: dark)
 		TutorialHarness.openCredentials(app)
+		XCTAssertEqual(
+			TutorialHarness.named(app, "training.edit").label,
+			phrasebook.say(Catalog.onboardingConnectAction))
+		XCTAssertFalse(TutorialHarness.named(app, "training.apiKey").exists)
 		TutorialHarness.named(app, "training.edit").tap()
 		assertEmptyKey(app, identifier: "training.apiKey", language: .fr)
 		TutorialHarness.type(app, "fixture", into: "training.apiKey")

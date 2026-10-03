@@ -2990,7 +2990,9 @@
       "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
       "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
       "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
-      "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter."
+      "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter.",
+      "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen.",
+      "malformed": "De gemte legitimationsoplysninger til modeladgang kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "Erstatningen blev ikke gemt. Din tidligere forbindelse er uændret. Prøv igen.",
       "profileUnavailable": "Din atletprofil er midlertidigt utilgængelig. Prøv igen.",
       "wellnessRejected": "intervals.icu tillod ikke læsning af dagens wellness. Gennemgå din forbindelse.",
-      "wellnessUnavailable": "Dagens wellness er midlertidigt utilgængelig. Prøv igen."
+      "wellnessUnavailable": "Dagens wellness er midlertidigt utilgængelig. Prøv igen.",
+      "blankConnection": "Indtast en intervals.icu API-nøgle.",
+      "connectionNotSaved": "Forbindelsen blev ikke gemt. Prøv igen.",
+      "storageLocked": "Lås din iPhone op for at læse din intervals.icu-forbindelse. Prøv derefter igen.",
+      "storageUnavailable": "Din intervals.icu-forbindelse er midlertidigt utilgængelig, fordi det sikre lager ikke kunne læses. Prøv igen.",
+      "storageMalformed": "Den gemte intervals.icu-forbindelse kunne ikke læses. Udskift nøglen for at forbinde igen."
     },
     "wellness": {
       "empty": "Ingen wellnessdata for i dag.",

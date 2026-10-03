@@ -2990,7 +2990,9 @@
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
       "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
       "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
-      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin."
+      "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
+      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen.",
+      "malformed": "Tallennettua mallin käyttöön tarvittavaa tunnistetta ei voitu lukea. Valitse käyttötapa jatkaaksesi."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "Korvaavaa avainta ei tallennettu. Aiempi yhteytesi ei muuttunut. Yritä uudelleen.",
       "profileUnavailable": "Urheilijaprofiilisi ei ole tilapäisesti saatavilla. Yritä uudelleen.",
       "wellnessRejected": "intervals.icu ei sallinut tämän päivän hyvinvointitietojen lukemista. Tarkista yhteytesi.",
-      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen."
+      "wellnessUnavailable": "Tämän päivän hyvinvointitiedot eivät ole tilapäisesti saatavilla. Yritä uudelleen.",
+      "blankConnection": "Anna intervals.icu-API-avain.",
+      "connectionNotSaved": "Yhteyttä ei tallennettu. Yritä uudelleen.",
+      "storageLocked": "Avaa iPhonen lukitus, jotta intervals.icu-yhteytesi voidaan lukea. Yritä sitten uudelleen.",
+      "storageUnavailable": "intervals.icu-yhteytesi on tilapäisesti poissa käytöstä, koska suojattua tallennustilaa ei voitu lukea. Yritä uudelleen.",
+      "storageMalformed": "Tallennettua intervals.icu-yhteyttä ei voitu lukea. Vaihda avain yhdistääksesi uudelleen."
     },
     "wellness": {
       "empty": "Tälle päivälle ei ole hyvinvointitietoja.",

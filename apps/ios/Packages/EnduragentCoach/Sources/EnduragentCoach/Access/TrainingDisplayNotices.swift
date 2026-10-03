@@ -43,8 +43,54 @@ extension CredentialOutcome where Summary == IntervalsSummary {
 		case .replaced: AthleteNotice(key: Catalog.planViewEndedSaved, action: nil)
 		case .refused(.blankReplacementKeepsCurrent):
 			AthleteNotice(key: Catalog.connectErrorBlank, action: nil)
-		case .failedPreviousKept: AthleteNotice(key: Catalog.connectErrorNotSaved, action: nil)
+		case .refused(.blankConnection):
+			AthleteNotice(key: Catalog.connectErrorBlankConnection, action: nil)
+		case .failedPreviousKept(_, let previous):
+			AthleteNotice(
+				key: previous == nil
+					? Catalog.connectErrorConnectionNotSaved : Catalog.connectErrorNotSaved,
+				action: nil)
 		case .kept, .disconnected, .refused: nil
+		}
+	}
+}
+
+extension TrainingStatus {
+	public var notice: AthleteNotice? {
+		switch self {
+		case .unconnected: AthleteNotice(key: Catalog.connectMissing, action: .connectTraining)
+		case .connected(let summary, _): summary.notice
+		case .unavailable(let failure):
+			AthleteNotice(key: failure.trainingNoticeKey, action: nil)
+		}
+	}
+
+	public var action: TrainingDisplayAction? {
+		switch self {
+		case .connected(let summary, _): summary.action
+		case .unavailable(.secureStorageLocked), .unavailable(.secureStorageUnavailable):
+			.retryStorage
+		case .unconnected, .unavailable: nil
+		}
+	}
+
+	public var connectionActionTitle: CatalogKey? {
+		switch self {
+		case .connected, .unavailable(.malformedStoredCredential): Catalog.settingsTrainingReplace
+		case .unavailable(.secureStorageLocked), .unavailable(.secureStorageUnavailable): nil
+		case .unconnected, .unavailable: Catalog.onboardingConnectAction
+		}
+	}
+}
+
+extension AccessUnavailable {
+	fileprivate var trainingNoticeKey: CatalogKey {
+		switch self {
+		case .secureStorageLocked: Catalog.connectErrorStorageLocked
+		case .secureStorageUnavailable: Catalog.connectErrorStorageUnavailable
+		case .malformedStoredCredential: Catalog.connectErrorStorageMalformed
+		case .notConfigured: Catalog.connectMissing
+		case .providerConsentRequired: Catalog.accessErrorProviderConsentRequired
 		}
 	}
 }

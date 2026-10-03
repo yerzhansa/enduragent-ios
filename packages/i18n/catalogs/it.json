@@ -2990,7 +2990,9 @@
       "locked": "Sblocca il tuo iPhone per continuare. Il tuo messaggio è salvato.",
       "notConfigured": "Scegli come il coach accede a un modello per continuare.",
       "providerConsentRequired": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA.",
-      "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti."
+      "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti.",
+      "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova.",
+      "malformed": "Non è stato possibile leggere la credenziale salvata per l'accesso al modello. Scegli un metodo di accesso per continuare."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "La sostituzione non è stata salvata. La connessione precedente non è cambiata. Riprova.",
       "profileUnavailable": "Il tuo profilo atleta è temporaneamente non disponibile. Riprova.",
       "wellnessRejected": "intervals.icu non ha consentito la lettura dei dati di benessere di oggi. Controlla la connessione.",
-      "wellnessUnavailable": "I dati di benessere di oggi sono temporaneamente non disponibili. Riprova."
+      "wellnessUnavailable": "I dati di benessere di oggi sono temporaneamente non disponibili. Riprova.",
+      "blankConnection": "Inserisci una chiave API di intervals.icu.",
+      "connectionNotSaved": "La connessione non è stata salvata. Riprova.",
+      "storageLocked": "Sblocca il tuo iPhone per leggere la tua connessione intervals.icu. Poi riprova.",
+      "storageUnavailable": "La tua connessione intervals.icu è temporaneamente indisponibile perché non è stato possibile leggere l'archivio sicuro. Riprova.",
+      "storageMalformed": "Non è stato possibile leggere la connessione intervals.icu salvata. Sostituisci la chiave per connetterti di nuovo."
     },
     "wellness": {
       "empty": "Nessun dato di benessere per oggi.",

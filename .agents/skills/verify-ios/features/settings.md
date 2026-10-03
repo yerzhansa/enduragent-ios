@@ -11,6 +11,7 @@ Settings opens from the conversation toolbar. Credits lives under Model access. 
 - `settings-toolbar-language` uses catalog labels on icon buttons at 390 pt iPhone width. History uses `archive.history` for both the toolbar label and screen title. French actions have no drawn text, overlap, or frame overflow.
 - `settings-training` connects, replaces or keeps the key, confirms a different owner and disconnect, and separates the save receipt from profile/wellness notices. The key field is always masked and never contains the stored key.
 - `settings-calendar-connect` offers Connect after an unconnected Add to calendar. It opens the masked Settings editor without restarting setup.
+- `settings-training-storage` gives missing, locked, unavailable and malformed connections distinct guidance. Missing offers Connect, malformed offers Replace key, and locked or unavailable storage offers Try again with unlock or recovery guidance. Correction replaces only the malformed training item and preserves earlier athlete safeguards.
 - `settings-continuity` keeps the connection, conversation, slash draft, and command discovery through navigation and a relaunch from Settings.
 
 ## How to get to it (user POV)
@@ -36,11 +37,14 @@ Follow the [index](./README.md) setup. Use a 390 pt wide iPhone. The helper sets
 | `sim.mjs test <run id> SameAthleteRotationProof SameAthleteRotationDarkProof` | Rotation changes connection ID for the same athlete, keeps the workout review and saves the approved workout. `same-athlete-saved`, `same-athlete-added`. |
 | `sim.mjs test <run id> DifferentAthleteProof DifferentAthleteDarkProof` | Known owner change asks for confirmation; Cancel keeps Ada, Switch athlete saves Bo and disables the old workout review. `different-athlete-confirmation`, `different-athlete-saved`, `different-athlete-old-review`. |
 | `sim.mjs test <run id> DisconnectProof DisconnectDarkProof` | Cancel keeps the connection. Confirmed disconnect offers Connect, preserves History and the current conversation, and stamps the next turn unconnected. `disconnect-confirmation`, `disconnected-connect-offered`, `disconnected-history`, `disconnected-next-turn`. |
+| `sim.mjs test <run id> TrainingStorageProof TrainingStorageDarkProof LockedKeychainProof` | Unavailable storage preserves the conversation and recovers after restoring the fixture store and tapping Try again. Malformed storage supports Cancel, blank input, failed write and successful correction with an empty masked editor. Screenshots start with `training-storage-` or `training-correction-`; locked proof adds `locked-training-storage` and `unlocked-training-storage`. Synthetic secrets stay absent from visible text and record rows. |
 | `sim.mjs test <run id> UnconnectedCalendarProof UnconnectedCalendarDarkProof` | Add to calendar gives missing-connection guidance and a working Connect route to Settings. `unconnected-calendar-notice`, `unconnected-calendar-connect`. |
 | `sim.mjs test <run id> CoalesceProof StarterCreditsProof NoticeCopyProof` | Records stays open, Credits diagnostics remains hittable, and one Back from notice recovery returns to the conversation. |
 | `sim.mjs test <run id> CreditsProof HistoryListProof HistoryArchivedProof NewConversationProof SlashStartProof ResetKeepsReviewProof` | Existing Credits, read-only History, both New conversation entries, and a reset with a pending workout review use the new routes. |
 
 Each training attachment above ends with `light` or `dark`. Resolved fixture identity is Ada Kovač, Fitness 42, Fatigue 49, Form -7.
+
+The hosted `TrainingStorageTests` suite covers missing, locked, temporarily unavailable and malformed training storage, retained conversation after relaunch, the shared malformed-training notice route, and retry or Replace through ShellModel.
 
 The hosted `TrainingSettingsTests` suite covers editor persistence, receipt truth, next-turn account, confirmations and notice routing through ShellModel. `SingleProposalReviewsTests.unconnectedApprovalOffersConnectWithoutDispatch` proves that an unconnected Add records no write intent or dispatch.
 
@@ -53,7 +57,7 @@ The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`,
 ## Gotchas
 
 - `TutorialHarness.openCredentials` now opens Settings > intervals.icu. It never opens Debug. Connection IDs are inspected only through `fixture.connection` in Debug; the helper returns to the product screen afterward.
-- Credential failure hooks are Debug-only `fixture.failCredentialWrite` and `fixture.toggleKeychainLock`. Reach them with `fixtureControl` and `debugRow`.
+- Credential failure hooks are Debug-only `fixture.failCredentialWrite` and `fixture.toggleKeychainLock`, `fixture.restoreSecureStorage`, and `fixture.corruptIntervals`. Reach them with `fixtureControl` and `debugRow`.
 - Settings uses the shared 4.1 display notices and retry intent. Remote rejection opens the empty masked editor; temporary display failure retries with the saved connection ID. No new key is required for that retry.
 - Settings and onboarding use `IntervalsKeyField` for the same secure ASCII-capable input. `ConnectIntervalsProof` and `ConnectIntervalsDarkProof` type a key in Settings after launching with `ru,fr,en`, then verify the saved result and retained conversation.
 

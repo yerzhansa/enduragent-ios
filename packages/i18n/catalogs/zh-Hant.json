@@ -2950,7 +2950,9 @@
       "locked": "請解鎖 iPhone 以繼續。你的訊息已儲存。",
       "notConfigured": "請選擇教練連接模型的方式以繼續。",
       "providerConsentRequired": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。",
-      "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。"
+      "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
+      "storageUnavailable": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。",
+      "malformed": "無法讀取已儲存的模型存取憑證。請選擇存取方式以繼續。"
     }
   },
   "connect": {
@@ -2960,7 +2962,12 @@
       "notSaved": "替換未儲存。先前的連線未變更。請重試。",
       "profileUnavailable": "運動員資料暫時無法取得。請重試。",
       "wellnessRejected": "intervals.icu 未允許讀取今天的健康資料。請檢查連線。",
-      "wellnessUnavailable": "今天的健康資料暫時無法取得。請重試。"
+      "wellnessUnavailable": "今天的健康資料暫時無法取得。請重試。",
+      "blankConnection": "請輸入 intervals.icu API 金鑰。",
+      "connectionNotSaved": "連線未儲存。請重試。",
+      "storageLocked": "請解鎖 iPhone 以讀取 intervals.icu 連線，然後重試。",
+      "storageUnavailable": "由於無法讀取安全儲存空間，intervals.icu 連線暫時無法使用。請重試。",
+      "storageMalformed": "無法讀取已儲存的 intervals.icu 連線。請更換金鑰以重新連線。"
     },
     "wellness": {
       "empty": "今天沒有健康資料。",

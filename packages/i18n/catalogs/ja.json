@@ -2950,7 +2950,9 @@
       "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
       "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
       "providerConsentRequired": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。",
-      "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。"
+      "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。",
+      "storageUnavailable": "安全なストレージを一時的に利用できません。保存されたコーチング情報は残っています。もう一度お試しください。",
+      "malformed": "保存されたモデルアクセスの認証情報を読み取れませんでした。アクセス方法を選択して続けてください。"
     }
   },
   "connect": {
@@ -2960,7 +2962,12 @@
       "notSaved": "新しい接続は保存されませんでした。以前の接続は変更されていません。もう一度お試しください。",
       "profileUnavailable": "アスリートプロフィールを一時的に取得できません。もう一度お試しください。",
       "wellnessRejected": "intervals.icuが今日のウェルネスデータの読み取りを許可しませんでした。接続を確認してください。",
-      "wellnessUnavailable": "今日のウェルネスデータを一時的に取得できません。もう一度お試しください。"
+      "wellnessUnavailable": "今日のウェルネスデータを一時的に取得できません。もう一度お試しください。",
+      "blankConnection": "intervals.icuのAPIキーを入力してください。",
+      "connectionNotSaved": "接続を保存できませんでした。もう一度お試しください。",
+      "storageLocked": "intervals.icuの接続を読み取るには、iPhoneのロックを解除してください。その後、もう一度お試しください。",
+      "storageUnavailable": "安全なストレージを読み取れなかったため、intervals.icuの接続を一時的に利用できません。もう一度お試しください。",
+      "storageMalformed": "保存されたintervals.icuの接続を読み取れませんでした。キーを変更して再接続してください。"
     },
     "wellness": {
       "empty": "今日のウェルネスデータはありません。",

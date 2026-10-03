@@ -121,6 +121,7 @@ final class UpgradeConnectionProof: XCTestCase {
 	}
 }
 
+@MainActor
 final class LockedKeychainProof: XCTestCase {
 	func testLockedKeychainKeepsTheConversation() {
 		let app = XCUIApplication()
@@ -135,6 +136,22 @@ final class LockedKeychainProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
 		TutorialHarness.attach(self, name: "locked-keychain", app: app)
+		TrainingStorageProofScreen.openTraining(app)
+		TutorialHarness.waitForIdentifier(
+			app, "training.notice", reading: TrainingStorageProofScreen.locked)
+		XCTAssertEqual(TutorialHarness.named(app, "training.displayAction").label, "Try again")
+		XCTAssertFalse(TutorialHarness.named(app, "training.edit").exists)
+		TrainingStorageProofScreen.assertNoSecrets(app)
+		TutorialHarness.attach(self, name: "locked-training-storage", app: app)
+		TutorialHarness.returnToChat(app)
+		TutorialHarness.fixtureControl(app, "fixture.toggleKeychainLock")
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer.notice"), until: .absent)
+		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
+		TutorialHarness.openCredentials(app)
+		TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Ada Kovač")
+		TutorialHarness.waitForIdentifier(app, "training.form", reading: "Form -7")
+		TutorialHarness.attach(self, name: "unlocked-training-storage", app: app)
+		TutorialHarness.returnToChat(app)
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

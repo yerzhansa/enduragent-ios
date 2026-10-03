@@ -2990,7 +2990,9 @@
       "locked": "Desbloquea tu iPhone para continuar. Tu mensaje está guardado.",
       "notConfigured": "Elige cómo accede el entrenador a un modelo para continuar.",
       "providerConsentRequired": "Necesitamos tu permiso antes de compartir datos del chat con proveedores de IA.",
-      "openRouterFunds": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos."
+      "openRouterFunds": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos.",
+      "storageUnavailable": "El almacenamiento seguro no está disponible temporalmente. Tu información de entrenamiento guardada sigue aquí. Inténtalo de nuevo.",
+      "malformed": "No se pudo leer la credencial guardada de acceso al modelo. Elige un método de acceso para continuar."
     }
   },
   "connect": {
@@ -3000,7 +3002,12 @@
       "notSaved": "No se guardó la sustitución. Tu conexión anterior no ha cambiado. Inténtalo de nuevo.",
       "profileUnavailable": "Tu perfil de deportista no está disponible temporalmente. Inténtalo de nuevo.",
       "wellnessRejected": "intervals.icu no permitió leer los datos de bienestar de hoy. Revisa tu conexión.",
-      "wellnessUnavailable": "Los datos de bienestar de hoy no están disponibles temporalmente. Inténtalo de nuevo."
+      "wellnessUnavailable": "Los datos de bienestar de hoy no están disponibles temporalmente. Inténtalo de nuevo.",
+      "blankConnection": "Introduce una clave API de intervals.icu.",
+      "connectionNotSaved": "No se guardó la conexión. Inténtalo de nuevo.",
+      "storageLocked": "Desbloquea tu iPhone para leer tu conexión de intervals.icu. Después, inténtalo de nuevo.",
+      "storageUnavailable": "Tu conexión de intervals.icu no está disponible temporalmente porque no se pudo leer el almacenamiento seguro. Inténtalo de nuevo.",
+      "storageMalformed": "No se pudo leer la conexión guardada de intervals.icu. Sustituye la clave para volver a conectarte."
     },
     "wellness": {
       "empty": "No hay datos de bienestar para hoy.",
