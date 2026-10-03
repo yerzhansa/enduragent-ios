@@ -44,6 +44,8 @@ private enum UnknownCalendarSaveScreen {
 		"This workout may have been saved. Check the calendar before continuing."
 	static let readFailed =
 		"The calendar could not be checked. Your approved workout is still pending."
+	static let cannotVerify =
+		"Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 	static let check = ["chat.preview.checkAgain": "Check again"]
 	static let repeatApproval = [
 		"chat.preview.checkAgain": "Check again", "chat.preview.cancel": "Cancel",
@@ -86,7 +88,8 @@ private enum UnknownCalendarSaveScreen {
 		assertCard(app, pendingCount: 0, failedCount: 0, buttons: approval)
 		capture(test, app, name: "calendar-never-approved", dark: dark)
 		TutorialHarness.relaunchKeepingStore(app, keychain: .locked)
-		assertCard(app, pendingCount: 0, failedCount: 0, buttons: approval)
+		TutorialHarness.waitForIdentifier(app, "chat.preview.notice", reading: cannotVerify)
+		assertCard(app, pendingCount: 0, failedCount: 0, buttons: [:])
 		capture(test, app, name: "calendar-never-approved-locked", dark: dark)
 	}
 
