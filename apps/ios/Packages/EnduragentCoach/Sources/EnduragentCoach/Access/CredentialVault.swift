@@ -2,7 +2,7 @@ import Foundation
 import Security
 
 package actor CredentialVault {
-	private let store: any SecretStore
+	let store: any SecretStore
 	private let display: TrainingDisplayReader
 	private let diagnostics: DiagnosticsLog
 	private let changes = Turnstile()
@@ -15,19 +15,6 @@ package actor CredentialVault {
 		self.store = store
 		self.display = TrainingDisplayReader(training: training, clock: clock)
 		self.diagnostics = diagnostics
-	}
-
-	package func modelAccess(builtInModel: ModelID) throws(AccessUnavailable) -> ResolvedAccess {
-		switch try keychain(.accessSelection, { try store.accessSelection() }) {
-		case nil, .credits?:
-			return try resolve(.creditsAccount, .credits, builtInModel) {
-				try store.creditsAccount()?.key
-			}
-		case .openRouterAccount(let model)?:
-			return try resolve(.openRouterAccountKey, .openRouterAccount, model) {
-				try store.openRouterAccountKey()
-			}
-		}
 	}
 
 	package func trainingConnection(recheck: Bool = false) async throws(AccessUnavailable)
@@ -45,17 +32,6 @@ package actor CredentialVault {
 
 	package func invalidateTrainingIdentity() {
 		trainingIdentity = nil
-	}
-
-	package func setup(builtInModel: ModelID) -> SetupState {
-		do {
-			_ = try modelAccess(builtInModel: builtInModel)
-			return .ready
-		} catch .notConfigured {
-			return .needsAccessMethod
-		} catch {
-			return .accessTemporarilyUnavailable(error)
-		}
 	}
 
 	package func storedTrainingStatus() -> TrainingStatus {
@@ -184,34 +160,6 @@ package actor CredentialVault {
 			return await replace(apiKey, athlete, over: current, switching: false, boundWork)
 		case .replaceConfirmingAthleteSwitch(let apiKey, let athlete):
 			return await replace(apiKey, athlete, over: current, switching: true, boundWork)
-		}
-	}
-
-	package func change(_ change: ModelAccessChange) -> CredentialOutcome<AccessSummary> {
-		let previous: AccessSummary
-		do {
-			let selection = try keychain(.accessSelection) { try store.accessSelection() }
-			previous = AccessSummary(selection: selection ?? .credits)
-		} catch {
-			return .failedPreviousKept(.secureStorage(error), previous: nil)
-		}
-		do {
-			switch change {
-			case .keep:
-				return .kept(previous)
-			case .useCredits:
-				try keychain(.accessSelection) { try store.storeAccessSelection(.credits) }
-				return .replaced(AccessSummary(selection: .credits), authority: nil)
-			case .signInToOpenRouter:
-				return .failedPreviousKept(.signIn(.presentationUnavailable), previous: previous)
-			case .selectOpenRouterModel:
-				return .refused(.modelNotInCatalog)
-			case .disconnectOpenRouter:
-				try keychain(.openRouterAccountKey) { try store.delete(.openRouterAccountKey) }
-				return .disconnected
-			}
-		} catch {
-			return .failedPreviousKept(.secureStorage(error), previous: previous)
 		}
 	}
 
@@ -349,18 +297,7 @@ package actor CredentialVault {
 		} catch { return .unavailable(error) }
 	}
 
-	private func resolve(
-		_ slot: CredentialSlot, _ method: AccessMethod, _ model: ModelID,
-		_ key: () throws -> String?
-	) throws(AccessUnavailable) -> ResolvedAccess {
-		guard let secret = try keychain(slot, key).flatMap(NonEmptySecret.init) else {
-			throw .notConfigured(method)
-		}
-		return ResolvedAccess(
-			credential: ProviderCredential(secret: secret.value, method: method), model: model)
-	}
-
-	private func keychain<Value>(_ slot: CredentialSlot, _ body: () throws -> Value)
+	func keychain<Value>(_ slot: CredentialSlot, _ body: () throws -> Value)
 		throws(AccessUnavailable) -> Value
 	{
 		do {

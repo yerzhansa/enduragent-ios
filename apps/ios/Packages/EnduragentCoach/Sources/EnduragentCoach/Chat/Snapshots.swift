@@ -109,18 +109,26 @@ public struct CoachStatus: Sendable, Equatable {
 	public var needsProviderConsent: Bool {
 		setup == .needsProviderConsent
 	}
-	public let setup: SetupState
+	public let access: AccessStatus
+	public var setup: SetupState {
+		guard providerConsent?.isCurrent == true else { return .needsProviderConsent }
+		switch access.availability {
+		case .ready: return .ready
+		case .needsSetup: return .needsAccessMethod
+		case .unavailable(let failure): return .accessTemporarilyUnavailable(failure)
+		}
+	}
 	public let training: TrainingStatus
 	public let language: LanguagePreference
 	public let session: SessionSettings
 	public let displayLocale: DisplayLocale
 
 	package init(
-		setup: SetupState, training: TrainingStatus, preferences: Preferences,
+		access: AccessStatus, training: TrainingStatus, preferences: Preferences,
 		providerConsent: ProviderConsent? = nil, resolve: DisplayLocaleResolver
 	) {
 		self.providerConsent = providerConsent
-		self.setup = setup
+		self.access = access
 		self.training = training
 		self.language = preferences.language
 		self.session = preferences.session

@@ -90,7 +90,7 @@ import Testing
 			#expect(try backing.copy(account: account) == original)
 			try backing.update(account: account, data: replacement)
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try reopened.openRouterAccountKey() == "test-replacement-key")
+			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-replacement-key")
 		}
 	}
 
@@ -103,7 +103,7 @@ import Testing
 			let expected = KeychainStoreError.keychain(errSecInteractionNotAllowed)
 			#expect(throws: expected) { try store.creditsAccount() }
 			#expect(throws: expected) { try store.intervalsConnection() }
-			#expect(throws: expected) { try store.openRouterAccountKey() }
+			#expect(throws: expected) { try store.openRouterAccountKey(at: .legacy) }
 			#expect(throws: expected) { try store.accessSelection() }
 			#expect(throws: expected) { try store.prepareCreditsAccount() }
 			#expect(throws: expected) { try store.delete(.creditsAccount) }
@@ -168,8 +168,8 @@ import Testing
 			let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 			#expect(try reopened.creditsAccount() == expected)
-			#expect(try reopened.openRouterAccountKey() == "test-own-key")
-			#expect(try reopened.accessSelection() == .credits)
+			#expect(try reopened.openRouterAccountKey(at: .legacy) == "test-own-key")
+			#expect(try reopened.accessSelection() == .init(.credits))
 			#expect(try Data(contentsOf: file) == migrated)
 			let reopenedAttributes = try FileManager.default.attributesOfItem(atPath: file.path)
 			#expect(

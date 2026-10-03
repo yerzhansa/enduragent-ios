@@ -76,9 +76,9 @@ struct CreditsClientTests {
 	@Test func grantWritesCreditsKeyOnlyAndNeverTheSelection() async throws {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		let model = ModelID(rawValue: "test/account-model")
-		let selection = AccessSelection.openRouterAccount(
-			model: model)
-		try secrets.storeOpenRouterAccountKey("sk-or-test-account")
+		let selection = SavedAccessReference(
+			.openRouter(SavedOpenRouterReference(credential: .legacy, model: model)))
+		try secrets.storeOpenRouterAccountKey("sk-or-test-account", at: .legacy)
 		try secrets.storeAccessSelection(selection)
 		let client = try makeClient(secrets: secrets)
 		_ = try await CreditsURLStub.withHandler({ _ in
@@ -95,7 +95,7 @@ struct CreditsClientTests {
 		}
 		#expect(try secrets.creditsAccount()?.key == "sk-or-test-claimed")
 		#expect(try secrets.accessSelection() == selection)
-		#expect(try secrets.openRouterAccountKey() == "sk-or-test-account")
+		#expect(try secrets.openRouterAccountKey(at: .legacy) == "sk-or-test-account")
 		#expect(
 			try await testVault(secrets).modelAccess(builtInModel: testModel).credential
 				== ProviderCredential(secret: "sk-or-test-account", method: .openRouterAccount))

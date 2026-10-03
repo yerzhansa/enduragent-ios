@@ -310,7 +310,7 @@ import Testing
 		let secrets = keyedSecrets()
 		let coach = await coach(secrets)
 		#expect(
-			await coach.changeModelAccess(.signInToOpenRouter(model: testModel))
+			await coach.changeModelAccess(.signInToOpenRouter)
 				== .failedPreviousKept(
 					.signIn(.presentationUnavailable), previous: AccessSummary(selection: .credits))
 		)
@@ -318,7 +318,7 @@ import Testing
 		#expect(
 			await coach.changeModelAccess(.useCredits)
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
-		#expect(try secrets.accessSelection() == .credits)
+		#expect(try secrets.accessSelection() == .init(.credits))
 		#expect(try await coach.refreshedStatus().setup == .ready)
 	}
 

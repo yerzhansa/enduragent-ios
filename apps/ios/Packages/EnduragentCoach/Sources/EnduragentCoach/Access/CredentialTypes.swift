@@ -2,13 +2,62 @@ import Foundation
 
 public enum AccessSelection: Hashable, Sendable {
 	case credits
-	case openRouterAccount(model: ModelID)
+	case openRouterAccount(OpenRouterChoice)
 
 	public var method: AccessMethod {
 		switch self {
 		case .credits: .credits
 		case .openRouterAccount: .openRouterAccount
 		}
+	}
+}
+
+public struct OpenRouterChoice: Hashable, Sendable {
+	public let model: ModelID
+	package let credential: OpenRouterCredentialRef
+
+	package init(credential: Persisted<OpenRouterAccountKey>, model: ModelID) {
+		self.credential = credential.value.reference
+		self.model = model
+	}
+}
+
+public enum OpenRouterCredentialRef: Hashable, Sendable {
+	case legacy
+	case generation(UUID)
+
+	package var account: String {
+		switch self {
+		case .legacy: CredentialSlot.openRouterAccountKey.rawValue
+		case .generation(let id): "openRouterAccountKey/\(id.uuidString)"
+		}
+	}
+}
+
+package struct OpenRouterAccountKey: Equatable, Sendable {
+	let reference: OpenRouterCredentialRef
+	let secret: NonEmptySecret
+}
+
+package struct CreditsKey: Equatable, Sendable {
+	let secret: NonEmptySecret
+}
+
+package struct SavedOpenRouterReference: Equatable, Sendable {
+	let credential: OpenRouterCredentialRef
+	let model: ModelID
+}
+
+public struct SavedAccessReference: Equatable, Sendable {
+	package enum Value: Equatable, Sendable {
+		case credits
+		case openRouter(SavedOpenRouterReference)
+	}
+
+	package let value: Value
+
+	package init(_ value: Value) {
+		self.value = value
 	}
 }
 
@@ -90,7 +139,7 @@ public enum IntervalsConnectionChange: Sendable, Equatable {
 public enum ModelAccessChange: Sendable, Equatable {
 	case keep
 	case useCredits
-	case signInToOpenRouter(model: ModelID)
+	case signInToOpenRouter
 	case selectOpenRouterModel(ModelID)
 	case disconnectOpenRouter
 }
