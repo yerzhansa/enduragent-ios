@@ -40,7 +40,8 @@ import Testing
 		let conversation = try await ledger.conversation(.main)
 		let jobs = try await ledger.flushJobs(in: conversation)
 		let transcript = Transcript(
-			conversation: conversation, jobs: jobs, excluding: TurnID(ulid: fixedUlid(90)))
+			conversation: conversation, jobs: jobs, excluding: TurnID(ulid: fixedUlid(90)),
+			for: .unconnected, device: ledger.deviceId, using: conversation.ownership)
 		#expect(transcript.history.messages.isEmpty)
 		#expect(transcript.unflushed.isEmpty)
 		#expect(transcript.pending.map(\.ulid) == [fixedUlid(1)])

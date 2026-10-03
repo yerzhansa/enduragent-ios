@@ -122,9 +122,9 @@ package struct ToolRuntime: Sendable {
 				}
 				return .result(.array(events.map(encodeEvent)))
 			case .memoryRead:
-				return try await executeMemoryRead()
+				return try await executeMemoryRead(for: stamp.binding.account)
 			case .memoryQuery:
-				return try await executeMemoryQuery(arguments)
+				return try await executeMemoryQuery(arguments, for: stamp.binding.account)
 			case .memoryWrite:
 				return try await memory().executeMemoryWrite(
 					arguments, source: .chat, stamp: stamp)

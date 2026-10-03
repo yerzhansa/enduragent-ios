@@ -30,6 +30,7 @@ func storedRecord(
 	date: CivilDate = "1998-06-13",
 	ulid: ULID? = nil,
 	cause: RecordCause = .legacy,
+	account: TrainingAccount = .unconnected,
 	body: RecordBody
 ) -> AthleteRecord {
 	AthleteRecord(
@@ -39,7 +40,7 @@ func storedRecord(
 		timeZone: amsterdamZone,
 		civilDate: date,
 		cause: cause,
-		account: .unconnected,
+		account: account,
 		body: body
 	)
 }

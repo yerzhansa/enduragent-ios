@@ -27,9 +27,11 @@ import Testing
 			[
 				storedRecord(
 					device: remote, wall: 1, ulid: turn.ulid,
+					account: testConnection.account,
 					body: .synced(sampleUser(chatId: .main, text: "Remote question", turn: turn))),
 				storedRecord(
 					device: remote, wall: 2, ulid: turn.ulid.incremented(),
+					account: testConnection.account,
 					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Remote answer"))),
 			])
 		store.notifyImport()
@@ -86,9 +88,11 @@ import Testing
 			[
 				storedRecord(
 					device: remote, wall: 1, ulid: turn.ulid,
+					account: testConnection.account,
 					body: .synced(sampleUser(chatId: .main, text: "Remote question", turn: turn))),
 				storedRecord(
 					device: remote, wall: 2, ulid: trim.firstIncludedUlid.incremented(),
+					account: testConnection.account,
 					body: .synced(sampleReply(chatId: .main, turn: turn, text: "Remote answer"))),
 			])
 		store.notifyImport()

@@ -10,6 +10,7 @@ extension Conversation {
 			segments = [Segment(id: SegmentID(boundary: nil), openedBy: .chatStart)]
 		}
 		guard !ordered.isEmpty else { return }
+		ownership = ownership.including(ordered)
 		var turns = Dictionary(
 			uniqueKeysWithValues: segments.flatMap(\.turns).map { ($0.turn, $0) })
 		for record in ordered {
@@ -24,7 +25,7 @@ extension Conversation {
 						ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
 						timeZone: record.timeZone,
 						index: body.fragment, draft: body.draft, text: body.athleteText,
-						slash: body.slash))
+						slash: body.slash, account: record.account))
 			case .legacy(.userMessageV1(_, let text, let slash)):
 				legacyMessageUlids.insert(record.ulid)
 				let turn = TurnID(ulid: record.ulid)
@@ -34,7 +35,7 @@ extension Conversation {
 						Fragment(
 							ulid: record.ulid, hlc: record.hlc, civilDate: record.civilDate,
 							timeZone: record.timeZone,
-							index: 0, draft: nil, text: text, slash: slash)
+							index: 0, draft: nil, text: text, slash: slash, account: record.account)
 					])
 			case .legacy(.assistantMessage):
 				legacyMessageUlids.insert(record.ulid)
@@ -54,7 +55,8 @@ extension Conversation {
 				turns[body.turn]?.settlements.append(
 					SettledAttempt(
 						ulid: record.ulid, hlc: record.hlc, attempt: body.attempt,
-						settlement: body.settlement))
+						settlement: body.settlement, origin: record.deviceId,
+						account: record.account))
 			case .legacy(.assistantMessage(let body)):
 				guard
 					let turn = legacyTurns.last(where: {
@@ -67,10 +69,11 @@ extension Conversation {
 						settlement: .replied(
 							.model(body.text),
 							lineage: ReplyLineage(
-								templateHash: body.templateHash, assembledHash: body.assembledHash))
-					))
+								templateHash: body.templateHash, assembledHash: body.assembledHash)),
+						origin: record.deviceId, account: record.account))
 			case .deviceLocal(.turnClaim(let body)):
-				turns[body.turn]?.claims.append(ClaimedAttempt(hlc: record.hlc, body: body))
+				turns[body.turn]?.claims.append(
+					ClaimedAttempt(hlc: record.hlc, body: body, account: record.account))
 			case .deviceLocal(.replyObserved(let body)):
 				turns[body.turn]?.replyObserved.append(body)
 			case .synced(.reviewWrite(let body)):
@@ -107,9 +110,10 @@ extension Conversation {
 								&& $0.userRow.map { $0.ulid < body.firstIncludedUlid } == true
 								&& ($0.latestSettlement.map { $0.ulid < record.ulid } ?? true)
 						}.flatMap { $0.messageRows.map(\.ulid) }
-					let covered = (segments[index].promptWindow.trim?.messageUlids ?? []).union(
-						dropped)
-					segments[index].promptWindow = PromptWindow(
+					let owner = ownership.rowOwner(account: record.account, origin: record.deviceId)
+					let covered = (segments[index].promptWindows[owner]?.trim?.messageUlids ?? [])
+						.union(dropped)
+					segments[index].promptWindows[owner] = PromptWindow(
 						trim: .init(messageUlids: covered, opened: record.ulid))
 				case .reset(let reset):
 					let boundary =
@@ -119,7 +123,9 @@ extension Conversation {
 						at: body.firstIncludedUlid, boundary: boundary, openedBy: .reset(reset))
 				}
 			case .synced(.compactionSummary(let body)) where record.deviceId == device:
-				segments[segmentIndex(for: record.ulid, at: record.hlc)].promptWindow.summarize(
+				let index = segmentIndex(for: record.ulid, at: record.hlc)
+				let owner = ownership.rowOwner(account: record.account, origin: record.deviceId)
+				segments[index].promptWindows[owner, default: PromptWindow()].summarize(
 					body, at: record.ulid)
 			default: break
 			}

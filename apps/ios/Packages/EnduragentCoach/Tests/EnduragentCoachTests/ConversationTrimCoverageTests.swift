@@ -41,14 +41,18 @@ import Testing
 		let reloaded = ConversationFold.fold(chat: .main, synced: records, device: local)
 		#expect(live == reloaded)
 		#expect(
-			live.current.promptHistory(excluding: nil).messages.map(\.text) == [
+			live.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: local, using: live.ownership
+			).messages.map(\.text) == [
 				"Kept", "Kept reply",
 			])
 		let later = record(
 			10, device: remote, sampleReply(chatId: .main, turn: first, text: "Later reply"))
 		live.apply([later], device: local)
 		#expect(
-			live.current.promptHistory(excluding: nil).messages.map(\.text)
+			live.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: local, using: live.ownership
+			).messages.map(\.text)
 				== ["First", "Later reply", "Kept", "Kept reply"])
 		#expect(
 			live == ConversationFold.fold(chat: .main, synced: records + [later], device: local))
@@ -80,7 +84,10 @@ import Testing
 		for record in records { live.apply([record], device: local) }
 		let reloaded = ConversationFold.fold(chat: .main, synced: records, device: local)
 		#expect(live == reloaded)
-		#expect(live.current.promptHistory(excluding: nil).summary == nil)
+		#expect(
+			live.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: local, using: live.ownership
+			).summary == nil)
 	}
 
 	@Test func oldTrimRetainsRemoteTurnsWithoutRecordedCoverage() {
@@ -97,7 +104,10 @@ import Testing
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: local)
 		#expect(
-			conversation.current.promptHistory(excluding: nil).messages.map(\.text)
+			conversation.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: local,
+				using: conversation.ownership
+			).messages.map(\.text)
 				== ["Remote", "Remote reply"])
 	}
 
@@ -110,7 +120,7 @@ import Testing
 		let encoded = try RecordCodec.encode(body)
 		let golden =
 			#"{"chatId":"main","droppedMessageUlids":["\#(fixedUlid(1).rawValue)","\#(fixedUlid(2).rawValue)"],"firstIncludedUlid":"\#(fixedUlid(3).rawValue)","reason":"trim"}"#
-		#expect(encoded.version == 2)
+		#expect(encoded.version == 4)
 		#expect(encoded.data == Data(golden.utf8))
 		#expect(
 			RecordCodec.decode(
@@ -132,6 +142,7 @@ import Testing
 
 	private func record(_ index: Int, device: DeviceID, _ body: SyncedRecordBody) -> AthleteRecord {
 		storedRecord(
-			device: device, wall: Int64(index), ulid: fixedUlid(index), body: .synced(body))
+			device: device, wall: Int64(index), ulid: fixedUlid(index),
+			account: testConnection.account, body: .synced(body))
 	}
 }

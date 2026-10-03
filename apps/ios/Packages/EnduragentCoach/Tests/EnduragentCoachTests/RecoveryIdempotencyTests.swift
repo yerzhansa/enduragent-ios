@@ -287,7 +287,7 @@ import Testing
 		let recording = BatchRecordingLog(inner: store)
 		let mine = await makeCoach(transport: transport, store: recording, clock: clock)
 		await mine.lifecycle(.becameActive)
-		#expect(recording.batches == [["providerConsent"]])
+		#expect(recording.batches == [["providerConsent"], ["trainingIdentityObserved"]])
 		#expect(await mine.state(of: turn) == .accepted(.onOtherDevice))
 		await #expect(throws: RetryRefusal.acceptedOnOtherDevice) {
 			try await mine.retry(turn, in: .main)

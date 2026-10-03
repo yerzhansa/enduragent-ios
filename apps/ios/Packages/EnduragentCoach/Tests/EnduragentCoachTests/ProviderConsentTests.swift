@@ -64,7 +64,10 @@ import Testing
 		#expect(try await coach.observedStatus().needsProviderConsent == false)
 		let records = try await store.fetch(RecordQuery(scope: .deviceLocal([.providerConsent])))
 		#expect(records.records.count == 1)
-		#expect(try await store.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .everySynced)).records.allSatisfy {
+				$0.body == .synced(.trainingIdentityObserved)
+			})
 		let reopened = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
 		_ = await reopened.changeModelAccess(.useCredits)
@@ -214,7 +217,10 @@ extension SwiftDataSuites {
 		#expect(try await next.observedStatus().providerConsent == consent)
 		#expect(try await next.observedStatus().needsProviderConsent == false)
 		#expect(
-			try await reopened.store.log.fetch(RecordQuery(scope: .everySynced)).records.isEmpty)
+			try await reopened.store.log.fetch(RecordQuery(scope: .everySynced)).records.allSatisfy
+			{
+				$0.body == .synced(.trainingIdentityObserved)
+			})
 	}
 }
 

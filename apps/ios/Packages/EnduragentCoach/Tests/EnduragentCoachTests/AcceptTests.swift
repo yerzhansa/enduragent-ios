@@ -33,7 +33,8 @@ extension SwiftDataSuites {
 			#expect(
 				recording.batches == [
 					["providerConsent"],
-					["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+					["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
+					["turnSettled"],
 				])
 		}
 

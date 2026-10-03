@@ -17,6 +17,7 @@ enum SyncedPayload: Encodable {
 	case reviewCancelledUnknown(ReviewCancelledUnknownPayload)
 	case sessionSettings(SessionSettingsPayload)
 	case languagePreference(LanguagePreferencePayload)
+	case trainingIdentityObserved
 
 	init(_ body: SyncedRecordBody) {
 		switch body {
@@ -93,6 +94,8 @@ enum SyncedPayload: Encodable {
 			self = .sessionSettings(SessionSettingsPayload(value))
 		case .languagePreference(let value):
 			self = .languagePreference(LanguagePreferencePayload(value))
+		case .trainingIdentityObserved:
+			self = .trainingIdentityObserved
 		}
 	}
 
@@ -114,6 +117,8 @@ enum SyncedPayload: Encodable {
 		case .reviewCancelledUnknown(let payload): try payload.encode(to: encoder)
 		case .sessionSettings(let payload): try payload.encode(to: encoder)
 		case .languagePreference(let payload): try payload.encode(to: encoder)
+		case .trainingIdentityObserved:
+			_ = encoder.container(keyedBy: IdentityObservationKey.self)
 		}
 	}
 }
@@ -252,3 +257,5 @@ enum DeviceLocalPayload: Encodable {
 		}
 	}
 }
+
+private enum IdentityObservationKey: CodingKey {}

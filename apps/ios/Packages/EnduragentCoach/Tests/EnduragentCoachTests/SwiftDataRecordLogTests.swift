@@ -274,6 +274,7 @@ extension SwiftDataSuites {
 			let nonce = Nonce(
 				rawValue: try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001")))
 			let synced: [SyncedRecordBody] = [
+				.trainingIdentityObserved,
 				.userMessage(
 					UserMessageBody(
 						chatId: .main, turn: turn, fragment: 0, draft: DraftID(), athleteText: "hi",

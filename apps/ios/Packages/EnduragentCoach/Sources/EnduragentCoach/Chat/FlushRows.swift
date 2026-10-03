@@ -1,10 +1,10 @@
 struct ConversationRows {
 	@TaskLocal static var didResolveRow: (@Sendable () -> Void)?
-	private let byUlid: [ULID: ChatMessage]
+	private let byUlid: [ULID: ConversationRow]
 	private let segments: [(id: SegmentID, ulids: [ULID])]
 
 	init(_ conversation: Conversation) {
-		var byUlid: [ULID: ChatMessage] = [:]
+		var byUlid: [ULID: ConversationRow] = [:]
 		var segments: [(id: SegmentID, ulids: [ULID])] = []
 		for segment in conversation.segments {
 			var ulids: [ULID] = []
@@ -12,9 +12,9 @@ struct ConversationRows {
 				let messages = turn.messageRows
 				let indexed =
 					messages.isEmpty ? [turn.userRow, turn.replyRow].compactMap({ $0 }) : messages
-				for (ulid, message) in indexed {
+				for row in indexed {
 					Self.didResolveRow?()
-					byUlid[ulid] = message
+					byUlid[row.ulid] = row
 				}
 				ulids.append(contentsOf: messages.map(\.ulid))
 			}
@@ -61,7 +61,7 @@ struct ConversationRows {
 		return (segment?.ulids ?? []).filter { $0 < id.ulid }
 	}
 
-	func messages(for ulids: [ULID]) -> [(ulid: ULID, message: ChatMessage)] {
-		ulids.compactMap { ulid in byUlid[ulid].map { (ulid, $0) } }
+	func messages(for ulids: [ULID]) -> [ConversationRow] {
+		ulids.compactMap { byUlid[$0] }
 	}
 }

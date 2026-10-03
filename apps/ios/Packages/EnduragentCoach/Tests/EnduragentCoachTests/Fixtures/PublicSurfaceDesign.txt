@@ -14,6 +14,7 @@ AccessUnavailable.malformedStoredCredential
 AccessUnavailable.notConfigured
 AccessUnavailable.providerConsentRequired
 AccessUnavailable.secureStorageLocked
+AccessUnavailable.recordStorageUnavailable
 AccessUnavailable.secureStorageUnavailable
 AccessUnavailable.trainingIdentityUnverified
 AccountAuthority

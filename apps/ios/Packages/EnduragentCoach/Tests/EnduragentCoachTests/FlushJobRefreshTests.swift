@@ -54,9 +54,12 @@ import Testing
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.flushPending]))) == savedJobs)
 		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
 		#expect(sections.count == 1)
-		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
+		#expect(
+			try await coach.memory.fullContext(for: testConnection.account).contains(
+				"Group ride on Saturdays."))
 		let notes = try await coach.memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free")
+			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free",
+			for: testConnection.account)
 		#expect(notes.count == 1)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .synced([.ledgerEvent]))).records.count == 1)

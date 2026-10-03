@@ -58,7 +58,8 @@ import Testing
 		#expect(
 			recording.batches == [
 				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
+				["turnSettled"],
 			])
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.activity == .idle)
@@ -220,7 +221,8 @@ import Testing
 		#expect(
 			recording.batches == [
 				["providerConsent"],
-				["userMessage"], ["turnClaim"], ["replyObserved"], ["turnSettled"],
+				["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
+				["turnSettled"],
 			])
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)

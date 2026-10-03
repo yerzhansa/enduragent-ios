@@ -86,9 +86,11 @@ import Testing
 		return [
 			storedRecord(
 				device: remote, wall: Int64(index), ulid: turn.ulid,
+				account: testConnection.account,
 				body: .synced(sampleUser(chatId: .main, text: question, turn: turn))),
 			storedRecord(
 				device: remote, wall: Int64(index + 1), ulid: fixedUlid(index + 1),
+				account: testConnection.account,
 				body: .synced(sampleReply(chatId: .main, turn: turn, text: answer))),
 		]
 	}

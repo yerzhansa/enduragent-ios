@@ -299,7 +299,7 @@ func seededRecord(_ store: any RecordLog, at date: Date, ulid: ULID, body: Recor
 		timeZone: amsterdamZone,
 		civilDate: "1998-06-13",
 		cause: .legacy,
-		account: .unconnected,
+		account: testConnection.account,
 		body: body
 	)
 }

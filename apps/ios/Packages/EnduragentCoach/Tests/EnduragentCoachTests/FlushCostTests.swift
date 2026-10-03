@@ -32,7 +32,8 @@ extension SwiftDataSuites {
 			}) {
 				Transcript(
 					conversation: conversation, jobs: jobs,
-					excluding: TurnID(ulid: fixedUlid(99_000)))
+					excluding: TurnID(ulid: fixedUlid(99_000)), for: .unconnected,
+					device: ledger.deviceId, using: conversation.ownership)
 			}
 			#expect(loaded.pending.count == 10 * fixture.pendingJobCount)
 			#expect(loaded.unflushed.isEmpty)

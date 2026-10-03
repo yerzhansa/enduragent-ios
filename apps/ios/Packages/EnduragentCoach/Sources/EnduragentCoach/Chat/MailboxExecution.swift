@@ -154,7 +154,12 @@ final class MailboxExecution {
 	) async {
 		guard let facts = records.conversation.turn(turn) else { return }
 		lease.add(turn)
-		let resolution = await environment.resolve()
+		var resolution = await environment.resolve()
+		do {
+			try await records.refreshInformationOwnership()
+		} catch {
+			resolution = .failure(.recordStorageUnavailable)
+		}
 		let stamp = await mailbox.stamp(for: turn).bound(to: resolution.account)
 		guard
 			let request = await start.begin(
