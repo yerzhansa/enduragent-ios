@@ -144,9 +144,10 @@ struct AccessSettingsTests {
 			requests.withLock { $0.append(request) }
 			return previous(request)
 		}
+		let turnIndex = try #require(shell.chat).turns.count
 		shell.draft.text = FirstWeekFixture.trainingDataDirective
 		await shell.send()
-		let turn = try await harness.settledTurn(shell)
+		let turn = try await harness.settledTurn(shell, at: turnIndex)
 		try #require(replyText(turn.state) != nil)
 		let chatRequests = requests.withLock { $0.filter { $0.purpose == .chat } }
 		try #require(chatRequests.count >= 2)
