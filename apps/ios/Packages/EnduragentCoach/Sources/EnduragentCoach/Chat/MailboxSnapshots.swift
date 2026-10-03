@@ -74,7 +74,12 @@ final class MailboxSnapshots {
 
 	private func revised(_ snapshot: ChatSnapshot) -> ChatSnapshot {
 		var current = snapshot
-		if current != latest { revision += 1 }
+		if current.opening != latest?.opening || current.turns != latest?.turns
+			|| current.activity != latest?.activity || current.notes != latest?.notes
+			|| current.liveReply != latest?.liveReply || current.reset != latest?.reset
+		{
+			revision += 1
+		}
 		current.revision = revision
 		latest = current
 		return current
