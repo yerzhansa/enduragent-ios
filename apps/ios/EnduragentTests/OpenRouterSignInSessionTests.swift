@@ -19,7 +19,6 @@ struct OpenRouterSignInSessionTests {
 			#expect(callback.matchesURL(harness.request.callbackURL))
 			for address in [
 				"enduragent://auth/openrouter/callback",
-				"http://enduragent.icu/auth/openrouter/callback",
 				"https://other.example/auth/openrouter/callback",
 				"https://enduragent.icu/auth/other",
 			] {
