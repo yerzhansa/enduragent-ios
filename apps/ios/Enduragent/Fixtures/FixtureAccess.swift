@@ -25,6 +25,7 @@
 				credits.grantResult = .success(.minted(Credits(units: 0)))
 				credits.balanceResult = .success(CreditBalance(credits: Credits(units: 0)))
 			case .unavailable:
+				credits.grantResult = .failure(.unavailable)
 				credits.balanceResult = .failure(.unavailable)
 			case .provisioningFailed:
 				credits.grantResult = .failure(.unavailable)
