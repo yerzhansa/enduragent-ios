@@ -8,6 +8,7 @@ public struct CoachPorts: Sendable {
 	public let credits: CreditsService
 	public let host: any ExecutionHost
 	public let clock: any Clock
+	public let openRouterSignIn: OpenRouterSignInService?
 	package var watchdogSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 	package var coalescingSleep: @Sendable (Duration) async throws -> Void = SystemClock().sleep
 
@@ -18,7 +19,8 @@ public struct CoachPorts: Sendable {
 		training: TrainingService,
 		credits: CreditsService,
 		host: any ExecutionHost,
-		clock: any Clock
+		clock: any Clock,
+		openRouterSignIn: OpenRouterSignInService? = nil
 	) {
 		self.records = records
 		self.secrets = secrets
@@ -27,6 +29,7 @@ public struct CoachPorts: Sendable {
 		self.credits = credits
 		self.host = host
 		self.clock = clock
+		self.openRouterSignIn = openRouterSignIn
 	}
 }
 

@@ -188,7 +188,10 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		if isUnavailable {
 			throw KeychainStoreError.keychain(errSecNotAvailable)
 		}
-		if let status = failures[account] ?? (writing ? writeFailures[account] : nil) {
+		let slot = account.split(separator: "/").first.map(String.init) ?? account
+		if let status = failures[account] ?? failures[slot]
+			?? (writing ? writeFailures[account] ?? writeFailures[slot] : nil)
+		{
 			throw KeychainStoreError.keychain(status)
 		}
 		if writing && failsNextWrite {

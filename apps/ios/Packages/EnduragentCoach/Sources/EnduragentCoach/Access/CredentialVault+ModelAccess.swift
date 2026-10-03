@@ -37,8 +37,10 @@ extension CredentialVault {
 	}
 
 	package func change(_ change: ModelAccessChange, builtInModel: ModelID)
-		-> CredentialOutcome<AccessSummary>
+		async -> CredentialOutcome<AccessSummary>
 	{
+		if change == .signInToOpenRouter { return await signIn(builtInModel: builtInModel) }
+		if change != .keep { signInFlight = nil }
 		let previous: AccessSummary?
 		let saved: SavedAccessReference?
 		do {
@@ -52,7 +54,7 @@ extension CredentialVault {
 		}
 		do throws(AccessUnavailable) {
 			switch change {
-			case .keep:
+			case .keep, .signInToOpenRouter:
 				return .kept(previous)
 			case .useCredits:
 				guard try persistedCreditsKey() != nil else {
@@ -60,8 +62,6 @@ extension CredentialVault {
 				}
 				try keychain(.accessSelection) { try store.storeAccessSelection(.init(.credits)) }
 				return .replaced(AccessSummary(selection: .credits), authority: nil)
-			case .signInToOpenRouter:
-				return .failedPreviousKept(.signIn(.presentationUnavailable), previous: previous)
 			case .selectOpenRouterModel(let id):
 				let entry: ModelCatalogEntry
 				do {
@@ -122,7 +122,7 @@ extension CredentialVault {
 		}
 	}
 
-	private func savedEntry(_ reference: SavedOpenRouterReference) throws(AccessUnavailable)
+	func savedEntry(_ reference: SavedOpenRouterReference) throws(AccessUnavailable)
 		-> ModelCatalogEntry
 	{
 		do {
@@ -130,6 +130,15 @@ extension CredentialVault {
 		} catch {
 			throw .malformedStoredCredential(.accessSelection)
 		}
+	}
+
+	func stageOpenRouterKey(_ key: NonEmptySecret, at reference: OpenRouterCredentialRef)
+		throws(AccessUnavailable) -> Persisted<OpenRouterAccountKey>
+	{
+		try keychain(.openRouterAccountKey) {
+			try store.storeOpenRouterAccountKey(key.value, at: reference)
+		}
+		return Persisted(OpenRouterAccountKey(reference: reference, secret: key))
 	}
 
 	private func persistedCreditsKey() throws(AccessUnavailable) -> Persisted<CreditsKey>? {

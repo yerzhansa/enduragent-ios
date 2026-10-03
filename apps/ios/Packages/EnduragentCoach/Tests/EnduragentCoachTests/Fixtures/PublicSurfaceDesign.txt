@@ -155,7 +155,7 @@ CoachPorts
 CoachPorts.clock
 CoachPorts.credits
 CoachPorts.host
-CoachPorts.init(records:secrets:models:training:credits:host:clock:)
+CoachPorts.init(records:secrets:models:training:credits:host:clock:openRouterSignIn:)
 CoachPorts.models
 CoachPorts.records
 CoachPorts.secrets
@@ -784,3 +784,7 @@ WriteSummary.memorySections
 WriteSummary.none
 WriteSummary.planSaves
 WriteSummary.unverifiedCalendarWrites
+
+CoachPorts.openRouterSignIn
+OpenRouterSignInService
+OpenRouterSignInService.init(authorizer:)

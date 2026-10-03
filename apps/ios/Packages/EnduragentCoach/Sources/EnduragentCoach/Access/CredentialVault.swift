@@ -4,6 +4,8 @@ import Security
 package actor CredentialVault {
 	let store: any SecretStore
 	let catalog: ModelCatalog
+	let signInService: OpenRouterSignInService?
+	var signInFlight: SignInFlight?
 	private let display: TrainingDisplayReader
 	private let diagnostics: DiagnosticsLog
 	private let changes = Turnstile()
@@ -11,10 +13,12 @@ package actor CredentialVault {
 
 	package init(
 		store: any SecretStore, training: TrainingService, clock: any Clock,
-		diagnostics: DiagnosticsLog, catalog: ModelCatalog = .bundled
+		diagnostics: DiagnosticsLog, catalog: ModelCatalog = .bundled,
+		signInService: OpenRouterSignInService? = nil
 	) {
 		self.store = store
 		self.catalog = catalog
+		self.signInService = signInService
 		self.display = TrainingDisplayReader(training: training, clock: clock)
 		self.diagnostics = diagnostics
 	}
