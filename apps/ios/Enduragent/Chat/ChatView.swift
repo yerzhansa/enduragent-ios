@@ -7,6 +7,9 @@ struct ChatView: View {
 	var body: some View {
 		NavigationStack(path: $model.navigation) {
 			TranscriptView(model: model)
+				.safeAreaInset(edge: .bottom, spacing: 0) {
+					ComposerView(model: model)
+				}
 				#if DEBUG
 					.overlay(alignment: .topLeading) {
 						if let snapshot = model.chat {
@@ -101,11 +104,6 @@ struct ChatView: View {
 					.presentationDetents([.fraction(LanguageSheetLayout.heightFraction)])
 					.presentationDragIndicator(.visible)
 				}
-		}
-		.safeAreaInset(edge: .bottom, spacing: 0) {
-			if model.navigation.isEmpty {
-				ComposerView(model: model)
-			}
 		}
 	}
 }
