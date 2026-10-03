@@ -42,10 +42,8 @@ extension ChatMailboxTests {
 		store.notifyImport()
 		try await waitUntil { observed.count > count }
 		let refreshed = try #require(observed.latest)
-		#expect(refreshed.revision > snapshot.revision)
-		var expected = snapshot
-		expected.revision = refreshed.revision
-		#expect(refreshed == expected)
+		#expect(refreshed.revision == snapshot.revision)
+		#expect(refreshed == snapshot)
 		#expect(store.subscriptions == 1)
 	}
 
