@@ -59,6 +59,7 @@
 			let peer = FixtureTrainingPeer(secrets: peerSecrets, athleteA: intervals)
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
+			FirstWeekFixture.install(launch.creditsOutcome, on: credits)
 			let host: any ExecutionHost
 			let fixtureHost: ImmediateExecutionHost?
 			let leases: @Sendable () async -> [LeaseRecord]
@@ -84,7 +85,7 @@
 						native?.bind(credential, selection: selection)
 						return peer.client(for: credential)
 					},
-					credits: .fake(credits),
+					credits: .fake(credits, mintedKey: FirstWeekFixture.creditsKey),
 					host: host,
 					clock: clock
 				),
@@ -134,11 +135,16 @@
 				#endif
 			}
 			let fixture = try ICloudKeychainStore.fixture(directory: launch.directory)
-			if launch.keychain != .empty { try FirstWeekFixture.install(on: fixture.store) }
+			if launch.store != .keep, launch.keychain != .empty {
+				try FirstWeekFixture.install(launch.accessMethod, on: fixture.store)
+			}
 			fixture.backing.locked = launch.keychain == .locked
 			fixture.backing.unavailable = launch.keychain == .unavailable
 			if launch.keychain == .malformedIntervals {
 				try fixture.backing.corruptIntervalsConnection()
+			}
+			if launch.keychain == .malformedAccess {
+				try fixture.backing.corruptAccessSelection()
 			}
 			fixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
 			return (fixture.store, fixture.backing, nil)

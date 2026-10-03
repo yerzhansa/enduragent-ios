@@ -1,0 +1,30 @@
+extension AccessStatus {
+	public var notice: AthleteNotice? {
+		let failure: AccessUnavailable
+		switch availability {
+		case .ready: return nil
+		case .needsSetup: failure = .notConfigured(savedMethod ?? .credits)
+		case .unavailable(let unavailable): failure = unavailable
+		}
+		return AthleteNotices.notice(
+			for: .model(.accessUnavailable(failure)), turn: nil, waiting: false)
+	}
+}
+
+extension CredentialOutcome where Summary == AccessSummary {
+	public var notice: AthleteNotice? {
+		switch self {
+		case .kept, .replaced, .disconnected: nil
+		case .failedPreviousKept(.secureStorage, _):
+			AthleteNotice(key: Catalog.reviewSaveFailed, action: nil)
+		case .failedPreviousKept(.signIn, _), .refused:
+			AthleteNotice(key: Catalog.accessSignInUnavailable, action: nil)
+		}
+	}
+}
+
+extension CreditBalance {
+	public var notice: AthleteNotice? {
+		credits.units <= 0 ? AthleteNotice(key: Catalog.creditsErrorExhausted, action: nil) : nil
+	}
+}

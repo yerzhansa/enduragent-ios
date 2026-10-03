@@ -15,14 +15,20 @@ final class CreditsModel {
 	}
 
 	func load() async {
+		balance = nil
+		catalog = nil
+		packPrices = [:]
+		notice = nil
 		do {
 			let loaded = try await services.coach.credits.catalog()
 			catalog = loaded
 			let held = try await services.coach.credits.balance()
 			balance = held.credits
-			notice = nil
 			packPrices = try await services.packPrices(loaded.packs.map(\.id))
+			notice = held.notice
 		} catch {
+			balance = nil
+			packPrices = [:]
 			notice = AthleteNotice.credits(failure: error)
 		}
 	}

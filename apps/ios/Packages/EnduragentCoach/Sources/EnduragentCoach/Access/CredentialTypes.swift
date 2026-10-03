@@ -46,6 +46,11 @@ package struct CreditsKey: Equatable, Sendable {
 package struct SavedOpenRouterReference: Equatable, Sendable {
 	let credential: OpenRouterCredentialRef
 	let model: ModelID
+
+	package init(credential: OpenRouterCredentialRef, model: ModelID) {
+		self.credential = credential
+		self.model = model
+	}
 }
 
 public struct SavedAccessReference: Equatable, Sendable {

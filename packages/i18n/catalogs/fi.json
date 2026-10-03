@@ -2993,7 +2993,12 @@
       "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
       "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen.",
       "malformed": "Tallennettua mallin käyttöön tarvittavaa tunnistetta ei voitu lukea. Valitse käyttötapa jatkaaksesi."
-    }
+    },
+    "title": "Käyttötapa",
+    "openRouterAccount": "OpenRouter-tili",
+    "signIn": "Kirjaudu OpenRouterilla",
+    "signInUnavailable": "OpenRouter-kirjautuminen ei ole käytettävissä. Käyttötapaasi ei muutettu.",
+    "switchToOpenRouter": "Vaihda OpenRouteriin"
   },
   "connect": {
     "error": {

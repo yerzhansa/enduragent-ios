@@ -2993,7 +2993,12 @@
       "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
       "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut.",
       "malformed": "Die gespeicherten Zugangsdaten für den Modellzugriff konnten nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
-    }
+    },
+    "title": "Zugriffsmethode",
+    "openRouterAccount": "OpenRouter-Konto",
+    "signIn": "Mit OpenRouter anmelden",
+    "signInUnavailable": "Die Anmeldung bei OpenRouter ist nicht verfügbar. Deine Zugriffsmethode wurde nicht geändert.",
+    "switchToOpenRouter": "Zu OpenRouter wechseln"
   },
   "connect": {
     "error": {

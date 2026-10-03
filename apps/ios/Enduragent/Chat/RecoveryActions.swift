@@ -11,7 +11,7 @@ extension ShellModel {
 			open(.training)
 			trainingSettings.edit()
 		case .chooseAccessMethod, .signInToOpenRouter:
-			route = .onboarding(.connect)
+			open(.accessMethod)
 		}
 	}
 

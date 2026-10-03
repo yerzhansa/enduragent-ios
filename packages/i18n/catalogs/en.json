@@ -7,7 +7,12 @@
       "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
       "storageUnavailable": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",
       "malformed": "The saved model access credential couldn't be read. Choose an access method to continue."
-    }
+    },
+    "title": "Access method",
+    "openRouterAccount": "OpenRouter account",
+    "signIn": "Sign in with OpenRouter",
+    "signInUnavailable": "OpenRouter sign-in is unavailable. Your access method was not changed.",
+    "switchToOpenRouter": "Switch to OpenRouter"
   },
   "archive": {
     "athlete": "You",

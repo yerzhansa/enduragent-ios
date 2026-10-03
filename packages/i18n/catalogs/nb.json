@@ -2993,7 +2993,12 @@
       "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter.",
       "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Den lagrede treningsinformasjonen din er fortsatt her. Prøv igjen.",
       "malformed": "Den lagrede legitimasjonen for modelltilgang kunne ikke leses. Velg en tilgangsmetode for å fortsette."
-    }
+    },
+    "title": "Tilgangsmåte",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Logg inn med OpenRouter",
+    "signInUnavailable": "Innlogging med OpenRouter er utilgjengelig. Tilgangsmåten din ble ikke endret.",
+    "switchToOpenRouter": "Bytt til OpenRouter"
   },
   "connect": {
     "error": {

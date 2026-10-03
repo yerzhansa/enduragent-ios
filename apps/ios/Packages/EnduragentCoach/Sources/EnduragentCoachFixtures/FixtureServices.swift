@@ -13,8 +13,20 @@ extension ModelService {
 }
 
 extension CreditsService {
-	public static func fake(_ client: FakeCreditsClient) -> CreditsService {
-		CreditsService { _ in client }
+	public static func fake(_ client: FakeCreditsClient, mintedKey: String? = nil) -> CreditsService
+	{
+		CreditsService { vault in
+			client.provision(using: vault, mintedKey: mintedKey)
+			return client
+		}
+	}
+}
+
+extension ICloudKeychainStore {
+	public func installOpenRouterChoice(model: ModelID, key: String) throws {
+		try storeOpenRouterAccountKey(key, at: .legacy)
+		try storeAccessSelection(
+			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: model))))
 	}
 }
 
