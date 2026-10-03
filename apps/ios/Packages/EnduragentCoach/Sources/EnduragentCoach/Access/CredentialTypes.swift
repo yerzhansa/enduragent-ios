@@ -171,10 +171,19 @@ public enum CredentialRefusal: Sendable, Equatable {
 public enum CredentialFailure: Error, Sendable, Equatable {
 	case secureStorage(AccessUnavailable)
 	case signIn(SignInFailure)
+	case keyExchange(OpenRouterExchangeFailure)
 }
 
 public enum SignInFailure: Error, Sendable, Equatable {
+	case canceled
+	case callbackRejected
 	case presentationUnavailable
+}
+
+public enum OpenRouterExchangeFailure: Error, Sendable, Equatable {
+	case network
+	case http(status: Int)
+	case invalidResponse
 }
 
 public struct AccessSummary: Sendable, Equatable {
