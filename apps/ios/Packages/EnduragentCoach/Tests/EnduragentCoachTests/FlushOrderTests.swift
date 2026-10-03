@@ -84,7 +84,7 @@ import Testing
 		#expect(window.contains { $0.hasPrefix("Question 0") })
 		#expect(window.contains { $0 == "Rest day?" })
 		let memory = Memory(ledger: ledger(), clock: clock)
-		let context = try await memory.fullContext()
+		let context = try await memory.fullContext(for: testConnection.account)
 		#expect(context.contains("Sundays now."))
 		#expect(!context.contains("Saturdays."))
 		let jobs = try await ledger().flushJobs(in: try await ledger().conversation(.main))

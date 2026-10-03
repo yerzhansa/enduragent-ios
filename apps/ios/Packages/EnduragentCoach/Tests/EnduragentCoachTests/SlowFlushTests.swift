@@ -45,10 +45,11 @@ import Testing
 		#expect(
 			sent(.memoryFlush, by: transport).map(\.deadline)
 				== Array(repeating: .seconds(600), count: retryAfter == nil ? 3 : 4))
-		let view = try await coach.memory.prompt().view
+		let view = try await coach.memory.prompt(for: testConnection.account).view
 		#expect(view.sections["schedule"]?.contains("Group ride on Saturdays.") == true)
 		let hits = try await coach.memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free")
+			from: "1998-06-13", to: "1998-06-13", contains: "Keep Saturdays free",
+			for: testConnection.account)
 		#expect(hits.count == 1)
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let jobs = try await ledger.flushJobs(in: try await ledger.conversation(.main))

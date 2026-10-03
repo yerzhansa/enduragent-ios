@@ -47,8 +47,10 @@ extension ConversationFoldTests {
 		}
 		let turn = try #require(
 			try await coach.send(draft("Is Thursday on?"), to: .main).acceptedTurn)
-		var saving = flush.reached.makeAsyncIterator()
-		_ = await saving.next()
+		try #require(
+			try await beforeDeadline(within: .hangGuard, onTimeout: { flush.release() }) {
+				await flush.reached.first { _ in true } != nil
+			} == true)
 		faults.failNextAppend = true
 		flush.release()
 		if ending == .stop {
@@ -68,9 +70,16 @@ extension ConversationFoldTests {
 		let reloaded = try await ledger.conversation(.main)
 		let jobs = try await ledger.flushJobs(in: reloaded)
 		let expected = reloaded.messagesSinceLastFlush(jobs, excluding: nil)
-		#expect(reloaded.current.promptHistory(excluding: nil).summary == "Earlier conversation.")
 		#expect(
-			!reloaded.current.promptHistory(excluding: nil).ulids.contains(
+			reloaded.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: store.deviceId,
+				using: reloaded.ownership
+			).summary == "Earlier conversation.")
+		#expect(
+			!reloaded.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: store.deviceId,
+				using: reloaded.ownership
+			).ulids.contains(
 				try #require(preceding.first).ulid))
 		#expect(expected.contains { $0.message.text.hasPrefix("Answer 1 ") })
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
@@ -83,8 +92,87 @@ extension ConversationFoldTests {
 		}
 		#expect(flushed.messageUlids == expected.map(\.ulid))
 		let request = try #require(sent(.memoryFlush, by: transport).last)
-		for (_, message) in expected {
-			#expect(request.messages.contains { $0.unstampedContent == message.text })
+		for row in expected {
+			#expect(request.messages.contains { $0.unstampedContent == row.message.text })
 		}
 	}
+
+	@Test func resetBoundaryFromAnyDeviceSplitsSegments() throws {
+		let before = TurnID(ulid: fixedUlid(1))
+		let after = TurnID(ulid: fixedUlid(4))
+		let resetId = ResetID(ulid: fixedUlid(3))
+		let records = [
+			storedRecord(
+				device: phoneA, wall: 1, ulid: fixedUlid(1),
+				account: testConnection.account,
+				body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+			storedRecord(
+				device: phoneA, wall: 2, ulid: fixedUlid(2),
+				account: testConnection.account,
+				body: .synced(sampleReply(chatId: .main, turn: before, text: "before reply"))),
+			storedRecord(
+				device: phoneB, wall: 3, ulid: fixedUlid(3),
+				account: testConnection.account,
+				body: .synced(
+					.windowStart(
+						WindowStartBody(
+							chatId: .main, firstIncludedUlid: fixedUlid(3),
+							reason: .reset(resetId))))),
+			storedRecord(
+				device: phoneA, wall: 4, ulid: fixedUlid(4),
+				account: testConnection.account,
+				body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			storedRecord(
+				device: phoneA, wall: 5, ulid: fixedUlid(5),
+				account: testConnection.account,
+				body: .synced(sampleReply(chatId: .main, turn: after, text: "after reply"))),
+		]
+		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
+		#expect(conversation.segments.count == 2)
+		#expect(conversation.segments[0].openedBy == .chatStart)
+		#expect(conversation.segments[0].messages.map(\.text) == ["before", "before reply"])
+		#expect(conversation.current.openedBy == .reset(resetId))
+		#expect(conversation.current.id == SegmentID(boundary: fixedUlid(3)))
+		#expect(conversation.current.messages.map(\.text) == ["after", "after reply"])
+		#expect(
+			conversation.current.promptHistory(
+				excluding: after, for: testConnection.account, device: phoneA,
+				using: conversation.ownership
+			).messages.isEmpty)
+	}
+
+	@Test func appliedResetMovesTurnsFromItsBoundaryOnIntoTheNewSegment() throws {
+		let before = TurnID(ulid: fixedUlid(1))
+		let after = TurnID(ulid: fixedUlid(4))
+		let resetId = ResetID(ulid: fixedUlid(3))
+		let folded = ConversationFold.fold(
+			chat: .main,
+			synced: [
+				storedRecord(
+					device: phoneA, wall: 1, ulid: fixedUlid(1),
+					account: testConnection.account,
+					body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+				storedRecord(
+					device: phoneA, wall: 2, ulid: fixedUlid(4),
+					account: testConnection.account,
+					body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			], device: phoneA)
+		#expect(folded.segments.count == 1)
+		let boundary = storedRecord(
+			device: phoneA, wall: 3, ulid: fixedUlid(5),
+			account: testConnection.account,
+			body: .synced(
+				.windowStart(
+					WindowStartBody(
+						chatId: .main, firstIncludedUlid: fixedUlid(3),
+						reason: .reset(resetId)))))
+		var applied = folded
+		applied.apply([boundary], device: phoneA)
+		#expect(applied.segments.map(\.turns.count) == [1, 1])
+		#expect(applied.segments[0].turns.map(\.turn) == [before])
+		#expect(applied.current.openedBy == .reset(resetId))
+		#expect(applied.current.id == SegmentID(boundary: fixedUlid(3)))
+		#expect(applied.current.turns.map(\.turn) == [after])
+	}
+
 }

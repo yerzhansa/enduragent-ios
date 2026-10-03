@@ -36,12 +36,12 @@ import Testing
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 			clock: clock)
 		try await memory.writeSection(.notes, content: "", source: .chat, stamp: testStamp())
-		let view = try await memory.prompt().view
+		let view = try await memory.prompt(for: .unconnected).view
 		let schemas = ToolCatalog.schemas(memory: view)
 		#expect(!schemas.map(\.name).contains(.memoryRead))
 		try await memory.writeSection(
 			.notes, content: "- Prefers hill repeats", source: .chat, stamp: testStamp())
-		let withNotes = try await memory.prompt().view
+		let withNotes = try await memory.prompt(for: .unconnected).view
 		let offered = ToolCatalog.schemas(memory: withNotes)
 		#expect(offered.map(\.name).contains(.memoryRead))
 	}
@@ -130,7 +130,7 @@ import Testing
 			SectionName(rawValue: "random-legacy"), content: "stale orphan body", source: .chat,
 			stamp: testStamp())
 		let tools = runtime(store: store)
-		let view = try await memory.prompt().view
+		let view = try await memory.prompt(for: .unconnected).view
 		let schema = ToolCatalog.schemas(memory: view).first {
 			$0.name == .memoryWrite
 		}

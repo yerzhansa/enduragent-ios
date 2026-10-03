@@ -11,7 +11,7 @@ import Testing
 			"{\"boundaryClock\":{\"deviceId\":\"phone-a\",\"logical\":7,\"wallMs\":897984000000},\"chatId\":\"main\",\"firstIncludedUlid\":\"\(identity)\",\"reason\":\"reset:explicit:\(identity)\"}"
 		let decoded = try decode(json, version: 3).get()
 		let encoded = try RecordCodec.encode(decoded)
-		#expect(encoded.version == 3)
+		#expect(encoded.version == 4)
 		#expect(String(decoding: encoded.data, as: UTF8.self) == json)
 	}
 
@@ -21,17 +21,34 @@ import Testing
 			"{\"chatId\":\"main\",\"firstIncludedUlid\":\"\(identity)\",\"reason\":\"\(reason)\"}"
 		let decoded = try decode(json, version: 2).get()
 		let encoded = try RecordCodec.encode(decoded)
-		#expect(encoded.version == 2)
+		#expect(encoded.version == 4)
 		#expect(String(decoding: encoded.data, as: UTF8.self) == json)
 	}
 
 	@Test(arguments: [
-		#"{"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"reset:explicit:00T5D6HS000000000000000001"}"#,
-		#"{"boundaryClock":{"deviceId":"phone-a","logical":-1,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"reset:explicit:00T5D6HS000000000000000001"}"#,
-		#"{"boundaryClock":{"deviceId":"phone-a","logical":7,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"trim"}"#,
+		(
+			3,
+			#"{"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"reset:explicit:00T5D6HS000000000000000001"}"#
+		),
+		(
+			3,
+			#"{"boundaryClock":{"deviceId":"phone-a","logical":-1,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"reset:explicit:00T5D6HS000000000000000001"}"#
+		),
+		(
+			4,
+			#"{"boundaryClock":{"deviceId":"phone-a","logical":-1,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"reset:explicit:00T5D6HS000000000000000001"}"#
+		),
+		(
+			3,
+			#"{"boundaryClock":{"deviceId":"phone-a","logical":7,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"trim"}"#
+		),
+		(
+			4,
+			#"{"boundaryClock":{"deviceId":"phone-a","logical":7,"wallMs":897984000000},"chatId":"main","firstIncludedUlid":"00T5D6HS000000000000000001","reason":"trim"}"#
+		),
 	])
-	func malformedReservedWindowIsRejected(_ json: String) {
-		guard case .failure = decode(json, version: 3) else {
+	func malformedReservedWindowIsRejected(version: Int, json: String) {
+		guard case .failure = decode(json, version: version) else {
 			Issue.record("Accepted a malformed reserved reset window")
 			return
 		}

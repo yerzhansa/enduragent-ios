@@ -104,7 +104,9 @@ import Testing
 		let fresh = try #require(
 			try await ledger.flushJobs(in: try await ledger.conversation(.main)).last)
 		#expect(fresh.coverage.listed == [question, reply])
-		#expect(try await coach.memory.fullContext().contains("Group ride on Saturdays."))
+		#expect(
+			try await coach.memory.fullContext(for: testConnection.account).contains(
+				"Group ride on Saturdays."))
 	}
 
 	@Test func v1ConsumedJobDoesNotReplayRowsMergedOutsideItsList() async throws {
@@ -211,9 +213,13 @@ import Testing
 		_ = try await coach.sendAndSettle("After trimming")
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let conversation = try await ledger.conversation(.main)
-		try #require(conversation.current.promptWindow.trim != nil)
+		try #require(conversation.current.promptWindows.values.first?.trim != nil)
 		let user = try #require(conversation.turn(turn)?.userRow?.ulid)
-		try #require(!conversation.current.promptHistory(excluding: nil).ulids.contains(user))
+		try #require(
+			!conversation.current.promptHistory(
+				excluding: nil, for: testConnection.account, device: store.deviceId,
+				using: conversation.ownership
+			).ulids.contains(user))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Recovered reply"), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
@@ -318,7 +324,7 @@ import Testing
 
 	@Test func coverageKeepsPromptTrimmingAndRunningTurnExclusion() {
 		var conversation = conversation(turns: 3)
-		conversation.segments[0].promptWindow = PromptWindow(
+		conversation.segments[0].promptWindows[.unbound(store.deviceId)] = PromptWindow(
 			trim: .init(messageUlids: [fixedUlid(1), fixedUlid(2)], opened: fixedUlid(9)))
 		let running = TurnID(ulid: fixedUlid(7))
 		#expect(

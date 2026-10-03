@@ -86,6 +86,7 @@ extension TrainingStatus {
 extension AccessUnavailable {
 	fileprivate var trainingNoticeKey: CatalogKey {
 		switch self {
+		case .recordStorageUnavailable: Catalog.coachHistoryDiskFull
 		case .secureStorageLocked: Catalog.connectErrorStorageLocked
 		case .secureStorageUnavailable: Catalog.connectErrorStorageUnavailable
 		case .malformedStoredCredential: Catalog.connectErrorStorageMalformed

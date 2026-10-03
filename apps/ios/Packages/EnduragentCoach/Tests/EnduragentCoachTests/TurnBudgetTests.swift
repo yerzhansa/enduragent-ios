@@ -189,7 +189,7 @@ import Testing
 			session: .npmDefaults,
 			access: testAccess,
 			training: TrainingConnection(
-				account: .intervals(connection: ConnectionID(), athlete: nil), client: intervals),
+				account: testConnection.account, client: intervals),
 			process: ProcessID(ulid: scope.stamp.attempt.ulid)
 		)
 	}

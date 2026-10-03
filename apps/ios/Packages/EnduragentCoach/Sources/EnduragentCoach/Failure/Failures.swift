@@ -44,6 +44,7 @@ public enum ModelFailure: Sendable, Equatable {
 
 public enum AccessUnavailable: Error, Sendable, Equatable {
 	case providerConsentRequired
+	case recordStorageUnavailable
 	case trainingIdentityUnverified(TrainingFailure)
 	case notConfigured(AccessMethod)
 	case secureStorageLocked
@@ -281,7 +282,7 @@ package enum AthleteNotices {
 				key: Catalog.connectErrorStorageMalformed, action: .connectTraining)
 		case .model(.accessUnavailable(.malformedStoredCredential)):
 			return AthleteNotice(key: Catalog.accessErrorMalformed, action: .chooseAccessMethod)
-		case .local(.recordStorage):
+		case .local(.recordStorage), .model(.accessUnavailable(.recordStorageUnavailable)):
 			return AthleteNotice(key: Catalog.coachHistoryDiskFull, action: nil)
 		}
 	}

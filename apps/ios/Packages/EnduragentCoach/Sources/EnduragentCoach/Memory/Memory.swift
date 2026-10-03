@@ -5,7 +5,7 @@ package struct Memory: Sendable {
 		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
 	])
 
-	private let ledger: Ledger
+	let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
@@ -18,7 +18,9 @@ package struct Memory: Sendable {
 		self.watchdogSleep = watchdogSleep
 	}
 
-	package func query(from: CivilDate, to: CivilDate, contains: String?) async throws
+	package func query(
+		from: CivilDate, to: CivilDate, contains: String?, for account: TrainingAccount
+	) async throws
 		-> [MemoryHit]
 	{
 		if from > to {
@@ -34,7 +36,7 @@ package struct Memory: Sendable {
 					"Error: range is \(days) days; the maximum is \(MemoryQuery.maxRangeDays). Query a narrower range."
 			)
 		}
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: account)
 		let needle = contains?.lowercased()
 		var collected: [(hit: MemoryHit, order: Int)] = []
 		var order = 0
@@ -113,8 +115,10 @@ package struct Memory: Sendable {
 		}.map(\.hit)
 	}
 
-	package func prompt() async throws -> (context: String, view: MemoryView) {
-		let snapshot = try await loadSnapshot()
+	package func prompt(for account: TrainingAccount) async throws -> (
+		context: String, view: MemoryView
+	) {
+		let snapshot = try await loadSnapshot(for: account)
 		return (renderContext(snapshot, excluding: hiddenSections), view(snapshot))
 	}
 
@@ -122,20 +126,20 @@ package struct Memory: Sendable {
 		SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue)
 	}
 
-	package func fullContext() async throws -> String {
-		renderContext(try await loadSnapshot(), excluding: [])
+	package func fullContext(for account: TrainingAccount) async throws -> String {
+		renderContext(try await loadSnapshot(for: account), excluding: [])
 	}
 
-	package func complementContext() async throws -> String {
+	package func complementContext(for account: TrainingAccount) async throws -> String {
 		let injected = SectionName.cyclingEffective.filter(\.inject).map(\.rawValue)
-		return renderContext(try await loadSnapshot(), excluding: injected)
+		return renderContext(try await loadSnapshot(for: account), excluding: injected)
 	}
 
 	package func writeSection(
 		_ name: SectionName, content: String, source: LedgerSource, stamp: OperationStamp
 	) async throws {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: stamp)
 		let previous = UnionMerge.sectionText(snapshot.sections, name: name)
 		let stamped = stampUpdated(demoteEmbeddedH2(content), date: today)
 		_ = MemoryFlushPolicy.sectionSoftWarnChars
@@ -167,7 +171,7 @@ package struct Memory: Sendable {
 	@discardableResult
 	package func appendDailyNote(_ note: String, stamp: OperationStamp) async throws -> Bool {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: stamp)
 		let existing = snapshot.dailyNotesOnly(on: today)
 		if !existing.isEmpty, "\n\(existing)\n".contains("\n\(note)\n") {
 			return false
@@ -180,7 +184,7 @@ package struct Memory: Sendable {
 		date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource,
 		stamp: OperationStamp
 	) async throws -> Bool {
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: stamp)
 		let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: text)
 		for record in snapshot.ledgerRecords {
 			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
@@ -285,49 +289,6 @@ package struct Memory: Sendable {
 			}
 		}
 		return parts.joined(separator: "\n\n")
-	}
-
-	private func loadSnapshot() async throws -> MemorySnapshot {
-		let records = try await ledger.read(
-			RecordQuery(scope: Self.snapshotScope)
-		).records
-		var sections: [AthleteRecord] = []
-		var daily: [AthleteRecord] = []
-		var events: [AthleteRecord] = []
-		var journal: [AthleteRecord] = []
-		var compaction: [AthleteRecord] = []
-		for record in records {
-			switch record.body {
-			case .synced(.memorySection): sections.append(record)
-			case .synced(.dailyNote): daily.append(record)
-			case .synced(.ledgerEvent): events.append(record)
-			case .synced(.journal): journal.append(record)
-			case .synced(.compactionSummary): compaction.append(record)
-			default: break
-			}
-		}
-		return MemorySnapshot(
-			sections: sections,
-			daily: daily,
-			ledgerRecords: UnionMerge.ledger(events),
-			journalRecords: journal,
-			compaction: compaction,
-			orphanNames: orphanNames(in: sections)
-		)
-	}
-
-	private func orphanNames(in records: [AthleteRecord]) -> [String] {
-		let declared = SectionName.declaredNames
-		var seen: Set<String> = []
-		var names: [String] = []
-		for record in records.sorted(by: { $0.hlc < $1.hlc }) {
-			guard case .synced(.memorySection(let body)) = record.body else { continue }
-			if declared.contains(body.name.rawValue) { continue }
-			if seen.insert(body.name.rawValue).inserted {
-				names.append(body.name.rawValue)
-			}
-		}
-		return names
 	}
 
 }

@@ -115,6 +115,8 @@ extension Coach {
 	{
 		guard isCurrentTrainingRead(readID) else { return }
 		trainingStatus = status
+		await recordTrainingIdentity(in: status)
+		guard isCurrentTrainingRead(readID) else { return }
 		await publishStatus()
 	}
 
@@ -132,7 +134,9 @@ extension Coach {
 		let preferences = await preferences.load()
 		let stored = await vault.storedTrainingStatus()
 		let training: TrainingStatus
-		if case .connected(let saved, let account) = stored,
+		if case .connected(let saved, _) = stored, identityWriteFailure == saved.connectionID {
+			training = .unavailable(.recordStorageUnavailable)
+		} else if case .connected(let saved, let account) = stored,
 			case .connected(let displayed, _) = trainingStatus,
 			saved.connectionID == displayed.connectionID, saved.keySuffix == displayed.keySuffix,
 			case .available(let checked) = saved.profile,

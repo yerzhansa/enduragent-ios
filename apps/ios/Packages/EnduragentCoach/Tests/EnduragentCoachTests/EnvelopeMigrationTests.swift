@@ -61,7 +61,10 @@ extension SwiftDataSuites {
 					"/review", "Saturday group ride summary.",
 				])
 			#expect(
-				conversation.current.promptHistory(excluding: nil).messages.map(\.text) == [
+				conversation.current.promptHistory(
+					excluding: nil, for: .unconnected, device: DeviceID(rawValue: "phone-b"),
+					using: conversation.ownership
+				).messages.map(\.text) == [
 					"/review", "Saturday group ride summary.",
 				])
 		}

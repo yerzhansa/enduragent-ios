@@ -30,7 +30,7 @@ extension Memory {
 					])
 				)
 			}
-			let view = try await prompt().view
+			let view = try await prompt(for: stamp.binding.account).view
 			let allowed = Set(SectionName.cyclingEffective.map(\.rawValue) + view.orphanNames)
 			if !allowed.contains(section) {
 				return .result(
