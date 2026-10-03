@@ -148,7 +148,7 @@ extension FixtureLaunchTests {
 			ports: CoachPorts(
 				records: .inMemory(deviceId: DeviceID()), secrets: fixture.secrets,
 				models: .scripted(transport),
-				training: FirstWeekFixture.training(fixture.intervals),
+				training: .fake { credential, _ in fixture.trainingPeer.client(for: credential) },
 				credits: .fake(fixture.credits), host: host, clock: clock),
 			builtInModel: AppServices.builtInModel, deviceLanguage: .en,
 			coalescing: CoalescingPolicy(window: .milliseconds(200)))

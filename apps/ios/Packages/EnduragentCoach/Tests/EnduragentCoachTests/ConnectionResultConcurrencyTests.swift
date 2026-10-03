@@ -54,11 +54,13 @@ extension ConnectionResultTests {
 		#expect(
 			await coach.changeTraining(.replace(apiKey: " ", athlete: .keyOwner))
 				== .refused(.blankReplacementKeepsCurrent))
+		#expect(try summary(try await coach.observedStatus()).profile == .waiting)
+		#expect(client.profileReadCount == 1)
+		await gate.release()
 		let current = try await landed(in: statuses)
 		#expect(current.connectionID == testConnection.id)
 		#expect(current.athleteName == "Ada")
 		#expect(try secrets.intervalsConnection() == testConnection)
-		await gate.release()
 	}
 
 	@Test func savedReceiptAndAthletePublishBeforeWellnessFinishes() async throws {

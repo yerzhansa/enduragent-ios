@@ -15,6 +15,7 @@ AccessUnavailable.notConfigured
 AccessUnavailable.providerConsentRequired
 AccessUnavailable.secureStorageLocked
 AccessUnavailable.secureStorageUnavailable
+AccessUnavailable.trainingIdentityUnverified
 AccountAuthority
 AccountAuthority.changed
 AccountAuthority.same

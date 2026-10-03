@@ -110,6 +110,7 @@ extension DurableCalendarWriteTests {
 			IntervalsConnection(
 				id: ConnectionID(), credential: .apiKey("test-athlete-b"), selection: .keyOwner,
 				resolvedAthlete: IntervalsAthleteID(rawValue: "i2002")))
+		server.state.withLock { $0.athleteID = "i2002" }
 		_ = await coach.decide(.presented(token.ref), in: .main)
 		let ready = try #require(await coach.currentSnapshot(.main)?.review)
 		guard case .cancelOnly = ready.controls else {

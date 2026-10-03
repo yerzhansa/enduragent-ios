@@ -83,7 +83,7 @@ extension Coach {
 			await publishStatus()
 			return
 		}
-		await vault.invalidateTrainingIdentity()
+		if case .failed = summary.profile { await vault.invalidateTrainingIdentity() }
 		invalidateTrainingDisplay()
 		startTrainingDisplay(from: summary)
 		await trainingRefresh?.value

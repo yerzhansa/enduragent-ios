@@ -288,7 +288,12 @@ package actor CredentialVault {
 		let replacement = IntervalsConnection(
 			id: id, credential: credential, selection: athlete, resolvedAthlete: resolved)
 		do {
-			let saved = try activeConnection()
+			let saved: IntervalsConnection?
+			do {
+				saved = try activeConnection()
+			} catch .malformedStoredCredential(.intervalsConnection) where current == nil {
+				saved = nil
+			}
 			switch (current, saved) {
 			case (nil, nil): break
 			case (let previous?, let latest?) where previous.matches(latest): break
