@@ -7,7 +7,7 @@ extension ICloudKeychainStore {
 		-> (store: ICloudKeychainStore, backing: FixtureSecretStoreBacking)
 	{
 		let backing = try FixtureSecretStoreBacking(directory: directory)
-		return (ICloudKeychainStore(backing: backing), backing)
+		return (backing.store(), backing)
 	}
 }
 
@@ -25,6 +25,10 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 	private var written: [String: Int] = [:]
 	private var failures: [String: OSStatus] = [:]
 	private var writeFailures: [String: OSStatus] = [:]
+
+	public func store() -> ICloudKeychainStore {
+		ICloudKeychainStore(backing: self)
+	}
 
 	public var locked: Bool {
 		get { lock.withLock { isLocked } }

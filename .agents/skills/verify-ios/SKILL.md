@@ -73,7 +73,7 @@ XCUITest finds controls by accessibility identifier. The interactive tool taps b
 | Debug | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead` (the first line of the history the last reply was sent with), `fixture.replyLanguage` (the first line of the reply-language section the last reply was sent with), `debug.language`, `debug.session`, `fixture.failNextAppend`, `fixture.expire` |
 | Session (Debug) | `session.<field>.stored`, `session.<field>.input`, `session.<field>.save`, `session.<field>.outcome`, where `<field>` is `historyBudgetRatio` or `contextWindowOverride` |
 
-The fixture athlete is Ada Kovač, athlete `i1001`. The key `other-athlete` resolves to Bo Lind, athlete `i2002`; every other non-empty key resolves to Ada. The fixture keychain starts with a Credits key and no intervals.icu connection, so the chat is unconnected until the connect step or Debug, Credentials stores a key. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
+The fixture athlete is Ada Kovač, athlete `i1001`. The key `other-athlete` resolves to Bo Lind, athlete `i2002`. The peer hook also supplies rejected and unavailable keys. Other non-empty keys resolve to Ada. The fixture keychain starts with a Credits key and no intervals.icu connection, so the chat is unconnected until the connect step or Debug, Credentials stores a key. The fixed day is 1998-06-15. The connect screen shows `Fitness 42`, `Fatigue 49`, and `Form -7`. The starter grant and the balance are 200 credits. The packs are 500 and 2000 credits with purchases disabled. `FirstWeekFixture.script(for:)` picks the coach reply from the message text. `/review` gets the Saturday group ride summary. Text starting with `Remember that` gets `Noted. I'll remember you ride with a group on Saturdays.` Text containing `endurance ride` gets a workout preview. Anything else gets the week summary.
 
 A message that starts with `fixture:` is a directive to the fakes, typed into `chat.composer` like any message. `FakeModelTransport` selects `FirstWeekFixture.respond(to:retry:)` for each attempt when its request executes:
 
@@ -198,6 +198,42 @@ Require one passed test and zero failures or skips. Inspect `native-keychain-sav
 The receipts require matching synthetic credentials at the real training-service binding, profile and calendar reads, no network requests, and no synthetic secrets in complete record bodies or diagnostics. The after-relaunch receipt requires no native writes and the same connection-bound turn accounts. The `operator-check` attachment records the budget, zero live messages used and the update confirmation. Keep result bundles and exported evidence outside the repository. Record the final head SHA and iOS version beside them, then remove only this run's `/tmp/enduragent-dd/U4-5` build products.
 
 Ordinary locking after first unlock may still permit reads under `AfterFirstUnlock`; it is not a required failure. Do not substitute a simulated lock for native timing evidence. `FixtureLaunchTests.unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive` separately proves that becoming active refreshes connected training status and clears its old locked notice without a retry tap. B02.02's dated decision entry is inspected and recorded in the desktop repository by the coordinator. This iOS proof does not create that entry. The later `TwoPhoneReconnectCheck` owns synchronization evidence.
+
+### Prove reconnect across two phones
+
+Unit U5-1 adds `EnduragentPhoneTests/TwoPhoneReconnectCheck` to U4-5's isolated `EnduragentKeychainProof` build. Run it only with the operator present and two updated physical iPhones on the same Apple ID with iCloud Keychain enabled. Criterion 5 and this check remain pending under G34. Use synthetic proof credentials and fake services. Zero live messages and no billed service are used.
+
+Before each invocation, ask for that invocation's message budget and record the answer, including zero. Confirm that every TestFlight build-3 device was updated together with M1+ devices. Record the checked build versions in `DEVICE_UPDATE_CHECK`, beginning with `updated-together:`. Supply the other phone's installed proof-build version in `OTHER_PHONE_BUILD`. Read both installed versions from the native receipt attachments across the paired runs and compare them with that confirmation. Never record a device identifier in source or commit evidence.
+
+Each invocation runs one step. Set `RECONNECT_STEP` to a row below. Use a separate local `RECONNECT_RUN` folder for every invocation. The receiving app stays running during the peer's write. Peer actions write or delete only the shared native proof item, through a separate store handle, without `Coach.changeTraining`. Do not launch a fresh peer after preparing the receiver. A fresh launch deletes synthetic shared credentials.
+
+| Order | Phone and step | Expected result |
+| --- | --- | --- |
+| 1 | Peer, `prepare-peer` | Completes fixture onboarding before the receiver seeds the shared item. |
+| 2 | Receiver, `prepare-receiver` | Seeds unresolved A through the peer hook and prepares an A workout review. One scripted Send. |
+| 3 | Receiver, `receive-foreground` | Waits in Debug with the app active and the receipt showing A. Start the next peer invocation while it waits. |
+| 4 | Peer, `peer-b` | Requires A to have synced, then publishes unresolved B. The receiver sees B through native Keychain, taps the old approval, gets the fresh-review notice and reads B through a scripted turn. One scripted Send on the receiver. No calendar write. |
+| 5 | Receiver, `receive-deletion` | Starts from B, backgrounds and resumes while waiting for deletion. Start the next peer invocation while it waits. |
+| 6 | Peer, `peer-delete` | Requires B to have synced, then deletes the proof item. The receiver becomes unconnected, retains the blocked A review and gets the unconnected training reply. One scripted Send on the receiver. |
+| 7 | Receiver, `prepare-receiver` | Begins a separate resume case with a fresh A review. One scripted Send. The peer keeps its existing app store. |
+| 8 | Receiver, `receive-resume` | Backgrounds and resumes while waiting for B. Start the next peer invocation while it waits. |
+| 9 | Peer, `peer-b` | Requires A to have synced, then publishes B. Resume resolves Bo Lind and disables the A review's approval without relaunch or a local connection change. |
+
+The receive steps stop after 180 seconds if sync does not arrive. Preserve that failure and request a fresh budget before rerunning. The background receive steps repeatedly activate the same process to check arrival. The foreground case stays active throughout arrival and checks B before the old approval and next turn use it.
+
+Set `RECONNECT_BUILD` to `/tmp/enduragent-dd/U5-1/receiver` or `/tmp/enduragent-dd/U5-1/peer` for that phone. Concurrent invocations must use separate build folders. Generate the project once before starting either waiting receiver or peer invocation.
+
+```sh
+mkdir -p "$RECONNECT_RUN"
+caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentKeychainProof -configuration DebugKeychainProof -sdk iphoneos -destination "platform=iOS,id=$DEVICE_ID" -derivedDataPath "$RECONNECT_BUILD" -parallel-testing-enabled NO -resultBundlePath "$RECONNECT_RUN/reconnect.xcresult" -only-testing:EnduragentPhoneTests/TwoPhoneReconnectCheck ENDURAGENT_PHONE_MESSAGE_BUDGET="$MESSAGE_BUDGET" ENDURAGENT_DEVICE_UPDATE_CHECK="$DEVICE_UPDATE_CHECK" ENDURAGENT_OTHER_PHONE_BUILD="$OTHER_PHONE_BUILD" ENDURAGENT_RECONNECT_STEP="$RECONNECT_STEP" > "$RECONNECT_RUN/reconnect.log" 2>&1
+xcrun xcresulttool get test-results summary --path "$RECONNECT_RUN/reconnect.xcresult" > "$RECONNECT_RUN/summary.json"
+xcrun xcresulttool export attachments --path "$RECONNECT_RUN/reconnect.xcresult" --output-path "$RECONNECT_RUN/attachments"
+```
+
+Require one passed test per invocation, zero failures and zero skips. Inspect `receiver-a-review`, `foreground-old-approval-blocked`, `synced-deletion-keeps-review` and `resume-resolved-b`. Keep `operator-check`, `both-builds`, peer and native receipts, both iOS versions and the head SHA beside the local result bundles. Every receipt requires zero writes to A and B, zero network requests and no synthetic secrets in record bodies or diagnostics. The native receipt identifies the isolated proof service and installed build. These steps are the single two-phone synchronization check for B04.03. They do not prove live intervals.icu authentication or add unknown-save recovery.
+
+For later simulator units, `first-week` launch fixtures expose `fixture.peerA`, `fixture.switchAthlete`, `fixture.peerRotateA`, `fixture.peerReject`, `fixture.peerUnavailable`, `fixture.peerDelete`, `fixture.peerHoldProfile`, `fixture.peerReleaseProfile` and `fixture.peerReceipt` through Settings > Debug. Reach every row with `TutorialHarness.debugRow`. Peer controls only mutate the shared item or the fake profile gate. Resume, Send and approval drive the real current-connection check. The file-backed peer and native peer use the same fake service routing.
+
 
 ### Prove live French replies after choosing a language
 

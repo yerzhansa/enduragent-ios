@@ -9,7 +9,7 @@ func makeReviews(
 ) -> SingleProposalReviews {
 	SingleProposalReviews(
 		ledger: ledger, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
-		training: {
+		training: { _ in
 			TrainingConnection(account: .unconnected, client: intervals)
 		})
 }

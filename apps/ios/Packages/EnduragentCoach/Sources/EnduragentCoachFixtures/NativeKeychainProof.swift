@@ -20,7 +20,9 @@ public final class NativeKeychainProof: Sendable {
 		bindings.withLock {
 			$0.append(
 				BindingReceipt(
-					credentialMatches: credential == .apiKey(Self.syntheticKey),
+					credentialMatches: FixtureTrainingPeer.Key.allCases.contains {
+						credential == .apiKey($0.secret)
+					},
 					keyOwner: selection == .keyOwner))
 		}
 	}
@@ -36,7 +38,7 @@ public final class NativeKeychainProof: Sendable {
 			let allRecords = synced.records + local.records
 			let bodies = allRecords.map { String(reflecting: $0.body) }
 			let snapshot = try await coach.recordSyncProbe().snapshot()
-			let secrets = [Self.syntheticKey, "fixture-credits-key"]
+			let secrets = FixtureTrainingPeer.Key.allCases.map(\.secret) + ["fixture-credits-key"]
 			let report = Receipt(
 				service: Self.service, buildVersion: buildVersion,
 				attempts: attempts.withLock { $0 },

@@ -44,13 +44,14 @@ public enum ModelFailure: Sendable, Equatable {
 
 public enum AccessUnavailable: Error, Sendable, Equatable {
 	case providerConsentRequired
+	case trainingIdentityUnverified(TrainingFailure)
 	case notConfigured(AccessMethod)
 	case secureStorageLocked
 	case secureStorageUnavailable
 	case malformedStoredCredential(CredentialSlot)
 }
 
-public enum TrainingFailure: Sendable, Equatable {
+public enum TrainingFailure: String, Sendable, Equatable {
 	case credentialRejected
 	case temporarilyUnavailable
 	case requestRejected
@@ -255,6 +256,8 @@ package enum AthleteNotices {
 			return AthleteNotice(key: Catalog.coachErrorUnknown, action: tryAgain)
 		case .model(.generationFailed):
 			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, action: tryAgain)
+		case .model(.accessUnavailable(.trainingIdentityUnverified(let failure))):
+			return notice(for: failure)
 		case .model(.accessUnavailable(.providerConsentRequired)):
 			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: tryAgain)
 		case .model(.accessUnavailable(.secureStorageLocked)):

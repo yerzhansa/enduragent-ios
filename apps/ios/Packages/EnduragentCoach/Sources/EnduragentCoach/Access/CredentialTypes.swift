@@ -59,8 +59,19 @@ public struct IntervalsConnection: Sendable, Equatable {
 		self.resolvedAthlete = resolvedAthlete
 	}
 
+	func matches(_ other: IntervalsConnection) -> Bool {
+		id == other.id && credential == other.credential && selection == other.selection
+	}
+
 	var account: TrainingAccount {
 		.intervals(connection: id, athlete: resolvedAthlete)
+	}
+
+	func account(verifiedBy profile: IntervalsProfileState) -> TrainingAccount {
+		guard case .available(let athlete) = profile else {
+			return .intervals(connection: id, athlete: nil)
+		}
+		return .intervals(connection: id, athlete: athlete.athleteID)
 	}
 }
 

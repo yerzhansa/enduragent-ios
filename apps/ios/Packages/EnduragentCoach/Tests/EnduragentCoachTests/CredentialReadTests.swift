@@ -6,22 +6,21 @@ import Testing
 @testable import EnduragentCoach
 
 extension CredentialVaultTests {
-	@Test func replyMakesThreeKeychainReads() async throws {
+	@Test func replyUsesTheStoredAccessAndTrainingKeys() async throws {
 		let memory = FixtureSecretStoreBacking()
 		let store = ICloudKeychainStore(backing: memory)
 		try store.storeCreditsAccount(CreditsAccount(appAccountToken: UUID(), key: testKey))
 		try store.storeIntervalsConnection(testConnection)
 		let coach = await coach(store)
-		let before = memory.readCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)
 		#expect(replyText(try await coach.sendAndSettle("Is Thursday on?")) == "Thursday is on.")
-		#expect(memory.readCount - before == 3)
-		#expect(
-			Array(memory.readAccounts.dropFirst(before)) == [
-				"accessSelection", "creditsAccount", "intervalsCredential",
-			])
+		#expect(built.credentials.allSatisfy { $0 == testConnection.credential })
+		#expect(!built.credentials.isEmpty)
+		let claim = try await records.fetch(
+			RecordQuery(scope: .deviceLocal([.turnClaim]), chatId: "main"))
+		#expect(claim.records.last?.account == testConnection.account)
 		#expect(transport.requests.last?.credential.secret == testKey)
 	}
 

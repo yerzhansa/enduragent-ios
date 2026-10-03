@@ -36,6 +36,12 @@ extension SingleProposalReviews {
 			set: ChangeSetID(ulid: live.ulid), chat: chat,
 			authority: live.cause == .legacy ? .readOnly : .thisDevice)
 		let card = ReviewCard(live.body)
+		let notice: ReviewNotice? =
+			block == .cannotVerify
+			? ReviewNotice(
+				kind: .partialFailure, key: Catalog.reviewCannotVerify,
+				vars: ["service": "intervals.icu"])
+			: block.map(accountNotice)
 		return ReviewSnapshot(
 			ref: delivery.ref,
 			state: .available(
@@ -43,9 +49,9 @@ extension SingleProposalReviews {
 					cards: [card], kept: [], totals: ReviewTotals([card]), receipts: [],
 					notice: delivery.authority == .readOnly
 						? AthleteNotices.earlierVersion
-						: block == .accountChanged ? AthleteNotices.accountChanged : nil,
+						: notice,
 					authority: delivery.authority),
-				block == .accountChanged ? .none : delivery.controls))
+				block == nil ? delivery.controls : .none))
 	}
 
 }

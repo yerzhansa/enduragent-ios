@@ -74,8 +74,18 @@
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
+            key = "ENDURAGENT_OTHER_PHONE_BUILD"
+            value = "$(ENDURAGENT_OTHER_PHONE_BUILD)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "ENDURAGENT_PHONE_MESSAGE_BUDGET"
             value = "$(ENDURAGENT_PHONE_MESSAGE_BUDGET)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_RECONNECT_STEP"
+            value = "$(ENDURAGENT_RECONNECT_STEP)"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

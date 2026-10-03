@@ -62,23 +62,7 @@
 					Button("Lock intervals credential") { backing.locked = true }
 						.accessibilityIdentifier("fixture.lockIntervals")
 				}
-				Button("Switch fixture athlete") {
-					Task {
-						do {
-							try fixture.secrets.storeIntervalsConnection(
-								IntervalsConnection(
-									id: ConnectionID(), credential: .apiKey("fixture-athlete-b"),
-									selection: .keyOwner,
-									resolvedAthlete: IntervalsAthleteID(rawValue: "i2002")))
-							if let review = model.chat?.review {
-								_ = await services.coach.decide(.presented(review.ref), in: .main)
-							}
-						} catch {
-							reviewHookFailure = String(describing: error)
-						}
-					}
-				}
-				.accessibilityIdentifier("fixture.switchAthlete")
+				FixtureTrainingPeerDebugView(peer: fixture.trainingPeer)
 				Text("\(fixture.intervals.calls.count) calendar calls")
 					.accessibilityIdentifier("fixture.calendarCalls")
 				Text(
