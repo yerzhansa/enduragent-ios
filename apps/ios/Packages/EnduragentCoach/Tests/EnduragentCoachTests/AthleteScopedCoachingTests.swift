@@ -74,7 +74,7 @@ extension SwiftDataSuites {
 						: [.text("A_ONLY_IMPORTED_REPLY"), .finish(reason: .stop)])
 			}
 			let peerTurn = try #require(
-				try await sourceCoach.send(draft("A_ONLY_IMPORTED_QUESTION"), to: .main)
+				try await sourceCoach.send(draft("Imported question"), to: .main)
 					.acceptedTurn)
 			let first = try #require(await sourceCoach.settledState(of: peerTurn, in: .main))
 			if retriedForB {
@@ -98,11 +98,11 @@ extension SwiftDataSuites {
 			reopened.notifyImport()
 			try #require(
 				try await firstSnapshot(in: await after.observe(.main), within: .hangGuard) {
-					$0.turns.contains { $0.athleteText == "A_ONLY_IMPORTED_QUESTION" }
+					$0.turns.contains { $0.athleteText == "Imported question" }
 				} != nil)
 			let request = try await fixture.read(using: after)
 			try fixture.assertInformation("A_ONLY", excluding: "B_ONLY", in: request)
-			#expect(request.messages.contains { $0.content.contains("A_ONLY_IMPORTED_QUESTION") })
+			#expect(request.messages.contains { $0.content.contains("Imported question") })
 			if !retriedForB {
 				#expect(request.messages.contains { $0.content.contains("A_ONLY_IMPORTED_REPLY") })
 			}
@@ -119,6 +119,7 @@ extension SwiftDataSuites {
 			fixture.assertAbsent("A_ONLY", from: b)
 			if retriedForB {
 				#expect(b.messages.contains { $0.content.contains("B_ONLY_IMPORTED_REPLY") })
+				#expect(b.messages.contains { $0.content.contains("Imported question") })
 			}
 			await after.lifecycle(.willTerminate)
 		}

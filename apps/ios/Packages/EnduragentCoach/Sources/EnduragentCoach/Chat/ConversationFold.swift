@@ -3,7 +3,8 @@ import Foundation
 package enum ConversationFold {
 	package static let syncedScope: RecordQuery.Scope = .synced(
 		[
-			.userMessage, .turnSettled, .windowStart, .compactionSummary, .reviewApplied,
+			.userMessage, .attemptQuestion, .turnSettled, .windowStart, .compactionSummary,
+			.reviewApplied,
 			.reviewWrite, .reviewCancelledUnknown,
 		],
 		includeLegacy: [.userMessage, .assistantMessage, .windowStart]

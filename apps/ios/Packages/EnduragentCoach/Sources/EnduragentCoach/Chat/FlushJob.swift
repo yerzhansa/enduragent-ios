@@ -4,6 +4,8 @@ package struct FlushJob: Sendable, Equatable {
 	package let id: FlushJobID
 	package let origin: Origin
 	package let coverage: Coverage
+	package var source: FlushSource = .recoverFromRows
+	package var parent: FlushJobID? = nil
 	package fileprivate(set) var phase: Phase = .pending
 	package let reset: ResetID?
 
@@ -42,7 +44,9 @@ package struct FlushJob: Sendable, Equatable {
 	}
 
 	package func covers(_ older: FlushJob) -> Bool {
-		older.id.ulid < id.ulid && older.coverage.resolved.isSubset(of: coverage.resolved)
+		older.id.ulid < id.ulid
+			&& (older.coverage.resolved.isEmpty || source.sharesOwner(with: older.source))
+			&& older.coverage.resolved.isSubset(of: coverage.resolved)
 	}
 
 	package static func outstanding(_ jobs: [FlushJob], in conversation: Conversation) -> [FlushJob]
@@ -56,6 +60,30 @@ package enum FlushOutcome: Sendable, Equatable {
 	case partial(sections: Int, events: Int, failure: CoachFailure)
 	case failed(CoachFailure)
 	case nothingToSave
+
+	static func combining(_ outcomes: [FlushOutcome]) -> FlushOutcome {
+		var sections = 0
+		var events = 0
+		var failure: CoachFailure?
+		for outcome in outcomes {
+			switch outcome {
+			case .saved(let savedSections, let savedEvents):
+				sections += savedSections
+				events += savedEvents
+			case .partial(let savedSections, let savedEvents, let error):
+				sections += savedSections
+				events += savedEvents
+				failure = error
+			case .failed(let error): failure = error
+			case .nothingToSave: break
+			}
+		}
+		if let failure {
+			return sections + events > 0
+				? .partial(sections: sections, events: events, failure: failure) : .failed(failure)
+		}
+		return sections + events > 0 ? .saved(sections: sections, events: events) : .nothingToSave
+	}
 }
 
 package enum FlushGate {
@@ -94,11 +122,13 @@ extension ConversationFold {
 			let id = FlushJobID(ulid: record.ulid)
 			let origin = body.process.map(FlushJob.Origin.process) ?? .beforeUpgrade
 			let consumedInV1 = origin == .beforeUpgrade && consumed.contains(id)
+			let coverage = rows.coverage(
+				for: id, messages: body.messageUlids, origin: origin, consumed: consumedInV1)
 			let job = FlushJob(
 				id: id, origin: origin,
-				coverage: rows.coverage(
-					for: id, messages: body.messageUlids, origin: origin, consumed: consumedInV1),
-				reset: resetOpened(by: record.cause))
+				coverage: coverage,
+				source: rows.source(for: record, body: body, coverage: coverage),
+				parent: parentJob(in: record.cause), reset: resetOpened(by: record.cause))
 			if let settlement = settlements[id] {
 				return FlushWork.transition(job, after: .settled(.recorded(settlement)))
 			}
@@ -110,6 +140,11 @@ extension ConversationFold {
 			guard let newer = done.first(where: { $0.covers(job) }) else { return job }
 			return FlushWork.transition(job, after: .superseded(newer.id))
 		}
+	}
+
+	private static func parentJob(in cause: RecordCause) -> FlushJobID? {
+		guard case .operation(.memoryFlush(let job), _) = cause else { return nil }
+		return job
 	}
 
 	private static func resetOpened(by cause: RecordCause) -> ResetID? {
@@ -229,68 +264,7 @@ extension Ledger {
 	}
 }
 
-package struct FlushWork: Sendable {
-	package let chat: ChatID
-	package let process: ProcessID
-	package let ledger: Ledger
-	package let memory: Memory
-	package let transport: any ModelTransport
-	package let clock: any Clock
-	package let diagnostics: DiagnosticsLog
-	package let ladder: RetryLadder
-
-	package func open(covering ulids: [ULID], stamp: OperationStamp)
-		async throws(LedgerFailure) -> FlushJob
-	{
-		let records = try await ledger.commit(
-			local: [
-				.flushPending(
-					FlushPendingBody(
-						chatId: chat, messageUlids: ulids, process: process))
-			],
-			stamp: stamp)
-		guard let record = records.first else { throw LedgerFailure.rejectedBatch }
-		return FlushJob(
-			id: FlushJobID(ulid: record.ulid), origin: .process(process),
-			coverage: .init(listed: ulids, resolved: Set(ulids), legacy: nil), reset: nil)
-	}
-
-	package func run(
-		_ job: FlushJob, messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?
-	) async throws(CancellationError) -> FlushOutcome {
-		let stamp = await stamp(for: job)
-		let outcome = try await extract(
-			messages: messages, access: access, scope: scope, stamp: stamp)
-		await settle(job, outcome, stamp: stamp)
-		return outcome
-	}
-
-	package func stamp(for job: FlushJob) async -> OperationStamp {
-		OperationStamp(
-			operation: .memoryFlush(job.id),
-			attempt: AttemptID(ulid: await ledger.nextULID()),
-			binding: ActionBinding(
-				account: .unconnected, zone: AthleteCalendar(clock: clock).deviceZone)
-		)
-	}
-
-	package func extract(
-		messages: [ChatMessage], access: ResolvedAccess, scope: TurnScope?, stamp: OperationStamp
-	) async throws(CancellationError) -> FlushOutcome {
-		let outcome = try await memory.runFlush(
-			messages: messages, access: access, transport: transport, diagnostics: diagnostics,
-			ladder: ladder, stamp: stamp, scope: scope)
-		switch outcome {
-		case .partial, .failed:
-			diagnostics.record(
-				.memoryFlushFailed(chat, detail: "\(outcome)"),
-				redacting: [access.credential.secret])
-		case .saved, .nothingToSave:
-			break
-		}
-		return outcome
-	}
-
+extension FlushWork {
 	package enum Transition {
 		case settled(FlushJob.Settlement)
 		case superseded(FlushJobID)
@@ -320,49 +294,4 @@ package struct FlushWork: Sendable {
 		return next
 	}
 
-	package func settle(_ job: FlushJob, _ outcome: FlushOutcome, stamp: OperationStamp) async {
-		let next = Self.transition(job, after: .extracted(outcome, process: process))
-		guard job.phase == .pending, case .settled(.recorded(let settlement)) = next.phase else {
-			return
-		}
-		do {
-			_ = try await ledger.commit(
-				local: [
-					.flushSettled(
-						FlushSettledBody(chatId: chat, job: job.id, settlement: settlement))
-				],
-				stamp: stamp)
-		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-		}
-	}
-
-	package func jobs(in conversation: Conversation) async -> Result<[FlushJob], LedgerFailure> {
-		do {
-			return .success(try await ledger.flushJobs(in: conversation))
-		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-			return .failure(error)
-		}
-	}
-
-	package func drain(
-		_ id: FlushJobID, in conversation: Conversation,
-		access: () async throws(AccessUnavailable) -> ResolvedAccess
-	) async {
-		do {
-			guard
-				let job = try await ledger.flushJobs(in: conversation).first(where: { $0.id == id }
-				),
-				job.phase == .pending
-			else {
-				return
-			}
-			_ = try await run(
-				job, messages: conversation.flushMessages(for: job), access: try await access(),
-				scope: nil)
-		} catch {
-			diagnostics.record(.memoryFlushFailed(chat, detail: "\(error)"))
-		}
-	}
 }

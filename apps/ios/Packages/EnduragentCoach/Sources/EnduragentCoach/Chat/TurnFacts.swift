@@ -9,6 +9,7 @@ package struct TurnFacts: Sendable, Equatable {
 	package var legacy = false
 	package var fragments: [Fragment] = []
 	package var claims: [ClaimedAttempt] = []
+	var questions: [AttemptQuestion] = []
 	package var replyObserved: [ReplyObservedBody] = []
 	package var settlements: [SettledAttempt] = []
 	package var reviewWrites: [CalendarWriteKey: CalendarWriteEvidence] = [:]
@@ -50,14 +51,6 @@ package struct TurnFacts: Sendable, Equatable {
 		return claims.first { $0.attempt == latest }
 	}
 
-	var messageRows: [ConversationRow] {
-		guard let userRow else { return [] }
-		if let replyRow {
-			return [userRow, replyRow]
-		}
-		return legacy && latestSettlement == nil ? [userRow] : []
-	}
-
 	var userRow: ConversationRow? {
 		guard let first = fragments.min(by: { $0.index < $1.index }) else { return nil }
 		return ConversationRow(
@@ -72,15 +65,20 @@ package struct TurnFacts: Sendable, Equatable {
 
 	private var originalAttemptAccount: TrainingAccount? {
 		guard
-			let attempt = (claims.map(\.attempt) + settlements.map(\.attempt))
+			let attempt =
+				(claims.map(\.attempt) + questions.map(\.attempt) + settlements.map(\.attempt))
 				.min(by: { $0.ulid < $1.ulid })
 		else { return nil }
 		return claims.first { $0.attempt == attempt }?.account
+			?? questions.first { $0.attempt == attempt }?.row.account
 			?? settlements.filter { $0.attempt == attempt }.min(by: { $0.hlc < $1.hlc })?.account
 	}
 
 	var replyRow: ConversationRow? {
-		guard let settled = latestSettlement else { return nil }
+		latestSettlement.flatMap(replyRow(for:))
+	}
+
+	func replyRow(for settled: SettledAttempt) -> ConversationRow? {
 		let replyText: String
 		switch settled.settlement {
 		case .replied(let reply, _):

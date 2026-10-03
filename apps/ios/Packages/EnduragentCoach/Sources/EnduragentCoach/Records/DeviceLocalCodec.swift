@@ -82,6 +82,7 @@ extension RecordCodec {
 				FlushPendingBody(
 					chatId: try decodeChatID(payload.chatId),
 					messageUlids: try payload.messageUlids.map(decodeULID),
+					sourceBound: version >= 5,
 					process: try payload.process.map { ProcessID(ulid: try decodeULID($0)) }
 				)
 			)

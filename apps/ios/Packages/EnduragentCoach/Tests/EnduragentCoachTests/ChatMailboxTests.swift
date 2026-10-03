@@ -50,12 +50,17 @@ import Testing
 		#expect(interrupted.partial == "Thursday is ")
 		#expect(interrupted.cause == .athleteStopped)
 		#expect(interrupted.notice.action == .tryAgain(turn))
+		let saved = try await recording.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
+		).records
+		#expect(saved.count == 1)
+		guard case .synced(.turnSettled(let body)) = try #require(saved.first?.body) else {
+			Issue.record("Stop was not saved")
+			return
+		}
 		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
-				["turnSettled"],
-			])
+			body.settlement
+				== .interrupted(partial: "Thursday is ", cause: .athleteStopped, saved: .none))
 		let snapshot = try #require(await coach.currentSnapshot(.main))
 		#expect(snapshot.activity == .idle)
 	}
@@ -206,25 +211,19 @@ import Testing
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)
 		let store = InMemoryRecordLog()
-		let recording = BatchRecordingLog(inner: store)
 		let before = await makeCoach(
-			transport: transport, store: recording, clock: clock,
+			transport: transport, store: store, clock: clock,
 			coalescing: CoalescingPolicy(window: .seconds(60)))
 		let turn = try #require(try await before.send(draft("Thursday?"), to: .main).acceptedTurn)
 
-		let reopened = await makeCoach(transport: transport, store: recording, clock: clock)
+		let reopened = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(
 			try #require(await reopened.currentSnapshot(.main)).turns.first?.state
 				== .accepted(.awaitingRestart))
 		try await reopened.retry(turn, in: .main)
 		let settled = try #require(await reopened.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Still on.")
-		#expect(
-			recording.batches == [
-				["providerConsent"],
-				["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
-				["turnSettled"],
-			])
+
 		let claims = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.turnClaim]), turn: turn)
 		)
