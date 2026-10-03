@@ -19,6 +19,17 @@ struct SettingsView: View {
 				)
 				.accessibilityIdentifier("settings.training")
 			}
+			Section(model.phrasebook.say(Catalog.settingsLanguageTitle)) {
+				Button {
+					model.openLanguagePicker()
+				} label: {
+					LabeledContent(
+						model.phrasebook.say(Catalog.settingsLanguageTitle),
+						value: model.languagePreference.title(in: model.phrasebook))
+				}
+				.foregroundStyle(Color.primary)
+				.accessibilityIdentifier("settings.language")
+			}
 			#if DEBUG
 				Section {
 					NavigationLink(SettingsDebugView.title, value: ShellDestination.debug)
