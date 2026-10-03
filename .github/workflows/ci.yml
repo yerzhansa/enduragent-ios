@@ -49,6 +49,7 @@ jobs:
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
           /tmp/xcodegen/xcodegen/bin/xcodegen --version
           /tmp/xcodegen/xcodegen/bin/xcodegen generate --spec apps/ios/project.yml
+          pnpm check:source
       - name: Test iPhone app
         run: |
           xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations > "$RUNNER_TEMP/enduragent-destinations.txt"

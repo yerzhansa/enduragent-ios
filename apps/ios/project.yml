@@ -10,9 +10,10 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 settings:
-  DEVELOPMENT_TEAM: FA494ACVTF
-  CODE_SIGN_STYLE: Automatic
-  SWIFT_VERSION: "6.0"
+  base:
+    DEVELOPMENT_TEAM: FA494ACVTF
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
   configs:
     DebugKeychainProof:
       SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEBUG KEYCHAIN_DEVICE_PROOF
@@ -71,15 +72,6 @@ targets:
         OpenRouterModel: $(OPENROUTER_MODEL)
         BGTaskSchedulerPermittedIdentifiers:
           - $(PRODUCT_BUNDLE_IDENTIFIER).coach.*
-    entitlements:
-      path: Enduragent/Enduragent.entitlements
-      properties:
-        com.apple.developer.icloud-container-identifiers:
-          - iCloud.icu.enduragent.ios
-        com.apple.developer.icloud-services:
-          - CloudKit
-        keychain-access-groups:
-          - $(AppIdentifierPrefix)icu.enduragent.app
     dependencies:
       - package: EnduragentCoach
       - package: EnduragentCoach
