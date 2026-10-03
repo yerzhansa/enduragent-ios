@@ -48,6 +48,14 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		}
 	}
 
+	public func corruptAccessSelection() throws {
+		try lock.withLock {
+			let account = CredentialSlot.accessSelection.rawValue
+			try check(account, writing: true)
+			try persist(account: account, data: Data("fixture-malformed-selection".utf8))
+		}
+	}
+
 	public var failNextWrite: Bool {
 		get { lock.withLock { failsNextWrite } }
 		set { lock.withLock { failsNextWrite = newValue } }

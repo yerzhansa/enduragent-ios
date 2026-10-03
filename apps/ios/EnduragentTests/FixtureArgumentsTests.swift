@@ -14,7 +14,8 @@ import Testing
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
 			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
-			credentialWriteFault: .failOnce)
+			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
+			creditsOutcome: .provisioningFailed)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -52,6 +53,8 @@ import Testing
 		#expect(parsed.replyParserFault == expected.replyParserFault)
 		#expect(parsed.trainingDisplay == expected.trainingDisplay)
 		#expect(parsed.credentialWriteFault == expected.credentialWriteFault)
+		#expect(parsed.accessMethod == expected.accessMethod)
+		#expect(parsed.creditsOutcome == expected.creditsOutcome)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)

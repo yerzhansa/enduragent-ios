@@ -22,10 +22,14 @@ public struct ScriptedRequest: Sendable {
 	public let purpose: Purpose
 	public let step: Int
 	public let toolResults: [String]
+	public let accessMethod: AccessMethod
+	public let model: ModelID
 
 	package init(
 		request: CompletionRequest, context: CompletionRequest, purpose: Purpose, step: Int
 	) {
+		self.accessMethod = request.credential.method
+		self.model = request.model
 		self.toolResults = request.messages.filter { $0.role == .tool }.map(\.content)
 		self.userMessages = context.messages.filter { $0.role == .user }.map(\.content)
 		self.text =

@@ -1,6 +1,6 @@
 # Credits
 
-The athlete's Credits screen shows available Credits, the two packs, and the tester notice. Buying is disabled. A Credits notice under a turn opens this same screen through Buy Credits or Restore purchases.
+The athlete's Credits screen shows available Credits, the two packs, and the tester notice. Buying is disabled. Settings also offers Access method under Model access. A Credits notice under a turn opens this same screen through Buy Credits or Restore purchases.
 
 ## Sub-features
 
@@ -29,7 +29,7 @@ Preconditions:
 | `sim.mjs test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
 | `sim.mjs test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance` and return to the conversation after one Back, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
 
-Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app test `creditsFailuresShowCatalogNotices` covers the unavailable notice; fixture directives do not fail the Credits client.
+Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
 
 ## Gotchas
 
@@ -37,3 +37,17 @@ Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <r
 - Restore purchases currently navigates to Credits. The button's label is not evidence of a restored transaction.
 - Debug, Credits uses `debug.credits` on its link. Its developer labels and StoreKit actions are outside the athlete-screen proof.
 - Credits opened from Model access sits above Settings, and one Back returns to Settings. A conversation notice pushes Credits directly above the conversation, and one Back returns there. Capture the entry point used.
+
+## Access method in Settings
+
+`AccessSettingsProof` covers the two choices, their saved marks, failed sign-in, failed choice and credential writes, starter provisioning, relaunch, recovery destinations, depleted Credits and unavailable reads. Run the class in light and dark appearance. Attachments are named `access-settings-<result>-<appearance>` and capture each result. `AccessNoticeProof.testNotConfiguredOpensAccessMethod` covers the missing-access notice destination.
+
+- `settings.accessMethod` opens the Access method screen under Model access.
+- `access.credits` chooses Credits after starter setup persists its credential.
+- `access.openRouter` is Sign in with OpenRouter. The M2 slice-6 stub reports failure and keeps the saved mark.
+- `access.notice` shows availability or the latest choice outcome.
+- `credits.switchToOpenRouter` opens this same screen without selecting a method.
+
+Fixture launch arguments use `-EnduragentFixtureAccess` with `credits`, `openrouter`, `credits-needs-setup` or `openrouter-needs-credits`. OpenRouter launch states store the synthetic OpenRouter credential and saved model; the ordinary OpenRouter state also stores Credits. `-EnduragentFixtureCredits` accepts `ready`, `zero`, `unavailable`, `provisioning-failed` or `already-granted`. A minted grant persists the scripted credential through CredentialVault before returning. Keep launches never reseed either identity or the selection. `-EnduragentFixtureKeychain malformed-access` supplies an unreadable saved model selection.
+
+Choose access method and Sign in again recovery actions open this screen directly above the conversation. Buy Credits opens Credits with Buy disabled and the tester notice. These routes keep the conversation and the saved method.

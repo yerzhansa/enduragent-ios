@@ -288,3 +288,6 @@ WellnessDay.fitness
 WellnessDay.form
 WellnessDay.formattedNumber(_:fractionDigits:)
 WellnessDay.init(date:fitness:fatigue:form:)
+AccessStatus.notice
+CredentialOutcome.notice
+CreditBalance.notice

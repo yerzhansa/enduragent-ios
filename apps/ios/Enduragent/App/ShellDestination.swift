@@ -5,6 +5,7 @@ enum ShellDestination: Hashable {
 	case history
 	case archivedConversation(ArchivedConversationRef)
 	case credits
+	case accessMethod
 	case training
 	#if DEBUG
 		case debug

@@ -201,7 +201,8 @@ final class FixtureLaunchTests {
 	}
 
 	@Test func fixtureAppServicesOpensALegacySecretsFile() async throws {
-		let legacy = #"{"appAccountToken":"11111111-2222-4333-8444-555555555555"}"#
+		let legacy =
+			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"fixture-legacy-credits-key"}"#
 		try Data(legacy.utf8).write(to: launch.directory.appending(path: "secrets.json"))
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let (services, kept) = try await relaunch(.keep)
@@ -217,6 +218,7 @@ final class FixtureLaunchTests {
 			identity.appAccountToken
 				== UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
 		#expect(identity.hasCreditsKey)
+		#expect(try services.fixture?.secrets.creditsAccount()?.key == "fixture-legacy-credits-key")
 	}
 
 	@Test func coldStartRestoresTheTypedDraft() async throws {
@@ -244,16 +246,15 @@ final class FixtureLaunchTests {
 		#expect(second.chat?.chat == .main)
 	}
 
-	@Test func chooseAccessMethodThenStartChattingKeepsTheConversation() async throws {
+	@Test func chooseAccessMethodKeepsTheConversation() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
 		let settled = try await settledTurn(model)
 		await model.perform(.chooseAccessMethod)
-		#expect(model.route == .onboarding(.connect))
-		model.skipConnect()
-		await model.agreeAndStartChatting()
+		#expect(model.navigation == [.accessMethod])
+		model.navigation.removeAll()
 		#expect(model.route == .chat)
 		try await observed(model)
 		#expect(model.chat?.turns.map(\.id) == [settled.id])

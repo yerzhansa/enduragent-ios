@@ -23,6 +23,10 @@ struct CreditsView: View {
 			}
 			Text(model.phrasebook.say(Catalog.creditsTesters, [:]))
 				.accessibilityIdentifier("credits.note")
+			Button(model.phrasebook.say(Catalog.accessSwitchToOpenRouter)) {
+				model.open(.accessMethod)
+			}
+			.accessibilityIdentifier("credits.switchToOpenRouter")
 			if let notice = model.creditsNotice {
 				Text(notice.sentence(in: model.displayLocale))
 					.accessibilityIdentifier("credits.notice")
