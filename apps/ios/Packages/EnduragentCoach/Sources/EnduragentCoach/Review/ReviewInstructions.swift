@@ -11,7 +11,7 @@ public struct ReviewInstructions: Sendable, Equatable {
 	public func lines(in display: DisplayLocale) -> [String] {
 		switch content {
 		case .cycling(let workout):
-			IntervalsSerializer.description(workout, phrasebook: display.phrasebook)
+			IntervalsSerializer.description(workout, display: display)
 		case .supplied(let text):
 			text.isEmpty
 				? []
