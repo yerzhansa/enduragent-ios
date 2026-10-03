@@ -57,6 +57,10 @@ struct SyncedTrainingIdentityAppTests {
 		try await harness.until { model.chat?.review != nil }
 		let presented = try #require(model.chat?.review)
 		await model.decide(.presented(presented.ref))
+		try await harness.until {
+			if case .approveOrCancel? = model.chat?.review?.controls { return true }
+			return false
+		}
 		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
 			Issue.record("The review did not offer approval")
 			return
@@ -64,6 +68,7 @@ struct SyncedTrainingIdentityAppTests {
 		try fixture.trainingPeer.replace(.athleteB)
 		await model.decide(.approve(token))
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
+		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.chat?.review?.notice?.key == Catalog.reviewAccountChanged)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		#expect(fixture.trainingPeer.athleteB.events.isEmpty)
@@ -76,6 +81,7 @@ struct SyncedTrainingIdentityAppTests {
 		try await model.waitForStatus {
 			$0.training.notice?.key == Catalog.connectErrorProfileUnavailable
 		}
+		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewCannotVerify }
 		#expect(model.chat?.review?.ref.set == token.ref.set)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		#expect(model.chat?.review?.notice?.key == Catalog.reviewCannotVerify)
