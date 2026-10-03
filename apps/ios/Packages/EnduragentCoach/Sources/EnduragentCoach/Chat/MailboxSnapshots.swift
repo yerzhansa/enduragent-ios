@@ -45,9 +45,7 @@ final class MailboxSnapshots {
 	}
 
 	func observe(_ input: MailboxSnapshotInput) -> AsyncStream<ChatSnapshot> {
-		let current = snapshot(input)
-		latest = current
-		return feed.subscribe(from: current)
+		feed.subscribe(from: revised(snapshot(input)))
 	}
 
 	func publish(
@@ -56,19 +54,15 @@ final class MailboxSnapshots {
 		let current: ChatSnapshot
 		if liveText, var cached = latest {
 			cached.liveReply = LiveReply(live)
-			revision += 1
-			cached.revision = revision
 			current = cached
 		} else {
 			current = snapshot(input())
 		}
-		latest = current
-		feed.publish(current)
+		feed.publish(revised(current))
 	}
 
 	private func snapshot(_ input: MailboxSnapshotInput) -> ChatSnapshot {
-		revision += 1
-		return ChatSnapshot(
+		ChatSnapshot(
 			chat: chat, revision: revision, projection: &projection,
 			conversation: input.conversation, jobs: input.jobs, phase: input.phase,
 			window: input.window, queued: input.queued,
@@ -76,5 +70,18 @@ final class MailboxSnapshots {
 			finishedAway: input.finishedAway, unsavedTurns: input.unsavedTurns,
 			review: input.review, reset: input.reset, resetMemory: input.resetMemory,
 			device: device, process: process, now: clock.now, zone: clock.timeZone)
+	}
+
+	private func revised(_ snapshot: ChatSnapshot) -> ChatSnapshot {
+		var current = snapshot
+		if current.opening != latest?.opening || current.turns != latest?.turns
+			|| current.activity != latest?.activity || current.notes != latest?.notes
+			|| current.liveReply != latest?.liveReply || current.reset != latest?.reset
+		{
+			revision += 1
+		}
+		current.revision = revision
+		latest = current
+		return current
 	}
 }
