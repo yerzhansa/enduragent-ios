@@ -10,6 +10,7 @@
 		let secrets: ICloudKeychainStore
 		let secretBacking: FixtureSecretStoreBacking?
 		let nativeKeychain: NativeKeychainProof?
+		let trainingPeer: FixtureTrainingPeer
 		let recordStore: RecordStore
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
@@ -47,6 +48,15 @@
 			if launch.resetFault == .failBoundary { try records.failAppends(ofKind: "windowStart") }
 			records.failRecoveryReads = launch.recovery == .unreadable
 			let (secrets, backing, native) = try fixtureSecrets(launch)
+			let peerSecrets: ICloudKeychainStore
+			if let backing {
+				peerSecrets = backing.store()
+			} else if let native {
+				peerSecrets = native.store()
+			} else {
+				throw FixtureLaunchError.nativeProofBuildRequired
+			}
+			let peer = FixtureTrainingPeer(secrets: peerSecrets, athleteA: intervals)
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			let host: any ExecutionHost
@@ -70,12 +80,10 @@
 					records: fixture.store,
 					secrets: secrets,
 					models: .scripted(transport),
-					training: native.map { proof in
-						.fake { credential, selection in
-							proof.bind(credential, selection: selection)
-							return intervals
-						}
-					} ?? FirstWeekFixture.training(intervals),
+					training: .fake { credential, selection in
+						native?.bind(credential, selection: selection)
+						return peer.client(for: credential)
+					},
 					credits: .fake(credits),
 					host: host,
 					clock: clock
@@ -92,7 +100,8 @@
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
 					transport: transport, records: records, host: fixtureHost, secrets: secrets,
-					secretBacking: backing, nativeKeychain: native, recordStore: fixture.store,
+					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
+					recordStore: fixture.store,
 					intervals: intervals, credits: credits,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce

@@ -28,6 +28,7 @@ final class CalendarWriteServer: Sendable {
 		var events: [[String: JSONValue]] = []
 		var response = Response.success
 		var readResponse = Response.success
+		var athleteID = "i1001"
 		var held: [(NWConnection, Request, Bool)] = []
 		var failures: [String] = []
 	}
@@ -156,7 +157,7 @@ final class CalendarWriteServer: Sendable {
 			if request.target.contains("/wellness") || request.target.contains("/activities") {
 				return (.success, .array([]))
 			}
-			return (.success, .object(["id": .string("i1001"), "name": .string("Ada")]))
+			return (.success, .object(["id": .string(state.athleteID), "name": .string("Ada")]))
 		}
 		switch result.0 {
 		case .success: send(connection, status: 200, body: result.1.canonicalDigestInput())

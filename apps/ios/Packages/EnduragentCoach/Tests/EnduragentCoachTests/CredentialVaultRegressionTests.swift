@@ -8,7 +8,7 @@ import Testing
 extension CredentialVaultTests {
 	@Test(
 		arguments: [false, true], [errSecInteractionNotAllowed, errSecNotAvailable, errSecDecode])
-	func athleteResolutionFailurePreservesStoredAccountAndReportsReadFailures(
+	func athleteResolutionFailurePreservesStoredItemAndReportsReadFailures(
 		failingWrite: Bool, statusCode: OSStatus
 	) async throws {
 		let memory = FixtureSecretStoreBacking()
@@ -23,16 +23,35 @@ extension CredentialVaultTests {
 		let coach = await coachWithTraining(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
-		await gate.waitUntilParked()
+		defer {
+			status.cancel()
+			gate.release()
+		}
+		try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					status.cancel()
+					gate.release()
+				}
+			) { await gate.waitUntilParked() } != nil)
 		if failingWrite {
 			memory.failWrites("intervalsCredential", with: statusCode)
 		} else {
 			memory.fail("intervalsCredential", with: statusCode)
 		}
 		gate.release()
-		let training = try await status.value.training
+		let resolved = try #require(
+			try await beforeDeadline(
+				within: .hangGuard,
+				onTimeout: {
+					status.cancel()
+					gate.release()
+				}
+			) { try await status.value })
+		let training = resolved.training
 		if failingWrite {
-			#expect(training == .connected(adaSummary, account: account(unresolved)))
+			#expect(training == .connected(adaSummary, account: account(testConnection)))
 		} else {
 			let failure: AccessUnavailable =
 				statusCode == errSecInteractionNotAllowed
@@ -188,21 +207,26 @@ extension CredentialVaultTests {
 
 	@Test func unresolvedProposalCannotFollowAReplacementConnection() async throws {
 		let secrets = keyedSecrets()
-		try secrets.storeIntervalsConnection(
-			IntervalsConnection(
-				id: testConnection.id, credential: testConnection.credential,
-				selection: .keyOwner, resolvedAthlete: nil))
-		let coach = await coach(secrets)
-		let pending = try await proposeRide(on: coach)
+		_ = try await proposeRide(on: coach(secrets))
+		let saved = try await records.fetch(RecordQuery(scope: .everyDeviceLocal))
+		let restored = InMemoryRecordLog(deviceId: records.deviceId)
+		let original = TrainingAccount.intervals(connection: testConnection.id, athlete: nil)
+		try await restored.append(
+			saved.records.map {
+				AthleteRecord(
+					ulid: $0.ulid, deviceId: $0.deviceId, hlc: $0.hlc, timeZone: $0.timeZone,
+					civilDate: $0.civilDate, cause: $0.cause, account: original, body: $0.body)
+			}, locality: .deviceLocal)
+		let coach = await coach(secrets, log: restored)
+		let pending = try #require(await coach.currentSnapshot(.main)?.review)
 		#expect(await coach.decide(.presented(pending.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
-		let original = try #require(try secrets.intervalsConnection())
 		_ = await coach.changeTraining(
 			.replaceConfirmingAthleteSwitch(apiKey: "same-athlete-new-key", athlete: .keyOwner))
 		let current = try #require(try secrets.intervalsConnection())
 		#expect(current.id != testConnection.id)
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
-		#expect(account(original).authority(under: account(current)) == .unverifiable)
+		#expect(original.authority(under: account(current)) == .unverifiable)
 		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
 		#expect(await coach.currentSnapshot(.main)?.review?.notice?.kind == .accountChanged)
 		#expect(await coach.decide(.approve(token), in: .main) == .blocked(.accountChanged))

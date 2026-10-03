@@ -178,9 +178,10 @@ import Testing
 			blocked.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
-		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
-		#expect(await coach.currentSnapshot(.main)?.review?.notice == nil)
-		#expect(await coach.currentSnapshot(.main)?.review?.controls == .approveOrCancel(token))
+		#expect(await coach.currentSnapshot(.main)?.review?.ref.set == token.ref.set)
+		#expect(
+			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewCannotVerify)
+		#expect(await coach.currentSnapshot(.main)?.review?.controls == ReviewControls.none)
 		#expect(
 			try await records.fetch(RecordQuery(scope: .synced([.reviewWrite]), chatId: .main))
 				.records.isEmpty)

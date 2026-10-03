@@ -67,7 +67,9 @@ public actor Coach {
 		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
 		let reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
-			training: { () async throws(AccessUnavailable) in try await vault.trainingConnection() }
+			training: { (recheck: Bool) async throws(AccessUnavailable) in
+				try await vault.trainingConnection(recheck: recheck)
+			}
 		)
 		self.reviews = reviews
 		self.runner = TurnRunner(
@@ -130,7 +132,9 @@ public actor Coach {
 		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
 			return await mailbox.reviewChanged(ref)
 		}
-		return await mailbox.decide(decision)
+		let outcome = await mailbox.decide(decision)
+		await publishStatus()
+		return outcome
 	}
 
 	public func changeTraining(_ change: IntervalsConnectionChange) async
@@ -298,8 +302,15 @@ public actor Coach {
 				coalescingSleep: coalescingSleep,
 				environment: EnvironmentResolver(
 					preferences: { await preferences.load() }, access: access,
-					training: { () async throws(AccessUnavailable) in
-						try await vault.trainingConnection()
+					training: { [weak self] () async throws(AccessUnavailable) in
+						let resolved: Result<TrainingConnection, AccessUnavailable>
+						do throws(AccessUnavailable) {
+							resolved = .success(try await vault.trainingConnection())
+						} catch {
+							resolved = .failure(error)
+						}
+						await self?.publishStatus()
+						return try resolved.get()
 					}, displayLocale: resolveDisplayLocale),
 				reviews: reviews,
 				process: process,

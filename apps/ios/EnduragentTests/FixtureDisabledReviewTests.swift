@@ -42,11 +42,7 @@ extension FixtureLaunchTests {
 			if layout == .repeatApproval {
 				await model.decide(.checkAgain(token.ref))
 			} else if layout == .cancelOnly {
-				try fixture.secrets.storeIntervalsConnection(
-					IntervalsConnection(
-						id: ConnectionID(), credential: .apiKey("fixture-athlete-b"),
-						selection: .keyOwner,
-						resolvedAthlete: IntervalsAthleteID(rawValue: "i2002")))
+				try fixture.trainingPeer.replace(.athleteB)
 				await model.decide(.presented(token.ref))
 			}
 		}

@@ -5,7 +5,7 @@
 
 	enum FirstWeekFixture {
 		static let athleteName = "Ada Kovač"
-		static let otherAthleteKey = "other-athlete"
+		static let otherAthleteKey = FixtureTrainingPeer.Key.athleteB.secret
 		static let otherAthleteName = "Bo Lind"
 		static let today: CivilDate = "1998-06-15"
 		static let creditsKey = "fixture-credits-key"
@@ -44,14 +44,6 @@
 					trainingLoad: 118
 				),
 			]
-		}
-
-		static func training(_ ada: FakeIntervalsClient) -> TrainingService {
-			let other = FakeIntervalsClient(
-				athleteName: otherAthleteName, ftp: 240, athleteId: "i2002")
-			return .fake { credential, _ in
-				credential == .apiKey(otherAthleteKey) ? other : ada
-			}
 		}
 
 		static func install(on secrets: ICloudKeychainStore) throws {

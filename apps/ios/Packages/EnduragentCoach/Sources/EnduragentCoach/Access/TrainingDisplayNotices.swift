@@ -91,6 +91,7 @@ extension AccessUnavailable {
 		case .malformedStoredCredential: Catalog.connectErrorStorageMalformed
 		case .notConfigured: Catalog.connectMissing
 		case .providerConsentRequired: Catalog.accessErrorProviderConsentRequired
+		case .trainingIdentityUnverified(let failure): AthleteNotices.notice(for: failure).key
 		}
 	}
 }

@@ -34,8 +34,15 @@ extension Coach {
 
 	func publishStatus() async {
 		guard statusFeed.isObserved else { return }
-		await statusChanges.pass {
-			statusFeed.publish(await stableStatusSnapshot())
+		let (snapshot, generation) = await statusChanges.pass {
+			let snapshot = await stableStatusSnapshot()
+			statusFeed.publish(snapshot)
+			return (snapshot, trainingGeneration)
+		}
+		if generation == trainingGeneration,
+			case .connected(let summary, _) = snapshot.training, summary.needsDisplayRead
+		{
+			startTrainingDisplay(from: summary)
 		}
 	}
 
@@ -47,17 +54,22 @@ extension Coach {
 	}
 
 	func refreshTrainingStatus() async {
+		await vault.invalidateTrainingIdentity()
 		invalidateTrainingDisplay()
 		let generation = trainingGeneration
 		let stored = await vault.storedTrainingStatus()
 		guard generation == trainingGeneration else { return }
 		trainingStatus = stored
 		await publishStatus()
-		guard generation == trainingGeneration, case .connected(let summary, _) = stored else {
+		guard generation == trainingGeneration else { return }
+		guard case .connected(let summary, _) = stored else {
+			for mailbox in mailboxes.values { _ = await mailbox.reviewChanged() }
 			return
 		}
 		startTrainingDisplay(from: summary)
 		await trainingRefresh?.value
+		for mailbox in mailboxes.values { _ = await mailbox.reviewChanged() }
+		await publishStatus()
 	}
 
 	public func retryTrainingDisplay(for connectionID: ConnectionID) async {
@@ -71,6 +83,7 @@ extension Coach {
 			await publishStatus()
 			return
 		}
+		if case .failed = summary.profile { await vault.invalidateTrainingIdentity() }
 		invalidateTrainingDisplay()
 		startTrainingDisplay(from: summary)
 		await trainingRefresh?.value
@@ -123,7 +136,10 @@ extension Coach {
 		let training: TrainingStatus
 		if case .connected(let saved, let account) = stored,
 			case .connected(let displayed, _) = trainingStatus,
-			saved.connectionID == displayed.connectionID
+			saved.connectionID == displayed.connectionID, saved.keySuffix == displayed.keySuffix,
+			case .available(let checked) = saved.profile,
+			case .available(let visible) = displayed.profile,
+			checked.athleteID == visible.athleteID, checked.name == visible.name
 		{
 			training = .connected(displayed, account: account)
 		} else {

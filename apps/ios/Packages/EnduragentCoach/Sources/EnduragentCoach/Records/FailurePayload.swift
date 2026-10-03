@@ -36,6 +36,8 @@ struct FailurePayload: Codable {
 			return ("budgetExhausted", kind.rawValue)
 		case .accessUnavailable(.notConfigured(let method)):
 			return ("accessUnavailable", Self.notConfiguredPrefix + method.rawValue)
+		case .accessUnavailable(.trainingIdentityUnverified(let failure)):
+			return ("trainingIdentityUnverified", failure.rawValue)
 		case .accessUnavailable(.providerConsentRequired):
 			return ("accessUnavailable", "providerConsentRequired")
 		case .accessUnavailable(.secureStorageLocked):
@@ -73,6 +75,11 @@ struct FailurePayload: Codable {
 			return .model(.contextOverflow)
 		case ("model", "invalidRequest"):
 			return .model(.invalidRequest)
+		case ("model", "trainingIdentityUnverified"):
+			guard let failure = detail.flatMap(TrainingFailure.init(rawValue:)) else {
+				throw RecordDecodeFailure(reason: "failure")
+			}
+			return .model(.accessUnavailable(.trainingIdentityUnverified(failure)))
 		case ("model", "accessUnavailable"):
 			return .model(.accessUnavailable(try accessUnavailable()))
 		case ("model", "generationFailed"):

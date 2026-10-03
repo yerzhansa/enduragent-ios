@@ -122,7 +122,8 @@ import Testing
 		#expect(try secrets.intervalsConnection() == testConnection)
 		#expect(
 			try await claimAccount(after: "Is Thursday on?", on: coach) == account(testConnection))
-		#expect(built.credentials == [.apiKey("icu-test-key")])
+		#expect(built.credentials.allSatisfy { $0 == .apiKey("icu-test-key") })
+		#expect(!built.credentials.isEmpty)
 	}
 
 	@Test func cancelKeepsTheWorkingKey() async throws {
@@ -179,7 +180,11 @@ import Testing
 		#expect(active.id != testConnection.id)
 		#expect(
 			try await coach.refreshedStatus().notice?.key == Catalog.connectErrorProfileUnavailable)
-		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(active))
+		let state = try await coach.sendAndSettle("Is Thursday on?")
+		#expect(
+			failure(state)
+				== .model(.accessUnavailable(.trainingIdentityUnverified(.temporarilyUnavailable))))
+		#expect(transport.requests.isEmpty)
 	}
 
 	@Test func differentAthleteWithBoundWorkIsRefused() async throws {

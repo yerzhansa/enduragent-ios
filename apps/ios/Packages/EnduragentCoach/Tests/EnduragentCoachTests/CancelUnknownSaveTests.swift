@@ -35,6 +35,7 @@ import Testing
 				IntervalsConnection(
 					id: ConnectionID(), credential: .apiKey("test-athlete-b"), selection: .keyOwner,
 					resolvedAthlete: IntervalsAthleteID(rawValue: "i2002")))
+			server.state.withLock { $0.athleteID = "i2002" }
 			_ = await coach.decide(.presented(approval.ref), in: .main)
 		} else {
 			_ = await coach.decide(.checkAgain(approval.ref), in: .main)

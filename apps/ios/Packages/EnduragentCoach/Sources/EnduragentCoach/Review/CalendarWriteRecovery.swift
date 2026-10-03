@@ -62,7 +62,7 @@ extension SingleProposalReviews {
 			if case .applied(let id?) = intent.body.evidence {
 				return .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: String(id)))])
 			}
-			let connection = try await training()
+			let connection = try await training(true)
 			guard Self.permits(intent.record.account.authority(under: connection.account)) else {
 				return .blocked(.accountChanged)
 			}

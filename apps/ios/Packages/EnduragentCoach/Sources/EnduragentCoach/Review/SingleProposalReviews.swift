@@ -4,14 +4,14 @@ package actor SingleProposalReviews: WorkoutReviews {
 	let ledger: Ledger
 	let clock: any Clock
 	let diagnostics: DiagnosticsLog
-	let training: @Sendable () async throws(AccessUnavailable) -> TrainingConnection
+	let training: @Sendable (Bool) async throws(AccessUnavailable) -> TrainingConnection
 	let registration = Turnstile()
 	var deliveries: [ChatID: ReviewDelivery] = [:]
 	var closed: Set<ChangeSetID> = []
 
 	package init(
 		ledger: Ledger, clock: any Clock, diagnostics: DiagnosticsLog,
-		training: @escaping @Sendable () async throws(AccessUnavailable) -> TrainingConnection
+		training: @escaping @Sendable (Bool) async throws(AccessUnavailable) -> TrainingConnection
 	) {
 		self.ledger = ledger
 		self.clock = clock
@@ -121,7 +121,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 					$0.body.review == token.ref.set && $0.body.evidence.dispatched
 				})
 			else { return .refused(.staleControl) }
-			let connection = try await training()
+			let connection = try await training(true)
 			guard Self.permits(live.account.authority(under: connection.account)) else {
 				return .refused(.blocked(.accountChanged))
 			}
@@ -266,7 +266,7 @@ package actor SingleProposalReviews: WorkoutReviews {
 
 	func accountBlock(_ account: TrainingAccount) async -> ReviewBlock? {
 		do {
-			return Self.permits(account.authority(under: try await training().account))
+			return Self.permits(account.authority(under: try await training(false).account))
 				? nil : .accountChanged
 		} catch { return .cannotVerify }
 	}

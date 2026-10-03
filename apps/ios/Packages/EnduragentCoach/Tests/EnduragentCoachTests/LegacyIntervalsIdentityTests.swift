@@ -29,10 +29,11 @@ extension CredentialVaultTests {
 				if case .createEvent = $0 { return true }
 				return false
 			})
-		for backing in [phoneBacking, padBacking] {
-			#expect(
-				try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
-			#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)
+		for store in [phone, pad] {
+			let resolved = try #require(try store.intervalsConnection())
+			#expect(resolved.id == phoneConnection.id)
+			#expect(resolved.credential == phoneConnection.credential)
+			#expect(resolved.resolvedAthlete == testConnection.resolvedAthlete)
 		}
 	}
 
@@ -50,7 +51,9 @@ extension CredentialVaultTests {
 		let connection = try #require(try store.intervalsConnection())
 		#expect(summary.profile == adaSummary.profile)
 		#expect(summary.keySuffix == adaSummary.keySuffix)
-		#expect(account == self.account(connection))
+		#expect(
+			account
+				== .intervals(connection: connection.id, athlete: testConnection.resolvedAthlete))
 		#expect(try backing.copy(account: CredentialSlot.intervalsConnection.rawValue) == legacy)
 		#expect(backing.writes(to: CredentialSlot.intervalsConnection.rawValue) == 0)
 	}
