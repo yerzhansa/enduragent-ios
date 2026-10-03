@@ -1,7 +1,7 @@
 import Foundation
 
 enum RecordCodec {
-	static let currentBodyVersion = 4
+	static let currentBodyVersion = 5
 
 	static func encode(_ body: RecordBody) throws -> (version: Int, data: Data) {
 		let encoder = JSONEncoder()
@@ -12,6 +12,8 @@ enum RecordCodec {
 		case .synced(let synced):
 			data = try encoder.encode(SyncedPayload(synced))
 			switch synced {
+			case .attemptQuestion:
+				version = 5
 			case .trainingIdentityObserved, .userMessage, .turnSettled, .windowStart,
 				.compactionSummary:
 				version = 4
@@ -20,7 +22,11 @@ enum RecordCodec {
 			}
 		case .deviceLocal(let local):
 			data = try encoder.encode(DeviceLocalPayload(local))
-			version = 2
+			if case .flushPending(let body) = local, body.sourceBound {
+				version = 5
+			} else {
+				version = 2
+			}
 		case .legacy(let legacy):
 			throw RecordDecodeFailure(reason: "legacy kind \(legacy.kind.rawValue) is read-only")
 		}
@@ -119,6 +125,10 @@ enum RecordCodec {
 	) throws -> SyncedRecordBody {
 		let name = kind.rawValue
 		switch kind {
+		case .attemptQuestion:
+			return .attemptQuestion(
+				try payload(AttemptQuestionPayload.self, version: version, kind: name, data: data)
+					.body())
 		case .trainingIdentityObserved:
 			_ = try JSONDecoder().decode([String: String].self, from: data)
 			return .trainingIdentityObserved

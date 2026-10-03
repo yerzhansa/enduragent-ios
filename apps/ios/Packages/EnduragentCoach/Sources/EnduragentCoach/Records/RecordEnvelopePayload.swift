@@ -2,6 +2,7 @@ import Foundation
 
 enum SyncedPayload: Encodable {
 	case userMessage(UserMessagePayload)
+	case attemptQuestion(AttemptQuestionPayload)
 	case turnSettled(TurnSettledPayload)
 	case windowStart(WindowStartPayload)
 	case compactionSummary(CompactionSummaryPayload)
@@ -21,6 +22,8 @@ enum SyncedPayload: Encodable {
 
 	init(_ body: SyncedRecordBody) {
 		switch body {
+		case .attemptQuestion(let value):
+			self = .attemptQuestion(AttemptQuestionPayload(value))
 		case .userMessage(let value):
 			self = .userMessage(
 				UserMessagePayload(
@@ -102,6 +105,7 @@ enum SyncedPayload: Encodable {
 	func encode(to encoder: Encoder) throws {
 		switch self {
 		case .userMessage(let payload): try payload.encode(to: encoder)
+		case .attemptQuestion(let payload): try payload.encode(to: encoder)
 		case .turnSettled(let payload): try payload.encode(to: encoder)
 		case .windowStart(let payload): try payload.encode(to: encoder)
 		case .compactionSummary(let payload): try payload.encode(to: encoder)

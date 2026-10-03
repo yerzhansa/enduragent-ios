@@ -122,6 +122,7 @@ package struct ReviewAppliedBody: Sendable, Equatable {
 package struct FlushPendingBody: Sendable, Equatable {
 	package var chatId: ChatID
 	package var messageUlids: [ULID]
+	package var sourceBound = false
 	package var process: ProcessID?
 }
 

@@ -51,6 +51,18 @@ extension Conversation {
 				calendarRecords[record.ulid] = record
 			}
 			switch record.body {
+			case .synced(.attemptQuestion(let body)):
+				guard case .operation(.turn(let turn), let attempt) = record.cause,
+					turn == body.turn
+				else { continue }
+				turns[turn]?.questions.append(
+					AttemptQuestion(
+						attempt: attempt,
+						row: ConversationRow(
+							ulid: record.ulid, origin: record.deviceId, account: record.account,
+							message: ChatMessage(
+								author: .athlete(sent: record.ulid.time, timeZone: record.timeZone),
+								text: body.athleteText))))
 			case .synced(.turnSettled(let body)), .deviceLocal(.pendingSettlement(let body)):
 				turns[body.turn]?.settlements.append(
 					SettledAttempt(
@@ -109,7 +121,7 @@ extension Conversation {
 							$0.origin == device
 								&& $0.userRow.map { $0.ulid < body.firstIncludedUlid } == true
 								&& ($0.latestSettlement.map { $0.ulid < record.ulid } ?? true)
-						}.flatMap { $0.messageRows.map(\.ulid) }
+						}.flatMap { $0.messageRows(using: ownership).map(\.ulid) }
 					let owner = ownership.rowOwner(account: record.account, origin: record.deviceId)
 					let covered = (segments[index].promptWindows[owner]?.trim?.messageUlids ?? [])
 						.union(dropped)

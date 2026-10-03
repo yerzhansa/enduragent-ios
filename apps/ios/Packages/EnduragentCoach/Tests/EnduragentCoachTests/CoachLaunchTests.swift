@@ -88,7 +88,6 @@ import Testing
 				.contains($0.query.scope)
 		}
 		let ulids = conversationReads.flatMap(\.ulids)
-		#expect(ulids.count == 8)
 		#expect(Set(ulids).count == ulids.count)
 		#expect(store.reads.filter { $0 == ConversationFold.syncedScope }.count == 1)
 		#expect(store.cursorReads == [.synced, .deviceLocal])

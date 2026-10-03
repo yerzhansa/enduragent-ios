@@ -23,7 +23,7 @@ package enum InformationReadScope: Sendable {
 package struct InformationOwnership: Sendable, Equatable {
 	package static let syncedScope: RecordQuery.Scope = .synced(
 		[
-			.trainingIdentityObserved, .userMessage, .turnSettled, .windowStart,
+			.trainingIdentityObserved, .userMessage, .attemptQuestion, .turnSettled, .windowStart,
 			.compactionSummary, .memorySection, .dailyNote, .ledgerEvent, .journal,
 			.reviewApplied, .reviewWrite,
 		], includeLegacy: [.userMessage, .assistantMessage])
@@ -46,8 +46,12 @@ package struct InformationOwnership: Sendable, Equatable {
 			if case .intervals(let connection, let athlete?) = record.account {
 				connections[connection, default: []].insert(athlete)
 			}
-			if case .deviceLocal(.turnClaim(let claim)) = record.body {
+			switch record.body {
+			case .deviceLocal(.turnClaim(let claim)):
 				claims[claim.turn, default: []].append(record)
+			case .synced(.attemptQuestion(let question)):
+				claims[question.turn, default: []].append(record)
+			default: break
 			}
 		}
 		self.connections = connections
@@ -126,6 +130,7 @@ package struct InformationOwnership: Sendable, Equatable {
 				case .deviceLocal(.flushPending(let body)) = source.body,
 				!body.messageUlids.isEmpty
 			else { return .unconnected }
+			if body.sourceBound { return source.account }
 			let accounts = body.messageUlids.compactMap { records[$0].map(rowAccount) }
 			guard accounts.count == body.messageUlids.count, let first = accounts.first,
 				accounts.allSatisfy({ rowOwner(account: $0) == rowOwner(account: first) }),
@@ -140,17 +145,30 @@ package struct InformationOwnership: Sendable, Equatable {
 	private func rowAccount(_ record: AthleteRecord) -> TrainingAccount {
 		switch record.body {
 		case .synced(.userMessage(let body)):
-			return claims[body.turn]?.first?.account ?? record.account
+			return record.account == .unconnected
+				? claims[body.turn]?.first?.account ?? record.account : record.account
 		case .synced(.turnSettled(let body)), .deviceLocal(.pendingSettlement(let body)):
 			return claims[body.turn]?.first {
 				if case .deviceLocal(.turnClaim(let claim)) = $0.body {
 					return claim.attempt == body.attempt
 				}
-				return false
+				return $0.cause == .operation(.turn(body.turn), body.attempt)
 			}?.account ?? record.account
 		default:
 			return record.account
 		}
+	}
+
+	func sourceBinding(for account: TrainingAccount, jobDevice: DeviceID, zone: IANATimeZone)
+		-> ActionBinding
+	{
+		if case .athlete(let athlete) = rowOwner(account: account),
+			case .intervals(let connection, _) = account
+		{
+			return ActionBinding(
+				account: .intervals(connection: connection, athlete: athlete), zone: zone)
+		}
+		return ActionBinding(account: firstAccounts[jobDevice] ?? .unconnected, zone: zone)
 	}
 
 	private static func uniqueAthlete(_ athletes: Set<IntervalsAthleteID>?) -> IntervalsAthleteID? {
