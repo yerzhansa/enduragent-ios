@@ -26,6 +26,22 @@
 		case empty
 		case unavailable
 		case malformedIntervals = "malformed-intervals"
+		case malformedAccess = "malformed-access"
+	}
+
+	enum FixtureAccessMethod: String, CaseIterable {
+		case credits
+		case openRouter = "openrouter"
+		case creditsNeedsSetup = "credits-needs-setup"
+		case openRouterNeedsCredits = "openrouter-needs-credits"
+	}
+
+	enum FixtureCreditsOutcome: String, CaseIterable {
+		case ready
+		case zero
+		case unavailable
+		case provisioningFailed = "provisioning-failed"
+		case alreadyGranted = "already-granted"
 	}
 
 	enum FixtureCalendarSaveFault: String {
@@ -79,6 +95,8 @@
 		var replyParserFault: FixtureReplyParserFault?
 		var trainingDisplay: FixtureTrainingDisplay?
 		var credentialWriteFault: FixtureCredentialWriteFault?
+		var accessMethod = FixtureAccessMethod.credits
+		var creditsOutcome = FixtureCreditsOutcome.ready
 
 		var launchArguments: [String] {
 			var values = [
@@ -112,6 +130,8 @@
 			if let credentialWriteFault {
 				values += ["-EnduragentFixtureCredentialWrite", credentialWriteFault.rawValue]
 			}
+			values += ["-EnduragentFixtureAccess", accessMethod.rawValue]
+			values += ["-EnduragentFixtureCredits", creditsOutcome.rawValue]
 			return values
 		}
 
@@ -147,6 +167,8 @@
 			replyParserFault = try policy(values, "-EnduragentFixtureReplyParser")
 			trainingDisplay = try policy(values, "-EnduragentFixtureTrainingDisplay")
 			credentialWriteFault = try policy(values, "-EnduragentFixtureCredentialWrite")
+			accessMethod = try policy(values, "-EnduragentFixtureAccess") ?? .credits
+			creditsOutcome = try policy(values, "-EnduragentFixtureCredits") ?? .ready
 		}
 
 		private func policy<Policy: RawRepresentable>(

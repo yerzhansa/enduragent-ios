@@ -2954,7 +2954,12 @@
       "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。",
       "storageUnavailable": "安全なストレージを一時的に利用できません。保存されたコーチング情報は残っています。もう一度お試しください。",
       "malformed": "保存されたモデルアクセスの認証情報を読み取れませんでした。アクセス方法を選択して続けてください。"
-    }
+    },
+    "title": "アクセス方法",
+    "openRouterAccount": "OpenRouterアカウント",
+    "signIn": "OpenRouterでサインイン",
+    "signInUnavailable": "OpenRouterへのサインインは利用できません。アクセス方法は変更されていません。",
+    "switchToOpenRouter": "OpenRouterに切り替える"
   },
   "connect": {
     "error": {

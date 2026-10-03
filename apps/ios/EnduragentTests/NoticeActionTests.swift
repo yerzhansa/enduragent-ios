@@ -37,23 +37,34 @@ extension FixtureLaunchTests {
 		#expect(model.chat?.turns.last?.state.isSettled == true)
 	}
 
-	@Test func notConfiguredOpensTheConnectStep() async throws {
-		let model = await model(try services(keychain: .empty))
+	@Test(arguments: [FixtureKeychainPolicy.empty, .unavailable, .malformedAccess])
+	func notConfiguredStorageUnavailableAndMalformedOpenAccessMethod(
+		keychain: FixtureKeychainPolicy
+	) async throws {
+		let model = await model(try services(keychain: keychain))
 		let (_, notice) = try await failedNotice(model, after: "Hello")
-		#expect(notice.key == Catalog.accessErrorNotConfigured)
+		let expected =
+			switch keychain {
+			case .unavailable: Catalog.accessErrorStorageUnavailable
+			case .malformedAccess: Catalog.accessErrorMalformed
+			default: Catalog.accessErrorNotConfigured
+			}
+		#expect(notice.key == expected)
 		#expect(notice.action == .chooseAccessMethod)
 		await model.perform(.chooseAccessMethod)
-		#expect(model.route == .onboarding(.connect))
-		#expect(model.navigation.isEmpty)
+		#expect(model.route == .chat)
+		#expect(model.navigation == [.accessMethod])
 	}
 
-	@Test func signInToOpenRouterOpensTheConnectStep() async throws {
+	@Test func signInToOpenRouterOpensAccessMethod() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)
+		let previous = model.status.access
 		await model.perform(.signInToOpenRouter)
-		#expect(model.route == .onboarding(.connect))
-		#expect(model.navigation.isEmpty)
+		#expect(model.route == .chat)
+		#expect(model.navigation == [.settings, .accessMethod])
+		#expect(model.status.access == previous)
 	}
 
 	@Test func lockedKeychainKeepsTheMessageAndOffersTryAgain() async throws {

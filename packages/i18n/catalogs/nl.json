@@ -2994,7 +2994,12 @@
       "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten.",
       "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je opgeslagen coachinginformatie is er nog. Probeer het opnieuw.",
       "malformed": "De opgeslagen toegangsgegevens voor het model konden niet worden gelezen. Kies een toegangsmethode om verder te gaan."
-    }
+    },
+    "title": "Toegangsmethode",
+    "openRouterAccount": "OpenRouter-account",
+    "signIn": "Inloggen met OpenRouter",
+    "signInUnavailable": "Inloggen met OpenRouter is niet beschikbaar. Je toegangsmethode is niet gewijzigd.",
+    "switchToOpenRouter": "Overschakelen naar OpenRouter"
   },
   "connect": {
     "error": {

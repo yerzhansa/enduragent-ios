@@ -2994,7 +2994,12 @@
       "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter.",
       "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen.",
       "malformed": "De gemte legitimationsoplysninger til modeladgang kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
-    }
+    },
+    "title": "Adgangsmetode",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Log ind med OpenRouter",
+    "signInUnavailable": "Login med OpenRouter er ikke tilgængeligt. Din adgangsmetode blev ikke ændret.",
+    "switchToOpenRouter": "Skift til OpenRouter"
   },
   "connect": {
     "error": {

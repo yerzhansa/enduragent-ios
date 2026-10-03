@@ -3074,7 +3074,12 @@
       "openRouterFunds": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty.",
       "storageUnavailable": "Bezpieczny magazyn jest tymczasowo niedostępny. Zapisane informacje trenerskie nadal tu są. Spróbuj ponownie.",
       "malformed": "Nie udało się odczytać zapisanych danych dostępu do modelu. Wybierz metodę dostępu, aby kontynuować."
-    }
+    },
+    "title": "Sposób dostępu",
+    "openRouterAccount": "Konto OpenRouter",
+    "signIn": "Zaloguj się przez OpenRouter",
+    "signInUnavailable": "Logowanie przez OpenRouter jest niedostępne. Sposób dostępu nie został zmieniony.",
+    "switchToOpenRouter": "Przełącz na OpenRouter"
   },
   "connect": {
     "error": {

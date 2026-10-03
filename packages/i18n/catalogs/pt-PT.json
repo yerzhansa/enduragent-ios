@@ -2994,7 +2994,12 @@
       "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
       "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente.",
       "malformed": "Não foi possível ler a credencial guardada de acesso ao modelo. Escolha um método de acesso para continuar."
-    }
+    },
+    "title": "Método de acesso",
+    "openRouterAccount": "Conta OpenRouter",
+    "signIn": "Iniciar sessão com OpenRouter",
+    "signInUnavailable": "O início de sessão com OpenRouter está indisponível. O método de acesso não foi alterado.",
+    "switchToOpenRouter": "Mudar para OpenRouter"
   },
   "connect": {
     "error": {

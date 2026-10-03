@@ -2994,7 +2994,12 @@
       "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti.",
       "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova.",
       "malformed": "Non è stato possibile leggere la credenziale salvata per l'accesso al modello. Scegli un metodo di accesso per continuare."
-    }
+    },
+    "title": "Metodo di accesso",
+    "openRouterAccount": "Account OpenRouter",
+    "signIn": "Accedi con OpenRouter",
+    "signInUnavailable": "L’accesso a OpenRouter non è disponibile. Il metodo di accesso non è stato modificato.",
+    "switchToOpenRouter": "Passa a OpenRouter"
   },
   "connect": {
     "error": {

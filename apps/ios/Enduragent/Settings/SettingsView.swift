@@ -8,6 +8,10 @@ struct SettingsView: View {
 		List {
 			Section(model.phrasebook.say(Catalog.settingsModelAccessTitle, [:])) {
 				NavigationLink(
+					model.phrasebook.say(Catalog.accessTitle), value: ShellDestination.accessMethod
+				)
+				.accessibilityIdentifier("settings.accessMethod")
+				NavigationLink(
 					model.phrasebook.say(Catalog.creditsTitle, [:]), value: ShellDestination.credits
 				)
 				.accessibilityIdentifier("settings.credits")

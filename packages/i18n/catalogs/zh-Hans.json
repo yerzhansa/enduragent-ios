@@ -2954,7 +2954,12 @@
       "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。",
       "storageUnavailable": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。",
       "malformed": "无法读取已保存的模型访问凭据。请选择访问方式以继续。"
-    }
+    },
+    "title": "访问方式",
+    "openRouterAccount": "OpenRouter 账户",
+    "signIn": "使用 OpenRouter 登录",
+    "signInUnavailable": "OpenRouter 登录暂不可用。你的访问方式未更改。",
+    "switchToOpenRouter": "切换到 OpenRouter"
   },
   "connect": {
     "error": {

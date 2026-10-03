@@ -2954,7 +2954,12 @@
       "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
       "storageUnavailable": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。",
       "malformed": "無法讀取已儲存的模型存取憑證。請選擇存取方式以繼續。"
-    }
+    },
+    "title": "存取方式",
+    "openRouterAccount": "OpenRouter 帳戶",
+    "signIn": "使用 OpenRouter 登入",
+    "signInUnavailable": "OpenRouter 登入暫時無法使用。你的存取方式未變更。",
+    "switchToOpenRouter": "切換到 OpenRouter"
   },
   "connect": {
     "error": {

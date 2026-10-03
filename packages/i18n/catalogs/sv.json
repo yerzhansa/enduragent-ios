@@ -2994,7 +2994,12 @@
       "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
       "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen.",
       "malformed": "Den sparade uppgiften för modellåtkomst kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
-    }
+    },
+    "title": "Åtkomstmetod",
+    "openRouterAccount": "OpenRouter-konto",
+    "signIn": "Logga in med OpenRouter",
+    "signInUnavailable": "Inloggning med OpenRouter är inte tillgänglig. Din åtkomstmetod ändrades inte.",
+    "switchToOpenRouter": "Byt till OpenRouter"
   },
   "connect": {
     "error": {

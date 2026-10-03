@@ -2994,7 +2994,12 @@
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits.",
       "storageUnavailable": "Le stockage sécurisé est temporairement indisponible. Vos informations de coaching enregistrées sont toujours là. Réessayez.",
       "malformed": "L'identifiant d'accès au modèle enregistré n'a pas pu être lu. Choisissez une méthode d'accès pour continuer."
-    }
+    },
+    "title": "Méthode d’accès",
+    "openRouterAccount": "Compte OpenRouter",
+    "signIn": "Se connecter avec OpenRouter",
+    "signInUnavailable": "La connexion à OpenRouter est indisponible. Votre méthode d’accès n’a pas été modifiée.",
+    "switchToOpenRouter": "Passer à OpenRouter"
   },
   "connect": {
     "error": {

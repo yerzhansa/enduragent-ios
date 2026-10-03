@@ -63,6 +63,8 @@ struct ChatView: View {
 						ArchivedConversationView(model: model, ref: ref)
 					case .credits:
 						CreditsView(model: model)
+					case .accessMethod:
+						AccessMethodView(model: model)
 					case .training:
 						TrainingSettingsView(model: model, settings: model.trainingSettings)
 					#if DEBUG

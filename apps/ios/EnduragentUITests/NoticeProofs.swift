@@ -38,10 +38,10 @@ final class NoticeCopyProof: XCTestCase {
 }
 
 final class AccessNoticeProof: XCTestCase {
-	func testNotConfiguredOpensTheConnectStep() {
+	func testNotConfiguredOpensAccessMethod() {
 		let app = XCUIApplication()
-		TutorialHarness.launch(app, keychain: .empty)
-		TutorialHarness.completeOnboarding(app)
+		TutorialHarness.launch(app, arguments: FixtureArguments(keychain: .empty, onboarded: true))
+		TutorialHarness.agreeToProviderConsent(app)
 		TutorialHarness.send(app, TutorialHarness.weekQuestion)
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.notConfigured))
 		let choose = TutorialHarness.named(app, "chat.turn.chooseAccessMethod")
@@ -49,8 +49,10 @@ final class AccessNoticeProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "access-not-configured", app: app)
 		choose.tap()
-		TutorialHarness.wait(TutorialHarness.named(app, "connect.apiKey"))
-		TutorialHarness.attach(self, name: "access-not-configured-connect", app: app)
+		TutorialHarness.wait(TutorialHarness.named(app, "access.credits"))
+		TutorialHarness.wait(TutorialHarness.named(app, "access.openRouter"))
+		XCTAssertFalse(TutorialHarness.named(app, "connect.apiKey").exists)
+		TutorialHarness.attach(self, name: "access-not-configured-access-method", app: app)
 	}
 
 	func testLockedKeepsTheMessageAndOffersTryAgain() {

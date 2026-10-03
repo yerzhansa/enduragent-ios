@@ -2954,7 +2954,12 @@
       "openRouterFunds": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요.",
       "storageUnavailable": "보안 저장소를 일시적으로 사용할 수 없습니다. 저장된 코칭 정보는 그대로 있습니다. 다시 시도하세요.",
       "malformed": "저장된 모델 접근 자격 증명을 읽을 수 없습니다. 접근 방법을 선택하여 계속하세요."
-    }
+    },
+    "title": "접근 방식",
+    "openRouterAccount": "OpenRouter 계정",
+    "signIn": "OpenRouter로 로그인",
+    "signInUnavailable": "OpenRouter 로그인을 사용할 수 없습니다. 접근 방식은 변경되지 않았습니다.",
+    "switchToOpenRouter": "OpenRouter로 전환"
   },
   "connect": {
     "error": {
