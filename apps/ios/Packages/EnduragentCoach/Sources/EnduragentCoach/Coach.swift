@@ -49,7 +49,8 @@ public actor Coach {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
 		let vault = CredentialVault(
-			store: ports.secrets, training: ports.training, clock: clock, diagnostics: diagnostics)
+			store: ports.secrets, training: ports.training, clock: clock, diagnostics: diagnostics,
+			catalog: ports.models.catalog)
 		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport

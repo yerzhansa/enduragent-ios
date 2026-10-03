@@ -56,8 +56,13 @@ public struct ModelService: Sendable {
 	}()
 
 	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
+	package let catalog: ModelCatalog
 
-	package init(makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport) {
+	package init(
+		catalog: ModelCatalog = .bundled,
+		makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport
+	) {
+		self.catalog = catalog
 		self.makeTransport = makeTransport
 	}
 

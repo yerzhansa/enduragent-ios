@@ -7,8 +7,10 @@ extension RecordStore {
 }
 
 extension ModelService {
-	public static func scripted(_ fake: FakeModelTransport) -> ModelService {
-		ModelService { _ in fake }
+	public static func scripted(_ fake: FakeModelTransport, catalog: ModelCatalog = .fixture)
+		-> ModelService
+	{
+		ModelService(catalog: catalog) { _ in fake }
 	}
 }
 
@@ -23,10 +25,16 @@ extension CreditsService {
 }
 
 extension ICloudKeychainStore {
-	public func installOpenRouterChoice(model: ModelID, key: String) throws {
+	public func installOpenRouterChoice(
+		model: ModelID, key: String, catalog: ModelCatalog = .fixture
+	) throws {
+		let entry = try catalog.choice(model)
 		try storeOpenRouterAccountKey(key, at: .legacy)
 		try storeAccessSelection(
-			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: model))))
+			.init(
+				.openRouter(
+					SavedOpenRouterReference(
+						credential: .legacy, model: model, details: entry.details))))
 	}
 }
 

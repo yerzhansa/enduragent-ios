@@ -15,6 +15,12 @@ public enum AccessAvailability: Equatable, Sendable {
 public struct AccessStatus: Equatable, Sendable {
 	private let state: AccessState
 	private let builtInModel: ModelID
+	private let catalog: ModelCatalogStatus
+
+	public var modelChoices: OpenRouterModelChoices? {
+		guard case .openRouter(let choice) = state else { return nil }
+		return OpenRouterModelChoices(selected: choice.entry, catalog: catalog)
+	}
 
 	public var selection: AccessSelection? {
 		switch state {
@@ -50,8 +56,9 @@ public struct AccessStatus: Equatable, Sendable {
 		}
 	}
 
-	package init(state: AccessState, builtInModel: ModelID) {
+	package init(state: AccessState, builtInModel: ModelID, catalog: ModelCatalog = .bundled) {
 		self.state = state
 		self.builtInModel = builtInModel
+		self.catalog = ModelCatalogStatus(catalog: catalog, cache: .available(.bundled))
 	}
 }
