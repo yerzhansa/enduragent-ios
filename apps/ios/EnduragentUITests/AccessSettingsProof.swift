@@ -249,7 +249,11 @@ final class AccessSettingsProof: XCTestCase {
 			arguments: FixtureArguments(
 				keychain: keychain, onboarded: true, credentialWriteFault: writeFault,
 				accessMethod: access, creditsOutcome: credits, signInOutcome: signIn))
-		TutorialHarness.agreeToProviderConsent(app)
+		if keychain == .unavailable || keychain == .malformedAccess {
+			TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+		} else {
+			TutorialHarness.agreeToProviderConsent(app)
+		}
 		return app
 	}
 

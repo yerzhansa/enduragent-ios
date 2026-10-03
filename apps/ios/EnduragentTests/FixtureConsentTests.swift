@@ -5,6 +5,68 @@ import Testing
 @testable import Enduragent
 
 extension FixtureLaunchTests {
+	@Test(arguments: [FixtureKeychainPolicy.unavailable, .malformedAccess])
+	func unreadableModelAccessRequiresConsentAfterRecovery(policy: FixtureKeychainPolicy)
+		async throws
+	{
+		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
+		var launch = launch
+		launch.keychain = policy
+		launch.accessMethod = .syncedOpenRouter
+		let services = try fixtureServices(launch, defaults: defaults, language: .en)
+		let fixture = try #require(services.fixture)
+		let transport = try #require(services.fixtureTransport)
+		let model = await model(services)
+		try await observed(model)
+		#expect(model.route == .chat)
+		#expect(model.consentChallenge == nil)
+		#expect(model.status.access.consent == .unavailable)
+		let storageNotice =
+			policy == .unavailable
+			? Catalog.accessErrorStorageUnavailable : Catalog.accessErrorMalformed
+		#expect(model.status.access.notice?.key == storageNotice)
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let blocked = try await settledTurn(model)
+		guard case .failed(let storageFailure) = blocked.state else {
+			Issue.record("Unreadable model access must refuse the turn")
+			return
+		}
+		#expect(storageFailure.notice.key == storageNotice)
+		#expect(transport.requestCount == 0)
+		let entry = try #require(ModelCatalog.bundled.orderedEntries.last)
+		if policy == .unavailable {
+			try #require(fixture.secretBacking).unavailable = false
+		} else {
+			try fixture.secrets.installOpenRouterChoice(
+				model: entry.id, key: FirstWeekFixture.openRouterKey, catalog: .bundled)
+		}
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.needsProviderConsent }
+		#expect(model.route == .onboarding(.consent))
+		let challenge = try #require(model.consentChallenge)
+		#expect(challenge.target.method == .openRouterAccount)
+		#expect(challenge.target.entry == entry)
+		#expect(transport.requestCount == 0)
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		let refused = try await settledTurn(model, after: blocked.state)
+		guard case .failed(let consentFailure) = refused.state else {
+			Issue.record("Readable model access must refuse requests until consent is saved")
+			return
+		}
+		#expect(consentFailure.notice.key == Catalog.accessErrorProviderConsentRequired)
+		#expect(consentFailure.notice.action == .tryAgain(refused.id))
+		#expect(transport.requestCount == 0)
+		await model.acceptConsent()
+		try await until { model.route == .chat }
+		await model.perform(try #require(consentFailure.notice.action))
+		let answered = try await settledTurn(model, after: refused.state)
+		#expect(answered.id == refused.id)
+		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
+		#expect(transport.requestCount == 1)
+	}
+
 	@Test func onboardingShowsTheAIProviderNoticeBeforeChat() async throws {
 		let services = try services()
 		let model = await model(services)

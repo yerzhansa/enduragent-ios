@@ -185,7 +185,7 @@ final class AccessOnboardingProof: XCTestCase {
 		let openRouter = TutorialHarness.named(
 			app, starter ? "starter.openRouter" : "access.openRouter")
 		TutorialHarness.wait(creditsChoice, until: .hittable)
-		TutorialHarness.wait(openRouter, until: .hittable)
+		TutorialHarness.wait(openRouter, until: starter ? .exists : .hittable)
 		TutorialHarness.wait(
 			until: { creditsChoice.isSelected == credits && openRouter.isSelected != credits },
 			message: "The screen did not mark the saved access method")
