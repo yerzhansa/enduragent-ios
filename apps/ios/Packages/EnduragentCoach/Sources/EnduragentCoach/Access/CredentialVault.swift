@@ -3,6 +3,7 @@ import Security
 
 package actor CredentialVault {
 	let store: any SecretStore
+	let catalog: ModelCatalog
 	private let display: TrainingDisplayReader
 	private let diagnostics: DiagnosticsLog
 	private let changes = Turnstile()
@@ -10,9 +11,10 @@ package actor CredentialVault {
 
 	package init(
 		store: any SecretStore, training: TrainingService, clock: any Clock,
-		diagnostics: DiagnosticsLog
+		diagnostics: DiagnosticsLog, catalog: ModelCatalog = .bundled
 	) {
 		self.store = store
+		self.catalog = catalog
 		self.display = TrainingDisplayReader(training: training, clock: clock)
 		self.diagnostics = diagnostics
 	}

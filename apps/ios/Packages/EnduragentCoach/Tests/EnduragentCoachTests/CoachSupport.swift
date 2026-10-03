@@ -35,7 +35,8 @@ func testVault(
 	clock: any Clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 ) -> CredentialVault {
 	CredentialVault(
-		store: store, training: training, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
+		store: store, training: training, clock: clock, diagnostics: DiagnosticsLog(clock: clock),
+		catalog: .fixture)
 }
 
 func testRequest(

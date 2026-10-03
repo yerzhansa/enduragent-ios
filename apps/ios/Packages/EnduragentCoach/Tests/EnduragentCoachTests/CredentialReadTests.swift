@@ -125,7 +125,7 @@ extension CredentialVaultTests {
 				== ResolvedAccess(
 					credential: ProviderCredential(
 						secret: "sk-or-account", method: .openRouterAccount),
-					model: model))
+					model: model, provider: ModelCatalog.fixture.entries[model]?.provider))
 		#expect(
 			backing.readAccounts.dropFirst(readsBeforeResolving) == [
 				CredentialSlot.accessSelection.rawValue,

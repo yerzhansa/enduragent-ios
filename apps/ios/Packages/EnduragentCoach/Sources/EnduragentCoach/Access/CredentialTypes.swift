@@ -13,12 +13,13 @@ public enum AccessSelection: Hashable, Sendable {
 }
 
 public struct OpenRouterChoice: Hashable, Sendable {
-	public let model: ModelID
+	public var model: ModelID { entry.id }
 	package let credential: OpenRouterCredentialRef
+	package let entry: ModelCatalogEntry
 
-	package init(credential: Persisted<OpenRouterAccountKey>, model: ModelID) {
+	package init(credential: Persisted<OpenRouterAccountKey>, entry: ModelCatalogEntry) {
 		self.credential = credential.value.reference
-		self.model = model
+		self.entry = entry
 	}
 }
 
@@ -46,10 +47,13 @@ package struct CreditsKey: Equatable, Sendable {
 package struct SavedOpenRouterReference: Equatable, Sendable {
 	let credential: OpenRouterCredentialRef
 	let model: ModelID
+	let details: ModelDetails?
 
-	package init(credential: OpenRouterCredentialRef, model: ModelID) {
+	package init(credential: OpenRouterCredentialRef, model: ModelID, details: ModelDetails? = nil)
+	{
 		self.credential = credential
 		self.model = model
+		self.details = details
 	}
 }
 
