@@ -56,8 +56,11 @@
 					}
 				}
 				.accessibilityIdentifier("fixture.refreshReview")
-				Button("Fail next calendar read") { fixture.intervals.failCalendarReadOnce = true }
-					.accessibilityIdentifier("fixture.failCalendarRead")
+				Button("Fail next calendar read") {
+					fixture.intervals.failCalendarReadOnce = true
+					fixture.trainingPeer.athleteB.failCalendarReadOnce = true
+				}
+				.accessibilityIdentifier("fixture.failCalendarRead")
 				if let backing = fixture.secretBacking {
 					Button("Lock intervals credential") { backing.locked = true }
 						.accessibilityIdentifier("fixture.lockIntervals")
@@ -70,6 +73,7 @@
 					.accessibilityIdentifier("fixture.calendarCalls")
 				Text(
 					fixture.intervals.failCalendarReadOnce
+						&& fixture.trainingPeer.athleteB.failCalendarReadOnce
 						? "Calendar read fault armed" : "Calendar read fault consumed"
 				)
 				.accessibilityIdentifier("fixture.calendarReadFault")
