@@ -169,17 +169,50 @@ extension FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let services = try services(keychain: .locked)
 		let fixture = try #require(services.fixture)
+		let backing = try #require(fixture.secretBacking)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
 		await model.appear()
 		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
-		fixture.secretBacking.locked = false
+		backing.locked = false
 		await model.sceneChanged(.enteredBackground)
 		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.setup == .ready }
 		#expect(model.status.setup == .ready)
 		#expect(model.status.notice == nil)
+		model.trainingSettings.edit()
+		model.trainingSettings.key = "fixture"
+		await model.trainingSettings.replace()
+		try await model.waitForStatus {
+			guard case .connected(let summary, _) = $0.training else { return false }
+			return summary.today?.fitness == 42
+		}
+		let connection = try #require(model.connected?.connectionID)
+		backing.locked = true
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus { $0.training == .unavailable(.secureStorageLocked) }
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(model.status.training.notice?.key == Catalog.connectErrorStorageLocked)
+		backing.locked = false
+		await model.sceneChanged(.enteredBackground)
+		#expect(model.status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
+		#expect(model.status.training == .unavailable(.secureStorageLocked))
+		await model.sceneChanged(.becameActive)
+		try await model.waitForStatus {
+			guard $0.setup == .ready, case .connected(let summary, _) = $0.training else {
+				return false
+			}
+			return summary.connectionID == connection && summary.today?.fitness == 42
+		}
+		#expect(model.status.setup == .ready)
+		#expect(model.status.notice == nil)
+		#expect(model.status.training.notice == nil)
+		guard case .available(let profile)? = model.connected?.profile else {
+			Issue.record("The unlocked connection did not resolve its athlete")
+			return
+		}
+		#expect(profile.athleteID.rawValue == "i1001")
 	}
 
 	@Test func skippingThenConnectingInSettingsKeepsConversationAndReadsKeyOwner() async throws {

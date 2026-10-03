@@ -54,6 +54,8 @@ The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`,
 
 `TutorialHarness.openSettings` opens the toolbar Settings route. `openHistory` taps `chat.history`. `openDebug`, `fixtureControl`, `openRecords`, `openCredentials`, `historyHead`, and `assertZeroFixtureRequests` enter through Settings. `debugRow` scrolls to each Debug row with a deadline. `returnToChat` leaves Settings through navigation Back with a deadline. Run every proof that calls those helpers on the final head. The suite covers these consumers, including History and New conversation. Run `HistoryOpenProbe` separately because the suite discovers proof classes only.
 
+The device-only native persistence test uses the dedicated phone proof build to save a synthetic credential through Settings, relaunch with native Keychain storage, and complete profile and calendar reads. Follow the [real-phone procedure](../SKILL.md#prove-native-training-persistence-on-one-phone). It records native timings, secret-free receipts, the build version, the message budget and the device-update confirmation. This proof remains pending while the operator is away.
+
 ## Gotchas
 
 - `TutorialHarness.openCredentials` now opens Settings > intervals.icu. It never opens Debug. Connection IDs are inspected only through `fixture.connection` in Debug; the helper returns to the product screen afterward.

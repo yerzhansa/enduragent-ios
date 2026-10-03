@@ -67,6 +67,67 @@ const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
 const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
 
+const xcodeProject = 'apps/ios/Enduragent.xcodeproj/project.pbxproj';
+const proofEntitlements = 'apps/ios/Enduragent/KeychainProof.entitlements';
+const sharedBuildSettings = {
+  DEVELOPMENT_TEAM: 'FA494ACVTF', CODE_SIGN_STYLE: 'Automatic', SWIFT_VERSION: '6.0',
+};
+function phoneProjectFiles(settings = sharedBuildSettings, entitlements = {
+  'keychain-access-groups': ['$(AppIdentifierPrefix)icu.enduragent.keychainproof'],
+}) {
+  return {
+    [xcodeProject]: JSON.stringify({
+      rootObject: 'project',
+      objects: {
+        project: { buildConfigurationList: 'projectConfigs', targets: ['app', 'phoneTests'] },
+        projectConfigs: { buildConfigurations: ['projectProof'] },
+        projectProof: { name: 'DebugKeychainProof', buildSettings: settings },
+        app: { productType: 'com.apple.product-type.application', buildConfigurationList: 'appConfigs' },
+        appConfigs: { buildConfigurations: ['appProof'] },
+        appProof: { name: 'DebugKeychainProof', buildSettings: {
+          ...sharedBuildSettings,
+          PRODUCT_BUNDLE_IDENTIFIER: 'icu.enduragent.keychainproof',
+          CODE_SIGN_ENTITLEMENTS: 'Enduragent/KeychainProof.entitlements',
+        } },
+        phoneTests: { productType: 'com.apple.product-type.bundle.ui-testing', buildConfigurationList: 'testConfigs' },
+        testConfigs: { buildConfigurations: ['testProof'] },
+        testProof: { name: 'DebugKeychainProof', buildSettings: {} },
+      },
+    }),
+    [proofEntitlements]: JSON.stringify(entitlements),
+  };
+}
+
+test('accepts isolated proof entitlements and inherited phone-test settings', () => {
+  const result = run(phoneProjectFiles());
+  assert.equal(result.status, 0, result.output);
+});
+
+for (const entitlements of [
+  { 'keychain-access-groups': ['$(AppIdentifierPrefix)icu.enduragent.app'] },
+  {
+    'keychain-access-groups': ['$(AppIdentifierPrefix)icu.enduragent.keychainproof'],
+    'com.apple.developer.icloud-container-identifiers': ['iCloud.icu.enduragent.ios'],
+    'com.apple.developer.icloud-services': ['CloudKit'],
+  },
+]) {
+  test(`rejects proof access to ordinary storage: ${JSON.stringify(entitlements)}`, () => {
+    const result = run(phoneProjectFiles(sharedBuildSettings, entitlements));
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /keychain-proof-storage-isolation/);
+  });
+}
+
+for (const setting of Object.keys(sharedBuildSettings)) {
+  test(`rejects dropped shared phone-test settings: ${setting}`, () => {
+    const settings = { ...sharedBuildSettings };
+    delete settings[setting];
+    const result = run(phoneProjectFiles(settings));
+    assert.equal(result.status, 1, result.output);
+    assert.match(result.output, /xcode-shared-build-settings/);
+  });
+}
+
 const navigationRoot = 'apps/ios/Enduragent/Chat/ChatView.swift';
 const navigationChild = 'apps/ios/Enduragent/Settings/SettingsView.swift';
 const boundNavigation = `struct ChatView: View {

@@ -175,6 +175,30 @@ caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme End
 
 The runner checks English questions exactly and requires existing conversation and History data, matching the original upgrade run. The operator selects the language and handles any preconditions on the phone. Export attachments from the result bundle and inspect the screenshots. Report messages, Try again taps, Add taps, Credits before and after, the calendar event, any failed step, and the state left on the phone. Attachments can contain private conversations or the Home screen; keep them in the operator's local evidence folder.
 
+### Prove native training persistence on one phone
+
+Unit U4-5 adds `EnduragentKeychainProof` and `EnduragentPhoneTests/TrainingKeychainDeviceProof`. This device-only proof pairs native `ICloudKeychainStore` with the existing fake model, Credits and intervals.icu ports. It proves native persistence, not live service authentication or two-device synchronization. Keep criteria 1 and 4 and the timing evidence pending until the operator runs it.
+
+Before every invocation, ask the operator for that invocation's message budget. Explain that this proof uses two scripted Sends and zero live messages. Record the answer even when it is zero. A failed invocation needs a fresh budget. Ask the operator to confirm that every device on TestFlight build 3 was updated together with M1+ devices. Record the checked build versions in the confirmation. Never infer that check from the proof app's version.
+
+Use an unlocked, connected physical iPhone with iCloud Keychain enabled. The operator handles signing, Developer Mode, unlock and every system alert. Never enter a real credential. The proof app has bundle ID `icu.enduragent.keychainproof`, its own Keychain access group, and service `icu.enduragent.ios.native-persistence-proof`. The normal app and its data stay in their own install. Fresh resets only synthetic proof credentials and fixture records. Keep never seeds or overwrites credentials.
+
+Supply the connected phone identifier, a new local `KEYCHAIN_RUN` evidence folder, the freshly obtained `MESSAGE_BUDGET`, and `DEVICE_UPDATE_CHECK`. The confirmation must start with `updated-together:` and list the checked build versions without device identifiers. No run is authorized while the operator is away.
+
+```sh
+mkdir -p "$KEYCHAIN_RUN"
+xcodegen generate --spec apps/ios/project.yml
+caffeinate -i xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme EnduragentKeychainProof -configuration DebugKeychainProof -sdk iphoneos -destination "platform=iOS,id=$DEVICE_ID" -derivedDataPath /tmp/enduragent-dd/U4-5 -parallel-testing-enabled NO -resultBundlePath "$KEYCHAIN_RUN/keychain.xcresult" -only-testing:EnduragentPhoneTests/TrainingKeychainDeviceProof ENDURAGENT_PHONE_MESSAGE_BUDGET="$MESSAGE_BUDGET" ENDURAGENT_DEVICE_UPDATE_CHECK="$DEVICE_UPDATE_CHECK" > "$KEYCHAIN_RUN/keychain.log" 2>&1
+xcrun xcresulttool get test-results summary --path "$KEYCHAIN_RUN/keychain.xcresult" > "$KEYCHAIN_RUN/summary.json"
+xcrun xcresulttool export attachments --path "$KEYCHAIN_RUN/keychain.xcresult" --output-path "$KEYCHAIN_RUN/attachments"
+```
+
+Require one passed test and zero failures or skips. Inspect `native-keychain-saved-settings`, `native-keychain-relaunched-settings`, `native-keychain-service-completed` and `native-keychain-records`. The two JSON receipt attachments record the installed build version, resolved synthetic athlete `i1001`, connection-bound turn accounts, native operation, slot, OSStatus and elapsed milliseconds for every attempt. The proof fails any native attempt at or above 50 ms. Preserve slow attempts and failures; do not average them away or rerun without a fresh budget.
+
+The receipts require matching synthetic credentials at the real training-service binding, profile and calendar reads, no network requests, and no synthetic secrets in complete record bodies or diagnostics. The after-relaunch receipt requires no native writes and the same connection-bound turn accounts. The `operator-check` attachment records the budget, zero live messages used and the update confirmation. Keep result bundles and exported evidence outside the repository. Record the final head SHA and iOS version beside them, then remove only this run's `/tmp/enduragent-dd/U4-5` build products.
+
+Ordinary locking after first unlock may still permit reads under `AfterFirstUnlock`; it is not a required failure. Do not substitute a simulated lock for native timing evidence. `FixtureLaunchTests.unlockingThePhoneClearsTheLockedNoticeWhenTheAppBecomesActive` separately proves that becoming active refreshes connected training status and clears its old locked notice without a retry tap. B02.02's dated decision entry is inspected and recorded in the desktop repository by the coordinator. This iOS proof does not create that entry. The later `TwoPhoneReconnectCheck` owns synchronization evidence.
+
 ### Prove live French replies after choosing a language
 
 Unit U9-2 adds `EnduragentPhoneTests/LanguageReplyCheck` and `helpers/language.mjs`. G34 leaves this check pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits or use the connected OpenRouter account. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
