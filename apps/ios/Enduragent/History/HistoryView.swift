@@ -26,6 +26,7 @@ struct HistoryView: View {
 					}
 					.accessibilityIdentifier("history.row.\(conversation.id.rawValue)")
 				}
+				.accessibilityIdentifier("history.content")
 			}
 		}
 		.navigationTitle(say(Catalog.archiveHistory))
@@ -42,6 +43,14 @@ struct HistoryView: View {
 			}
 			Text(say(conversation.reason.title))
 				.font(.footnote)
+			if let line = conversation.attribution.historyLine(
+				in: model.phrasebook, connectedAthlete: model.connectedAthlete)
+			{
+				Text(line)
+					.font(.footnote)
+					.foregroundStyle(.secondary)
+					.accessibilityIdentifier("history.athlete.\(conversation.id.rawValue)")
+			}
 			Text(model.historyDate(conversation.startedOn))
 				.accessibilityIdentifier("history.date.\(conversation.id.rawValue)")
 				.font(.footnote)

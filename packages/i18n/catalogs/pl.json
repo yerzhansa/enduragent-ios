@@ -564,7 +564,8 @@
     "unavailable": "Ta rozmowa nie jest już dostępna.",
     "turnCount_few": "{{formattedCount}} wiadomości",
     "turnCount_many": "{{formattedCount}} wiadomości",
-    "history": "Historia"
+    "history": "Historia",
+    "savedForAnotherAthlete": "Zapisano dla innego sportowca intervals.icu ({{id}})"
   },
   "setup": {
     "ai": {

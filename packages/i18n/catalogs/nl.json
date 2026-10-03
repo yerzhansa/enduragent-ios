@@ -560,7 +560,8 @@
     "turnCount_one": "{{formattedCount}} bericht",
     "turnCount_other": "{{formattedCount}} berichten",
     "unavailable": "Dit gesprek is niet meer beschikbaar.",
-    "history": "Geschiedenis"
+    "history": "Geschiedenis",
+    "savedForAnotherAthlete": "Opgeslagen voor een andere intervals.icu-atleet ({{id}})"
   },
   "setup": {
     "ai": {

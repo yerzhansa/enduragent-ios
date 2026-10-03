@@ -558,7 +558,8 @@
     "truncated": "僅列出最近的過往對話。",
     "turnCount_other": "{{formattedCount}} 則訊息",
     "unavailable": "此對話已無法使用。",
-    "history": "歷史紀錄"
+    "history": "歷史紀錄",
+    "savedForAnotherAthlete": "為另一位 intervals.icu 運動員儲存 ({{id}})"
   },
   "setup": {
     "ai": {

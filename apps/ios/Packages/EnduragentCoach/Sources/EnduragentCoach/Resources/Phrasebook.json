@@ -3801,6 +3801,214 @@
         }
       }
     },
+    "archive.savedForAnotherAthlete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved for another intervals.icu athlete (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardado para otro deportista de intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistré pour un autre athlète intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvato per un altro atleta di intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für einen anderen intervals.icu-Athleten gespeichert (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opgeslagen voor een andere intervals.icu-atleet (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gemt til en anden intervals.icu-atlet (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sparat för en annan intervals.icu-idrottare (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lagret for en annen intervals.icu-utøver (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tallennettu toiselle intervals.icu-urheilijalle (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardado para outro atleta do intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvo para outro atleta do intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisano dla innego sportowca intervals.icu (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 intervals.icu 선수용으로 저장됨 (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別の intervals.icu アスリート用に保存 (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为另一位 intervals.icu 运动员保存 (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為另一位 intervals.icu 運動員儲存 (%#@id@)"
+          },
+          "substitutions": {
+            "id": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            }
+          }
+        }
+      }
+    },
     "archive.timestamp": {
       "localizations": {
         "en": {

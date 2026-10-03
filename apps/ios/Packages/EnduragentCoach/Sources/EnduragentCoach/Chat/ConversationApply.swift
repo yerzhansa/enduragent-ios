@@ -97,7 +97,8 @@ extension Conversation {
 				segments[index].notes.append(
 					ReviewNote(
 						ulid: record.ulid, hlc: record.hlc,
-						date: record.civilDate, content: .applied(body.summary)))
+						date: record.civilDate, account: record.account,
+						content: .applied(body.summary)))
 				segments[index].notes.sort { $0.hlc < $1.hlc }
 			case .legacy(.windowStartV1(_, let firstIncluded)):
 				if legacyMessageUlids.contains(firstIncluded) {
@@ -170,6 +171,7 @@ extension Conversation {
 			segments[index].notes.append(
 				ReviewNote(
 					ulid: marker.ulid, hlc: marker.hlc, date: marker.civilDate,
+					account: marker.account,
 					content: .cancelledUnknown(CancelledUnknownReview(body)), after: turn))
 			segments[index].notes.sort { $0.hlc < $1.hlc }
 		}

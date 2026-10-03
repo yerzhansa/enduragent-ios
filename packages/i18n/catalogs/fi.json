@@ -560,7 +560,8 @@
     "turnCount_one": "{{formattedCount}} viesti",
     "turnCount_other": "{{formattedCount}} viestiä",
     "unavailable": "Tämä keskustelu ei ole enää käytettävissä.",
-    "history": "Historia"
+    "history": "Historia",
+    "savedForAnotherAthlete": "Tallennettu toiselle intervals.icu-urheilijalle ({{id}})"
   },
   "setup": {
     "ai": {

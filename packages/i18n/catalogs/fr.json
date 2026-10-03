@@ -560,7 +560,8 @@
     "turnCount_one": "{{formattedCount}} message",
     "turnCount_other": "{{formattedCount}} messages",
     "unavailable": "Cette conversation n’est plus disponible.",
-    "history": "Historique"
+    "history": "Historique",
+    "savedForAnotherAthlete": "Enregistré pour un autre athlète intervals.icu ({{id}})"
   },
   "setup": {
     "ai": {

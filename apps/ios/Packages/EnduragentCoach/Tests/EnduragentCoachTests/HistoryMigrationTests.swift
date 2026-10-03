@@ -164,8 +164,8 @@ extension SwiftDataSuites {
 			let archived = try await coach.history()
 			#expect(archived.count == 50)
 			#expect(archived.first?.firstQuestion == "Archived 50")
-			#expect(log.reads.count == 1)
-			#expect(log.fetchedRecordCount == 100)
+			#expect(log.reads.count == 2)
+			#expect(log.fetchedRecordCount == 150)
 		}
 	}
 }

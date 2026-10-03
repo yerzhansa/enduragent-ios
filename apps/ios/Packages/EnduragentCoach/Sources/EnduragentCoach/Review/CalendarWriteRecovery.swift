@@ -7,6 +7,7 @@ extension SingleProposalReviews {
 		let previous = deliveries[chat]?.ref
 		let authority: ReviewAuthority =
 			intent.record.deviceId == ledger.deviceId ? .thisDevice : .otherDevice
+		let attribution = try await attribution(for: intent.record.account)
 		let block = await accountBlock(intent.record.account)
 		guard !closed.contains(intent.body.review) else { return nil }
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
@@ -37,7 +38,7 @@ extension SingleProposalReviews {
 			state: .available(
 				ReviewContent(
 					cards: cards, kept: [], totals: ReviewTotals(cards), receipts: [],
-					notice: notice, authority: authority), controls))
+					notice: notice, authority: authority), controls), attribution: attribution)
 	}
 
 	func canRepeat(_ intent: CalendarWriteIntent) -> Bool {
