@@ -213,7 +213,7 @@ public struct ModelID: Hashable, Sendable {
 	}
 }
 
-public enum AccessMethod: String, Hashable, Sendable {
+public enum AccessMethod: String, Codable, Hashable, Sendable {
 	case credits
 	case openRouterAccount
 }

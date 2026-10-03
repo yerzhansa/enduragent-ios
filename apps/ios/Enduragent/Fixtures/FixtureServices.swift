@@ -2,6 +2,7 @@
 	import EnduragentCoach
 	import EnduragentCoachFixtures
 	import Foundation
+	import Security
 
 	struct FixtureServices: Sendable {
 		let transport: FakeModelTransport
@@ -15,6 +16,7 @@
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
 		let openRouterAuthorizer: FakeOpenRouterAuthorizer
+		let signInOutcome: FixtureSignInOutcome
 		let replyParser: ReplyParser
 		let reviewProofDriver: FixtureReviewProofDriver?
 	}
@@ -76,7 +78,7 @@
 				fixtureHost = immediate
 				leases = { immediate.leases }
 			}
-			let authorizer = FakeOpenRouterAuthorizer(response: .completed(.failure(.canceled)))
+			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
 			let coach = Coach(
 				sport: .cycling,
 				ports: CoachPorts(
@@ -90,7 +92,9 @@
 					credits: .fake(credits, mintedKey: FirstWeekFixture.creditsKey),
 					host: host,
 					clock: clock,
-					openRouterSignIn: .fake(authorizer: authorizer)
+					openRouterSignIn: .fake(
+						authorizer: authorizer,
+						exchangeFails: launch.signInOutcome == .exchangeFailure)
 				),
 				builtInModel: builtInModel,
 				displayLocale: displayLocale,
@@ -107,6 +111,7 @@
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
 					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,
+					signInOutcome: launch.signInOutcome,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil)
@@ -150,6 +155,10 @@
 				try fixture.backing.corruptAccessSelection()
 			}
 			fixture.backing.failNextWrite = launch.credentialWriteFault == .failOnce
+			if launch.credentialWriteFault == .failSelection {
+				fixture.backing.failWrites(
+					CredentialSlot.accessSelection.rawValue, with: errSecNotAvailable)
+			}
 			return (fixture.store, fixture.backing, nil)
 		}
 	}

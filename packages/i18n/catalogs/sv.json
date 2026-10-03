@@ -2980,7 +2980,7 @@
     },
     "consent": {
       "title": "Din coach använder AI",
-      "body": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det.",
+      "body": "För att svara skickar Enduragent dina meddelanden, ditt tränarminne och träningsdata som du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till {{provider}} för att köra {{model}}. De använder bara dessa data för att generera din tränares svar. Inget skickas innan du godkänner.",
       "accept": "Godkänn och fortsätt",
       "decline": "Inte nu",
       "saveFailed": "Det gick inte att spara ditt samtycke. Försök igen."
@@ -2998,7 +2998,8 @@
     "title": "Åtkomstmetod",
     "openRouterAccount": "OpenRouter-konto",
     "signIn": "Logga in med OpenRouter",
-    "signInUnavailable": "Inloggning med OpenRouter är inte tillgänglig. Din åtkomstmetod ändrades inte.",
+    "signInCancelled": "Inloggningen avbröts. Ditt åtkomstsätt ändrades inte.",
+    "signInIncomplete": "Inloggningen med OpenRouter slutfördes inte. Ditt åtkomstsätt ändrades inte. Försök igen.",
     "switchToOpenRouter": "Byt till OpenRouter"
   },
   "connect": {

@@ -26,7 +26,8 @@ import Testing
 	@Test func activationRefreshesTrainingOnce() async {
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		let coach = await makeCoach(
-			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog())
+			transport: FakeModelTransport(), intervals: intervals, store: InMemoryRecordLog(),
+			consent: false)
 		await coach.lifecycle(.becameActive)
 		#expect(intervals.calls.count == 1)
 	}
@@ -78,7 +79,7 @@ import Testing
 		#expect(try await second.status(matching: { _ in true })?.needsProviderConsent == true)
 		try await coach.recordConsent()
 		let accepted = try #require(try await first.status { _ in true })
-		#expect(accepted.providerConsent?.isCurrent == true)
+		#expect(accepted.acceptedConsent?.version == ProviderConsent.currentVersion)
 		#expect(accepted.setup == .ready)
 		#expect(try await second.status { _ in true } == accepted)
 		let session = try SessionSettings.npmDefaults.replacing(
@@ -94,10 +95,15 @@ import Testing
 		records.failFetches = true
 		#expect(try await coach.observedStatus().needsProviderConsent)
 		let snapshots = await coach.observeStatus()
+		let required = try #require(try await snapshots.status { $0.needsProviderConsent })
+		guard case .required(let challenge) = required.access.consent else {
+			Issue.record("Expected the challenge from the failed read")
+			return
+		}
 		records.failFetches = false
-		try await coach.recordConsent()
+		try await coach.recordConsent(challenge)
 		let accepted = try await snapshots.status { !$0.needsProviderConsent }
-		#expect(accepted?.providerConsent?.isCurrent == true)
+		#expect(accepted?.acceptedConsent?.version == ProviderConsent.currentVersion)
 		#expect(accepted?.setup == .ready)
 		let persisted = try await records.fetch(
 			RecordQuery(scope: .deviceLocal([.providerConsent])))

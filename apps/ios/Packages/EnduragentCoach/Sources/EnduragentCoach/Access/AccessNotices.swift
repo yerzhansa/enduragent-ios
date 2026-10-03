@@ -17,8 +17,10 @@ extension CredentialOutcome where Summary == AccessSummary {
 		case .kept, .replaced, .disconnected: nil
 		case .failedPreviousKept(.secureStorage, _):
 			AthleteNotice(key: Catalog.reviewSaveFailed, action: nil)
+		case .failedPreviousKept(.signIn(.canceled), _):
+			AthleteNotice(key: Catalog.accessSignInCancelled, action: nil)
 		case .failedPreviousKept(.signIn, _), .failedPreviousKept(.keyExchange, _), .refused:
-			AthleteNotice(key: Catalog.accessSignInUnavailable, action: nil)
+			AthleteNotice(key: Catalog.accessSignInIncomplete, action: nil)
 		}
 	}
 }

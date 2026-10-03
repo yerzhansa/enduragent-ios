@@ -2980,7 +2980,7 @@
     },
     "consent": {
       "title": "Treneren din bruker KI",
-      "body": "For å svare sender Enduragent meldingene dine, trenerens minne og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som sender dem videre til leverandøren av KI-modellen (DeepSeek). De bruker disse dataene bare til å lage svarene fra treneren din. Ingenting sendes før du samtykker.",
+      "body": "For å svare sender Enduragent meldingene dine, trenerminnet og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som videresender dem til {{provider}} for å kjøre {{model}}. De bruker bare disse dataene til å generere trenerens svar. Ingenting sendes før du godtar.",
       "accept": "Samtykk og fortsett",
       "decline": "Ikke nå",
       "saveFailed": "Samtykket ditt kunne ikke lagres. Prøv igjen."
@@ -2998,7 +2998,8 @@
     "title": "Tilgangsmåte",
     "openRouterAccount": "OpenRouter-konto",
     "signIn": "Logg inn med OpenRouter",
-    "signInUnavailable": "Innlogging med OpenRouter er utilgjengelig. Tilgangsmåten din ble ikke endret.",
+    "signInCancelled": "Innlogging avbrutt. Tilgangsmåten din ble ikke endret.",
+    "signInIncomplete": "Innlogging med OpenRouter ble ikke fullført. Tilgangsmåten din ble ikke endret. Prøv igjen.",
     "switchToOpenRouter": "Bytt til OpenRouter"
   },
   "connect": {

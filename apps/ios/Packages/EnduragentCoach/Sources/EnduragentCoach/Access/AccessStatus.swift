@@ -16,6 +16,7 @@ public struct AccessStatus: Equatable, Sendable {
 	private let state: AccessState
 	private let builtInModel: ModelID
 	private let catalog: ModelCatalogStatus
+	public let consent: AccessConsent
 
 	public var modelChoices: OpenRouterModelChoices? {
 		guard case .openRouter(let choice) = state else { return nil }
@@ -56,7 +57,11 @@ public struct AccessStatus: Equatable, Sendable {
 		}
 	}
 
-	package init(state: AccessState, builtInModel: ModelID, catalog: ModelCatalog = .bundled) {
+	package init(
+		state: AccessState, builtInModel: ModelID, catalog: ModelCatalog = .bundled,
+		consent: AccessConsent = .unavailable
+	) {
+		self.consent = consent
 		self.state = state
 		self.builtInModel = builtInModel
 		self.catalog = ModelCatalogStatus(catalog: catalog, cache: .available(.bundled))

@@ -5,7 +5,8 @@ import Observation
 @Observable
 final class AccessSettingsModel {
 	private(set) var notice: AthleteNotice?
-	private(set) var isChanging = false
+	private var changing: (change: ModelAccessChange, task: Task<Void, Never>)?
+	var isChanging: Bool { changing != nil }
 	private let environment: AppEnvironment
 
 	init(environment: AppEnvironment) {
@@ -17,9 +18,19 @@ final class AccessSettingsModel {
 	}
 
 	func choose(_ change: ModelAccessChange) async {
-		guard !isChanging else { return }
-		isChanging = true
-		defer { isChanging = false }
+		if let changing {
+			if change == .signInToOpenRouter && changing.change == change {
+				await changing.task.value
+			}
+			return
+		}
+		let task = Task { await apply(change) }
+		changing = (change, task)
+		await task.value
+		changing = nil
+	}
+
+	private func apply(_ change: ModelAccessChange) async {
 		notice = nil
 		let coach = environment.services.coach
 		if change == .useCredits {

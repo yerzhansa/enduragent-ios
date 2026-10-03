@@ -64,8 +64,13 @@ extension SwiftDataSuites {
 					"Noted. I'll remember you ride with a group on Saturdays."
 				])
 			let status = try await coach.observedStatus()
-			#expect(status.providerConsent == ProviderConsent(at: clock.now))
-			#expect(!status.needsProviderConsent)
+			let agreements = try await log.fetch(
+				RecordQuery(scope: .deviceLocal([.providerConsent])))
+			#expect(
+				agreements.records.last?.body
+					== .deviceLocal(.providerConsent(ProviderConsent(legacyAt: clock.now))))
+			#expect(status.acceptedConsent == nil)
+			#expect(status.needsProviderConsent)
 			#expect(transport.requests.isEmpty)
 		}
 

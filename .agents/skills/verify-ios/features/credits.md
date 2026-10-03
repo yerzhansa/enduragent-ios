@@ -40,11 +40,11 @@ Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <r
 
 ## Access method in Settings
 
-`AccessSettingsProof` covers the two choices, their saved marks, failed sign-in, failed choice and credential writes, starter provisioning, relaunch, recovery destinations, depleted Credits and unavailable reads. Run the class in light and dark appearance. Attachments are named `access-settings-<result>-<appearance>` and capture each result. `AccessNoticeProof.testNotConfiguredOpensAccessMethod` covers the missing-access notice destination.
+`AccessSettingsProof` covers the two choices, their saved marks, successful first sign-in with named model consent, cancelled sign-in, rejected callback, exchange failure, two taps joining held sign-in, failed choice and credential writes, starter provisioning, relaunch, recovery destinations, depleted Credits and unavailable reads. Run the class in light and dark appearance. Attachments are named `access-settings-<result>-<appearance>` and capture each result. `AccessNoticeProof.testNotConfiguredOpensAccessMethod` covers the missing-access notice destination.
 
 - `settings.accessMethod` opens the Access method screen under Model access.
 - `access.credits` chooses Credits after starter setup persists its credential.
-- `access.openRouter` is Sign in with OpenRouter. The M2 slice-6 stub reports failure and keeps the saved mark.
+- `access.openRouter` is Sign in with OpenRouter. Successful sign-in marks OpenRouter after persistence; cancellation, callback rejection, exchange failure, and save failure keep the saved mark.
 - `access.notice` shows availability or the latest choice outcome.
 - `credits.switchToOpenRouter` opens this same screen without selecting a method.
 

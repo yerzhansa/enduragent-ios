@@ -2940,7 +2940,7 @@
     },
     "consent": {
       "title": "コーチはAIを使用します",
-      "body": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。",
+      "body": "返信するために、Enduragent はあなたのメッセージ、コーチングの記憶、intervals.icu から接続したトレーニングデータを OpenRouter に送信します。OpenRouter は {{model}} を実行するために、そのデータを {{provider}} に渡します。データはコーチの返信を生成するためにのみ使用されます。同意するまで何も送信されません。",
       "accept": "同意して続ける",
       "decline": "今はしない",
       "saveFailed": "同意を保存できませんでした。もう一度お試しください。"
@@ -2958,7 +2958,8 @@
     "title": "アクセス方法",
     "openRouterAccount": "OpenRouterアカウント",
     "signIn": "OpenRouterでサインイン",
-    "signInUnavailable": "OpenRouterへのサインインは利用できません。アクセス方法は変更されていません。",
+    "signInCancelled": "サインインをキャンセルしました。アクセス方法は変更されていません。",
+    "signInIncomplete": "OpenRouter へのサインインが完了しませんでした。アクセス方法は変更されていません。もう一度お試しください。",
     "switchToOpenRouter": "OpenRouterに切り替える"
   },
   "connect": {

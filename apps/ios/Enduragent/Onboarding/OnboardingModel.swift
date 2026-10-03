@@ -7,8 +7,6 @@ import Observation
 final class OnboardingModel {
 	private(set) var starterNotice: AthleteNotice?
 	private(set) var starterResolved = false
-	private(set) var consentNotSaved = false
-	private(set) var isRecordingConsent = false
 	private var starterLoaded = false
 	private let environment: AppEnvironment
 
@@ -39,24 +37,4 @@ final class OnboardingModel {
 		starterResolved = true
 	}
 
-	func acceptConsent(startChatting: () async -> Void) async {
-		guard !isRecordingConsent else { return }
-		isRecordingConsent = true
-		defer { isRecordingConsent = false }
-		consentNotSaved = false
-		do {
-			try await environment.services.coach.recordConsent()
-		} catch {
-			switch error {
-			case .notSaved:
-				consentNotSaved = true
-			}
-			return
-		}
-		await startChatting()
-	}
-
-	func declineConsent() {
-		consentNotSaved = false
-	}
 }

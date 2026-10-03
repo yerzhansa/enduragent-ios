@@ -148,6 +148,7 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 	case windowExceededFinish
 	case generation(GenerationFault)
 	case recordStorage
+	case access(AccessUnavailable)
 	indirect case rescueFailed(AttemptFailure)
 
 	package init(caught error: any Error) throws(CancellationError) {
@@ -160,6 +161,8 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			self = .budget(exceeded)
 		case let failure as ProviderFailure:
 			self = .provider(failure)
+		case let failure as AccessUnavailable:
+			self = .access(failure)
 		case is LedgerFailure:
 			self = .recordStorage
 		default:
@@ -179,6 +182,8 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			.model(.generationFailed(fault))
 		case .recordStorage:
 			.local(.recordStorage)
+		case .access(let failure):
+			.model(.accessUnavailable(failure))
 		case .rescueFailed(let original):
 			original.coachFailure(for: method)
 		}
@@ -198,7 +203,7 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			.network
 		case .provider(.credentialRejected), .provider(.invalidRequest),
 			.provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
-			.budget, .generation, .recordStorage, .rescueFailed:
+			.budget, .generation, .recordStorage, .access, .rescueFailed:
 			.unknown
 		}
 	}

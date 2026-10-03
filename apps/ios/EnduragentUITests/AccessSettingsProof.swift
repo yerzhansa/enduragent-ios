@@ -38,7 +38,14 @@ final class AccessSettingsProof: XCTestCase {
 		openAccess(app)
 		assertChoice(app, credits: false)
 		TutorialHarness.named(app, "access.credits").tap()
-		waitForNotice(app, "200 credits")
+		TutorialHarness.waitForIdentifier(
+			app, "consent.body",
+			reading: phrasebook.say(
+				Catalog.onboardingConsentBody,
+				["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]))
+		TutorialHarness.agreeToProviderConsent(
+			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepSeek"))
+		openAccess(app)
 		assertChoice(app, credits: true)
 		capture(app, "credits-setup-succeeded")
 		TutorialHarness.relaunchKeepingStore(app)
@@ -51,18 +58,59 @@ final class AccessSettingsProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
-	func testCancelledSignInKeepsCreditsSelected() {
-		let app = launch()
-		openAccess(app)
-		assertChoice(app, credits: true)
-		capture(app, "default-credits")
-		TutorialHarness.named(app, "access.openRouter").tap()
-		waitForNotice(app, phrasebook.say(Catalog.accessSignInUnavailable))
-		assertChoice(app, credits: true)
-		capture(app, "sign-in-cancelled")
-		TutorialHarness.returnToChat(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
+	func testSignInOutcomesKeepOrMoveTheSavedTickAndHeldTapsJoin() {
+		let scenarios: [(FixtureSignInOutcome, FixtureCredentialWriteFault?)] = [
+			(.success, nil), (.cancel, nil), (.rejectedCallback, nil), (.exchangeFailure, nil),
+			(.held, nil), (.success, .failOnce), (.success, .failSelection),
+		]
+		for (outcome, fault) in scenarios {
+			let app = launch(writeFault: fault, signIn: outcome)
+			openAccess(app)
+			assertChoice(app, credits: true)
+			let signIn = TutorialHarness.named(app, "access.openRouter")
+			signIn.tap()
+			if outcome == .held {
+				TutorialHarness.waitForIdentifier(
+					app, "fixture.signInCount", reading: "1 authorizations")
+				XCTAssertTrue(signIn.isEnabled)
+				signIn.tap()
+				XCTAssertEqual(
+					TutorialHarness.named(app, "fixture.signInCount").label, "1 authorizations")
+				capture(app, "joined-held-sign-in")
+				TutorialHarness.named(app, "fixture.completeSignIn").tap()
+			}
+			let succeeded = fault == nil && (outcome == .success || outcome == .held)
+			if succeeded {
+				TutorialHarness.waitForIdentifier(
+					app, "consent.body",
+					reading: phrasebook.say(
+						Catalog.onboardingConsentBody,
+						["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]))
+				TutorialHarness.waitForIdentifier(
+					app, "consent.modelRequestCount", reading: "0 model requests")
+				capture(app, "sign-in-\(outcome.rawValue)-consent")
+				TutorialHarness.agreeToProviderConsent(app)
+				openAccess(app)
+			} else {
+				let key =
+					fault != nil
+					? Catalog.reviewSaveFailed
+					: outcome == .cancel
+						? Catalog.accessSignInCancelled : Catalog.accessSignInIncomplete
+				waitForNotice(app, phrasebook.say(key))
+			}
+			assertChoice(app, credits: !succeeded)
+			capture(app, "sign-in-\(outcome.rawValue)-\(fault?.rawValue ?? "saved")")
+			TutorialHarness.returnToChat(app)
+			TutorialHarness.relaunchKeepingStore(app)
+			TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+			openAccess(app)
+			assertChoice(app, credits: !succeeded)
+			TutorialHarness.returnToChat(app)
+			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+			TutorialHarness.assertZeroFixtureRequests(app)
+			app.terminate()
+		}
 	}
 
 	func testFailedChoiceWriteKeepsOpenRouterSelected() {
@@ -192,14 +240,15 @@ final class AccessSettingsProof: XCTestCase {
 
 	private func launch(
 		access: FixtureAccessMethod = .credits, credits: FixtureCreditsOutcome = .ready,
-		writeFault: FixtureCredentialWriteFault? = nil, keychain: FixtureKeychainPolicy = .unlocked
+		writeFault: FixtureCredentialWriteFault? = nil, keychain: FixtureKeychainPolicy = .unlocked,
+		signIn: FixtureSignInOutcome = .cancel
 	) -> XCUIApplication {
 		let app = XCUIApplication()
 		TutorialHarness.launch(
 			app,
 			arguments: FixtureArguments(
 				keychain: keychain, onboarded: true, credentialWriteFault: writeFault,
-				accessMethod: access, creditsOutcome: credits))
+				accessMethod: access, creditsOutcome: credits, signInOutcome: signIn))
 		TutorialHarness.agreeToProviderConsent(app)
 		return app
 	}

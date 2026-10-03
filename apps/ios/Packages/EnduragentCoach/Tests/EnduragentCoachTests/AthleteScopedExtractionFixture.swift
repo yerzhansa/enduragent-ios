@@ -16,7 +16,7 @@ struct AthleteScopedExtractionFixture {
 	{
 		var ports = CoachPorts(
 			records: RecordStore(log: store ?? base.store), secrets: base.secrets,
-			models: ModelService { _ in transport ?? base.transport },
+			models: ModelService(catalog: .fixture) { _ in transport ?? base.transport },
 			training: .fake { credential, _ in base.peer.client(for: credential) },
 			credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: base.clock)
 		ports.watchdogSleep = HeldClock().sleep

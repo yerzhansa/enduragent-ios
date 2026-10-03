@@ -79,7 +79,11 @@ func makeCoach(
 
 func consentingCoach(_ coach: Coach) async -> Coach {
 	do {
-		try await coach.recordConsent()
+		let consent = await coach.vault.accessConsent(
+			builtInModel: coach.builtInModel, recorded: nil)
+		if case .required(let challenge) = consent {
+			try await coach.recordConsent(challenge)
+		}
 	} catch {
 		Issue.record(error)
 	}

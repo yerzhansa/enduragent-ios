@@ -57,6 +57,7 @@
 		static let trainingDisplayArgumentKey = "EnduragentFixtureTrainingDisplay"
 		static let credentialWriteArgumentKey = "EnduragentFixtureCredentialWrite"
 		static let accessArgumentKey = "EnduragentFixtureAccess"
+		static let signInArgumentKey = "EnduragentFixtureSignIn"
 		static let creditsArgumentKey = "EnduragentFixtureCredits"
 		static let defaultClock = "1998-06-15T08:00:00Z"
 		static let timeZone = "Europe/Ljubljana"
@@ -82,6 +83,7 @@
 		var credentialWriteFault: FixtureCredentialWriteFault?
 		var accessMethod = FixtureAccessMethod.credits
 		var creditsOutcome = FixtureCreditsOutcome.ready
+		var signInOutcome = FixtureSignInOutcome.cancel
 
 		static func fromArguments(_ arguments: UserDefaults = .standard) throws -> FixtureLaunch? {
 			guard let name = arguments.string(forKey: nameArgumentKey) else { return nil }
@@ -104,7 +106,8 @@
 				trainingDisplay: try policy(arguments, key: trainingDisplayArgumentKey),
 				credentialWriteFault: try policy(arguments, key: credentialWriteArgumentKey),
 				accessMethod: try policy(arguments, key: accessArgumentKey) ?? .credits,
-				creditsOutcome: try policy(arguments, key: creditsArgumentKey) ?? .ready
+				creditsOutcome: try policy(arguments, key: creditsArgumentKey) ?? .ready,
+				signInOutcome: try policy(arguments, key: signInArgumentKey) ?? .cancel
 			)
 		}
 

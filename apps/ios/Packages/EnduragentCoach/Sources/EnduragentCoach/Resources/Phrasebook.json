@@ -849,108 +849,214 @@
         }
       }
     },
-    "access.signInUnavailable": {
+    "access.signInCancelled": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter sign-in is unavailable. Your access method was not changed."
+            "value": "Sign-in cancelled. Your access method was not changed."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El inicio de sesión con OpenRouter no está disponible. No se cambió tu método de acceso."
+            "value": "Inicio de sesión cancelado. Tu método de acceso no ha cambiado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La connexion à OpenRouter est indisponible. Votre méthode d’accès n’a pas été modifiée."
+            "value": "Connexion annulée. Votre méthode d'accès n'a pas été modifiée."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’accesso a OpenRouter non è disponibile. Il metodo di accesso non è stato modificato."
+            "value": "Accesso annullato. Il tuo metodo di accesso non è stato modificato."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Anmeldung bei OpenRouter ist nicht verfügbar. Deine Zugriffsmethode wurde nicht geändert."
+            "value": "Anmeldung abgebrochen. Deine Zugriffsmethode wurde nicht geändert."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inloggen met OpenRouter is niet beschikbaar. Je toegangsmethode is niet gewijzigd."
+            "value": "Aanmelden geannuleerd. Je toegangsmethode is niet gewijzigd."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Login med OpenRouter er ikke tilgængeligt. Din adgangsmetode blev ikke ændret."
+            "value": "Login annulleret. Din adgangsmetode blev ikke ændret."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inloggning med OpenRouter är inte tillgänglig. Din åtkomstmetod ändrades inte."
+            "value": "Inloggningen avbröts. Ditt åtkomstsätt ändrades inte."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Innlogging med OpenRouter er utilgjengelig. Tilgangsmåten din ble ikke endret."
+            "value": "Innlogging avbrutt. Tilgangsmåten din ble ikke endret."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter-kirjautuminen ei ole käytettävissä. Käyttötapaasi ei muutettu."
+            "value": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "O início de sessão com OpenRouter está indisponível. O método de acesso não foi alterado."
+            "value": "Início de sessão cancelado. O seu método de acesso não foi alterado."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O login com OpenRouter está indisponível. Seu método de acesso não foi alterado."
+            "value": "Login cancelado. Seu método de acesso não foi alterado."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Logowanie przez OpenRouter jest niedostępne. Sposób dostępu nie został zmieniony."
+            "value": "Logowanie anulowane. Twoja metoda dostępu nie została zmieniona."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter 로그인을 사용할 수 없습니다. 접근 방식은 변경되지 않았습니다."
+            "value": "로그인이 취소되었습니다. 접근 방식은 변경되지 않았습니다."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouterへのサインインは利用できません。アクセス方法は変更されていません。"
+            "value": "サインインをキャンセルしました。アクセス方法は変更されていません。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter 登录暂不可用。你的访问方式未更改。"
+            "value": "登录已取消。你的访问方式未更改。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "OpenRouter 登入暫時無法使用。你的存取方式未變更。"
+            "value": "登入已取消。你的存取方式未變更。"
+          }
+        }
+      }
+    },
+    "access.signInIncomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El inicio de sesión con OpenRouter no se completó. Tu método de acceso no ha cambiado. Inténtalo de nuevo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La connexion à OpenRouter n'a pas abouti. Votre méthode d'accès n'a pas été modifiée. Réessayez."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'accesso a OpenRouter non è stato completato. Il tuo metodo di accesso non è stato modificato. Riprova."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die OpenRouter-Anmeldung wurde nicht abgeschlossen. Deine Zugriffsmethode wurde nicht geändert. Versuche es erneut."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aanmelden bij OpenRouter is niet voltooid. Je toegangsmethode is niet gewijzigd. Probeer het opnieuw."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login med OpenRouter blev ikke gennemført. Din adgangsmetode blev ikke ændret. Prøv igen."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inloggningen med OpenRouter slutfördes inte. Ditt åtkomstsätt ändrades inte. Försök igen."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Innlogging med OpenRouter ble ikke fullført. Tilgangsmåten din ble ikke endret. Prøv igjen."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O início de sessão no OpenRouter não foi concluído. O seu método de acesso não foi alterado. Tente novamente."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O login no OpenRouter não foi concluído. Seu método de acesso não foi alterado. Tente novamente."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logowanie do OpenRouter nie zostało ukończone. Twoja metoda dostępu nie została zmieniona. Spróbuj ponownie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 로그인이 완료되지 않았습니다. 접근 방식은 변경되지 않았습니다. 다시 시도하세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter へのサインインが完了しませんでした。アクセス方法は変更されていません。もう一度お試しください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 登录未完成。你的访问方式未更改。请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 登入未完成。你的存取方式未變更。請重試。"
           }
         }
       }
@@ -129800,103 +129906,273 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree."
+            "value": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to %#@provider@ to run %#@model@. They use this data only to generate your coach's replies. Nothing is sent until you agree."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para responder, Enduragent envía tus mensajes, la memoria de tu entrenador y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los transmite al proveedor del modelo de IA (DeepSeek). Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes."
+            "value": "Para responder, Enduragent envía tus mensajes, tu memoria de entrenamiento y los datos de entrenamiento que conectas desde intervals.icu a OpenRouter, que los pasa a %#@provider@ para ejecutar %#@model@. Solo usan estos datos para generar las respuestas de tu entrenador. No se envía nada hasta que aceptes."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pour répondre, Enduragent envoie tes messages, la mémoire de ton coach et les données d’entraînement que tu connectes depuis intervals.icu à OpenRouter, qui les transmet au fournisseur du modèle d’IA (DeepSeek). Ils utilisent ces données uniquement pour générer les réponses de ton coach. Rien n’est envoyé sans ton accord."
+            "value": "Pour répondre, Enduragent envoie vos messages, votre mémoire de coaching et les données d'entraînement connectées depuis intervals.icu à OpenRouter, qui les transmet à %#@provider@ pour exécuter %#@model@. Ces données servent uniquement à générer les réponses de votre coach. Rien n'est envoyé avant votre accord."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Per rispondere, Enduragent invia i tuoi messaggi, la memoria del tuo coach e i dati di allenamento che colleghi da intervals.icu a OpenRouter, che li trasmette al fornitore del modello di IA (DeepSeek). Usano questi dati solo per generare le risposte del tuo coach. Non viene inviato nulla finché non acconsenti."
+            "value": "Per rispondere, Enduragent invia i tuoi messaggi, la memoria del coaching e i dati di allenamento collegati da intervals.icu a OpenRouter, che li trasmette a %#@provider@ per eseguire %#@model@. Questi dati vengono usati solo per generare le risposte del tuo coach. Nulla viene inviato finché non acconsenti."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Um zu antworten, sendet Enduragent deine Nachrichten, die gespeicherten Coaching-Informationen und die Trainingsdaten, die du aus intervals.icu verbindest, an OpenRouter. OpenRouter gibt sie an den Anbieter des KI-Modells (DeepSeek) weiter. Sie verwenden diese Daten nur, um die Antworten deines Coachs zu erstellen. Ohne deine Zustimmung wird nichts gesendet."
+            "value": "Um zu antworten, sendet Enduragent deine Nachrichten, dein Coaching-Gedächtnis und die über intervals.icu verbundenen Trainingsdaten an OpenRouter. OpenRouter leitet sie an %#@provider@ weiter, um %#@model@ auszuführen. Diese Daten werden nur verwendet, um die Antworten deines Coaches zu erzeugen. Nichts wird gesendet, bevor du zustimmst."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Om te antwoorden stuurt Enduragent je berichten, het geheugen van je coach en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan de aanbieder van het AI-model (DeepSeek). Ze gebruiken deze gegevens alleen om de antwoorden van je coach te genereren. Er wordt niets verstuurd totdat je akkoord gaat."
+            "value": "Om te antwoorden stuurt Enduragent je berichten, je coachingsgeheugen en de trainingsgegevens die je via intervals.icu koppelt naar OpenRouter. OpenRouter geeft ze door aan %#@provider@ om %#@model@ uit te voeren. Deze gegevens worden alleen gebruikt om de antwoorden van je coach te genereren. Er wordt niets verzonden totdat je akkoord gaat."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "For at svare sender Enduragent dine beskeder, din coachs hukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til udbyderen af AI-modellen (DeepSeek). De bruger kun disse data til at generere din coachs svar. Intet sendes, før du giver samtykke."
+            "value": "For at svare sender Enduragent dine beskeder, din coachinghukommelse og de træningsdata, du forbinder fra intervals.icu, til OpenRouter, som sender dem videre til %#@provider@ for at køre %#@model@. De bruger kun disse data til at generere din coachs svar. Intet sendes, før du accepterer."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "För att svara skickar Enduragent dina meddelanden, din coachs minne och de träningsdata du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till leverantören av AI-modellen (DeepSeek). De använder dessa data enbart för att skapa din coachs svar. Inget skickas förrän du godkänner det."
+            "value": "För att svara skickar Enduragent dina meddelanden, ditt tränarminne och träningsdata som du ansluter från intervals.icu till OpenRouter, som skickar dem vidare till %#@provider@ för att köra %#@model@. De använder bara dessa data för att generera din tränares svar. Inget skickas innan du godkänner."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "For å svare sender Enduragent meldingene dine, trenerens minne og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som sender dem videre til leverandøren av KI-modellen (DeepSeek). De bruker disse dataene bare til å lage svarene fra treneren din. Ingenting sendes før du samtykker."
+            "value": "For å svare sender Enduragent meldingene dine, trenerminnet og treningsdataene du kobler til fra intervals.icu, til OpenRouter, som videresender dem til %#@provider@ for å kjøre %#@model@. De bruker bare disse dataene til å generere trenerens svar. Ingenting sendes før du godtar."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi."
+            "value": "Vastatakseen Enduragent lähettää viestisi, valmennusmuistisi ja intervals.icu-palvelusta yhdistämäsi harjoitustiedot OpenRouterille, joka välittää ne palveluntarjoajalle %#@provider@ mallin %#@model@ suorittamista varten. Tietoja käytetään vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen hyväksyntääsi."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para responder, o Enduragent envia as tuas mensagens, a memória do teu treinador e os dados de treino que ligas a partir do intervals.icu ao OpenRouter, que os transmite ao fornecedor do modelo de IA (DeepSeek). Usam estes dados apenas para gerar as respostas do teu treinador. Nada é enviado até concordares."
+            "value": "Para responder, o Enduragent envia as suas mensagens, a memória de acompanhamento e os dados de treino ligados do intervals.icu ao OpenRouter, que os transmite a %#@provider@ para executar %#@model@. Estes dados são usados apenas para gerar as respostas do seu treinador. Nada é enviado até concordar."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Para responder, o Enduragent envia suas mensagens, a memória do seu treinador e os dados de treino que você conecta do intervals.icu ao OpenRouter, que os repassa ao provedor do modelo de IA (DeepSeek). Eles usam esses dados apenas para gerar as respostas do seu treinador. Nada é enviado até você concordar."
+            "value": "Para responder, o Enduragent envia suas mensagens, sua memória de coaching e os dados de treino conectados do intervals.icu ao OpenRouter, que os repassa para %#@provider@ executar %#@model@. Esses dados são usados apenas para gerar as respostas do seu treinador. Nada é enviado até você concordar."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenera i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je dostawcy modelu AI (DeepSeek). Wykorzystują te dane wyłącznie do generowania odpowiedzi Twojego trenera. Nic nie zostanie wysłane bez Twojej zgody."
+            "value": "Aby odpowiedzieć, Enduragent wysyła Twoje wiadomości, pamięć trenerską i dane treningowe połączone z intervals.icu do OpenRouter, który przekazuje je do %#@provider@, aby uruchomić %#@model@. Dane te służą wyłącznie do generowania odpowiedzi trenera. Nic nie jest wysyłane bez Twojej zgody."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요."
+            "value": "답변을 위해 Enduragent는 메시지, 코칭 메모리, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보냅니다. OpenRouter는 %#@model@을 실행하기 위해 이 데이터를 %#@provider@에 전달합니다. 데이터는 코치의 답변을 생성하는 데에만 사용됩니다. 동의하기 전에는 아무것도 전송되지 않습니다."
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "回答するために、Enduragentはあなたのメッセージ、コーチの記憶、intervals.icuから連携したトレーニングデータをOpenRouterに送信します。OpenRouterはそれらをAIモデルの提供元（DeepSeek）に渡します。両社はこれらのデータをコーチの回答を生成するためにのみ使用します。同意するまで何も送信されません。"
+            "value": "返信するために、Enduragent はあなたのメッセージ、コーチングの記憶、intervals.icu から接続したトレーニングデータを OpenRouter に送信します。OpenRouter は %#@model@ を実行するために、そのデータを %#@provider@ に渡します。データはコーチの返信を生成するためにのみ使用されます。同意するまで何も送信されません。"
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为了回复你，Enduragent 会将你的消息、教练记忆以及你从 intervals.icu 连接的训练数据发送给 OpenRouter，再由 OpenRouter 传递给 AI 模型提供商（DeepSeek）。他们仅使用这些数据来生成教练的回复。在你同意之前，不会发送任何内容。"
+            "value": "为了回复，Enduragent 会将你的消息、教练记忆以及从 intervals.icu 连接的训练数据发送给 OpenRouter，后者会将数据传递给 %#@provider@ 以运行 %#@model@。这些数据仅用于生成教练的回复。在你同意之前，不会发送任何内容。"
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "為了回覆你，Enduragent 會將你的訊息、教練記憶，以及你從 intervals.icu 連結的訓練資料傳送給 OpenRouter，再由 OpenRouter 傳遞給 AI 模型供應商（DeepSeek）。他們僅使用這些資料來產生教練的回覆。在你同意之前，不會傳送任何內容。"
+            "value": "為了回覆，Enduragent 會將你的訊息、教練記憶以及從 intervals.icu 連接的訓練資料傳送給 OpenRouter，後者會將資料傳遞給 %#@provider@ 以執行 %#@model@。這些資料僅用於產生教練的回覆。在你同意之前，不會傳送任何內容。"
+          },
+          "substitutions": {
+            "provider": {
+              "argNum": 1,
+              "formatSpecifier": "@"
+            },
+            "model": {
+              "argNum": 2,
+              "formatSpecifier": "@"
+            }
           }
         }
       }

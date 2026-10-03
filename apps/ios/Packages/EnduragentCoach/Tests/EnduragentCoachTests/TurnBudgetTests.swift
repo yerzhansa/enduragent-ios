@@ -170,7 +170,8 @@ import Testing
 			diagnostics: diagnostics,
 			ladder: ladder,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			reviews: makeReviews(ledger: ledger, clock: clock)
+			reviews: makeReviews(ledger: ledger, clock: clock),
+			authorizeInvocation: { _ in }
 		)
 		return try await runner.run(
 			attempt(request, scope: scope), conversation: conversation, jobs: jobs,

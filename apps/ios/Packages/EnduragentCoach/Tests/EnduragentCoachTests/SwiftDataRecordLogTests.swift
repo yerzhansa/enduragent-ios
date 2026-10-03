@@ -323,7 +323,8 @@ extension SwiftDataSuites {
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [
-				.providerConsent(ProviderConsent(at: Date(timeIntervalSince1970: 899_164_800))),
+				.providerConsent(
+					ProviderConsent(legacyAt: Date(timeIntervalSince1970: 899_164_800))),
 				.turnClaim(
 					TurnClaimBody(
 						chatId: .main, turn: turn, attempt: AttemptID(ulid: ulid),

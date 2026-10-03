@@ -12,7 +12,7 @@ import Testing
 	var memory: Memory {
 		Memory(
 			ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
-			clock: clock)
+			clock: clock, authorizeInvocation: { _ in })
 	}
 
 	var conversation: [ChatMessage] {

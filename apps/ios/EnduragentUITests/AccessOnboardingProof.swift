@@ -11,7 +11,9 @@ final class AccessOnboardingProof: XCTestCase {
 		TutorialHarness.named(app, "starter.useCredits").tap()
 		waitForChoice(app, credits: true, starter: true)
 		capture(app, "credits-chosen")
-		finishOnboarding(app)
+		TutorialHarness.named(app, "starter.start").tap()
+		TutorialHarness.agreeToProviderConsent(
+			app, recipient: (model: "DeepSeek V4.1 Flash", provider: "DeepSeek"))
 		openAccess(app)
 		waitForChoice(app, credits: true)
 		capture(app, "settings-credits")
@@ -62,7 +64,7 @@ final class AccessOnboardingProof: XCTestCase {
 				case "credential-write": Catalog.accessErrorStorageUnavailable
 				case "already-granted": Catalog.onboardingStarterAlreadyGranted
 				case "selection-write": Catalog.reviewSaveFailed
-				case "sign-in-openrouter", "sign-in-credits": Catalog.accessSignInUnavailable
+				case "sign-in-openrouter", "sign-in-credits": Catalog.accessSignInCancelled
 				default: Catalog.creditsErrorUnavailable
 				}
 			TutorialHarness.waitForIdentifier(
@@ -86,17 +88,72 @@ final class AccessOnboardingProof: XCTestCase {
 		}
 	}
 
+	func testEverySignInOutcomeShowsTheSavedChoiceAndHeldTapsJoin() {
+		let scenarios: [(FixtureSignInOutcome, FixtureCredentialWriteFault?)] = [
+			(.success, nil), (.cancel, nil), (.rejectedCallback, nil), (.exchangeFailure, nil),
+			(.held, nil), (.success, .failOnce), (.success, .failSelection),
+		]
+		for (outcome, fault) in scenarios {
+			let app = launch(
+				access: .credits, credits: .alreadyGranted, writeFault: fault, signIn: outcome)
+			waitForChoice(app, credits: true, starter: true)
+			let signIn = TutorialHarness.named(app, "starter.openRouter")
+			signIn.tap()
+			if outcome == .held {
+				TutorialHarness.waitForIdentifier(
+					app, "fixture.signInCount", reading: "1 authorizations")
+				XCTAssertTrue(signIn.isEnabled)
+				signIn.tap()
+				XCTAssertEqual(
+					TutorialHarness.named(app, "fixture.signInCount").label, "1 authorizations")
+				capture(app, "joined-held-sign-in")
+				TutorialHarness.named(app, "fixture.completeSignIn").tap()
+			}
+			let succeeded = fault == nil && (outcome == .success || outcome == .held)
+			if !succeeded {
+				let key =
+					fault != nil
+					? Catalog.reviewSaveFailed
+					: outcome == .cancel
+						? Catalog.accessSignInCancelled : Catalog.accessSignInIncomplete
+				TutorialHarness.waitForIdentifier(
+					app, "starter.credits", reading: phrasebook.say(key))
+			}
+			waitForChoice(app, credits: !succeeded, starter: true)
+			capture(app, "sign-in-\(outcome.rawValue)-\(fault?.rawValue ?? "saved")")
+			TutorialHarness.named(app, "starter.start").tap()
+			TutorialHarness.waitForIdentifier(
+				app, "consent.body",
+				reading: phrasebook.say(
+					Catalog.onboardingConsentBody,
+					["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]))
+			TutorialHarness.waitForIdentifier(
+				app, "consent.modelRequestCount", reading: "0 model requests")
+			capture(app, "sign-in-\(outcome.rawValue)-consent")
+			TutorialHarness.agreeToProviderConsent(app)
+			TutorialHarness.relaunchKeepingStore(app)
+			TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
+			openAccess(app)
+			waitForChoice(app, credits: !succeeded)
+			TutorialHarness.returnToChat(app)
+			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
+			TutorialHarness.assertZeroFixtureRequests(app)
+			app.terminate()
+		}
+	}
+
 	private var phrasebook: CatalogPhrasebook { CatalogPhrasebook(tag: .en) }
 
 	private func launch(
 		access: FixtureAccessMethod, credits: FixtureCreditsOutcome = .ready,
-		writeFault: FixtureCredentialWriteFault? = nil
+		writeFault: FixtureCredentialWriteFault? = nil, signIn: FixtureSignInOutcome = .cancel
 	) -> XCUIApplication {
 		let app = XCUIApplication()
 		TutorialHarness.launch(
 			app,
 			arguments: FixtureArguments(
-				credentialWriteFault: writeFault, accessMethod: access, creditsOutcome: credits))
+				credentialWriteFault: writeFault, accessMethod: access, creditsOutcome: credits,
+				signInOutcome: signIn))
 		TutorialHarness.wait(TutorialHarness.named(app, "notice.continue"))
 		TutorialHarness.named(app, "notice.continue").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "connect.skip"))

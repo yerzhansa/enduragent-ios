@@ -105,13 +105,12 @@ public enum AcceptFailure: Error, Sendable, Equatable {
 }
 
 public struct CoachStatus: Sendable, Equatable {
-	public let providerConsent: ProviderConsent?
 	public var needsProviderConsent: Bool {
 		setup == .needsProviderConsent
 	}
 	public let access: AccessStatus
 	public var setup: SetupState {
-		guard providerConsent?.isCurrent == true else { return .needsProviderConsent }
+		if case .required = access.consent { return .needsProviderConsent }
 		switch access.availability {
 		case .ready: return .ready
 		case .needsSetup: return .needsAccessMethod
@@ -125,9 +124,8 @@ public struct CoachStatus: Sendable, Equatable {
 
 	package init(
 		access: AccessStatus, training: TrainingStatus, preferences: Preferences,
-		providerConsent: ProviderConsent? = nil, resolve: DisplayLocaleResolver
+		resolve: DisplayLocaleResolver
 	) {
-		self.providerConsent = providerConsent
 		self.access = access
 		self.training = training
 		self.language = preferences.language

@@ -91,7 +91,7 @@ struct AccessOnboardingTests {
 				case "credential-write": Catalog.accessErrorStorageUnavailable
 				case "already-granted": Catalog.onboardingStarterAlreadyGranted
 				case "selection-write": Catalog.reviewSaveFailed
-				case "sign-in-openrouter", "sign-in-credits": Catalog.accessSignInUnavailable
+				case "sign-in-openrouter", "sign-in-credits": Catalog.accessSignInCancelled
 				default: Catalog.creditsErrorUnavailable
 				}
 			#expect(model.starterResolved)

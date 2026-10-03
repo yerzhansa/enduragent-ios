@@ -4,7 +4,8 @@ extension Coach {
 	public func changeModelAccess(_ change: ModelAccessChange) async
 		-> CredentialOutcome<AccessSummary>
 	{
-		let outcome = await vault.change(change, builtInModel: builtInModel)
+		let outcome = await vault.change(
+			change, builtInModel: builtInModel, consent: await preferences.consent())
 		await publishStatus()
 		return outcome
 	}
@@ -130,7 +131,7 @@ extension Coach {
 
 	private func statusSnapshot() async -> CoachStatus {
 		let consent = await preferences.consent()
-		let access = await vault.accessStatus(builtInModel: builtInModel)
+		let access = await vault.accessStatus(builtInModel: builtInModel, consent: consent)
 		let preferences = await preferences.load()
 		let stored = await vault.storedTrainingStatus()
 		let training: TrainingStatus
@@ -148,7 +149,7 @@ extension Coach {
 			training = stored
 		}
 		return CoachStatus(
-			access: access, training: training, preferences: preferences, providerConsent: consent,
+			access: access, training: training, preferences: preferences,
 			resolve: resolveDisplayLocale)
 	}
 
@@ -161,11 +162,6 @@ extension Coach {
 
 	public func languagePreference() async -> LanguagePreference {
 		await preferences.load().language
-	}
-
-	public func recordConsent() async throws(PreferenceWriteFailure) {
-		try await preferences.recordConsent()
-		await publishStatus()
 	}
 
 	public func setLanguage(_ preference: LanguagePreference) async throws(PreferenceWriteFailure) {

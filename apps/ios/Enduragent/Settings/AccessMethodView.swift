@@ -28,8 +28,10 @@ struct AccessMethodView: View {
 				.accessibilityAddTraits(
 					model.selectedAccessMethod == .openRouterAccount ? .isSelected : []
 				)
-				.disabled(model.isChangingAccess)
 			}
+			#if DEBUG
+				FixtureSignInDebugView(model: model)
+			#endif
 			if let notice = model.accessNotice {
 				Text(notice.sentence(in: model.displayLocale))
 					.accessibilityIdentifier("access.notice")

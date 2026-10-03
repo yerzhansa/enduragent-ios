@@ -11,8 +11,17 @@ struct ProviderConsentView: View {
 					Text(model.phrasebook.say(Catalog.onboardingConsentTitle, [:]))
 						.font(.title.bold())
 						.accessibilityAddTraits(.isHeader)
-					Text(model.phrasebook.say(Catalog.onboardingConsentBody, [:]))
+					if let challenge = model.consentChallenge {
+						Text(
+							model.phrasebook.say(
+								Catalog.onboardingConsentBody,
+								[
+									"model": challenge.target.entry.details.displayName,
+									"provider": challenge.target.entry.details.provider.name,
+								])
+						)
 						.accessibilityIdentifier("consent.body")
+					}
 					if model.consentNotSaved {
 						Text(model.phrasebook.say(Catalog.onboardingConsentSaveFailed, [:]))
 							.foregroundStyle(.red)
@@ -30,10 +39,13 @@ struct ProviderConsentView: View {
 						.buttonStyle(.borderedProminent)
 						.accessibilityIdentifier("consent.accept")
 						Button(model.phrasebook.say(Catalog.onboardingConsentDecline, [:])) {
-							model.declineConsent()
+							Task { await model.declineConsent() }
 						}
 						.accessibilityIdentifier("consent.decline")
 					}
+					#if DEBUG
+						FixtureConsentDebugView(model: model)
+					#endif
 				}
 				.disabled(model.isRecordingConsent)
 				.padding(24)

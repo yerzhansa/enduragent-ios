@@ -2,7 +2,9 @@ import Foundation
 
 extension TurnRunner {
 	var modelCall: ModelCall {
-		ModelCall(transport: transport, diagnostics: diagnostics, watchdogSleep: watchdogSleep)
+		ModelCall(
+			transport: transport, diagnostics: diagnostics, watchdogSleep: watchdogSleep,
+			authorizeInvocation: authorizeInvocation)
 	}
 }
 
@@ -11,10 +13,13 @@ struct ModelCall: Sendable {
 	let diagnostics: DiagnosticsLog
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
 
+	let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void
+
 	func run(
 		request: CompletionRequest,
 		progress: @escaping AttemptProgressSink = { _ in }
 	) async throws -> GenerateStep {
+		try await authorizeInvocation(request)
 		let watchdog = ChatWatchdog(sleep: watchdogSleep)
 		await watchdog.arm()
 		do {

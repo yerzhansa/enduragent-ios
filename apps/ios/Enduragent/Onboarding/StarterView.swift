@@ -31,7 +31,10 @@ struct StarterView: View {
 				.accessibilityAddTraits(
 					model.selectedAccessMethod == .openRouterAccount ? .isSelected : []
 				)
-				.disabled(!model.starterResolved || model.isChangingAccess)
+				.disabled(!model.starterResolved)
+				#if DEBUG
+					FixtureSignInDebugView(model: model)
+				#endif
 				if model.starterResolved {
 					Button(model.phrasebook.say(Catalog.onboardingStarterStart, [:])) {
 						Task { await model.startChatting() }

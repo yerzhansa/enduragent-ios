@@ -149,7 +149,8 @@ extension RetryLadderTests {
 			sport: .cycling,
 			ports: CoachPorts(
 				records: RecordStore(log: records ?? store), secrets: keyedSecrets(),
-				models: ModelService { _ in model }, training: .fake { _, _ in intervals },
+				models: ModelService(catalog: .fixture) { _ in model },
+				training: .fake { _, _ in intervals },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
 			builtInModel: testModel, displayLocale: testDisplayLocale,
 			coalescing: CoalescingPolicy(window: .zero))

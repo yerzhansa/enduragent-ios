@@ -25,6 +25,8 @@ struct AccessSettingsTests {
 			#expect(model.accessNotice?.sentence(in: model.displayLocale) == "200 credits")
 			#expect(try fixture.secrets.creditsAccount()?.key == FirstWeekFixture.creditsKey)
 			#expect(fixture.credits.calls == [.grant])
+			await model.acceptConsent()
+			try await model.waitForStatus { !$0.needsProviderConsent }
 			#expect(
 				try fixture.secrets.openRouterAccountKey(at: .legacy)
 					== FirstWeekFixture.openRouterKey)
@@ -74,7 +76,7 @@ struct AccessSettingsTests {
 			}
 			if fault == "sign-in" {
 				#expect(await fixture.openRouterAuthorizer.requests.count == 1)
-				#expect(model.accessNotice?.key == Catalog.accessSignInUnavailable)
+				#expect(model.accessNotice?.key == Catalog.accessSignInCancelled)
 			}
 			#expect(model.status.access == previous)
 			#expect(model.selectedAccessMethod == .openRouterAccount)
