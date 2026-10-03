@@ -101,7 +101,8 @@ package enum StoredIntervalsCredential: Codable, Equatable, Sendable {
 
 package enum StoredAccessSelection: Codable, Equatable, Sendable {
 	case credits
-	case openRouterAccount(model: String, generation: UUID? = nil)
+	case openRouterAccount(
+		model: String, generation: UUID? = nil, details: StoredModelDetails? = nil)
 
 	package init(_ reference: SavedAccessReference) {
 		switch reference.value {
@@ -112,19 +113,43 @@ package enum StoredAccessSelection: Codable, Equatable, Sendable {
 			case .legacy: generation = nil
 			case .generation(let id): generation = id
 			}
-			self = .openRouterAccount(model: choice.model.rawValue, generation: generation)
+			self = .openRouterAccount(
+				model: choice.model.rawValue, generation: generation,
+				details: choice.details.map(StoredModelDetails.init))
 		}
 	}
 
-	package func selection() -> SavedAccessReference {
+	package func selection() throws -> SavedAccessReference {
 		switch self {
 		case .credits: .init(.credits)
-		case .openRouterAccount(let model, let generation):
-			.init(
+		case .openRouterAccount(let model, let generation, let details):
+			try .init(
 				.openRouter(
 					SavedOpenRouterReference(
 						credential: generation.map(OpenRouterCredentialRef.generation) ?? .legacy,
-						model: ModelID(rawValue: model))))
+						model: ModelID(rawValue: model), details: details?.validated())))
+		}
+	}
+}
+
+package struct StoredModelDetails: Codable, Equatable, Sendable {
+	let displayName: String
+	let providerName: String
+	let routingSlug: String
+
+	init(_ details: ModelDetails) {
+		self.displayName = details.displayName
+		self.providerName = details.provider.name
+		self.routingSlug = details.provider.routingSlug
+	}
+
+	func validated() throws -> ModelDetails {
+		do {
+			return try ModelDetails(
+				displayName: displayName,
+				provider: NamedProvider(name: providerName, routingSlug: routingSlug))
+		} catch {
+			throw KeychainStoreError.keychain(errSecDecode)
 		}
 	}
 }

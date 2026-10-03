@@ -163,6 +163,14 @@ import EnduragentCoachFixtures
 						)
 						continue
 					}
+					if file == sources.appendingPathComponent("Transport/ModelCatalog.swift") {
+						#expect(
+							declarations.map(\.description) == [
+								"struct ModelCatalog", "let revision", "let entries",
+								"let orderedEntries", "let bundled",
+							])
+						continue
+					}
 					#expect(
 						declarations.isEmpty,
 						"Public declarations in \(folder)/\(file.lastPathComponent): \(declarations)"

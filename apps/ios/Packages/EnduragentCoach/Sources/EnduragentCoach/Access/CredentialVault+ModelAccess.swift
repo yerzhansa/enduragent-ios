@@ -17,10 +17,11 @@ extension CredentialVault {
 				model: builtInModel)
 		case .openRouter(let reference)?:
 			let key = try persistedOpenRouterKey(at: reference.credential)
+			let entry = try savedEntry(reference)
 			return ResolvedAccess(
 				credential: ProviderCredential(
 					secret: key.value.secret.value, method: .openRouterAccount),
-				model: reference.model)
+				model: entry.id, provider: entry.details.provider)
 		}
 	}
 
@@ -32,7 +33,7 @@ extension CredentialVault {
 		} catch {
 			state = .unreadable(error)
 		}
-		return AccessStatus(state: state, builtInModel: builtInModel)
+		return AccessStatus(state: state, builtInModel: builtInModel, catalog: catalog)
 	}
 
 	package func change(_ change: ModelAccessChange, builtInModel: ModelID)
@@ -42,8 +43,10 @@ extension CredentialVault {
 		let saved: SavedAccessReference?
 		do {
 			saved = try keychain(.accessSelection) { try store.accessSelection() }
-			previous = AccessStatus(state: accessState(for: saved), builtInModel: builtInModel)
-				.selection.map { AccessSummary(selection: $0) }
+			previous = AccessStatus(
+				state: accessState(for: saved), builtInModel: builtInModel, catalog: catalog
+			)
+			.selection.map { AccessSummary(selection: $0) }
 		} catch {
 			return .failedPreviousKept(.secureStorage(error), previous: nil)
 		}
@@ -59,8 +62,28 @@ extension CredentialVault {
 				return .replaced(AccessSummary(selection: .credits), authority: nil)
 			case .signInToOpenRouter:
 				return .failedPreviousKept(.signIn(.presentationUnavailable), previous: previous)
-			case .selectOpenRouterModel:
-				return .refused(.modelNotInCatalog)
+			case .selectOpenRouterModel(let id):
+				let entry: ModelCatalogEntry
+				do {
+					entry = try catalog.choice(id)
+				} catch {
+					return .refused(.modelNotInCatalog)
+				}
+				guard case .openRouter(let reference) = saved?.value else {
+					throw AccessUnavailable.notConfigured(.openRouterAccount)
+				}
+				let key = try persistedOpenRouterKey(at: reference.credential)
+				let choice = OpenRouterChoice(credential: key, entry: entry)
+				try keychain(.accessSelection) {
+					try store.storeAccessSelection(
+						.init(
+							.openRouter(
+								SavedOpenRouterReference(
+									credential: choice.credential, model: choice.model,
+									details: entry.details))))
+				}
+				return .replaced(
+					AccessSummary(selection: .openRouterAccount(choice)), authority: nil)
 			case .disconnectOpenRouter:
 				let reference: OpenRouterCredentialRef
 				if case .openRouter(let selected) = saved?.value {
@@ -91,10 +114,21 @@ extension CredentialVault {
 		case .openRouter(let reference)?:
 			do {
 				let key = try persistedOpenRouterKey(at: reference.credential)
-				return .openRouter(OpenRouterChoice(credential: key, model: reference.model))
+				return .openRouter(
+					OpenRouterChoice(credential: key, entry: try savedEntry(reference)))
 			} catch {
 				return .unresolvedOpenRouter(reference, error)
 			}
+		}
+	}
+
+	private func savedEntry(_ reference: SavedOpenRouterReference) throws(AccessUnavailable)
+		-> ModelCatalogEntry
+	{
+		do {
+			return try catalog.choice(reference.model, retaining: reference.details)
+		} catch {
+			throw .malformedStoredCredential(.accessSelection)
 		}
 	}
 

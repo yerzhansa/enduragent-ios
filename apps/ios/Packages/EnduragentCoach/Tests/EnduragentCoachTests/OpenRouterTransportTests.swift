@@ -5,6 +5,38 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
+	@Test func catalogRecipientRestrictsHTTPRouting() async throws {
+		let provider = try NamedProvider(name: "Published Host", routingSlug: "published-host")
+		let request = CompletionRequest(
+			access: ResolvedAccess(
+				credential: ProviderCredential(
+					secret: "synthetic-account", method: .openRouterAccount),
+				model: ModelID(rawValue: "author/model"), provider: provider),
+			attempt: AttemptID(ulid: fixedUlid(901)), charge: .chatAttempt,
+			messages: [], tools: [], deadline: .seconds(30))
+		let transport = try OpenRouterStub.transport { received in
+			do {
+				let body = try #require(openRouterHTTPBody(from: received))
+				let object = try JSONValue.parse(String(decoding: body, as: UTF8.self)).objectFields
+				#expect(object["model"] == .string("author/model"))
+				#expect(
+					object["provider"]
+						== .object([
+							"only": .array([.string("published-host")]),
+							"allow_fallbacks": .bool(false),
+						]))
+			} catch {
+				Issue.record(error)
+			}
+			return .reply(
+				.sse(
+					#"data: {"choices":[{"delta":{"content":"Host answered."},"finish_reason":"stop"}]}"#
+						+ "\ndata: [DONE]\n"))
+		}
+		let events = try await collect(transport.stream(request))
+		#expect(textDeltas(in: events) == ["Host answered."])
+	}
+
 	@Test(arguments: ["\n", "\r\n", "\r"], [false, true])
 	func streamKeepsUnicodeSeparators(lineEnding: String, fragmented: Bool) async throws {
 		let text = "Ride\u{2028}recover\u{2029}repeat\u{0085}rest"
@@ -208,7 +240,7 @@ import Testing
 		#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
 		#expect(request.value(forHTTPHeaderField: "Referer") == nil)
 		#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
-		let bodyData = try #require(httpBody(from: request))
+		let bodyData = try #require(openRouterHTTPBody(from: request))
 		let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
 		#expect(body?["temperature"] == nil)
 		#expect(body?["stream"] as? Bool == true)
@@ -351,27 +383,4 @@ private func toolCalls(in events: [TransportEvent]) -> [WireToolCall] {
 		}
 		return nil
 	}
-}
-
-private func httpBody(from request: URLRequest) -> Data? {
-	if let body = request.httpBody {
-		return body
-	}
-	guard let stream = request.httpBodyStream else {
-		return nil
-	}
-	stream.open()
-	defer { stream.close() }
-	let bufferSize = 1024
-	let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
-	defer { buffer.deallocate() }
-	var data = Data()
-	while stream.hasBytesAvailable {
-		let read = stream.read(buffer, maxLength: bufferSize)
-		if read <= 0 {
-			break
-		}
-		data.append(buffer, count: read)
-	}
-	return data
 }

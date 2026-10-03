@@ -19,6 +19,7 @@ let package = Package(
 			resources: [
 				.copy("Resources/Phrasebook.json"),
 				.copy("Loop/PromptResources"),
+				.copy("Transport/BundledModels.json"),
 			]
 		),
 		.target(name: "EnduragentCoachFixtures", dependencies: ["EnduragentCoach"]),
