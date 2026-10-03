@@ -77,7 +77,9 @@ final class ShellModel {
 		if case .replaced? = trainingSettings.receipt { return true }
 		return false
 	}
-	var starterLine: String? { onboarding.starterNotice?.sentence(in: displayLocale) }
+	var starterLine: String? {
+		(accessSettings.notice ?? onboarding.starterNotice)?.sentence(in: displayLocale)
+	}
 	var starterResolved: Bool { onboarding.starterResolved }
 	var consentNotSaved: Bool { onboarding.consentNotSaved }
 	var isRecordingConsent: Bool { onboarding.isRecordingConsent }
