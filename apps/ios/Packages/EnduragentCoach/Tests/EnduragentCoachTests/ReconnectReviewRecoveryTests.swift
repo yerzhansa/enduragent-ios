@@ -162,6 +162,36 @@ extension SwiftDataSuites {
 			await reopened.lifecycle(.willTerminate)
 		}
 
+		@Test func checkAgainRetriesAfterTransientIdentityFailure() async throws {
+			let coach = await fixture.open()
+			let pending = try await unknownSave(on: coach)
+			let aCalls = fixture.peer.athleteA.calls
+			let bCalls = fixture.peer.athleteB.calls
+			let bReads = fixture.peer.athleteB.profileReadCount
+			fixture.peer.athleteA.setProfileOutcome(.failure(URLError(.notConnectedToInternet)))
+			let failed = await coach.decide(.checkAgain(pending.ref), in: .main)
+			#expect(failed.notice?.key == Catalog.reviewWriteReadFailed)
+			let retry = try #require(await coach.currentSnapshot(.main)?.review)
+			#expect(retry.controls == .checkAgain(retry.ref))
+			#expect(retry.notice?.key == Catalog.reviewWriteReadFailed)
+			#expect(fixture.peer.athleteA.calls == aCalls)
+			#expect(fixture.peer.athleteB.calls == bCalls)
+			fixture.peer.athleteA.setProfileOutcome(
+				.success(AthleteProfile(id: "i1001", name: "Fixture A", ftp: 220)))
+			let reads = fixture.peer.athleteA.profileReadCount
+			#expect(await coach.decide(.checkAgain(retry.ref), in: .main) == confirmed)
+			#expect(fixture.peer.athleteA.profileReadCount > reads)
+			#expect(
+				Array(fixture.peer.athleteA.calls.dropFirst(aCalls.count))
+					== [.events(oldest: "1998-06-14", newest: "1998-06-14")])
+			#expect(fixture.peer.athleteA.events.count == 1)
+			#expect(fixture.peer.athleteA.calls.filter(\.isWrite).count == 1)
+			#expect(fixture.peer.athleteB.calls == bCalls)
+			#expect(fixture.peer.athleteB.profileReadCount == bReads)
+			#expect(await coach.currentSnapshot(.main)?.review == nil)
+			await coach.lifecycle(.willTerminate)
+		}
+
 		@Test(arguments: [false, true])
 		func cancelUnderBReleasesImmediatelyWithoutRequests(offline: Bool) async throws {
 			let coach = await fixture.open()
