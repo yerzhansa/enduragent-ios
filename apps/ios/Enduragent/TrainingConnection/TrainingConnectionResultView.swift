@@ -8,7 +8,7 @@ struct TrainingConnectionResultView: View {
 
 	var body: some View {
 		if let saved = model.trainingSettings.receipt?.saveNotice {
-			Text(saved.sentence(in: model.phrasebook))
+			Text(saved.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("\(identifierPrefix).saved")
 		}
 		if let summary = model.connected {
@@ -30,7 +30,7 @@ struct TrainingConnectionResultView: View {
 			}
 		}
 		if let notice = training.notice {
-			Text(notice.sentence(in: model.phrasebook))
+			Text(notice.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("\(identifierPrefix).notice")
 		}
 		if let action = training.action {
@@ -41,12 +41,12 @@ struct TrainingConnectionResultView: View {
 		}
 	}
 
-	private var training: TrainingStatus { model.status?.training ?? .unconnected }
+	private var training: TrainingStatus { model.status.training }
 
 	@ViewBuilder
 	private func metric(_ value: Double?, title: CatalogKey, name: String) -> some View {
 		if let value {
-			Text(model.phrasebook.say(title, ["value": WellnessDay.formattedNumber(value)]))
+			Text(model.wellnessLine(title, value: value))
 				.accessibilityIdentifier("\(identifierPrefix).\(name)")
 		}
 	}

@@ -37,3 +37,9 @@ struct ConnectView: View {
 		}
 	}
 }
+
+extension ShellModel {
+	func wellnessLine(_ key: CatalogKey, value: Double?) -> String {
+		displayLocale.say(key, ["value": value.map { .decimal($0, .whole) } ?? "—"])
+	}
+}

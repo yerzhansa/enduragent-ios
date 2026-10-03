@@ -22,8 +22,11 @@ import Testing
 		let coach = await coach()
 		let review = try await propose(on: coach)
 		#expect(review.controls == .none)
-		#expect(review.cards.map { $0.name.sentence(in: phrasebook) } == ["Endurance"])
-		#expect(review.cards.first?.lines(in: LanguageTag.en.phrasebook).first == "Warmup")
+		#expect(
+			review.cards.map { $0.name.sentence(in: displayLocale(phrasebook.tag)) } == [
+				"Endurance"
+			])
+		#expect(review.cards.first?.lines(in: displayLocale()).first == "Warmup")
 
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 
@@ -80,7 +83,7 @@ import Testing
 		#expect(await coach.decide(.approve(fresh), in: .main) == .staleControl)
 		#expect(ada.calls.allSatisfy { !$0.isWrite })
 		#expect(
-			ReviewOutcome.staleControl.notice?.sentence(in: phrasebook)
+			ReviewOutcome.staleControl.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "That proposal expired — ask me again and I'll re-propose.")
 	}
 
@@ -172,7 +175,7 @@ import Testing
 
 		#expect(blocked == .blocked(.cannotVerify))
 		#expect(
-			blocked.notice?.sentence(in: phrasebook)
+			blocked.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "Couldn't check your intervals.icu connection, so nothing was changed. Try again in a moment."
 		)
 		#expect(await coach.currentSnapshot(.main)?.review?.ref.set == token.ref.set)
@@ -201,7 +204,7 @@ import Testing
 					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
 		)
 		#expect(
-			outcome.notice?.sentence(in: phrasebook)
+			outcome.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "This workout may have been saved. Check the calendar before continuing."
 		)
 		#expect(
@@ -229,7 +232,7 @@ import Testing
 					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
 		)
 		#expect(
-			outcome.notice?.sentence(in: phrasebook)
+			outcome.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "This workout may have been saved. Check the calendar before continuing."
 		)
 		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
@@ -290,7 +293,7 @@ import Testing
 		]
 		for (outcome, sentence) in rows {
 			let notice = outcome.notice
-			#expect(notice?.sentence(in: phrasebook) == sentence, "\(outcome)")
+			#expect(notice?.sentence(in: displayLocale(phrasebook.tag)) == sentence, "\(outcome)")
 			#expect(notice?.action == nil)
 		}
 	}
@@ -309,7 +312,7 @@ import Testing
 					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
 					clock: clock),
 				builtInModel: testModel,
-				deviceLanguage: .en,
+				displayLocale: testDisplayLocale,
 				coalescing: quickWindow
 			))
 	}

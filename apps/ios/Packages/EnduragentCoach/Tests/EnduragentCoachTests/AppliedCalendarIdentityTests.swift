@@ -37,7 +37,7 @@ extension DurableCalendarWriteTests {
 					models: ModelService { _ in model },
 					training: .fake { _, _ in fixture.client }, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
-				builtInModel: testModel, deviceLanguage: .en,
+				builtInModel: testModel, displayLocale: testDisplayLocale,
 				coalescing: CoalescingPolicy(window: .zero)))
 		let turn = try #require(
 			try await coach.send(draft("Add morning and evening workouts"), to: .main).acceptedTurn)

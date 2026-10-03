@@ -7,7 +7,7 @@ import Testing
 extension FixtureLaunchTests {
 	@Test func onboardingShowsTheAIProviderNoticeBeforeChat() async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.notice))
 		model.continueNotice()
@@ -16,7 +16,7 @@ extension FixtureLaunchTests {
 		await model.startChatting()
 		#expect(model.route == .onboarding(.consent))
 		#expect(model.chat == nil)
-		#expect(model.status?.setup == .needsProviderConsent)
+		#expect(model.status.setup == .needsProviderConsent)
 		#expect(try await services.coach.observedStatus().providerConsent == nil)
 		model.declineConsent()
 		#expect(model.route == .onboarding(.consentDeferred))
@@ -29,7 +29,7 @@ extension FixtureLaunchTests {
 			try await services.coach.observedStatus().providerConsent?.version
 				== ProviderConsent.currentVersion
 		)
-		#expect(model.status?.setup == .ready)
+		#expect(model.status.setup == .ready)
 		try await observed(model)
 		#expect(model.chat?.chat == .main)
 	}
@@ -38,7 +38,9 @@ extension FixtureLaunchTests {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		do {
 			let (services, kept) = try await relaunch(.keep)
-			let launched = await AppLaunch.open(systemLanguages: [language.rawValue]) { _ in
+			let launched = await AppLaunch.open(
+				displayLocale: testLocaleResolver(languages: [language.rawValue])
+			) { _ in
 				(services, kept)
 			}
 			guard case .ready(let model) = launched else {
@@ -53,8 +55,8 @@ extension FixtureLaunchTests {
 			#expect(model.route != .chat)
 		}
 		let (next, nextDefaults) = try await relaunch(.keep)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: next, language: language, defaults: nextDefaults))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: next, defaults: nextDefaults))
 		await reopened.appear()
 		#expect(reopened.route == .onboarding(.consent))
 		#expect(try await next.coach.observedStatus().providerConsent == nil)
@@ -64,7 +66,7 @@ extension FixtureLaunchTests {
 	@Test(arguments: [false, true])
 	func consentWriteFailureKeepsTheNoticeAndCanBeRetried(deferred: Bool) async throws {
 		let services = try services()
-		let model = model(services)
+		let model = await model(services)
 		await model.startChatting()
 		if deferred {
 			model.declineConsent()
@@ -89,7 +91,7 @@ extension FixtureLaunchTests {
 	@Test func existingInstallCanDeferConsentWithoutRepeatingStarterCredits() async throws {
 		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
 		let (services, _) = try await relaunch(.keep)
-		let model = model(services)
+		let model = await model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
 		model.declineConsent()
@@ -137,7 +139,7 @@ extension FixtureLaunchTests {
 		#expect(failure.notice.key == Catalog.accessErrorProviderConsentRequired)
 		#expect(failure.notice.action == .tryAgain(refused.id))
 		let (services, _) = try await relaunch(.keep)
-		let model = model(services)
+		let model = await model(services)
 		await model.appear()
 		#expect(model.route == .onboarding(.consent))
 		#expect(try await services.coach.observedStatus().providerConsent == nil)

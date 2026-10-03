@@ -72,7 +72,7 @@ struct ChatView: View {
 							CreditsDebugView(
 								coach: model.services.coach,
 								deviceCheck: model.environment.deviceCheck,
-								phrasebook: model.phrasebook)
+								displayLocale: model.displayLocale)
 						case .debugRecords:
 							RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 						case .debugLanguage:

@@ -35,9 +35,7 @@ import Testing
 			context: "Ada rides on Saturdays.",
 			evidence: EvidenceBlock(wellnessLine: "Fitness 55.2 · Fatigue 42.1 · Form +13.1"),
 			timeZoneName: "Europe/Amsterdam",
-			replyLanguage: PromptAssembly.replyLanguageSection(
-				.automatic(.en)
-			)
+			displayLocale: testDisplayLocale(.automatic)
 		)
 		#expect(section.contains(PromptAssembly.athleteDataOpen))
 		#expect(section.contains("Ada rides on Saturdays."))

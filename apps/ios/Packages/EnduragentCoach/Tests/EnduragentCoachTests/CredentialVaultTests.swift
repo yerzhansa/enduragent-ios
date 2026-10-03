@@ -75,7 +75,7 @@ import Testing
 					training: training, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel,
-				deviceLanguage: .en,
+				displayLocale: testDisplayLocale,
 				coalescing: quickWindow
 			))
 	}

@@ -27,6 +27,7 @@ import Testing
 		read.release()
 		#expect(try await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
 		#expect(await coach.languagePreference() == .fixed(.es))
+		#expect(try await coach.observedStatus().displayLocale.language == .es)
 		try await coach.setLanguage(.automatic)
 		let reopened = await makeCoach(transport: FakeModelTransport(), store: store)
 		#expect(await reopened.languagePreference() == .automatic)
@@ -124,6 +125,7 @@ import Testing
 		let snapshots = await observing.value
 		#expect(try await snapshots.status { $0.language == .fixed(.es) }?.language == .fixed(.es))
 		#expect(await coach.languagePreference() == .fixed(.es))
+		#expect(try await coach.observedStatus().displayLocale.language == .es)
 		#expect(store.subscriptions == 1)
 	}
 

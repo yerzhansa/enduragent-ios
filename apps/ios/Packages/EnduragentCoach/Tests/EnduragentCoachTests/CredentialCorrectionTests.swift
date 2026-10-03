@@ -124,7 +124,7 @@ import Testing
 				== (unavailable
 					? Catalog.accessErrorStorageUnavailable : Catalog.connectErrorStorageMalformed))
 		#expect(
-			!notice.sentence(in: CatalogPhrasebook(tag: .en)).contains("fixture-malformed-secret"))
+			!notice.sentence(in: status.displayLocale).contains("fixture-malformed-secret"))
 		let failedTurn = try #require(await coach.currentSnapshot(.main)?.turns.last)
 		backing.unavailable = false
 		if !unavailable {

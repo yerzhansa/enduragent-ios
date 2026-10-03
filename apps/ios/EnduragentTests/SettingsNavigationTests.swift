@@ -8,7 +8,7 @@ extension FixtureLaunchTests {
 	func restoredSlashDraftShowsCommandsAfterSettingsRelaunch(connected: Bool) async throws {
 		let draft: Draft
 		do {
-			let first = model(try services())
+			let first = await model(try services())
 			first.continueNotice()
 			if connected {
 				first.connectKey = "fixture"
@@ -26,8 +26,8 @@ extension FixtureLaunchTests {
 			draft = first.draft
 		}
 		let (kept, keptDefaults) = try await relaunch(.keep)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: kept, defaults: keptDefaults))
 		try await observed(reopened)
 		#expect(reopened.route == .chat)
 		#expect(reopened.navigation.isEmpty)
@@ -46,7 +46,7 @@ extension FixtureLaunchTests {
 		let training: TrainingStatus
 		do {
 			let services = try services()
-			let first = model(services)
+			let first = await model(services)
 			first.continueNotice()
 			if connected {
 				first.connectKey = "fixture"
@@ -71,8 +71,8 @@ extension FixtureLaunchTests {
 			#expect(try await services.coach.observedStatus().training == training)
 		}
 		let (kept, keptDefaults) = try await relaunch(.keep)
-		let reopened = fixtureModel(
-			environment: AppEnvironment(services: kept, language: language, defaults: keptDefaults))
+		let reopened = await fixtureModel(
+			environment: AppEnvironment(services: kept, defaults: keptDefaults))
 		try await observed(reopened)
 		#expect(reopened.navigation.isEmpty)
 		#expect(reopened.chat?.turns == snapshot.turns)
@@ -111,7 +111,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func newConversationAfterSettingsArchivesAndKeepsCommandDiscovery() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.draft.text = TutorialCopy.weekQuestion
 		await model.send()
@@ -143,7 +143,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func creditsFromModelAccessReturnsToSettingsAfterOneBack() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)
 		model.open(.credits)
@@ -160,7 +160,7 @@ extension FixtureLaunchTests {
 	])
 	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws
 	{
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)
 		model.open(.debug)

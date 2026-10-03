@@ -8,6 +8,7 @@ final class AppLifecycle {
 
 	private let environment: AppEnvironment
 	private var termination: (any NSObjectProtocol)?
+	private var localeChange: (any NSObjectProtocol)?
 
 	init(environment: AppEnvironment) {
 		self.environment = environment
@@ -16,9 +17,17 @@ final class AppLifecycle {
 		) { [weak self] _ in
 			MainActor.assumeIsolated { self?.terminate() }
 		}
+		localeChange = NotificationCenter.default.addObserver(
+			forName: NSLocale.currentLocaleDidChangeNotification, object: nil, queue: nil
+		) { [weak self] _ in
+			Task { @MainActor in
+				await self?.environment.services.coach.refreshDisplayLocale()
+			}
+		}
 	}
 
 	isolated deinit {
+		if let localeChange { NotificationCenter.default.removeObserver(localeChange) }
 		if let termination {
 			NotificationCenter.default.removeObserver(termination)
 		}

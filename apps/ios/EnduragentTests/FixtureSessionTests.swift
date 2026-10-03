@@ -29,22 +29,27 @@ extension FixtureLaunchTests {
 	) async throws {
 		do {
 			let services = try fixtureServices(launch, defaults: defaults, language: .fr)
-			let model = fixtureModel(
-				environment: AppEnvironment(services: services, language: .fr, defaults: defaults))
+			let model = await fixtureModel(
+				environment: AppEnvironment(services: services, defaults: defaults))
 			await model.agreeAndStartChatting()
 			try await observed(model)
 			await model.chooseLanguage(.fixed(.de))
 			try await model.waitForStatus { $0.language == .fixed(.de) }
 			await openLanguage(model, fromSettings: fromSettings)
 			#expect(model.showLanguage)
+			#expect(model.draft.text.isEmpty)
 			#expect(model.chat?.turns.isEmpty == true)
 			await model.chooseLanguage(preference)
 			try await model.waitForStatus { $0.language == preference }
 			#expect(model.languagePreference == preference)
 			#expect(model.phrasebook.say(Catalog.chatViewTitle) == "Conversation")
+			#expect(
+				model.phrasebook.say(Catalog.chatComposerMessagePlaceholder) == "Écris à ton coach")
 		}
 		let (kept, keptDefaults) = try await relaunch(.keep, language: .fr)
-		let launched = await AppLaunch.open(systemLanguages: ["ru", "fr", "en"]) { _ in
+		let launched = await AppLaunch.open(
+			displayLocale: testLocaleResolver(languages: ["ru", "fr", "en"])
+		) { _ in
 			(kept, keptDefaults)
 		}
 		guard case .ready(let opened) = launched else {
@@ -67,7 +72,7 @@ extension FixtureLaunchTests {
 			await reopened.send()
 			_ = try await settledTurn(reopened, at: index)
 			let instruction = try #require(kept.fixtureTransport?.lastReplyLanguage)
-			#expect(instruction.hasPrefix(frenchInstruction(for: preference)))
+			#expect(instruction.hasPrefix("Reply in French (Français)."))
 			#expect(reopened.languagePreference == preference)
 		}
 	}
@@ -78,8 +83,8 @@ extension FixtureLaunchTests {
 	) async throws {
 		do {
 			let services = try fixtureServices(launch, defaults: defaults, language: .fr)
-			let model = fixtureModel(
-				environment: AppEnvironment(services: services, language: .fr, defaults: defaults))
+			let model = await fixtureModel(
+				environment: AppEnvironment(services: services, defaults: defaults))
 			await model.agreeAndStartChatting()
 			try await observed(model)
 			await model.chooseLanguage(.fixed(.en))
@@ -99,12 +104,14 @@ extension FixtureLaunchTests {
 			_ = try await settledTurn(model)
 			#expect(
 				services.fixtureTransport?.lastReplyLanguage?.hasPrefix(
-					"The athlete chose English (English).") == true)
+					"Reply in English (English).") == true)
 			await openLanguage(model, fromSettings: fromSettings)
 			#expect(model.languageNotSavedLine == nil)
 		}
 		let (kept, keptDefaults) = try await relaunch(.keep, language: .fr)
-		let launched = await AppLaunch.open(systemLanguages: ["ru", "fr", "en"]) { _ in
+		let launched = await AppLaunch.open(
+			displayLocale: testLocaleResolver(languages: ["ru", "fr", "en"])
+		) { _ in
 			(kept, keptDefaults)
 		}
 		guard case .ready(let opened) = launched else {
@@ -121,7 +128,7 @@ extension FixtureLaunchTests {
 		_ = try await settledTurn(reopened, at: 1)
 		#expect(
 			kept.fixtureTransport?.lastReplyLanguage?.hasPrefix(
-				"The athlete chose English (English).") == true)
+				"Reply in English (English).") == true)
 	}
 
 	private func openLanguage(_ model: ShellModel, fromSettings: Bool) async {
@@ -135,22 +142,16 @@ extension FixtureLaunchTests {
 		}
 	}
 
-	private func frenchInstruction(for preference: LanguagePreference) -> String {
-		preference == .automatic
-			? "Automatic follows the iPhone's preferred languages. Reply in French (Français)."
-			: "The athlete chose French (Français)."
-	}
-
 	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
 		do {
 			let services = try services()
-			let model = model(services)
+			let model = await model(services)
 			await model.agreeAndStartChatting()
 			let stored = try #require(model.status).session
 			#expect(stored.text(for: .contextWindowOverride) == "")
 			try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
 			try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
-			#expect(model.status?.session.contextWindowOverride?.tokens == 64_000)
+			#expect(model.status.session.contextWindowOverride?.tokens == 64_000)
 		}
 		let (kept, _) = try await relaunch(.keep)
 		#expect(
@@ -163,16 +164,16 @@ extension FixtureLaunchTests {
 		evening.clock = "1998-06-15T18:00:00Z"
 		let earlier: TurnView
 		do {
-			let first = model(try fixtureServices(evening, defaults: defaults))
+			let first = await model(try fixtureServices(evening, defaults: defaults))
 			await first.agreeAndStartChatting()
 			first.draft.text = TutorialCopy.weekQuestion
 			await first.send()
 			earlier = try await settledTurn(first)
 		}
 		let (morning, keptDefaults) = try await relaunch(.keep, clock: "1998-06-16T07:00:00Z")
-		let second = fixtureModel(
+		let second = await fixtureModel(
 			environment: AppEnvironment(
-				services: morning, language: language, defaults: keptDefaults))
+				services: morning, defaults: keptDefaults))
 		try await observed(second)
 		second.draft.text = TutorialCopy.weekQuestion
 		await second.send()

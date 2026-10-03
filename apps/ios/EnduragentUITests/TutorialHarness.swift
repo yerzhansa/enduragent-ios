@@ -17,7 +17,7 @@ enum TutorialHarness {
 	static let startedNewConversation = "You started a new conversation"
 	static let earlierChat = "Earlier chat"
 	static let readOnly = "Past conversations are read-only."
-	static let done = "Done — Create workout \"Endurance with tempo\" on 1998-06-16."
+	static let done = "Done — Create workout \"Endurance with tempo\" on 6/16/1998."
 	static let warmup = "Warmup"
 	static let working = "Coach is working…"
 	static let providerDown = "The model provider is having trouble — try again in a few minutes."

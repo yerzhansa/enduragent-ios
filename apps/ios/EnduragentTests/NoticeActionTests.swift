@@ -23,7 +23,7 @@ extension FixtureLaunchTests {
 
 	@Test(arguments: ["fixture:fail 402", "fixture:fail 401"])
 	func creditsNoticeReturnsToConversationAfterOneBack(directive: String) async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		let (_, notice) = try await failedNotice(model, after: directive)
 		let action = try #require(notice.action)
 		#expect(model.navigation.isEmpty)
@@ -38,7 +38,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func notConfiguredOpensTheConnectStep() async throws {
-		let model = model(try services(keychain: .empty))
+		let model = await model(try services(keychain: .empty))
 		let (_, notice) = try await failedNotice(model, after: "Hello")
 		#expect(notice.key == Catalog.accessErrorNotConfigured)
 		#expect(notice.action == .chooseAccessMethod)
@@ -48,7 +48,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func signInToOpenRouterOpensTheConnectStep() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)
 		await model.perform(.signInToOpenRouter)
@@ -57,7 +57,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func lockedKeychainKeepsTheMessageAndOffersTryAgain() async throws {
-		let model = model(try services(keychain: .locked))
+		let model = await model(try services(keychain: .locked))
 		let (turn, notice) = try await failedNotice(model, after: "Hello")
 		#expect(notice.key == Catalog.accessErrorLocked)
 		#expect(notice.action == .tryAgain(turn.id))
@@ -65,7 +65,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test func aRateLimitOffersTryAgainWhenItsWaitEnds() async throws {
-		let model = model(try services())
+		let model = await model(try services())
 		let (turn, waiting) = try await failedNotice(model, after: "fixture:fail 429 2 x4")
 		#expect(waiting.action == .wait(thenTryAgain: turn.id))
 		let opened = try await settledTurn(model, after: turn.state, within: .hangGuard)

@@ -67,14 +67,17 @@ import Testing
 	}
 
 	@Test func generatedFallbacksUseTheChosenLanguage() {
-		let french = LanguagePreference.fixed(.fr).phrasebook(device: .en)
-		#expect(ReviewSummary.deleteWorkout.sentence(in: french) == "Supprimer un entraînement")
+		let french = LanguageTag.fr.phrasebook
+		#expect(
+			ReviewSummary.deleteWorkout.sentence(in: displayLocale(.fr))
+				== "Supprimer un entraînement")
 		#expect(
 			ReviewSummary.updateWorkout(date: nil, name: nil, descriptionChanged: true)
-				.sentence(in: french) == "Mettre à jour un entraînement — description")
+				.sentence(in: displayLocale(.fr)) == "Mettre à jour un entraînement — description")
 		#expect(
 			ReviewSummary.updateWorkout(date: nil, name: nil, descriptionChanged: false)
-				.sentence(in: french) == "Mettre à jour un entraînement — champs sélectionnés")
+				.sentence(in: displayLocale(.fr))
+				== "Mettre à jour un entraînement — champs sélectionnés")
 	}
 
 	private func decode(_ json: String) -> Result<RecordBody, SkippedRow> {

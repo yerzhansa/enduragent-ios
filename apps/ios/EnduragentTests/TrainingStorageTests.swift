@@ -17,7 +17,7 @@ struct TrainingStorageTests {
 		let turns: [TurnView]
 		do {
 			let services = try harness.services()
-			let model = harness.model(services)
+			let model = await harness.model(services)
 			await model.appear()
 			model.continueNotice()
 			if policy == .unlocked {
@@ -35,16 +35,16 @@ struct TrainingStorageTests {
 			turns = try #require(model.chat?.turns)
 		}
 		let (reopenedServices, defaults) = try await harness.relaunch(.keep, keychain: policy)
-		let reopened = fixtureModel(
+		let reopened = await fixtureModel(
 			environment: AppEnvironment(
-				services: reopenedServices, language: .en, defaults: defaults))
+				services: reopenedServices, defaults: defaults))
 		try await harness.observed(reopened)
 		reopened.open(.settings)
 		reopened.open(.training)
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.turns == turns)
 		#expect(reopened.navigation == [.settings, .training])
-		let training = try #require(reopened.status?.training)
+		let training = reopened.status.training
 		let fixture = try #require(reopenedServices.fixture)
 		let notice = try #require(training.notice)
 		switch policy {
@@ -70,8 +70,8 @@ struct TrainingStorageTests {
 				guard case .connected(let summary, _) = $0.training else { return false }
 				return summary.today?.fitness == 42
 			}
-			#expect(reopened.status?.notice == nil)
-			#expect(reopened.status?.training.notice == nil)
+			#expect(reopened.status.notice == nil)
+			#expect(reopened.status.training.notice == nil)
 		case .malformedIntervals:
 			#expect(notice.key == Catalog.connectErrorStorageMalformed)
 			#expect(training.connectionActionTitle == Catalog.settingsTrainingReplace)
@@ -91,7 +91,7 @@ struct TrainingStorageTests {
 			#expect(reopened.trainingSettings.key.isEmpty)
 			await reopened.trainingSettings.keep()
 			#expect(reopened.trainingSettings.state == .viewing)
-			#expect(reopened.status?.training == training)
+			#expect(reopened.status.training == training)
 			reopened.trainingSettings.edit()
 			reopened.trainingSettings.key = "fixture-corrected"
 			await reopened.trainingSettings.replace()
@@ -107,6 +107,6 @@ struct TrainingStorageTests {
 		}
 		#expect(reopened.route == .chat)
 		#expect(reopened.chat?.turns.first == turns.first)
-		#expect(!notice.sentence(in: reopened.phrasebook).contains("fixture-malformed-secret"))
+		#expect(!notice.sentence(in: reopened.displayLocale).contains("fixture-malformed-secret"))
 	}
 }

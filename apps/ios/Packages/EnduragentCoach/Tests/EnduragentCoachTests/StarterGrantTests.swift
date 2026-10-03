@@ -21,14 +21,16 @@ struct StarterGrantTests {
 		switch outcome {
 		case .minted:
 			expected = AthleteNotice(
-				key: Catalog.creditsBalance, count: 1, vars: ["formattedCount": "1"], action: nil)
+				key: Catalog.creditsBalance, count: 1, vars: ["formattedCount": .integer(1)],
+				action: nil)
 		case .toppedUp:
 			expected = AthleteNotice(
 				key: Catalog.onboardingStarterAdded, count: 2,
-				vars: ["formattedCount": "2"], action: nil)
+				vars: ["formattedCount": .integer(2)], action: nil)
 		case .alreadyGranted where hasKey:
 			expected = AthleteNotice(
-				key: Catalog.creditsBalance, count: 73, vars: ["formattedCount": "73"], action: nil)
+				key: Catalog.creditsBalance, count: 73, vars: ["formattedCount": .integer(73)],
+				action: nil)
 		case .alreadyGranted:
 			expected = AthleteNotice(key: Catalog.onboardingStarterAlreadyGranted, action: nil)
 		}
@@ -69,6 +71,6 @@ struct StarterGrantTests {
 					credits: .fake(credits), host: ImmediateExecutionHost(),
 					clock: FixedClock(
 						now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
-				builtInModel: testModel, deviceLanguage: .en))
+				builtInModel: testModel, displayLocale: testDisplayLocale))
 	}
 }

@@ -164,8 +164,8 @@ public struct ReviewCard: Sendable, Equatable {
 	public let durationMinutes: Int?
 	public let estimatedLoad: Int?
 
-	public func lines(in phrasebook: CatalogPhrasebook) -> [String] {
-		instructions.lines(in: phrasebook)
+	public func lines(in display: DisplayLocale) -> [String] {
+		instructions.lines(in: display)
 	}
 }
 

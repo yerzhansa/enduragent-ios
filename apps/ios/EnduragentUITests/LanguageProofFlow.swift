@@ -1,3 +1,4 @@
+import EnduragentCoach
 import XCTest
 
 enum LanguagePickerEntry: String {
@@ -38,12 +39,18 @@ enum LanguageProofFlow {
 
 	@MainActor
 	static func assertReplyInstruction(
-		_ app: XCUIApplication, prefix: String, test: XCTestCase, name: String
+		_ app: XCUIApplication, language: LanguageTag, test: XCTestCase, name: String
 	) {
 		TutorialHarness.openDebug(app)
 		XCTAssertEqual(TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
 		let instruction = TutorialHarness.debugRow(app, "fixture.replyLanguage")
-		XCTAssertTrue(instruction.label.hasPrefix(prefix), instruction.label)
+		XCTAssertTrue(
+			instruction.label.hasPrefix("Reply in \(language.englishName) (\(language.endonym))."),
+			instruction.label)
+		XCTAssertTrue(
+			instruction.label.contains(
+				"Write every athlete-facing sentence in \(language.englishName), even when the athlete writes in another language."
+			), instruction.label)
 		TutorialHarness.attach(test, name: name, app: app)
 		TutorialHarness.returnToChat(app)
 	}

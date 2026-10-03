@@ -69,11 +69,6 @@ public enum LanguageTag: String, Sendable, CaseIterable {
 	]
 }
 
-package enum ReplyLanguage: Sendable, Equatable {
-	case fixed(LanguageTag)
-	case automatic(LanguageTag)
-}
-
 public struct CatalogKey: Hashable, Sendable, RawRepresentable {
 	public let rawValue: String
 

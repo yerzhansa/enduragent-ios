@@ -13,7 +13,7 @@ extension FixtureLaunchTests {
 		launch.coalescing = CoalescingPolicy(window: started ? .milliseconds(100) : .seconds(60))
 		let accepted: TurnView
 		do {
-			let first = model(try fixtureServices(launch, defaults: defaults))
+			let first = await model(try fixtureServices(launch, defaults: defaults))
 			await first.agreeAndStartChatting()
 			first.draft.text = "fixture:hang"
 			await first.send()
@@ -23,7 +23,7 @@ extension FixtureLaunchTests {
 			}
 			try await terminateWithoutWriting(first)
 		}
-		let reopened = model(try await relaunch(.keep).0)
+		let reopened = await model(try await relaunch(.keep).0)
 		await reopened.appear()
 		await reopened.lifecycle.forward(.becameActive)
 		let recovered = try await turn(accepted.id, in: reopened) { state in
@@ -43,14 +43,14 @@ extension FixtureLaunchTests {
 	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
 		let dead: TurnView
 		do {
-			let killed = model(try services())
+			let killed = await model(try services())
 			await killed.agreeAndStartChatting()
 			killed.draft.text = "fixture:hang"
 			await killed.send()
 			dead = try await turn(in: killed, where: isProcessing)
 			try await terminateWithoutWriting(killed)
 		}
-		let relaunched = model(try await relaunch(.keep).0)
+		let relaunched = await model(try await relaunch(.keep).0)
 		await relaunched.appear()
 		await relaunched.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
@@ -77,7 +77,7 @@ extension FixtureLaunchTests {
 		let parsed = try #require(try FixtureLaunch.fromArguments(arguments))
 		let dead: TurnView
 		do {
-			let killed = model(try services())
+			let killed = await model(try services())
 			await killed.agreeAndStartChatting()
 			killed.draft.text = "fixture:hang"
 			await killed.send()
@@ -86,7 +86,7 @@ extension FixtureLaunchTests {
 		}
 		do {
 			let (unreadableServices, _) = try await relaunch(.keep, recovery: parsed.recovery)
-			let unreadable = model(unreadableServices)
+			let unreadable = await model(unreadableServices)
 			await unreadable.appear()
 			await unreadable.lifecycle.forward(.becameActive)
 			let held = try await turn(dead.id, in: unreadable, where: isUnrecovered)
@@ -102,7 +102,7 @@ extension FixtureLaunchTests {
 			#expect(transport.requestCount == 0)
 			#expect(unreadable.chat?.turns.first { $0.id == dead.id }?.state == held.state)
 		}
-		let readable = model(try await relaunch(.keep).0)
+		let readable = await model(try await relaunch(.keep).0)
 		await readable.appear()
 		await readable.lifecycle.forward(.becameActive)
 		let recovered = try await turn(dead.id, in: readable, where: isInterrupted)
@@ -120,7 +120,7 @@ extension FixtureLaunchTests {
 		do {
 			let services = try services()
 			let records = try #require(services.fixtureRecordFaults)
-			let model = model(services)
+			let model = await model(services)
 			await model.agreeAndStartChatting()
 			model.draft.text = "fixture:slow"
 			await model.send()
@@ -150,7 +150,7 @@ extension FixtureLaunchTests {
 		do {
 			let services = try services()
 			let records = services.coach.recordSyncProbe()
-			let killed = model(services)
+			let killed = await model(services)
 			await killed.agreeAndStartChatting()
 			killed.draft.text = "fixture:memory-then-hang"
 			await killed.send()
@@ -183,7 +183,7 @@ extension FixtureLaunchTests {
 		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
 		let dead: TurnView
 		do {
-			let seeded = model(try fixtureServices(quick, defaults: defaults))
+			let seeded = await model(try fixtureServices(quick, defaults: defaults))
 			await seeded.agreeAndStartChatting()
 			for index in 1...200 {
 				seeded.draft.text = "Seed \(index)"

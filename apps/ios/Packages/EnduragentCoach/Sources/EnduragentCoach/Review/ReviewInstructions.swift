@@ -8,10 +8,10 @@ public struct ReviewInstructions: Sendable, Equatable {
 
 	package let content: Content
 
-	public func lines(in phrasebook: CatalogPhrasebook) -> [String] {
+	public func lines(in display: DisplayLocale) -> [String] {
 		switch content {
 		case .cycling(let workout):
-			IntervalsSerializer.description(workout, phrasebook: phrasebook)
+			IntervalsSerializer.description(workout, phrasebook: display.phrasebook)
 		case .supplied(let text):
 			text.isEmpty
 				? []

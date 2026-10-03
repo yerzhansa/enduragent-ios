@@ -45,7 +45,7 @@ extension RetryLadderTests {
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(turnNotice(of: settled)?.action == nil)
 		#expect(
-			interrupted.notice.sentence(in: LanguageTag.en.phrasebook)
+			interrupted.notice.sentence(in: displayLocale())
 				== "The calendar change may have been saved. Check your calendar before asking again."
 		)
 		let sent = AsyncThrowingStream.makeStream(of: SendOutcome.self)

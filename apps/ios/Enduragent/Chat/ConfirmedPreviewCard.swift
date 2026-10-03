@@ -10,9 +10,9 @@ struct ConfirmedPreviewCard: View {
 			VStack(alignment: .leading, spacing: 12) {
 				ForEach(review.cards, id: \.index) { card in
 					Text(
-						card.lines(in: model.phrasebook).isEmpty
-							? card.name.sentence(in: model.phrasebook)
-							: card.lines(in: model.phrasebook).joined(separator: "\n")
+						card.lines(in: model.displayLocale).isEmpty
+							? card.name.sentence(in: model.displayLocale)
+							: card.lines(in: model.displayLocale).joined(separator: "\n")
 					)
 					.frame(maxWidth: .infinity, alignment: .leading)
 				}
@@ -91,8 +91,8 @@ struct ConfirmedPreviewCard: View {
 	private var presentable: Bool {
 		!review.cards.isEmpty
 			&& review.cards.allSatisfy {
-				!$0.lines(in: model.phrasebook).isEmpty
-					|| !$0.name.sentence(in: model.phrasebook).isEmpty
+				!$0.lines(in: model.displayLocale).isEmpty
+					|| !$0.name.sentence(in: model.displayLocale).isEmpty
 			}
 	}
 
