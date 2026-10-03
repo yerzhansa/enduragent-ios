@@ -8,6 +8,47 @@ import Testing
 @MainActor
 @Suite(.serialized, FixtureTestScope())
 struct SyncedTrainingIdentityAppTests {
+	@Test(arguments: [false, true])
+	func sceneResumeKeepsScrollRevisionUnlessAReplyFinished(connected: Bool) async throws {
+		let harness = FixtureLaunchTests()
+		let services = try harness.services()
+		let fixture = try #require(services.fixture)
+		let model = await harness.model(services)
+		await model.agreeAndStartChatting()
+		if connected {
+			try fixture.trainingPeer.replace(.athleteA)
+			await model.sceneChanged(.becameActive)
+			try await model.waitForStatus { $0.training.athleteName == "Ada Kovač" }
+		}
+		fixture.transport.respond = { _ in
+			ScriptedReply([.text("Still on."), .finish(reason: .stop)], deltaDelay: .seconds(2))
+		}
+		model.draft.text = "Is Thursday still on?"
+		await model.send()
+		await model.sceneChanged(.enteredBackground)
+		try await harness.until { model.chat?.liveReply?.text == "Still on." }
+		let running = try #require(model.chat)
+		try #require(running.turns.last?.state.isSettled == false)
+		let turn = try await harness.settledTurn(model)
+		let finished = try #require(model.chat)
+		#expect(replyText(turn.state) == "Still on.")
+		#expect(turn.completedInBackground)
+		#expect(finished.revision == running.revision + 1)
+		model.draft.text = "What about Friday?"
+		let draft = model.draft
+		for background in [false, true, false] {
+			if background { await model.sceneChanged(.enteredBackground) }
+			let profileReads = fixture.intervals.profileReadCount
+			await model.sceneChanged(.becameActive)
+			let rechecked = try #require(await harness.firstSnapshot(services, chat: .main))
+			#expect(rechecked.revision == finished.revision)
+			#expect(model.chat?.revision == finished.revision)
+			#expect(model.chat == finished)
+			#expect(model.draft == draft)
+			if connected { #expect(fixture.intervals.profileReadCount > profileReads) }
+		}
+	}
+
 	@Test func sceneResumePublishesPeerIdentityAndDeletion() async throws {
 		let harness = FixtureLaunchTests()
 		let services = try harness.services()
