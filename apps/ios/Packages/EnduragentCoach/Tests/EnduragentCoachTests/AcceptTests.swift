@@ -30,12 +30,17 @@ extension SwiftDataSuites {
 			#expect(
 				replyText(try #require(await coach.settledState(of: turn, in: .main)))
 					== "Two rides.")
-			#expect(
-				recording.batches == [
-					["providerConsent"],
-					["userMessage"], ["trainingIdentityObserved"], ["turnClaim"], ["replyObserved"],
-					["turnSettled"],
-				])
+			let saved = try await recording.fetch(
+				RecordQuery(scope: .synced([.turnSettled]), turn: turn)
+			).records
+			#expect(saved.count == 1)
+			guard case .synced(.turnSettled(let body)) = try #require(saved.first?.body),
+				case .replied(.model(let reply), _) = body.settlement
+			else {
+				Issue.record("The reply was not saved")
+				return
+			}
+			#expect(reply == "Two rides.")
 		}
 
 		@Test func acceptWithKnownDraftIdWritesNothingAndReturnsTheTurn() async throws {

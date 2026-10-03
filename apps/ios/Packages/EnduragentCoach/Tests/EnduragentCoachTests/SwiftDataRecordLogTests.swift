@@ -275,6 +275,7 @@ extension SwiftDataSuites {
 				rawValue: try #require(UUID(uuidString: "00000000-0000-0000-0000-000000000001")))
 			let synced: [SyncedRecordBody] = [
 				.trainingIdentityObserved,
+				.attemptQuestion(AttemptQuestionBody(chatId: .main, turn: turn, athleteText: "hi")),
 				.userMessage(
 					UserMessageBody(
 						chatId: .main, turn: turn, fragment: 0, draft: DraftID(), athleteText: "hi",

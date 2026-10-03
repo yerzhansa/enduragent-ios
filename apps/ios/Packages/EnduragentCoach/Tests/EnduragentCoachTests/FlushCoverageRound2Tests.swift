@@ -66,7 +66,9 @@ import Testing
 				for: FlushJobID(ulid: fixedUlid(3)), messages: [], origin: .beforeUpgrade),
 			reset: nil)
 		#expect(
-			conversation.flushMessages(for: legacy).map(\.text) == ["archived", "archived reply"])
+			conversation.flushRows(for: legacy).map(\.message.text) == [
+				"archived", "archived reply",
+			])
 		#expect(
 			conversation.messagesSinceLastFlush([legacy], excluding: nil).map(\.ulid) == [
 				fixedUlid(5), fixedUlid(6),

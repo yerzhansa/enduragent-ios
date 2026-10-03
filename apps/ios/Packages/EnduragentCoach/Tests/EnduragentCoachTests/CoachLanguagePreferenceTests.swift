@@ -19,26 +19,27 @@ import Testing
 	) async throws {
 		let transport = FakeModelTransport()
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let coach = await makeCoach(
-			transport: transport, store: log,
-			displayLocale: {
-				DisplayLocale(
-					preference: $0, preferredLanguages: ["nl"],
-					regionalConventions: Locale(identifier: "en_US"))
-			})
+		func open() async -> Coach {
+			return await makeCoach(
+				transport: transport, store: log,
+				displayLocale: {
+					DisplayLocale(
+						preference: $0, preferredLanguages: ["nl"],
+						regionalConventions: Locale(identifier: "en_US"))
+				})
+		}
+		let coach = await open()
 		try await coach.setLanguage(current)
 		try log.failAppends(ofKind: "languagePreference")
 		await #expect(throws: PreferenceWriteFailure.notSaved) {
 			try await coach.setLanguage(attempted)
 		}
-		let reopened = await makeCoach(
-			transport: transport, store: log,
-			displayLocale: {
-				DisplayLocale(
-					preference: $0, preferredLanguages: ["nl"],
-					regionalConventions: Locale(identifier: "en_US"))
-			})
-		for owner in [coach, reopened] {
+		var owner = coach
+		for reopening in [false, true] {
+			if reopening {
+				await owner.lifecycle(.willTerminate)
+				owner = await open()
+			}
 			let status = try await owner.observedStatus()
 			#expect(status.language == current)
 			#expect(
@@ -54,6 +55,7 @@ import Testing
 					"Write every athlete-facing sentence in \(expected.englishName), even when the athlete writes in another language."
 				))
 		}
+		await owner.lifecycle(.willTerminate)
 	}
 
 	@Test func savedLanguageLoadsWhileTrainingDisplayIsBlocked() async throws {

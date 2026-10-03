@@ -22,7 +22,7 @@ extension Segment {
 		-> [ConversationRow]
 	{
 		turns.filter { $0.turn != turn }.flatMap { facts in
-			let rows = visibleRows(of: facts)
+			let rows = visibleRows(of: facts, using: ownership)
 			return rows.filter { row in
 				let owner = ownership.rowOwner(account: row.account, origin: row.origin)
 				guard let trim = promptWindows[owner]?.trim else { return true }

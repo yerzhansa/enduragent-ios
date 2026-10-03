@@ -19,17 +19,21 @@ package struct ConversationReset: Sendable {
 		let rows =
 			conversation.outstandingRows(jobs)
 			+ conversation.messagesSinceLastFlush(jobs, excluding: nil, before: reset.boundary)
-		var flushed: (job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)?
+		var flushed: [(job: FlushJob, outcome: FlushOutcome?, stamp: OperationStamp)] = []
 		if !rows.isEmpty {
-			let job: FlushJob
+			let jobs: [FlushJob]
 			do {
-				job = try await flushes.open(covering: rows.map(\.ulid), stamp: stamp)
+				jobs = try await flushes.open(covering: rows, stamp: stamp)
 			} catch {
 				return (.notStarted(.local(.recordStorage)), [])
 			}
-			let flushStamp = await flushes.stamp(for: job)
-			let outcome = await extract(rows.map(\.message), access: access, stamp: flushStamp)
-			flushed = (job, outcome, flushStamp)
+			for job in jobs {
+				let flushStamp = await flushes.stamp(for: job)
+				let messages = rows.filter { job.coverage.resolved.contains($0.ulid) }.map(
+					\.message)
+				let outcome = await extract(messages, access: access, stamp: flushStamp)
+				flushed.append((job, outcome, flushStamp))
+			}
 		}
 		let boundary: [AthleteRecord]
 		do {
@@ -44,10 +48,13 @@ package struct ConversationReset: Sendable {
 		} catch {
 			return (.notStarted(.local(.recordStorage)), [])
 		}
-		if let flushed, let outcome = flushed.outcome {
-			await flushes.settle(flushed.job, outcome, stamp: flushed.stamp)
+		for result in flushed {
+			if let outcome = result.outcome {
+				await flushes.settle(result.job, outcome, stamp: result.stamp)
+			}
 		}
-		return (.started(memory: flushed.map { MemorySaveResult($0.outcome) } ?? .saved), boundary)
+		let outcomes = flushed.map { $0.outcome ?? .failed(.local(.recordStorage)) }
+		return (.started(memory: MemorySaveResult(FlushOutcome.combining(outcomes))), boundary)
 	}
 
 	private func extract(

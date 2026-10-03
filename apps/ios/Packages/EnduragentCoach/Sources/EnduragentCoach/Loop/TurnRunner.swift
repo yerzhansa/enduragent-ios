@@ -194,17 +194,16 @@ package struct TurnRunner: Sendable {
 		guard await scope.takeFlushLatch(), !rows.isEmpty else { return }
 		await progress(.activity(.savingMemory))
 		let flushes = flushWork(attempt)
-		let job: FlushJob
+		let jobs: [FlushJob]
 		do {
-			job = try await flushes.open(covering: rows.map(\.ulid), stamp: scope.stamp)
+			jobs = try await flushes.open(covering: rows, stamp: scope.stamp)
 		} catch {
 			diagnostics.record(.memoryFlushFailed(attempt.chat, detail: String(describing: error)))
 			return
 		}
-		_ = try await flushes.run(
-			job, messages: rows.map(\.message),
-			access: attempt.access,
-			scope: scope)
+		for job in jobs {
+			_ = try await flushes.run(job, rows: rows, access: attempt.access, scope: scope)
+		}
 	}
 
 	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
@@ -277,7 +276,7 @@ package struct TurnRunner: Sendable {
 			await scope.takeFlushLatch()
 		{
 			_ = try await flushWork(attempt).open(
-				covering: transcript.unflushed.map(\.ulid), stamp: stamp)
+				covering: transcript.unflushed, stamp: stamp)
 		}
 
 		let timed = PromptAssembly.appendCurrentTime(

@@ -21,7 +21,9 @@ struct Transcript: Sendable {
 			scope.contains($0, using: ownership)
 		}
 		flushPending = !pending.isEmpty
-		current = conversation.turn(turn)?.userRow.flatMap {
+		current = conversation.turn(turn).flatMap {
+			$0.questionRow(for: $0.latestAttempt, using: ownership)
+		}.flatMap {
 			scope.contains($0, using: ownership) ? $0 : nil
 		}
 	}

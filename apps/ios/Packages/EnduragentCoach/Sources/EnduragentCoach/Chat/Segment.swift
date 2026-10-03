@@ -60,7 +60,14 @@ package struct Segment: Sendable, Equatable {
 	package var legacyTrim: ULID?
 
 	package var messages: [ChatMessage] {
-		turns.flatMap { visibleRows(of: $0).map(\.message) }
+		turns.flatMap { facts -> [ChatMessage] in
+			guard facts.replyRow != nil || (facts.legacy && facts.latestSettlement == nil) else {
+				return []
+			}
+			return [facts.userRow, facts.replyRow].compactMap { $0 }.filter { !isTrimmed($0.ulid) }
+				.map(
+					\.message)
+		}
 	}
 
 	package func hidesQuestion(of facts: TurnFacts) -> Bool {
@@ -71,8 +78,10 @@ package struct Segment: Sendable, Equatable {
 		hidesQuestion(of: facts) && (facts.latestSettlement.map { isTrimmed($0.ulid) } ?? true)
 	}
 
-	func visibleRows(of facts: TurnFacts) -> [ConversationRow] {
-		facts.messageRows.filter { !isTrimmed($0.ulid) }
+	func visibleRows(of facts: TurnFacts, using ownership: InformationOwnership)
+		-> [ConversationRow]
+	{
+		facts.messageRows(using: ownership).filter { !isTrimmed($0.ulid) }
 	}
 
 	private func isTrimmed(_ ulid: ULID) -> Bool {

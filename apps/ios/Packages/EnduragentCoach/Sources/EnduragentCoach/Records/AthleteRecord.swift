@@ -7,6 +7,7 @@ package enum RecordLocality: Sendable, Equatable {
 
 package enum SyncedKind: String, Sendable, CaseIterable {
 	case userMessage
+	case attemptQuestion
 	case turnSettled
 	case windowStart
 	case compactionSummary
@@ -49,6 +50,7 @@ package enum LegacyKind: String, Sendable, CaseIterable {
 
 package enum SyncedRecordBody: Sendable, Equatable {
 	case userMessage(UserMessageBody)
+	case attemptQuestion(AttemptQuestionBody)
 	case turnSettled(TurnSettledBody)
 	case windowStart(WindowStartBody)
 	case compactionSummary(CompactionSummaryBody)
@@ -69,6 +71,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	package var kind: SyncedKind {
 		switch self {
 		case .userMessage: .userMessage
+		case .attemptQuestion: .attemptQuestion
 		case .turnSettled: .turnSettled
 		case .windowStart: .windowStart
 		case .compactionSummary: .compactionSummary
@@ -91,6 +94,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	package var chatId: ChatID? {
 		switch self {
 		case .userMessage(let body): body.chatId
+		case .attemptQuestion(let body): body.chatId
 		case .turnSettled(let body): body.chatId
 		case .windowStart(let body): body.chatId
 		case .compactionSummary(let body): body.chatId
@@ -107,6 +111,7 @@ package enum SyncedRecordBody: Sendable, Equatable {
 	package var turn: TurnID? {
 		switch self {
 		case .userMessage(let body): body.turn
+		case .attemptQuestion(let body): body.turn
 		case .turnSettled(let body): body.turn
 		case .windowStart, .compactionSummary, .memorySection, .dailyNote, .ledgerEvent,
 			.journal, .provenance, .coachReplyLanguage, .planningDevice, .sessionSettings,
