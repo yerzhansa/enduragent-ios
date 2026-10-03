@@ -136,7 +136,8 @@ struct OnboardingConnectionTests {
 		model.connectKey = "synthetic-first-key"
 		await model.connect()
 		let notice = try #require(model.trainingSettings.receipt?.saveNotice)
-		#expect(notice.sentence(in: model.displayLocale) == "The connection wasn't saved. Try again.")
+		#expect(
+			notice.sentence(in: model.displayLocale) == "The connection wasn't saved. Try again.")
 		#expect(!model.didConnect)
 		#expect(model.trainingSettings.isEditing)
 		#expect(try services.fixture?.secrets.intervalsConnection() == nil)
