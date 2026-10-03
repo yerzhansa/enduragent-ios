@@ -99,7 +99,8 @@ extension SwiftDataSuites {
 			let transport = FakeModelTransport()
 			transport.respond = ScriptedReply.sequence(
 				[.text("Local answer"), .finish(reason: .stop)], otherwise: transport.respond)
-			let coach = await makeCoach(transport: transport, store: log, clock: clock)
+			let host = ImmediateExecutionHost()
+			let coach = await makeCoach(transport: transport, store: log, clock: clock, host: host)
 			_ = await coach.currentSnapshot(.main)
 			try await Task.sleep(for: .milliseconds(500))
 			let reads = log.reads.count
@@ -113,6 +114,7 @@ extension SwiftDataSuites {
 			defer { NotificationCenter.default.removeObserver(observation) }
 			let state = try await coach.sendAndSettle("Local question")
 			#expect(replyText(state) == "Local answer")
+			_ = try #require(await host.ended(0))
 			try await Task.sleep(for: .seconds(2))
 			#expect(notifications.withLock { $0 } > 0)
 			let cost = ReadCost(reads: log.reads.count - reads, rows: log.fetchedRecordCount - rows)
