@@ -560,7 +560,8 @@
     "turnCount_one": "{{formattedCount}} melding",
     "turnCount_other": "{{formattedCount}} meldinger",
     "unavailable": "Denne samtalen er ikke lenger tilgjengelig.",
-    "history": "Historikk"
+    "history": "Historikk",
+    "savedForAnotherAthlete": "Lagret for en annen intervals.icu-utøver ({{id}})"
   },
   "setup": {
     "ai": {

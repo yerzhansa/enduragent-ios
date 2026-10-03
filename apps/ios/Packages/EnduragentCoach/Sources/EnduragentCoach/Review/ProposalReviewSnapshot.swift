@@ -21,15 +21,19 @@ extension SingleProposalReviews {
 			})
 		else {
 			deliveries[chat] = nil
-			guard let body = intents.last(where: { $0.cancellation != nil })?.cancellation else {
+			guard let intent = intents.last(where: { $0.cancellation != nil }),
+				let body = intent.cancellation
+			else {
 				return nil
 			}
 			return ReviewSnapshot(
 				ref: ReviewRef(
 					chat: chat, set: body.review, revision: ChangeSetRevision(rawValue: 1),
 					delivery: UUID()),
-				state: .cancelledUnknown(CancelledUnknownReview(body)))
+				state: .cancelledUnknown(CancelledUnknownReview(body)),
+				attribution: try await attribution(for: intent.record.account))
 		}
+		let attribution = try await attribution(for: live.account)
 		let block = await accountBlock(live.account)
 		guard deliveries[chat]?.ref == previous else { return try await snapshot(chat: chat) }
 		let delivery = delivery(
@@ -51,7 +55,14 @@ extension SingleProposalReviews {
 						? AthleteNotices.earlierVersion
 						: notice,
 					authority: delivery.authority),
-				block == nil ? delivery.controls : .none))
+				block == nil ? delivery.controls : .none), attribution: attribution)
+	}
+
+	func attribution(for account: TrainingAccount) async throws(LedgerFailure) -> AthleteAttribution
+	{
+		AthleteAttribution(
+			accounts: [account], using: try await ledger.informationOwnership(),
+			device: ledger.deviceId)
 	}
 
 }

@@ -558,7 +558,8 @@
     "truncated": "最近の過去の会話のみを表示しています。",
     "turnCount_other": "{{formattedCount}}件のメッセージ",
     "unavailable": "この会話は利用できなくなりました。",
-    "history": "履歴"
+    "history": "履歴",
+    "savedForAnotherAthlete": "別の intervals.icu アスリート用に保存 ({{id}})"
   },
   "setup": {
     "ai": {

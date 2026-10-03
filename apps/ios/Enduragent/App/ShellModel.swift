@@ -129,6 +129,11 @@ final class ShellModel {
 		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
 	}
 
+	var connectedAthlete: IntervalsAthleteID? {
+		guard case .connected(_, .intervals(_, let athlete)) = status.training else { return nil }
+		return athlete
+	}
+
 	var isWorking: Bool {
 		chat.map { $0.activity != .idle } ?? false
 	}

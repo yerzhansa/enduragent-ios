@@ -80,6 +80,19 @@ package struct InformationOwnership: Sendable, Equatable {
 		firstAccounts[device]
 	}
 
+	func hasChangedAthlete(on device: DeviceID) -> Bool {
+		Set<IntervalsAthleteID>(
+			records.values.filter {
+				$0.deviceId == device && $0.body == .synced(.trainingIdentityObserved)
+			}.compactMap { record in
+				guard case .athlete(let athlete) = rowOwner(account: record.account) else {
+					return nil
+				}
+				return athlete
+			}
+		).count > 1
+	}
+
 	package func scope(for account: TrainingAccount, device: DeviceID) -> InformationReadScope {
 		switch account {
 		case .unconnected:
