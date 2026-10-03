@@ -83,6 +83,9 @@ struct AccessOnboardingTests {
 				await model.chooseAccess(.useCredits)
 			default: break
 			}
+			if fault.hasPrefix("sign-in") {
+				#expect(await fixture.openRouterAuthorizer.requests.count == 1)
+			}
 			let expected: CatalogKey =
 				switch fault {
 				case "credential-write": Catalog.accessErrorStorageUnavailable

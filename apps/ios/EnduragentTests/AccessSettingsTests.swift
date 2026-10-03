@@ -73,6 +73,7 @@ struct AccessSettingsTests {
 				)
 			}
 			if fault == "sign-in" {
+				#expect(await fixture.openRouterAuthorizer.requests.count == 1)
 				#expect(model.accessNotice?.key == Catalog.accessSignInUnavailable)
 			}
 			#expect(model.status.access == previous)

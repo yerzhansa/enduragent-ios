@@ -51,7 +51,7 @@ final class AccessSettingsProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
-	func testSignInFailureKeepsCreditsSelected() {
+	func testCancelledSignInKeepsCreditsSelected() {
 		let app = launch()
 		openAccess(app)
 		assertChoice(app, credits: true)
@@ -59,7 +59,7 @@ final class AccessSettingsProof: XCTestCase {
 		TutorialHarness.named(app, "access.openRouter").tap()
 		waitForNotice(app, phrasebook.say(Catalog.accessSignInUnavailable))
 		assertChoice(app, credits: true)
-		capture(app, "sign-in-failed")
+		capture(app, "sign-in-cancelled")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.assertZeroFixtureRequests(app)
