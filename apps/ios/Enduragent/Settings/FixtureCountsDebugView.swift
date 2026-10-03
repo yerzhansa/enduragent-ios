@@ -10,26 +10,31 @@
 
 		var body: some View {
 			if let fixture = services.fixture {
-				Button("Fail next credential write") { fixture.secretBacking.failNextWrite = true }
-					.accessibilityIdentifier("fixture.failCredentialWrite")
-				Button(fixture.secretBacking.locked ? "Unlock keychain" : "Lock keychain") {
-					fixture.secretBacking.locked.toggle()
-					Task { await model.sceneChanged(.becameActive) }
-				}
-				.accessibilityIdentifier("fixture.toggleKeychainLock")
-				Button("Restore secure storage") {
-					fixture.secretBacking.unavailable = false
-				}
-				.accessibilityIdentifier("fixture.restoreSecureStorage")
-				Button("Corrupt intervals credential") {
-					do {
-						try fixture.secretBacking.corruptIntervalsConnection()
+				if let backing = fixture.secretBacking {
+					Button("Fail next credential write") { backing.failNextWrite = true }
+						.accessibilityIdentifier("fixture.failCredentialWrite")
+					Button(backing.locked ? "Unlock keychain" : "Lock keychain") {
+						backing.locked.toggle()
 						Task { await model.sceneChanged(.becameActive) }
-					} catch {
-						reviewHookFailure = String(describing: error)
 					}
+					.accessibilityIdentifier("fixture.toggleKeychainLock")
+					Button("Restore secure storage") {
+						backing.unavailable = false
+					}
+					.accessibilityIdentifier("fixture.restoreSecureStorage")
+					Button("Corrupt intervals credential") {
+						do {
+							try backing.corruptIntervalsConnection()
+							Task { await model.sceneChanged(.becameActive) }
+						} catch {
+							reviewHookFailure = String(describing: error)
+						}
+					}
+					.accessibilityIdentifier("fixture.corruptIntervals")
 				}
-				.accessibilityIdentifier("fixture.corruptIntervals")
+				if let proof = fixture.nativeKeychain {
+					NativeKeychainDebugView(proof: proof, fixture: fixture, coach: services.coach)
+				}
 				Text(connectionText)
 					.accessibilityIdentifier("fixture.connection")
 				Button("Fail next record append") { fixture.records.failNextAppend = true }
@@ -53,8 +58,10 @@
 				.accessibilityIdentifier("fixture.refreshReview")
 				Button("Fail next calendar read") { fixture.intervals.failCalendarReadOnce = true }
 					.accessibilityIdentifier("fixture.failCalendarRead")
-				Button("Lock intervals credential") { fixture.secretBacking.locked = true }
-					.accessibilityIdentifier("fixture.lockIntervals")
+				if let backing = fixture.secretBacking {
+					Button("Lock intervals credential") { backing.locked = true }
+						.accessibilityIdentifier("fixture.lockIntervals")
+				}
 				Button("Switch fixture athlete") {
 					Task {
 						do {

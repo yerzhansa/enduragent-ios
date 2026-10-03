@@ -244,15 +244,16 @@ extension FixtureLaunchTests {
 				== (absent
 					? ["chat.preview.checkAgain", "chat.preview.cancel", "chat.preview.saveAgain"]
 					: ["chat.preview.checkAgain"]))
-		fixture.secretBacking.locked = true
-		defer { fixture.secretBacking.locked = false }
+		let backing = try #require(fixture.secretBacking)
+		backing.locked = true
+		defer { backing.locked = false }
 		await model.decide(.checkAgain(pending.ref))
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewWriteReadFailed }
 		let failed = try #require(model.chat?.review)
 		let actions = ConfirmedPreviewCard(model: model, review: failed).actions
 		#expect(actions.map(\.id) == expected)
 		#expect(model.reviewNotice == nil)
-		fixture.secretBacking.locked = false
+		backing.locked = false
 		let check = try #require(actions.first { $0.id == "chat.preview.checkAgain" })
 		await model.decide(check.decision)
 		try await until {

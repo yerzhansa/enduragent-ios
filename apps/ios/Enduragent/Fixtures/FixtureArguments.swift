@@ -20,6 +20,7 @@
 	}
 
 	enum FixtureKeychainPolicy: String {
+		case nativeProof = "native-proof"
 		case unlocked
 		case locked
 		case empty
