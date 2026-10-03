@@ -132,7 +132,7 @@ extension FixtureLaunchTests {
 	}
 
 	@Test(arguments: [false, true])
-	func reviewCardNoticeClearsWhenContinuingOrStartingANewConversation(newConversation: Bool)
+	func continuingOrStartingANewConversationRetainsBlockedReview(newConversation: Bool)
 		async throws
 	{
 		let services = try services()
@@ -156,6 +156,7 @@ extension FixtureLaunchTests {
 			#expect(model.reviewNotice == nil)
 			#expect(!model.newConversationUncertain)
 			try await until { model.chat?.turns.isEmpty == true }
+			#expect(model.chat?.opening.notice == Catalog.chatNoticeNewConversationSuccess)
 		} else {
 			model.draft.text = "How did Saturday go"
 			await model.send()
@@ -164,9 +165,16 @@ extension FixtureLaunchTests {
 			#expect(model.draft.text.isEmpty)
 			let turn = try await settledTurn(model, at: 1)
 			#expect(turn.athleteText == "How did Saturday go")
+			#expect(replyText(turn.state)?.isEmpty == false)
 		}
 		#expect(model.reviewNotice == nil)
-		#expect(model.chat?.review?.notice == nil)
+		let retained = try #require(model.chat?.review)
+		#expect(retained.ref == blocked.ref)
+		#expect(retained.cards == blocked.cards)
+		#expect(retained.notice?.key == Catalog.reviewCannotVerify)
+		#expect(retained.controls == .none)
+		#expect(ConfirmedPreviewCard(model: model, review: retained).actions.isEmpty)
+		#expect(services.fixture?.intervals.calls.contains(where: \.isCalendarWrite) == false)
 	}
 
 	@Test func canceledReviewStaysGoneAfterTheNextMessage() async throws {
