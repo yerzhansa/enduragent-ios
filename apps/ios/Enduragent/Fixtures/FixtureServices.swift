@@ -14,6 +14,7 @@
 		let recordStore: RecordStore
 		let intervals: FakeIntervalsClient
 		let credits: FakeCreditsClient
+		let openRouterAuthorizer: FakeOpenRouterAuthorizer
 		let replyParser: ReplyParser
 		let reviewProofDriver: FixtureReviewProofDriver?
 	}
@@ -75,19 +76,21 @@
 				fixtureHost = immediate
 				leases = { immediate.leases }
 			}
+			let authorizer = FakeOpenRouterAuthorizer(response: .completed(.failure(.canceled)))
 			let coach = Coach(
 				sport: .cycling,
 				ports: CoachPorts(
 					records: fixture.store,
 					secrets: secrets,
-					models: .scripted(transport),
+					models: .scripted(transport, catalog: .bundled),
 					training: .fake { credential, selection in
 						native?.bind(credential, selection: selection)
 						return peer.client(for: credential)
 					},
 					credits: .fake(credits, mintedKey: FirstWeekFixture.creditsKey),
 					host: host,
-					clock: clock
+					clock: clock,
+					openRouterSignIn: .fake(authorizer: authorizer)
 				),
 				builtInModel: builtInModel,
 				displayLocale: displayLocale,
@@ -103,7 +106,7 @@
 					transport: transport, records: records, host: fixtureHost, secrets: secrets,
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
-					intervals: intervals, credits: credits,
+					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,
 					replyParser: launch.replyParserFault == .fail ? .failing : .foundation,
 					reviewProofDriver: launch.recordReadFault == .failAfterPresentedOnce
 						? FixtureReviewProofDriver() : nil)

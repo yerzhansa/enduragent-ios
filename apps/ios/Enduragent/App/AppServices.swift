@@ -70,7 +70,8 @@ struct AppServices: Sendable {
 				training: .intervalsREST,
 				credits: .worker(creditsWorkerBase),
 				host: host,
-				clock: clock
+				clock: clock,
+				openRouterSignIn: OpenRouterSignInService(authorizer: OpenRouterSignInSession())
 			),
 			builtInModel: builtInModel,
 			displayLocale: displayLocale
