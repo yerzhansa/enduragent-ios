@@ -74,7 +74,8 @@ extension CredentialVault {
 						.openRouter(
 							SavedOpenRouterReference(
 								credential: choice.credential, model: choice.model,
-								details: entry.details))))
+								details: entry.details)),
+						consentCommit: signInFlight?.base?.consentCommit))
 			}
 			return .replaced(AccessSummary(selection: .openRouterAccount(choice)), authority: nil)
 		} catch let failure as CredentialFailure {

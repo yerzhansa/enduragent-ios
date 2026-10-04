@@ -64,9 +64,18 @@ actor CoachPreferences {
 		do {
 			let page = try await ledger.read(
 				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
-			guard case .deviceLocal(.providerConsent(let consent)) = page.records.last?.body
-			else { return nil }
-			return consent
+			let records = page.records.compactMap { record -> ProviderConsent? in
+				guard case .deviceLocal(.providerConsent(let consent)) = record.body else {
+					return nil
+				}
+				return consent
+			}
+			do throws(AccessUnavailable) {
+				return try await vault.recordedConsent(records)
+			} catch {
+				diagnostics.record(.consentUnavailable(error))
+				return nil
+			}
 		} catch {
 			diagnostics.record(.preferencesUnavailable(error))
 			return nil
@@ -75,26 +84,29 @@ actor CoachPreferences {
 
 	func recordConsent(_ challenge: ConsentChallenge) async throws(ConsentWriteFailure) {
 		try await consentChanges.pass { () throws(ConsentWriteFailure) in
-			let selection = try await vault.saveConsentSelection(
+			let selection = try await vault.prepareConsentSelection(
 				challenge, builtInModel: builtInModel)
-			do throws(ConsentWriteFailure) {
-				try await writeConsent(challenge.target)
-			} catch {
-				if let selection { try await vault.restoreConsentSelection(selection) }
-				throw error
-			}
+			try await writeConsent(
+				challenge.target, selectionCommit: selection?.challenge.generation)
+			if let selection { try await vault.commitConsentSelection(selection) }
 			await vault.finishConsent(challenge)
 		}
 	}
 
-	private func writeConsent(_ target: ConsentTarget) async throws(ConsentWriteFailure) {
+	private func writeConsent(_ target: ConsentTarget, selectionCommit: UUID?)
+		async throws(ConsentWriteFailure)
+	{
 		guard await readConsent()?.authorizes(target) != true else { return }
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
 			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
 		do {
 			_ = try await ledger.commit(
-				local: [.providerConsent(ProviderConsent(target: target, at: clock.now))],
+				local: [
+					.providerConsent(
+						ProviderConsent(
+							target: target, at: clock.now, selectionCommit: selectionCommit))
+				],
 				stamp: stamp)
 		} catch {
 			throw .notSaved

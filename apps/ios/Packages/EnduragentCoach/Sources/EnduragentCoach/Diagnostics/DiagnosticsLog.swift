@@ -43,6 +43,7 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 	case importsUnavailable(ChatID, LedgerFailure)
 	case secureStorageFailed(CredentialSlot, failure: KeychainStoreError)
 	case preferencesUnavailable(LedgerFailure)
+	case consentUnavailable(AccessUnavailable)
 	case evidenceUnavailable(AttemptID, TrainingFailure)
 	case reviewOutcomeUnsaved(LedgerFailure)
 	case settlementUnsaved(TurnID, LedgerFailure)
@@ -58,7 +59,8 @@ package enum DiagnosticsEvent: Sendable, Equatable {
 			return .compactionFailed(chat, detail: Redaction.clean(detail, secrets))
 		case .secureStorageFailed, .toolFailed, .replyObservedUnsaved, .skippedRecord,
 			.recoveryUnavailable, .importsUnavailable,
-			.preferencesUnavailable, .evidenceUnavailable, .reviewOutcomeUnsaved,
+			.preferencesUnavailable, .consentUnavailable, .evidenceUnavailable,
+			.reviewOutcomeUnsaved,
 			.settlementUnsaved, .reviewUnavailable:
 			return self
 		}
