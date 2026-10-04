@@ -114,6 +114,8 @@ enum LanguageMatrix {
 	static func settings(_ test: XCTestCase, _ language: LanguageTag) {
 		let run = MatrixRun.begin(test, language)
 		let app = run.app
+		TutorialHarness.exchange(app, TutorialHarness.workout)
+		TutorialHarness.wait(run.named("chat.preview.add"), until: .enabled)
 		TutorialHarness.openSettings(app)
 		run.expectTitle(Catalog.settingsTitle)
 		run.expect("settings.accessMethod", Catalog.accessTitle)
@@ -158,7 +160,9 @@ enum LanguageMatrix {
 			Catalog.settingsTrainingSwitchDetail, ["current": "i1001", "new": "i2002"])
 		let cancel = alert.buttons[run.say(Catalog.commonCancel)]
 		XCTAssertTrue(alert.staticTexts[run.say(Catalog.settingsTrainingSwitchTitle)].exists)
-		XCTAssertTrue(alert.staticTexts[sentence].exists, sentence)
+		XCTAssertTrue(
+			alert.staticTexts.matching(NSPredicate(format: "label == %@", sentence)).firstMatch
+				.exists, sentence)
 		XCTAssertTrue(alert.buttons[run.say(Catalog.settingsTrainingSwitch)].exists)
 		XCTAssertTrue(cancel.exists)
 		run.screen("settings-switch-athlete")
