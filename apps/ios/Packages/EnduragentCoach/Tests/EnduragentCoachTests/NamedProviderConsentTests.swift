@@ -101,6 +101,8 @@ extension ProviderConsentTests {
 		let coach = namedCoach(secrets: secrets, log: log)
 		try await coach.recordConsent(try await challenge(coach))
 		let saved = try secrets.accessSelection()
+		let query = RecordQuery(scope: .deviceLocal([.providerConsent]))
+		let consent = try await store.fetch(query).records
 		_ = await coach.changeModelAccess(.selectOpenRouterModel(last.id))
 		let proposed = try await challenge(coach)
 		log.failNextAppend = true
@@ -108,9 +110,13 @@ extension ProviderConsentTests {
 			try await coach.recordConsent(proposed)
 		}
 		#expect(try secrets.accessSelection() == saved)
+		#expect(try await store.fetch(query).records == consent)
 		#expect(transport.requestCount == 0)
 		await coach.declineConsent(proposed)
 		#expect(try await coach.observedStatus().needsProviderConsent == false)
+		let reopened = namedCoach(secrets: secrets, log: store)
+		#expect(try await reopened.observedStatus().needsProviderConsent == false)
+		#expect(try await reopened.observedStatus().access.model == first.id)
 	}
 
 	@Test func toolContinuationRechecksTheAgreedRecipient() async throws {

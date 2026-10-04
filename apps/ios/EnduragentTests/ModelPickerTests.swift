@@ -90,6 +90,10 @@ struct ModelPickerTests {
 			#expect(model.consentFailureKey == Catalog.reviewSaveFailed)
 			#expect(model.modelChoices?.selected == previous)
 			#expect(model.route == .onboarding(.consent))
+			await model.declineConsent()
+			try await model.waitForStatus { !$0.needsProviderConsent }
+			#expect(model.route == .chat)
+			#expect(model.modelChoices?.selected == previous)
 		default:
 			await model.acceptConsent()
 			try await model.waitForStatus { $0.access.model == another.id }

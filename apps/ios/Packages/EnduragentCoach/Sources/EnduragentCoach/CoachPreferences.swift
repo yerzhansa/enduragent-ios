@@ -6,6 +6,7 @@ actor CoachPreferences {
 	private let diagnostics: DiagnosticsLog
 	private let vault: CredentialVault
 	private let builtInModel: ModelID
+	private let consentChanges = Turnstile()
 	private var records: [AthleteRecord] = []
 	private var loaded = false
 	private var reading: Task<Result<[AthleteRecord], LedgerFailure>, Never>?
@@ -22,22 +23,26 @@ actor CoachPreferences {
 	}
 
 	func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		await vault.refreshRejections()
-		let target = try await vault.consentTarget(builtInModel: builtInModel)
-		guard await consent()?.authorizes(target) == true else {
-			throw .providerConsentRequired
+		try await consentChanges.pass { () throws(AccessUnavailable) in
+			await vault.refreshRejections()
+			let target = try await vault.consentTarget(builtInModel: builtInModel)
+			guard await readConsent()?.authorizes(target) == true else {
+				throw .providerConsentRequired
+			}
+			return try await vault.modelAccess(builtInModel: builtInModel)
 		}
-		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
 	func authorizeInvocation(_ invocation: ModelInvocation) async throws(AccessUnavailable) {
 		switch invocation {
 		case .authorize(let request):
-			let target = try await vault.requestTarget(request)
-			guard await consent()?.authorizes(target) == true else {
-				throw .providerConsentRequired
+			try await consentChanges.pass { () throws(AccessUnavailable) in
+				let target = try await vault.requestTarget(request)
+				guard await readConsent()?.authorizes(target) == true else {
+					throw .providerConsentRequired
+				}
+				try await vault.authorizeInvocation(request)
 			}
-			try await vault.authorizeInvocation(request)
 		case .rejected(let request):
 			if let reference = request.credential.openRouterReference {
 				try await vault.noteRejected(reference)
@@ -46,6 +51,16 @@ actor CoachPreferences {
 	}
 
 	func consent() async -> ProviderConsent? {
+		await consentChanges.pass { await readConsent() }
+	}
+
+	func accessStatus() async -> AccessStatus {
+		await consentChanges.pass {
+			await vault.accessStatus(builtInModel: builtInModel, consent: await readConsent())
+		}
+	}
+
+	private func readConsent() async -> ProviderConsent? {
 		do {
 			let page = try await ledger.read(
 				RecordQuery(scope: .deviceLocal([.providerConsent]), writtenBy: ledger.deviceId))
@@ -58,8 +73,22 @@ actor CoachPreferences {
 		}
 	}
 
-	func recordConsent(_ target: ConsentTarget) async throws(ConsentWriteFailure) {
-		guard await consent()?.authorizes(target) != true else { return }
+	func recordConsent(_ challenge: ConsentChallenge) async throws(ConsentWriteFailure) {
+		try await consentChanges.pass { () throws(ConsentWriteFailure) in
+			let selection = try await vault.saveConsentSelection(
+				challenge, builtInModel: builtInModel)
+			do throws(ConsentWriteFailure) {
+				try await writeConsent(challenge.target)
+			} catch {
+				if let selection { try await vault.restoreConsentSelection(selection) }
+				throw error
+			}
+			await vault.finishConsent(challenge)
+		}
+	}
+
+	private func writeConsent(_ target: ConsentTarget) async throws(ConsentWriteFailure) {
+		guard await readConsent()?.authorizes(target) != true else { return }
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
 			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)

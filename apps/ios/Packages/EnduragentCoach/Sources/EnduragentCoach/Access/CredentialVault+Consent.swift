@@ -5,6 +5,12 @@ struct ConsentContext: Sendable {
 	let challenge: ConsentChallenge
 }
 
+struct ConsentSelectionChange: Sendable {
+	let previous: SavedAccessReference
+	let saved: SavedAccessReference
+	let challenge: ConsentChallenge
+}
+
 extension CredentialVault {
 	func consentTarget(builtInModel: ModelID) throws(AccessUnavailable) -> ConsentTarget {
 		let saved = try keychain(.accessSelection) { try store.accessSelection() }
@@ -59,32 +65,54 @@ extension CredentialVault {
 		else { throw .staleChallenge }
 	}
 
-	func finishConsent(_ challenge: ConsentChallenge, builtInModel: ModelID)
-		throws(ConsentWriteFailure)
+	func saveConsentSelection(_ challenge: ConsentChallenge, builtInModel: ModelID)
+		throws(ConsentWriteFailure) -> ConsentSelectionChange?
 	{
 		try validateConsent(challenge, builtInModel: builtInModel)
+		var selection: ConsentSelectionChange?
 		if let pending = pendingModelChoice {
 			do {
-				guard case .openRouter(let reference) = pending.base?.value else {
+				guard let previous = pending.base, case .openRouter(let reference) = previous.value
+				else {
 					throw ConsentWriteFailure.staleChallenge
 				}
+				let saved = SavedAccessReference(
+					.openRouter(
+						SavedOpenRouterReference(
+							credential: reference.credential,
+							model: challenge.target.entry.id,
+							details: challenge.target.entry.details)))
 				try keychain(.accessSelection) {
-					try store.storeAccessSelection(
-						.init(
-							.openRouter(
-								SavedOpenRouterReference(
-									credential: reference.credential,
-									model: challenge.target.entry.id,
-									details: challenge.target.entry.details))))
+					try store.storeAccessSelection(saved)
 				}
+				selection = ConsentSelectionChange(
+					previous: previous, saved: saved, challenge: challenge)
 			} catch let failure as ConsentWriteFailure {
 				throw failure
 			} catch {
 				throw .notSaved
 			}
-			pendingModelChoice = nil
 		}
-		consentContext = nil
+		return selection
+	}
+
+	func finishConsent(_ challenge: ConsentChallenge) {
+		if pendingModelChoice?.challenge == challenge { pendingModelChoice = nil }
+		if consentContext?.challenge == challenge { consentContext = nil }
+	}
+
+	func restoreConsentSelection(_ selection: ConsentSelectionChange) throws(ConsentWriteFailure) {
+		do {
+			let saved = try keychain(.accessSelection) { try store.accessSelection() }
+			guard saved == selection.saved else { throw ConsentWriteFailure.staleChallenge }
+			try keychain(.accessSelection) { try store.storeAccessSelection(selection.previous) }
+			pendingModelChoice = ConsentContext(
+				base: selection.previous, challenge: selection.challenge)
+		} catch let failure as ConsentWriteFailure {
+			throw failure
+		} catch {
+			throw .notSaved
+		}
 	}
 
 	func declineConsent(_ challenge: ConsentChallenge) {

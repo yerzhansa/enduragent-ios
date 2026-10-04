@@ -144,6 +144,41 @@ final class ModelPickerProof: XCTestCase {
 		assertReply(app)
 	}
 
+	func testFailedSaveAfterAnotherProviderConsentKeepsThePreviousModel() {
+		let app = launch(fault: .failSelection)
+		TutorialHarness.openSettings(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.model"), until: .hittable)
+		capture(app, "settings-row")
+		TutorialHarness.returnToChat(app)
+		openPicker(app, cache: "bundled retained offline")
+		assertSelected(app, builtIn, name: "DeepSeek V4.1 Flash", provider: "DeepSeek")
+		choose(app, anthropic)
+		assertAnthropicConsent(app)
+		TutorialHarness.named(app, "consent.accept").tap()
+		TutorialHarness.waitForIdentifier(
+			app, "consent.error",
+			reading: "Couldn't save your choice on this iPhone, so nothing was changed. Try again.")
+		TutorialHarness.waitForIdentifier(
+			app, "consent.modelRequestCount", reading: "0 model requests")
+		capture(app, "another-provider-save-failed")
+		TutorialHarness.named(app, "consent.decline").tap()
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
+		XCTAssertFalse(TutorialHarness.named(app, "consent.resume").exists)
+		capture(app, "another-provider-save-failed-declined")
+		openPicker(app, cache: "bundled retained offline")
+		assertSelected(app, builtIn, name: "DeepSeek V4.1 Flash", provider: "DeepSeek")
+		XCTAssertFalse(row(app, anthropic).isSelected)
+		capture(app, "another-provider-save-failed-kept")
+		TutorialHarness.relaunchKeepingStore(app)
+		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
+		XCTAssertFalse(TutorialHarness.named(app, "consent.accept").exists)
+		openPicker(app, cache: "bundled retained offline")
+		assertSelected(app, builtIn, name: "DeepSeek V4.1 Flash", provider: "DeepSeek")
+		capture(app, "another-provider-save-failed-reopened")
+		TutorialHarness.returnToChat(app)
+		assertReply(app)
+	}
+
 	private func launch(
 		access: FixtureAccessMethod = .catalogOpenRouter,
 		response: FixtureCatalogResponse = .offline, fault: FixtureCredentialWriteFault? = nil

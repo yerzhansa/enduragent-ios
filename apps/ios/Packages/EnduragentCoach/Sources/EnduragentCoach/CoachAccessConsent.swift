@@ -3,9 +3,7 @@ import Foundation
 extension Coach {
 	public func recordConsent(_ challenge: ConsentChallenge) async throws(ConsentWriteFailure) {
 		do {
-			try await vault.validateConsent(challenge, builtInModel: builtInModel)
-			try await preferences.recordConsent(challenge.target)
-			try await vault.finishConsent(challenge, builtInModel: builtInModel)
+			try await preferences.recordConsent(challenge)
 		} catch {
 			await publishStatus()
 			throw error
