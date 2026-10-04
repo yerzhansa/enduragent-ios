@@ -119,8 +119,8 @@ import Testing
 			state
 				== .unrecovered(
 					TurnState.Unrecovered(
-						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
-		#expect(turnNotice(of: state)?.action == nil)
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, actions: []))))
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		#expect(
 			TurnLifecycle.claimRefusal(of: dead, device: device, process: current) == .unrecovered)
 		#expect(
@@ -143,9 +143,10 @@ import Testing
 					TurnState.Interrupted(
 						partial: "", cause: .processEnded, saved: .none,
 						notice: AthleteNotice(
-							key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn))
+							key: Catalog.chatTurnInterruptedNothingChanged,
+							actions: [.tryAgain(turn)])
 					)))
-		#expect(turnNotice(of: state)?.action == .tryAgain(turn))
+		#expect(turnNotice(of: state)?.actions == [.tryAgain(turn)])
 		#expect(TurnLifecycle.claimRefusal(of: recovered, device: device, process: current) == nil)
 	}
 
@@ -159,7 +160,7 @@ import Testing
 				== .processing(
 					TurnState.Processing(
 						attempt: first, activity: .generating(step: 1))))
-		#expect(turnNotice(of: state)?.action == nil)
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		#expect(
 			TurnLifecycle.claimRefusal(of: running, device: device, process: current)
 				== .attemptInFlight)
@@ -218,7 +219,7 @@ import Testing
 		faulty.failNextAppend = true
 		await coach.stop(.main)
 		#expect(
-			turnNotice(of: try #require(await coach.state(of: turn)))?.action == .tryAgain(turn))
+			turnNotice(of: try #require(await coach.state(of: turn)))?.actions == [.tryAgain(turn)])
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat)
 		try await coach.retry(turn, in: .main)

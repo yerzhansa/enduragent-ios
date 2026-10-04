@@ -51,7 +51,7 @@ extension SingleProposalReviewsTests {
 
 		#expect(outcome == .blocked(.trainingNotConnected))
 		#expect(outcome.notice?.key == Catalog.connectMissing)
-		#expect(outcome.notice?.action == .connectTraining)
+		#expect(outcome.notice?.actions == [.connectTraining])
 		#expect(
 			outcome.notice?.sentence(in: displayLocale(phrasebook.tag))
 				== "intervals.icu is not connected. Connect to add workouts to your calendar.")

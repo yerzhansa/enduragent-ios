@@ -49,7 +49,7 @@ import Testing
 		}
 		#expect(interrupted.partial == "Thursday is ")
 		#expect(interrupted.cause == .athleteStopped)
-		#expect(interrupted.notice.action == .tryAgain(turn))
+		#expect(interrupted.notice.actions == [.tryAgain(turn)])
 		let saved = try await recording.fetch(
 			RecordQuery(scope: .synced([.turnSettled]), turn: turn)
 		).records
@@ -90,7 +90,7 @@ import Testing
 		#expect(queued.cause == .stoppedBeforeStart)
 		#expect(running.notice.key == Catalog.chatTurnInterruptedNothingChanged)
 		#expect(queued.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(queued.notice.action == .tryAgain(second))
+		#expect(queued.notice.actions == [.tryAgain(second)])
 		#expect(await coach.transcript(.main) == ["one", "two"])
 	}
 
@@ -111,7 +111,7 @@ import Testing
 		}
 		#expect(stopped.cause == .stoppedBeforeStart)
 		#expect(stopped.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(stopped.notice.action == .tryAgain(turn))
+		#expect(stopped.notice.actions == [.tryAgain(turn)])
 		#expect(snapshot.activity == .idle)
 		#expect(recording.batches == [["providerConsent"], ["userMessage"], ["turnSettled"]])
 		#expect(transport.requests.isEmpty)
@@ -258,7 +258,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(failed) == .model(.providerDown(.outage)))
-		#expect(turnNotice(of: failed)?.action == .tryAgain(turn))
+		#expect(turnNotice(of: failed)?.actions == [.tryAgain(turn)])
 		try await coach.retry(turn, in: .main)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(replyText(settled) == "Recovered.")
@@ -331,7 +331,7 @@ import Testing
 		}
 		#expect(transport.requestCount == 0)
 		let failed = try #require(await coach.settledState(of: failedTurn, in: .main))
-		#expect(turnNotice(of: failed)?.action == nil)
+		#expect((turnNotice(of: failed)?.actions ?? []).isEmpty)
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(
@@ -356,7 +356,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved.memorySections == 1)
-		#expect(turnNotice(of: stopped)?.action == nil)
+		#expect((turnNotice(of: stopped)?.actions ?? []).isEmpty)
 		let requests = transport.requestCount
 		transport.respond = ScriptedReply.sequence(
 			[.text("Saved again."), .finish(reason: .stop)], for: .chat,

@@ -17,8 +17,8 @@ extension FlushCoverageTests {
 		await coach.stop(.main)
 		try await host.waitForEnd(0)
 		try #require(
-			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
-				== .tryAgain(turn))
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		transport.respond = ScriptedReply.sequence(
 			Array(repeating: .fail(.http(status: 400)), count: 20), for: .flush,
 			otherwise: transport.respond)

@@ -21,7 +21,7 @@ import Testing
 		#expect(transport.requests.count == 4)
 		#expect(clock.slept.prefix(3) == [.seconds(7), .seconds(7), .seconds(7)])
 		#expect(failure(settled) == .model(.rateLimited(retryAfter: .seconds(7))))
-		#expect(turnNotice(of: settled)?.action == .wait(thenTryAgain: turn))
+		#expect(turnNotice(of: settled)?.actions == [.wait(thenTryAgain: turn)])
 	}
 
 	@Test(arguments: [
@@ -130,7 +130,7 @@ import Testing
 				== .settleSavedWork(.writesSaved))
 		let notice = AthleteNotices.notice(for: .writesSaved)
 		#expect(notice.key == Catalog.coachFallbackWritesSaved)
-		#expect(notice.action == nil)
+		#expect(notice.actions.isEmpty)
 	}
 
 	@Test func committedMemoryWriteSettlesSavedUnverified() async throws {
@@ -160,7 +160,7 @@ import Testing
 				== WriteSummary(memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		)
 		#expect(savedWork.notice.key == Catalog.chatNoticeSavedUnverified)
-		#expect(savedWork.notice.action == nil)
+		#expect(savedWork.notice.actions.isEmpty)
 		#expect(chatRequests() == 2)
 		#expect(clock.slept.isEmpty)
 		let section = try #require(

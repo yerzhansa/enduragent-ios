@@ -63,7 +63,7 @@ import Testing
 		#expect(interrupted.saved == memorySaved)
 		#expect(
 			interrupted.notice
-				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil))
+				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, actions: []))
 		let claim = try #require(try await claims(of: turn).first)
 		guard case .deviceLocal(.turnClaim(let claimed)) = claim.body else {
 			Issue.record("expected a claim, got \(claim.body)")
@@ -102,7 +102,7 @@ import Testing
 		#expect(
 			interrupted.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(turn)]))
 		try await after.retry(turn, in: .main)
 		let replied = try #require(await after.settledState(of: turn, in: .main))
 		#expect(replyText(replied) == "Thursday is on.")
@@ -134,7 +134,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved == memorySaved)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		let retried = await makeCoach(transport: transport, store: store, clock: clock)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await retried.retry(turn, in: .main)

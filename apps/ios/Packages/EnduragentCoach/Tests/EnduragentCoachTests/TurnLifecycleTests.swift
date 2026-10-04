@@ -129,7 +129,7 @@ import Testing
 			dead
 				== .unrecovered(
 					TurnState.Unrecovered(
-						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, actions: []))))
 		let running = TurnLifecycle.state(
 			of: claimed(), live: nil, overlay: .queued(position: 1), device: phoneA,
 			process: process)
@@ -142,7 +142,7 @@ import Testing
 		let state = TurnLifecycle.state(
 			of: legacy, live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(state == .accepted(.beforeUpgrade))
-		#expect(turnNotice(of: state)?.action == nil)
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		#expect(claim(attempt, on: legacy) == .failure(.alreadyAnswered))
 	}
 
@@ -151,7 +151,7 @@ import Testing
 			of: accepted(on: phoneB), live: nil, overlay: .notInThisProcess, device: phoneA,
 			process: process)
 		#expect(state == .accepted(.onOtherDevice))
-		#expect(turnNotice(of: state)?.action == nil)
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 	}
 
 	@Test func stateFollowsTheWindowAndTheQueueWhileTheProcessLives() {
@@ -163,7 +163,7 @@ import Testing
 			of: accepted(), live: nil, overlay: .queued(position: 2), device: phoneA,
 			process: process)
 		#expect(queued == .accepted(.queued(position: 2)))
-		#expect(turnNotice(of: queued)?.action == nil)
+		#expect((turnNotice(of: queued)?.actions ?? []).isEmpty)
 	}
 
 	@Test func liveAttemptWinsUntilItIsSettled() {
@@ -180,7 +180,7 @@ import Testing
 			of: settled(.replied(.model("Thursday is on."), lineage: nil)), live: live,
 			overlay: .notInThisProcess, device: phoneA, process: process)
 		#expect(done == .completed(TurnState.Completed(reply: .model("Thursday is on."))))
-		#expect(turnNotice(of: done)?.action == nil)
+		#expect((turnNotice(of: done)?.actions ?? []).isEmpty)
 	}
 
 	@Test func failedSettlementCarriesOneNoticeWithTryAgain() throws {
@@ -192,7 +192,7 @@ import Testing
 			return
 		}
 		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
-		#expect(failed.notice?.action == .tryAgain(minted))
+		#expect(failed.notice?.actions == [.tryAgain(minted)])
 		let storage = TurnLifecycle.state(
 			of: settled(.failed(.local(.recordStorage), saved: .none)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
@@ -201,7 +201,7 @@ import Testing
 			return
 		}
 		#expect(unsaved.notice?.key == Catalog.coachHistoryDiskFull)
-		#expect(unsaved.notice?.action == nil)
+		#expect((unsaved.notice?.actions ?? []).isEmpty)
 	}
 
 	@Test func failedSettlementAfterSavedWorkOffersNoTryAgain() {
@@ -215,7 +215,7 @@ import Testing
 			return
 		}
 		#expect(failed.notice?.key == Catalog.coachErrorUnknown)
-		#expect(failed.notice?.action == nil)
+		#expect((failed.notice?.actions ?? []).isEmpty)
 	}
 
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {
@@ -228,12 +228,12 @@ import Testing
 		}
 		#expect(interrupted.partial == "Thursday is")
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(interrupted.notice.action == .tryAgain(minted))
+		#expect(interrupted.notice.actions == [.tryAgain(minted)])
 		let saved = WriteSummary(
 			memorySections: 1, ledgerEvents: 0, planSaves: 0, calendarWrites: 0)
 		let afterWrite = TurnLifecycle.state(
 			of: settled(.interrupted(partial: "", cause: .athleteStopped, saved: saved)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
-		#expect(turnNotice(of: afterWrite)?.action == nil)
+		#expect((turnNotice(of: afterWrite)?.actions ?? []).isEmpty)
 	}
 }

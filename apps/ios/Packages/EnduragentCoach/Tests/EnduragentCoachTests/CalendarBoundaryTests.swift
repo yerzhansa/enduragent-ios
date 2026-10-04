@@ -79,7 +79,10 @@ extension DurableCalendarWriteTests {
 			"Calendar approval did not finish within five seconds")
 		#expect(outcome.notice?.key == Catalog.reviewWritePending)
 		await fixture.coach.stop(.main)
-		#expect(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.action == nil)
+		#expect(
+			(turnNotice(of: try #require(await fixture.coach.state(of: turn)))?.actions ?? [])
+				.isEmpty
+		)
 		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
 		#expect(pending.controls == .checkAgain(pending.ref))
 		#expect(

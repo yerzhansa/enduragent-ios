@@ -42,7 +42,7 @@ extension CreditsClientTests {
 				transport.respond = { _ in ScriptedReply([.fail(.http(status: 402))]) }
 				let exhausted = try await coach.sendAndSettle("Plan my next ride")
 				#expect(failure(exhausted) == .model(.accessExhausted(.credits)))
-				#expect(turnNotice(of: exhausted)?.action == .buyCredits)
+				#expect(turnNotice(of: exhausted)?.actions == [.buyCredits, .switchToOpenRouter])
 				let balance = try await CreditsURLStub.withHandler({ request in
 					if request.url?.path == "/catalog" { return Self.catalog }
 					#expect(request.url?.host == "openrouter.test")
@@ -85,6 +85,46 @@ extension CreditsClientTests {
 			#expect(try await snapshot(reopened).turns.prefix(2).elementsEqual(saved.turns))
 		}
 
+		@Test func outOfCreditsNoticeKeepsBothActionsAfterReopeningAndInHistory() async throws {
+			let directory = try TestTemporaryFolders.make()
+			let offered: [RecoveryAction] = [.buyCredits, .switchToOpenRouter]
+			do {
+				let secrets = try identities(directory, method: .credits)
+				let transport = FakeModelTransport(respond: { _ in
+					ScriptedReply([.fail(.http(status: 402))])
+				})
+				let coach = try await coach(directory, secrets: secrets, transport: transport)
+				let exhausted = try await coach.sendAndSettle("Plan my next ride")
+				#expect(turnNotice(of: exhausted)?.actions == offered)
+				await coach.lifecycle(.willTerminate)
+			}
+			let secrets = try ICloudKeychainStore.fixture(directory: directory).store
+			let transport = FakeModelTransport()
+			let reopened = try await coach(directory, secrets: secrets, transport: transport)
+			#expect(
+				try await snapshot(reopened).turns.map { turnNotice(of: $0.state)?.actions }
+					== [offered])
+			_ = await reopened.resetAndSettle(in: .main)
+			let earlier = try #require(try await reopened.history().first?.id)
+			let archived = try #require(try await reopened.archivedConversation(earlier))
+			#expect(archived.turns.map { turnNotice(of: $0.state)?.actions } == [offered])
+			#expect(try secrets.accessSelection() == .init(.credits))
+		}
+
+		@Test func exhaustedCreditsAreSavedAsTheFailureAlone() throws {
+			let saved =
+				#"{"failure":{"code":"accessExhausted","detail":"credits","domain":"model"},"kind":"failed","saved":{"calendarWrites":0,"ledgerEvents":0,"memorySections":0,"planSaves":0,"unverifiedCalendarWrites":0}}"#
+			let settlement = Settlement.failed(.model(.accessExhausted(.credits)), saved: .none)
+			let encoder = JSONEncoder()
+			encoder.outputFormatting = [.sortedKeys]
+			#expect(
+				String(decoding: try encoder.encode(SettlementPayload(settlement)), as: UTF8.self)
+					== saved)
+			#expect(
+				try JSONDecoder().decode(SettlementPayload.self, from: Data(saved.utf8))
+					.settlement() == settlement)
+		}
+
 		@Test func rejectedOpenRouterNeverUsesCreditsOnLaterAttempts() async throws {
 			let directory = try TestTemporaryFolders.make()
 			let original: CreditsAccount
@@ -100,9 +140,10 @@ extension CreditsClientTests {
 					try await coach.send(draft("Plan a ride"), to: .main).acceptedTurn)
 				let rejected = try #require(await coach.settledState(of: turn, in: .main))
 				#expect(failure(rejected) == .model(.credentialRejected(.openRouterAccount)))
-				#expect(turnNotice(of: rejected)?.action == nil)
+				#expect((turnNotice(of: rejected)?.actions ?? []).isEmpty)
 				#expect(
-					try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
+					try await coach.observedStatus().access.notice?.actions == [.signInToOpenRouter]
+				)
 				try await coach.retry(turn, in: .main)
 				#expect(
 					failure(try #require(await coach.settledState(of: turn, in: .main)))

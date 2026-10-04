@@ -155,7 +155,7 @@ extension FixtureLaunchTests {
 		}
 		#expect(interrupted.cause == .systemExpired)
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedSomeSaved)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		#expect(await services.leases().first?.expiry == .systemExpired)
 		await model.stop()
 	}

@@ -64,7 +64,7 @@ AthleteAttribution
 AthleteAttribution.historyLine(in:connectedAthlete:)
 AthleteAttribution.ownership
 AthleteNotice
-AthleteNotice.action
+AthleteNotice.actions
 AthleteNotice.count
 AthleteNotice.credits(failure:)
 AthleteNotice.key
@@ -479,6 +479,7 @@ RecoveryAction.chooseAccessMethod
 RecoveryAction.connectTraining
 RecoveryAction.restoreCredits
 RecoveryAction.signInToOpenRouter
+RecoveryAction.switchToOpenRouter
 RecoveryAction.title
 RecoveryAction.tryAgain
 RecoveryAction.wait

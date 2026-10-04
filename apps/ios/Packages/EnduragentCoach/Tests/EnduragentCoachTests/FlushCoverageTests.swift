@@ -160,8 +160,8 @@ import Testing
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		try #require(
-			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
-				== .tryAgain(turn))
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
 		transport.respond = ScriptedReply.sequence(
 			[
@@ -199,8 +199,8 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Recover after trimming"), to: .main).acceptedTurn)
 		try #require(
-			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
-				== .tryAgain(turn))
+			turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+				== [.tryAgain(turn)])
 		let huge = String(repeating: "w", count: historyBudget(clock: clock) * 5)
 		transport.respond = ScriptedReply.sequence(
 			[

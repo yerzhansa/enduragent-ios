@@ -27,7 +27,7 @@ import Testing
 			await after.state(of: turn)
 				== .unrecovered(
 					TurnState.Unrecovered(
-						notice: AthleteNotice(key: Catalog.chatHistoryFailure, action: nil))))
+						notice: AthleteNotice(key: Catalog.chatHistoryFailure, actions: []))))
 		await #expect(throws: RetryRefusal.unrecovered) {
 			try await after.retry(turn, in: .main)
 		}
@@ -43,7 +43,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.cause == .processEnded)
-		#expect(interrupted.notice.action == .tryAgain(turn))
+		#expect(interrupted.notice.actions == [.tryAgain(turn)])
 		try await after.retry(turn, in: .main)
 		let replied = try await after.waitForState(of: turn) { $0.flatMap(replyText) != nil }
 		#expect(replied.flatMap(replyText) == "Thursday is on.")
@@ -77,7 +77,7 @@ import Testing
 		let after = await makeCoach(transport: transport, store: log, clock: clock)
 		await after.lifecycle(.becameActive)
 		let state = try #require(await after.state(of: turn))
-		#expect(turnNotice(of: state)?.action == nil)
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 		await #expect(throws: RetryRefusal.unrecovered) {
 			try await after.retry(turn, in: .main)
 		}
@@ -91,7 +91,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedSomeSaved)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await after.retry(turn, in: .main)
 		}

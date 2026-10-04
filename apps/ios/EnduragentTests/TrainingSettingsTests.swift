@@ -267,7 +267,7 @@ struct TrainingSettingsTests {
 		await model.decide(.approve(token))
 		let notice = try #require(model.reviewNotice)
 		#expect(notice.key == Catalog.connectMissing)
-		await model.perform(try #require(notice.action))
+		await model.perform(try #require(notice.actions.first))
 		#expect(model.route == .chat)
 		#expect(model.navigation == [.training])
 		#expect(model.trainingSettings.isEditing)

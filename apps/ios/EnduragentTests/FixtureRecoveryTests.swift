@@ -29,7 +29,7 @@ extension FixtureLaunchTests {
 		let recovered = try await turn(accepted.id, in: reopened) { state in
 			if started {
 				guard case .interrupted(let interrupted) = state else { return false }
-				return interrupted.notice.action == .tryAgain(accepted.id)
+				return interrupted.notice.actions == [.tryAgain(accepted.id)]
 			}
 			return state == .accepted(.awaitingRestart)
 		}
@@ -95,7 +95,7 @@ extension FixtureLaunchTests {
 				return
 			}
 			#expect(unrecovered.notice.key == Catalog.chatHistoryFailure)
-			#expect(unrecovered.notice.action == nil)
+			#expect(unrecovered.notice.actions.isEmpty)
 			let transport = try #require(unreadableServices.fixtureTransport)
 			await unreadable.perform(.tryAgain(dead.id))
 			try await Task.sleep(for: .milliseconds(200))
@@ -111,7 +111,7 @@ extension FixtureLaunchTests {
 			Issue.record("expected interrupted, got \(recovered.state)")
 			return
 		}
-		#expect(interrupted.notice.action == .tryAgain(dead.id))
+		#expect(interrupted.notice.actions == [.tryAgain(dead.id)])
 	}
 
 	@Test(.timeLimit(.minutes(1)))
@@ -142,7 +142,7 @@ extension FixtureLaunchTests {
 		#expect(interrupted.cause == .appTerminating)
 		#expect(!interrupted.partial.isEmpty)
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedNothingChanged)
-		#expect(interrupted.notice.action == .tryAgain(streaming.id))
+		#expect(interrupted.notice.actions == [.tryAgain(streaming.id)])
 	}
 
 	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
@@ -175,7 +175,7 @@ extension FixtureLaunchTests {
 		#expect(interrupted.cause == .processEnded)
 		#expect(interrupted.saved.memorySections == 1)
 		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedSomeSaved)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 	}
 
 	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {

@@ -294,7 +294,7 @@ import Testing
 		for (outcome, sentence) in rows {
 			let notice = outcome.notice
 			#expect(notice?.sentence(in: displayLocale(phrasebook.tag)) == sentence, "\(outcome)")
-			#expect(notice?.action == nil)
+			#expect((notice?.actions ?? []).isEmpty)
 		}
 	}
 

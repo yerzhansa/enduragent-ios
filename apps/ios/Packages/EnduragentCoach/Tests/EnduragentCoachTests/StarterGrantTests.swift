@@ -22,17 +22,17 @@ struct StarterGrantTests {
 		case .minted:
 			expected = AthleteNotice(
 				key: Catalog.creditsBalance, count: 1, vars: ["formattedCount": .integer(1)],
-				action: nil)
+				actions: [])
 		case .toppedUp:
 			expected = AthleteNotice(
 				key: Catalog.onboardingStarterAdded, count: 2,
-				vars: ["formattedCount": .integer(2)], action: nil)
+				vars: ["formattedCount": .integer(2)], actions: [])
 		case .alreadyGranted where hasKey:
 			expected = AthleteNotice(
 				key: Catalog.creditsBalance, count: 73, vars: ["formattedCount": .integer(73)],
-				action: nil)
+				actions: [])
 		case .alreadyGranted:
-			expected = AthleteNotice(key: Catalog.onboardingStarterAlreadyGranted, action: nil)
+			expected = AthleteNotice(key: Catalog.onboardingStarterAlreadyGranted, actions: [])
 		}
 		#expect(notice == expected)
 		#expect(

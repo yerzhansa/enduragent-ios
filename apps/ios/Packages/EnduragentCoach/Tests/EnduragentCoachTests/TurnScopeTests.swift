@@ -122,7 +122,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.saved.memorySections == 1)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 	}
 
 	private func scope() -> TurnScope {
