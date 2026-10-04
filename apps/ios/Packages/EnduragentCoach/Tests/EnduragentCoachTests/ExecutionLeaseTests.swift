@@ -91,7 +91,7 @@ import Testing
 		#expect(
 			interrupted.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(turn)]))
 		#expect(
 			try await settlements(of: turn) == [
 				.interrupted(partial: "Yes, keep Thursday.", cause: .systemExpired, saved: .none)
@@ -127,7 +127,7 @@ import Testing
 		#expect(
 			queued.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(second)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(second)]))
 		#expect(try await claims(of: second).isEmpty)
 		#expect(await host.ended(0)?.ending == .interrupted(.systemExpired))
 		#expect(try #require(await coach.currentSnapshot(.main)).activity == .idle)
@@ -186,8 +186,8 @@ import Testing
 		#expect(!interrupted.saved.isEmpty)
 		#expect(
 			interrupted.notice
-				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, action: nil))
-		#expect(turnNotice(of: state)?.action == nil)
+				== AthleteNotice(key: Catalog.chatTurnInterruptedSomeSaved, actions: []))
+		#expect((turnNotice(of: state)?.actions ?? []).isEmpty)
 	}
 
 	@Test func graceEndedSettlesTheRunningTurnAsGraceEnded() async throws {
@@ -201,7 +201,7 @@ import Testing
 			return
 		}
 		#expect(interrupted.cause == .graceEnded)
-		#expect(interrupted.notice.action == .tryAgain(turn))
+		#expect(interrupted.notice.actions == [.tryAgain(turn)])
 	}
 
 	@Test func aReplyThatLandsWhileAwayIsMarkedCompletedInBackground() async throws {

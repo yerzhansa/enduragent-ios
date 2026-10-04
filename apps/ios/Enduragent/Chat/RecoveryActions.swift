@@ -13,7 +13,7 @@ extension ShellModel {
 		case .signInToOpenRouter:
 			guard status.access.attention == .rejectedKey else { return }
 			await chooseAccess(.signInToOpenRouter)
-		case .chooseAccessMethod:
+		case .chooseAccessMethod, .switchToOpenRouter:
 			open(.accessMethod)
 		}
 	}

@@ -77,7 +77,7 @@ import Testing
 		await coach.waitForLiveText(turn)
 		await coach.stop(.main)
 		let stopped = try #require(await coach.settledState(of: turn, in: .main))
-		try #require(turnNotice(of: stopped)?.action == .tryAgain(turn))
+		try #require(turnNotice(of: stopped)?.actions == [.tryAgain(turn)])
 		guard case .interrupted(let interrupted) = stopped else {
 			Issue.record("Expected a stopped reply")
 			return
@@ -102,7 +102,7 @@ import Testing
 		let turn = try #require(
 			try await coach.send(draft("Remember Saturdays"), to: .main).acceptedTurn)
 		let failed = try #require(await coach.settledState(of: turn, in: .main))
-		try #require(turnNotice(of: failed)?.action == .tryAgain(turn))
+		try #require(turnNotice(of: failed)?.actions == [.tryAgain(turn)])
 		let longReply = String(repeating: "w", count: historyBudget(clock: clock) * 3)
 		transport.respond = ScriptedReply.sequence(
 			[

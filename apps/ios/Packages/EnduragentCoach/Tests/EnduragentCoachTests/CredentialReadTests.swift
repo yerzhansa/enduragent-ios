@@ -54,7 +54,7 @@ extension CredentialVaultTests {
 		#expect(status.setup == .accessTemporarilyUnavailable(.secureStorageLocked))
 		#expect(status.training == .unavailable(.secureStorageLocked))
 		#expect(status.notice?.key == Catalog.accessErrorLocked)
-		#expect(status.notice?.action == nil)
+		#expect((status.notice?.actions ?? []).isEmpty)
 
 		let memory = FixtureSecretStoreBacking()
 		memory.fail(CredentialSlot.accessSelection.rawValue, with: errSecInteractionNotAllowed)

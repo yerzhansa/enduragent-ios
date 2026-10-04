@@ -155,9 +155,11 @@ import Testing
 		}
 		#expect(failed.failure == .model(row.failure))
 		#expect(failed.notice?.key == row.key)
-		#expect(failed.notice?.action.map { english.say($0.title) } == row.button)
+		#expect(failed.notice?.actions.map { english.say($0.title) } == row.buttons)
 		let waits = CoachFailure.model(row.failure).tryAgainWait != nil
-		#expect((failed.notice?.action == .tryAgain(turn)) == (row.button == "Try again" && !waits))
+		#expect(
+			(failed.notice?.actions == [.tryAgain(turn)])
+				== (row.buttons == ["Try again"] && !waits))
 		#expect(failed.notice?.sentence(in: displayLocale()) == row.english)
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == row.calls)
 	}

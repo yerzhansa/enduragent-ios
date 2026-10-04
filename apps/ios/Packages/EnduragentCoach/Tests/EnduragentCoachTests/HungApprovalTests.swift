@@ -43,7 +43,7 @@ extension RetryLadderTests {
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
-		#expect(turnNotice(of: settled)?.action == nil)
+		#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
 		#expect(
 			interrupted.notice.sentence(in: displayLocale())
 				== "The calendar change may have been saved. Check your calendar before asking again."

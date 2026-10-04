@@ -114,8 +114,8 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(
-			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.action
-				== .tryAgain(failed))
+			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.actions
+				== [.tryAgain(failed)])
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		let running = try #require(try await coach.send(draft("one"), to: .main).acceptedTurn)
 		await coach.waitUntilProcessing(running)
@@ -174,8 +174,8 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		let failed = try #require(try await coach.send(draft("earlier"), to: .main).acceptedTurn)
 		#expect(
-			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.action
-				== .tryAgain(failed))
+			turnNotice(of: try #require(await coach.settledState(of: failed, in: .main)))?.actions
+				== [.tryAgain(failed)])
 		transport.respond = ScriptedReply.sequence(
 			[.text("Should not run."), .finish(reason: .stop)], for: .chat,
 			otherwise: transport.respond)

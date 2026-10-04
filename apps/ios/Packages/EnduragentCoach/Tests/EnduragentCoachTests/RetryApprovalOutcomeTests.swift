@@ -43,7 +43,7 @@ extension RetryLadderTests {
 		#expect(saved.outcome == .savedUnverified)
 		#expect(saved.saved.calendarWrites == 1)
 		#expect(saved.saved.unverifiedCalendarWrites == 1)
-		#expect(saved.notice.action == nil)
+		#expect(saved.notice.actions.isEmpty)
 		#expect(
 			saved.notice.sentence(in: displayLocale())
 				== "The calendar change may have been saved. Check your calendar before asking again."
@@ -84,7 +84,7 @@ extension RetryLadderTests {
 			return
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
-		#expect(turnNotice(of: settled)?.action == nil)
+		#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
 		#expect(base.calls.filter(\.isWrite).count == 1)
 	}
 
@@ -112,7 +112,7 @@ extension RetryLadderTests {
 			return
 		}
 		let settled = try #require(await settledTurn(turn, on: coach))
-		#expect(turnNotice(of: settled)?.action == nil)
+		#expect((turnNotice(of: settled)?.actions ?? []).isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.count == 1)

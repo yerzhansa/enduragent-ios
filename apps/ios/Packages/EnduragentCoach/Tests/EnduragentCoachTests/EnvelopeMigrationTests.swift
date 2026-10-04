@@ -136,7 +136,7 @@ extension SwiftDataSuites {
 			#expect(snapshot.turns.map(\.athleteText) == [nil, "Is Thursday on?"])
 			let unanswered = try #require(snapshot.turns.last)
 			#expect(unanswered.state == .accepted(.beforeUpgrade))
-			#expect(turnNotice(of: unanswered.state)?.action == nil)
+			#expect((turnNotice(of: unanswered.state)?.actions ?? []).isEmpty)
 			await #expect(throws: RetryRefusal.alreadyAnswered) {
 				try await coach.retry(unanswered.id, in: .main)
 			}

@@ -19,8 +19,8 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		await original.stop(.main)
 		#expect(
-			turnNotice(of: try #require(await settledTurn(turn, on: original)))?.action
-				== .tryAgain(turn))
+			turnNotice(of: try #require(await settledTurn(turn, on: original)))?.actions
+				== [.tryAgain(turn)])
 		let coach =
 			reopenBeforeApproval
 			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
@@ -41,7 +41,7 @@ extension RetryLadderTests {
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		#expect(
 			interrupted.notice.sentence(in: displayLocale())
 				== "The calendar change may have been saved. Check your calendar before asking again."
@@ -83,7 +83,9 @@ extension RetryLadderTests {
 		defer { approving.cancel() }
 		try await held.waitUntilHeld(.seconds(13))
 		await coach.stop(.main)
-		#expect(turnNotice(of: try #require(await settledTurn(turn, on: coach)))?.action == nil)
+		#expect(
+			(turnNotice(of: try #require(await settledTurn(turn, on: coach)))?.actions ?? [])
+				.isEmpty)
 		held.advance(by: .seconds(13))
 		guard case .uncertain = await approving.value else {
 			Issue.record("a dispatched rejection is not proof of absence")
@@ -97,7 +99,7 @@ extension RetryLadderTests {
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 1)
 		#expect(interrupted.saved.memorySections == (memorySaved ? 1 : 0))
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		for current in [coach] + (await reopenedApprovalCoaches(intervals: intervals)) {
 			#expect(await current.currentSnapshot(.main)?.turns.first?.state == settled)
 			await #expect(throws: RetryRefusal.self) { try await current.retry(turn, in: .main) }

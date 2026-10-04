@@ -51,7 +51,7 @@ struct TrainingStorageTests {
 		case .unlocked:
 			#expect(notice.key == Catalog.connectMissing)
 			#expect(training.connectionActionTitle == Catalog.onboardingConnectAction)
-			#expect(notice.action == .connectTraining)
+			#expect(notice.actions == [.connectTraining])
 			reopened.trainingSettings.edit()
 			#expect(reopened.trainingSettings.key.isEmpty)
 		case .locked, .unavailable:
@@ -84,7 +84,7 @@ struct TrainingStorageTests {
 				return
 			}
 			#expect(result.notice?.key == Catalog.connectErrorStorageMalformed)
-			await reopened.perform(try #require(result.notice?.action))
+			await reopened.perform(try #require(result.notice?.actions.first))
 			#expect(reopened.route == .chat)
 			#expect(reopened.navigation == [.training])
 			#expect(reopened.trainingSettings.isEditing)

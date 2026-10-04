@@ -77,7 +77,7 @@ extension FixtureLaunchTests {
 				Issue.record("Expected failure, got \(state)")
 				return
 			}
-			#expect(failed.notice?.action == .tryAgain(turn))
+			#expect(failed.notice?.actions == [.tryAgain(turn)])
 			#expect(host.leases.first?.ending == .failed(nil))
 			#expect(system.posted.isEmpty)
 		}

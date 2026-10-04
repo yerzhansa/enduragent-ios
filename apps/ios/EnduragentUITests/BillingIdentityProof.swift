@@ -13,10 +13,20 @@ final class BillingIdentityProof: XCTestCase {
 		TutorialHarness.exchange(app, "fixture:fail 402")
 		let sentence = "You're out of Credits. You can switch to your OpenRouter account."
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: sentence))
-		capture(app, "exhausted-conversation")
 		let buyCredits = TutorialHarness.named(app, "chat.turn.buyCredits")
-		TutorialHarness.wait(buyCredits, until: .hittable)
-		XCTAssertEqual(buyCredits.label, "Buy Credits")
+		let switchFromNotice = TutorialHarness.named(app, "chat.turn.switchToOpenRouter")
+		assertNoticeActions(app, buy: "Buy Credits", switchAccess: "Switch to OpenRouter")
+		capture(app, "exhausted-conversation")
+		switchFromNotice.tap()
+		TutorialHarness.wait(app.navigationBars[phrasebook.say(Catalog.accessTitle)])
+		assertChoice(app, credits: true)
+		capture(app, "notice-switch-keeps-credits")
+		TutorialHarness.returnToChat(app, maximumBackSteps: 1)
+		TutorialHarness.wait(TutorialHarness.notice(app, reading: sentence))
+		TutorialHarness.waitForLabel(
+			app, "Noted. I'll remember you ride with a group on Saturdays.")
+		assertNoticeActions(app, buy: "Buy Credits", switchAccess: "Switch to OpenRouter")
+		capture(app, "back-from-notice-switch")
 		buyCredits.tap()
 		TutorialHarness.waitForIdentifier(app, "credits.balance", reading: "0 credits")
 		TutorialHarness.waitForIdentifier(app, "credits.notice", reading: sentence)
@@ -39,6 +49,7 @@ final class BillingIdentityProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: sentence))
 		TutorialHarness.waitForLabel(
 			app, "Noted. I'll remember you ride with a group on Saturdays.")
+		assertNoticeActions(app, buy: "Buy Credits", switchAccess: "Switch to OpenRouter")
 		capture(app, "reopened-conversation")
 		openAccess(app)
 		assertChoice(app, credits: true)
@@ -84,7 +95,39 @@ final class BillingIdentityProof: XCTestCase {
 		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
+	func testOutOfCreditsActionsFitInTheLongestTranslations() {
+		for (language, locale, tag) in [("fr", "fr_FR", LanguageTag.fr), ("nl", "nl_NL", .nl)] {
+			let app = XCUIApplication()
+			let translated = CatalogPhrasebook(tag: tag)
+			TutorialHarness.launch(app, language: language, locale: locale)
+			TutorialHarness.completeOnboarding(app, language: tag)
+			TutorialHarness.exchange(app, "fixture:fail 402")
+			TutorialHarness.wait(
+				TutorialHarness.notice(app, reading: translated.say(Catalog.creditsErrorExhausted)))
+			assertNoticeActions(
+				app, buy: translated.say(Catalog.chatTurnBuyCredits),
+				switchAccess: translated.say(Catalog.accessSwitchToOpenRouter))
+			capture(app, "exhausted-conversation-\(language)")
+			app.terminate()
+		}
+	}
+
 	private var phrasebook: CatalogPhrasebook { CatalogPhrasebook(tag: .en) }
+
+	private func assertNoticeActions(_ app: XCUIApplication, buy: String, switchAccess: String) {
+		let buyCredits = TutorialHarness.named(app, "chat.turn.buyCredits")
+		let switchFromNotice = TutorialHarness.named(app, "chat.turn.switchToOpenRouter")
+		TutorialHarness.wait(buyCredits, until: .hittable)
+		TutorialHarness.wait(switchFromNotice, until: .hittable)
+		XCTAssertEqual(buyCredits.label, buy)
+		XCTAssertEqual(switchFromNotice.label, switchAccess)
+		XCTAssertLessThanOrEqual(buyCredits.frame.maxY, switchFromNotice.frame.minY)
+		let screen = app.windows.firstMatch.frame
+		XCTAssertTrue(screen.contains(buyCredits.frame))
+		XCTAssertTrue(screen.contains(switchFromNotice.frame))
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.buyCredits").count, 1)
+		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.switchToOpenRouter").count, 1)
+	}
 
 	private func assertChoice(_ app: XCUIApplication, credits: Bool) {
 		let creditsChoice = TutorialHarness.named(app, "access.credits")

@@ -26,7 +26,7 @@ import Testing
 		#expect(
 			stopped.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(turn)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(turn)]))
 		#expect(await host.ended(0)?.ending == .interrupted(.athleteStopped))
 		transport.respond = ScriptedReply.sequence(
 			[.text("Still on."), .finish(reason: .stop)], otherwise: transport.respond)

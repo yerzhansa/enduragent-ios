@@ -76,7 +76,7 @@ struct TurnRowView: View {
 		VStack(alignment: .leading, spacing: 8) {
 			Text(notice.sentence(in: model.displayLocale))
 				.accessibilityIdentifier("chat.turn.notice")
-			if let action = notice.action {
+			ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
 				actionButton(action)
 			}
 		}
@@ -86,6 +86,7 @@ struct TurnRowView: View {
 		Button(say(action.title)) {
 			Task { await model.perform(action) }
 		}
+		.buttonStyle(.borderless)
 		.disabled(isWaiting(action))
 		.accessibilityIdentifier(identifier(for: action))
 	}
@@ -101,6 +102,7 @@ struct TurnRowView: View {
 		case .restoreCredits: "chat.turn.restorePurchases"
 		case .buyCredits: "chat.turn.buyCredits"
 		case .chooseAccessMethod: "chat.turn.chooseAccessMethod"
+		case .switchToOpenRouter: "chat.turn.switchToOpenRouter"
 		case .signInToOpenRouter: "chat.turn.signInAgain"
 		case .connectTraining: "chat.turn.connectTraining"
 		}
