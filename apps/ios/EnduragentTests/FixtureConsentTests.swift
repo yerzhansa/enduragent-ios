@@ -32,7 +32,7 @@ extension FixtureLaunchTests {
 			Issue.record("Unreadable model access must refuse the turn")
 			return
 		}
-		#expect(storageFailure.notice.key == storageNotice)
+		#expect(storageFailure.notice?.key == storageNotice)
 		#expect(transport.requestCount == 0)
 		let entry = try #require(ModelCatalog.bundled.orderedEntries.last)
 		if policy == .unavailable {
@@ -55,12 +55,12 @@ extension FixtureLaunchTests {
 			Issue.record("Readable model access must refuse requests until consent is saved")
 			return
 		}
-		#expect(consentFailure.notice.key == Catalog.accessErrorProviderConsentRequired)
-		#expect(consentFailure.notice.action == .tryAgain(refused.id))
+		#expect(consentFailure.notice?.key == Catalog.accessErrorProviderConsentRequired)
+		#expect(consentFailure.notice?.action == .tryAgain(refused.id))
 		#expect(transport.requestCount == 0)
 		await model.acceptConsent()
 		try await until { model.route == .chat }
-		await model.perform(try #require(consentFailure.notice.action))
+		await model.perform(try #require(consentFailure.notice?.action))
 		let answered = try await settledTurn(model, after: refused.state)
 		#expect(answered.id == refused.id)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
@@ -198,8 +198,8 @@ extension FixtureLaunchTests {
 			Issue.record("Expected a consent refusal")
 			return
 		}
-		#expect(failure.notice.key == Catalog.accessErrorProviderConsentRequired)
-		#expect(failure.notice.action == .tryAgain(refused.id))
+		#expect(failure.notice?.key == Catalog.accessErrorProviderConsentRequired)
+		#expect(failure.notice?.action == .tryAgain(refused.id))
 		let (services, _) = try await relaunch(.keep)
 		let model = await model(services)
 		await model.appear()
@@ -211,7 +211,7 @@ extension FixtureLaunchTests {
 		#expect(kept.id == refused.id)
 		#expect(kept.state == refused.state)
 		#expect(services.fixtureTransport?.requestCount == 0)
-		await model.perform(try #require(failure.notice.action))
+		await model.perform(try #require(failure.notice?.action))
 		let answered = try await settledTurn(model, after: refused.state)
 		#expect(answered.id == refused.id)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
@@ -263,7 +263,7 @@ extension FixtureLaunchTests {
 			Issue.record("Expected a provider consent refusal")
 			return
 		}
-		#expect(failure.notice.action == .tryAgain(turn))
+		#expect(failure.notice?.action == .tryAgain(turn))
 		await model.declineConsent()
 		#expect(model.route == .onboarding(.consentDeferred))
 		#expect(services.fixtureTransport?.requestCount == 0)
@@ -274,7 +274,7 @@ extension FixtureLaunchTests {
 		#expect(services.fixtureTransport?.requestCount == 0)
 		await model.acceptConsent()
 		try await observed(model)
-		await model.perform(try #require(failure.notice.action))
+		await model.perform(try #require(failure.notice?.action))
 		let answered = try await settledTurn(model, after: refused.state)
 		#expect(answered.id == turn)
 		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)

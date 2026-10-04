@@ -160,10 +160,10 @@ struct OpenRouterAccessTests {
 			return
 		}
 		#expect(model.status.access.attention == (forbidden ? nil : .signInNeeded))
-		#expect(failure.notice.action == (forbidden ? nil : .chooseAccessMethod))
+		#expect(failure.notice?.action == (forbidden ? nil : .chooseAccessMethod))
 		if forbidden {
 			#expect(
-				failure.notice.sentence(in: model.displayLocale)
+				failure.notice?.sentence(in: model.displayLocale)
 					== "OpenRouter blocked this request. Try a different model or message.")
 		} else {
 			await model.perform(.chooseAccessMethod)

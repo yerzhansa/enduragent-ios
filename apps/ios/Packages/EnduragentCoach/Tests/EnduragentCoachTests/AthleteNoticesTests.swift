@@ -50,10 +50,6 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			"Your Credits couldn't be used. Restore purchases to continue.", .restoreCredits,
 			"Restore purchases"),
 		failed(
-			.model(.credentialRejected(.openRouterAccount)),
-			"Your OpenRouter sign-in is no longer valid. Sign in again to continue.",
-			nil, nil),
-		failed(
 			.model(.accessExhausted(.credits)),
 			"You're out of Credits. You can switch to your OpenRouter account.", .buyCredits,
 			"Buy Credits"),

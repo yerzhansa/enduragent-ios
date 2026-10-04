@@ -37,7 +37,9 @@ struct TurnRowView: View {
 			case .savedWork(let savedWork):
 				notice(savedWork.notice)
 			case .failed(let failed):
-				notice(failed.notice)
+				if let failureNotice = failed.notice {
+					notice(failureNotice)
+				}
 			case .interrupted(let interrupted):
 				if !interrupted.partial.isEmpty {
 					ReplyView(source: interrupted.partial, parser: model.services.replyParser)

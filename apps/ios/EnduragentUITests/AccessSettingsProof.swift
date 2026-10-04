@@ -211,12 +211,17 @@ final class AccessSettingsProof: XCTestCase {
 			let app = launch(access: openRouter ? .openRouter : .credits)
 			TutorialHarness.exchange(app, openRouter ? "fixture:fail 401" : "fixture:fail 402")
 			let action = TutorialHarness.named(
-				app, openRouter ? "chat.turn.signInAgain" : "chat.turn.buyCredits")
+				app, openRouter ? "chat.access.signInAgain" : "chat.turn.buyCredits")
 			TutorialHarness.wait(action, until: .hittable)
 			action.tap()
 			if openRouter {
+				TutorialHarness.waitForIdentifier(
+					app, "chat.access.outcome",
+					reading: phrasebook.say(Catalog.accessSignInCancelled))
+				TutorialHarness.wait(action, until: .enabled)
+				capture(app, "sign-in-again-cancelled")
+				openAccess(app)
 				assertChoice(app, credits: false)
-				capture(app, "sign-in-again-destination")
 			} else {
 				TutorialHarness.wait(TutorialHarness.named(app, "credits.balance"))
 				capture(app, "buy-credits-destination")

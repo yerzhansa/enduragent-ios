@@ -92,15 +92,16 @@ struct BillingRouteTests {
 			return
 		}
 		let action: RecoveryAction = method == .credits ? .buyCredits : .signInToOpenRouter
-		#expect(failure.notice.action == (method == .credits ? action : nil))
+		#expect(failure.notice?.action == (method == .credits ? action : nil))
 		if method == .openRouter {
+			#expect(failure.notice == nil)
 			try await model.waitForStatus { $0.access.attention == .rejectedKey }
 			#expect(model.status.access.notice?.action == action)
 		}
 		#expect(
-			failure.notice.key
+			failure.notice?.key
 				== (method == .credits
-					? Catalog.creditsErrorExhausted : Catalog.coachErrorReauth))
+					? Catalog.creditsErrorExhausted : nil))
 		let saved = try #require(model.chat)
 		await model.perform(action)
 		if method == .credits {

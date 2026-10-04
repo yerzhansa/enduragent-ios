@@ -29,7 +29,8 @@ extension TurnAccessTests {
 			try await coach.send(draft("Keep this message"), to: .main).acceptedTurn)
 		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(failure(settled) == .model(.credentialRejected(.openRouterAccount)))
-		#expect(turnNotice(of: settled)?.action == nil)
+		#expect(turnNotice(of: settled) == nil)
+		try await assertRecoverySentence(coach)
 		#expect(transport.requestCount == 1)
 		#expect(try await coach.observedStatus().access.attention == .rejectedKey)
 		#expect(try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
@@ -37,6 +38,7 @@ extension TurnAccessTests {
 			failure(try await coach.sendAndSettle("Another question"))
 				== .model(.accessUnavailable(.openRouterKeyRejected)))
 		#expect(transport.requestCount == 1)
+		try await assertRecoverySentence(coach)
 		await coach.lifecycle(.willTerminate)
 		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 		let next = await recoveryCoach(reopened)
@@ -46,6 +48,7 @@ extension TurnAccessTests {
 		#expect(
 			failure(try await next.sendAndSettle("After reopening"))
 				== .model(.accessUnavailable(.openRouterKeyRejected)))
+		try await assertRecoverySentence(next)
 		_ = await next.resetAndSettle(in: .main)
 		#expect(transport.requestCount == 1)
 		let markers = try await store.fetch(
@@ -77,7 +80,10 @@ extension TurnAccessTests {
 		#expect(transport.requestCount == 2)
 		#expect(
 			states.allSatisfy { failure($0) == .model(.credentialRejected(.openRouterAccount)) })
-		#expect(states.allSatisfy { turnNotice(of: $0)?.action == nil })
+		#expect(states.allSatisfy { turnNotice(of: $0) == nil })
+		try await assertRecoverySentence(coach, in: [.main, peer])
+		#expect(await coach.currentSnapshot(.main)?.turns.first?.athleteText == "First question")
+		#expect(await coach.currentSnapshot(peer)?.turns.first?.athleteText == "Second question")
 		#expect(try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.openRouterKeyRejected])))
@@ -228,6 +234,20 @@ extension TurnAccessTests {
 			#expect(
 				transport.requests.last?.credential.secret == "fixture-signed-in-openrouter-key")
 		}
+	}
+
+	private func assertRecoverySentence(_ coach: Coach, in chats: [ChatID] = [.main]) async throws {
+		let status = try await coach.observedStatus()
+		var notices = [status.access.notice, status.notice].compactMap { $0 }
+		for chat in chats {
+			let snapshot = try #require(await coach.currentSnapshot(chat))
+			notices += snapshot.turns.compactMap { turnNotice(of: $0.state) }
+		}
+		#expect(
+			notices.filter {
+				$0.sentence(in: status.displayLocale)
+					== "Your OpenRouter sign-in is no longer valid. Sign in again to continue."
+			}.count == 1)
 	}
 
 	private func installOpenRouter(_ secrets: ICloudKeychainStore) throws {

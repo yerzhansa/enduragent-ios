@@ -32,7 +32,7 @@ final class OpenRouterRecoveryProof: XCTestCase {
 		TutorialHarness.exchange(app, "Further turns stay blocked")
 		assertRecovery(app)
 		capture(app, "rejected-key-reopened")
-		assertModelRequests(app, 1)
+		assertModelRequests(app, 0)
 		TutorialHarness.named(app, "chat.access.signInAgain").tap()
 		TutorialHarness.waitForIdentifier(app, "fixture.signInCount", reading: "1 authorizations")
 		XCTAssertFalse(TutorialHarness.named(app, "chat.access.signInAgain").isEnabled)
@@ -105,6 +105,12 @@ final class OpenRouterRecoveryProof: XCTestCase {
 		TutorialHarness.wait(
 			TutorialHarness.named(app, "chat.access.signInAgain"), until: .hittable)
 		let transcript = TutorialHarness.named(app, "chat.transcript")
+		XCTAssertEqual(
+			transcript.staticTexts.matching(
+				NSPredicate(
+					format: "label == %@",
+					"Your OpenRouter sign-in is no longer valid. Sign in again to continue.")
+			).count, 1)
 		XCTAssertEqual(transcript.buttons.matching(identifier: "chat.access.signInAgain").count, 1)
 		XCTAssertEqual(TutorialHarness.named(app, "chat.access.signInAgain").label, "Sign in again")
 		XCTAssertFalse(

@@ -104,7 +104,7 @@ extension CredentialVaultTests {
 			Issue.record("expected a failed turn, got \(settled)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.accessErrorMalformed)
+		#expect(failed.notice?.key == Catalog.accessErrorMalformed)
 		let reopened = try #require(await coach(keychain).currentSnapshot(.main))
 		#expect(reopened.turns.map(\.state) == [settled])
 		#expect(transport.requests.isEmpty)

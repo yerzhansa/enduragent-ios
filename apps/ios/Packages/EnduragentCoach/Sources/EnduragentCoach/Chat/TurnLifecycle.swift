@@ -124,12 +124,20 @@ package enum TurnLifecycle {
 						notice: AthleteNotices.notice(for: outcome, saved: saved))
 				)
 			case .failed(let failure, let saved):
+				let notice: AthleteNotice?
+				switch failure {
+				case .model(.credentialRejected(.openRouterAccount)),
+					.model(.accessUnavailable(.openRouterKeyRejected)):
+					notice = nil
+				default:
+					notice = AthleteNotices.notice(
+						for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
+				}
 				return .failed(
 					TurnState.Failed(
 						failure: failure,
 						saved: saved,
-						notice: AthleteNotices.notice(
-							for: failure, turn: retry, waiting: overlay == .waitingToTryAgain)
+						notice: notice
 					))
 			case .interrupted(let partial, let cause, let saved):
 				return .interrupted(

@@ -105,8 +105,8 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(turn.state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
-		#expect(failed.notice.action == .tryAgain(turn.id))
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice?.action == .tryAgain(turn.id))
 	}
 
 	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {

@@ -82,7 +82,9 @@ struct ArchivedConversationView: View {
 		case .savedWork(let savedWork):
 			notice(savedWork.notice)
 		case .failed(let failed):
-			notice(failed.notice)
+			if let failureNotice = failed.notice {
+				notice(failureNotice)
+			}
 		case .unrecovered(let unrecovered):
 			notice(unrecovered.notice)
 		case .accepted, .processing:
