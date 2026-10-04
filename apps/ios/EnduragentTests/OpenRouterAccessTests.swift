@@ -100,6 +100,15 @@ struct OpenRouterAccessTests {
 		launch.signInOutcome = .held
 		let model = await harness.model(
 			try fixtureServices(launch, defaults: harness.defaults, language: .en))
+		await model.appear()
+		model.continueNotice()
+		model.connectKey = "fixture"
+		await model.connect()
+		try await model.waitForStatus {
+			if case .connected = $0.training { return true }
+			return false
+		}
+		model.continueConnect()
 		await model.agreeAndStartChatting()
 		try await harness.observed(model)
 		let fixture = try #require(model.services.fixture)
