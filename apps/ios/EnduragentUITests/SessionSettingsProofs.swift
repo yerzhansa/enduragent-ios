@@ -139,7 +139,7 @@ enum SessionSettingsScreen {
 		let input = input(app, field)
 		TutorialHarness.wait(input, until: .hittable)
 		let shown = input.value as? String ?? ""
-		input.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.5)).tap()
+		input.coordinate(withNormalizedOffset: CGVector(dx: 0.99, dy: 0.5)).tap()
 		input.typeText(
 			String(repeating: XCUIKeyboardKey.delete.rawValue, count: shown.count) + value)
 		TutorialHarness.wait(input, until: .value(value))
