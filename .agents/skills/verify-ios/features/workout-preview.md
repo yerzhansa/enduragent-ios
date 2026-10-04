@@ -9,7 +9,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-cancel` clears the review without writing the workouts. It remains gone after another message and after relaunch.
 - `preview-account-changed` replaces approval controls with `chat.preview.notice` when the connected athlete differs from the one the review was prepared for.
 - `preview-earlier-version` shows `This workout review is from an earlier version of the app and can no longer be applied.` for an unexpired v1 review. Check create, update, and delete reviews, both connected to intervals.icu and disconnected. The notice uses `review.earlierVersion` in the chosen language, and neither approval nor cancel controls appear.
-- `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result.
+- `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result. While the review is still shown, the sentence and its Connect button sit inside the card, above the decision buttons. Once the review is gone, the sentence is its own transcript row.
 - `preview-language` localizes the title, buttons, notices, and saved Done line.
 - `preview-dark` keeps the review legible in dark appearance.
 - `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
@@ -17,6 +17,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-cancel-unknown` commits a lasting Cancel note without a calendar request, including offline and locked credentials. Fresh reviews work before and after New conversation; the note stays in History.
 - `preview-storage-unavailable` retains and disables the previous decision buttons, shows `review.storageUnavailable` once, and keeps Try again enabled. Try again rereads saved records and restores valid controls without a model request or calendar call.
 - `preview-choice-save-failed` keeps approval controls available and shows `review.saveFailed` once when Add or Cancel cannot save the choice. The sentence follows the chosen language and no calendar write runs.
+- `preview-largest-text` keeps the review readable and its controls tappable at the largest accessibility text size in all 17 languages. The accessibility order is the title, the workout, the notice, then the controls.
 - `preview-expired` omits an expired review after relaunch without writing a review outcome or clearing record.
 
 ## How to get to it (user POV)
@@ -59,6 +60,29 @@ Preconditions:
 | `sim.mjs test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
 
 For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyReviewNoticeProof` copies the committed `.v1Review` stores before launch and must pass with zero skips. It checks the create review while disconnected, connected, and in German. Package migration tests cover v1 edit and deletion reviews. Keep the fixture clock within the review's lifetime. A missing committed store is a failure.
+
+## Largest text size and VoiceOver order
+
+Unit 9.6 proves the review card at the largest accessibility text size in every supported language. Each language has its own class, so one language failing leaves the other 16 results intact. The classes are `ReviewAccessibilityEnProof`, `ReviewAccessibilityEsProof`, `ReviewAccessibilityFrProof`, `ReviewAccessibilityItProof`, `ReviewAccessibilityDeProof`, `ReviewAccessibilityNlProof`, `ReviewAccessibilityDaProof`, `ReviewAccessibilitySvProof`, `ReviewAccessibilityNbProof`, `ReviewAccessibilityFiProof`, `ReviewAccessibilityPtPTProof`, `ReviewAccessibilityPtBRProof`, `ReviewAccessibilityPlProof`, `ReviewAccessibilityKoProof`, `ReviewAccessibilityJaProof`, `ReviewAccessibilityZhHansProof` and `ReviewAccessibilityZhHantProof`.
+
+| Test method | States it checks, in order |
+| --- | --- |
+| `testApprovalControls` | An athlete with no intervals.icu connection. `approval` with Cancel and Add to calendar, `content` scrolled to the workout, `approval-not-connected` after Add with the not-connected sentence and Connect above the decision buttons, `cancelled` after Cancel. |
+| `testUncertainSaveControls` | A connected athlete whose save lost its answer. `save-uncertain` with the pending sentence and Check again, `save-again` with Check again, Cancel and Save approved workout again, `cancelled-unknown` with the cancellation note. |
+
+Each flow launches in English at the default text size, finishes onboarding, chooses the language in Settings > Language and asks for the workout. It then relaunches the same store with `FixtureArguments.textSize = .accessibilityXXXL`, which passes `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`. Only the review is driven at the largest size, so typing and Settings stay at the size the harness is proven at.
+
+For each state the proof reads one accessibility snapshot of the transcript row that holds the review. It fails unless the elements are, in order, the localized title, the workout text, the notice lines, then each control with its catalog title. Each element must start below or to the right of the one before it and stay inside the row. Each control must be enabled and at least 44 points tall, which also fails if the text size did not apply. `performAccessibilityAudit` then checks clipped text, Dynamic Type and hit regions for the elements inside that row. XCUITest cannot drive VoiceOver itself; the snapshot order and the frames are what VoiceOver reads from. The proof taps Add to calendar, Cancel and Check again and brings Save approved workout again on screen. Screenshots are named `u9-6-<tag>-<state>`.
+
+The proof does not open Settings > Debug at the largest text size, so it does not read the fixture request count.
+
+Run all 17 languages on two simulators:
+
+```sh
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" node .agents/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
+```
+
+To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim.mjs test <run id> ReviewAccessibilityJaProof/testApprovalControls`.
 
 ## Gotchas
 

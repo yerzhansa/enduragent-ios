@@ -10,14 +10,16 @@ struct MatrixRun {
 
 	static func begin(
 		_ test: XCTestCase, _ language: LanguageTag,
-		arguments: FixtureArguments = FixtureArguments()
+		arguments: FixtureArguments = FixtureArguments(), connected: Bool = true
 	) -> MatrixRun {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app, arguments: arguments)
 		if arguments.onboarded {
 			TutorialHarness.agreeToProviderConsent(app)
-		} else {
+		} else if connected {
 			TutorialHarness.completeOnboarding(app)
+		} else {
+			TutorialHarness.startUnconnected(app)
 		}
 		let run = MatrixRun(test: test, app: app, language: language)
 		run.chooseLanguage()
