@@ -72,6 +72,8 @@ actor CoachPreferences {
 			}
 			do throws(AccessUnavailable) {
 				return try await vault.recordedConsent(records)
+			} catch .secureStorageLocked {
+				return nil
 			} catch {
 				diagnostics.record(.consentUnavailable(error))
 				return nil
