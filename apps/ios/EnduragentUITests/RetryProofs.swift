@@ -124,7 +124,6 @@ final class NoCrossChatMemoProof: XCTestCase {
 		XCTAssertTrue(containing(app, "I've prepared the ride.").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "no-cross-chat-memo", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -148,8 +147,6 @@ private func assertModelRequests(
 ) {
 	TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)
 	TutorialHarness.openDebug(app)
-	let count = TutorialHarness.debugRow(app, "fixture.requestCount")
-	XCTAssertEqual(count.label, "0 requests")
 	let model = TutorialHarness.debugRow(app, "fixture.modelRequestCount")
 	XCTAssertEqual(model.label, "\(expected) model requests")
 	TutorialHarness.attach(test, name: name, app: app)

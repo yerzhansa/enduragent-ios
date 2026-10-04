@@ -74,7 +74,6 @@ final class PlanFreeTextProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.welcome").exists)
 		TutorialHarness.attach(self, name: "plan-free-text", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

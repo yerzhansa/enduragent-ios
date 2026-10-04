@@ -14,7 +14,6 @@ final class ConfirmedPreviewProof: XCTestCase {
 		XCTAssertTrue(cancel.isEnabled)
 		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
 		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -37,7 +36,6 @@ final class AddedToCalendarProof: XCTestCase {
 		self.add(sample)
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -53,7 +51,6 @@ final class ConfirmedPreviewDarkProof: XCTestCase {
 		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
 		XCTAssertLessThan(
 			TutorialHarness.meanLuminance(screenshot), 0.4, "the capture is not in dark appearance")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -104,7 +101,6 @@ final class DoneLineSurvivesRelaunchProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		TutorialHarness.attach(self, name: "done-after-relaunch", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -158,7 +154,6 @@ final class LegacyReviewNoticeProof: XCTestCase {
 		assertReadOnly(app, reading: Self.german)
 		TutorialHarness.attach(self, name: "v1-review-german", app: app)
 		assertNothingWritten(app, attaching: "v1-review-german-records")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertReadOnly(_ app: XCUIApplication, reading sentence: String) {

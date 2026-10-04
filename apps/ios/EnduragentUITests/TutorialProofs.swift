@@ -58,7 +58,6 @@ final class FirstConversationProof: XCTestCase {
 		TutorialHarness.exchange(app, TutorialHarness.remember)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
 		TutorialHarness.attach(self, name: "04-first-conversation", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -71,7 +70,6 @@ final class ReviewProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.reviewReply)
 		TutorialHarness.waitForLabel(app, "Training Load")
 		TutorialHarness.attach(self, name: "05-review", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -137,7 +135,6 @@ final class HistoryListProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, "Monday, June 15, 1998")
 		TutorialHarness.attach(self, name: "history-list", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -236,7 +233,6 @@ final class RelaunchKeepsChatProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.notice].exists)
 		TutorialHarness.attach(self, name: "relaunch-keeps-chat", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

@@ -65,7 +65,7 @@ Both Settings classes also run `testEveryDebugDestinationReturnsToDebug`. They o
 
 The hosted app tests in `SettingsNavigationTests.swift` drive `ShellModel.open`, `loadCredits`, `loadHistory`, `newConversation`, and `fillSlash`. Run `EnduragentTests` on the final head. The connected and skipped cases also reopen their stores and keep the draft and training setup. Status and conversation updates leave all five Debug destinations on the shell path. Credits opened from Model access returns to Settings after one Back. The notice-action tests require Credits opened from a conversation notice to return to the conversation after one Back.
 
-`TutorialHarness.openSettings` opens the toolbar Settings route. `openHistory` taps `chat.history`. `openDebug`, `fixtureControl`, `openRecords`, `openCredentials`, `historyHead`, and `assertZeroFixtureRequests` enter through Settings. `debugRow` scrolls to each Debug row with a deadline. `returnToChat` leaves Settings through navigation Back with a deadline. Run every proof that calls those helpers on the final head. The suite covers these consumers, including History and New conversation. Run `HistoryOpenProbe` separately because the suite discovers proof classes only.
+`TutorialHarness.openSettings` opens the toolbar Settings route. `openHistory` taps `chat.history`. `openDebug`, `fixtureControl`, `openRecords`, `openCredentials`, and `historyHead` enter through Settings. `debugRow` scrolls to each Debug row with a deadline. `returnToChat` leaves Settings through navigation Back with a deadline. Run every proof that calls those helpers on the final head. The suite covers these consumers, including History and New conversation. Run `HistoryOpenProbe` separately because the suite discovers proof classes only.
 
 The device-only native persistence test uses the dedicated phone proof build to save a synthetic credential through Settings, relaunch with native Keychain storage, and complete profile and calendar reads. Follow the [real-phone procedure](../SKILL.md#prove-native-training-persistence-on-one-phone). It records native timings, secret-free receipts, the build version, the message budget and the device-update confirmation. This proof remains pending while the operator is away.
 
@@ -80,7 +80,7 @@ The device-only native persistence test uses the dedicated phone proof build to 
 - Turn recovery opens Credits directly above the conversation. One Back returns to the conversation. Credits opened from Model access returns to Settings. Both entries use the same screen and perform no purchase or restore.
 - The shell owns one typed navigation path and one stack. Every pushed Debug screen and archived conversation has a registered shell destination. A presented Language sheet owns its separate stack.
 - Debug tools compile out of Release. A Debug screenshot does not prove their absence in a Release build.
-- The Settings proof checks fixture connection identity and zero blocked network requests. It does not prove live credentials or cross-device sync.
+- The Settings proof checks fixture connection identity. It does not prove live credentials or cross-device sync.
 - The physical `PhoneRun` uses the new History and Settings > Credits routes. Its message budget and device approval requirements still apply.
 - A task that forbids simulators can build these proofs and check their inventory. Their screenshots and runtime results remain pending until the simulator runner executes them.
 

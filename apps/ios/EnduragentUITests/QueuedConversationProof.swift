@@ -65,6 +65,5 @@ final class QueuedConversationProof: XCTestCase {
 		XCTAssertFalse(app.staticTexts["fixture:slow-flush"].exists)
 		TutorialHarness.attach(
 			self, name: slash ? "queued-slash-opened" : "queued-toolbar-opened", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

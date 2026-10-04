@@ -118,6 +118,23 @@ final class FixtureLaunchTests {
 		let model = await model(services)
 		#expect(model.route == .onboarding(.notice))
 		#expect(model.chat == nil)
+		let fakes = try #require(services.fixture)
+		await model.loadStarter()
+		#expect(model.starterLine == "200 credits")
+		#expect(fakes.credits.calls == [.grant])
+		await model.agreeAndStartChatting()
+		model.draft.text = TutorialCopy.weekQuestion
+		await model.send()
+		#expect(replyText(try await settledTurn(model).state) == FirstWeekFixture.weekSummary)
+		#expect(fakes.transport.requestCount == 1)
+		guard
+			case .replaced(let connected, _) = await services.coach.changeTraining(
+				.replace(apiKey: "fixture", athlete: .keyOwner))
+		else {
+			Issue.record("The Coach did not save the fixture training key")
+			return
+		}
+		#expect(connected.athleteName == "Ada Kovač")
 	}
 
 	@Test func unknownFixtureNameThrows() throws {

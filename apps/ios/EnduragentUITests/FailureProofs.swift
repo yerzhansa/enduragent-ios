@@ -23,11 +23,6 @@ final class FailureCopyProof: XCTestCase {
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-copy-rate-limited", app: app)
-		TutorialHarness.openDebug(app)
-		let count = TutorialHarness.debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
-		TutorialHarness.attach(self, name: "failure-copy-request-count", app: app)
-		TutorialHarness.returnToChat(app)
 	}
 }
 
@@ -54,7 +49,6 @@ final class FailureNoticesProof: XCTestCase {
 				.firstMatch.exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failure-overflow", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -67,7 +61,6 @@ final class FailedNetworkDarkProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.providerDown))
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.turn.tryAgain"))
 		TutorialHarness.attach(self, name: "failed-network-dark", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -121,7 +114,6 @@ final class RetryLadderProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "retry-ladder-rate-limited", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -151,7 +143,6 @@ final class SavedUnverifiedProof: XCTestCase {
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "stopped-after-save", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

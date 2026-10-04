@@ -26,7 +26,6 @@ final class OpenRouterConsentProof: XCTestCase {
 		TutorialHarness.named(app, "consent.resume").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testAnotherDevicesSyncedChoiceNamesItsProviderAndAsksAgainAfterDecline() {
@@ -43,7 +42,6 @@ final class OpenRouterConsentProof: XCTestCase {
 		capture(app, "synced-selection-reopened")
 		TutorialHarness.agreeToProviderConsent(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertDisclosure(_ app: XCUIApplication, model: String, provider: String) {

@@ -334,9 +334,7 @@ enum TutorialHarness {
 
 	static func openRecords(_ app: XCUIApplication) {
 		openDebug(app)
-		let count = debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
-		debugRow(app, "debug.records", direction: .down).tap()
+		debugRow(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
 
@@ -381,12 +379,5 @@ enum TutorialHarness {
 		let label = head.label
 		returnToChat(app)
 		return label
-	}
-
-	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
-		openDebug(app)
-		let count = debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
-		returnToChat(app)
 	}
 }

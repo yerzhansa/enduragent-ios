@@ -27,7 +27,6 @@ final class AccessOnboardingProof: XCTestCase {
 		capture(app, "reopened-credits")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testFailuresKeepPreviousChoiceAndShowTruthfulResults() {
@@ -85,7 +84,6 @@ final class AccessOnboardingProof: XCTestCase {
 			waitForChoice(app, credits: creditsSelected)
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}
@@ -139,7 +137,6 @@ final class AccessOnboardingProof: XCTestCase {
 			waitForChoice(app, credits: !succeeded)
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}

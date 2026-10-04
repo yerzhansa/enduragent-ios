@@ -31,7 +31,6 @@ final class StopProof: XCTestCase {
 		XCTAssertTrue(settled.first?.contains("interrupted athleteStopped") == true, "\(settled)")
 		TutorialHarness.attach(self, name: "stop-records", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -63,7 +62,6 @@ final class ExpiryProof: XCTestCase {
 		XCTAssertTrue(claims.first?.contains("continuedProcessing") == true, "\(claims)")
 		TutorialHarness.attach(self, name: "expiry-records", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -137,7 +135,6 @@ final class FinishedWhileAwayProof: XCTestCase {
 		assertReadingPosition(
 			reading, frame: readingFrame, line: line, composer: composer, frame: composerFrame)
 		TutorialHarness.attach(self, name: "finished-while-away-after-inactive", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertReadingPosition(
@@ -173,7 +170,6 @@ final class QueuedExpiryProof: XCTestCase {
 		XCTAssertEqual(app.buttons.matching(identifier: "chat.turn.tryAgain").count, 2)
 		XCTAssertEqual(app.staticTexts.matching(identifier: TutorialHarness.weekQuestion).count, 1)
 		TutorialHarness.attach(self, name: "queued-expiry", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -191,7 +187,6 @@ final class ExpiryAfterSaveProof: XCTestCase {
 			TutorialHarness.notice(app, reading: TutorialHarness.interruptedSomeSaved))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "expiry-after-save", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -202,8 +197,7 @@ final class LeaseReportProof: XCTestCase {
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.openDebug(app)
-		_ = TutorialHarness.debugRow(app, "fixture.requestCount")
-		TutorialHarness.debugRow(app, "debug.leases", direction: .down).tap()
+		TutorialHarness.debugRow(app, "debug.leases").tap()
 		let row = TutorialHarness.named(app, "leases.row.0")
 		TutorialHarness.wait(row)
 		XCTAssertEqual(

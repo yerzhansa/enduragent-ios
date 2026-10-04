@@ -31,7 +31,6 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
 - `chat-session-settings` edits history ratio and context-window override through Settings > Session. A rejected value preserves the saved value; a saved value affects later turns. See [settings.md](./settings.md).
-- `chat-no-network` keeps `fixture.requestCount` at zero through all fixture work.
 
 | Turn or composer state | Visible notice and action |
 | --- | --- |

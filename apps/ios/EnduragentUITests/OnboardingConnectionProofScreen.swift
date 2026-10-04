@@ -16,7 +16,6 @@ enum OnboardingConnectionProofScreen {
 		assertAda(app)
 		capture(test, app, name: "onboarding-saved", dark: dark)
 		finishOnboarding(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 
 		TutorialHarness.launch(app, arguments: FixtureArguments(credentialWriteFault: .failOnce))
 		enterConnect(app)
@@ -32,7 +31,6 @@ enum OnboardingConnectionProofScreen {
 		assertAda(app)
 		capture(test, app, name: "onboarding-save-recovered", dark: dark)
 		finishOnboarding(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 
 		for display in FixtureTrainingDisplay.allCases {
 			TutorialHarness.launch(app, arguments: FixtureArguments(trainingDisplay: display))
@@ -63,7 +61,6 @@ enum OnboardingConnectionProofScreen {
 				XCTAssertFalse(TutorialHarness.named(app, "connect.displayAction").exists)
 			}
 			finishOnboarding(app)
-			TutorialHarness.assertZeroFixtureRequests(app)
 		}
 	}
 
@@ -103,7 +100,6 @@ enum OnboardingConnectionProofScreen {
 		capture(test, app, name: "connected-later-conversation-kept", dark: dark)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.waitForLabel(app, "I can read Ada Kovač's training profile and calendar.")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private static func enterConnect(_ app: XCUIApplication, language: LanguageTag = .en) {

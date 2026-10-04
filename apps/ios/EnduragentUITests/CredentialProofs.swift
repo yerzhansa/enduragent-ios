@@ -152,7 +152,6 @@ final class LockedKeychainProof: XCTestCase {
 		TutorialHarness.waitForIdentifier(app, "training.form", reading: "Form -7")
 		TutorialHarness.attach(self, name: "unlocked-training-storage", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

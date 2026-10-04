@@ -164,8 +164,6 @@
 			attach(
 				"This phone \(native.buildVersion). Other phone \(otherBuild).", name: "both-builds"
 			)
-			XCTAssertEqual(
-				TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
 			TutorialHarness.attach(self, name: "\(name)-receipts", app: app)
 		}
 

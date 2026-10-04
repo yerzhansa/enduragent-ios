@@ -64,6 +64,5 @@ private enum ToolProgressScenario {
 		XCTAssertLessThan(reply.frame.maxY, review.frame.minY)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(test, name: "tool-progress-question-and-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

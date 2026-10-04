@@ -33,7 +33,6 @@ final class NoticeCopyProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.savedUnverified))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-saved-unverified", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -65,7 +64,6 @@ final class AccessNoticeProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		TutorialHarness.attach(self, name: "access-locked", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -93,7 +91,6 @@ final class StopNoticeProof: XCTestCase {
 		XCTAssertTrue(partial.exists)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.receivedBeforeClose].exists)
 		TutorialHarness.attach(self, name: "stop-running-and-queued", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 

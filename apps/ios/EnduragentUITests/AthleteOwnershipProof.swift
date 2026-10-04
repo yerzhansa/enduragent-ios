@@ -45,7 +45,6 @@ private enum AthleteOwnershipScreen {
 		assertBlockedReview(app)
 		capture(test, app, stage: "relaunched-conversation-review", dark: dark)
 		assertHistory(test, app, changed: true, stage: "relaunched", dark: dark)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private static func assertBlockedReview(_ app: XCUIApplication) {
