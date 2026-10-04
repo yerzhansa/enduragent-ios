@@ -92,7 +92,7 @@ extension CredentialVault {
 	}
 
 	private func creditsEntry(_ model: ModelID) throws -> ModelCatalogEntry {
-		let details = catalog.entries[model] ?? ModelCatalog.bundled.entries[model]
+		let details = catalogs.bundled.entries[model] ?? ModelCatalog.bundled.entries[model]
 		return try catalog.choice(model, retaining: details)
 	}
 

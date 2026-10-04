@@ -59,18 +59,25 @@ public struct ModelService: Sendable {
 	}()
 
 	package let makeTransport: @Sendable (DiagnosticsLog) -> any ModelTransport
-	package let catalog: ModelCatalog
+	package let catalogs: ModelCatalogOwner
 
 	package init(
 		catalog: ModelCatalog = .bundled,
+		catalogSource: (any ModelCatalogSource)? = nil,
+		catalogCache: (any ModelCatalogCache)? = nil,
 		makeTransport: @escaping @Sendable (DiagnosticsLog) -> any ModelTransport
 	) {
-		self.catalog = catalog
+		self.catalogs = ModelCatalogOwner(
+			bundled: catalog, source: catalogSource, cache: catalogCache)
 		self.makeTransport = makeTransport
 	}
 
-	public static func openRouter(baseURL: URL) -> ModelService {
-		ModelService { diagnostics in
+	public static func openRouter(baseURL: URL) throws -> ModelService {
+		let directory = try ModelContainerHandle.applicationSupportDirectory()
+		return ModelService(
+			catalogSource: HTTPModelCatalogSource(),
+			catalogCache: FileModelCatalogCache(directory: directory)
+		) { diagnostics in
 			OpenRouterTransport(baseURL: baseURL, diagnostics: diagnostics)
 		}
 	}

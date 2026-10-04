@@ -29,7 +29,12 @@ public struct ModelCatalog: Equatable, Sendable {
 	}
 
 	package init(validating data: Data) throws {
-		let document = try JSONDecoder().decode(ModelCatalogDocument.self, from: data)
+		let document: ModelCatalogDocument
+		do {
+			document = try JSONDecoder().decode(ModelCatalogDocument.self, from: data)
+		} catch {
+			throw ModelCatalogIssue.malformed
+		}
 		try self.init(
 			revision: document.revision,
 			entries: document.entries.map { row in
@@ -40,6 +45,19 @@ public struct ModelCatalog: Equatable, Sendable {
 						provider: NamedProvider(
 							name: row.provider.name, routingSlug: row.provider.routingSlug)))
 			})
+	}
+
+	package func encoded() throws -> Data {
+		try JSONEncoder().encode(
+			ModelCatalogDocument(
+				revision: revision,
+				entries: orderedEntries.map { entry in
+					ModelCatalogDocument.Entry(
+						id: entry.id.rawValue, displayName: entry.details.displayName,
+						provider: ModelCatalogDocument.Provider(
+							name: entry.details.provider.name,
+							routingSlug: entry.details.provider.routingSlug))
+				}))
 	}
 
 	package func choice(_ id: ModelID, retaining details: ModelDetails? = nil) throws
@@ -58,17 +76,17 @@ package enum ModelCatalogIssue: Error {
 	case modelNotInCatalog
 }
 
-private struct ModelCatalogDocument: Decodable {
+private struct ModelCatalogDocument: Codable {
 	let revision: UInt64
 	let entries: [Entry]
 
-	struct Entry: Decodable {
+	struct Entry: Codable {
 		let id: String
 		let displayName: String
 		let provider: Provider
 	}
 
-	struct Provider: Decodable {
+	struct Provider: Codable {
 		let name: String
 		let routingSlug: String
 	}

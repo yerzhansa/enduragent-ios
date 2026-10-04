@@ -1,5 +1,6 @@
 #if DEBUG
 	import Foundation
+	import EnduragentCoachFixtures
 
 	enum FixtureStorePolicy: String, CaseIterable {
 		case fresh
@@ -30,6 +31,7 @@
 	}
 
 	enum FixtureAccessMethod: String, CaseIterable {
+		case catalogOpenRouter = "catalog-openrouter"
 		case credits
 		case openRouter = "openrouter"
 		case missingOpenRouter = "missing-openrouter"
@@ -110,6 +112,7 @@
 		var accessMethod = FixtureAccessMethod.credits
 		var creditsOutcome = FixtureCreditsOutcome.ready
 		var signInOutcome = FixtureSignInOutcome.cancel
+		var catalogResponse = FixtureCatalogResponse.offline
 
 		var launchArguments: [String] {
 			var values = [
@@ -146,6 +149,7 @@
 			values += ["-EnduragentFixtureAccess", accessMethod.rawValue]
 			values += ["-EnduragentFixtureCredits", creditsOutcome.rawValue]
 			values += ["-EnduragentFixtureSignIn", signInOutcome.rawValue]
+			values += ["-EnduragentFixtureCatalog", catalogResponse.rawValue]
 			return values
 		}
 
@@ -184,6 +188,7 @@
 			accessMethod = try policy(values, "-EnduragentFixtureAccess") ?? .credits
 			creditsOutcome = try policy(values, "-EnduragentFixtureCredits") ?? .ready
 			signInOutcome = try policy(values, "-EnduragentFixtureSignIn") ?? .cancel
+			catalogResponse = try policy(values, "-EnduragentFixtureCatalog") ?? .offline
 		}
 
 		private func policy<Policy: RawRepresentable>(

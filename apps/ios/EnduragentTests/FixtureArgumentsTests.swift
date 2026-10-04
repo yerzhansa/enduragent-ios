@@ -15,7 +15,8 @@ import Testing
 			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
-			creditsOutcome: .provisioningFailed, signInOutcome: .held)
+			creditsOutcome: .provisioningFailed, signInOutcome: .held,
+			catalogResponse: .omittedSelectedModel)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -56,6 +57,7 @@ import Testing
 		#expect(parsed.accessMethod == expected.accessMethod)
 		#expect(parsed.creditsOutcome == expected.creditsOutcome)
 		#expect(parsed.signInOutcome == expected.signInOutcome)
+		#expect(parsed.catalogResponse == expected.catalogResponse)
 		#expect(
 			otherDefaults.string(forKey: FixtureLaunch.clockArgumentKey)
 				== FixtureLaunch.defaultClock)
@@ -83,6 +85,7 @@ import Testing
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.signInArgumentKey,
+		FixtureLaunch.catalogArgumentKey,
 		FixtureLaunch.resetArgumentKey,
 		FixtureLaunch.replyParserArgumentKey,
 		FixtureLaunch.trainingDisplayArgumentKey, FixtureLaunch.credentialWriteArgumentKey,
@@ -125,5 +128,6 @@ import Testing
 		#expect(parsed.trainingDisplay == nil)
 		#expect(parsed.credentialWriteFault == nil)
 		#expect(parsed.signInOutcome == .cancel)
+		#expect(parsed.catalogResponse == .offline)
 	}
 }

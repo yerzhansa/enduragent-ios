@@ -1,4 +1,5 @@
 import EnduragentCoach
+import Foundation
 
 extension RecordStore {
 	public static func inMemory(deviceId: DeviceID) -> RecordStore {
@@ -11,6 +12,16 @@ extension ModelService {
 		-> ModelService
 	{
 		ModelService(catalog: catalog) { _ in fake }
+	}
+
+	public static func scripted(
+		_ fake: FakeModelTransport, catalogSource: FakeModelCatalogSource,
+		cacheDirectory: URL, catalog: ModelCatalog = .bundled
+	) -> ModelService {
+		ModelService(
+			catalog: catalog, catalogSource: catalogSource,
+			catalogCache: FileModelCatalogCache(directory: cacheDirectory)
+		) { _ in fake }
 	}
 }
 

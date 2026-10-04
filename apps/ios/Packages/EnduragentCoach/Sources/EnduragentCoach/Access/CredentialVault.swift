@@ -3,7 +3,8 @@ import Security
 
 package actor CredentialVault {
 	let store: any SecretStore
-	let catalog: ModelCatalog
+	let catalogs: ModelCatalogOwner
+	var catalog: ModelCatalog { catalogs.snapshot().catalog }
 	let ledger: Ledger
 	let clock: any Clock
 	let rejectionChanges = Turnstile()
@@ -22,14 +23,14 @@ package actor CredentialVault {
 
 	package init(
 		store: any SecretStore, training: TrainingService, clock: any Clock, ledger: Ledger,
-		diagnostics: DiagnosticsLog, catalog: ModelCatalog = .bundled,
+		diagnostics: DiagnosticsLog, catalogs: ModelCatalogOwner = ModelCatalogOwner(),
 		signInService: OpenRouterSignInService? = nil
 	) {
 		(accessUpdates, accessUpdate) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 		self.store = store
 		self.ledger = ledger
 		self.clock = clock
-		self.catalog = catalog
+		self.catalogs = catalogs
 		self.signInService = signInService
 		self.display = TrainingDisplayReader(training: training, clock: clock)
 		self.diagnostics = diagnostics

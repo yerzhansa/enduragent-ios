@@ -15,6 +15,8 @@ public actor Coach {
 	let preferences: CoachPreferences
 	let builtInModel: ModelID
 	let vault: CredentialVault
+	let catalogs: ModelCatalogOwner
+	var catalogObservation: Task<Void, Never>?
 	private let runner: TurnRunner
 	private let reviews: SingleProposalReviews
 	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
@@ -36,6 +38,7 @@ public actor Coach {
 
 	deinit {
 		accessObservation?.cancel()
+		catalogObservation?.cancel()
 		importObservation?.cancel()
 		pendingImportRefresh?.cancel()
 	}
@@ -54,11 +57,12 @@ public actor Coach {
 		let vault = CredentialVault(
 			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
 			diagnostics: diagnostics,
-			catalog: ports.models.catalog, signInService: ports.openRouterSignIn)
+			catalogs: ports.models.catalogs, signInService: ports.openRouterSignIn)
 		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
 		self.vault = vault
+		self.catalogs = ports.models.catalogs
 		self.credits = ports.credits.makeClient(vault)
 		self.builtInModel = builtInModel
 		self.ledger = ledger
@@ -109,9 +113,13 @@ public actor Coach {
 		lifetime.apply(event)
 		switch event {
 		case .becameActive:
+			await catalogs.refresh()
 			await refreshDisplayLocale()
 			await recoverOnce()
 		case .willTerminate:
+			await catalogs.cancelRefresh()
+			catalogObservation?.cancel()
+			catalogObservation = nil
 			let access = accessObservation
 			accessObservation?.cancel()
 			accessObservation = nil
