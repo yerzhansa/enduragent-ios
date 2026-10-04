@@ -7,9 +7,11 @@ final class AccessOnboardingProof: XCTestCase {
 		let app = launch(access: .openRouterNeedsCredits)
 		assertStarterChoices(app, credits: false)
 		TutorialHarness.waitForIdentifier(app, "starter.credits", reading: "200 credits")
+		assertFilledMethod(app, credits: false)
 		capture(app, "grant-before-choice")
 		TutorialHarness.named(app, "starter.useCredits").tap()
 		waitForChoice(app, credits: true, starter: true)
+		assertFilledMethod(app, credits: true)
 		capture(app, "credits-chosen")
 		TutorialHarness.named(app, "starter.start").tap()
 		TutorialHarness.agreeToProviderConsent(
@@ -189,6 +191,21 @@ final class AccessOnboardingProof: XCTestCase {
 		TutorialHarness.wait(
 			until: { creditsChoice.isSelected == credits && openRouter.isSelected != credits },
 			message: "The screen did not mark the saved access method")
+	}
+
+	private func assertFilledMethod(_ app: XCUIApplication, credits: Bool) {
+		let creditsChoice = TutorialHarness.named(app, "starter.useCredits")
+		let openRouter = TutorialHarness.named(app, "starter.openRouter")
+		TutorialHarness.wait(creditsChoice, until: .enabled)
+		TutorialHarness.wait(openRouter, until: .enabled)
+		let page = TutorialHarness.meanLuminance(app.screenshot())
+		let chosen = TutorialHarness.meanLuminance(
+			(credits ? creditsChoice : openRouter).screenshot())
+		let other = TutorialHarness.meanLuminance(
+			(credits ? openRouter : creditsChoice).screenshot())
+		XCTAssertGreaterThan(
+			abs(chosen - page), abs(other - page) + 0.1,
+			"The chosen access method is not the filled button")
 	}
 
 	private func finishOnboarding(_ app: XCUIApplication) {

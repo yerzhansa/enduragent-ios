@@ -7,31 +7,17 @@ struct StarterView: View {
 	var body: some View {
 		NavigationStack {
 			VStack(spacing: 24) {
-				Button {
-					Task { await model.chooseAccess(.useCredits) }
-				} label: {
-					choice(Catalog.creditsTitle, selected: model.selectedAccessMethod == .credits)
-				}
-				.buttonStyle(.borderedProminent)
-				.accessibilityIdentifier("starter.useCredits")
-				.accessibilityAddTraits(model.selectedAccessMethod == .credits ? .isSelected : [])
-				.disabled(!model.starterResolved || model.isChangingAccess)
+				method(Catalog.creditsTitle, .credits, choosing: .useCredits)
+					.accessibilityIdentifier("starter.useCredits")
+					.disabled(!model.starterResolved || model.isChangingAccess)
 				if let starterLine = model.starterLine {
 					Text(starterLine)
+						.multilineTextAlignment(.center)
 						.accessibilityIdentifier("starter.credits")
 				}
-				Button {
-					Task { await model.chooseAccess(.signInToOpenRouter) }
-				} label: {
-					choice(
-						Catalog.accessSignIn,
-						selected: model.selectedAccessMethod == .openRouterAccount)
-				}
-				.accessibilityIdentifier("starter.openRouter")
-				.accessibilityAddTraits(
-					model.selectedAccessMethod == .openRouterAccount ? .isSelected : []
-				)
-				.disabled(!model.starterResolved)
+				method(Catalog.accessSignIn, .openRouterAccount, choosing: .signInToOpenRouter)
+					.accessibilityIdentifier("starter.openRouter")
+					.disabled(!model.starterResolved)
 				#if DEBUG
 					FixtureSignInDebugView(model: model)
 				#endif
@@ -55,10 +41,24 @@ struct StarterView: View {
 		}
 	}
 
-	private func choice(_ title: CatalogKey, selected: Bool) -> some View {
-		HStack {
-			Text(model.phrasebook.say(title))
-			if selected { Image(systemName: "checkmark").accessibilityHidden(true) }
+	@ViewBuilder
+	private func method(
+		_ title: CatalogKey, _ method: AccessMethod, choosing change: ModelAccessChange
+	) -> some View {
+		let chosen = model.selectedAccessMethod == method
+		let button = Button {
+			Task { await model.chooseAccess(change) }
+		} label: {
+			HStack {
+				Text(model.phrasebook.say(title))
+				if chosen { Image(systemName: "checkmark").accessibilityHidden(true) }
+			}
+		}
+		.accessibilityAddTraits(chosen ? .isSelected : [])
+		if chosen {
+			button.buttonStyle(.borderedProminent)
+		} else {
+			button
 		}
 	}
 }
