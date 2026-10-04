@@ -191,8 +191,8 @@ import Testing
 			Issue.record("expected failed, got \(state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
-		#expect(failed.notice.action == .tryAgain(minted))
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice?.action == .tryAgain(minted))
 		let storage = TurnLifecycle.state(
 			of: settled(.failed(.local(.recordStorage), saved: .none)),
 			live: nil, overlay: .notInThisProcess, device: phoneA, process: process)
@@ -200,8 +200,8 @@ import Testing
 			Issue.record("expected failed, got \(storage)")
 			return
 		}
-		#expect(unsaved.notice.key == Catalog.coachHistoryDiskFull)
-		#expect(unsaved.notice.action == nil)
+		#expect(unsaved.notice?.key == Catalog.coachHistoryDiskFull)
+		#expect(unsaved.notice?.action == nil)
 	}
 
 	@Test func failedSettlementAfterSavedWorkOffersNoTryAgain() {
@@ -214,8 +214,8 @@ import Testing
 			Issue.record("expected failed, got \(state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.coachErrorUnknown)
-		#expect(failed.notice.action == nil)
+		#expect(failed.notice?.key == Catalog.coachErrorUnknown)
+		#expect(failed.notice?.action == nil)
 	}
 
 	@Test func interruptedSettlementKeepsThePartialTextAndOffersTryAgainOnlyWhenNothingSaved() {

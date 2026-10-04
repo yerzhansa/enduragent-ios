@@ -20,6 +20,15 @@ extension Coach {
 
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
 		observeImports()
+		if accessObservation == nil {
+			let updates = vault.accessUpdates
+			accessObservation = Task { [weak self] in
+				for await _ in updates {
+					guard let self, !Task.isCancelled else { return }
+					await self.publishStatus()
+				}
+			}
+		}
 		let (stream, snapshot, generation) = await statusChanges.pass {
 			let snapshot = await stableStatusSnapshot()
 			return (statusFeed.subscribe(from: snapshot), snapshot, trainingGeneration)
@@ -130,6 +139,7 @@ extension Coach {
 	}
 
 	private func statusSnapshot() async -> CoachStatus {
+		await vault.refreshRejections()
 		let consent = await preferences.consent()
 		let access = await vault.accessStatus(builtInModel: builtInModel, consent: consent)
 		let preferences = await preferences.load()

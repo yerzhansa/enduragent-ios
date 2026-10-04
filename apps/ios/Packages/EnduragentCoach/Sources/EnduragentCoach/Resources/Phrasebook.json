@@ -531,6 +531,112 @@
         }
       }
     },
+    "access.error.requestBlocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter blocked this request. Try a different model or message."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter ha bloqueado esta solicitud. Prueba con otro modelo o mensaje."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter a bloqué cette demande. Essaie un autre modèle ou message."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter ha bloccato questa richiesta. Prova un altro modello o messaggio."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter heeft dit verzoek geblokkeerd. Probeer een ander model of bericht."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter blokerede denne anmodning. Prøv en anden model eller besked."
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande."
+          }
+        },
+        "nb": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding."
+          }
+        },
+        "fi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä."
+          }
+        },
+        "pt-PT": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O OpenRouter bloqueou esta solicitação. Tente outro modelo ou mensagem."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter zablokował to żądanie. Spróbuj innego modelu lub wiadomości."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter가 이 요청을 차단했습니다. 다른 모델이나 메시지를 시도해 보세요."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouterがこのリクエストをブロックしました。別のモデルやメッセージを試してください。"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 阻止了此请求。请尝试其他模型或消息。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。"
+          }
+        }
+      }
+    },
     "access.error.storageUnavailable": {
       "localizations": {
         "en": {

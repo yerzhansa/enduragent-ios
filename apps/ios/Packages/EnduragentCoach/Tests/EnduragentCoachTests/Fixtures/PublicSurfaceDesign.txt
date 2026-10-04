@@ -1,5 +1,8 @@
 AcceptFailure
 AcceptFailure.storageUnavailable
+AccessAttention
+AccessAttention.rejectedKey
+AccessAttention.signInNeeded
 AccessAvailability
 AccessAvailability.needsSetup
 AccessAvailability.ready
@@ -12,6 +15,7 @@ AccessSelection.credits
 AccessSelection.method
 AccessSelection.openRouterAccount
 AccessStatus
+AccessStatus.attention
 AccessStatus.availability
 AccessStatus.model
 AccessStatus.modelChoices
@@ -22,6 +26,7 @@ AccessSummary.selection
 AccessUnavailable
 AccessUnavailable.malformedStoredCredential
 AccessUnavailable.notConfigured
+AccessUnavailable.openRouterKeyRejected
 AccessUnavailable.providerConsentRequired
 AccessUnavailable.secureStorageLocked
 AccessUnavailable.recordStorageUnavailable
@@ -403,6 +408,7 @@ ModelDetails
 ModelDetails.displayName
 ModelDetails.provider
 ModelFailure
+ModelFailure.requestBlocked
 ModelFailure.accessExhausted
 ModelFailure.accessUnavailable
 ModelFailure.budgetExhausted

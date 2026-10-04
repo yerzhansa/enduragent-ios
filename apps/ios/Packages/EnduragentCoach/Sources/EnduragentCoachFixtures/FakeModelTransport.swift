@@ -68,6 +68,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 			)
 		}
 		let reply = respond(scripted)
+		let gate = reply.gate
 		let delay = reply.requestDelay
 		let pause = reply.deltaDelay
 		let usage = finishUsage
@@ -75,6 +76,7 @@ public final class FakeModelTransport: ModelTransport, @unchecked Sendable {
 		return AsyncThrowingStream { continuation in
 			let task = Task {
 				do {
+					try await gate?.enter()
 					if let delay { try await clock.sleep(for: delay) }
 					for event in reply.events {
 						if let pause { try await clock.sleep(for: pause) }

@@ -26,9 +26,9 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(turn.state)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failed.notice.vars.isEmpty)
-		#expect(failed.notice.action == .tryAgain(turn.id))
+		#expect(failed.notice?.key == Catalog.coachErrorProviderDown)
+		#expect(failed.notice?.vars.isEmpty == true)
+		#expect(failed.notice?.action == .tryAgain(turn.id))
 	}
 
 	@Test(arguments: [
@@ -60,8 +60,8 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(failed.state)")
 			return
 		}
-		#expect(failure.notice.key == key)
-		#expect(failure.notice.action?.title == button)
+		#expect(failure.notice?.key == key)
+		#expect(failure.notice?.action?.title == button)
 		#expect(transport.requestCount == requests)
 	}
 
@@ -129,8 +129,8 @@ extension FixtureLaunchTests {
 			Issue.record("expected a failed turn, got \(failed.state)")
 			return
 		}
-		#expect(failure.notice.key == Catalog.coachErrorProviderDown)
-		#expect(failure.notice.action == .tryAgain(failed.id))
+		#expect(failure.notice?.key == Catalog.coachErrorProviderDown)
+		#expect(failure.notice?.action == .tryAgain(failed.id))
 		await model.perform(.tryAgain(failed.id))
 		let retried = try await settledTurn(model, after: failed.state)
 		#expect(retried.id == failed.id)

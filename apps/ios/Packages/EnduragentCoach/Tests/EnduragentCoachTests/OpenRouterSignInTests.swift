@@ -328,7 +328,7 @@ import Testing
 		#expect(requests.count == 2)
 		#expect(
 			requests.allSatisfy {
-				$0.credential == ProviderCredential(secret: key, method: method)
+				$0.credential.secret == key && $0.credential.method == method
 					&& $0.model == model
 			})
 		#expect(requests.last?.messages.contains { $0.role == .tool } == true)

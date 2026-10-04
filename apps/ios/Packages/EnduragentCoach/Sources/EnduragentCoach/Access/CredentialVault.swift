@@ -4,6 +4,13 @@ import Security
 package actor CredentialVault {
 	let store: any SecretStore
 	let catalog: ModelCatalog
+	let ledger: Ledger
+	let clock: any Clock
+	let rejectionChanges = Turnstile()
+	var rejectedKeys: Set<OpenRouterCredentialRef> = []
+	var rejectionReadFailure: AccessUnavailable?
+	package nonisolated let accessUpdates: AsyncStream<Void>
+	let accessUpdate: AsyncStream<Void>.Continuation
 	let signInService: OpenRouterSignInService?
 	var signInFlight: SignInFlight?
 	var consentContext: ConsentContext?
@@ -14,11 +21,14 @@ package actor CredentialVault {
 	private var trainingIdentity: TrainingIdentityRead?
 
 	package init(
-		store: any SecretStore, training: TrainingService, clock: any Clock,
+		store: any SecretStore, training: TrainingService, clock: any Clock, ledger: Ledger,
 		diagnostics: DiagnosticsLog, catalog: ModelCatalog = .bundled,
 		signInService: OpenRouterSignInService? = nil
 	) {
+		(accessUpdates, accessUpdate) = AsyncStream.makeStream(bufferingPolicy: .bufferingNewest(1))
 		self.store = store
+		self.ledger = ledger
+		self.clock = clock
 		self.catalog = catalog
 		self.signInService = signInService
 		self.display = TrainingDisplayReader(training: training, clock: clock)

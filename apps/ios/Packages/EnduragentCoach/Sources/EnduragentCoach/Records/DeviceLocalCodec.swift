@@ -14,6 +14,11 @@ extension RecordCodec {
 	{
 		let name = kind.rawValue
 		switch kind {
+		case .openRouterKeyRejected:
+			return .openRouterKeyRejected(
+				try payload(
+					RejectedOpenRouterKeyPayload.self, version: version, kind: name, data: data
+				).reference)
 		case .providerConsent:
 			return .providerConsent(
 				try payload(ProviderConsentPayload.self, version: version, kind: name, data: data)

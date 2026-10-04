@@ -156,6 +156,8 @@
 				return .http(status: 401)
 			case "402" where rest.isEmpty:
 				return .http(status: 402)
+			case "403" where rest.isEmpty:
+				return .http(status: 403)
 			case "429" where rest.isEmpty:
 				return .http(status: 429, headers: ["retry-after": "7"])
 			case "429" where rest.count == 1 && Int(rest[0]) != nil:

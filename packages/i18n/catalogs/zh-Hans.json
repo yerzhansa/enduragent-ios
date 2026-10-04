@@ -2950,6 +2950,7 @@
     "error": {
       "locked": "请解锁 iPhone 以继续。你的消息已保存。",
       "notConfigured": "请选择教练连接模型的方式以继续。",
+      "requestBlocked": "OpenRouter 阻止了此请求。请尝试其他模型或消息。",
       "providerConsentRequired": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。",
       "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。",
       "storageUnavailable": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。",

@@ -18,7 +18,7 @@ private func action(in snapshot: ChatSnapshot?) -> RecoveryAction? {
 		case .failed(let failed)? = snapshot?.turns.first(where: { $0.id == rateLimitedTurn })?
 			.state
 	else { return nil }
-	return failed.notice.action
+	return failed.notice?.action
 }
 
 private func facts(_ settlement: Settlement, wallMs: Int64) -> TurnFacts {
@@ -126,7 +126,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 			Issue.record("expected a second rate-limit failure, got \(failedAgain)")
 			return
 		}
-		#expect(failed.notice.action == .wait(thenTryAgain: rateLimitedTurn))
+		#expect(failed.notice?.action == .wait(thenTryAgain: rateLimitedTurn))
 		await #expect(throws: RetryRefusal.rateLimitWaitRunning) {
 			try await coach.retry(rateLimitedTurn, in: .main)
 		}

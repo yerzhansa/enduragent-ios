@@ -61,3 +61,5 @@ The access proof reuses `-EnduragentFixtureAccess credits-needs-setup` or `openr
 
 - `-EnduragentFixtureSignIn` selects `success`, `cancel`, `rejected-callback`, `exchange-failure`, or `held`. A held sign-in exposes `fixture.signInCount` and `fixture.completeSignIn` on the access screen. Tap Sign in twice, then complete it; both taps join one authorization.
 - `-EnduragentFixtureAccess synced-openrouter` seeds the Anthropic-hosted Claude Sonnet 4.5 selection before the first local request. `-EnduragentFixtureCredentialWrite fail-selection` reuses the existing selection-slot write fault; `fail-once` fails the candidate key write during sign-in.
+
+`OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. Run both classes in light and dark. The guarded live procedure is in the skill's real-phone OpenRouter recovery section.

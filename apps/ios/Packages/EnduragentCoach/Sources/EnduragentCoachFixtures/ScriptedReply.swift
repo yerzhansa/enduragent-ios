@@ -3,13 +3,16 @@ import Foundation
 import Synchronization
 
 public struct ScriptedReply: Sendable {
+	package let gate: FakeModelGate?
 	package let events: [ScriptedEvent]
 	package let requestDelay: Duration?
 	package let deltaDelay: Duration?
 
 	public init(
-		_ events: [ScriptedEvent], requestDelay: Duration? = nil, deltaDelay: Duration? = nil
+		_ events: [ScriptedEvent], requestDelay: Duration? = nil, deltaDelay: Duration? = nil,
+		gate: FakeModelGate? = nil
 	) {
+		self.gate = gate
 		self.events = events
 		self.requestDelay = requestDelay
 		self.deltaDelay = deltaDelay
@@ -22,7 +25,7 @@ public struct ScriptedReply: Sendable {
 		}
 		return ScriptedReply(
 			Self.takeStep(from: &remaining, repeatingHang: repeatingHang),
-			requestDelay: requestDelay, deltaDelay: deltaDelay)
+			requestDelay: requestDelay, deltaDelay: deltaDelay, gate: gate)
 	}
 
 	public static func sequence(

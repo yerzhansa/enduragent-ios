@@ -73,6 +73,7 @@ extension CredentialVaultTests {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let vault = CredentialVault(
 			store: ICloudKeychainStore(backing: memory), training: training, clock: clock,
+			ledger: Ledger(log: InMemoryRecordLog(), clock: clock, diagnostics: diagnostics),
 			diagnostics: diagnostics)
 		await #expect(throws: AccessUnavailable.malformedStoredCredential(.creditsAccount)) {
 			try await vault.modelAccess(builtInModel: testModel)
@@ -103,7 +104,7 @@ extension CredentialVaultTests {
 			Issue.record("expected a failed turn, got \(settled)")
 			return
 		}
-		#expect(failed.notice.key == Catalog.accessErrorMalformed)
+		#expect(failed.notice?.key == Catalog.accessErrorMalformed)
 		let reopened = try #require(await coach(keychain).currentSnapshot(.main))
 		#expect(reopened.turns.map(\.state) == [settled])
 		#expect(transport.requests.isEmpty)

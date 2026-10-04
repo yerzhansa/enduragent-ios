@@ -22,6 +22,7 @@ actor CoachPreferences {
 	}
 
 	func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
+		await vault.refreshRejections()
 		let target = try await vault.consentTarget(builtInModel: builtInModel)
 		guard await consent()?.authorizes(target) == true else {
 			throw .providerConsentRequired
@@ -29,9 +30,19 @@ actor CoachPreferences {
 		return try await vault.modelAccess(builtInModel: builtInModel)
 	}
 
-	func authorizeInvocation(_ request: CompletionRequest) async throws(AccessUnavailable) {
-		let target = try await vault.requestTarget(request)
-		guard await consent()?.authorizes(target) == true else { throw .providerConsentRequired }
+	func authorizeInvocation(_ invocation: ModelInvocation) async throws(AccessUnavailable) {
+		switch invocation {
+		case .authorize(let request):
+			let target = try await vault.requestTarget(request)
+			guard await consent()?.authorizes(target) == true else {
+				throw .providerConsentRequired
+			}
+			try await vault.authorizeInvocation(request)
+		case .rejected(let request):
+			if let reference = request.credential.openRouterReference {
+				try await vault.noteRejected(reference)
+			}
+		}
 	}
 
 	func consent() async -> ProviderConsent? {

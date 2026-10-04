@@ -83,8 +83,8 @@ struct TrainingStorageTests {
 				Issue.record("The malformed training item did not produce a correction notice")
 				return
 			}
-			#expect(result.notice.key == Catalog.connectErrorStorageMalformed)
-			await reopened.perform(try #require(result.notice.action))
+			#expect(result.notice?.key == Catalog.connectErrorStorageMalformed)
+			await reopened.perform(try #require(result.notice?.action))
 			#expect(reopened.route == .chat)
 			#expect(reopened.navigation == [.training])
 			#expect(reopened.trainingSettings.isEditing)

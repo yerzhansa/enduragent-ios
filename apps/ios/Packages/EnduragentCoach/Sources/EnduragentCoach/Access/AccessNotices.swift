@@ -1,5 +1,10 @@
 extension AccessStatus {
 	public var notice: AthleteNotice? {
+		if attention == .rejectedKey {
+			return AthleteNotice(
+				key: Catalog.coachErrorReauth, vars: ["provider": "OpenRouter"],
+				action: .signInToOpenRouter)
+		}
 		let failure: AccessUnavailable
 		switch availability {
 		case .ready: return nil

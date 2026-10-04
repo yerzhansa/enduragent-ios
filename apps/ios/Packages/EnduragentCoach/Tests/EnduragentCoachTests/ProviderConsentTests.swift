@@ -20,7 +20,7 @@ import Testing
 			return
 		}
 		#expect(failure(refused) == .model(.accessUnavailable(.providerConsentRequired)))
-		#expect(refusal.notice.action == .tryAgain(turn))
+		#expect(refusal.notice?.action == .tryAgain(turn))
 		#expect(transport.requestCount == 0)
 		try await coach.recordConsent()
 		transport.respond = ScriptedReply.sequence(

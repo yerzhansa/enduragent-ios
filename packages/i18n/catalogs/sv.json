@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Lås upp din iPhone för att fortsätta. Ditt meddelande är sparat.",
       "notConfigured": "Välj hur tränaren får tillgång till en modell för att fortsätta.",
+      "requestBlocked": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande.",
       "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
       "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
       "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen.",

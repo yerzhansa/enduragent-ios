@@ -32,6 +32,24 @@ struct TranscriptView: View {
 					if model.newConversationUncertain {
 						newConversationNotice(Catalog.chatNoticeNewConversationUncertain)
 					}
+					if model.status.access.attention == .rejectedKey,
+						let notice = model.status.access.notice
+					{
+						Text(notice.sentence(in: model.displayLocale))
+							.accessibilityIdentifier("chat.access.notice")
+						Button(model.phrasebook.say(Catalog.chatTurnSignInAgain)) {
+							Task { await model.perform(.signInToOpenRouter) }
+						}
+						.disabled(model.isChangingAccess)
+						.accessibilityIdentifier("chat.access.signInAgain")
+						#if DEBUG
+							FixtureSignInDebugView(model: model)
+						#endif
+						if let outcome = model.accessSettings.notice {
+							Text(outcome.sentence(in: model.displayLocale))
+								.accessibilityIdentifier("chat.access.outcome")
+						}
+					}
 					if let review = model.chat?.review {
 						ConfirmedPreviewCard(model: model, review: review)
 							.fixedSize(horizontal: false, vertical: true)
@@ -79,6 +97,9 @@ struct TranscriptView: View {
 				scrollToEnd(proxy)
 			}
 			.onChange(of: model.slashListVisible) {
+				proxy.scrollTo("transcript.tail", anchor: .bottom)
+			}
+			.onChange(of: model.status.access.attention) {
 				proxy.scrollTo("transcript.tail", anchor: .bottom)
 			}
 			.onChange(of: model.reviewNotice) {

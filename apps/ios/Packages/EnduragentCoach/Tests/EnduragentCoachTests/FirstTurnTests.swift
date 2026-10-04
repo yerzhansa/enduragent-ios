@@ -116,7 +116,7 @@ import Testing
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
 		#expect(failure(settled) == .model(.generationFailed(.emptyAfterError)))
 		guard case .failed(let failed) = settled else { return }
-		#expect(failed.notice.key == Catalog.chatNoticeResponseFailure)
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
 		#expect(await coach.transcript(.main) == ["Give me a ride for tomorrow"])
 		let replies = try await store.fetch(
 			RecordQuery(scope: .synced([.turnSettled]), chatId: .main)

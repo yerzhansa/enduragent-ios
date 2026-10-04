@@ -159,6 +159,7 @@ extension SwiftDataSuites {
 		}
 
 		@Test(arguments: [
+			ModelFailure.requestBlocked, .accessUnavailable(.openRouterKeyRejected),
 			ModelFailure.credentialRejected(.credits), .credentialRejected(.openRouterAccount),
 			.accessExhausted(.credits), .rateLimited(retryAfter: .milliseconds(1_500)),
 			.rateLimited(retryAfter: nil), .invalidRequest, .contextOverflow,
@@ -323,6 +324,7 @@ extension SwiftDataSuites {
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]
 			let local: [DeviceLocalRecordBody] = [
+				.openRouterKeyRejected(.generation(UUID())),
 				.providerConsent(
 					ProviderConsent(legacyAt: Date(timeIntervalSince1970: 899_164_800))),
 				.turnClaim(

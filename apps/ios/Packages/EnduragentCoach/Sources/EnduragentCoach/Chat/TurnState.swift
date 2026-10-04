@@ -42,7 +42,7 @@ public enum TurnState: Sendable, Equatable {
 	public struct Failed: Sendable, Equatable {
 		public let failure: CoachFailure
 		public let saved: WriteSummary
-		public let notice: AthleteNotice
+		public let notice: AthleteNotice?
 	}
 
 	public struct Interrupted: Sendable, Equatable {

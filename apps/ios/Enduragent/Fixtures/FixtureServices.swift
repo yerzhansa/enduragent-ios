@@ -61,8 +61,15 @@
 			let credits = FakeCreditsClient()
 			FirstWeekFixture.install(on: credits)
 			FirstWeekFixture.install(launch.creditsOutcome, on: credits)
-			let transport = FakeModelTransport(
-				respond: FirstWeekFixture.responses(intervals: intervals, credits: credits))
+			let response = FirstWeekFixture.responses(intervals: intervals, credits: credits)
+			let transport = FakeModelTransport { request in
+				if launch.accessMethod == .rejectedOpenRouter,
+					request.credential == FirstWeekFixture.openRouterKey
+				{
+					return ScriptedReply([.fail(.http(status: 401))])
+				}
+				return response(request)
+			}
 			let host: any ExecutionHost
 			let fixtureHost: ImmediateExecutionHost?
 			let leases: @Sendable () async -> [LeaseRecord]

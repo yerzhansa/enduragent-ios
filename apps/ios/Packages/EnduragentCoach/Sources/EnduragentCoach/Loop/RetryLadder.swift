@@ -201,7 +201,7 @@ package enum AttemptFailure: Error, Sendable, Equatable {
 			.serverError
 		case .provider(.network):
 			.network
-		case .provider(.credentialRejected), .provider(.invalidRequest),
+		case .provider(.credentialRejected), .provider(.requestBlocked), .provider(.invalidRequest),
 			.provider(.accessExhausted), .provider(.unknownFinish), .provider(.malformedStream),
 			.budget, .generation, .recordStorage, .access, .rescueFailed:
 			.unknown

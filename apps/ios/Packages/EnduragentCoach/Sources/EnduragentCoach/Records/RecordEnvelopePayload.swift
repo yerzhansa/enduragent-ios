@@ -128,6 +128,7 @@ enum SyncedPayload: Encodable {
 }
 
 enum DeviceLocalPayload: Encodable {
+	case openRouterKeyRejected(RejectedOpenRouterKeyPayload)
 	case providerConsent(ProviderConsentPayload)
 	case turnClaim(TurnClaimPayload)
 	case replyObserved(TurnAttemptPayload)
@@ -144,6 +145,8 @@ enum DeviceLocalPayload: Encodable {
 
 	init(_ body: DeviceLocalRecordBody) {
 		switch body {
+		case .openRouterKeyRejected(let value):
+			self = .openRouterKeyRejected(RejectedOpenRouterKeyPayload(value))
 		case .providerConsent(let value): self = .providerConsent(ProviderConsentPayload(value))
 		case .turnClaim(let value):
 			self = .turnClaim(
@@ -245,6 +248,7 @@ enum DeviceLocalPayload: Encodable {
 
 	func encode(to encoder: Encoder) throws {
 		switch self {
+		case .openRouterKeyRejected(let payload): try payload.encode(to: encoder)
 		case .providerConsent(let payload): try payload.encode(to: encoder)
 		case .turnClaim(let payload): try payload.encode(to: encoder)
 		case .replyObserved(let payload): try payload.encode(to: encoder)

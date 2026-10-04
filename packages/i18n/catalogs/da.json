@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Lås din iPhone op for at fortsætte. Din besked er gemt.",
       "notConfigured": "Vælg, hvordan træneren får adgang til en model, for at fortsætte.",
+      "requestBlocked": "OpenRouter blokerede denne anmodning. Prøv en anden model eller besked.",
       "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
       "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter.",
       "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen.",

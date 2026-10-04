@@ -18,11 +18,13 @@ extension CredentialVault {
 				credential: ProviderCredential(secret: key.value.secret.value, method: .credits),
 				model: builtInModel)
 		case .openRouter(let reference)?:
+			try authorizeOpenRouterKey(reference.credential)
 			let key = try persistedOpenRouterKey(at: reference.credential)
 			let entry = try savedEntry(reference)
 			return ResolvedAccess(
 				credential: ProviderCredential(
-					secret: key.value.secret.value, method: .openRouterAccount),
+					secret: key.value.secret.value, method: .openRouterAccount,
+					openRouterReference: reference.credential),
 				model: entry.id, provider: entry.details.provider)
 		}
 	}
@@ -133,8 +135,10 @@ extension CredentialVault {
 		case .openRouter(let reference)?:
 			do {
 				let key = try persistedOpenRouterKey(at: reference.credential)
-				return .openRouter(
-					OpenRouterChoice(credential: key, entry: try savedEntry(reference)))
+				if let rejectionReadFailure { return .unreadable(rejectionReadFailure) }
+				let choice = OpenRouterChoice(credential: key, entry: try savedEntry(reference))
+				return rejectedKeys.contains(reference.credential)
+					? .rejectedOpenRouter(choice) : .openRouter(choice)
 			} catch {
 				return .unresolvedOpenRouter(reference, error)
 			}
