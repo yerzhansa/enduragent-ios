@@ -82,6 +82,20 @@ import Testing
 		#expect(verifiers[0] != verifiers[1])
 	}
 
+	@Test func appEntitlementDeclaresTheCallbackHost() throws {
+		let host = try #require(OpenRouterPKCE().request.callbackURL.host())
+		let ios = (0..<5).reduce(URL(fileURLWithPath: #filePath)) { path, _ in
+			path.deletingLastPathComponent()
+		}
+		let entitlements = try #require(
+			try PropertyListSerialization.propertyList(
+				from: Data(contentsOf: ios.appending(path: "Enduragent/Enduragent.entitlements")),
+				format: nil) as? [String: Any])
+		#expect(
+			entitlements["com.apple.developer.associated-domains"] as? [String]
+				== ["webcredentials:\(host)"])
+	}
+
 	@Test(arguments: [301, 307, 400, 403, 429, 500, 503])
 	func unsuccessfulHTTPResponseFailsWithoutRetry(_ status: Int) async throws {
 		let stub = OpenRouterStub.keyExchange { _ in
