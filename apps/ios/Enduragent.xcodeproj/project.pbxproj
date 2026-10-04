@@ -75,6 +75,7 @@
 		5B29FB95E52DE0254D8AB3B3 /* OpenRouterSignInPhoneCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87D65A603F2150F18F7B019D /* OpenRouterSignInPhoneCheck.swift */; };
 		5B2CACCD95C2697549F7B9B5 /* ModelPickerProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67FB3A07EA7260B4089857B3 /* ModelPickerProof.swift */; };
 		5B52BCC67FCD33AA65E7E8E1 /* LeaseSettlementSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED2A5226090F225E10F10E9B /* LeaseSettlementSupport.swift */; };
+		5CB3D4BBBB4C5A90CE396B0C /* FixtureNetworkProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 581970C8378B901455ED7C40 /* FixtureNetworkProbeTests.swift */; };
 		5D1FBAB9320CDF7EEB4152FD /* OpenRouterRecoveryProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13CB42814BF18D9BD5B810E /* OpenRouterRecoveryProof.swift */; };
 		5D97187360FCB33DBDD11CB0 /* LeaseProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 308A352D65A10B7907B73232 /* LeaseProofs.swift */; };
 		5F38A9E2F5F832D0C4912A8C /* FixtureConsentDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DB04EF85779B1AA780CB05 /* FixtureConsentDebugView.swift */; };
@@ -297,6 +298,7 @@
 		5502A456F209EE30186C41C0 /* TutorialHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialHarness.swift; sourceTree = "<group>"; };
 		55F381C6EAACE28F5D9B29A1 /* LanguageSheetLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageSheetLayout.swift; sourceTree = "<group>"; };
 		579D7DEA0D7DAA35E6AE5CA6 /* OpenRouterSignInSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterSignInSessionTests.swift; sourceTree = "<group>"; };
+		581970C8378B901455ED7C40 /* FixtureNetworkProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureNetworkProbeTests.swift; sourceTree = "<group>"; };
 		59E408694AE554BF484ABE0E /* TrainingSettingsActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingSettingsActions.swift; sourceTree = "<group>"; };
 		5A6E27DF149C2A404A925B5F /* SyncedTrainingIdentityAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedTrainingIdentityAppTests.swift; sourceTree = "<group>"; };
 		5C9AD6D4A41F678BB81C9BBB /* FirstWeekFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstWeekFixture.swift; sourceTree = "<group>"; };
@@ -512,6 +514,7 @@
 				7B5881D56CA03A256167C15F /* FixtureLaunchTests.swift */,
 				4C21B70D98A371E55CB0519B /* FixtureLeaseCompletionTests.swift */,
 				5FD5C48C7417C116CF10E5E1 /* FixtureLeaseTests.swift */,
+				581970C8378B901455ED7C40 /* FixtureNetworkProbeTests.swift */,
 				0637E18468A727A40517708C /* FixtureRecoveryTests.swift */,
 				F15EF4C3A698247FE96C680E /* FixtureReplyParserTests.swift */,
 				ACA834BE1E5912914573D48A /* FixtureResetAdmissionTests.swift */,
@@ -1063,6 +1066,7 @@
 				499C535943F44E7FCBA7318A /* FixtureLaunchTests.swift in Sources */,
 				720F69A85B32B2B7B5E9B3C3 /* FixtureLeaseCompletionTests.swift in Sources */,
 				49C715405D5DCE54E509FEA7 /* FixtureLeaseTests.swift in Sources */,
+				5CB3D4BBBB4C5A90CE396B0C /* FixtureNetworkProbeTests.swift in Sources */,
 				772DC86E3FBCD399F163D99F /* FixtureRecoveryTests.swift in Sources */,
 				8DE60C99F405AAE3A1A567D6 /* FixtureReplyParserTests.swift in Sources */,
 				0E3BCE9F5BF461D9483508E2 /* FixtureResetAdmissionTests.swift in Sources */,
