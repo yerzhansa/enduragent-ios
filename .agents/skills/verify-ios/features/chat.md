@@ -30,7 +30,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
 - `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
-- `chat-session-settings` edits history ratio and context-window override through Settings, Debug, Session. A rejected value preserves the stored value; a saved value affects later turns.
+- `chat-session-settings` edits history ratio and context-window override through Settings > Session. A rejected value preserves the saved value; a saved value affects later turns. See [settings.md](./settings.md).
 - `chat-no-network` keeps `fixture.requestCount` at zero through all fixture work.
 
 | Turn or composer state | Visible notice and action |
@@ -60,7 +60,7 @@ New conversation reports `New conversation started.` in `chat.newConversation.no
 - Tap Stop responding while work is running, or the recovery action beneath a settled notice.
 - Tap the compose icon labeled New conversation in the top bar or send `/start`.
 - Relaunch the next morning with the store kept and send another message.
-- Choose Settings, Debug, then Records, Leases, or Session for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
+- Choose Settings, Debug, then Records or Leases for the corresponding diagnostic view. The [index](./README.md) lists their identifiers.
 
 ## Driving it with sim.mjs and XCUITest
 
@@ -154,10 +154,10 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
 | `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A turn at 20:00 local and one 13 hours later after a relaunch stay in one conversation; Records show no `windowStart` and History is empty, `m1-15-overnight-continues`, `m1-15-overnight-history`. |
-| `sim.mjs test <run id> SessionRejectionProof` | Both invalid values preserve stored settings and write no settings record, `m1-12-rejected`, `m1-12-rejected-last`. |
-| `sim.mjs test <run id> RatioAppliesProof` | A 0.05 history ratio causes earlier compaction than the default, `ratio-applies-turns`, `m1-12-ratio-applies`. |
+| `sim.mjs test <run id> SessionRejectionProof SessionRejectionDarkProof` | Through Settings > Session, each invalid value shows its field's catalog sentence, Cancel restores the saved value, and no settings record is written. `session-rejected-<field>-light` or `-dark`. |
+| `sim.mjs test <run id> RatioAppliesProof` | A 5% history budget, and separately a 64000-token context window, each saved in Settings > Session and followed by a relaunch, cause earlier compaction than the default. `ratio-applies-turns`, `ratio-applies`, `context-window-applies-turns`, `context-window-applies`. Each test runs up to 18 long turns. |
 
-Settings, Debug, Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. Enter a value in `session.<field>.input`, tap `.save`, and inspect `.stored` and `.outcome`. End typed input with Return so the keyboard does not hide later rows.
+Settings > Session uses the field names `historyBudgetRatio` and `contextWindowOverride`. The history budget is entered as a percentage, so `5` saves a ratio of 0.05. Replace the text in `session.<field>.input`, tap `session.save`, and read the saved value back from the same input. End typed input with Return so the keyboard does not hide Save and Cancel.
 
 ### Formatted replies
 

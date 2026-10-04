@@ -515,6 +515,18 @@
       }
     },
     "modelAccessTitle": "Mallin käyttö",
+    "session": {
+      "title": "Istunto",
+      "contextWindow": {
+        "label": "Konteksti-ikkuna",
+        "help": "Mallin kontekstin yläraja. Jätä tyhjäksi, jos haluat käyttää oletusta.",
+        "default": "Oletus"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokenia"
+      }
+    },
     "training": {
       "section": "Harjoitteluyhteys",
       "title": "intervals.icu",

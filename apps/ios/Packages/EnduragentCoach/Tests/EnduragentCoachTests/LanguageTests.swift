@@ -203,7 +203,7 @@ import Testing
 		#expect(try await coach.observedStatus().language == .automatic)
 		try await coach.setLanguage(.fixed(.ja))
 		#expect(try await coach.observedStatus().language == .fixed(.ja))
-		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
+		let ratio = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5")
 		try await coach.setSession(ratio)
 		let status = try await coach.observedStatus()
 		#expect(status.session == ratio)

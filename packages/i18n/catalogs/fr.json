@@ -515,6 +515,18 @@
     },
     "title": "Paramètres",
     "modelAccessTitle": "Accès au modèle",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Fenêtre de contexte",
+        "help": "Limite maximale du contexte du modèle. Laisse vide pour utiliser la valeur par défaut.",
+        "default": "Par défaut"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "jetons"
+      }
+    },
     "training": {
       "section": "Connexion d’entraînement",
       "title": "intervals.icu",

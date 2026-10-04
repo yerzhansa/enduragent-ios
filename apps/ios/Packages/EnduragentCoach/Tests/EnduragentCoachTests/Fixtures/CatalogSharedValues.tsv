@@ -116,6 +116,9 @@ fr	settings.conversation.fields.idleMinutes.suffix	minutes	French plural of minu
 fr	settings.credentials.runtime.active	Active	French feminine adjective for an active credential; the localized spelling matches English.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.credentials.summary	{{kind}} · {{state}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 fr,it	settings.palette.title	Palette	French noun and Italian loanword for a color palette; shared spelling.
+da,fr,sv	settings.session.title	Session	Native Danish, French and Swedish noun for a session; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.session.units.percent	%	Only the language-neutral percent sign; no English words.
+da,es,nl,pt-BR,pt-PT	settings.session.units.tokens	tokens	Established loanword plural for model tokens, as in each language's other token strings.
 da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amount	${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountAgainstCap	{{known}} / {{cap}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
 da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountBelow	<${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.

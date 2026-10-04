@@ -12,7 +12,7 @@ import Testing
 		#expect(defaults.historyBudgetRatio.value == 0.3)
 		#expect(defaults.contextWindowOverride == nil)
 		#expect(
-			SessionField.allCases.map { defaults.text(for: $0) } == ["0.3", ""])
+			SessionField.allCases.map { defaults.text(for: $0) } == ["30", ""])
 	}
 
 	@Test(arguments: [
@@ -20,7 +20,7 @@ import Testing
 			SessionField.historyBudgetRatio, "0",
 			"Enter a history budget above 0% and no more than 100%."
 		),
-		(.historyBudgetRatio, "1.5", "Enter a history budget above 0% and no more than 100%."),
+		(.historyBudgetRatio, "100.5", "Enter a history budget above 0% and no more than 100%."),
 		(.historyBudgetRatio, "nan", "Enter a history budget above 0% and no more than 100%."),
 		(.historyBudgetRatio, "inf", "Enter a history budget above 0% and no more than 100%."),
 		(.historyBudgetRatio, "abc", "Enter a history budget above 0% and no more than 100%."),
@@ -38,7 +38,7 @@ import Testing
 	{
 		let store = InMemoryRecordLog()
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store)
-		let stored = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
+		let stored = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5")
 			.replacing(.contextWindowOverride, with: "64000")
 		try await coach.setSession(stored)
 		do {
@@ -60,10 +60,16 @@ import Testing
 
 	@Test func validValuesReplaceOnlyTheirField() throws {
 		var settings = SessionSettings.npmDefaults
-		settings = try settings.replacing(.historyBudgetRatio, with: "0.05")
+		settings = try settings.replacing(.historyBudgetRatio, with: "5")
 		settings = try settings.replacing(.contextWindowOverride, with: "64000")
 		#expect(settings.historyBudgetRatio.value == 0.05)
 		#expect(settings.contextWindowOverride?.tokens == 64_000)
+		#expect(SessionField.allCases.map { settings.text(for: $0) } == ["5", "64000"])
+		let whole = try settings.replacing(.historyBudgetRatio, with: "100")
+		#expect(whole.historyBudgetRatio.value == 1)
+		let fractional = try settings.replacing(.historyBudgetRatio, with: " 7.5 ")
+		#expect(fractional.historyBudgetRatio.value == 0.075)
+		#expect(fractional.text(for: .historyBudgetRatio) == "7.5")
 		let cleared = try settings.replacing(.contextWindowOverride, with: " ")
 		#expect(cleared.contextWindowOverride == nil)
 	}
@@ -94,7 +100,7 @@ import Testing
 		#expect(conversation.turns.count == 1)
 		let edits: [(SessionField, String, Double, Int?)] = [
 			(.contextWindowOverride, "64000", 0.3, 64_000),
-			(.historyBudgetRatio, "0.05", 0.05, 64_000),
+			(.historyBudgetRatio, "5", 0.05, 64_000),
 			(.contextWindowOverride, "32000", 0.05, 32_000),
 			(.contextWindowOverride, " ", 0.05, nil),
 		]
@@ -129,7 +135,7 @@ import Testing
 			ScriptedReply([.text("Your settings stay saved."), .finish(reason: .stop)])
 		})
 		let coach = await makeCoach(transport: transport, store: log)
-		let stored = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05")
+		let stored = try SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5")
 			.replacing(.contextWindowOverride, with: "64000")
 		try await coach.setSession(stored)
 		#expect(
@@ -178,7 +184,7 @@ import Testing
 		let old = Data(
 			(version == 1 ? #"{"sessionSettings":{"_0":\#(payload)}}"# : payload).utf8)
 		let expected = try SessionSettings.npmDefaults
-			.replacing(.historyBudgetRatio, with: "0.05")
+			.replacing(.historyBudgetRatio, with: "5")
 			.replacing(.contextWindowOverride, with: "64000")
 		let decoded = try RecordCodec.decode(
 			kind: "sessionSettings", version: version, data: old, civilDate: "1998-06-13",
@@ -192,7 +198,7 @@ import Testing
 			[seededRecord(store, at: clock.now, ulid: fixedUlid(1), body: decoded)])
 		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		#expect(try await coach.observedStatus().session == expected)
-		try await coach.setSession(expected.replacing(.historyBudgetRatio, with: "0.2"))
+		try await coach.setSession(expected.replacing(.historyBudgetRatio, with: "20"))
 		await coach.lifecycle(.willTerminate)
 		let reopened = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
 		let restored = try await reopened.observedStatus().session

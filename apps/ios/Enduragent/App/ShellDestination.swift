@@ -8,12 +8,12 @@ enum ShellDestination: Hashable {
 	case accessMethod
 	case modelPicker
 	case training
+	case session
 	#if DEBUG
 		case debug
 		case debugCredits
 		case debugRecords
 		case debugLanguage
-		case session
 		case debugLeases
 	#endif
 }

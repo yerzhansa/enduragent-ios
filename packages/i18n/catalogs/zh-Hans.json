@@ -514,6 +514,18 @@
     },
     "title": "设置",
     "modelAccessTitle": "模型访问",
+    "session": {
+      "title": "会话",
+      "contextWindow": {
+        "label": "上下文窗口",
+        "help": "模型上下文的上限。留空则使用默认值。",
+        "default": "默认"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "词元"
+      }
+    },
     "training": {
       "section": "训练连接",
       "title": "intervals.icu",

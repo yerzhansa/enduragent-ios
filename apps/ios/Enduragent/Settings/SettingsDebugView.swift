@@ -19,11 +19,6 @@ import SwiftUI
 					value: ShellDestination.debugLanguage
 				)
 				.accessibilityIdentifier("debug.language")
-				NavigationLink(
-					model.phrasebook.say(Catalog.settingsConversationTitle, [:]),
-					value: ShellDestination.session
-				)
-				.accessibilityIdentifier("debug.session")
 				NavigationLink("Leases", value: ShellDestination.debugLeases)
 					.accessibilityIdentifier("debug.leases")
 				if model.services.fixture != nil {

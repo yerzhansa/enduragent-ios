@@ -319,7 +319,7 @@ extension SwiftDataSuites {
 				.sessionSettings(
 					SessionSettingsBody(
 						settings: try SessionSettings.npmDefaults
-							.replacing(.historyBudgetRatio, with: "0.05")
+							.replacing(.historyBudgetRatio, with: "5")
 							.replacing(.contextWindowOverride, with: "64000"))),
 				.languagePreference(LanguagePreferenceBody(preference: .fixed(.fr))),
 			]

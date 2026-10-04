@@ -515,6 +515,18 @@
     },
     "title": "Innstillinger",
     "modelAccessTitle": "Modelltilgang",
+    "session": {
+      "title": "Sesjon",
+      "contextWindow": {
+        "label": "Kontekstvindu",
+        "help": "Øvre grense for modellens kontekst. La feltet stå tomt for å bruke standarden.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokener"
+      }
+    },
     "training": {
       "section": "Treningsforbindelse",
       "title": "intervals.icu",
