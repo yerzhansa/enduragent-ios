@@ -132,7 +132,7 @@ public final class FixtureSecretStoreBacking: SecretStoreBacking, @unchecked Sen
 		lock.withLock { failures[account] = status }
 	}
 
-	package func failWrites(_ account: String, with status: OSStatus?) {
+	public func failWrites(_ account: String, with status: OSStatus?) {
 		lock.withLock { writeFailures[account] = status }
 	}
 

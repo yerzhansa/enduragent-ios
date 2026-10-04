@@ -41,7 +41,7 @@ import Testing
 	}
 
 	@Test func consentPayloadPreservesTheStoredDateFormat() throws {
-		let consent = ProviderConsent(at: Date(timeIntervalSinceReferenceDate: 123))
+		let consent = ProviderConsent(legacyAt: Date(timeIntervalSinceReferenceDate: 123))
 		let row = try StoredAthleteRecord(
 			record: storedRecord(
 				device: store.deviceId, wall: 1, body: .deviceLocal(.providerConsent(consent))))
@@ -51,14 +51,14 @@ import Testing
 		#expect(try row.decode().get().body == .deviceLocal(.providerConsent(consent)))
 	}
 
-	@Test func consentUsesTheCurrentVersionAndIsIndependentOfAccessMethod() async throws {
+	@Test func consentUsesTheCurrentVersionAndStaysDeviceLocal() async throws {
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
-		#expect(try await coach.observedStatus().providerConsent == nil)
+		#expect(try await coach.observedStatus().acceptedConsent == nil)
 		#expect(try await coach.observedStatus().needsProviderConsent)
 		try await coach.recordConsent()
 		try await coach.recordConsent()
-		let consent = try #require(try await coach.observedStatus().providerConsent)
+		let consent = try #require(try await coach.observedStatus().acceptedConsent)
 		#expect(consent.version == ProviderConsent.currentVersion)
 		#expect(consent.at == clock.now)
 		#expect(try await coach.observedStatus().needsProviderConsent == false)
@@ -71,7 +71,7 @@ import Testing
 		let reopened = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
 		_ = await reopened.changeModelAccess(.useCredits)
-		#expect(try await reopened.observedStatus().providerConsent == consent)
+		#expect(try await reopened.observedStatus().acceptedConsent == consent)
 	}
 
 	@Test(arguments: [0, ProviderConsent.currentVersion + 1])
@@ -82,7 +82,9 @@ import Testing
 				storedRecord(
 					device: store.deviceId, wall: 1,
 					body: .deviceLocal(
-						.providerConsent(ProviderConsent(version: version, at: clock.now))))
+						.providerConsent(
+							ProviderConsent(
+								target: testConsentTarget, at: clock.now, version: version))))
 			])
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
@@ -103,7 +105,9 @@ import Testing
 			[
 				storedRecord(
 					device: DeviceID(rawValue: "another-test-device"), wall: 1,
-					body: .deviceLocal(.providerConsent(ProviderConsent(at: clock.now))))
+					body: .deviceLocal(
+						.providerConsent(ProviderConsent(target: testConsentTarget, at: clock.now)))
+				)
 			])
 		let coach = await makeCoach(
 			transport: transport, store: store, clock: clock, consent: false)
@@ -118,7 +122,7 @@ import Testing
 		let log = FaultInjectingRecordLog(wrapping: store)
 		try log.failAppends(ofKind: "providerConsent")
 		let coach = await makeCoach(transport: transport, store: log, clock: clock, consent: false)
-		await #expect(throws: PreferenceWriteFailure.notSaved) { try await coach.recordConsent() }
+		await #expect(throws: ConsentWriteFailure.notSaved) { try await coach.recordConsent() }
 		#expect(try await coach.observedStatus().needsProviderConsent)
 		#expect(
 			failure(try await coach.sendAndSettle("Hello"))
@@ -174,7 +178,9 @@ extension SwiftDataSuites {
 			record: storedRecord(
 				device: device, wall: 1,
 				body: .deviceLocal(
-					.providerConsent(ProviderConsent(at: Date(timeIntervalSince1970: 1))))))
+					.providerConsent(
+						ProviderConsent(
+							target: testConsentTarget, at: Date(timeIntervalSince1970: 1))))))
 		record.body = Data(#"{"version":1,"at":"invalid"}"#.utf8)
 		let context = ModelContext(local.container)
 		context.insert(record)
@@ -213,11 +219,11 @@ extension SwiftDataSuites {
 		let coach = await makeCoach(
 			transport: FakeModelTransport(), store: fixture.store.log, consent: false)
 		try await coach.recordConsent()
-		let consent = try #require(try await coach.observedStatus().providerConsent)
+		let consent = try #require(try await coach.observedStatus().acceptedConsent)
 		let reopened = try FixtureRecordStore(directory: directory, deviceId: device)
 		let next = await makeCoach(
 			transport: FakeModelTransport(), store: reopened.store.log, consent: false)
-		#expect(try await next.observedStatus().providerConsent == consent)
+		#expect(try await next.observedStatus().acceptedConsent == consent)
 		#expect(try await next.observedStatus().needsProviderConsent == false)
 		#expect(
 			try await reopened.store.log.fetch(RecordQuery(scope: .everySynced)).records.allSatisfy

@@ -2,18 +2,26 @@ import EnduragentCoach
 import Foundation
 
 extension OpenRouterSignInService {
-	public static func fake(authorizer: FakeOpenRouterAuthorizer) -> OpenRouterSignInService {
+	public static func fake(
+		authorizer: FakeOpenRouterAuthorizer, exchangeFails: Bool = false
+	) -> OpenRouterSignInService {
 		OpenRouterSignInService(
 			authorizer: authorizer,
 			exchange: OpenRouterKeyExchange {
 				ephemeralSession(
 					requestTimeout: 30, resourceTimeout: 30,
-					protocolClasses: [FakeOpenRouterExchangeProtocol.self])
+					protocolClasses: [
+						exchangeFails
+							? FailedOpenRouterExchangeProtocol.self
+							: FakeOpenRouterExchangeProtocol.self
+					])
 			})
 	}
 }
 
-private final class FakeOpenRouterExchangeProtocol: URLProtocol, @unchecked Sendable {
+private class FakeOpenRouterExchangeProtocol: URLProtocol, @unchecked Sendable {
+	class var statusCode: Int { 200 }
+
 	override class func canInit(with request: URLRequest) -> Bool { true }
 
 	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
@@ -23,7 +31,7 @@ private final class FakeOpenRouterExchangeProtocol: URLProtocol, @unchecked Send
 			url.absoluteString == "https://openrouter.ai/api/v1/auth/keys",
 			request.httpMethod == "POST",
 			let response = HTTPURLResponse(
-				url: url, statusCode: 200, httpVersion: nil,
+				url: url, statusCode: Self.statusCode, httpVersion: nil,
 				headerFields: ["Content-Type": "application/json"])
 		else {
 			client?.urlProtocol(self, didFailWithError: URLError(.badURL))
@@ -36,4 +44,10 @@ private final class FakeOpenRouterExchangeProtocol: URLProtocol, @unchecked Send
 	}
 
 	override func stopLoading() {}
+}
+
+private final class FailedOpenRouterExchangeProtocol: FakeOpenRouterExchangeProtocol,
+	@unchecked Sendable
+{
+	override class var statusCode: Int { 503 }
 }

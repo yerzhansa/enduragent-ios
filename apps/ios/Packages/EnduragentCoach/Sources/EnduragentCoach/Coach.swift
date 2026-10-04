@@ -59,15 +59,21 @@ public actor Coach {
 		self.builtInModel = builtInModel
 		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
-		self.preferences = CoachPreferences(
+		let preferences = CoachPreferences(
 			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
 			builtInModel: builtInModel)
+		self.preferences = preferences
+		let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void = { request in
+			try await preferences.authorizeInvocation(request)
+		}
 		self.clock = clock
 		self.coalescing = coalescing
 		self.coalescingSleep = ports.coalescingSleep
 		self.host = ports.host
 		self.resolveDisplayLocale = displayLocale
-		self.memory = Memory(ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep)
+		self.memory = Memory(
+			ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation)
 		let reviews = SingleProposalReviews(
 			ledger: ledger, clock: clock, diagnostics: diagnostics,
 			training: { (recheck: Bool) async throws(AccessUnavailable) in
@@ -79,7 +85,8 @@ public actor Coach {
 			transport: transport, ledger: ledger, clock: clock,
 			diagnostics: diagnostics, ladder: .npm,
 			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
-			reviews: reviews, watchdogSleep: ports.watchdogSleep
+			reviews: reviews, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation
 		)
 		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}

@@ -112,7 +112,7 @@ import Testing
 		let reads = memory.readCount
 		let peer = await makeCoach(
 			transport: FakeModelTransport(), store: InMemoryRecordLog(),
-			secrets: ICloudKeychainStore(backing: memory))
+			secrets: ICloudKeychainStore(backing: memory), consent: false)
 		#expect(try await peer.creditsIdentity() == identity)
 		#expect(memory.readCount - reads == 1)
 		#expect(memory.readAccounts.last == CredentialSlot.creditsAccount.rawValue)

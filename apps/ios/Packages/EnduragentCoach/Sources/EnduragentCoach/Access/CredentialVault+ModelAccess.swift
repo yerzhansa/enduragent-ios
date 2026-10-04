@@ -1,3 +1,5 @@
+import Foundation
+
 package struct Persisted<Value: Equatable & Sendable>: Equatable, Sendable {
 	let value: Value
 
@@ -25,7 +27,9 @@ extension CredentialVault {
 		}
 	}
 
-	package func accessStatus(builtInModel: ModelID) -> AccessStatus {
+	package func accessStatus(builtInModel: ModelID, consent: ProviderConsent? = nil)
+		-> AccessStatus
+	{
 		let state: AccessState
 		do {
 			let saved = try keychain(.accessSelection) { try store.accessSelection() }
@@ -33,14 +37,22 @@ extension CredentialVault {
 		} catch {
 			state = .unreadable(error)
 		}
-		return AccessStatus(state: state, builtInModel: builtInModel, catalog: catalog)
+		return AccessStatus(
+			state: state, builtInModel: builtInModel, catalog: catalog,
+			consent: accessConsent(builtInModel: builtInModel, recorded: consent))
 	}
 
-	package func change(_ change: ModelAccessChange, builtInModel: ModelID)
+	package func change(
+		_ change: ModelAccessChange, builtInModel: ModelID, consent: ProviderConsent? = nil
+	)
 		async -> CredentialOutcome<AccessSummary>
 	{
 		if change == .signInToOpenRouter { return await signIn(builtInModel: builtInModel) }
-		if change != .keep { signInFlight = nil }
+		if change != .keep {
+			signInFlight = nil
+			pendingModelChoice = nil
+			consentContext = nil
+		}
 		let previous: AccessSummary?
 		let saved: SavedAccessReference?
 		do {
@@ -74,6 +86,13 @@ extension CredentialVault {
 				}
 				let key = try persistedOpenRouterKey(at: reference.credential)
 				let choice = OpenRouterChoice(credential: key, entry: entry)
+				let target = ConsentTarget(method: .openRouterAccount, entry: entry)
+				if consent?.authorizes(target) != true {
+					pendingModelChoice = ConsentContext(
+						base: saved, challenge: ConsentChallenge(target: target, generation: UUID())
+					)
+					return .kept(previous)
+				}
 				try keychain(.accessSelection) {
 					try store.storeAccessSelection(
 						.init(

@@ -137,7 +137,7 @@ Coach.lifecycle(_:)
 Coach.observe(_:)
 Coach.observeStatus()
 Coach.prepareCreditsPurchase()
-Coach.recordConsent()
+Coach.recordConsent(_:)
 Coach.recordSyncProbe()
 Coach.refreshDisplayLocale()
 Coach.replaceAppAccountToken()
@@ -166,7 +166,6 @@ CoachStatus.displayLocale
 CoachStatus.language
 CoachStatus.needsProviderConsent
 CoachStatus.notice
-CoachStatus.providerConsent
 CoachStatus.session
 CoachStatus.setup
 CoachStatus.training
@@ -788,3 +787,19 @@ WriteSummary.unverifiedCalendarWrites
 CoachPorts.openRouterSignIn
 OpenRouterSignInService
 OpenRouterSignInService.init(authorizer:)
+
+AccessStatus.consent
+AccessConsent
+AccessConsent.required
+AccessConsent.accepted
+AccessConsent.unavailable
+ConsentTarget
+ConsentTarget.method
+ConsentTarget.entry
+ConsentChallenge
+ConsentChallenge.target
+ConsentWriteFailure
+ConsentWriteFailure.notSaved
+ConsentWriteFailure.staleChallenge
+ProviderConsent.target
+Coach.declineConsent(_:)

@@ -2940,7 +2940,7 @@
     },
     "consent": {
       "title": "你的教練使用 AI",
-      "body": "為了回覆你，Enduragent 會將你的訊息、教練記憶，以及你從 intervals.icu 連結的訓練資料傳送給 OpenRouter，再由 OpenRouter 傳遞給 AI 模型供應商（DeepSeek）。他們僅使用這些資料來產生教練的回覆。在你同意之前，不會傳送任何內容。",
+      "body": "為了回覆，Enduragent 會將你的訊息、教練記憶以及從 intervals.icu 連接的訓練資料傳送給 OpenRouter，後者會將資料傳遞給 {{provider}} 以執行 {{model}}。這些資料僅用於產生教練的回覆。在你同意之前，不會傳送任何內容。",
       "accept": "同意並繼續",
       "decline": "暫不",
       "saveFailed": "無法儲存你的同意。請再試一次。"
@@ -2958,7 +2958,8 @@
     "title": "存取方式",
     "openRouterAccount": "OpenRouter 帳戶",
     "signIn": "使用 OpenRouter 登入",
-    "signInUnavailable": "OpenRouter 登入暫時無法使用。你的存取方式未變更。",
+    "signInCancelled": "登入已取消。你的存取方式未變更。",
+    "signInIncomplete": "OpenRouter 登入未完成。你的存取方式未變更。請重試。",
     "switchToOpenRouter": "切換到 OpenRouter"
   },
   "connect": {

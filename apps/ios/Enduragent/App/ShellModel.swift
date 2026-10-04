@@ -81,8 +81,8 @@ final class ShellModel {
 		(accessSettings.notice ?? onboarding.starterNotice)?.sentence(in: displayLocale)
 	}
 	var starterResolved: Bool { onboarding.starterResolved }
-	var consentNotSaved: Bool { onboarding.consentNotSaved }
-	var isRecordingConsent: Bool { onboarding.isRecordingConsent }
+	private(set) var consentNotSaved = false
+	private(set) var isRecordingConsent = false
 	var balance: Credits? { credits.balance }
 	var catalog: PackCatalog? { credits.catalog }
 	var creditsNotice: AthleteNotice? { credits.notice }
@@ -195,6 +195,7 @@ final class ShellModel {
 	}
 
 	private func receiveStatus(_ current: CoachStatus) {
+		if status.access.consent != current.access.consent { consentNotSaved = false }
 		status = current
 		updateRoute()
 	}
@@ -225,17 +226,35 @@ final class ShellModel {
 		updateRoute()
 	}
 
-	func acceptConsent() async {
-		guard route == .onboarding(.consent) || route == .onboarding(.consentDeferred) else {
-			return
-		}
-		await onboarding.acceptConsent { await startChatting() }
+	var consentChallenge: ConsentChallenge? {
+		guard case .required(let challenge) = status.access.consent else { return nil }
+		return challenge
 	}
 
-	func declineConsent() {
-		guard route == .onboarding(.consent), !isRecordingConsent else { return }
-		onboarding.declineConsent()
+	func acceptConsent() async {
+		guard let challenge = consentChallenge, !isRecordingConsent else { return }
+		isRecordingConsent = true
+		defer { isRecordingConsent = false }
+		consentNotSaved = false
+		do {
+			try await services.coach.recordConsent(challenge)
+		} catch {
+			switch error {
+			case .notSaved: consentNotSaved = true
+			case .staleChallenge: break
+			}
+			return
+		}
+		await startChatting()
+	}
+
+	func declineConsent() async {
+		guard route == .onboarding(.consent), let challenge = consentChallenge,
+			!isRecordingConsent
+		else { return }
+		consentNotSaved = false
 		route = .onboarding(.consentDeferred)
+		await services.coach.declineConsent(challenge)
 	}
 
 	func newConversation() async {

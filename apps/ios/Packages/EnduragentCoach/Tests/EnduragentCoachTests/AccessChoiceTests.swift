@@ -64,7 +64,11 @@ import Testing
 		#expect(
 			await coach.changeModelAccess(.useCredits)
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
-		let selected = try #require(try await statuses.status { $0.access.savedMethod == .credits })
+		try await coach.recordConsent()
+		let selected = try #require(
+			try await statuses.status {
+				$0.access.savedMethod == .credits && !$0.needsProviderConsent
+			})
 		#expect(selected.access.selection == .credits)
 		#expect(selected.access.model == testModel)
 		#expect(selected.access.availability == .ready)
@@ -187,9 +191,9 @@ import Testing
 		let second = await makeCoach(
 			transport: transport, store: secondLog, secrets: reopened.store, consent: false)
 		let status = try await second.observedStatus()
-		#expect(status.access == selected)
+		#expect(status.access.selection == selected.selection)
 		#expect(status.needsProviderConsent)
-		#expect(status.providerConsent == nil)
+		#expect(status.acceptedConsent == nil)
 		#expect(
 			failure(try await second.sendAndSettle("Read my training notes"))
 				== .model(.accessUnavailable(.providerConsentRequired)))

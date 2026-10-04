@@ -6,6 +6,8 @@ package actor CredentialVault {
 	let catalog: ModelCatalog
 	let signInService: OpenRouterSignInService?
 	var signInFlight: SignInFlight?
+	var consentContext: ConsentContext?
+	var pendingModelChoice: ConsentContext?
 	private let display: TrainingDisplayReader
 	private let diagnostics: DiagnosticsLog
 	private let changes = Turnstile()

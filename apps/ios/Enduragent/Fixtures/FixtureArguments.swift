@@ -32,6 +32,7 @@
 	enum FixtureAccessMethod: String, CaseIterable {
 		case credits
 		case openRouter = "openrouter"
+		case syncedOpenRouter = "synced-openrouter"
 		case creditsNeedsSetup = "credits-needs-setup"
 		case openRouterNeedsCredits = "openrouter-needs-credits"
 	}
@@ -42,6 +43,14 @@
 		case unavailable
 		case provisioningFailed = "provisioning-failed"
 		case alreadyGranted = "already-granted"
+	}
+
+	enum FixtureSignInOutcome: String, CaseIterable {
+		case success
+		case cancel
+		case rejectedCallback = "rejected-callback"
+		case exchangeFailure = "exchange-failure"
+		case held
 	}
 
 	enum FixtureCalendarSaveFault: String {
@@ -76,6 +85,7 @@
 
 	enum FixtureCredentialWriteFault: String {
 		case failOnce = "fail-once"
+		case failSelection = "fail-selection"
 	}
 
 	struct FixtureArguments: Equatable {
@@ -97,6 +107,7 @@
 		var credentialWriteFault: FixtureCredentialWriteFault?
 		var accessMethod = FixtureAccessMethod.credits
 		var creditsOutcome = FixtureCreditsOutcome.ready
+		var signInOutcome = FixtureSignInOutcome.cancel
 
 		var launchArguments: [String] {
 			var values = [
@@ -132,6 +143,7 @@
 			}
 			values += ["-EnduragentFixtureAccess", accessMethod.rawValue]
 			values += ["-EnduragentFixtureCredits", creditsOutcome.rawValue]
+			values += ["-EnduragentFixtureSignIn", signInOutcome.rawValue]
 			return values
 		}
 
@@ -169,6 +181,7 @@
 			credentialWriteFault = try policy(values, "-EnduragentFixtureCredentialWrite")
 			accessMethod = try policy(values, "-EnduragentFixtureAccess") ?? .credits
 			creditsOutcome = try policy(values, "-EnduragentFixtureCredits") ?? .ready
+			signInOutcome = try policy(values, "-EnduragentFixtureSignIn") ?? .cancel
 		}
 
 		private func policy<Policy: RawRepresentable>(

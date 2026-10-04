@@ -34,15 +34,9 @@ import Testing
 		#expect(offered.catalog.catalog.revision > 0)
 		#expect(offered.catalog.catalog.orderedEntries.count >= 2)
 		for entry in offered.catalog.catalog.orderedEntries {
-			guard
-				case .replaced(let summary, _) = await coach.changeModelAccess(
-					.selectOpenRouterModel(entry.id))
-			else {
-				Issue.record("A bundled model must be selectable offline")
-				return
-			}
+			let selection = try await choose(entry.id, using: coach)
 			let status = try #require(try await statuses.status { $0.access.model == entry.id })
-			#expect(status.access.selection == summary.selection)
+			#expect(status.access.selection == selection)
 			#expect(status.access.modelChoices?.selected == entry)
 			#expect(
 				replyText(try await coach.sendAndSettle("Which model answers?"))
@@ -56,6 +50,7 @@ import Testing
 			await coach.changeModelAccess(.useCredits)
 				== .replaced(AccessSummary(selection: .credits), authority: nil))
 		#expect(try await coach.observedStatus().access.modelChoices == nil)
+		try await coach.recordConsent()
 		#expect(
 			replyText(try await coach.sendAndSettle("Which model answers for Credits?"))
 				== builtIn.rawValue)
@@ -69,11 +64,7 @@ import Testing
 		let records = InMemoryRecordLog(deviceId: DeviceID(rawValue: "model-first-device"))
 		let firstTransport = FakeModelTransport(respond: reply)
 		let first = await coach(fixture.store, transport: firstTransport, records: records)
-		guard case .replaced = await first.changeModelAccess(.selectOpenRouterModel(selected.id))
-		else {
-			Issue.record("Expected the model choice to save")
-			return
-		}
+		_ = try await choose(selected.id, using: first)
 		#expect(replyText(try await first.sendAndSettle("Use my choice")) == selected.id.rawValue)
 		let saved = try await first.observedStatus().access
 		await first.lifecycle(.willTerminate)
@@ -99,7 +90,7 @@ import Testing
 			synced, transport: secondTransport, records: secondRecords, catalog: laterCatalog,
 			consent: false)
 		let secondStatus = try await second.observedStatus()
-		#expect(secondStatus.access == reopenedStatus)
+		#expect(secondStatus.access.selection == reopenedStatus.selection)
 		#expect(secondStatus.access.modelChoices?.selected.details == selected.details)
 		#expect(secondStatus.needsProviderConsent)
 		#expect(
@@ -123,12 +114,20 @@ import Testing
 		let candidate = try #require(catalog.orderedEntries.last)
 		fixture.backing.failWrites(
 			CredentialSlot.accessSelection.rawValue, with: errSecNotAvailable)
-		#expect(
-			await coach.changeModelAccess(.selectOpenRouterModel(candidate.id))
-				== .failedPreviousKept(
-					.secureStorage(.secureStorageUnavailable),
-					previous: previous.selection.map { AccessSummary(selection: $0) }))
-		#expect(try await coach.observedStatus().access == previous)
+		_ = await coach.changeModelAccess(.selectOpenRouterModel(candidate.id))
+		let proposed = try await coach.observedStatus().access.consent
+		guard case .required(let challenge) = proposed else {
+			Issue.record("Expected provider consent before changing the saved model")
+			return
+		}
+		await #expect(throws: ConsentWriteFailure.notSaved) {
+			try await coach.recordConsent(challenge)
+		}
+		#expect(try await coach.observedStatus().access.model == previous.model)
+		#expect(transport.requestCount == 0)
+		await coach.declineConsent(challenge)
+		try await coach.recordConsent()
+		#expect(try await coach.observedStatus().access.selection == previous.selection)
 		#expect(
 			replyText(try await coach.sendAndSettle("Keep my previous model"))
 				== previous.model?.rawValue)
@@ -136,7 +135,7 @@ import Testing
 		let reopened = try ICloudKeychainStore.fixture(directory: fixture.directory).store
 		let next = await self.coach(
 			reopened, transport: transport, records: records, consent: false)
-		#expect(try await next.observedStatus().access == previous)
+		#expect(try await next.observedStatus().access.selection == previous.selection)
 		#expect(
 			replyText(try await next.sendAndSettle("Still keep my previous model"))
 				== previous.model?.rawValue)
@@ -161,7 +160,7 @@ import Testing
 			.init(.openRouter(SavedOpenRouterReference(credential: .legacy, model: unknown))))
 		let reopened = try ICloudKeychainStore.fixture(directory: fixture.directory).store
 		let invalidTransport = FakeModelTransport(respond: reply)
-		let invalid = await self.coach(reopened, transport: invalidTransport)
+		let invalid = await self.coach(reopened, transport: invalidTransport, consent: false)
 		#expect(
 			try await invalid.observedStatus().access.availability
 				== .unavailable(.malformedStoredCredential(.accessSelection)))
@@ -193,12 +192,11 @@ import Testing
 		let coach = await coach(
 			fixture.store, transport: transport, records: records, catalog: isolatedCatalog)
 		let chosen = try #require(isolatedCatalog.orderedEntries.first)
-		guard case .replaced = await coach.changeModelAccess(.selectOpenRouterModel(chosen.id))
-		else {
-			Issue.record("Expected the selected model")
-			return
+		_ = try await choose(chosen.id, using: coach)
+		if method == .credits {
+			_ = await coach.changeModelAccess(.useCredits)
+			try await coach.recordConsent()
 		}
-		if method == .credits { _ = await coach.changeModelAccess(.useCredits) }
 		#expect(
 			replyText(try await coach.sendAndSettle("Check my training"))
 				== "Your training is checked.")
@@ -207,13 +205,24 @@ import Testing
 		#expect(requests.contains { $0.charge == .chatAttempt })
 		#expect(requests.contains { $0.charge == .compaction })
 		#expect(requests.contains { $0.charge == .memoryFlush })
-		let model = method == .credits ? testModel : chosen.id
+		let model = method == .credits ? ModelCatalog.bundled.orderedEntries[0].id : chosen.id
 		#expect(requests.allSatisfy { $0.model == model && $0.credential.method == method })
 		#expect(
 			requests.allSatisfy {
 				$0.provider == (method == .credits ? nil : chosen.details.provider)
 			})
 		await coach.lifecycle(.willTerminate)
+	}
+
+	private func choose(_ model: ModelID, using coach: Coach) async throws -> AccessSelection {
+		let outcome = await coach.changeModelAccess(.selectOpenRouterModel(model))
+		switch outcome {
+		case .kept, .replaced: break
+		case .failedPreviousKept, .refused, .disconnected:
+			Issue.record("A bundled model must be selectable offline")
+		}
+		if try await coach.observedStatus().needsProviderConsent { try await coach.recordConsent() }
+		return try #require(try await coach.observedStatus().access.selection)
 	}
 
 	private var reply: FakeModelTransport.Response {
@@ -237,7 +246,7 @@ import Testing
 	private func coach(
 		_ secrets: any SecretStore, transport: FakeModelTransport,
 		records: InMemoryRecordLog = InMemoryRecordLog(), catalog: ModelCatalog = .bundled,
-		builtIn: ModelID = testModel, consent: Bool = true
+		builtIn: ModelID = ModelCatalog.bundled.orderedEntries[0].id, consent: Bool = true
 	) async -> Coach {
 		let coach = Coach(
 			sport: .cycling,

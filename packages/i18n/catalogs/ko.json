@@ -2940,7 +2940,7 @@
     },
     "consent": {
       "title": "코치는 AI를 사용해요",
-      "body": "답변을 위해 Enduragent는 회원님의 메시지, 코치의 기억, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보내며, OpenRouter는 이를 AI 모델 제공업체(DeepSeek)에 전달해요. 두 업체는 코치의 답변을 생성하는 데만 이 데이터를 사용해요. 동의하기 전에는 아무것도 전송되지 않아요.",
+      "body": "답변을 위해 Enduragent는 메시지, 코칭 메모리, intervals.icu에서 연결한 훈련 데이터를 OpenRouter로 보냅니다. OpenRouter는 {{model}}을 실행하기 위해 이 데이터를 {{provider}}에 전달합니다. 데이터는 코치의 답변을 생성하는 데에만 사용됩니다. 동의하기 전에는 아무것도 전송되지 않습니다.",
       "accept": "동의하고 계속하기",
       "decline": "나중에",
       "saveFailed": "동의를 저장하지 못했어요. 다시 시도해 주세요."
@@ -2958,7 +2958,8 @@
     "title": "접근 방식",
     "openRouterAccount": "OpenRouter 계정",
     "signIn": "OpenRouter로 로그인",
-    "signInUnavailable": "OpenRouter 로그인을 사용할 수 없습니다. 접근 방식은 변경되지 않았습니다.",
+    "signInCancelled": "로그인이 취소되었습니다. 접근 방식은 변경되지 않았습니다.",
+    "signInIncomplete": "OpenRouter 로그인이 완료되지 않았습니다. 접근 방식은 변경되지 않았습니다. 다시 시도하세요.",
     "switchToOpenRouter": "OpenRouter로 전환"
   },
   "connect": {

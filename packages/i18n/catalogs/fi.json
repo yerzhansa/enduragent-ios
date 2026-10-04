@@ -2980,7 +2980,7 @@
     },
     "consent": {
       "title": "Valmentajasi käyttää tekoälyä",
-      "body": "Vastaamista varten Enduragent lähettää viestisi, valmentajasi muistin ja intervals.icu-palvelusta yhdistämäsi harjoittelutiedot OpenRouterille, joka välittää ne tekoälymallin tarjoajalle (DeepSeek). Ne käyttävät näitä tietoja vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen kuin annat suostumuksesi.",
+      "body": "Vastatakseen Enduragent lähettää viestisi, valmennusmuistisi ja intervals.icu-palvelusta yhdistämäsi harjoitustiedot OpenRouterille, joka välittää ne palveluntarjoajalle {{provider}} mallin {{model}} suorittamista varten. Tietoja käytetään vain valmentajasi vastausten tuottamiseen. Mitään ei lähetetä ennen hyväksyntääsi.",
       "accept": "Hyväksy ja jatka",
       "decline": "Ei nyt",
       "saveFailed": "Suostumustasi ei voitu tallentaa. Yritä uudelleen."
@@ -2998,7 +2998,8 @@
     "title": "Käyttötapa",
     "openRouterAccount": "OpenRouter-tili",
     "signIn": "Kirjaudu OpenRouterilla",
-    "signInUnavailable": "OpenRouter-kirjautuminen ei ole käytettävissä. Käyttötapaasi ei muutettu.",
+    "signInCancelled": "Kirjautuminen peruutettu. Käyttötapaasi ei muutettu.",
+    "signInIncomplete": "OpenRouter-kirjautuminen ei valmistunut. Käyttötapaasi ei muutettu. Yritä uudelleen.",
     "switchToOpenRouter": "Vaihda OpenRouteriin"
   },
   "connect": {

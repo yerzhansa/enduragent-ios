@@ -34,7 +34,7 @@ import Testing
 			sport: .cycling,
 			ports: CoachPorts(
 				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService { _ in slow },
+				models: ModelService(catalog: .fixture) { _ in slow },
 				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
 				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock
 			), builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow)

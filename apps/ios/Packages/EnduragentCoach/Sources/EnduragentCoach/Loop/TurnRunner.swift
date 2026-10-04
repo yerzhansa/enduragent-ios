@@ -52,6 +52,7 @@ package struct TurnRunner: Sendable {
 	private static let droppedMessageLimit = 1_024
 
 	let transport: any ModelTransport
+	let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void
 	private let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
@@ -68,8 +69,10 @@ package struct TurnRunner: Sendable {
 		ladder: RetryLadder,
 		evidence: any TurnEvidence,
 		reviews: SingleProposalReviews,
-		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
+		authorizeInvocation: @escaping @Sendable (CompletionRequest) async throws -> Void
 	) {
+		self.authorizeInvocation = authorizeInvocation
 		self.transport = transport
 		self.ledger = ledger
 		self.clock = clock
@@ -209,7 +212,9 @@ package struct TurnRunner: Sendable {
 	private func flushWork(_ attempt: TurnAttempt) -> FlushWork {
 		FlushWork(
 			chat: attempt.chat, process: attempt.process, ledger: ledger,
-			memory: Memory(ledger: ledger, clock: clock, watchdogSleep: watchdogSleep),
+			memory: Memory(
+				ledger: ledger, clock: clock, watchdogSleep: watchdogSleep,
+				authorizeInvocation: authorizeInvocation),
 			transport: transport, clock: clock, diagnostics: diagnostics, ladder: ladder)
 	}
 

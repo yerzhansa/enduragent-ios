@@ -217,7 +217,8 @@ import Testing
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		let flushes = FlushWork(
 			chat: .main, process: ProcessID(ulid: fixedUlid(71)), ledger: ledger,
-			memory: Memory(ledger: ledger, clock: clock), transport: transport, clock: clock,
+			memory: Memory(ledger: ledger, clock: clock, authorizeInvocation: { _ in }),
+			transport: transport, clock: clock,
 			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.respond = ScriptedReply.sequence(
 			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)

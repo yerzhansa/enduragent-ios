@@ -49,6 +49,7 @@ import Testing
 		#expect(fixture.backing.writeCount == writes + 2)
 		#expect(try fixture.store.openRouterAccountKey(at: choice.credential) == newKey)
 		#expect(try fixture.store.openRouterAccountKey(at: fixture.oldReference) == oldKey)
+		try await coach.recordConsent()
 		try await assertTurn(
 			coach, transport: transport, key: newKey,
 			method: .openRouterAccount, model: try #require(initial.model))
@@ -89,6 +90,7 @@ import Testing
 						SavedOpenRouterReference(
 							credential: choice.credential, model: model,
 							details: choice.entry.details))))
+		try await coach.recordConsent()
 		try await assertTurn(
 			coach, transport: transport, key: newKey, method: .openRouterAccount, model: model)
 		let reopened = try ICloudKeychainStore.fixture(directory: fixture.directory).store
@@ -247,6 +249,7 @@ import Testing
 		#expect(try fixture.store.accessSelection() == selection)
 		#expect(try peer.openRouterAccountKey(at: reference) == "synthetic-synced-key")
 		#expect(stub.requests.recorded.isEmpty)
+		try await coach.recordConsent()
 		try await assertTurn(
 			coach, transport: transport, key: "synthetic-synced-key", method: .openRouterAccount,
 			model: entry.id)

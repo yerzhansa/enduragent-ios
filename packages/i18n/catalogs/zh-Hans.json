@@ -2940,7 +2940,7 @@
     },
     "consent": {
       "title": "你的教练使用 AI",
-      "body": "为了回复你，Enduragent 会将你的消息、教练记忆以及你从 intervals.icu 连接的训练数据发送给 OpenRouter，再由 OpenRouter 传递给 AI 模型提供商（DeepSeek）。他们仅使用这些数据来生成教练的回复。在你同意之前，不会发送任何内容。",
+      "body": "为了回复，Enduragent 会将你的消息、教练记忆以及从 intervals.icu 连接的训练数据发送给 OpenRouter，后者会将数据传递给 {{provider}} 以运行 {{model}}。这些数据仅用于生成教练的回复。在你同意之前，不会发送任何内容。",
       "accept": "同意并继续",
       "decline": "暂不",
       "saveFailed": "无法保存你的同意。请重试。"
@@ -2958,7 +2958,8 @@
     "title": "访问方式",
     "openRouterAccount": "OpenRouter 账户",
     "signIn": "使用 OpenRouter 登录",
-    "signInUnavailable": "OpenRouter 登录暂不可用。你的访问方式未更改。",
+    "signInCancelled": "登录已取消。你的访问方式未更改。",
+    "signInIncomplete": "OpenRouter 登录未完成。你的访问方式未更改。请重试。",
     "switchToOpenRouter": "切换到 OpenRouter"
   },
   "connect": {

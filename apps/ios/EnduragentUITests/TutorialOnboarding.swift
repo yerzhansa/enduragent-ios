@@ -51,15 +51,40 @@ extension TutorialHarness {
 		agreeToProviderConsent(app)
 	}
 
-	static func agreeToProviderConsent(_ app: XCUIApplication, language: LanguageTag = .en) {
+	static func agreeToProviderConsent(
+		_ app: XCUIApplication, language: LanguageTag = .en,
+		recipient: (model: String, provider: String)? = nil
+	) {
 		let phrasebook = CatalogPhrasebook(tag: language)
+		let variables =
+			recipient.map { ["model": $0.model, "provider": $0.provider] }
+			?? consentVariables(app)
 		let accept = named(app, "consent.accept")
 		wait(accept)
 		XCTAssertEqual(
-			named(app, "consent.body").label, phrasebook.say(Catalog.onboardingConsentBody))
+			named(app, "consent.body").label,
+			phrasebook.say(Catalog.onboardingConsentBody, variables))
 		XCTAssertEqual(accept.label, phrasebook.say(Catalog.onboardingConsentAccept))
 		XCTAssertTrue(named(app, "consent.decline").exists)
 		accept.tap()
 		wait(named(app, "chat.composer"))
 	}
+	private static func consentVariables(_ app: XCUIApplication) -> [String: String] {
+		var arguments = FixtureArguments()
+		do {
+			try arguments.update(from: app.launchArguments)
+		} catch {
+			XCTFail("Invalid fixture arguments: \(error)")
+		}
+		if arguments.accessMethod == .openRouter
+			|| arguments.accessMethod == .openRouterNeedsCredits
+		{
+			return ["model": "fixture/openrouter-model", "provider": "Fixture Host"]
+		}
+		if arguments.accessMethod == .syncedOpenRouter {
+			return ["model": "Claude Sonnet 4.5", "provider": "Anthropic"]
+		}
+		return ["model": "DeepSeek V4.1 Flash", "provider": "DeepSeek"]
+	}
+
 }

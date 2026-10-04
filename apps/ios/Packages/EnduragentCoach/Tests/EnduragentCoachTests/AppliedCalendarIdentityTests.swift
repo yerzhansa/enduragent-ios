@@ -34,7 +34,7 @@ extension DurableCalendarWriteTests {
 				sport: .cycling,
 				ports: CoachPorts(
 					records: RecordStore(log: fixture.store), secrets: keyedSecrets(),
-					models: ModelService { _ in model },
+					models: ModelService(catalog: .fixture) { _ in model },
 					training: .fake { _, _ in fixture.client }, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel, displayLocale: testDisplayLocale,

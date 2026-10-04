@@ -11,7 +11,8 @@
     "title": "Access method",
     "openRouterAccount": "OpenRouter account",
     "signIn": "Sign in with OpenRouter",
-    "signInUnavailable": "OpenRouter sign-in is unavailable. Your access method was not changed.",
+    "signInCancelled": "Sign-in cancelled. Your access method was not changed.",
+    "signInIncomplete": "OpenRouter sign-in didn't complete. Your access method was not changed. Try again.",
     "switchToOpenRouter": "Switch to OpenRouter"
   },
   "archive": {
@@ -1026,7 +1027,7 @@
     },
     "consent": {
       "title": "Your coach uses AI",
-      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to the AI model provider (DeepSeek). They use this data only to generate your coach's replies. Nothing is sent until you agree.",
+      "body": "To reply, Enduragent sends your messages, your coaching memory, and the training data you connect from intervals.icu to OpenRouter, which passes them to {{provider}} to run {{model}}. They use this data only to generate your coach's replies. Nothing is sent until you agree.",
       "accept": "Agree and continue",
       "decline": "Not now",
       "saveFailed": "Couldn't save your agreement. Try again."

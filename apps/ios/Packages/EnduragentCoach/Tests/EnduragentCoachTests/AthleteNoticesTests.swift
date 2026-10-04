@@ -335,14 +335,12 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 		let locked = CoachStatus(
 			access: AccessStatus(state: .unreadable(.secureStorageLocked), builtInModel: testModel),
 			training: .unavailable(.secureStorageLocked), preferences: .npmDefaults,
-			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 			resolve: testDisplayLocale)
 		#expect(locked.notice?.sentence(in: displayLocale()) == lockedSentence)
 		let offline = CoachStatus(
 			access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
 			training: .connected(summary, account: account),
 			preferences: .npmDefaults,
-			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 			resolve: testDisplayLocale)
 		#expect(
 			offline.notice?.sentence(in: displayLocale())
@@ -355,7 +353,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 					profile: .failed(.credentialRejected)),
 				account: account),
 			preferences: .npmDefaults,
-			providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 			resolve: testDisplayLocale)
 		#expect(
 			rejected.notice?.sentence(in: displayLocale())
@@ -364,7 +361,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			CoachStatus(
 				access: AccessStatus(state: .defaultCredits(.needsSetup), builtInModel: testModel),
 				training: .unconnected, preferences: .npmDefaults,
-				providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 				resolve: testDisplayLocale
 			)
 			.notice == nil)
@@ -372,7 +368,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			CoachStatus(
 				access: AccessStatus(state: .credits(.ready), builtInModel: testModel),
 				training: .unconnected, preferences: .npmDefaults,
-				providerConsent: ProviderConsent(at: Date(timeIntervalSince1970: 0)),
 				resolve: testDisplayLocale
 			).notice
 				== nil)

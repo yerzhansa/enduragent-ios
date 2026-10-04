@@ -22,10 +22,16 @@ actor CoachPreferences {
 	}
 
 	func modelAccess() async throws(AccessUnavailable) -> ResolvedAccess {
-		guard await consent()?.isCurrent == true else {
+		let target = try await vault.consentTarget(builtInModel: builtInModel)
+		guard await consent()?.authorizes(target) == true else {
 			throw .providerConsentRequired
 		}
 		return try await vault.modelAccess(builtInModel: builtInModel)
+	}
+
+	func authorizeInvocation(_ request: CompletionRequest) async throws(AccessUnavailable) {
+		let target = try await vault.requestTarget(request)
+		guard await consent()?.authorizes(target) == true else { throw .providerConsentRequired }
 	}
 
 	func consent() async -> ProviderConsent? {
@@ -41,14 +47,15 @@ actor CoachPreferences {
 		}
 	}
 
-	func recordConsent() async throws(PreferenceWriteFailure) {
-		guard await consent()?.isCurrent != true else { return }
+	func recordConsent(_ target: ConsentTarget) async throws(ConsentWriteFailure) {
+		guard await consent()?.authorizes(target) != true else { return }
 		let stamp = OperationStamp(
 			operation: .preferenceChange(PreferenceChangeID(ulid: await ledger.nextULID())),
 			attempt: AttemptID(ulid: await ledger.nextULID()), binding: binding)
 		do {
 			_ = try await ledger.commit(
-				local: [.providerConsent(ProviderConsent(at: clock.now))], stamp: stamp)
+				local: [.providerConsent(ProviderConsent(target: target, at: clock.now))],
+				stamp: stamp)
 		} catch {
 			throw .notSaved
 		}
