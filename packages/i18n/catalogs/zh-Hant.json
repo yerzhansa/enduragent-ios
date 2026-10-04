@@ -535,7 +535,7 @@
       "disconnectTitle": "中斷 intervals.icu 連線？",
       "disconnectDetail": "對話和歷史記錄仍可查看。",
       "switchTitle": "使用其他運動員？",
-      "switchDetail": "此金鑰屬於運動員 {{new}}。已儲存的內容屬於運動員 {{current}}。是否切換以使用此金鑰？",
+      "switchDetail": "此金鑰屬於運動員 {{new}}。你的對話、歷史紀錄和記憶仍為運動員 {{current}} 儲存，不會用於運動員 {{new}}。是否切換以使用此金鑰？",
       "switch": "切換運動員",
       "athlete": "運動員 {{id}}"
     }
@@ -2904,7 +2904,6 @@
     "earlierVersion": "此訓練審核來自舊版 App，已無法套用。",
     "cancelledUnknown": "已取消。此訓練可能仍已儲存。請檢查你的行事曆。",
     "saveFailed": "無法在此 iPhone 上儲存你的選擇，因此未做任何變更。請重試。",
-    "retryRead": "重試",
     "storageUnavailable": "無法讀取已儲存的訓練審核內容。其按鈕已暫時停用。",
     "title": "訓練審核",
     "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。",
@@ -2965,8 +2964,8 @@
       "requestBlocked": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。",
       "providerConsentRequired": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。",
       "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
-      "storageUnavailable": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。",
-      "malformed": "無法讀取已儲存的模型存取憑證。請選擇存取方式以繼續。"
+      "storageUnavailable": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。",
+      "malformed": "無法讀取已儲存的存取方式。請選擇存取方式以繼續。"
     },
     "title": "存取方式",
     "openRouterAccount": "OpenRouter 帳戶",

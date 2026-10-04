@@ -536,7 +536,7 @@
       "disconnectTitle": "¿Desconectar intervals.icu?",
       "disconnectDetail": "Tu conversación y el historial siguen disponibles.",
       "switchTitle": "¿Usar otro atleta?",
-      "switchDetail": "Esta clave pertenece al atleta {{new}}. El trabajo guardado pertenece al atleta {{current}}. ¿Cambiar para usar esta clave?",
+      "switchDetail": "Esta clave pertenece al atleta {{new}}. Tu conversación, el historial y la memoria siguen guardados para el atleta {{current}} y no se usan para el atleta {{new}}. ¿Cambiar para usar esta clave?",
       "switch": "Cambiar atleta",
       "athlete": "Atleta {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Esta revisión del entrenamiento es de una versión anterior de la app y ya no se puede aplicar.",
     "cancelledUnknown": "Cancelado. Es posible que este entrenamiento se haya guardado de todos modos. Revisa tu calendario.",
     "saveFailed": "No se pudo guardar tu elección en este iPhone, así que no se cambió nada. Inténtalo de nuevo.",
-    "retryRead": "Reintentar",
     "storageUnavailable": "No se pudo leer la revisión del entrenamiento guardada. Sus botones están desactivados temporalmente.",
     "title": "Revisión del entrenamiento",
     "uncertain": "No he podido confirmar si esto llegó a tu calendario de {{service}}. Revisa tu calendario antes de pedírmelo otra vez.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter ha bloqueado esta solicitud. Prueba con otro modelo o mensaje.",
       "providerConsentRequired": "Necesitamos tu permiso antes de compartir datos del chat con proveedores de IA.",
       "openRouterFunds": "Tu cuenta de OpenRouter no tiene fondos. Añade fondos en OpenRouter o cambia a Créditos.",
-      "storageUnavailable": "El almacenamiento seguro no está disponible temporalmente. Tu información de entrenamiento guardada sigue aquí. Inténtalo de nuevo.",
-      "malformed": "No se pudo leer la credencial guardada de acceso al modelo. Elige un método de acceso para continuar."
+      "storageUnavailable": "El almacenamiento seguro no está disponible temporalmente. Tu conversación, el historial y la memoria siguen aquí. Inténtalo de nuevo.",
+      "malformed": "No se pudo leer tu método de acceso guardado. Elige un método de acceso para continuar."
     },
     "title": "Método de acceso",
     "openRouterAccount": "Cuenta de OpenRouter",

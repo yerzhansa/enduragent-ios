@@ -112,103 +112,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The saved model access credential couldn't be read. Choose an access method to continue."
+            "value": "Your saved access method couldn't be read. Choose an access method to continue."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo leer la credencial guardada de acceso al modelo. Elige un método de acceso para continuar."
+            "value": "No se pudo leer tu método de acceso guardado. Elige un método de acceso para continuar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'identifiant d'accès au modèle enregistré n'a pas pu être lu. Choisissez une méthode d'accès pour continuer."
+            "value": "Votre méthode d'accès enregistrée n'a pas pu être lue. Choisissez une méthode d'accès pour continuer."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non è stato possibile leggere la credenziale salvata per l'accesso al modello. Scegli un metodo di accesso per continuare."
+            "value": "Non è stato possibile leggere il tuo metodo di accesso salvato. Scegli un metodo di accesso per continuare."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die gespeicherten Zugangsdaten für den Modellzugriff konnten nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
+            "value": "Deine gespeicherte Zugriffsmethode konnte nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De opgeslagen toegangsgegevens voor het model konden niet worden gelezen. Kies een toegangsmethode om verder te gaan."
+            "value": "Je opgeslagen toegangsmethode kon niet worden gelezen. Kies een toegangsmethode om verder te gaan."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "De gemte legitimationsoplysninger til modeladgang kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
+            "value": "Din gemte adgangsmetode kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den sparade uppgiften för modellåtkomst kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
+            "value": "Din sparade åtkomstmetod kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den lagrede legitimasjonen for modelltilgang kunne ikke leses. Velg en tilgangsmetode for å fortsette."
+            "value": "Den lagrede tilgangsmåten din kunne ikke leses. Velg en tilgangsmåte for å fortsette."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tallennettua mallin käyttöön tarvittavaa tunnistetta ei voitu lukea. Valitse käyttötapa jatkaaksesi."
+            "value": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível ler a credencial guardada de acesso ao modelo. Escolha um método de acesso para continuar."
+            "value": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não foi possível ler a credencial salva de acesso ao modelo. Escolha um método de acesso para continuar."
+            "value": "Não foi possível ler seu método de acesso salvo. Escolha um método de acesso para continuar."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie udało się odczytać zapisanych danych dostępu do modelu. Wybierz metodę dostępu, aby kontynuować."
+            "value": "Nie udało się odczytać zapisanego sposobu dostępu. Wybierz sposób dostępu, aby kontynuować."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "저장된 모델 접근 자격 증명을 읽을 수 없습니다. 접근 방법을 선택하여 계속하세요."
+            "value": "저장된 접근 방식을 읽을 수 없습니다. 접근 방식을 선택하여 계속하세요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存されたモデルアクセスの認証情報を読み取れませんでした。アクセス方法を選択して続けてください。"
+            "value": "保存されたアクセス方法を読み取れませんでした。アクセス方法を選択して続けてください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "无法读取已保存的模型访问凭据。请选择访问方式以继续。"
+            "value": "无法读取已保存的访问方式。请选择访问方式以继续。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "無法讀取已儲存的模型存取憑證。請選擇存取方式以繼續。"
+            "value": "無法讀取已儲存的存取方式。請選擇存取方式以繼續。"
           }
         }
       }
@@ -642,103 +642,103 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again."
+            "value": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El almacenamiento seguro no está disponible temporalmente. Tu información de entrenamiento guardada sigue aquí. Inténtalo de nuevo."
+            "value": "El almacenamiento seguro no está disponible temporalmente. Tu conversación, el historial y la memoria siguen aquí. Inténtalo de nuevo."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le stockage sécurisé est temporairement indisponible. Vos informations de coaching enregistrées sont toujours là. Réessayez."
+            "value": "Le stockage sécurisé est temporairement indisponible. Votre conversation, l'historique et la mémoire sont toujours là. Réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova."
+            "value": "L'archivio sicuro è temporaneamente indisponibile. La tua conversazione, la cronologia e la memoria sono ancora qui. Riprova."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut."
+            "value": "Der sichere Speicher ist vorübergehend nicht verfügbar. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis sind noch vorhanden. Versuche es erneut."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De beveiligde opslag is tijdelijk niet beschikbaar. Je opgeslagen coachinginformatie is er nog. Probeer het opnieuw."
+            "value": "De beveiligde opslag is tijdelijk niet beschikbaar. Je gesprek, geschiedenis en geheugen zijn er nog. Probeer het opnieuw."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen."
+            "value": "Det sikre lager er midlertidigt utilgængeligt. Din samtale, historik og hukommelse er her stadig. Prøv igen."
           }
         },
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen."
+            "value": "Säker lagring är tillfälligt otillgänglig. Ditt samtal, din historik och ditt minne finns kvar. Försök igen."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sikker lagring er midlertidig utilgjengelig. Den lagrede treningsinformasjonen din er fortsatt her. Prøv igjen."
+            "value": "Sikker lagring er midlertidig utilgjengelig. Samtalen, historikken og minnet ditt er fortsatt her. Prøv igjen."
           }
         },
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen."
+            "value": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen."
           }
         },
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente."
+            "value": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O armazenamento seguro está temporariamente indisponível. Suas informações de treinamento salvas continuam aqui. Tente novamente."
+            "value": "O armazenamento seguro está temporariamente indisponível. Sua conversa, o histórico e a memória continuam aqui. Tente novamente."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bezpieczny magazyn jest tymczasowo niedostępny. Zapisane informacje trenerskie nadal tu są. Spróbuj ponownie."
+            "value": "Bezpieczny magazyn jest tymczasowo niedostępny. Twoja rozmowa, historia i pamięć nadal tu są. Spróbuj ponownie."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "보안 저장소를 일시적으로 사용할 수 없습니다. 저장된 코칭 정보는 그대로 있습니다. 다시 시도하세요."
+            "value": "보안 저장소를 일시적으로 사용할 수 없습니다. 대화, 기록, 기억은 그대로 있습니다. 다시 시도하세요."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全なストレージを一時的に利用できません。保存されたコーチング情報は残っています。もう一度お試しください。"
+            "value": "安全なストレージを一時的に利用できません。会話、履歴、記憶は残っています。もう一度お試しください。"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。"
+            "value": "安全存储暂时不可用。你的对话、历史记录和记忆仍在。请重试。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。"
+            "value": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。"
           }
         }
       }
@@ -202779,112 +202779,6 @@
         }
       }
     },
-    "review.retryRead": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retry"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reintentar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réessayer"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Riprova"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erneut versuchen"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opnieuw proberen"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prøv igen"
-          }
-        },
-        "sv": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Försök igen"
-          }
-        },
-        "nb": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Prøv igjen"
-          }
-        },
-        "fi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yritä uudelleen"
-          }
-        },
-        "pt-PT": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tentar novamente"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tentar novamente"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spróbuj ponownie"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 시도"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再試行"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重试"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重試"
-          }
-        }
-      }
-    },
     "review.saveApprovedAgain": {
       "localizations": {
         "en": {
@@ -267144,7 +267038,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This key belongs to athlete %#@new@. Saved work belongs to athlete %#@current@. Switch to use this key?"
+            "value": "This key belongs to athlete %#@new@. Your conversation, History and memory stay saved for athlete %#@current@ and are not used for athlete %#@new@. Switch to use this key?"
           },
           "substitutions": {
             "new": {
@@ -267160,7 +267054,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta clave pertenece al atleta %#@new@. El trabajo guardado pertenece al atleta %#@current@. ¿Cambiar para usar esta clave?"
+            "value": "Esta clave pertenece al atleta %#@new@. Tu conversación, el historial y la memoria siguen guardados para el atleta %#@current@ y no se usan para el atleta %#@new@. ¿Cambiar para usar esta clave?"
           },
           "substitutions": {
             "new": {
@@ -267176,7 +267070,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette clé appartient à l’athlète %#@new@. Le travail enregistré appartient à l’athlète %#@current@. Changer pour utiliser cette clé ?"
+            "value": "Cette clé appartient à l’athlète %#@new@. Votre conversation, l’historique et la mémoire restent enregistrés pour l’athlète %#@current@ et ne sont pas utilisés pour l’athlète %#@new@. Changer pour utiliser cette clé ?"
           },
           "substitutions": {
             "new": {
@@ -267192,7 +267086,7 @@
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questa chiave appartiene all’atleta %#@new@. Il lavoro salvato appartiene all’atleta %#@current@. Cambiare per usare questa chiave?"
+            "value": "Questa chiave appartiene all’atleta %#@new@. La tua conversazione, la cronologia e la memoria restano salvate per l’atleta %#@current@ e non vengono usate per l’atleta %#@new@. Cambiare per usare questa chiave?"
           },
           "substitutions": {
             "new": {
@@ -267208,7 +267102,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieser Schlüssel gehört Athlet %#@new@. Gespeicherte Arbeit gehört Athlet %#@current@. Wechseln, um diesen Schlüssel zu verwenden?"
+            "value": "Dieser Schlüssel gehört Athlet %#@new@. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis bleiben für Athlet %#@current@ gespeichert und werden nicht für Athlet %#@new@ verwendet. Wechseln, um diesen Schlüssel zu verwenden?"
           },
           "substitutions": {
             "new": {
@@ -267224,7 +267118,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deze sleutel hoort bij atleet %#@new@. Opgeslagen werk hoort bij atleet %#@current@. Wisselen om deze sleutel te gebruiken?"
+            "value": "Deze sleutel hoort bij atleet %#@new@. Je gesprek, geschiedenis en geheugen blijven opgeslagen voor atleet %#@current@ en worden niet gebruikt voor atleet %#@new@. Wisselen om deze sleutel te gebruiken?"
           },
           "substitutions": {
             "new": {
@@ -267240,7 +267134,7 @@
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Denne nøgle tilhører atlet %#@new@. Gemt arbejde tilhører atlet %#@current@. Skift for at bruge denne nøgle?"
+            "value": "Denne nøgle tilhører atlet %#@new@. Din samtale, historik og hukommelse forbliver gemt for atlet %#@current@ og bruges ikke for atlet %#@new@. Skift for at bruge denne nøgle?"
           },
           "substitutions": {
             "new": {
@@ -267256,7 +267150,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Denna nyckel tillhör idrottare %#@new@. Sparat arbete tillhör idrottare %#@current@. Byta för att använda denna nyckel?"
+            "value": "Denna nyckel tillhör idrottare %#@new@. Ditt samtal, din historik och ditt minne förblir sparade för idrottare %#@current@ och används inte för idrottare %#@new@. Byta för att använda denna nyckel?"
           },
           "substitutions": {
             "new": {
@@ -267272,7 +267166,7 @@
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Denne nøkkelen tilhører utøver %#@new@. Lagret arbeid tilhører utøver %#@current@. Bytte for å bruke denne nøkkelen?"
+            "value": "Denne nøkkelen tilhører utøver %#@new@. Samtalen, historikken og minnet ditt forblir lagret for utøver %#@current@ og brukes ikke for utøver %#@new@. Bytte for å bruke denne nøkkelen?"
           },
           "substitutions": {
             "new": {
@@ -267288,7 +267182,7 @@
         "fi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tämä avain kuuluu urheilijalle %#@new@. Tallennettu työ kuuluu urheilijalle %#@current@. Vaihdetaanko tämän avaimen käyttöön?"
+            "value": "Tämä avain kuuluu urheilijalle %#@new@. Keskustelusi, historiasi ja muistisi pysyvät tallennettuina urheilijalle %#@current@, eikä niitä käytetä urheilijalle %#@new@. Vaihdetaanko tämän avaimen käyttöön?"
           },
           "substitutions": {
             "new": {
@@ -267304,7 +267198,7 @@
         "pt-PT": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta chave pertence ao atleta %#@new@. O trabalho guardado pertence ao atleta %#@current@. Mudar para usar esta chave?"
+            "value": "Esta chave pertence ao atleta %#@new@. A sua conversa, o histórico e a memória continuam guardados para o atleta %#@current@ e não são usados para o atleta %#@new@. Mudar para usar esta chave?"
           },
           "substitutions": {
             "new": {
@@ -267320,7 +267214,7 @@
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta chave pertence ao atleta %#@new@. O trabalho salvo pertence ao atleta %#@current@. Trocar para usar esta chave?"
+            "value": "Esta chave pertence ao atleta %#@new@. Sua conversa, o histórico e a memória continuam salvos para o atleta %#@current@ e não são usados para o atleta %#@new@. Trocar para usar esta chave?"
           },
           "substitutions": {
             "new": {
@@ -267336,7 +267230,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ten klucz należy do sportowca %#@new@. Zapisana praca należy do sportowca %#@current@. Przełączyć, aby użyć tego klucza?"
+            "value": "Ten klucz należy do sportowca %#@new@. Twoja rozmowa, historia i pamięć pozostają zapisane dla sportowca %#@current@ i nie są używane dla sportowca %#@new@. Przełączyć, aby użyć tego klucza?"
           },
           "substitutions": {
             "new": {
@@ -267352,7 +267246,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 키는 선수 %#@new@의 것입니다. 저장된 작업은 선수 %#@current@의 것입니다. 이 키를 사용하도록 전환할까요?"
+            "value": "이 키는 선수 %#@new@의 것입니다. 대화, 기록, 기억은 선수 %#@current@의 것으로 저장되어 있으며 선수 %#@new@에게는 사용되지 않습니다. 이 키를 사용하도록 전환할까요?"
           },
           "substitutions": {
             "new": {
@@ -267368,7 +267262,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このキーはアスリート%#@new@のものです。保存済みの内容はアスリート%#@current@のものです。このキーを使うために切り替えますか？"
+            "value": "このキーはアスリート%#@new@のものです。会話、履歴、記憶はアスリート%#@current@のものとして保存されたままで、アスリート%#@new@には使用されません。このキーを使うために切り替えますか？"
           },
           "substitutions": {
             "new": {
@@ -267384,7 +267278,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此密钥属于运动员 %#@new@。已保存的内容属于运动员 %#@current@。是否切换以使用此密钥？"
+            "value": "此密钥属于运动员 %#@new@。你的对话、历史记录和记忆仍为运动员 %#@current@ 保存，不会用于运动员 %#@new@。是否切换以使用此密钥？"
           },
           "substitutions": {
             "new": {
@@ -267400,7 +267294,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此金鑰屬於運動員 %#@new@。已儲存的內容屬於運動員 %#@current@。是否切換以使用此金鑰？"
+            "value": "此金鑰屬於運動員 %#@new@。你的對話、歷史紀錄和記憶仍為運動員 %#@current@ 儲存，不會用於運動員 %#@new@。是否切換以使用此金鑰？"
           },
           "substitutions": {
             "new": {

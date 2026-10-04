@@ -18,21 +18,15 @@ import Testing
 	}
 
 	@Test(arguments: LanguageTag.allCases)
-	func cancellationAndReadFailureAreTranslated(_ tag: LanguageTag) throws {
+	func approvedSentencesAreTranslated(_ tag: LanguageTag) throws {
 		let english = try leaves(in: catalogs.appending(path: "en.json"))
 		let localized = try leaves(in: catalogs.appending(path: "\(tag.rawValue).json"))
-		for key in ["review.cancelledUnknown", "review.storageUnavailable", "review.saveFailed"] {
-			let text = try #require(localized[key])
-			#expect(!text.isEmpty)
-			if tag != .en { #expect(text != english[key]) }
+		for (key, sentence) in Self.approvedSentences {
+			#expect(english[key] == sentence, "\(key)")
+			let text = try #require(localized[key], "\(tag.rawValue) \(key)")
+			#expect(!text.isEmpty, "\(tag.rawValue) \(key)")
+			if tag != .en { #expect(text != sentence, "\(tag.rawValue) \(key)") }
 		}
-		#expect(english["review.cancelledUnknown"] == CancelUnknownSaveTests.sentence)
-		#expect(
-			english["review.storageUnavailable"]
-				== "Couldn't read the saved workout review. Its buttons are temporarily disabled.")
-		#expect(
-			english["review.saveFailed"]
-				== "Couldn't save your choice on this iPhone, so nothing was changed. Try again.")
 	}
 
 	@Test(arguments: ["", " \n\t"])
@@ -134,6 +128,26 @@ import Testing
 				tag: tag.rawValue
 			).isEmpty)
 	}
+
+	private static let approvedSentences = [
+		"review.cancelledUnknown": CancelUnknownSaveTests.sentence,
+		"review.storageUnavailable":
+			"Couldn't read the saved workout review. Its buttons are temporarily disabled.",
+		"review.saveFailed":
+			"Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
+		"chat.notice.startingNewConversation": "Starting a new conversation…",
+		"chat.turn.finishedWhileLocked": "Finished while the phone was locked.",
+		"chat.transcript.retry": "Try again",
+		"access.error.requestBlocked":
+			"OpenRouter blocked this request. Try a different model or message.",
+		"access.error.malformed":
+			"Your saved access method couldn't be read. Choose an access method to continue.",
+		"access.error.storageUnavailable":
+			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+		"archive.savedForAnotherAthlete": "Saved for another intervals.icu athlete ({{id}})",
+		"settings.training.switchDetail":
+			"This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
+	]
 
 	private func issues(
 		english: [String: String], localized: [String: String], tag: String,

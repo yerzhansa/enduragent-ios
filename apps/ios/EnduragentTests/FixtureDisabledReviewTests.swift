@@ -65,6 +65,7 @@ extension FixtureLaunchTests {
 		let failed = try #require(model.chat?.review)
 		let card = ConfirmedPreviewCard(model: model, review: failed)
 		#expect(card.actions.map(\.id) == ["chat.preview.retryRead"])
+		#expect(card.actions.map { model.phrasebook.say($0.button.title) } == ["Try again"])
 		#expect(card.actions.first?.decision == .checkAgain(failed.ref))
 		#expect(card.disabledButtons == expected)
 		#expect(failed.cards == ready.cards)

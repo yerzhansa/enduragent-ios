@@ -570,7 +570,7 @@
       "disconnectTitle": "Desconectar intervals.icu?",
       "disconnectDetail": "Sua conversa e o histórico continuam disponíveis.",
       "switchTitle": "Usar outro atleta?",
-      "switchDetail": "Esta chave pertence ao atleta {{new}}. O trabalho salvo pertence ao atleta {{current}}. Trocar para usar esta chave?",
+      "switchDetail": "Esta chave pertence ao atleta {{new}}. Sua conversa, o histórico e a memória continuam salvos para o atleta {{current}} e não são usados para o atleta {{new}}. Trocar para usar esta chave?",
       "switch": "Trocar atleta",
       "athlete": "Atleta {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Esta revisão de treino é de uma versão anterior do app e não pode mais ser aplicada.",
     "cancelledUnknown": "Cancelado. Este treino pode ter sido salvo mesmo assim. Confira seu calendário.",
     "saveFailed": "Não foi possível salvar sua escolha neste iPhone, então nada foi alterado. Tente novamente.",
-    "retryRead": "Tentar novamente",
     "storageUnavailable": "Não foi possível ler a revisão do treino salva. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isso chegou ao seu calendário no {{service}}. Verifique o calendário antes de pedir novamente.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "O OpenRouter bloqueou esta solicitação. Tente outro modelo ou mensagem.",
       "providerConsentRequired": "Precisamos da sua permissão antes de compartilhar dados da conversa com provedores de IA.",
       "openRouterFunds": "Sua conta OpenRouter está sem saldo. Adicione saldo no OpenRouter ou mude para Créditos.",
-      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. Suas informações de treinamento salvas continuam aqui. Tente novamente.",
-      "malformed": "Não foi possível ler a credencial salva de acesso ao modelo. Escolha um método de acesso para continuar."
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. Sua conversa, o histórico e a memória continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler seu método de acesso salvo. Escolha um método de acesso para continuar."
     },
     "title": "Método de acesso",
     "openRouterAccount": "Conta OpenRouter",

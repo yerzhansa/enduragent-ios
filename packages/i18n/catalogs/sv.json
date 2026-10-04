@@ -536,7 +536,7 @@
       "disconnectTitle": "Koppla från intervals.icu?",
       "disconnectDetail": "Din konversation och historik är fortfarande tillgängliga.",
       "switchTitle": "Använda en annan idrottare?",
-      "switchDetail": "Denna nyckel tillhör idrottare {{new}}. Sparat arbete tillhör idrottare {{current}}. Byta för att använda denna nyckel?",
+      "switchDetail": "Denna nyckel tillhör idrottare {{new}}. Ditt samtal, din historik och ditt minne förblir sparade för idrottare {{current}} och används inte för idrottare {{new}}. Byta för att använda denna nyckel?",
       "switch": "Byt idrottare",
       "athlete": "Idrottare {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Den här träningsgranskningen kommer från en tidigare version av appen och kan inte längre tillämpas.",
     "cancelledUnknown": "Avbrutet. Det här träningspasset kan ändå ha sparats. Kontrollera din kalender.",
     "saveFailed": "Det gick inte att spara ditt val på denna iPhone, så ingenting ändrades. Försök igen.",
-    "retryRead": "Försök igen",
     "storageUnavailable": "Kunde inte läsa den sparade granskningen av träningspasset. Knapparna är tillfälligt inaktiverade.",
     "title": "Granskning av träningspass",
     "uncertain": "Jag kunde inte bekräfta om detta nådde din kalender på {{service}}. Kontrollera kalendern innan du frågar igen.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter blockerade den här begäran. Prova en annan modell eller ett annat meddelande.",
       "providerConsentRequired": "Ditt samtycke krävs innan chattdata delas med AI-leverantörer.",
       "openRouterFunds": "Ditt OpenRouter-konto har slut på pengar. Fyll på hos OpenRouter eller byt till krediter.",
-      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Din sparade träningsinformation finns kvar. Försök igen.",
-      "malformed": "Den sparade uppgiften för modellåtkomst kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
+      "storageUnavailable": "Säker lagring är tillfälligt otillgänglig. Ditt samtal, din historik och ditt minne finns kvar. Försök igen.",
+      "malformed": "Din sparade åtkomstmetod kunde inte läsas. Välj en åtkomstmetod för att fortsätta."
     },
     "title": "Åtkomstmetod",
     "openRouterAccount": "OpenRouter-konto",

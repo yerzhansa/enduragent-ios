@@ -570,7 +570,7 @@
       "disconnectTitle": "Desligar intervals.icu?",
       "disconnectDetail": "A conversa e o histórico continuam disponíveis.",
       "switchTitle": "Usar outro atleta?",
-      "switchDetail": "Esta chave pertence ao atleta {{new}}. O trabalho guardado pertence ao atleta {{current}}. Mudar para usar esta chave?",
+      "switchDetail": "Esta chave pertence ao atleta {{new}}. A sua conversa, o histórico e a memória continuam guardados para o atleta {{current}} e não são usados para o atleta {{new}}. Mudar para usar esta chave?",
       "switch": "Mudar atleta",
       "athlete": "Atleta {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Esta revisão de treino é de uma versão anterior da app e já não pode ser aplicada.",
     "cancelledUnknown": "Cancelado. Este treino pode ter sido guardado na mesma. Verifica o teu calendário.",
     "saveFailed": "Não foi possível guardar a tua escolha neste iPhone, por isso nada foi alterado. Tenta novamente.",
-    "retryRead": "Tentar novamente",
     "storageUnavailable": "Não foi possível ler a revisão do treino guardada. Os botões estão temporariamente desativados.",
     "title": "Revisão do treino",
     "uncertain": "Não consegui confirmar se isto chegou ao teu calendário no {{service}}. Verifica o calendário antes de pedires novamente.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem.",
       "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
       "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
-      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente.",
-      "malformed": "Não foi possível ler a credencial guardada de acesso ao modelo. Escolha um método de acesso para continuar."
+      "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. A sua conversa, o histórico e a memória continuam aqui. Tente novamente.",
+      "malformed": "Não foi possível ler o seu método de acesso guardado. Escolha um método de acesso para continuar."
     },
     "title": "Método de acesso",
     "openRouterAccount": "Conta OpenRouter",

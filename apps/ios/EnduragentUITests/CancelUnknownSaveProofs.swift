@@ -211,7 +211,7 @@ enum ReviewRecoveryScreen {
 		let controls = container.buttons.matching(
 			NSPredicate(format: "identifier BEGINSWITH %@", "chat.preview."))
 		var expected = layout.buttons
-		if !enabled { expected["chat.preview.retryRead"] = "Retry" }
+		if !enabled { expected["chat.preview.retryRead"] = "Try again" }
 		TutorialHarness.wait(
 			until: {
 				controls.count == expected.count
@@ -225,7 +225,8 @@ enum ReviewRecoveryScreen {
 		XCTAssertEqual(
 			Set(controls.allElementsBoundByIndex.filter(\.isEnabled).map(\.identifier)),
 			enabled ? Set(expected.keys) : ["chat.preview.retryRead"])
-		XCTAssertFalse(container.buttons["Try again"].exists)
+		XCTAssertFalse(
+			container.buttons.matching(identifier: "chat.turn.tryAgain").firstMatch.exists)
 	}
 
 	private static func assertNote(_ app: XCUIApplication) {

@@ -114,7 +114,7 @@ enum ConfirmedPreviewButton: String {
 		case .add: Catalog.reviewAdd
 		case .checkAgain: Catalog.setupTelegramCheckAgain
 		case .saveAgain: Catalog.reviewSaveApprovedAgain
-		case .retryRead: Catalog.reviewRetryRead
+		case .retryRead: Catalog.chatTranscriptRetry
 		}
 	}
 }

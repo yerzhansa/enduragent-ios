@@ -536,7 +536,7 @@
       "disconnectTitle": "Déconnecter intervals.icu ?",
       "disconnectDetail": "Votre conversation et l’historique restent disponibles.",
       "switchTitle": "Utiliser un autre athlète ?",
-      "switchDetail": "Cette clé appartient à l’athlète {{new}}. Le travail enregistré appartient à l’athlète {{current}}. Changer pour utiliser cette clé ?",
+      "switchDetail": "Cette clé appartient à l’athlète {{new}}. Votre conversation, l’historique et la mémoire restent enregistrés pour l’athlète {{current}} et ne sont pas utilisés pour l’athlète {{new}}. Changer pour utiliser cette clé ?",
       "switch": "Changer d’athlète",
       "athlete": "Athlète {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Cette vérification de séance provient d’une ancienne version de l’app et ne peut plus être appliquée.",
     "cancelledUnknown": "Annulé. Cette séance a peut-être tout de même été enregistrée. Vérifie ton calendrier.",
     "saveFailed": "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.",
-    "retryRead": "Réessayer",
     "storageUnavailable": "Impossible de lire la vérification de séance enregistrée. Ses boutons sont temporairement désactivés.",
     "title": "Vérification de la séance",
     "uncertain": "Je n'ai pas pu confirmer si cela a été transmis à ton calendrier {{service}}. Vérifie ton calendrier avant de me le redemander.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter a bloqué cette demande. Essaie un autre modèle ou message.",
       "providerConsentRequired": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits.",
-      "storageUnavailable": "Le stockage sécurisé est temporairement indisponible. Vos informations de coaching enregistrées sont toujours là. Réessayez.",
-      "malformed": "L'identifiant d'accès au modèle enregistré n'a pas pu être lu. Choisissez une méthode d'accès pour continuer."
+      "storageUnavailable": "Le stockage sécurisé est temporairement indisponible. Votre conversation, l'historique et la mémoire sont toujours là. Réessayez.",
+      "malformed": "Votre méthode d'accès enregistrée n'a pas pu être lue. Choisissez une méthode d'accès pour continuer."
     },
     "title": "Méthode d’accès",
     "openRouterAccount": "Compte OpenRouter",

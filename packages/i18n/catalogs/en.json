@@ -6,8 +6,8 @@
       "requestBlocked": "OpenRouter blocked this request. Try a different model or message.",
       "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
       "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
-      "storageUnavailable": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",
-      "malformed": "The saved model access credential couldn't be read. Choose an access method to continue."
+      "storageUnavailable": "Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
+      "malformed": "Your saved access method couldn't be read. Choose an access method to continue."
     },
     "title": "Access method",
     "openRouterAccount": "OpenRouter account",
@@ -1662,7 +1662,6 @@
     "earlierVersion": "This workout review is from an earlier version of the app and can no longer be applied.",
     "cancelledUnknown": "Cancelled. This workout may still have been saved. Check your calendar.",
     "saveFailed": "Couldn't save your choice on this iPhone, so nothing was changed. Try again.",
-    "retryRead": "Retry",
     "storageUnavailable": "Couldn't read the saved workout review. Its buttons are temporarily disabled.",
     "title": "Workout review",
     "uncertain": "Couldn't confirm whether this reached your {{service}} calendar. Check your calendar before asking again.",
@@ -2202,7 +2201,7 @@
       "disconnectTitle": "Disconnect intervals.icu?",
       "disconnectDetail": "Your conversation and History stay available.",
       "switchTitle": "Use another athlete?",
-      "switchDetail": "This key belongs to athlete {{new}}. Saved work belongs to athlete {{current}}. Switch to use this key?",
+      "switchDetail": "This key belongs to athlete {{new}}. Your conversation, History and memory stay saved for athlete {{current}} and are not used for athlete {{new}}. Switch to use this key?",
       "switch": "Switch athlete",
       "athlete": "Athlete {{id}}"
     }
