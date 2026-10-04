@@ -78,6 +78,7 @@
 		5D1FBAB9320CDF7EEB4152FD /* OpenRouterRecoveryProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13CB42814BF18D9BD5B810E /* OpenRouterRecoveryProof.swift */; };
 		5D97187360FCB33DBDD11CB0 /* LeaseProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 308A352D65A10B7907B73232 /* LeaseProofs.swift */; };
 		5F38A9E2F5F832D0C4912A8C /* FixtureConsentDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48DB04EF85779B1AA780CB05 /* FixtureConsentDebugView.swift */; };
+		5FE44C963C6A1699874973CC /* ReviewAccessibilityProofs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D40225A3AF5FDB61A8DA706 /* ReviewAccessibilityProofs.swift */; };
 		6383971B63ECF073AF93B512 /* ComposerNavigationProof.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5A7A6D9FD68ACCFD77CB7C /* ComposerNavigationProof.swift */; };
 		638D01B0A20D669EEC74D00D /* ArchivedConversationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18D2308DCE3D595679027103 /* ArchivedConversationView.swift */; };
 		657500D078016CAEDAF1B8A6 /* DisplayLocaleResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A130354A33573AD5E4CEA457 /* DisplayLocaleResolver.swift */; };
@@ -178,6 +179,7 @@
 		DC77CD185D14600B86CF9AC0 /* ShellDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF085C90935B5718E9DF7CC7 /* ShellDestination.swift */; };
 		DD1919AC9082E9A12C8D7DE2 /* FixtureReviewProofDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2190E21F0A4207123E1EED41 /* FixtureReviewProofDriver.swift */; };
 		DD224F1891F710F94D738395 /* ConnectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D10C84C333E7498713547A /* ConnectView.swift */; };
+		DE7678CE643366198556A69A /* ReviewAccessibilityFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B079078F9B50C6182A4C144 /* ReviewAccessibilityFlows.swift */; };
 		DEDF6E2F44E32DD2EE5228B1 /* FixtureFragmentOrderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E884824BF912F462D9A0B0CC /* FixtureFragmentOrderingTests.swift */; };
 		E142663BABE047CA2DEFC1D5 /* FixtureFlushTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36EB228C186B626D9D1D2CB5 /* FixtureFlushTests.swift */; };
 		E1824FC9E849FCF1BC7860E4 /* LanguageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91CE5AEA1A9D8B5ACE9B4D3A /* LanguageView.swift */; };
@@ -261,6 +263,7 @@
 		2B0F30BBCAD2C991BB9BFF93 /* ReviewStorageFailureProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewStorageFailureProofs.swift; sourceTree = "<group>"; };
 		2B1F7AB61EC6B7D321458E1C /* AccessOnboardingProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessOnboardingProof.swift; sourceTree = "<group>"; };
 		2BFC2132829589693A162187 /* SessionSettingsScreenTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionSettingsScreenTests.swift; sourceTree = "<group>"; };
+		2D40225A3AF5FDB61A8DA706 /* ReviewAccessibilityProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewAccessibilityProofs.swift; sourceTree = "<group>"; };
 		2ED23E6DA761552A992720CD /* FixtureTrainingPeerDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureTrainingPeerDebugView.swift; sourceTree = "<group>"; };
 		308A352D65A10B7907B73232 /* LeaseProofs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaseProofs.swift; sourceTree = "<group>"; };
 		30D10C84C333E7498713547A /* ConnectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectView.swift; sourceTree = "<group>"; };
@@ -315,6 +318,7 @@
 		693C14D44F213C3559B276D0 /* FixtureLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLaunch.swift; sourceTree = "<group>"; };
 		6945966E8651AE367F932455 /* LaunchProbes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchProbes.swift; sourceTree = "<group>"; };
 		697B22761847E6642DA9DE43 /* RecordSyncDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordSyncDebugView.swift; sourceTree = "<group>"; };
+		6B079078F9B50C6182A4C144 /* ReviewAccessibilityFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewAccessibilityFlows.swift; sourceTree = "<group>"; };
 		6B5A7A6D9FD68ACCFD77CB7C /* ComposerNavigationProof.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerNavigationProof.swift; sourceTree = "<group>"; };
 		6ED6E798065E1F8F455AE4F5 /* StorageUnavailableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageUnavailableView.swift; sourceTree = "<group>"; };
 		730750E64E51CB700A3D5C76 /* FirstWeekResponses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstWeekResponses.swift; sourceTree = "<group>"; };
@@ -596,6 +600,8 @@
 				9C2C913B8DEC9455C4622CBC /* ReplyFormattingProofs.swift */,
 				7989A7EDCAA7BC2E25BFB24A /* ReplyProofScreen.swift */,
 				CD1E8EB2C3AB6B75EBB31C9A /* RetryProofs.swift */,
+				6B079078F9B50C6182A4C144 /* ReviewAccessibilityFlows.swift */,
+				2D40225A3AF5FDB61A8DA706 /* ReviewAccessibilityProofs.swift */,
 				5EF9F32223EA5B96A10B3647 /* ReviewCardComposerProof.swift */,
 				8B106E652C9BF221F360C5C0 /* ReviewLanguageProof.swift */,
 				B32277788FE7E42D60A4259D /* ReviewProofs.swift */,
@@ -1010,6 +1016,8 @@
 				943C79D5572C15B515F0D404 /* ReplyFormattingProofs.swift in Sources */,
 				1AEE2E701928200944478778 /* ReplyProofScreen.swift in Sources */,
 				468F0B548FF44D5CA24BD1F8 /* RetryProofs.swift in Sources */,
+				DE7678CE643366198556A69A /* ReviewAccessibilityFlows.swift in Sources */,
+				5FE44C963C6A1699874973CC /* ReviewAccessibilityProofs.swift in Sources */,
 				726FDB8E79BABCF355D118F7 /* ReviewCardComposerProof.swift in Sources */,
 				80E2AE01EA8BC280AD07FA80 /* ReviewLanguageProof.swift in Sources */,
 				668089EEB4B179BC545AD647 /* ReviewProofs.swift in Sources */,

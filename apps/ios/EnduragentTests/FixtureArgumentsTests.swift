@@ -16,7 +16,7 @@ import Testing
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
 			credentialWriteFault: .failOnce, accessMethod: .openRouterNeedsCredits,
 			creditsOutcome: .provisioningFailed, signInOutcome: .held,
-			catalogResponse: .omittedSelectedModel)
+			catalogResponse: .omittedSelectedModel, textSize: .accessibilityXXXL)
 		var restored = FixtureArguments()
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
@@ -112,7 +112,7 @@ import Testing
 			calendarSaveFault: .loseAnswerOnce, calendarReadFault: .failOnce,
 			recordReadFault: .failAfterPresentedOnce, resetFault: .failBoundary,
 			replyParserFault: .fail, trainingDisplay: .wellnessUnavailable,
-			credentialWriteFault: .failOnce)
+			credentialWriteFault: .failOnce, textSize: .accessibilityXXXL)
 		try restored.update(from: expected.launchArguments)
 		#expect(restored == expected)
 		let suite = "enduragent.fixture.no-fault.\(UUID().uuidString)"

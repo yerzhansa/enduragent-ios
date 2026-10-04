@@ -92,6 +92,10 @@
 		case failSelection = "fail-selection"
 	}
 
+	enum FixtureTextSize: String {
+		case accessibilityXXXL = "UICTContentSizeCategoryAccessibilityXXXL"
+	}
+
 	struct FixtureArguments: Equatable {
 		var store: FixtureStorePolicy = .fresh
 		var keychain: FixtureKeychainPolicy = .unlocked
@@ -113,6 +117,7 @@
 		var creditsOutcome = FixtureCreditsOutcome.ready
 		var signInOutcome = FixtureSignInOutcome.cancel
 		var catalogResponse = FixtureCatalogResponse.offline
+		var textSize: FixtureTextSize?
 
 		var launchArguments: [String] {
 			var values = [
@@ -150,6 +155,7 @@
 			values += ["-EnduragentFixtureCredits", creditsOutcome.rawValue]
 			values += ["-EnduragentFixtureSignIn", signInOutcome.rawValue]
 			values += ["-EnduragentFixtureCatalog", catalogResponse.rawValue]
+			if let textSize { values += [Self.textSizeArgument, textSize.rawValue] }
 			return values
 		}
 
@@ -189,7 +195,10 @@
 			creditsOutcome = try policy(values, "-EnduragentFixtureCredits") ?? .ready
 			signInOutcome = try policy(values, "-EnduragentFixtureSignIn") ?? .cancel
 			catalogResponse = try policy(values, "-EnduragentFixtureCatalog") ?? .offline
+			textSize = try policy(values, Self.textSizeArgument)
 		}
+
+		private static let textSizeArgument = "-UIPreferredContentSizeCategoryName"
 
 		private func policy<Policy: RawRepresentable>(
 			_ values: [String: String], _ key: String
