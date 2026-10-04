@@ -514,6 +514,18 @@
       }
     },
     "modelAccessTitle": "モデルへのアクセス",
+    "session": {
+      "title": "セッション",
+      "contextWindow": {
+        "label": "コンテキストウィンドウ",
+        "help": "モデルが参照できる情報量の上限です。既定値を使う場合は空欄のままにします。",
+        "default": "既定値"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "トークン"
+      }
+    },
     "training": {
       "section": "トレーニング接続",
       "title": "intervals.icu",

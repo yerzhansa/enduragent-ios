@@ -515,6 +515,18 @@
     },
     "title": "Impostazioni",
     "modelAccessTitle": "Accesso al modello",
+    "session": {
+      "title": "Sessione",
+      "contextWindow": {
+        "label": "Finestra di contesto",
+        "help": "Limite massimo del contesto del modello. Lascia vuoto per usare il valore predefinito.",
+        "default": "Predefinito"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "token"
+      }
+    },
     "training": {
       "section": "Connessione di allenamento",
       "title": "intervals.icu",

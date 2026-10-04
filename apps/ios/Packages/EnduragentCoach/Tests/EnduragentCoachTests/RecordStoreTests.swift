@@ -46,7 +46,7 @@ extension SwiftDataSuites {
 			}
 			#expect(await coach.languagePreference() == .automatic)
 			let session = try SessionSettings.npmDefaults.replacing(
-				.historyBudgetRatio, with: "0.5")
+				.historyBudgetRatio, with: "50")
 			try await coach.setSession(session)
 			let status = try await coach.observedStatus()
 			#expect(status.session == session)

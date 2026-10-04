@@ -517,6 +517,18 @@
     },
     "title": "Ustawienia",
     "modelAccessTitle": "Dostęp do modelu",
+    "session": {
+      "title": "Sesja",
+      "contextWindow": {
+        "label": "Okno kontekstu",
+        "help": "Górny limit kontekstu modelu. Zostaw puste, aby użyć wartości domyślnej.",
+        "default": "Domyślne"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokenów"
+      }
+    },
     "training": {
       "section": "Połączenie treningowe",
       "title": "intervals.icu",

@@ -32,6 +32,7 @@ final class ShellModel {
 	let lifecycle: AppLifecycle
 	let trainingSettings: TrainingSettingsModel
 	let accessSettings: AccessSettingsModel
+	let sessionSettings: SessionSettingsModel
 	private let submission: ChatSubmission
 	var drafts: DraftStore { submission.drafts }
 	private let onboarding: OnboardingModel
@@ -51,6 +52,7 @@ final class ShellModel {
 		self.lifecycle = AppLifecycle(environment: environment)
 		self.trainingSettings = TrainingSettingsModel(coach: environment.services.coach)
 		self.accessSettings = AccessSettingsModel(environment: environment)
+		self.sessionSettings = SessionSettingsModel(coach: environment.services.coach)
 		self.onboarding = OnboardingModel(environment: environment)
 		self.credits = CreditsModel(services: environment.services)
 		self.archive = HistoryModel(coach: environment.services.coach)
@@ -306,10 +308,6 @@ final class ShellModel {
 				languageNotSaved = preference
 			}
 		}
-	}
-
-	func saveSession(_ settings: SessionSettings) async throws(PreferenceWriteFailure) {
-		try await services.coach.setSession(settings)
 	}
 
 	func decide(_ decision: ReviewDecision) async {

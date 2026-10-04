@@ -324,7 +324,7 @@ import Testing
 		_ = try await coach.sendAndSettle("Is Thursday on?")
 		#expect(sent(.droppedSummary, by: transport).isEmpty)
 		try await coach.setSession(
-			SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "0.05"))
+			SessionSettings.npmDefaults.replacing(.historyBudgetRatio, with: "5"))
 		_ = try await coach.sendAndSettle("And Saturday?")
 		#expect(sent(.droppedSummary, by: transport).count == 1)
 		let next = try #require(sent(.chatAttempt, by: transport).last)

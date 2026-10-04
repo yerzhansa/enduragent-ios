@@ -42,6 +42,13 @@ struct SettingsView: View {
 				.foregroundStyle(Color.primary)
 				.accessibilityIdentifier("settings.language")
 			}
+			Section(model.phrasebook.say(Catalog.settingsSessionTitle)) {
+				NavigationLink(
+					model.phrasebook.say(Catalog.settingsSessionTitle),
+					value: ShellDestination.session
+				)
+				.accessibilityIdentifier("settings.session")
+			}
 			#if DEBUG
 				Section {
 					NavigationLink(SettingsDebugView.title, value: ShellDestination.debug)
