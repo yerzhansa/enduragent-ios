@@ -536,7 +536,7 @@
       "disconnectTitle": "Koble fra intervals.icu?",
       "disconnectDetail": "Samtalen og historikken din er fortsatt tilgjengelige.",
       "switchTitle": "Bruke en annen utøver?",
-      "switchDetail": "Denne nøkkelen tilhører utøver {{new}}. Lagret arbeid tilhører utøver {{current}}. Bytte for å bruke denne nøkkelen?",
+      "switchDetail": "Denne nøkkelen tilhører utøver {{new}}. Samtalen, historikken og minnet ditt forblir lagret for utøver {{current}} og brukes ikke for utøver {{new}}. Bytte for å bruke denne nøkkelen?",
       "switch": "Bytt utøver",
       "athlete": "Utøver {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Denne treningsgjennomgangen er fra en tidligere versjon av appen og kan ikke lenger brukes.",
     "cancelledUnknown": "Avbrutt. Denne treningsøkten kan likevel ha blitt lagret. Sjekk kalenderen din.",
     "saveFailed": "Kunne ikke lagre valget ditt på denne iPhonen, så ingenting ble endret. Prøv igjen.",
-    "retryRead": "Prøv igjen",
     "storageUnavailable": "Kunne ikke lese den lagrede gjennomgangen av treningsøkten. Knappene er midlertidig deaktivert.",
     "title": "Gjennomgang av treningsøkt",
     "uncertain": "Jeg kunne ikke bekrefte om dette nådde kalenderen din på {{service}}. Sjekk kalenderen før du spør igjen.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding.",
       "providerConsentRequired": "Ditt samtykke kreves før chatdata deles med KI-leverandører.",
       "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter.",
-      "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Den lagrede treningsinformasjonen din er fortsatt her. Prøv igjen.",
-      "malformed": "Den lagrede legitimasjonen for modelltilgang kunne ikke leses. Velg en tilgangsmetode for å fortsette."
+      "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Samtalen, historikken og minnet ditt er fortsatt her. Prøv igjen.",
+      "malformed": "Den lagrede tilgangsmåten din kunne ikke leses. Velg en tilgangsmåte for å fortsette."
     },
     "title": "Tilgangsmåte",
     "openRouterAccount": "OpenRouter-konto",

@@ -536,7 +536,7 @@
       "disconnectTitle": "Verbinding met intervals.icu verbreken?",
       "disconnectDetail": "Je gesprek en geschiedenis blijven beschikbaar.",
       "switchTitle": "Een andere atleet gebruiken?",
-      "switchDetail": "Deze sleutel hoort bij atleet {{new}}. Opgeslagen werk hoort bij atleet {{current}}. Wisselen om deze sleutel te gebruiken?",
+      "switchDetail": "Deze sleutel hoort bij atleet {{new}}. Je gesprek, geschiedenis en geheugen blijven opgeslagen voor atleet {{current}} en worden niet gebruikt voor atleet {{new}}. Wisselen om deze sleutel te gebruiken?",
       "switch": "Atleet wisselen",
       "athlete": "Atleet {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Deze trainingsbeoordeling komt uit een eerdere versie van de app en kan niet meer worden toegepast.",
     "cancelledUnknown": "Geannuleerd. Deze training is mogelijk toch opgeslagen. Controleer je kalender.",
     "saveFailed": "Je keuze kon niet op deze iPhone worden opgeslagen, dus er is niets gewijzigd. Probeer het opnieuw.",
-    "retryRead": "Opnieuw proberen",
     "storageUnavailable": "De opgeslagen trainingsbeoordeling kon niet worden gelezen. De knoppen zijn tijdelijk uitgeschakeld.",
     "title": "Training controleren",
     "uncertain": "Ik kon niet bevestigen of dit in je kalender op {{service}} is aangekomen. Controleer je kalender voordat je het opnieuw vraagt.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter heeft dit verzoek geblokkeerd. Probeer een ander model of bericht.",
       "providerConsentRequired": "Je toestemming is nodig voordat chatgegevens met AI-aanbieders worden gedeeld.",
       "openRouterFunds": "Het saldo op je OpenRouter-account is op. Vul het aan bij OpenRouter of schakel over naar tegoedpunten.",
-      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je opgeslagen coachinginformatie is er nog. Probeer het opnieuw.",
-      "malformed": "De opgeslagen toegangsgegevens voor het model konden niet worden gelezen. Kies een toegangsmethode om verder te gaan."
+      "storageUnavailable": "De beveiligde opslag is tijdelijk niet beschikbaar. Je gesprek, geschiedenis en geheugen zijn er nog. Probeer het opnieuw.",
+      "malformed": "Je opgeslagen toegangsmethode kon niet worden gelezen. Kies een toegangsmethode om verder te gaan."
     },
     "title": "Toegangsmethode",
     "openRouterAccount": "OpenRouter-account",

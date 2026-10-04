@@ -536,7 +536,7 @@
       "disconnectTitle": "Disconnettere intervals.icu?",
       "disconnectDetail": "La conversazione e la cronologia restano disponibili.",
       "switchTitle": "Usare un altro atleta?",
-      "switchDetail": "Questa chiave appartiene all’atleta {{new}}. Il lavoro salvato appartiene all’atleta {{current}}. Cambiare per usare questa chiave?",
+      "switchDetail": "Questa chiave appartiene all’atleta {{new}}. La tua conversazione, la cronologia e la memoria restano salvate per l’atleta {{current}} e non vengono usate per l’atleta {{new}}. Cambiare per usare questa chiave?",
       "switch": "Cambia atleta",
       "athlete": "Atleta {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Questa revisione dell’allenamento proviene da una versione precedente dell’app e non può più essere applicata.",
     "cancelledUnknown": "Annullato. Questo allenamento potrebbe comunque essere stato salvato. Controlla il calendario.",
     "saveFailed": "Non è stato possibile salvare la tua scelta su questo iPhone, quindi non è stato modificato nulla. Riprova.",
-    "retryRead": "Riprova",
     "storageUnavailable": "Impossibile leggere la revisione dell'allenamento salvata. I suoi pulsanti sono temporaneamente disattivati.",
     "title": "Revisione dell'allenamento",
     "uncertain": "Non ho potuto confermare se questa modifica è arrivata al tuo calendario su {{service}}. Controlla il calendario prima di chiedermelo di nuovo.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter ha bloccato questa richiesta. Prova un altro modello o messaggio.",
       "providerConsentRequired": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA.",
       "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti.",
-      "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova.",
-      "malformed": "Non è stato possibile leggere la credenziale salvata per l'accesso al modello. Scegli un metodo di accesso per continuare."
+      "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. La tua conversazione, la cronologia e la memoria sono ancora qui. Riprova.",
+      "malformed": "Non è stato possibile leggere il tuo metodo di accesso salvato. Scegli un metodo di accesso per continuare."
     },
     "title": "Metodo di accesso",
     "openRouterAccount": "Account OpenRouter",

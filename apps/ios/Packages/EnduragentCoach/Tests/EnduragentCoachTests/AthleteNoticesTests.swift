@@ -98,11 +98,11 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
 			.model(.accessUnavailable(.secureStorageUnavailable)),
-			"Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",
+			"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again.",
 			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.creditsAccount))),
-			"The saved model access credential couldn't be read. Choose an access method to continue.",
+			"Your saved access method couldn't be read. Choose an access method to continue.",
 			[.chooseAccessMethod], ["Choose access method"]),
 		failed(
 			.model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))),

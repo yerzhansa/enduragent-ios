@@ -538,7 +538,7 @@
       "disconnectTitle": "Rozłączyć intervals.icu?",
       "disconnectDetail": "Rozmowa i historia pozostają dostępne.",
       "switchTitle": "Użyć innego sportowca?",
-      "switchDetail": "Ten klucz należy do sportowca {{new}}. Zapisana praca należy do sportowca {{current}}. Przełączyć, aby użyć tego klucza?",
+      "switchDetail": "Ten klucz należy do sportowca {{new}}. Twoja rozmowa, historia i pamięć pozostają zapisane dla sportowca {{current}} i nie są używane dla sportowca {{new}}. Przełączyć, aby użyć tego klucza?",
       "switch": "Zmień sportowca",
       "athlete": "Sportowiec {{id}}"
     }
@@ -3012,7 +3012,6 @@
     "earlierVersion": "Ten przegląd treningu pochodzi z wcześniejszej wersji aplikacji i nie można go już zastosować.",
     "cancelledUnknown": "Anulowano. Ten trening mógł mimo to zostać zapisany. Sprawdź swój kalendarz.",
     "saveFailed": "Nie udało się zapisać Twojego wyboru na tym iPhonie, więc nic nie zostało zmienione. Spróbuj ponownie.",
-    "retryRead": "Spróbuj ponownie",
     "storageUnavailable": "Nie udało się odczytać zapisanego przeglądu treningu. Jego przyciski są tymczasowo wyłączone.",
     "title": "Przegląd treningu",
     "uncertain": "Nie mogę potwierdzić, czy ta zmiana trafiła do Twojego kalendarza w {{service}}. Sprawdź kalendarz, zanim poprosisz ponownie.",
@@ -3085,8 +3084,8 @@
       "requestBlocked": "OpenRouter zablokował to żądanie. Spróbuj innego modelu lub wiadomości.",
       "providerConsentRequired": "Potrzebujemy Twojej zgody przed udostępnieniem danych z czatu dostawcom AI.",
       "openRouterFunds": "Na twoim koncie OpenRouter zabrakło środków. Doładuj konto w OpenRouter lub przełącz się na kredyty.",
-      "storageUnavailable": "Bezpieczny magazyn jest tymczasowo niedostępny. Zapisane informacje trenerskie nadal tu są. Spróbuj ponownie.",
-      "malformed": "Nie udało się odczytać zapisanych danych dostępu do modelu. Wybierz metodę dostępu, aby kontynuować."
+      "storageUnavailable": "Bezpieczny magazyn jest tymczasowo niedostępny. Twoja rozmowa, historia i pamięć nadal tu są. Spróbuj ponownie.",
+      "malformed": "Nie udało się odczytać zapisanego sposobu dostępu. Wybierz sposób dostępu, aby kontynuować."
     },
     "title": "Sposób dostępu",
     "openRouterAccount": "Konto OpenRouter",

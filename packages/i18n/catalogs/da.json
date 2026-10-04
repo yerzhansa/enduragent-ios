@@ -536,7 +536,7 @@
       "disconnectTitle": "Afbryd intervals.icu?",
       "disconnectDetail": "Din samtale og historik er stadig tilgængelige.",
       "switchTitle": "Brug en anden atlet?",
-      "switchDetail": "Denne nøgle tilhører atlet {{new}}. Gemt arbejde tilhører atlet {{current}}. Skift for at bruge denne nøgle?",
+      "switchDetail": "Denne nøgle tilhører atlet {{new}}. Din samtale, historik og hukommelse forbliver gemt for atlet {{current}} og bruges ikke for atlet {{new}}. Skift for at bruge denne nøgle?",
       "switch": "Skift atlet",
       "athlete": "Atlet {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Denne træningsgennemgang er fra en tidligere version af appen og kan ikke længere anvendes.",
     "cancelledUnknown": "Annulleret. Denne træning kan stadig være blevet gemt. Tjek din kalender.",
     "saveFailed": "Dit valg kunne ikke gemmes på denne iPhone, så intet blev ændret. Prøv igen.",
-    "retryRead": "Prøv igen",
     "storageUnavailable": "Kunne ikke læse den gemte træningsgennemgang. Knapperne er midlertidigt deaktiveret.",
     "title": "Gennemgang af træningspas",
     "uncertain": "Jeg kunne ikke bekræfte, om dette nåede frem til din kalender på {{service}}. Tjek din kalender, før du spørger igen.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter blokerede denne anmodning. Prøv en anden model eller besked.",
       "providerConsentRequired": "Dit samtykke er nødvendigt, før chatdata deles med AI-udbydere.",
       "openRouterFunds": "Din OpenRouter-konto er løbet tør for penge. Indbetal på OpenRouter, eller skift til kreditter.",
-      "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Dine gemte træningsoplysninger er stadig her. Prøv igen.",
-      "malformed": "De gemte legitimationsoplysninger til modeladgang kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
+      "storageUnavailable": "Det sikre lager er midlertidigt utilgængeligt. Din samtale, historik og hukommelse er her stadig. Prøv igen.",
+      "malformed": "Din gemte adgangsmetode kunne ikke læses. Vælg en adgangsmetode for at fortsætte."
     },
     "title": "Adgangsmetode",
     "openRouterAccount": "OpenRouter-konto",

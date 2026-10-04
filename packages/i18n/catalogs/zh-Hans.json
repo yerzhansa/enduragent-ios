@@ -535,7 +535,7 @@
       "disconnectTitle": "断开 intervals.icu 连接？",
       "disconnectDetail": "对话和历史记录仍可查看。",
       "switchTitle": "使用其他运动员？",
-      "switchDetail": "此密钥属于运动员 {{new}}。已保存的内容属于运动员 {{current}}。是否切换以使用此密钥？",
+      "switchDetail": "此密钥属于运动员 {{new}}。你的对话、历史记录和记忆仍为运动员 {{current}} 保存，不会用于运动员 {{new}}。是否切换以使用此密钥？",
       "switch": "切换运动员",
       "athlete": "运动员 {{id}}"
     }
@@ -2904,7 +2904,6 @@
     "earlierVersion": "此训练审核来自旧版应用，其中的变更已无法执行。",
     "cancelledUnknown": "已取消。此训练可能仍已保存。请检查你的日历。",
     "saveFailed": "无法在此 iPhone 上保存你的选择，因此未做任何更改。请重试。",
-    "retryRead": "重试",
     "storageUnavailable": "无法读取已保存的训练审核内容。其按钮已暂时禁用。",
     "title": "训练审核",
     "uncertain": "无法确认此更改是否已同步到你的 {{service}} 日历。再次提出请求前，请先检查日历。",
@@ -2965,8 +2964,8 @@
       "requestBlocked": "OpenRouter 阻止了此请求。请尝试其他模型或消息。",
       "providerConsentRequired": "在与 AI 服务提供商共享聊天数据之前，需要获得你的许可。",
       "openRouterFunds": "你的 OpenRouter 账户余额不足。请在 OpenRouter 充值，或切换到积分。",
-      "storageUnavailable": "安全存储暂时不可用。已保存的教练指导信息仍在。请重试。",
-      "malformed": "无法读取已保存的模型访问凭据。请选择访问方式以继续。"
+      "storageUnavailable": "安全存储暂时不可用。你的对话、历史记录和记忆仍在。请重试。",
+      "malformed": "无法读取已保存的访问方式。请选择访问方式以继续。"
     },
     "title": "访问方式",
     "openRouterAccount": "OpenRouter 账户",

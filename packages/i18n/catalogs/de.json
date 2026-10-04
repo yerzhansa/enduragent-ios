@@ -536,7 +536,7 @@
       "disconnectTitle": "intervals.icu trennen?",
       "disconnectDetail": "Deine Unterhaltung und dein Verlauf bleiben verfügbar.",
       "switchTitle": "Anderen Athleten verwenden?",
-      "switchDetail": "Dieser Schlüssel gehört Athlet {{new}}. Gespeicherte Arbeit gehört Athlet {{current}}. Wechseln, um diesen Schlüssel zu verwenden?",
+      "switchDetail": "Dieser Schlüssel gehört Athlet {{new}}. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis bleiben für Athlet {{current}} gespeichert und werden nicht für Athlet {{new}} verwendet. Wechseln, um diesen Schlüssel zu verwenden?",
       "switch": "Athleten wechseln",
       "athlete": "Athlet {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Diese Trainingsprüfung stammt aus einer früheren Version der App und kann nicht mehr angewendet werden.",
     "cancelledUnknown": "Abgebrochen. Dieses Training wurde möglicherweise trotzdem gespeichert. Prüfe deinen Kalender.",
     "saveFailed": "Deine Auswahl konnte auf diesem iPhone nicht gespeichert werden. Deshalb wurde nichts geändert. Versuche es erneut.",
-    "retryRead": "Erneut versuchen",
     "storageUnavailable": "Die gespeicherte Trainingsprüfung konnte nicht gelesen werden. Ihre Schaltflächen sind vorübergehend deaktiviert.",
     "title": "Training prüfen",
     "uncertain": "Ich konnte nicht bestätigen, ob dies in deinem Kalender bei {{service}} angekommen ist. Prüfe deinen Kalender, bevor du mich erneut darum bittest.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht.",
       "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
       "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
-      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut.",
-      "malformed": "Die gespeicherten Zugangsdaten für den Modellzugriff konnten nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
+      "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Dein Gespräch, dein Verlauf und dein Coaching-Gedächtnis sind noch vorhanden. Versuche es erneut.",
+      "malformed": "Deine gespeicherte Zugriffsmethode konnte nicht gelesen werden. Wähle eine Zugriffsmethode, um fortzufahren."
     },
     "title": "Zugriffsmethode",
     "openRouterAccount": "OpenRouter-Konto",

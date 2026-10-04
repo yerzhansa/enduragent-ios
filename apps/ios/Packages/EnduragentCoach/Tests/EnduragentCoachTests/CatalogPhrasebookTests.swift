@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -18,18 +19,32 @@ import Testing
 	}
 
 	@Test(arguments: LanguageTag.allCases.filter { $0 != .en })
-	func reviewCopyUsesEverySelectedLanguage(_ tag: LanguageTag) {
+	func retainedCopyUsesEverySelectedLanguage(_ tag: LanguageTag) {
 		let book = tag.phrasebook
 		let english = CatalogPhrasebook(tag: .en)
+		let values = [
+			"service": "intervals.icu", "id": "athlete-7", "current": "athlete-7",
+			"new": "athlete-8",
+		]
 		for key in [
 			Catalog.reviewTitle, Catalog.reviewAdd, Catalog.reviewAccountChanged,
 			Catalog.reviewCannotVerify, Catalog.reviewUncertain, Catalog.reviewEarlierVersion,
+			Catalog.reviewCancelledUnknown, Catalog.reviewSaveFailed,
+			Catalog.chatNoticeStartingNewConversation, Catalog.chatTurnFinishedWhileLocked,
+			Catalog.chatTranscriptRetry, Catalog.accessErrorRequestBlocked,
+			Catalog.accessErrorMalformed, Catalog.accessErrorStorageUnavailable,
+			Catalog.archiveSavedForAnotherAthlete, Catalog.settingsTrainingSwitchDetail,
 		] {
-			let copy = book.say(key, ["service": "intervals.icu"])
-			#expect(copy != english.say(key, ["service": "intervals.icu"]))
-			#expect(!copy.contains("{{"))
-			#expect(!copy.contains("%#@"))
+			let copy = book.say(key, values)
+			#expect(copy != english.say(key, values), "\(key.rawValue)")
+			#expect(copy != key.rawValue)
+			#expect(!copy.contains("{{"), "\(key.rawValue)")
+			#expect(!copy.contains("%#@"), "\(key.rawValue)")
 		}
+		#expect(book.say(Catalog.archiveSavedForAnotherAthlete, values).contains("athlete-7"))
+		let switching = book.say(Catalog.settingsTrainingSwitchDetail, values)
+		#expect(switching.components(separatedBy: "athlete-7").count == 2)
+		#expect(switching.components(separatedBy: "athlete-8").count == 3)
 	}
 
 	@Test func polishCountThreeSelectsTheFewForm() {

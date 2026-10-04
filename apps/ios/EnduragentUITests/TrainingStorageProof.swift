@@ -39,7 +39,7 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.waitForIdentifier(
 			app, "chat.composer.notice",
 			reading:
-				"Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again."
+				"Secure storage is temporarily unavailable. Your conversation, History and memory are still here. Try again."
 		)
 		assertConversation(app)
 		openTraining(app)

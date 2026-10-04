@@ -536,7 +536,7 @@
       "disconnectTitle": "Katkaistaanko intervals.icu-yhteys?",
       "disconnectDetail": "Keskustelusi ja historiasi ovat edelleen käytettävissä.",
       "switchTitle": "Käytetäänkö toista urheilijaa?",
-      "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Tallennettu työ kuuluu urheilijalle {{current}}. Vaihdetaanko tämän avaimen käyttöön?",
+      "switchDetail": "Tämä avain kuuluu urheilijalle {{new}}. Keskustelusi, historiasi ja muistisi pysyvät tallennettuina urheilijalle {{current}}, eikä niitä käytetä urheilijalle {{new}}. Vaihdetaanko tämän avaimen käyttöön?",
       "switch": "Vaihda urheilija",
       "athlete": "Urheilija {{id}}"
     }
@@ -2940,7 +2940,6 @@
     "earlierVersion": "Tämä harjoituksen tarkistus on sovelluksen aiemmasta versiosta, eikä sen muutoksia voi enää toteuttaa.",
     "cancelledUnknown": "Peruttu. Tämä harjoitus on silti saatettu tallentaa. Tarkista kalenterisi.",
     "saveFailed": "Valintaasi ei voitu tallentaa tähän iPhoneen, joten mitään ei muutettu. Yritä uudelleen.",
-    "retryRead": "Yritä uudelleen",
     "storageUnavailable": "Tallennettua harjoituksen tarkistusta ei voitu lukea. Sen painikkeet on poistettu tilapäisesti käytöstä.",
     "title": "Harjoituksen tarkistus",
     "uncertain": "En voinut vahvistaa, tallentuiko tämä kalenteriisi palvelussa {{service}}. Tarkista kalenterisi ennen kuin pyydät uudelleen.",
@@ -3005,8 +3004,8 @@
       "requestBlocked": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä.",
       "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
       "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
-      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen.",
-      "malformed": "Tallennettua mallin käyttöön tarvittavaa tunnistetta ei voitu lukea. Valitse käyttötapa jatkaaksesi."
+      "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Keskustelusi, historiasi ja muistisi ovat edelleen täällä. Yritä uudelleen.",
+      "malformed": "Tallennettua käyttötapaasi ei voitu lukea. Valitse käyttötapa jatkaaksesi."
     },
     "title": "Käyttötapa",
     "openRouterAccount": "OpenRouter-tili",
