@@ -160,7 +160,7 @@ struct OpenRouterAccessTests {
 			return
 		}
 		#expect(model.status.access.attention == (forbidden ? nil : .signInNeeded))
-		#expect(failure.notice?.actions == (forbidden ? nil : [.chooseAccessMethod]))
+		#expect(failure.notice?.actions == (forbidden ? [] : [.chooseAccessMethod]))
 		if forbidden {
 			#expect(
 				failure.notice?.sentence(in: model.displayLocale)
