@@ -89,6 +89,14 @@ CatalogArgument.integer
 CatalogArgument.text
 CatalogCacheState
 CatalogCacheState.available
+CatalogCacheState.refreshing
+CatalogCacheState.retained
+CatalogIssue
+CatalogIssue.malformed
+CatalogIssue.noUsableChoices
+CatalogIssue.offline
+CatalogIssue.stale
+CatalogIssue.storageUnavailable
 CatalogOrigin
 CatalogOrigin.bundled
 CatalogOrigin.downloaded

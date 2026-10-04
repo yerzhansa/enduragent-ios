@@ -26,7 +26,7 @@ extension CredentialVault {
 			if case .openRouter(let saved) = base?.value {
 				entry = try savedEntry(saved)
 			} else {
-				entry = try catalog.choice(builtInModel)
+				entry = try catalogs.bundled.choice(builtInModel)
 			}
 		} catch {
 			return .failedPreviousKept(

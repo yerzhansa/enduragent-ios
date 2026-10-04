@@ -39,7 +39,7 @@ func testVault(
 		ledger: Ledger(
 			log: InMemoryRecordLog(), clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
 		diagnostics: DiagnosticsLog(clock: clock),
-		catalog: .fixture)
+		catalogs: ModelCatalogOwner(bundled: .fixture))
 }
 
 func testRequest(

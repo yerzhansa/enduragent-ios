@@ -40,7 +40,7 @@ extension CredentialVault {
 			state = .unreadable(error)
 		}
 		return AccessStatus(
-			state: state, builtInModel: builtInModel, catalog: catalog,
+			state: state, builtInModel: builtInModel, catalog: catalogs.snapshot(),
 			consent: accessConsent(builtInModel: builtInModel, recorded: consent))
 	}
 
@@ -60,7 +60,8 @@ extension CredentialVault {
 		do {
 			saved = try keychain(.accessSelection) { try store.accessSelection() }
 			previous = AccessStatus(
-				state: accessState(for: saved), builtInModel: builtInModel, catalog: catalog
+				state: accessState(for: saved), builtInModel: builtInModel,
+				catalog: catalogs.snapshot()
 			)
 			.selection.map { AccessSummary(selection: $0) }
 		} catch {

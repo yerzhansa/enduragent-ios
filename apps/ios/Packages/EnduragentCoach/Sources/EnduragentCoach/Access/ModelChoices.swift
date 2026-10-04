@@ -64,4 +64,14 @@ public enum CatalogOrigin: Equatable, Sendable {
 
 public enum CatalogCacheState: Equatable, Sendable {
 	case available(CatalogOrigin)
+	case refreshing(CatalogOrigin)
+	case retained(CatalogOrigin, CatalogIssue)
+}
+
+public enum CatalogIssue: Error, Equatable, Sendable {
+	case offline
+	case malformed
+	case stale
+	case noUsableChoices
+	case storageUnavailable
 }

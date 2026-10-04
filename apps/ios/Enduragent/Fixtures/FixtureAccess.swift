@@ -20,14 +20,16 @@
 
 		static func install(_ method: FixtureAccessMethod, on secrets: ICloudKeychainStore) throws {
 			switch method {
-			case .credits, .openRouter, .syncedOpenRouter, .missingOpenRouter, .rejectedOpenRouter:
+			case .credits, .openRouter, .syncedOpenRouter, .catalogOpenRouter, .missingOpenRouter,
+				.rejectedOpenRouter:
 				try install(on: secrets)
 			case .creditsNeedsSetup, .openRouterNeedsCredits:
 				_ = try secrets.prepareCreditsAccount()
 			}
 			try secrets.storeOpenRouterAccountKey(openRouterKey, at: .legacy)
-			if method == .syncedOpenRouter {
-				guard let entry = ModelCatalog.bundled.orderedEntries.last else {
+			if method == .syncedOpenRouter || method == .catalogOpenRouter {
+				let entries = ModelCatalog.bundled.orderedEntries
+				guard let entry = method == .catalogOpenRouter ? entries.first : entries.last else {
 					throw FixtureLaunchError.unknownArgument(
 						key: FixtureLaunch.accessArgumentKey, value: method.rawValue)
 				}

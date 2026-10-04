@@ -66,7 +66,7 @@ struct AppServices: Sendable {
 			ports: CoachPorts(
 				records: store,
 				secrets: ICloudKeychainStore(),
-				models: .openRouter(baseURL: ModelService.openRouterAPI),
+				models: try .openRouter(baseURL: ModelService.openRouterAPI),
 				training: .intervalsREST,
 				credits: .worker(creditsWorkerBase),
 				host: host,

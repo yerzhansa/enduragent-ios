@@ -77,12 +77,14 @@ public struct AccessStatus: Equatable, Sendable {
 	}
 
 	package init(
-		state: AccessState, builtInModel: ModelID, catalog: ModelCatalog = .bundled,
+		state: AccessState, builtInModel: ModelID,
+		catalog: ModelCatalogStatus = ModelCatalogStatus(
+			catalog: .bundled, cache: .available(.bundled)),
 		consent: AccessConsent = .unavailable
 	) {
 		self.consent = consent
 		self.state = state
 		self.builtInModel = builtInModel
-		self.catalog = ModelCatalogStatus(catalog: catalog, cache: .available(.bundled))
+		self.catalog = catalog
 	}
 }

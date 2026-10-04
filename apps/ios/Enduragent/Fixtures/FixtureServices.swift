@@ -5,6 +5,7 @@
 	import Security
 
 	struct FixtureServices: Sendable {
+		let catalogSource: FakeModelCatalogSource
 		let transport: FakeModelTransport
 		let records: RecordFaults
 		let host: ImmediateExecutionHost?
@@ -86,12 +87,14 @@
 				leases = { immediate.leases }
 			}
 			let authorizer = FakeOpenRouterAuthorizer(response: launch.signInOutcome.response)
+			let catalogSource = FakeModelCatalogSource(response: launch.catalogResponse)
 			let coach = Coach(
 				sport: .cycling,
 				ports: CoachPorts(
 					records: fixture.store,
 					secrets: secrets,
-					models: .scripted(transport, catalog: .bundled),
+					models: .scripted(
+						transport, catalogSource: catalogSource, cacheDirectory: launch.directory),
 					training: .fake { credential, selection in
 						native?.bind(credential, selection: selection)
 						return peer.client(for: credential)
@@ -114,7 +117,8 @@
 				leases: leases,
 				packPrices: { _ in [:] },
 				fixture: FixtureServices(
-					transport: transport, records: records, host: fixtureHost, secrets: secrets,
+					catalogSource: catalogSource, transport: transport, records: records,
+					host: fixtureHost, secrets: secrets,
 					secretBacking: backing, nativeKeychain: native, trainingPeer: peer,
 					recordStore: fixture.store,
 					intervals: intervals, credits: credits, openRouterAuthorizer: authorizer,

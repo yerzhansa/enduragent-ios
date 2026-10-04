@@ -20,6 +20,7 @@ extension Coach {
 
 	public func observeStatus() async -> AsyncStream<CoachStatus> {
 		observeImports()
+		observeCatalog()
 		if accessObservation == nil {
 			let updates = vault.accessUpdates
 			accessObservation = Task { [weak self] in
