@@ -80,3 +80,38 @@ Run `sim.mjs parity <run id> language-picker-auto light --from <attachment>` and
 The hosted `ShellLanguageTests.retainedNumbersAndDatesRefreshWithLocaleNotificationsAndLanguageChoices` covers locale notifications, foreground refresh, retained starter notices, Credits counts and setup wellness quantities. Package `DisplayLocaleTests` covers all six precedence rows, names, numbers, clocks and a 24-hour override. `DisplayCalendarRequestTests` compares actual method, target and body bytes across redisplay and repeated approval.
 
 The shared `TutorialHarness.done` expectation now uses `6/16/1998` under its default US region. The coordinator runs the full UI suite under G44 after this shared expectation change. `LanguagePickerProof`, `AutomaticFrenchPhoneProof` and `ReviewLanguageProof` use the resolved reply-language direction.
+
+## The 17-language matrix
+
+Unit 9.5b proves the retained screens in every supported language. Each language has its own class, so one language failing leaves the other 16 results intact, and each flow is its own test method. The classes are `LanguageMatrixEnProof`, `LanguageMatrixEsProof`, `LanguageMatrixFrProof`, `LanguageMatrixItProof`, `LanguageMatrixDeProof`, `LanguageMatrixNlProof`, `LanguageMatrixDaProof`, `LanguageMatrixSvProof`, `LanguageMatrixNbProof`, `LanguageMatrixFiProof`, `LanguageMatrixPtPTProof`, `LanguageMatrixPtBRProof`, `LanguageMatrixPlProof`, `LanguageMatrixKoProof`, `LanguageMatrixJaProof`, `LanguageMatrixZhHansProof` and `LanguageMatrixZhHantProof`.
+
+| Test method | Screens it captures, in order |
+| --- | --- |
+| `testOnboarding` | Launches with `-AppleLanguages (<tag>)` and Automatic. `onboarding-notice`, `onboarding-connect`, `onboarding-connected`, `onboarding-access`, `onboarding-consent`, `conversation-welcome`. |
+| `testConversation` | `command-choices`, `command-language-picker`, `review`, `review-approved`, `working-stop-send` with the Stop and Send icon buttons, `stopped-reply`, `new-conversation`. |
+| `testSettings` | `settings`, `settings-access-method`, `settings-credits`, `settings-session`, `settings-training`, `settings-switch-athlete`, `language-choice-not-saved`. |
+| `testFailureNotices` | `out-of-credits` with Buy Credits and Switch to OpenRouter, `failed-reply`, `locked-iphone`, `secure-storage-unavailable`, `training-storage-unavailable`, `draft-not-sent`. |
+| `testHistory` | `history-empty`, `history-earlier-athlete`, `history-conversation`. |
+| `testUncertainSave` | `review-save-uncertain`, `review-unreadable` with Try again, `review-save-again`, `review-cancelled` with the cancellation note. |
+| `testOpenRouter` | `openrouter-blocked-request` with the 403 notice, `settings-openrouter`, `settings-model`. |
+
+Every flow except `testOnboarding` launches in English, finishes the fixture onboarding, and chooses the language in Settings > Language. The keyboard therefore stays English, so the typed fixture directives arrive unchanged in Korean, Japanese and Chinese. `testOnboarding` types only into the ASCII key field.
+
+Each capture saves the screenshot `u9-5b-<tag>-<screen>` and the text attachment `u9-5b-<tag>-<screen>-strings`, which lists every string the sweep read. The sweep reads one accessibility snapshot of the app and fails on a catalog key shown as text, an unresolved `%#@name@` or `{{name}}` placeholder, and English catalog copy on a non-English screen. It compares with the bundled `Phrasebook.json`: English copy counts as a fallback only where that language's catalog has different words for the same key. The failure message names each offending string. The sweep leaves out the scripted coach reply (`reply.*`), the messages the proof typed, language endonyms, fixture names, Debug rows, the keyboard and unidentified navigation-bar buttons such as the system Back button.
+
+Run the whole matrix on two simulators:
+
+```sh
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-5b/simulator-proof" node .agents/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/U9-5b-sim --shards 2 LanguageMatrixEnProof LanguageMatrixEsProof LanguageMatrixFrProof LanguageMatrixItProof LanguageMatrixDeProof LanguageMatrixNlProof LanguageMatrixDaProof LanguageMatrixSvProof LanguageMatrixNbProof LanguageMatrixFiProof LanguageMatrixPtPTProof LanguageMatrixPtBRProof LanguageMatrixPlProof LanguageMatrixKoProof LanguageMatrixJaProof LanguageMatrixZhHansProof LanguageMatrixZhHantProof
+```
+
+To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. Pass `--timings <suite folder>/timings.json` from the earlier run to balance the two simulators. To repeat one flow of one language, use a single simulator:
+
+```sh
+.agents/skills/verify-ios/helpers/sim.mjs create language-matrix
+.agents/skills/verify-ios/helpers/sim.mjs install <run id> --build-folder /tmp/enduragent-dd/U9-5b-sim
+.agents/skills/verify-ios/helpers/sim.mjs test <run id> LanguageMatrixJaProof/testSettings --build-folder /tmp/enduragent-dd/U9-5b-sim
+.agents/skills/verify-ios/helpers/sim.mjs cleanup <run id>
+```
+
+The matrix has no dark classes. Appearance is not part of this proof.
