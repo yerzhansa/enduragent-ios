@@ -61,8 +61,15 @@ extension FixtureLaunchTests {
 		launch.accessMethod = .rejectedOpenRouter
 		launch.signInOutcome = .success
 		let model = await model(try fixtureServices(launch, defaults: defaults))
-		let (turn, notice) = try await failedNotice(model, after: "Recover this connection")
-		#expect(notice.action == nil)
+		await model.agreeAndStartChatting()
+		model.draft.text = "Recover this connection"
+		await model.send()
+		let turn = try await settledTurn(model)
+		guard case .failed(let failed) = turn.state else {
+			Issue.record("Expected the rejected connection to fail the turn")
+			return
+		}
+		#expect(failed.notice == nil)
 		try await model.waitForStatus { $0.access.attention == .rejectedKey }
 		await model.perform(try #require(model.status.access.notice?.action))
 		try await model.waitForStatus { $0.access.attention == nil }
