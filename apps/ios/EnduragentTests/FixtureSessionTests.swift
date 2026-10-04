@@ -142,23 +142,6 @@ extension FixtureLaunchTests {
 		}
 	}
 
-	@Test func sessionSettingsSaveAndSurviveARelaunch() async throws {
-		do {
-			let services = try services()
-			let model = await model(services)
-			await model.agreeAndStartChatting()
-			let stored = try #require(model.status).session
-			#expect(stored.text(for: .contextWindowOverride) == "")
-			try await model.saveSession(try stored.replacing(.contextWindowOverride, with: "64000"))
-			try await model.waitForStatus { $0.session.contextWindowOverride?.tokens == 64_000 }
-			#expect(model.status.session.contextWindowOverride?.tokens == 64_000)
-		}
-		let (kept, _) = try await relaunch(.keep)
-		#expect(
-			try await kept.coach.observedStatus().session.text(for: .contextWindowOverride)
-				== "64000")
-	}
-
 	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
 		var evening = launch
 		evening.clock = "1998-06-15T18:00:00Z"

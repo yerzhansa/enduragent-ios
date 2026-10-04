@@ -19,6 +19,7 @@ final class ComposerNavigationProof: XCTestCase {
 		let settingsChildren = [
 			("settings.credits", TutorialHarness.named(app, "credits.balance")),
 			("settings.training", TutorialHarness.named(app, "training.edit")),
+			("settings.session", TutorialHarness.named(app, "session.historyBudgetRatio.input")),
 		]
 		for (identifier, content) in settingsChildren {
 			TutorialHarness.openSettings(app)
@@ -33,7 +34,6 @@ final class ComposerNavigationProof: XCTestCase {
 		let debugChildren = [
 			("debug.records", TutorialHarness.named(app, "records.device")),
 			("debug.credits", TutorialHarness.named(app, "debug.credits.claimStarter")),
-			("debug.session", TutorialHarness.named(app, "session.historyBudgetRatio.stored")),
 			("debug.leases", app.navigationBars["Leases"]),
 		]
 		for (identifier, content) in debugChildren {

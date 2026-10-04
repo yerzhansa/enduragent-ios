@@ -515,6 +515,18 @@
     },
     "title": "Instellingen",
     "modelAccessTitle": "Modeltoegang",
+    "session": {
+      "title": "Sessie",
+      "contextWindow": {
+        "label": "Contextvenster",
+        "help": "Bovengrens voor de modelcontext. Laat leeg om de standaardwaarde te gebruiken.",
+        "default": "Standaard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
     "training": {
       "section": "Trainingsverbinding",
       "title": "intervals.icu",

@@ -515,6 +515,18 @@
     },
     "title": "Einstellungen",
     "modelAccessTitle": "Modellzugriff",
+    "session": {
+      "title": "Sitzung",
+      "contextWindow": {
+        "label": "Kontextfenster",
+        "help": "Obergrenze für den Modellkontext. Leer lassen, um den Standard zu verwenden.",
+        "default": "Standard"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "Token"
+      }
+    },
     "training": {
       "section": "Trainingsverbindung",
       "title": "intervals.icu",

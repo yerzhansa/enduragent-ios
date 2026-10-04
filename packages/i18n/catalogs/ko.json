@@ -514,6 +514,18 @@
       }
     },
     "modelAccessTitle": "모델 접근",
+    "session": {
+      "title": "세션",
+      "contextWindow": {
+        "label": "컨텍스트 창",
+        "help": "모델 맥락의 상한입니다. 기본값을 사용하려면 비워 두세요.",
+        "default": "기본값"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "토큰"
+      }
+    },
     "training": {
       "section": "훈련 연결",
       "title": "intervals.icu",

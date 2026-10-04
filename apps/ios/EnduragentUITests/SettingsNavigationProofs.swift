@@ -129,7 +129,6 @@ private enum SettingsNavigationScreen {
 			("debug.records", TutorialHarness.named(app, "records.device")),
 			("debug.credits", TutorialHarness.named(app, "debug.credits.claimStarter")),
 			("debug.language", TutorialHarness.named(app, "language.choice.automatic")),
-			("debug.session", TutorialHarness.named(app, "session.historyBudgetRatio.stored")),
 			("debug.leases", app.navigationBars["Leases"]),
 		]
 		for (identifier, content) in screens {
@@ -180,6 +179,8 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsModelAccessTitle))
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.training"), until: .hittable)
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsTrainingSection))
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.session"))
+		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsSessionTitle))
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.debug"), until: .hittable)
 
 	}

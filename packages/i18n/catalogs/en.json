@@ -2181,6 +2181,18 @@
       "unavailable": "Units preference unavailable"
     },
     "modelAccessTitle": "Model access",
+    "session": {
+      "title": "Session",
+      "contextWindow": {
+        "label": "Context window",
+        "help": "Upper limit on the model context. Leave empty to use the default.",
+        "default": "Default"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
     "training": {
       "section": "Training connection",
       "title": "intervals.icu",

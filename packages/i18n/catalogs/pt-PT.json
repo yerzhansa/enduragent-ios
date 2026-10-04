@@ -549,6 +549,18 @@
       "unavailable": "Preferência de unidades indisponível"
     },
     "modelAccessTitle": "Acesso ao modelo",
+    "session": {
+      "title": "Sessão",
+      "contextWindow": {
+        "label": "Janela de contexto",
+        "help": "Limite máximo do contexto do modelo. Deixa vazio para usar a predefinição.",
+        "default": "Predefinição"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "tokens"
+      }
+    },
     "training": {
       "section": "Ligação de treino",
       "title": "intervals.icu",

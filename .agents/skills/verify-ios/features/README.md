@@ -28,7 +28,6 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Credential fixture controls | `fixture.connection`, `fixture.failCredentialWrite`, `fixture.toggleKeychainLock` | Connection identity, failed write and lock/unlock hooks only. Product connection actions are Settings > intervals.icu. See [settings.md](./settings.md). |
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
-| Session | `debug.session` | History ratio and context-window override in `session.<field>.stored`, `.input`, `.save`, and `.outcome`. The destination title is `Session`. |
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
 | Fixture counters and prompt text | Rows on Debug itself | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 

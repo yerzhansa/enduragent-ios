@@ -514,6 +514,18 @@
       }
     },
     "modelAccessTitle": "模型存取",
+    "session": {
+      "title": "工作階段",
+      "contextWindow": {
+        "label": "上下文視窗",
+        "help": "模型上下文的上限。留空則使用預設值。",
+        "default": "預設"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "詞元"
+      }
+    },
     "training": {
       "section": "訓練連線",
       "title": "intervals.icu",

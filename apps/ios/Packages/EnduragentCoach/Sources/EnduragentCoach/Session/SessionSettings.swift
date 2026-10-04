@@ -22,7 +22,7 @@ public struct SessionSettings: Sendable, Equatable {
 		switch field {
 		case .historyBudgetRatio:
 			next.historyBudgetRatio = try HistoryBudgetRatio(
-				try Self.number(text, for: field))
+				try Self.number(text, for: field) / 100)
 		case .contextWindowOverride where Self.isBlank(text):
 			next.contextWindowOverride = nil
 		case .contextWindowOverride:
@@ -34,7 +34,7 @@ public struct SessionSettings: Sendable, Equatable {
 
 	public func text(for field: SessionField) -> String {
 		switch field {
-		case .historyBudgetRatio: String(historyBudgetRatio.value)
+		case .historyBudgetRatio: historyBudgetRatio.percentText
 		case .contextWindowOverride: contextWindowOverride.map { String($0.tokens) } ?? ""
 		}
 	}
@@ -75,6 +75,11 @@ public struct HistoryBudgetRatio: Sendable, Equatable {
 
 	private init(unchecked value: Double) {
 		self.value = value
+	}
+
+	fileprivate var percentText: String {
+		let percent = (value * 10_000_000_000).rounded() / 100_000_000
+		return percent == percent.rounded() ? String(Int(percent)) : String(percent)
 	}
 }
 

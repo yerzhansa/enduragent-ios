@@ -69,6 +69,8 @@ struct ChatView: View {
 						ModelPickerView(model: model)
 					case .training:
 						TrainingSettingsView(model: model, settings: model.trainingSettings)
+					case .session:
+						SessionSettingsView(model: model, session: model.sessionSettings)
 					#if DEBUG
 						case .debug:
 							SettingsDebugView(model: model)
@@ -81,8 +83,6 @@ struct ChatView: View {
 							RecordSyncDebugView(probe: model.services.coach.recordSyncProbe())
 						case .debugLanguage:
 							LanguageView(model: model)
-						case .session:
-							SessionDebugView(model: model)
 						case .debugLeases:
 							LeasesDebugView(leases: model.services.leases)
 					#endif
