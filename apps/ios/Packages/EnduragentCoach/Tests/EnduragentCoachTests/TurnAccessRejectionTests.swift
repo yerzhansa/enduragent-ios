@@ -140,15 +140,19 @@ extension TurnAccessTests {
 
 	@Test(arguments: [false, true])
 	func rejectionStorageFailureBlocksFurtherInvocations(readFailure: Bool) async throws {
-		let secrets = try openRouterSecrets()
+		let directory = try TestTemporaryFolders.make()
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		let secrets = try ICloudKeychainStore.fixture(directory: directory).store
+		try installOpenRouter(secrets)
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		let coach = await recoveryCoach(secrets, records: faults)
 		if readFailure {
 			faults.failNextFetch(in: .deviceLocal([.openRouterKeyRejected]))
-		} else {
-			try faults.failAppends(ofKind: "openRouterKeyRejected")
 		}
-		transport.respond = { _ in ScriptedReply([.fail(.http(status: 401))]) }
+		transport.respond = { _ in
+			if !readFailure { faults.failNextAppend = true }
+			return ScriptedReply([.fail(.http(status: 401))])
+		}
 		#expect(
 			failure(try await coach.sendAndSettle("Storage failed"))
 				== .model(.accessUnavailable(.recordStorageUnavailable)))
@@ -156,6 +160,20 @@ extension TurnAccessTests {
 		if !readFailure {
 			#expect(
 				failure(try await coach.sendAndSettle("Still blocked"))
+					== .model(.accessUnavailable(.openRouterKeyRejected)))
+			#expect(transport.requestCount == 1)
+			#expect(try await coach.observedStatus().access.attention == .rejectedKey)
+			let markers = try await store.fetch(
+				RecordQuery(scope: .deviceLocal([.openRouterKeyRejected])))
+			#expect(markers.records.map(\.body) == [.deviceLocal(.openRouterKeyRejected(.legacy))])
+			await coach.lifecycle(.willTerminate)
+			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
+			let next = await recoveryCoach(reopened)
+			#expect(try await next.observedStatus().access.attention == .rejectedKey)
+			#expect(try await next.observedStatus().access.notice?.action == .signInToOpenRouter)
+			#expect(await next.currentSnapshot(.main)?.turns.first?.athleteText == "Storage failed")
+			#expect(
+				failure(try await next.sendAndSettle("After storage recovery and reopening"))
 					== .model(.accessUnavailable(.openRouterKeyRejected)))
 			#expect(transport.requestCount == 1)
 		}
