@@ -110,7 +110,16 @@ import Testing
 		let transport = FakeModelTransport(respond: reply)
 		let records = InMemoryRecordLog()
 		let coach = await coach(fixture.store, transport: transport, records: records)
-		let previous = try await coach.observedStatus().access
+		let previousStatus = try await coach.observedStatus()
+		let previous = previousStatus.access
+		let saved = try fixture.store.accessSelection()
+		let consentQuery = RecordQuery(scope: .deviceLocal([.providerConsent]))
+		let consent = try await records.fetch(consentQuery).records
+		#expect(
+			replyText(try await coach.sendAndSettle("Before the change"))
+				== previous.model?.rawValue)
+		let request = try #require(transport.requests.last)
+		let requestCount = transport.requestCount
 		let candidate = try #require(catalog.orderedEntries.last)
 		fixture.backing.failWrites(
 			CredentialSlot.accessSelection.rawValue, with: errSecNotAvailable)
@@ -124,21 +133,35 @@ import Testing
 			try await coach.recordConsent(challenge)
 		}
 		#expect(try await coach.observedStatus().access.model == previous.model)
-		#expect(transport.requestCount == 0)
+		#expect(try fixture.store.accessSelection() == saved)
+		#expect(try await records.fetch(consentQuery).records == consent)
+		#expect(transport.requestCount == requestCount)
 		await coach.declineConsent(challenge)
-		try await coach.recordConsent()
+		#expect(try await coach.observedStatus().needsProviderConsent == false)
+		#expect(try await coach.observedStatus().acceptedConsent == previousStatus.acceptedConsent)
 		#expect(try await coach.observedStatus().access.selection == previous.selection)
 		#expect(
 			replyText(try await coach.sendAndSettle("Keep my previous model"))
 				== previous.model?.rawValue)
+		#expect(transport.requests.last?.model == request.model)
 		await coach.lifecycle(.willTerminate)
 		let reopened = try ICloudKeychainStore.fixture(directory: fixture.directory).store
 		let next = await self.coach(
 			reopened, transport: transport, records: records, consent: false)
 		#expect(try await next.observedStatus().access.selection == previous.selection)
+		#expect(try await next.observedStatus().needsProviderConsent == false)
+		#expect(try await records.fetch(consentQuery).records == consent)
 		#expect(
 			replyText(try await next.sendAndSettle("Still keep my previous model"))
 				== previous.model?.rawValue)
+		#expect(transport.requests.last?.model == request.model)
+		_ = try await choose(candidate.id, using: next)
+		#expect(try await next.observedStatus().access.modelChoices?.selected == candidate)
+		#expect(try await next.observedStatus().acceptedConsent?.target?.entry == candidate)
+		#expect(
+			replyText(try await next.sendAndSettle("Use the successful choice"))
+				== candidate.id.rawValue)
+		#expect(transport.requests.last?.model == candidate.id)
 		await next.lifecycle(.willTerminate)
 	}
 

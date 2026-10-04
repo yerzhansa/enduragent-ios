@@ -646,11 +646,13 @@ SavedWorkOutcome.savedUnverified
 SavedWorkOutcome.writesSaved
 SecretStore
 SecretStore.accessSelection()
+SecretStore.commitAccessSelection(at:)
 SecretStore.creditsAccount()
 SecretStore.delete(_:)
 SecretStore.deleteOpenRouterAccountKey(at:)
 SecretStore.intervalsConnection()
 SecretStore.openRouterAccountKey(at:)
+SecretStore.prepareAccessSelection(_:at:)
 SecretStore.prepareCreditsAccount()
 SecretStore.storeAccessSelection(_:)
 SecretStore.storeCreditsAccount(_:)

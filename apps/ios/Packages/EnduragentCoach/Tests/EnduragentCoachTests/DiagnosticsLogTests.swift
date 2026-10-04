@@ -189,7 +189,7 @@ private func detailLength(_ entry: DiagnosticsEntry) -> Int? {
 		return detail.count
 	case .secureStorageFailed, .toolFailed, .skippedRecord, .recoveryUnavailable,
 		.importsUnavailable,
-		.preferencesUnavailable,
+		.preferencesUnavailable, .consentUnavailable,
 		.evidenceUnavailable, .reviewOutcomeUnsaved, .settlementUnsaved, .reviewUnavailable:
 		return nil
 	}

@@ -116,12 +116,14 @@ GrantOutcome.minted
 GrantOutcome.toppedUp
 ICloudKeychainStore
 ICloudKeychainStore.accessSelection()
+ICloudKeychainStore.commitAccessSelection(at:)
 ICloudKeychainStore.creditsAccount()
 ICloudKeychainStore.delete(_:)
 ICloudKeychainStore.deleteOpenRouterAccountKey(at:)
 ICloudKeychainStore.init()
 ICloudKeychainStore.intervalsConnection()
 ICloudKeychainStore.openRouterAccountKey(at:)
+ICloudKeychainStore.prepareAccessSelection(_:at:)
 ICloudKeychainStore.prepareCreditsAccount()
 ICloudKeychainStore.storeAccessSelection(_:)
 ICloudKeychainStore.storeCreditsAccount(_:)

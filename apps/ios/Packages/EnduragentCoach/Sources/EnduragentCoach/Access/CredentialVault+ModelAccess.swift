@@ -102,7 +102,8 @@ extension CredentialVault {
 							.openRouter(
 								SavedOpenRouterReference(
 									credential: choice.credential, model: choice.model,
-									details: entry.details))))
+									details: entry.details)),
+							consentCommit: saved?.consentCommit))
 				}
 				return .replaced(
 					AccessSummary(selection: .openRouterAccount(choice)), authority: nil)

@@ -25,17 +25,23 @@ public struct ProviderConsent: Hashable, Sendable {
 	public let version: Int
 	public let at: Date
 	public let target: ConsentTarget?
+	package let selectionCommit: UUID?
 
-	package init(target: ConsentTarget, at: Date, version: Int = Self.currentVersion) {
+	package init(
+		target: ConsentTarget, at: Date, version: Int = Self.currentVersion,
+		selectionCommit: UUID? = nil
+	) {
 		self.version = version
 		self.at = at
 		self.target = target
+		self.selectionCommit = selectionCommit
 	}
 
 	package init(legacyAt at: Date, version: Int = 1) {
 		self.version = version
 		self.at = at
 		self.target = nil
+		self.selectionCommit = nil
 	}
 
 	package func authorizes(_ target: ConsentTarget) -> Bool {

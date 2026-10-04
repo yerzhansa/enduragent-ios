@@ -6,6 +6,7 @@ struct ProviderConsentPayload: Codable {
 	var method: AccessMethod?
 	var model: String?
 	var details: StoredModelDetails?
+	var selectionCommit: UUID?
 
 	init(_ consent: ProviderConsent) {
 		self.version = consent.version
@@ -13,6 +14,7 @@ struct ProviderConsentPayload: Codable {
 		self.method = consent.target?.method
 		self.model = consent.target?.entry.id.rawValue
 		self.details = consent.target.map { StoredModelDetails($0.entry.details) }
+		self.selectionCommit = consent.selectionCommit
 	}
 
 	func body() throws -> ProviderConsent {
@@ -26,7 +28,7 @@ struct ProviderConsentPayload: Codable {
 				method: method,
 				entry: try ModelCatalogEntry(
 					id: ModelID(rawValue: model), details: details.validated())),
-			at: date, version: version)
+			at: date, version: version, selectionCommit: selectionCommit)
 	}
 }
 

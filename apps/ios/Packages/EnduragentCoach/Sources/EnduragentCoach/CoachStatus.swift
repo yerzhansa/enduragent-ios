@@ -141,8 +141,7 @@ extension Coach {
 
 	private func statusSnapshot() async -> CoachStatus {
 		await vault.refreshRejections()
-		let consent = await preferences.consent()
-		let access = await vault.accessStatus(builtInModel: builtInModel, consent: consent)
+		let access = await preferences.accessStatus()
 		let preferences = await preferences.load()
 		let stored = await vault.storedTrainingStatus()
 		let training: TrainingStatus

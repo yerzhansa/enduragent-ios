@@ -64,9 +64,11 @@ public struct SavedAccessReference: Equatable, Sendable {
 	}
 
 	package let value: Value
+	package let consentCommit: UUID?
 
-	package init(_ value: Value) {
+	package init(_ value: Value, consentCommit: UUID? = nil) {
 		self.value = value
+		self.consentCommit = consentCommit
 	}
 }
 

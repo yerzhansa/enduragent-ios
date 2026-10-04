@@ -90,9 +90,12 @@ extension ProviderConsentTests {
 		#expect(transport.requests.last?.provider == last.details.provider)
 	}
 
-	@Test func aFailedProposalConsentWriteKeepsTheOldModel() async throws {
+	@Test(arguments: [false, true])
+	func aFailedProposalConsentWriteKeepsTheOldModel(restorationFails: Bool) async throws {
 		let backing = FixtureSecretStoreBacking()
-		let secrets = keyedSecrets(backing: backing)
+		let interrupted = InterruptedSecretStoreBacking(base: backing)
+		_ = keyedSecrets(backing: backing)
+		let secrets = ICloudKeychainStore(backing: interrupted)
 		let first = try #require(ModelCatalog.bundled.orderedEntries.first)
 		let last = try #require(ModelCatalog.bundled.orderedEntries.last)
 		try secrets.installOpenRouterChoice(
@@ -101,16 +104,80 @@ extension ProviderConsentTests {
 		let coach = namedCoach(secrets: secrets, log: log)
 		try await coach.recordConsent(try await challenge(coach))
 		let saved = try secrets.accessSelection()
+		let query = RecordQuery(scope: .deviceLocal([.providerConsent]))
+		let consent = try await store.fetch(query).records
 		_ = await coach.changeModelAccess(.selectOpenRouterModel(last.id))
 		let proposed = try await challenge(coach)
 		log.failNextAppend = true
+		if restorationFails { interrupted.stop(after: 1) }
+		await #expect(throws: ConsentWriteFailure.notSaved) {
+			try await coach.recordConsent(proposed)
+		}
+		#expect(try secrets.accessSelection() == saved)
+		#expect(try await store.fetch(query).records == consent)
+		#expect(transport.requestCount == 0)
+		await coach.declineConsent(proposed)
+		#expect(try await coach.observedStatus().needsProviderConsent == false)
+		let reopened = namedCoach(secrets: secrets, log: store)
+		#expect(try await reopened.observedStatus().needsProviderConsent == false)
+		#expect(try await reopened.observedStatus().access.model == first.id)
+		transport.respond = { request in
+			ScriptedReply([.text(request.model.rawValue), .finish(reason: .stop)])
+		}
+		#expect(
+			replyText(try await reopened.sendAndSettle("Keep the previous model"))
+				== first.id.rawValue)
+		#expect(transport.requests.last?.model == first.id)
+	}
+
+	@Test func failedConsentActivationReopensThePreviousChoiceAndCanBeRetried() async throws {
+		let directory = try TestTemporaryFolders.make()
+		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+		let fixture = try ICloudKeychainStore.fixture(directory: directory)
+		let interrupted = InterruptedSecretStoreBacking(base: fixture.backing)
+		let secrets = ICloudKeychainStore(backing: interrupted)
+		let first = try #require(ModelCatalog.bundled.orderedEntries.first)
+		let last = try #require(ModelCatalog.bundled.orderedEntries.last)
+		try secrets.installOpenRouterChoice(
+			model: first.id, key: "synthetic-commit-key", catalog: .bundled)
+		let records = try FixtureRecordStore(directory: directory, deviceId: store.deviceId)
+		let coach = namedCoach(secrets: secrets, log: records.store.log)
+		try await coach.recordConsent(try await challenge(coach))
+		let previous = try await coach.observedStatus()
+		let saved = try secrets.accessSelection()
+		_ = await coach.changeModelAccess(.selectOpenRouterModel(last.id))
+		let proposed = try await challenge(coach)
+		interrupted.stop(after: 1)
 		await #expect(throws: ConsentWriteFailure.notSaved) {
 			try await coach.recordConsent(proposed)
 		}
 		#expect(try secrets.accessSelection() == saved)
 		#expect(transport.requestCount == 0)
 		await coach.declineConsent(proposed)
-		#expect(try await coach.observedStatus().needsProviderConsent == false)
+		#expect(try await coach.observedStatus().acceptedConsent == previous.acceptedConsent)
+		await coach.lifecycle(.willTerminate)
+		let reopened = try ICloudKeychainStore.fixture(directory: directory).store
+		let reopenedRecords = try FixtureRecordStore(directory: directory, deviceId: store.deviceId)
+		let next = namedCoach(secrets: reopened, log: reopenedRecords.store.log)
+		#expect(try await next.observedStatus().access.model == first.id)
+		#expect(try await next.observedStatus().acceptedConsent == previous.acceptedConsent)
+		transport.respond = { request in
+			ScriptedReply([.text(request.model.rawValue), .finish(reason: .stop)])
+		}
+		#expect(
+			replyText(try await next.sendAndSettle("Keep the committed choice"))
+				== first.id.rawValue)
+		_ = await next.changeModelAccess(.selectOpenRouterModel(last.id))
+		try await next.recordConsent(try await challenge(next))
+		#expect(try await next.observedStatus().acceptedConsent?.target?.entry == last)
+		#expect(
+			replyText(try await next.sendAndSettle("Use the committed choice")) == last.id.rawValue)
+		_ = await next.changeModelAccess(.selectOpenRouterModel(last.id))
+		#expect(try await next.observedStatus().acceptedConsent?.target?.entry == last)
+		await next.lifecycle(.willTerminate)
+		let committed = namedCoach(secrets: reopened, log: reopenedRecords.store.log)
+		#expect(try await committed.observedStatus().access.model == last.id)
+		#expect(try await committed.observedStatus().acceptedConsent?.target?.entry == last)
 	}
 
 	@Test func toolContinuationRechecksTheAgreedRecipient() async throws {

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const steps = {
   signin: { test: 'OpenRouterSignInPhoneCheck/testHTTPSCallbackSavesConnection', sends: 0 },
+  pick: { test: 'OpenRouterRecoveryPhoneCheck/testPickCatalogModelInSettingsAndKeepAfterRelaunch', sends: 0, model: true },
   tool: { test: 'OpenRouterRecoveryPhoneCheck/testSelectedModelStreamsToolTurn', sends: 1, model: true },
   revoked: { test: 'OpenRouterRecoveryPhoneCheck/testRevokedKeyShowsOneRecoveryPrompt', sends: 1 },
   cancel: { test: 'OpenRouterRecoveryPhoneCheck/testCancelRecoveryKeepsRejectedConnection', sends: 0 },
@@ -16,12 +17,12 @@ const steps = {
 const [step, device, evidence] = process.argv.slice(2);
 const scenario = steps[step];
 if (process.argv.length !== 5 || !scenario || !device || !evidence) {
-  throw new Error('Usage: node .agents/skills/verify-ios/helpers/openrouter.mjs <signin|tool|revoked|cancel|recover|second-consent|locked> <device id> <new evidence folder>.');
+  throw new Error('Usage: node .agents/skills/verify-ios/helpers/openrouter.mjs <signin|pick|tool|revoked|cancel|recover|second-consent|locked> <device id> <new evidence folder>.');
 }
 if (!process.stdin.isTTY) throw new Error('An operator terminal is required before approval, build, launch or Send.');
 const root = realpathSync(fileURLToPath(new URL('../../../../', import.meta.url)));
 const folder = resolve(evidence);
-const build = '/tmp/enduragent-dd/U7-4b-phone';
+const build = '/tmp/enduragent-dd/U8-3-phone';
 const terminal = createInterface({ input: process.stdin, output: process.stdout });
 
 try {
@@ -36,9 +37,19 @@ try {
     ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED: 'yes',
   };
   if (scenario.model) {
-    const model = await terminal.question('After unit 8.3, select the live model by hand. Enter its exact saved model ID: ');
+    const model = await terminal.question(step === 'pick'
+      ? 'Enter a different catalog model ID to choose in Settings, with no Send: '
+      : 'Enter the exact saved model ID confirmed by the pick step: ');
     if (!model.trim()) throw new Error('No model choice confirmed. Stop.');
     environment.ENDURAGENT_OPENROUTER_MODEL = model.trim();
+  }
+  if (step === 'pick') {
+    environment.ENDURAGENT_OPENROUTER_MODEL_NAME = (await terminal.question('Target catalog model display name: ')).trim();
+    environment.ENDURAGENT_OPENROUTER_PROVIDER = (await terminal.question('Target catalog model hosting provider: ')).trim();
+    if (!environment.ENDURAGENT_OPENROUTER_MODEL_NAME || !environment.ENDURAGENT_OPENROUTER_PROVIDER) {
+      throw new Error('The catalog model name and provider were not supplied. Stop.');
+    }
+    console.log('The proof taps only that catalog row. If consent appears, read the named model and provider, then accept by hand. The choice must stay marked after relaunch. Nothing is sent.');
   }
   if (step === 'revoked') {
     const revoked = await terminal.question('Revoke only the current test key on OpenRouter by hand. Confirm the correct key and account. Type revoked to proceed: ');
