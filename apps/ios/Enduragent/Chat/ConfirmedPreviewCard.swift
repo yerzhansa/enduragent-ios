@@ -20,6 +20,9 @@ struct ConfirmedPreviewCard: View {
 					Text(model.phrasebook.say(notice.key, notice.vars))
 						.accessibilityIdentifier("chat.preview.notice")
 				}
+				if let outcome = model.reviewNotice {
+					ReviewOutcomeNotice(model: model, notice: outcome)
+				}
 				if !actions.isEmpty || !disabledButtons.isEmpty {
 					ViewThatFits(in: .horizontal) {
 						HStack { buttons }
@@ -98,6 +101,22 @@ struct ConfirmedPreviewCard: View {
 
 	private func say(_ key: CatalogKey) -> String {
 		model.phrasebook.say(key, [:])
+	}
+}
+
+struct ReviewOutcomeNotice: View {
+	var model: ShellModel
+	var notice: AthleteNotice
+
+	var body: some View {
+		Text(notice.sentence(in: model.displayLocale))
+			.accessibilityIdentifier("chat.review.notice")
+		ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
+			Button(model.phrasebook.say(action.title)) {
+				Task { await model.perform(action) }
+			}
+			.accessibilityIdentifier("chat.review.connect")
+		}
 	}
 }
 

@@ -53,18 +53,8 @@ struct TranscriptView: View {
 					if let review = model.chat?.review {
 						ConfirmedPreviewCard(model: model, review: review)
 							.fixedSize(horizontal: false, vertical: true)
-					}
-					if let notice = model.reviewNotice,
-						model.chat?.review?.notice?.kind != .storageUnavailable
-					{
-						Text(notice.sentence(in: model.displayLocale))
-							.accessibilityIdentifier("chat.review.notice")
-						ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
-							Button(model.phrasebook.say(action.title)) {
-								Task { await model.perform(action) }
-							}
-							.accessibilityIdentifier("chat.review.connect")
-						}
+					} else if let notice = model.reviewNotice {
+						ReviewOutcomeNotice(model: model, notice: notice)
 					}
 				}
 				.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
