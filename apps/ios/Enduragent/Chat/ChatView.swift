@@ -65,6 +65,8 @@ struct ChatView: View {
 						CreditsView(model: model)
 					case .accessMethod:
 						AccessMethodView(model: model)
+					case .modelPicker:
+						ModelPickerView(model: model)
 					case .training:
 						TrainingSettingsView(model: model, settings: model.trainingSettings)
 					#if DEBUG

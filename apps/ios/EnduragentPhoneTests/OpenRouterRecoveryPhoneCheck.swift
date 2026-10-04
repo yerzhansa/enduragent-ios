@@ -7,6 +7,60 @@
 		private var remaining = 0
 		private var actions: [String] = []
 
+		func testPickCatalogModelInSettingsAndKeepAfterRelaunch() throws {
+			try prepare(sends: 0)
+			let environment = ProcessInfo.processInfo.environment
+			guard let id = environment["ENDURAGENT_OPENROUTER_MODEL"], !id.isEmpty,
+				let name = environment["ENDURAGENT_OPENROUTER_MODEL_NAME"], !name.isEmpty,
+				let provider = environment["ENDURAGENT_OPENROUTER_PROVIDER"], !provider.isEmpty
+			else {
+				throw PhoneRunBlocked(
+					reason: "Supply the target catalog model ID, name and provider.")
+			}
+			let before = try progress()
+			TutorialHarness.openSettings(app)
+			try tap("settings.model")
+			let row = element("model.choice.\(id)")
+			TutorialHarness.scroll(app, to: row)
+			try wait("The target catalog row is not available.") { row.isHittable && row.isEnabled }
+			guard !row.isSelected else {
+				throw PhoneRunBlocked(
+					reason: "Choose a different catalog model to prove the change.")
+			}
+			XCTAssertTrue(row.label.contains(name))
+			XCTAssertTrue(row.label.contains(provider))
+			capture("model-before-choice")
+			row.tap()
+			try wait("The model choice did not save or show consent.") {
+				(row.exists && row.isSelected) || element("consent.body").exists
+			}
+			if element("consent.body").exists {
+				XCTAssertTrue(element("consent.body").label.contains(name))
+				XCTAssertTrue(element("consent.body").label.contains(provider))
+				capture("model-provider-consent")
+				actions.append(
+					"Operator reads and accepts the named provider disclosure by hand. No Send.")
+				try wait("The operator did not accept the selected provider.", seconds: 180) {
+					element("chat.composer").isHittable
+				}
+				TutorialHarness.openSettings(app)
+				try tap("settings.model")
+			}
+			XCTAssertTrue(element("model.choice.\(id)").isSelected)
+			capture("model-chosen")
+			TutorialHarness.returnToChat(app)
+			app.terminate()
+			try launchChat()
+			XCTAssertEqual(try progress(), before)
+			try assertModel()
+			TutorialHarness.openSettings(app)
+			try tap("settings.model")
+			TutorialHarness.scroll(app, to: element("model.choice.\(id)"))
+			XCTAssertTrue(element("model.choice.\(id)").isSelected)
+			capture("model-choice-reopened")
+			TutorialHarness.returnToChat(app)
+		}
+
 		func testSelectedModelStreamsToolTurn() throws {
 			try prepare(sends: 1)
 			try assertModel()

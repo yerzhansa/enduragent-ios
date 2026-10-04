@@ -6,6 +6,7 @@ Settings opens from the conversation toolbar. Credits lives under Model access. 
 
 - `settings-navigation` opens `chat.settings` after connected setup or Skip, and after relaunch. Back returns to the same conversation and draft.
 - `settings-model-access` contains `settings.credits`, which opens the existing Credits screen. Both Buy buttons remain disabled.
+- `settings-model-choice` contains `settings.model` only when the access snapshot supplies OpenRouter model choices. It opens the catalog-only picker with the saved row marked. A selected model omitted by a newer catalog keeps its stored name and provider. Rows send the existing model-selection intent; another provider uses the existing consent route before committing the choice.
 - `settings-debug` contains `settings.debug` in Debug builds only. Records, Credits diagnostics, Language, Session, Leases, and fixture controls remain reachable.
 - `settings-sections` contains Model access, Training connection and the Debug entry. Further sections appear only when they have rows, with Language and Session after Training connection. Notifications, Diagnostics, Feedback, About, and Your data have no row or section.
 - `settings-toolbar-language` uses catalog labels on icon buttons at 390 pt iPhone width. History uses `archive.history` for both the toolbar label and screen title. French actions have no drawn text, overlap, or frame overflow.
@@ -41,12 +42,19 @@ Follow the [index](./README.md) setup. Use a 390 pt wide iPhone. The helper sets
 | `sim.mjs test <run id> UnconnectedCalendarProof UnconnectedCalendarDarkProof` | Add to calendar gives missing-connection guidance and a working Connect route to Settings. `unconnected-calendar-notice`, `unconnected-calendar-connect`. |
 | `sim.mjs test <run id> CoalesceProof StarterCreditsProof NoticeCopyProof` | Records stays open, Credits diagnostics remains hittable, and one Back from notice recovery returns to the conversation. |
 | `sim.mjs test <run id> CreditsProof HistoryListProof HistoryArchivedProof NewConversationProof SlashStartProof ResetKeepsReviewProof` | Existing Credits, read-only History, both New conversation entries, and a reset with a pending workout review use the new routes. |
+| `sim.mjs test <run id> ModelPickerProof` | Proves catalog selection and relaunch, newer and omitted-selected refreshes, malformed/stale/offline/empty retention with tappable rows and replies, no picker under Credits, leaving and failed writes, and named provider consent before acceptance or decline. Attachments start with `model-picker-` and end with the appearance. The Milestone 2 proof agent runs this same class in light and dark. The helper forces light for this class, so the dark run uses the agent's owned simulator and explicit dark appearance with `xcodebuild test-without-building -only-testing:EnduragentUITests/ModelPickerProof`. |
 
 Each training attachment above ends with `light` or `dark`. Resolved fixture identity is Ada Kovač, Fitness 42, Fatigue 49, Form -7.
 
 The hosted `TrainingStorageTests` suite covers missing, locked, temporarily unavailable and malformed training storage, retained conversation after relaunch, the shared malformed-training notice route, and retry or Replace through ShellModel.
 
 The hosted `TrainingSettingsTests` suite covers editor persistence, receipt truth, next-turn account, confirmations and notice routing through ShellModel. `SingleProposalReviewsTests.unconnectedApprovalOffersConnectWithoutDispatch` proves that an unconnected Add records no write intent or dispatch.
+
+The hosted `ModelPickerTests` suite drives `ShellModel.chooseModel`, status observation and reopened stores. It covers a saved same-provider choice, leaving or failed selection writes, and accepted, declined or failed provider proposals through the existing consent route. Package `ModelChoiceTests`, `ModelCatalogRefreshTests` and `ProviderConsentTests` own model-request identity, cache persistence and request gating.
+
+Picker handles are `settings.model`, `model.choices`, `model.choice.<catalog model ID>` and `model.notice`. Fixture-only `fixture.catalogState` reports `bundled` or `downloaded` followed by `available`, `refreshing`, or `retained <issue>`. Launch with `-EnduragentFixtureAccess catalog-openrouter` and `-EnduragentFixtureCatalog newer`, `omitted-selected-model`, `malformed`, `stale`, `offline`, `empty`, or `held`. `-EnduragentFixtureStore keep` preserves catalog and selection. `-EnduragentFixtureCredentialWrite fail-selection` targets the selection item. Picker model names and providers come from validated catalog entries, not typed IDs.
+
+During the real-phone session run the guarded OpenRouter helper's `signin`, `pick`, then `tool` steps. `pick` requires the exact catalog ID, display name and hosting provider and sends zero messages. It taps that catalog row, waits for the operator to read and accept any provider disclosure, then checks the mark and saved ID after relaunch. `tool` needs a fresh one-message budget and the ID confirmed by `pick`. Keep live sign-in, selection and a completed tool-backed turn pending while the operator is away.
 
 Both Settings classes also run `testEveryDebugDestinationReturnsToDebug`. They open all five Debug destinations, capture each screen, and check that one Back returns to Debug. The Credits steps check that one Back returns to Settings.
 
