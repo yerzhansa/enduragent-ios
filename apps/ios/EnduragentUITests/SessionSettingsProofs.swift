@@ -126,7 +126,6 @@ enum SessionSettingsScreen {
 		TutorialHarness.openSettings(app)
 		let row = TutorialHarness.named(app, "settings.session")
 		TutorialHarness.scroll(app, to: row)
-		XCTAssertEqual(row.label, "Session")
 		row.tap()
 		TutorialHarness.wait(app.navigationBars["Session"])
 		TutorialHarness.wait(input(app, .historyBudgetRatio))

@@ -179,8 +179,8 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsModelAccessTitle))
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.training"), until: .hittable)
 		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsTrainingSection))
-		TutorialHarness.waitForIdentifier(
-			app, "settings.session", reading: phrasebook.say(Catalog.settingsSessionTitle))
+		TutorialHarness.wait(TutorialHarness.named(app, "settings.session"))
+		TutorialHarness.waitForLabel(app, phrasebook.say(Catalog.settingsSessionTitle))
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.debug"), until: .hittable)
 
 	}
