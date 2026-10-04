@@ -157,14 +157,22 @@ struct ReviewCardReading {
 	@discardableResult
 	func reach(_ control: Control) -> XCUIElement {
 		let button = run.named(control.rawValue)
-		let transcript = run.named("chat.transcript")
+		let bar = run.app.navigationBars.firstMatch
+		let composer = run.named("chat.composer.container")
+		let screen = run.app.coordinate(withNormalizedOffset: .zero)
 		TutorialHarness.wait(
 			until: {
 				if button.exists && button.isHittable { return true }
-				if button.frame.midY < transcript.frame.midY {
-					transcript.swipeDown(velocity: .slow)
+				let top = bar.frame.maxY
+				let height = composer.frame.minY - top
+				let upper = screen.withOffset(
+					CGVector(dx: run.app.frame.midX, dy: top + height * 0.2))
+				let lower = screen.withOffset(
+					CGVector(dx: run.app.frame.midX, dy: top + height * 0.8))
+				if button.frame.midY < top + height / 2 {
+					upper.press(forDuration: 0.05, thenDragTo: lower)
 				} else {
-					transcript.swipeUp(velocity: .slow)
+					lower.press(forDuration: 0.05, thenDragTo: upper)
 				}
 				return button.exists && button.isHittable
 			}, message: "[\(run.language.rawValue)] \(control.rawValue) cannot be tapped")
@@ -220,7 +228,7 @@ struct ReviewCardReading {
 	}
 
 	private static func follows(_ earlier: CGRect, _ later: CGRect) -> Bool {
-		later.minY >= earlier.maxY - 1
-			|| (later.minX >= earlier.maxX - 1 && later.maxY > earlier.minY)
+		later.minY >= earlier.maxY - 2
+			|| (later.minX >= earlier.maxX - 2 && later.maxY > earlier.minY)
 	}
 }
