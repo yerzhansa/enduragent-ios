@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Entsperre dein iPhone, um fortzufahren. Deine Nachricht ist gespeichert.",
       "notConfigured": "Wähle, wie der Coach auf ein Modell zugreift, um fortzufahren.",
+      "requestBlocked": "OpenRouter hat diese Anfrage blockiert. Versuche ein anderes Modell oder eine andere Nachricht.",
       "providerConsentRequired": "Deine Zustimmung ist erforderlich, bevor Chatdaten mit KI-Anbietern geteilt werden.",
       "openRouterFunds": "Dein OpenRouter-Konto hat kein Guthaben mehr. Lade bei OpenRouter Guthaben auf oder wechsle zu Guthabenpunkten.",
       "storageUnavailable": "Der sichere Speicher ist vorübergehend nicht verfügbar. Deine gespeicherten Coaching-Informationen sind noch vorhanden. Versuche es erneut.",

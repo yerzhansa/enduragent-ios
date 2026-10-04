@@ -44,7 +44,7 @@ struct BillingRouteTests {
 			#expect(model.chat?.turns == saved.turns)
 		}
 		for action in [
-			RecoveryAction.buyCredits, .restoreCredits, .chooseAccessMethod, .signInToOpenRouter,
+			RecoveryAction.buyCredits, .restoreCredits, .chooseAccessMethod,
 		] {
 			model.navigation.removeAll()
 			await model.perform(action)
@@ -92,7 +92,11 @@ struct BillingRouteTests {
 			return
 		}
 		let action: RecoveryAction = method == .credits ? .buyCredits : .signInToOpenRouter
-		#expect(failure.notice.action == action)
+		#expect(failure.notice.action == (method == .credits ? action : nil))
+		if method == .openRouter {
+			try await model.waitForStatus { $0.access.attention == .rejectedKey }
+			#expect(model.status.access.notice?.action == action)
+		}
 		#expect(
 			failure.notice.key
 				== (method == .credits

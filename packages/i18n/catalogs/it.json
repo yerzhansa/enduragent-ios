@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Sblocca il tuo iPhone per continuare. Il tuo messaggio è salvato.",
       "notConfigured": "Scegli come il coach accede a un modello per continuare.",
+      "requestBlocked": "OpenRouter ha bloccato questa richiesta. Prova un altro modello o messaggio.",
       "providerConsentRequired": "È necessario il tuo consenso prima di condividere i dati della chat con i fornitori di IA.",
       "openRouterFunds": "Il tuo conto OpenRouter ha esaurito i fondi. Aggiungi fondi su OpenRouter oppure passa ai Crediti.",
       "storageUnavailable": "L'archivio sicuro è temporaneamente indisponibile. Le tue informazioni di coaching salvate sono ancora qui. Riprova.",

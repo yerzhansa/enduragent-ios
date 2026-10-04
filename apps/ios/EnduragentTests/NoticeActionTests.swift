@@ -56,15 +56,21 @@ extension FixtureLaunchTests {
 		#expect(model.navigation == [.accessMethod])
 	}
 
-	@Test func signInToOpenRouterOpensAccessMethod() async throws {
-		let model = await model(try services())
-		await model.agreeAndStartChatting()
-		model.open(.settings)
-		let previous = model.status.access
-		await model.perform(.signInToOpenRouter)
+	@Test func rejectedOpenRouterStartsSignInWithoutOpeningSettings() async throws {
+		var launch = launch
+		launch.accessMethod = .rejectedOpenRouter
+		launch.signInOutcome = .success
+		let model = await model(try fixtureServices(launch, defaults: defaults))
+		let (turn, notice) = try await failedNotice(model, after: "Recover this connection")
+		#expect(notice.action == nil)
+		try await model.waitForStatus { $0.access.attention == .rejectedKey }
+		await model.perform(try #require(model.status.access.notice?.action))
+		try await model.waitForStatus { $0.access.attention == nil }
 		#expect(model.route == .chat)
-		#expect(model.navigation == [.settings, .accessMethod])
-		#expect(model.status.access == previous)
+		#expect(model.navigation.isEmpty)
+		#expect(model.chat?.turns.first?.id == turn.id)
+		let fixture = try #require(model.services.fixture)
+		#expect(await fixture.openRouterAuthorizer.requests.count == 1)
 	}
 
 	@Test func lockedKeychainKeepsTheMessageAndOffersTryAgain() async throws {

@@ -179,3 +179,16 @@ for (const [label, env, expected] of [
     }
   });
 }
+
+test('OpenRouter phone helper requires an operator terminal before approval or launch', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'enduragent-openrouter-guard-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const evidence = join(directory, 'evidence');
+  const helper = resolve('.agents/skills/verify-ios/helpers/openrouter.mjs');
+  const result = spawnSync(process.execPath, [helper, 'tool', 'synthetic-device', evidence], {
+    encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 30000,
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /An operator terminal is required before approval, build, launch or Send/);
+  assert.equal(existsSync(evidence), false);
+});

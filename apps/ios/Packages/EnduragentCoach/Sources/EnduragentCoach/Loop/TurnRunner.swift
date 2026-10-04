@@ -52,7 +52,7 @@ package struct TurnRunner: Sendable {
 	private static let droppedMessageLimit = 1_024
 
 	let transport: any ModelTransport
-	let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void
+	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
 	private let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
@@ -70,7 +70,7 @@ package struct TurnRunner: Sendable {
 		evidence: any TurnEvidence,
 		reviews: SingleProposalReviews,
 		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
-		authorizeInvocation: @escaping @Sendable (CompletionRequest) async throws -> Void
+		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void
 	) {
 		self.authorizeInvocation = authorizeInvocation
 		self.transport = transport

@@ -32,6 +32,8 @@
 	enum FixtureAccessMethod: String, CaseIterable {
 		case credits
 		case openRouter = "openrouter"
+		case missingOpenRouter = "missing-openrouter"
+		case rejectedOpenRouter = "rejected-openrouter"
 		case syncedOpenRouter = "synced-openrouter"
 		case creditsNeedsSetup = "credits-needs-setup"
 		case openRouterNeedsCredits = "openrouter-needs-credits"

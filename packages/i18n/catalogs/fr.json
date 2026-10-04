@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Déverrouille ton iPhone pour continuer. Ton message est enregistré.",
       "notConfigured": "Choisis comment le coach accède à un modèle pour continuer.",
+      "requestBlocked": "OpenRouter a bloqué cette demande. Essaie un autre modèle ou message.",
       "providerConsentRequired": "Ton autorisation est nécessaire avant de partager les données de la conversation avec des fournisseurs d’IA.",
       "openRouterFunds": "Ton compte OpenRouter n’a plus de fonds. Ajoute des fonds sur OpenRouter ou passe aux Crédits.",
       "storageUnavailable": "Le stockage sécurisé est temporairement indisponible. Vos informations de coaching enregistrées sont toujours là. Réessayez.",

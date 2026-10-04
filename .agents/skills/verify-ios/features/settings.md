@@ -70,3 +70,5 @@ The device-only native persistence test uses the dedicated phone proof build to 
 - The Settings proof checks fixture connection identity and zero blocked network requests. It does not prove live credentials or cross-device sync.
 - The physical `PhoneRun` uses the new History and Settings > Credits routes. Its message budget and device approval requirements still apply.
 - A task that forbids simulators can build these proofs and check their inventory. Their screenshots and runtime results remain pending until the simulator runner executes them.
+
+`OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. Run both classes in light and dark. The guarded live procedure is in the skill's real-phone OpenRouter recovery section.

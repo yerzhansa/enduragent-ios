@@ -2950,6 +2950,7 @@
     "error": {
       "locked": "계속하려면 iPhone의 잠금을 해제하세요. 메시지는 저장되어 있습니다.",
       "notConfigured": "계속하려면 코치가 모델에 연결하는 방법을 선택하세요.",
+      "requestBlocked": "OpenRouter가 이 요청을 차단했습니다. 다른 모델이나 메시지를 시도해 보세요.",
       "providerConsentRequired": "채팅 데이터를 AI 제공업체와 공유하기 전에 동의가 필요합니다.",
       "openRouterFunds": "OpenRouter 계정의 잔액이 부족합니다. OpenRouter에서 충전하거나 크레딧으로 전환하세요.",
       "storageUnavailable": "보안 저장소를 일시적으로 사용할 수 없습니다. 저장된 코칭 정보는 그대로 있습니다. 다시 시도하세요.",

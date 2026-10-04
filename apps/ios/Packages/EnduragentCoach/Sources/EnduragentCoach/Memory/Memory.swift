@@ -5,7 +5,7 @@ package struct Memory: Sendable {
 		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
 	])
 
-	let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void
+	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
 	let ledger: Ledger
 	let clock: any Clock
 	let watchdogSleep: @Sendable (Duration) async throws -> Void
@@ -13,7 +13,7 @@ package struct Memory: Sendable {
 	package init(
 		ledger: Ledger, clock: any Clock,
 		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
-		authorizeInvocation: @escaping @Sendable (CompletionRequest) async throws -> Void = { _ in
+		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void = { _ in
 			throw AccessUnavailable.providerConsentRequired
 		}
 	) {

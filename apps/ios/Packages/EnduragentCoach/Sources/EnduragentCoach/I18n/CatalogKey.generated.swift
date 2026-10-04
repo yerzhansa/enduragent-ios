@@ -4,6 +4,7 @@ public enum Catalog {
 	public static let accessErrorNotConfigured = CatalogKey(rawValue: "access.error.notConfigured")
 	public static let accessErrorOpenRouterFunds = CatalogKey(rawValue: "access.error.openRouterFunds")
 	public static let accessErrorProviderConsentRequired = CatalogKey(rawValue: "access.error.providerConsentRequired")
+	public static let accessErrorRequestBlocked = CatalogKey(rawValue: "access.error.requestBlocked")
 	public static let accessErrorStorageUnavailable = CatalogKey(rawValue: "access.error.storageUnavailable")
 	public static let accessOpenRouterAccount = CatalogKey(rawValue: "access.openRouterAccount")
 	public static let accessSignIn = CatalogKey(rawValue: "access.signIn")

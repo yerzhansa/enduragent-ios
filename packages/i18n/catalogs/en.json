@@ -3,6 +3,7 @@
     "error": {
       "locked": "Unlock your iPhone to continue. Your message is saved.",
       "notConfigured": "Choose how the coach reaches a model to continue.",
+      "requestBlocked": "OpenRouter blocked this request. Try a different model or message.",
       "providerConsentRequired": "Your permission is needed before sharing chat data with AI providers.",
       "openRouterFunds": "Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
       "storageUnavailable": "Secure storage is temporarily unavailable. Your saved coaching information is still here. Try again.",

@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Lås opp iPhonen for å fortsette. Meldingen din er lagret.",
       "notConfigured": "Velg hvordan treneren får tilgang til en modell for å fortsette.",
+      "requestBlocked": "OpenRouter blokkerte denne forespørselen. Prøv en annen modell eller melding.",
       "providerConsentRequired": "Ditt samtykke kreves før chatdata deles med KI-leverandører.",
       "openRouterFunds": "OpenRouter-kontoen din er tom for penger. Fyll på hos OpenRouter, eller bytt til kreditter.",
       "storageUnavailable": "Sikker lagring er midlertidig utilgjengelig. Den lagrede treningsinformasjonen din er fortsatt her. Prøv igjen.",

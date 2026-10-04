@@ -20,7 +20,7 @@
 
 		static func install(_ method: FixtureAccessMethod, on secrets: ICloudKeychainStore) throws {
 			switch method {
-			case .credits, .openRouter, .syncedOpenRouter:
+			case .credits, .openRouter, .syncedOpenRouter, .missingOpenRouter, .rejectedOpenRouter:
 				try install(on: secrets)
 			case .creditsNeedsSetup, .openRouterNeedsCredits:
 				_ = try secrets.prepareCreditsAccount()
@@ -34,9 +34,12 @@
 				try secrets.installOpenRouterChoice(
 					model: entry.id, key: openRouterKey, catalog: .bundled)
 			}
-			if method == .openRouter || method == .openRouterNeedsCredits {
+			if [.openRouter, .openRouterNeedsCredits, .missingOpenRouter, .rejectedOpenRouter]
+				.contains(method)
+			{
 				try secrets.installOpenRouterChoice(model: openRouterModel, key: openRouterKey)
 			}
+			if method == .missingOpenRouter { try secrets.deleteOpenRouterAccountKey(at: .legacy) }
 		}
 
 		static func install(_ outcome: FixtureCreditsOutcome, on credits: FakeCreditsClient) {

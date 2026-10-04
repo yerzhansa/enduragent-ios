@@ -202,6 +202,32 @@ xcrun xcresulttool export attachments --path "$OPENROUTER_PHONE_RUN/openrouter.x
 
 `OPENROUTER_PHONE_TEST` is either `testHTTPSCallbackSavesConnection` or `testCancelKeepsPreviousAccessForNextTurn`. Check that exactly that test passed without a skip. Inspect every exported screenshot before declaring the criterion passed. Record the signed build, domain setup, selected method before and after, messages used, failed step and state left on the phone. Keep private evidence in the operator's local folder. Remove this run's build products under `/tmp/enduragent-dd/U7-3` afterward.
 
+### Prove OpenRouter recovery, selected model, sync and phone lock
+
+Unit U7-4b adds `EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and `helpers/openrouter.mjs`. G34 keeps every step pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`, each run in light and dark. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
+
+After unit 8.3, use the signed plain install, English, two updated iPhones on the same Apple ID, iCloud Keychain enabled, a working intervals.icu connection and an OpenRouter account with usable funds. The operator configures and verifies the associated domain as above. Do not put a key, code, verifier or athlete ID in launch arguments. Nothing in this procedure runs while the operator is away.
+
+Before every invocation the interactive helper asks for a fresh message budget and explicit acknowledgement of automatic usage charges. It refuses a non-interactive terminal and an insufficient budget before build, launch or Send. Every Send consumes one slot. The planned minimum is zero for sign-in, cancel, recovery and second-phone consent, and one for each tool, revoked-key or locked-turn step. No Try again, New conversation, purchase or calendar Add. A failed invocation stops, records its Sends and phone state, and requires a fresh budget before another run.
+
+At every OpenRouter page automation stops all interaction. The operator handles the system permission alert, verifies `openrouter.ai` and Enduragent, and signs in, approves, cancels or revokes by hand. XCTest captures the page and waits at most 180 seconds for the operator's action. It enters no credentials and taps nothing in the browser. Never treat a missing callback, cancellation, sync or lock screenshot as a pass.
+
+Run one step at a time, with a new local evidence folder each time:
+
+```sh
+node .agents/skills/verify-ios/helpers/openrouter.mjs <step> <device id> <new local evidence folder>
+```
+
+1. `signin` runs the existing HTTPS callback proof from Credits and saves the OpenRouter choice without a Send. Inspect the signed-domain handoff and retained conversation. Separately run the existing previous-access cancellation proof above once from Credits and once from OpenRouter with its own budget for each.
+2. After 8.3, pick a model by hand in Settings. `tool` asks for its exact model ID and one Send. Debug must show that saved model ID. The response must stream and include an intervals.icu tool call, exposed by `chat.toolProgress`, and finish without a notice. Inspect the response, earlier messages, OpenRouter usage and unchanged Credits.
+3. `revoked` asks the operator to revoke the current test key by hand on OpenRouter, then sends one message. It must show one status-owned Sign in again action, retain the message and keep the recovery prompt after relaunch. It must make no automatic or Credits request. Check the OpenRouter dashboard and Credits manually.
+4. `cancel` taps Sign in again once, stops at the OpenRouter page and waits for the operator to cancel the system sheet. The rejected-key prompt and conversation stay. It sends nothing.
+5. `recover` taps Sign in again once and stops at the page for the operator to sign in and approve. The prompt disappears, the saved model stays, and the conversation survives relaunch. Run `tool` again with a fresh one-message budget and verify a streamed tool-backed turn in the same conversation.
+6. On the second updated phone, `second-consent` requires its first disclosure of the synced choice. Supply the source phone's exact model display name and named provider. The disclosure must name OpenRouter, that model and that provider before any request. Decline and relaunch must still require consent. The operator accepts by hand, then runs `tool` on the receiver with a fresh budget and the source model ID. Verify the saved selection/model and actual successful use of the synced key. A mock or one-phone result cannot close this gate.
+7. `locked` needs a fresh one-message budget and the selected model ID. Start the turn while unlocked, then physically lock the phone while the turn is working. Keep it locked until coaching finishes, then unlock. Inspect `operator-locked-phone`, the completed reply and tool evidence after unlocking. Home or temporary inactivity does not prove locked Keychain access. Leave this gate pending unless the screenshot and the operator's observation prove an actual lock during the turn.
+
+The helper saves the approval, xcodebuild log, result summary, screenshots, accessibility transcripts and operator verdict locally. Check exactly one test passed with no skip and inspect every attachment. Its build products stay under `/tmp/enduragent-dd/U7-4b-phone` and are removed after the run. Report signed builds, domain setup, both devices' update/sync state, selected model/provider, Sends used and remaining budget, failed step and state left on each phone. Live model picking, real revocation, two-phone sync and locked-phone use remain open completion gates until these steps pass.
+
 ### Prove native training persistence on one phone
 
 Unit U4-5 adds `EnduragentKeychainProof` and `EnduragentPhoneTests/TrainingKeychainDeviceProof`. This device-only proof pairs native `ICloudKeychainStore` with the existing fake model, Credits and intervals.icu ports. It proves native persistence, not live service authentication or two-device synchronization. Keep criteria 1 and 4 and the timing evidence pending until the operator runs it.

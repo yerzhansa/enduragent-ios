@@ -100,15 +100,17 @@ extension CreditsClientTests {
 					try await coach.send(draft("Plan a ride"), to: .main).acceptedTurn)
 				let rejected = try #require(await coach.settledState(of: turn, in: .main))
 				#expect(failure(rejected) == .model(.credentialRejected(.openRouterAccount)))
-				#expect(turnNotice(of: rejected)?.action == .signInToOpenRouter)
+				#expect(turnNotice(of: rejected)?.action == nil)
+				#expect(
+					try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
 				try await coach.retry(turn, in: .main)
 				#expect(
 					failure(try #require(await coach.settledState(of: turn, in: .main)))
-						== .model(.credentialRejected(.openRouterAccount)))
+						== .model(.accessUnavailable(.openRouterKeyRejected)))
 				#expect(
 					failure(try await coach.sendAndSettle("Try another ride"))
-						== .model(.credentialRejected(.openRouterAccount)))
-				try #require(transport.requestCount == 3)
+						== .model(.accessUnavailable(.openRouterKeyRejected)))
+				try #require(transport.requestCount == 1)
 				try assertRequests(transport, method: .openRouterAccount)
 				saved = try await snapshot(coach)
 				await coach.lifecycle(.willTerminate)
@@ -121,8 +123,8 @@ extension CreditsClientTests {
 			#expect(try await snapshot(reopened).turns == saved.turns)
 			#expect(
 				failure(try await reopened.sendAndSettle("Try after reopening"))
-					== .model(.credentialRejected(.openRouterAccount)))
-			try assertRequests(transport, method: .openRouterAccount)
+					== .model(.accessUnavailable(.openRouterKeyRejected)))
+			#expect(transport.requestCount == 0)
 			#expect(try secrets.creditsAccount() == original)
 			#expect(try secrets.openRouterAccountKey(at: .legacy) == accountKey)
 			#expect(try secrets.accessSelection() == accountSelection)

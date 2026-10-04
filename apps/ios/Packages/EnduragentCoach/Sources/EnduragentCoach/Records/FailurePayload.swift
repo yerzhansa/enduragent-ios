@@ -20,6 +20,8 @@ struct FailurePayload: Codable {
 		switch failure {
 		case .credentialRejected(let method):
 			return ("credentialRejected", method.rawValue)
+		case .requestBlocked:
+			return ("requestBlocked", nil)
 		case .accessExhausted(let method):
 			return ("accessExhausted", method.rawValue)
 		case .rateLimited(let wait):
@@ -38,6 +40,8 @@ struct FailurePayload: Codable {
 			return ("accessUnavailable", Self.notConfiguredPrefix + method.rawValue)
 		case .accessUnavailable(.trainingIdentityUnverified(let failure)):
 			return ("trainingIdentityUnverified", failure.rawValue)
+		case .accessUnavailable(.openRouterKeyRejected):
+			return ("accessUnavailable", "openRouterKeyRejected")
 		case .accessUnavailable(.providerConsentRequired):
 			return ("accessUnavailable", "providerConsentRequired")
 		case .accessUnavailable(.secureStorageLocked):
@@ -58,6 +62,8 @@ struct FailurePayload: Codable {
 		switch (domain, code) {
 		case ("model", "credentialRejected"):
 			return .model(.credentialRejected(try method()))
+		case ("model", "requestBlocked"):
+			return .model(.requestBlocked)
 		case ("model", "accessExhausted"):
 			return .model(.accessExhausted(try method()))
 		case ("model", "rateLimited"):
@@ -113,6 +119,8 @@ struct FailurePayload: Codable {
 
 	private func accessUnavailable() throws -> AccessUnavailable {
 		switch detail {
+		case "openRouterKeyRejected":
+			return .openRouterKeyRejected
 		case "providerConsentRequired":
 			return .providerConsentRequired
 		case "secureStorageLocked":

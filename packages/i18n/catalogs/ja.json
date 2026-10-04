@@ -2950,6 +2950,7 @@
     "error": {
       "locked": "続けるにはiPhoneのロックを解除してください。メッセージは保存されています。",
       "notConfigured": "続けるには、コーチがモデルに接続する方法を選んでください。",
+      "requestBlocked": "OpenRouterがこのリクエストをブロックしました。別のモデルやメッセージを試してください。",
       "providerConsentRequired": "チャットのデータをAIプロバイダーと共有する前に、あなたの許可が必要です。",
       "openRouterFunds": "OpenRouterアカウントの残高が不足しています。OpenRouterで入金するか、クレジットに切り替えてください。",
       "storageUnavailable": "安全なストレージを一時的に利用できません。保存されたコーチング情報は残っています。もう一度お試しください。",

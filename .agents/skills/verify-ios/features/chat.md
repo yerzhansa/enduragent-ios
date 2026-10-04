@@ -192,3 +192,5 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
 - Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
 - Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.
+
+`OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. Run both classes in light and dark. The guarded live procedure is in the skill's real-phone OpenRouter recovery section.

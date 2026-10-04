@@ -8,9 +8,9 @@ import Testing
 		(401, "openrouter-unauthorized"),
 		(403, "openrouter-forbidden"),
 	])
-	func rejectedKeyIsCredentialRejected(status: Int, body: String) async throws {
+	func unauthorizedAndForbiddenHaveDifferentRecovery(status: Int, body: String) async throws {
 		let failure = try await failure(of: .reply(.json(status, try fixture(body, ext: "json"))))
-		#expect(failure == .credentialRejected(status: status))
+		#expect(failure == (status == 401 ? .credentialRejected(status: status) : .requestBlocked))
 	}
 
 	@Test func status402IsAccessExhausted() async throws {

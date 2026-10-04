@@ -84,8 +84,38 @@
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
+            key = "ENDURAGENT_OPENROUTER_MODEL"
+            value = "$(ENDURAGENT_OPENROUTER_MODEL)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_OPENROUTER_MODEL_NAME"
+            value = "$(ENDURAGENT_OPENROUTER_MODEL_NAME)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_OPENROUTER_PROVIDER"
+            value = "$(ENDURAGENT_OPENROUTER_PROVIDER)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_OPENROUTER_REVOKED"
+            value = "$(ENDURAGENT_OPENROUTER_REVOKED)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED"
+            value = "$(ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "ENDURAGENT_PHONE_MESSAGE_BUDGET"
             value = "$(ENDURAGENT_PHONE_MESSAGE_BUDGET)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ENDURAGENT_SECOND_PHONE"
+            value = "$(ENDURAGENT_SECOND_PHONE)"
             isEnabled = "YES">
          </EnvironmentVariable>
       </EnvironmentVariables>

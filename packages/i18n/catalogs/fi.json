@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Avaa iPhonen lukitus jatkaaksesi. Viestisi on tallennettu.",
       "notConfigured": "Valitse, miten valmentaja saa yhteyden malliin, jotta voit jatkaa.",
+      "requestBlocked": "OpenRouter esti tämän pyynnön. Kokeile toista mallia tai viestiä.",
       "providerConsentRequired": "Lupasi tarvitaan ennen keskustelutietojen jakamista tekoälypalvelujen tarjoajille.",
       "openRouterFunds": "OpenRouter-tilisi saldo on loppunut. Lisää saldoa OpenRouterissa tai vaihda krediitteihin.",
       "storageUnavailable": "Suojattu tallennustila on tilapäisesti poissa käytöstä. Tallennetut valmennustietosi ovat edelleen täällä. Yritä uudelleen.",

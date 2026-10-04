@@ -2990,6 +2990,7 @@
     "error": {
       "locked": "Desbloqueia o teu iPhone para continuar. A tua mensagem está guardada.",
       "notConfigured": "Escolhe como o treinador acede a um modelo para continuar.",
+      "requestBlocked": "O OpenRouter bloqueou este pedido. Experimenta outro modelo ou mensagem.",
       "providerConsentRequired": "Precisamos da tua permissão antes de partilhar dados da conversa com fornecedores de IA.",
       "openRouterFunds": "A tua conta OpenRouter está sem saldo. Adiciona saldo no OpenRouter ou muda para Créditos.",
       "storageUnavailable": "O armazenamento seguro está temporariamente indisponível. As suas informações de treino guardadas continuam aqui. Tente novamente.",

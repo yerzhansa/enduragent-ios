@@ -73,6 +73,7 @@ extension CredentialVaultTests {
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let vault = CredentialVault(
 			store: ICloudKeychainStore(backing: memory), training: training, clock: clock,
+			ledger: Ledger(log: InMemoryRecordLog(), clock: clock, diagnostics: diagnostics),
 			diagnostics: diagnostics)
 		await #expect(throws: AccessUnavailable.malformedStoredCredential(.creditsAccount)) {
 			try await vault.modelAccess(builtInModel: testModel)

@@ -52,7 +52,7 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 		failed(
 			.model(.credentialRejected(.openRouterAccount)),
 			"Your OpenRouter sign-in is no longer valid. Sign in again to continue.",
-			.signInToOpenRouter, "Sign in again"),
+			nil, nil),
 		failed(
 			.model(.accessExhausted(.credits)),
 			"You're out of Credits. You can switch to your OpenRouter account.", .buyCredits,
@@ -174,6 +174,7 @@ private func settledState(_ settlement: Settlement, overlay: TurnOverlay = .notI
 
 private func family(_ failure: CoachFailure) -> String {
 	switch failure {
+	case .model(.requestBlocked): "requestBlocked"
 	case .model(.credentialRejected): "credentialRejected"
 	case .model(.accessExhausted): "accessExhausted"
 	case .model(.rateLimited): "rateLimited"

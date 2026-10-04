@@ -2950,6 +2950,7 @@
     "error": {
       "locked": "請解鎖 iPhone 以繼續。你的訊息已儲存。",
       "notConfigured": "請選擇教練連接模型的方式以繼續。",
+      "requestBlocked": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。",
       "providerConsentRequired": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。",
       "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
       "storageUnavailable": "安全儲存空間暫時無法使用。已儲存的教練指導資訊仍在。請重試。",

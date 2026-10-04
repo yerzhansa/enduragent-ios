@@ -5,44 +5,8 @@ public enum CoachFailure: Sendable, Equatable {
 	case local(LocalFailure)
 }
 
-public enum ModelFailure: Sendable, Equatable {
-	case credentialRejected(AccessMethod)
-	case accessExhausted(AccessMethod)
-	case rateLimited(retryAfter: Duration?)
-	case providerDown(ProviderTrouble)
-	case contextOverflow
-	case invalidRequest
-	case generationFailed(GenerationFault)
-	case budgetExhausted(TurnBudgetExceeded.Kind)
-	case accessUnavailable(AccessUnavailable)
-
-	package init(_ failure: ProviderFailure, method: AccessMethod) {
-		switch failure {
-		case .credentialRejected:
-			self = .credentialRejected(method)
-		case .accessExhausted:
-			self = .accessExhausted(method)
-		case .rateLimited(let retryAfter):
-			self = .rateLimited(retryAfter: retryAfter)
-		case .serverError:
-			self = .providerDown(.outage)
-		case .network:
-			self = .providerDown(.network)
-		case .timeout:
-			self = .providerDown(.timeout)
-		case .contextOverflow:
-			self = .contextOverflow
-		case .invalidRequest:
-			self = .invalidRequest
-		case .unknownFinish:
-			self = .generationFailed(.unknownFinish)
-		case .malformedStream:
-			self = .generationFailed(.malformedStream)
-		}
-	}
-}
-
 public enum AccessUnavailable: Error, Sendable, Equatable {
+	case openRouterKeyRejected
 	case providerConsentRequired
 	case recordStorageUnavailable
 	case trainingIdentityUnverified(TrainingFailure)
@@ -169,7 +133,8 @@ public enum RecoveryAction: Sendable, Equatable {
 extension CoachFailure {
 	package var abandonsFlush: Bool {
 		switch self {
-		case .model(.credentialRejected), .model(.invalidRequest), .model(.generationFailed),
+		case .model(.credentialRejected), .model(.requestBlocked), .model(.invalidRequest),
+			.model(.generationFailed),
 			.model(.contextOverflow):
 			true
 		case .model(.accessExhausted), .model(.rateLimited), .model(.providerDown),
@@ -251,7 +216,12 @@ package enum AthleteNotices {
 		case .model(.credentialRejected(.openRouterAccount)):
 			return AthleteNotice(
 				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)],
-				action: .signInToOpenRouter)
+				action: nil)
+		case .model(.accessUnavailable(.openRouterKeyRejected)):
+			return AthleteNotice(
+				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)], action: nil)
+		case .model(.requestBlocked):
+			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, action: nil)
 		case .model(.accessExhausted(.credits)):
 			return AthleteNotice(key: Catalog.creditsErrorExhausted, action: .buyCredits)
 		case .model(.accessExhausted(.openRouterAccount)):
@@ -311,6 +281,7 @@ package enum AthleteNotices {
 	}
 
 	package static func notice(for status: CoachStatus) -> AthleteNotice? {
+		if status.access.attention == .rejectedKey { return nil }
 		if case .accessTemporarilyUnavailable(let unavailable) = status.setup {
 			return notice(outsideTurn: unavailable)
 		}

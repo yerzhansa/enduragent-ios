@@ -10,6 +10,7 @@
 
 		var body: some View {
 			if let fixture = services.fixture {
+				FixtureRecoveryDebugView(model: model)
 				if let backing = fixture.secretBacking {
 					Button("Fail next credential write") { backing.failNextWrite = true }
 						.accessibilityIdentifier("fixture.failCredentialWrite")

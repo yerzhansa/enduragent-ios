@@ -29,11 +29,13 @@ public actor Coach {
 	var trainingRefresh: Task<Void, Never>?
 	var trainingReadID: TrainingDisplayReadID?
 	var trainingGeneration: UInt64 = 0
+	var accessObservation: Task<Void, Never>?
 	var importObservation: Task<Void, Never>?
 	var pendingImportRefresh: Task<Void, Never>?
 	private let process: ProcessID
 
 	deinit {
+		accessObservation?.cancel()
 		importObservation?.cancel()
 		pendingImportRefresh?.cancel()
 	}
@@ -48,8 +50,10 @@ public actor Coach {
 		let clock = ports.clock
 		let diagnostics = DiagnosticsLog(clock: clock)
 		let transport = ports.models.makeTransport(diagnostics)
+		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		let vault = CredentialVault(
-			store: ports.secrets, training: ports.training, clock: clock, diagnostics: diagnostics,
+			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
+			diagnostics: diagnostics,
 			catalog: ports.models.catalog, signInService: ports.openRouterSignIn)
 		self.diagnostics = diagnostics
 		self.sport = sport
@@ -57,13 +61,12 @@ public actor Coach {
 		self.vault = vault
 		self.credits = ports.credits.makeClient(vault)
 		self.builtInModel = builtInModel
-		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
 		self.ledger = ledger
 		let preferences = CoachPreferences(
 			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
 			builtInModel: builtInModel)
 		self.preferences = preferences
-		let authorizeInvocation: @Sendable (CompletionRequest) async throws -> Void = { request in
+		let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void = { request in
 			try await preferences.authorizeInvocation(request)
 		}
 		self.clock = clock
@@ -109,12 +112,16 @@ public actor Coach {
 			await refreshDisplayLocale()
 			await recoverOnce()
 		case .willTerminate:
+			let access = accessObservation
+			accessObservation?.cancel()
+			accessObservation = nil
 			let observation = importObservation
 			let refresh = pendingImportRefresh
 			importObservation?.cancel()
 			importObservation = nil
 			pendingImportRefresh?.cancel()
 			pendingImportRefresh = nil
+			await access?.value
 			await observation?.value
 			await refresh?.value
 			_ = await recovery?.value
