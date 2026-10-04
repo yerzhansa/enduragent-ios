@@ -146,8 +146,9 @@ extension SwiftDataSuites {
 			await before.waitForLiveText(turn)
 			await before.stop(.main)
 			try #require(
-				turnNotice(of: try #require(await before.settledState(of: turn, in: .main)))?.action
-					== .tryAgain(turn))
+				turnNotice(of: try #require(await before.settledState(of: turn, in: .main)))?
+					.actions
+					== [.tryAgain(turn)])
 			let firstAttempt = try await base.store.fetch(
 				RecordQuery(scope: .synced([.attemptQuestion, .turnSettled]), turn: turn)
 			).records
@@ -209,8 +210,8 @@ extension SwiftDataSuites {
 			let turn = try #require(
 				try await coach.send(draft("Repeat after connecting"), to: .main).acceptedTurn)
 			try #require(
-				turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.action
-					== .tryAgain(turn))
+				turnNotice(of: try #require(await coach.settledState(of: turn, in: .main)))?.actions
+					== [.tryAgain(turn)])
 			try await base.connect(.athleteB, using: coach)
 			try faults.failAppends(ofKind: "attemptQuestion")
 			let calls = base.transport.requests.count

@@ -13,7 +13,7 @@ extension TurnAccessTests {
 		let coach = await recoveryCoach(secrets)
 		let settled = try await coach.sendAndSettle("Keep the conversation")
 		#expect(failure(settled) == .model(.accessUnavailable(.notConfigured(.openRouterAccount))))
-		#expect(turnNotice(of: settled)?.action == .chooseAccessMethod)
+		#expect(turnNotice(of: settled)?.actions == [.chooseAccessMethod])
 		#expect(try await coach.observedStatus().access.attention == .signInNeeded)
 		#expect(transport.requestCount == 0)
 	}
@@ -33,7 +33,7 @@ extension TurnAccessTests {
 		try await assertRecoverySentence(coach)
 		#expect(transport.requestCount == 1)
 		#expect(try await coach.observedStatus().access.attention == .rejectedKey)
-		#expect(try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
+		#expect(try await coach.observedStatus().access.notice?.actions == [.signInToOpenRouter])
 		#expect(
 			failure(try await coach.sendAndSettle("Another question"))
 				== .model(.accessUnavailable(.openRouterKeyRejected)))
@@ -84,7 +84,7 @@ extension TurnAccessTests {
 		try await assertRecoverySentence(coach, in: [.main, peer])
 		#expect(await coach.currentSnapshot(.main)?.turns.first?.athleteText == "First question")
 		#expect(await coach.currentSnapshot(peer)?.turns.first?.athleteText == "Second question")
-		#expect(try await coach.observedStatus().access.notice?.action == .signInToOpenRouter)
+		#expect(try await coach.observedStatus().access.notice?.actions == [.signInToOpenRouter])
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.openRouterKeyRejected])))
 				.records.count == 1)
@@ -125,7 +125,7 @@ extension TurnAccessTests {
 		#expect(
 			notice.canonicalSentence
 				== "OpenRouter blocked this request. Try a different model or message.")
-		#expect(notice.action == nil)
+		#expect(notice.actions.isEmpty)
 		#expect(transport.requestCount == 1)
 		#expect(try await coach.observedStatus().access.attention == nil)
 		#expect(try await coach.observedStatus().access.availability == .ready)
@@ -176,7 +176,7 @@ extension TurnAccessTests {
 			let reopened = try ICloudKeychainStore.fixture(directory: directory).store
 			let next = await recoveryCoach(reopened)
 			#expect(try await next.observedStatus().access.attention == .rejectedKey)
-			#expect(try await next.observedStatus().access.notice?.action == .signInToOpenRouter)
+			#expect(try await next.observedStatus().access.notice?.actions == [.signInToOpenRouter])
 			#expect(await next.currentSnapshot(.main)?.turns.first?.athleteText == "Storage failed")
 			#expect(
 				failure(try await next.sendAndSettle("After storage recovery and reopening"))

@@ -116,7 +116,7 @@ struct OpenRouterAccessTests {
 			coach: model.services.coach, transport: fixture.transport)
 		_ = try await harness.settledTurn(model, at: 0)
 		try await model.waitForStatus { $0.access.attention == .rejectedKey }
-		#expect(model.status.access.notice?.action == .signInToOpenRouter)
+		#expect(model.status.access.notice?.actions == [.signInToOpenRouter])
 		let first = try #require(model.chat?.turns.first)
 		let previous = try fixture.secrets.accessSelection()
 		let one = Task { await model.perform(.signInToOpenRouter) }
@@ -160,7 +160,7 @@ struct OpenRouterAccessTests {
 			return
 		}
 		#expect(model.status.access.attention == (forbidden ? nil : .signInNeeded))
-		#expect(failure.notice?.action == (forbidden ? nil : .chooseAccessMethod))
+		#expect(failure.notice?.actions == (forbidden ? nil : [.chooseAccessMethod]))
 		if forbidden {
 			#expect(
 				failure.notice?.sentence(in: model.displayLocale)

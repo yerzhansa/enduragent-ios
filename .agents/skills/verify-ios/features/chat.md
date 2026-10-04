@@ -37,7 +37,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | --- | --- |
 | Server, network, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
 | Rejected Credits access | `Your Credits couldn't be used. Restore purchases to continue.` with `chat.turn.restorePurchases`, which opens Credits. |
-| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.buyCredits`, which opens Credits. |
+| Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.buyCredits`, which opens Credits, and below it `chat.turn.switchToOpenRouter`, which opens Access method. |
 | Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
 | Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |
 | Unknown or broken provider stream | `The coach couldn't respond. Please try again.` with Try again. |

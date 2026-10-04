@@ -263,6 +263,6 @@ import Testing
 			return
 		}
 		#expect(state.cause == .systemExpired)
-		#expect(state.notice.action == .tryAgain(turn))
+		#expect(state.notice.actions == [.tryAgain(turn)])
 	}
 }

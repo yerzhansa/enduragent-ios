@@ -44,7 +44,7 @@ struct BillingRouteTests {
 			#expect(model.chat?.turns == saved.turns)
 		}
 		for action in [
-			RecoveryAction.buyCredits, .restoreCredits, .chooseAccessMethod,
+			RecoveryAction.buyCredits, .restoreCredits, .chooseAccessMethod, .switchToOpenRouter,
 		] {
 			model.navigation.removeAll()
 			await model.perform(action)
@@ -91,20 +91,30 @@ struct BillingRouteTests {
 			Issue.record("Expected the selected method to fail")
 			return
 		}
-		let action: RecoveryAction = method == .credits ? .buyCredits : .signInToOpenRouter
-		#expect(failure.notice?.action == (method == .credits ? action : nil))
+		#expect(
+			failure.notice?.actions
+				== (method == .credits ? [.buyCredits, .switchToOpenRouter] : nil))
 		if method == .openRouter {
-			#expect(failure.notice == nil)
 			try await model.waitForStatus { $0.access.attention == .rejectedKey }
-			#expect(model.status.access.notice?.action == action)
+			#expect(model.status.access.notice?.actions == [.signInToOpenRouter])
 		}
 		#expect(
 			failure.notice?.key
 				== (method == .credits
 					? Catalog.creditsErrorExhausted : nil))
 		let saved = try #require(model.chat)
-		await model.perform(action)
 		if method == .credits {
+			let modelRequests = requests.withLock { $0.count }
+			await model.perform(.switchToOpenRouter)
+			#expect(model.navigation == [.accessMethod])
+			#expect(model.selectedAccessMethod == .credits)
+			model.navigation.removeLast()
+			#expect(model.route == .chat)
+			#expect(model.navigation.isEmpty)
+			#expect(model.chat?.turns == saved.turns)
+			#expect(requests.withLock { $0.count } == modelRequests)
+			await model.perform(.buyCredits)
+			#expect(model.navigation == [.credits])
 			await model.loadCredits()
 			#expect(model.balance?.units == 0)
 			#expect(
@@ -113,6 +123,7 @@ struct BillingRouteTests {
 			#expect(model.catalog?.purchasesEnabled == false)
 			model.open(.accessMethod)
 		} else {
+			await model.perform(.signInToOpenRouter)
 			await model.loadCredits()
 			#expect(model.balance?.units == 200)
 		}

@@ -26,7 +26,7 @@ import Testing
 		await after.lifecycle(.becameActive)
 		let state = try #require(await after.state(of: turn))
 		if started {
-			try #require(turnNotice(of: state)?.action == .tryAgain(turn))
+			try #require(turnNotice(of: state)?.actions == [.tryAgain(turn)])
 		} else {
 			try #require(state == .accepted(.awaitingRestart))
 		}

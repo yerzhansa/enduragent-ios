@@ -200,7 +200,7 @@ extension ChatMailboxTests {
 		#expect(
 			interrupted.notice
 				== AthleteNotice(
-					key: Catalog.chatTurnInterruptedNothingChanged, action: .tryAgain(first)))
+					key: Catalog.chatTurnInterruptedNothingChanged, actions: [.tryAgain(first)]))
 		try await Task.sleep(for: .milliseconds(100))
 		#expect(transport.requests.count == 1)
 		let secondClaims = try await store.fetch(

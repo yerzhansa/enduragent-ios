@@ -3,7 +3,7 @@ extension AccessStatus {
 		if attention == .rejectedKey {
 			return AthleteNotice(
 				key: Catalog.coachErrorReauth, vars: ["provider": "OpenRouter"],
-				action: .signInToOpenRouter)
+				actions: [.signInToOpenRouter])
 		}
 		let failure: AccessUnavailable
 		switch availability {
@@ -21,17 +21,17 @@ extension CredentialOutcome where Summary == AccessSummary {
 		switch self {
 		case .kept, .replaced, .disconnected: nil
 		case .failedPreviousKept(.secureStorage, _):
-			AthleteNotice(key: Catalog.reviewSaveFailed, action: nil)
+			AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])
 		case .failedPreviousKept(.signIn(.canceled), _):
-			AthleteNotice(key: Catalog.accessSignInCancelled, action: nil)
+			AthleteNotice(key: Catalog.accessSignInCancelled, actions: [])
 		case .failedPreviousKept(.signIn, _), .failedPreviousKept(.keyExchange, _), .refused:
-			AthleteNotice(key: Catalog.accessSignInIncomplete, action: nil)
+			AthleteNotice(key: Catalog.accessSignInIncomplete, actions: [])
 		}
 	}
 }
 
 extension CreditBalance {
 	public var notice: AthleteNotice? {
-		credits.units <= 0 ? AthleteNotice(key: Catalog.creditsErrorExhausted, action: nil) : nil
+		credits.units <= 0 ? AthleteNotice(key: Catalog.creditsErrorExhausted, actions: []) : nil
 	}
 }

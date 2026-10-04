@@ -59,7 +59,7 @@ struct TranscriptView: View {
 					{
 						Text(notice.sentence(in: model.displayLocale))
 							.accessibilityIdentifier("chat.review.notice")
-						if let action = notice.action {
+						ForEach(Array(notice.actions.enumerated()), id: \.offset) { _, action in
 							Button(model.phrasebook.say(action.title)) {
 								Task { await model.perform(action) }
 							}

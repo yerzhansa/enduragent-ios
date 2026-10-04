@@ -27,7 +27,7 @@ extension SingleProposalReviewsTests {
 					? "Couldn't save your choice on this iPhone, so nothing was changed. Try again."
 					: "Impossible d’enregistrer votre choix sur cet iPhone. Rien n’a donc été modifié. Réessayez.")
 		)
-		#expect(notice.action == nil)
+		#expect(notice.actions.isEmpty)
 		#expect(await coach.currentSnapshot(.main)?.review == ready)
 		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
 		#expect(ada.calls.allSatisfy { !$0.isWrite })

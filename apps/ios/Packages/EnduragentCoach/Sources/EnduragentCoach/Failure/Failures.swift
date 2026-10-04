@@ -87,16 +87,16 @@ public struct AthleteNotice: Sendable, Equatable {
 	public let key: CatalogKey
 	public let count: Int?
 	public let vars: [String: CatalogArgument]
-	public let action: RecoveryAction?
+	public let actions: [RecoveryAction]
 
 	package init(
 		key: CatalogKey, count: Int? = nil, vars: [String: CatalogArgument] = [:],
-		action: RecoveryAction?
+		actions: [RecoveryAction]
 	) {
 		self.key = key
 		self.count = count
 		self.vars = vars
-		self.action = action
+		self.actions = actions
 	}
 
 	package var canonicalSentence: String {
@@ -115,6 +115,7 @@ public enum RecoveryAction: Sendable, Equatable {
 	case restoreCredits
 	case buyCredits
 	case chooseAccessMethod
+	case switchToOpenRouter
 	case signInToOpenRouter
 	case connectTraining
 
@@ -124,6 +125,7 @@ public enum RecoveryAction: Sendable, Equatable {
 		case .restoreCredits: Catalog.chatTurnRestorePurchases
 		case .buyCredits: Catalog.chatTurnBuyCredits
 		case .chooseAccessMethod: Catalog.chatTurnChooseAccessMethod
+		case .switchToOpenRouter: Catalog.accessSwitchToOpenRouter
 		case .signInToOpenRouter: Catalog.chatTurnSignInAgain
 		case .connectTraining: Catalog.onboardingConnectAction
 		}
@@ -151,9 +153,9 @@ extension CoachFailure {
 
 extension AthleteNotice {
 	public static let recordStoreUnavailable = [
-		AthleteNotice(key: Catalog.chatHistoryFailure, action: nil),
+		AthleteNotice(key: Catalog.chatHistoryFailure, actions: []),
 		AthleteNotice(
-			key: Catalog.chatFirstSyncReconnectDetail, vars: ["product": "Enduragent"], action: nil),
+			key: Catalog.chatFirstSyncReconnectDetail, vars: ["product": "Enduragent"], actions: []),
 	]
 
 	public static func credits(failure: any Error) -> AthleteNotice {
@@ -171,7 +173,7 @@ package enum AthleteNotices {
 	private static let openRouter = "OpenRouter"
 	private static let intervals = "intervals.icu"
 	package static let unrecoveredClaim = AthleteNotice(
-		key: Catalog.chatHistoryFailure, action: nil)
+		key: Catalog.chatHistoryFailure, actions: [])
 	package static let earlierVersion = ReviewNotice(
 		kind: .earlierVersion, key: Catalog.reviewEarlierVersion, vars: [:])
 	package static let accountChanged = ReviewNotice(
@@ -185,98 +187,101 @@ package enum AthleteNotices {
 			return notice(for: failure)
 		case .uncertain(let notice), .changedSinceReview(let notice):
 			return AthleteNotice(
-				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text), action: nil)
+				key: notice.key, vars: notice.vars.mapValues(CatalogArgument.text), actions: [])
 		case .blocked(.accountChanged):
 			return AthleteNotice(
 				key: accountChanged.key, vars: accountChanged.vars.mapValues(CatalogArgument.text),
-				action: nil)
+				actions: [])
 		case .blocked(.trainingNotConnected):
-			return AthleteNotice(key: Catalog.connectMissing, action: .connectTraining)
+			return AthleteNotice(key: Catalog.connectMissing, actions: [.connectTraining])
 		case .blocked(.cannotVerify):
 			return AthleteNotice(
-				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], action: nil)
+				key: Catalog.reviewCannotVerify, vars: ["service": .text(intervals)], actions: [])
 		case .blocked(.turnStopping):
-			return AthleteNotice(key: Catalog.reviewTurnStopping, action: nil)
+			return AthleteNotice(key: Catalog.reviewTurnStopping, actions: [])
 		case .staleControl:
-			return AthleteNotice(key: Catalog.coachConfirmationExpired, action: nil)
+			return AthleteNotice(key: Catalog.coachConfirmationExpired, actions: [])
 		case .storageUnavailable:
-			return AthleteNotice(key: Catalog.reviewSaveFailed, action: nil)
+			return AthleteNotice(key: Catalog.reviewSaveFailed, actions: [])
 		case .blocked(.pastProtected), .blocked(.coachOnly), .blocked(.workoutOnly):
-			return AthleteNotice(key: Catalog.coachErrorUnknown, action: nil)
+			return AthleteNotice(key: Catalog.coachErrorUnknown, actions: [])
 		}
 	}
 
 	package static func notice(for failure: CoachFailure, turn: TurnID?, waiting: Bool)
 		-> AthleteNotice
 	{
-		let tryAgain = turn.map(RecoveryAction.tryAgain)
+		let tryAgain = turn.map { [RecoveryAction.tryAgain($0)] } ?? []
 		switch failure {
 		case .model(.credentialRejected(.credits)):
-			return AthleteNotice(key: Catalog.creditsErrorAccessRejected, action: .restoreCredits)
+			return AthleteNotice(
+				key: Catalog.creditsErrorAccessRejected, actions: [.restoreCredits])
 		case .model(.credentialRejected(.openRouterAccount)):
 			return AthleteNotice(
 				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)],
-				action: nil)
+				actions: [])
 		case .model(.accessUnavailable(.openRouterKeyRejected)):
 			return AthleteNotice(
-				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)], action: nil)
+				key: Catalog.coachErrorReauth, vars: ["provider": .text(openRouter)], actions: [])
 		case .model(.requestBlocked):
-			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, action: nil)
+			return AthleteNotice(key: Catalog.accessErrorRequestBlocked, actions: [])
 		case .model(.accessExhausted(.credits)):
-			return AthleteNotice(key: Catalog.creditsErrorExhausted, action: .buyCredits)
+			return AthleteNotice(
+				key: Catalog.creditsErrorExhausted, actions: [.buyCredits, .switchToOpenRouter])
 		case .model(.accessExhausted(.openRouterAccount)):
 			return AthleteNotice(
-				key: Catalog.accessErrorOpenRouterFunds, action: .chooseAccessMethod)
+				key: Catalog.accessErrorOpenRouterFunds, actions: [.chooseAccessMethod])
 		case .model(.rateLimited(let retryAfter)):
 			let offer = waiting ? RecoveryAction.wait(thenTryAgain:) : RecoveryAction.tryAgain
-			return rateLimitNotice(after: retryAfter, action: turn.map(offer))
+			return rateLimitNotice(after: retryAfter, actions: turn.map { [offer($0)] } ?? [])
 		case .model(.providerDown):
-			return AthleteNotice(key: Catalog.coachErrorProviderDown, action: tryAgain)
+			return AthleteNotice(key: Catalog.coachErrorProviderDown, actions: tryAgain)
 		case .model(.contextOverflow), .model(.invalidRequest), .model(.budgetExhausted):
-			return AthleteNotice(key: Catalog.coachErrorUnknown, action: tryAgain)
+			return AthleteNotice(key: Catalog.coachErrorUnknown, actions: tryAgain)
 		case .model(.generationFailed):
-			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, action: tryAgain)
+			return AthleteNotice(key: Catalog.chatNoticeResponseFailure, actions: tryAgain)
 		case .model(.accessUnavailable(.trainingIdentityUnverified(let failure))):
 			return notice(for: failure)
 		case .model(.accessUnavailable(.providerConsentRequired)):
-			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, action: tryAgain)
+			return AthleteNotice(key: Catalog.accessErrorProviderConsentRequired, actions: tryAgain)
 		case .model(.accessUnavailable(.secureStorageLocked)):
-			return AthleteNotice(key: Catalog.accessErrorLocked, action: tryAgain)
+			return AthleteNotice(key: Catalog.accessErrorLocked, actions: tryAgain)
 		case .model(.accessUnavailable(.notConfigured)):
-			return AthleteNotice(key: Catalog.accessErrorNotConfigured, action: .chooseAccessMethod)
+			return AthleteNotice(
+				key: Catalog.accessErrorNotConfigured, actions: [.chooseAccessMethod])
 		case .model(.accessUnavailable(.secureStorageUnavailable)):
 			return AthleteNotice(
-				key: Catalog.accessErrorStorageUnavailable, action: .chooseAccessMethod)
+				key: Catalog.accessErrorStorageUnavailable, actions: [.chooseAccessMethod])
 		case .model(.accessUnavailable(.malformedStoredCredential(.intervalsConnection))):
 			return AthleteNotice(
-				key: Catalog.connectErrorStorageMalformed, action: .connectTraining)
+				key: Catalog.connectErrorStorageMalformed, actions: [.connectTraining])
 		case .model(.accessUnavailable(.malformedStoredCredential)):
-			return AthleteNotice(key: Catalog.accessErrorMalformed, action: .chooseAccessMethod)
+			return AthleteNotice(key: Catalog.accessErrorMalformed, actions: [.chooseAccessMethod])
 		case .local(.recordStorage), .model(.accessUnavailable(.recordStorageUnavailable)):
-			return AthleteNotice(key: Catalog.coachHistoryDiskFull, action: nil)
+			return AthleteNotice(key: Catalog.coachHistoryDiskFull, actions: [])
 		}
 	}
 
-	private static func rateLimitNotice(after retryAfter: Duration?, action: RecoveryAction?)
+	private static func rateLimitNotice(after retryAfter: Duration?, actions: [RecoveryAction])
 		-> AthleteNotice
 	{
 		guard let hinted = retryAfter.flatMap({ $0 > .zero ? $0 : nil }),
 			let seconds = wholeInt((hinted / .seconds(1)).rounded(.up))
 		else {
-			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, action: action)
+			return AthleteNotice(key: Catalog.coachErrorRateLimitDefault, actions: actions)
 		}
 		if seconds < 60 {
 			return AthleteNotice(
 				key: Catalog.coachErrorRateLimitSeconds, count: seconds,
 				vars: ["seconds": .integer(seconds)],
-				action: action
+				actions: actions
 			)
 		}
 		let minutes = (seconds + 59) / 60
 		return AthleteNotice(
 			key: Catalog.coachErrorRateLimitMinutes, count: minutes,
 			vars: ["minutes": .integer(minutes)],
-			action: action
+			actions: actions
 		)
 	}
 
@@ -294,11 +299,11 @@ package enum AthleteNotices {
 		case .credentialRejected, .requestRejected:
 			AthleteNotice(
 				key: Catalog.coachErrorIntervalsCredentials, vars: ["service": .text(intervals)],
-				action: nil)
+				actions: [])
 		case .temporarilyUnavailable:
 			AthleteNotice(
 				key: Catalog.coachErrorIntervalsTransient, vars: ["service": .text(intervals)],
-				action: nil
+				actions: []
 			)
 		}
 	}
@@ -311,15 +316,15 @@ package enum AthleteNotices {
 		case .noAthleteKey?:
 			return notice(outsideTurn: .notConfigured(.credits))
 		case .accountChanged?:
-			return AthleteNotice(key: Catalog.creditsErrorAccountChanged, action: nil)
+			return AthleteNotice(key: Catalog.creditsErrorAccountChanged, actions: [])
 		default:
-			return AthleteNotice(key: Catalog.creditsErrorUnavailable, action: nil)
+			return AthleteNotice(key: Catalog.creditsErrorUnavailable, actions: [])
 		}
 	}
 
 	private static func notice(outsideTurn unavailable: AccessUnavailable) -> AthleteNotice {
 		let turn = notice(for: .model(.accessUnavailable(unavailable)), turn: nil, waiting: false)
-		return AthleteNotice(key: turn.key, count: turn.count, vars: turn.vars, action: nil)
+		return AthleteNotice(key: turn.key, count: turn.count, vars: turn.vars, actions: [])
 	}
 
 	package static func notice(for outcome: SavedWorkOutcome, saved: WriteSummary = .none)
@@ -327,12 +332,12 @@ package enum AthleteNotices {
 	{
 		switch outcome {
 		case .writesSaved:
-			AthleteNotice(key: Catalog.coachFallbackWritesSaved, action: nil)
+			AthleteNotice(key: Catalog.coachFallbackWritesSaved, actions: [])
 		case .savedUnverified:
 			AthleteNotice(
 				key: saved.calendarWrites > 0
 					? Catalog.chatNoticeCalendarUnverified : Catalog.chatNoticeSavedUnverified,
-				action: nil)
+				actions: [])
 		}
 	}
 
@@ -343,7 +348,7 @@ package enum AthleteNotices {
 			return AthleteNotice(
 				key: saved.unverifiedCalendarWrites > 0
 					? Catalog.chatNoticeCalendarUnverified : Catalog.chatTurnInterruptedSomeSaved,
-				action: nil)
+				actions: [])
 		}
 		switch interruption {
 		case .athleteStopped, .systemExpired, .graceEnded, .appTerminating, .processEnded,
@@ -352,7 +357,7 @@ package enum AthleteNotices {
 				key: saved.isEmpty
 					? Catalog.chatTurnInterruptedNothingChanged
 					: Catalog.chatTurnInterruptedSomeSaved,
-				action: turn.map(RecoveryAction.tryAgain))
+				actions: turn.map { [.tryAgain($0)] } ?? [])
 		}
 	}
 }

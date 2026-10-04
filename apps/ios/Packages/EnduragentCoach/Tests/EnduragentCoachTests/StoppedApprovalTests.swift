@@ -19,7 +19,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		await original.stop(.main)
 		let before = try #require(await settledTurn(turn, on: original))
-		#expect(turnNotice(of: before)?.action == .tryAgain(turn))
+		#expect(turnNotice(of: before)?.actions == [.tryAgain(turn)])
 		let coach =
 			reopenBeforeApproval
 			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
@@ -36,7 +36,7 @@ extension RetryLadderTests {
 		}
 		#expect(interrupted.saved.calendarWrites == 1)
 		#expect(interrupted.saved.unverifiedCalendarWrites == 0)
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		#expect(
 			interrupted.notice.sentence(in: displayLocale())
 				== "This reply stopped before it finished. Some information was saved first.")
@@ -111,7 +111,7 @@ extension RetryLadderTests {
 		#expect(
 			interrupted.notice.sentence(in: displayLocale())
 				== "This reply stopped before it finished. Some information was saved first.")
-		#expect(interrupted.notice.action == nil)
+		#expect(interrupted.notice.actions.isEmpty)
 		#expect(
 			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
 				.count == 1)
