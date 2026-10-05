@@ -1,6 +1,6 @@
 import Testing
 
-@testable import CheckSource
+@testable import ToolSupport
 
 struct JavaScriptPatternsTests {
 	@Test(arguments: [

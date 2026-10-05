@@ -11,7 +11,7 @@ const devices = join(root, 'devices');
 const deviceRecords = join(root, 'device-records');
 mkdirSync(devices, { recursive: true });
 mkdirSync(deviceRecords, { recursive: true });
-writeFileSync(join(root, `call-${process.pid}.json`), JSON.stringify({ command, args }));
+writeFileSync(join(root, `call-${String(process.hrtime.bigint()).padStart(20, '0')}-${process.pid}.json`), JSON.stringify({ command, args }));
 
 if (command === 'git') {
   process.stderr.write('not a git repository\n');
@@ -47,7 +47,11 @@ if (command === 'xcodebuild') {
 if (command === 'plutil') process.stdout.write('icu.enduragent.app\n');
 if (command === 'xcrun' && args[0] === 'xcresulttool') {
   if (args[1] === 'export') {
-    writeFileSync(join(value('--output-path'), 'manifest.json'), '[]');
+    const exported = JSON.parse(readFileSync(join(value('--path'), 'tests.json'), 'utf8')).testNodes.map(node => ({
+      testIdentifier: node.children[0].nodeIdentifier,
+      attachments: [{ exportedFileName: `${node.name}.png`, suggestedHumanReadableName: `final screen_0_0F0E0D0C-1111-2222-3333-444455556666.png` }],
+    }));
+    writeFileSync(join(value('--output-path'), 'manifest.json'), JSON.stringify(exported));
   } else {
     const tests = JSON.parse(readFileSync(join(value('--path'), 'tests.json'), 'utf8'));
     if (args[3] === 'tests') process.stdout.write(JSON.stringify(tests));

@@ -1,4 +1,5 @@
 import Foundation
+import ToolSupport
 
 @main
 struct CheckSourceCommand {

@@ -1,5 +1,5 @@
-struct PatternFailure: Error, CustomStringConvertible {
-	let description: String
+public struct PatternFailure: DescribedFailure {
+	public let description: String
 }
 
 struct JavaScriptPatternTranslator {

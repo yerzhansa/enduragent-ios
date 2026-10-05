@@ -1,4 +1,5 @@
 import Foundation
+import ToolSupport
 
 final class Findings {
 	private(set) var count = 0
@@ -153,34 +154,4 @@ struct SourceChecker {
 struct SourceFile {
 	let file: String
 	let text: String
-}
-
-extension String {
-	var quotedAsJSON: String {
-		var result = "\""
-		for scalar in unicodeScalars {
-			switch scalar {
-			case "\"":
-				result += "\\\""
-			case "\\":
-				result += "\\\\"
-			case "\u{08}":
-				result += "\\b"
-			case "\u{0C}":
-				result += "\\f"
-			case "\n":
-				result += "\\n"
-			case "\r":
-				result += "\\r"
-			case "\t":
-				result += "\\t"
-			case _ where scalar.value < 0x20:
-				let hex = String(scalar.value, radix: 16)
-				result += "\\u" + String(repeating: "0", count: 4 - hex.count) + hex
-			default:
-				result.unicodeScalars.append(scalar)
-			}
-		}
-		return result + "\""
-	}
 }
