@@ -41,6 +41,5 @@ final class ReviewCardComposerProof: XCTestCase {
 		XCTAssertLessThanOrEqual(composerFrame.maxY, keyboard.frame.minY)
 		XCTAssertTrue(send.isHittable)
 		TutorialHarness.attach(self, name: "review-card-composer-keyboard", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

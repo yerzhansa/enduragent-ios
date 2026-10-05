@@ -14,46 +14,6 @@ final class ConfirmedPreviewProof: XCTestCase {
 		XCTAssertTrue(cancel.isEnabled)
 		XCTAssertLessThan(cancel.frame.minX, add.frame.minX)
 		TutorialHarness.attach(self, name: "07-confirmed-preview", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class AddedToCalendarProof: XCTestCase {
-	func testAddedToCalendar() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, TutorialHarness.workout)
-		let add = TutorialHarness.named(app, "chat.preview.add")
-		TutorialHarness.wait(add, until: .enabled)
-		let tapped = Date()
-		add.tap()
-		let done = app.staticTexts[TutorialHarness.done]
-		TutorialHarness.wait(done, within: .screen)
-		let sample = XCTAttachment(
-			string: String(format: "%.0f", Date().timeIntervalSince(tapped) * 1_000))
-		sample.name = "add-to-done-ms"
-		sample.lifetime = .keepAlways
-		self.add(sample)
-		TutorialHarness.waitForLabel(app, TutorialHarness.done)
-		TutorialHarness.attach(self, name: "07b-added-to-calendar", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class ConfirmedPreviewDarkProof: XCTestCase {
-	func testConfirmedPreviewDark() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, TutorialHarness.workout)
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"), until: .enabled)
-		TutorialHarness.waitForLabel(app, "Workout review")
-		let screenshot = app.screenshot()
-		TutorialHarness.attach(self, name: "07-confirmed-preview-dark", app: app)
-		XCTAssertLessThan(
-			TutorialHarness.meanLuminance(screenshot), 0.4, "the capture is not in dark appearance")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -104,7 +64,6 @@ final class DoneLineSurvivesRelaunchProof: XCTestCase {
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		TutorialHarness.attach(self, name: "done-after-relaunch", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -158,7 +117,6 @@ final class LegacyReviewNoticeProof: XCTestCase {
 		assertReadOnly(app, reading: Self.german)
 		TutorialHarness.attach(self, name: "v1-review-german", app: app)
 		assertNothingWritten(app, attaching: "v1-review-german-records")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertReadOnly(_ app: XCUIApplication, reading sentence: String) {

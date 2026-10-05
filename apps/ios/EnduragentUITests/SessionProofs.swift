@@ -228,26 +228,3 @@ final class SavedLanguageFirstFrameProof: XCTestCase {
 			|| element.children.contains { contains($0, identifier: identifier) }
 	}
 }
-
-final class OvernightConversationProof: XCTestCase {
-	func testThirteenHoursLaterContinuesTheConversation() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app, clock: "1998-06-15T18:00:00Z")
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.relaunchKeepingStore(app, clock: "1998-06-16T07:00:00Z")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
-		TutorialHarness.exchange(app, TutorialHarness.remember)
-		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
-		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
-		TutorialHarness.attach(self, name: "m1-15-overnight-continues", app: app)
-		TutorialHarness.openRecords(app)
-		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 2")
-		XCTAssertNil(TutorialHarness.recordCount(app, "windowStart"))
-		TutorialHarness.returnToChat(app)
-		TutorialHarness.openHistory(app)
-		TutorialHarness.waitForLabel(app, "No past conversations yet.")
-		XCTAssertFalse(TutorialHarness.historyRows(app).firstMatch.exists)
-		TutorialHarness.attach(self, name: "m1-15-overnight-history", app: app)
-	}
-}

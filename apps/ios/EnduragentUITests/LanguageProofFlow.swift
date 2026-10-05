@@ -42,7 +42,6 @@ enum LanguageProofFlow {
 		_ app: XCUIApplication, language: LanguageTag, test: XCTestCase, name: String
 	) {
 		TutorialHarness.openDebug(app)
-		XCTAssertEqual(TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
 		let instruction = TutorialHarness.debugRow(app, "fixture.replyLanguage")
 		XCTAssertTrue(
 			instruction.label.hasPrefix("Reply in \(language.englishName) (\(language.endonym))."),

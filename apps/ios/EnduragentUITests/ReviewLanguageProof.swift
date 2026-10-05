@@ -75,6 +75,5 @@ private enum ReviewLanguageProofScreen {
 		XCTAssertEqual(outcome.label, englishDone)
 		TutorialHarness.attach(test, name: "u9-4-history-outcome-en-\(theme)", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

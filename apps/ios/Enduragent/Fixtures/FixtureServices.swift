@@ -35,7 +35,6 @@
 			guard launch.name == FixtureLaunch.firstWeekName else {
 				throw FixtureLaunchError.unknownFixture(launch.name)
 			}
-			FixtureBlockingURLProtocol.register()
 			let clock = FixtureClock(
 				calendar: FixedClock(now: launch.clock, timeZone: FixtureLaunch.timeZone))
 			let intervals = FakeIntervalsClient(athleteName: FirstWeekFixture.athleteName, ftp: 250)

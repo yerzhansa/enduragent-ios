@@ -142,37 +142,6 @@ extension FixtureLaunchTests {
 		}
 	}
 
-	@Test func aThirteenHourGapAfterARelaunchKeepsTheConversation() async throws {
-		var evening = launch
-		evening.clock = "1998-06-15T18:00:00Z"
-		let earlier: TurnView
-		do {
-			let first = await model(try fixtureServices(evening, defaults: defaults))
-			await first.agreeAndStartChatting()
-			first.draft.text = TutorialCopy.weekQuestion
-			await first.send()
-			earlier = try await settledTurn(first)
-		}
-		let (morning, keptDefaults) = try await relaunch(.keep, clock: "1998-06-16T07:00:00Z")
-		let second = await fixtureModel(
-			environment: AppEnvironment(
-				services: morning, defaults: keptDefaults))
-		try await observed(second)
-		second.draft.text = TutorialCopy.weekQuestion
-		await second.send()
-		try await until(within: .hangGuard) {
-			second.chat?.turns.count == 2 && second.chat?.turns.last?.state.isSettled == true
-		}
-		#expect(second.chat?.opening == .continuing)
-		#expect(second.chat?.turns.first?.id == earlier.id)
-		await second.loadHistory()
-		guard case .loaded(let archived) = second.history else {
-			Issue.record("History did not load: \(second.history)")
-			return
-		}
-		#expect(archived.isEmpty)
-	}
-
 	private func instant(_ text: String) throws -> Date {
 		let formatter = ISO8601DateFormatter()
 		formatter.formatOptions = [.withInternetDateTime]

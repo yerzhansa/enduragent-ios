@@ -39,11 +39,10 @@ struct AthleteScopedCoachingFixture {
 	}
 
 	func connect(_ key: FixtureTrainingPeer.Key, using coach: Coach) async throws {
-		guard
-			case .replaced = await coach.changeTraining(
-				.replace(apiKey: key.secret, athlete: .keyOwner))
-		else {
-			Issue.record("Fixture connection was not replaced")
+		let outcome = await coach.changeTraining(
+			.replaceConfirmingAthleteSwitch(apiKey: key.secret, athlete: .keyOwner))
+		guard case .replaced = outcome else {
+			Issue.record("Fixture connection was not replaced: \(outcome)")
 			return
 		}
 	}

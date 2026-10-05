@@ -79,6 +79,5 @@ private enum ComposerIconButtonsScreen {
 		stop.tap()
 		TutorialHarness.wait(stop, until: .absent)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

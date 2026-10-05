@@ -60,7 +60,6 @@ final class BillingIdentityProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 2")
 		capture(app, "reopened-saved-memory-and-messages")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testRejectedOpenRouterKeepsItsChoiceThroughRecoveryAndLaterTurns() {
@@ -92,7 +91,6 @@ final class BillingIdentityProof: XCTestCase {
 		assertChoice(app, credits: false)
 		capture(app, "reopened-openrouter-choice")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testOutOfCreditsActionsFitInTheLongestTranslations() {

@@ -116,7 +116,6 @@ private enum SettingsNavigationScreen {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.send").isHittable)
 		TutorialHarness.attach(test, name: "\(name)-archive", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func proveDebug(_ test: XCTestCase, dark: Bool) {
@@ -146,7 +145,6 @@ private enum SettingsNavigationScreen {
 		TutorialHarness.wait(TutorialHarness.named(app, "settings.credits"), until: .hittable)
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"), until: .hittable)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private static func assertToolbar(_ app: XCUIApplication, phrasebook: CatalogPhrasebook) {

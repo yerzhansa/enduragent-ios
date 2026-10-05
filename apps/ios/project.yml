@@ -102,6 +102,7 @@ targets:
       - path: EnduragentPhoneTests
       - path: EnduragentUITests/TutorialHarness.swift
       - path: EnduragentUITests/TutorialOnboarding.swift
+      - path: EnduragentUITests/TutorialScrolling.swift
       - path: Enduragent/Fixtures/FixtureArguments.swift
     settings:
       base:

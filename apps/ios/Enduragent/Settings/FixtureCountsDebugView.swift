@@ -86,8 +86,6 @@
 				}
 			}
 			if let reviewHookFailure { Text(reviewHookFailure) }
-			Text("\(FixtureBlockingURLProtocol.requestCount) requests")
-				.accessibilityIdentifier("fixture.requestCount")
 			Text("\(services.fixtureTransport?.requestCount ?? 0) model requests")
 				.accessibilityIdentifier("fixture.modelRequestCount")
 			Text(services.fixtureTransport?.lastChatHistoryHead ?? "—")

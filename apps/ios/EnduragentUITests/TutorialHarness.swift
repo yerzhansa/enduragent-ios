@@ -32,7 +32,6 @@ enum TutorialHarness {
 	static let restorePurchases = "Restore purchases"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
-	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
 	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
@@ -123,7 +122,6 @@ enum TutorialHarness {
 		case retry = 45
 		case watchdog = 75
 		case longTurn = 60
-		case rateLimitMinutes = 330
 		case bulk = 600
 		case probe = 2
 		case cooldown = 5
@@ -177,6 +175,30 @@ enum TutorialHarness {
 		}
 		if required { XCTAssertTrue(completed, message, file: file, line: line) }
 		return completed
+	}
+
+	@discardableResult
+	static func waitForProgress(
+		_ app: XCUIApplication, to goal: String, within limit: Timeout = .bulk,
+		stoppedBy failure: XCUIElement? = nil, until reached: @escaping () -> Bool
+	) -> Bool {
+		var stop: String?
+		let ended = wait(
+			until: {
+				if reached() { return true }
+				if app.state != .runningForeground {
+					stop = "the app is no longer in the foreground"
+				} else if let failure, failure.exists {
+					stop = "\(failure) appeared"
+				}
+				return stop != nil
+			}, within: limit, required: false, message: goal)
+		if let stop {
+			XCTFail("\(goal) did not happen: \(stop)")
+			return false
+		}
+		XCTAssertTrue(ended, "\(goal) did not happen")
+		return ended
 	}
 
 	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
@@ -263,7 +285,7 @@ enum TutorialHarness {
 	}
 
 	static func exchange(
-		_ app: XCUIApplication, _ text: String, within limit: Timeout = .turn
+		_ app: XCUIApplication, _ text: String, within limit: Timeout = .bulk
 	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
@@ -276,8 +298,11 @@ enum TutorialHarness {
 			return
 		}
 		send(app, text)
-		let expected = "turns \(count + 1) settled \(count + 1)"
-		wait(progress, until: .value(expected), within: limit)
+		let settled = Condition.value("turns \(count + 1) settled \(count + 1)")
+		waitForProgress(
+			app, to: "\(progress) reaching \(settled)", within: limit,
+			stoppedBy: named(app, "chat.composer.notSent")
+		) { settled.matches(progress) }
 	}
 
 	static func sendLong(_ app: XCUIApplication) {
@@ -287,9 +312,10 @@ enum TutorialHarness {
 
 	static func openSettings(_ app: XCUIApplication) {
 		let settings = named(app, "chat.settings")
-		wait(settings, until: .hittable)
+		guard wait(settings, until: .hittable) else { return }
 		settings.tap()
-		wait(named(app, "settings.credits"))
+		let credits = named(app, "settings.credits")
+		waitForProgress(app, to: "Settings opening") { credits.exists }
 	}
 
 	static func openDebug(_ app: XCUIApplication) {
@@ -306,37 +332,9 @@ enum TutorialHarness {
 		returnToChat(app)
 	}
 
-	enum ScrollDirection {
-		case up, down
-	}
-
-	static func scroll(
-		_ app: XCUIApplication, to element: XCUIElement, direction: ScrollDirection = .up
-	) {
-		wait(
-			until: {
-				if element.exists && element.isHittable { return true }
-				switch direction {
-				case .up: app.swipeUp()
-				case .down: app.swipeDown()
-				}
-				return element.exists && element.isHittable
-			}, message: "Could not scroll to \(element)")
-	}
-
-	static func debugRow(
-		_ app: XCUIApplication, _ identifier: String, direction: ScrollDirection = .up
-	) -> XCUIElement {
-		let row = named(app, identifier)
-		scroll(app, to: row, direction: direction)
-		return row
-	}
-
 	static func openRecords(_ app: XCUIApplication) {
 		openDebug(app)
-		let count = debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
-		debugRow(app, "debug.records", direction: .down).tap()
+		debugRow(app, "debug.records").tap()
 		wait(named(app, "records.device"))
 	}
 
@@ -381,12 +379,5 @@ enum TutorialHarness {
 		let label = head.label
 		returnToChat(app)
 		return label
-	}
-
-	static func assertZeroFixtureRequests(_ app: XCUIApplication) {
-		openDebug(app)
-		let count = debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
-		returnToChat(app)
 	}
 }

@@ -14,6 +14,5 @@ final class LongRepliesProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 4")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

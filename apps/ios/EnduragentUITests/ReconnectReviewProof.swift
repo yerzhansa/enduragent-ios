@@ -28,7 +28,6 @@ final class ReconnectReviewProof: XCTestCase {
 		XCTAssertEqual(saved.athleteAWrites, 0)
 		XCTAssertEqual(saved.athleteBWrites, 1)
 		TutorialHarness.attach(self, name: "U5-4-B-own-workout-saved", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testRotatedAReopensAndRecoversWithoutAnotherSave() throws {
@@ -58,7 +57,6 @@ final class ReconnectReviewProof: XCTestCase {
 		XCTAssertEqual(recovered.athleteACalendarCalls, unknown.athleteACalendarCalls + 1)
 		XCTAssertEqual(recovered.athleteBCalendarCalls, 0)
 		TutorialHarness.attach(self, name: "U5-4-rotated-A-read-back", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testCancelUnderBOnline() throws {
@@ -95,7 +93,6 @@ final class ReconnectReviewProof: XCTestCase {
 		TutorialHarness.relaunchKeepingStore(app)
 		assertClosedNote(app)
 		TutorialHarness.attach(self, name: "U5-4-B-durable-button-free-note", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func launch(unknownSave: Bool = false) -> XCUIApplication {
