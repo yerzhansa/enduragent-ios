@@ -2,7 +2,8 @@ import ToolSupport
 
 extension SourceChecker {
 	private func readPlist(_ path: String) throws -> JSONValue {
-		try JSONValue.parse(Tool.output("plutil", ["-convert", "json", "-o", "-", "--", path]))
+		try JSONValue.parse(
+			Subprocess().printed("plutil", ["-convert", "json", "-o", "-", "--", path]))
 	}
 
 	func checkXcodeBuildSettings(_ file: String, _ path: String) throws {
