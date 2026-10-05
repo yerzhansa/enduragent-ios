@@ -41,7 +41,7 @@ The app and local Swift coach package keep their original paths and protocol. Re
 
 The generated `Phrasebook.json` is the raw resource consumed by the Swift renderer. Native Apple String Catalog export and Xcode catalog-editor validation are not provided. App builds, bundled-resource equality, and Phrasebook runtime tests verify this representation.
 
-The standalone localization generator and all 17 locale catalogs are pinned source imports. Update translations through an explicit reviewed import from the source repository. This repository owns catalog generation and the generated Swift resources. There is no automatic synchronization.
+The 17 locale catalogs are pinned source imports. Update translations through an explicit reviewed import from the source repository. This repository owns the catalog generator, the Swift package in `tools`, and the generated Swift resources. There is no automatic synchronization.
 
 `migration-receipt.json` records original path digests and migration edits. It describes the imported snapshot and does not restrict future app changes. Historical fixture lineage has not been independently established by this import.
 
