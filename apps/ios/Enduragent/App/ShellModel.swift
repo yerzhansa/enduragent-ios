@@ -126,15 +126,6 @@ final class ShellModel {
 		return summary
 	}
 
-	var athleteFirstName: String {
-		guard let name = connected?.athleteName?.trimmingCharacters(in: .whitespacesAndNewlines),
-			!name.isEmpty
-		else {
-			return ""
-		}
-		return name.split(whereSeparator: \.isWhitespace).first.map(String.init) ?? name
-	}
-
 	var connectedAthlete: IntervalsAthleteID? {
 		guard case .connected(_, .intervals(_, let athlete)) = status.training else { return nil }
 		return athlete

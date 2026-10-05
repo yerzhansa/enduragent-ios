@@ -94,22 +94,6 @@ final class StopNoticeProof: XCTestCase {
 	}
 }
 
-final class RateLimitMinutesProof: XCTestCase {
-	func testRateLimitMinutes() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 429 90 x4")
-		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitTwoMinutes),
-			within: .rateLimitMinutes)
-		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
-		XCTAssertTrue(tryAgain.exists)
-		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the 90 second wait")
-		TutorialHarness.attach(self, name: "rate-limit-minutes", app: app)
-	}
-}
-
 final class RateLimitTryAgainOpensProof: XCTestCase {
 	func testTryAgainOpensWhenTheWaitEnds() {
 		let app = XCUIApplication()

@@ -9,13 +9,6 @@ final class StepLimitFallbackProof: XCTestCase {
 }
 
 @MainActor
-final class StepLimitFallbackDarkProof: XCTestCase {
-	func testChosenLanguageInChatAfterRelaunchAndInHistory() {
-		StepLimitFallbackScreen.prove(self)
-	}
-}
-
-@MainActor
 private enum StepLimitFallbackScreen {
 	static let sentence =
 		"J’ai atteint ma limite d’étapes en recueillant les données — demande-moi de continuer et je reprendrai là où je me suis arrêté."

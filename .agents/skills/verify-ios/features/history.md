@@ -31,7 +31,6 @@ Preconditions:
 | `sim.mjs test <run id> HistoryListProof` | History is empty after the first reply; `/start` creates one row, `history-empty`, `history-list`. |
 | `sim.mjs test <run id> ReplyFormattingProof ReplyFormattingDarkProof ReplyStreamingStoppedProof ReplyFallbackProof` | A New conversation archive preserves formatted replies, stopped prefixes and the literal fallback. The [conversation map](./chat.md) names the attachments and parity procedure. |
 | `sim.mjs test <run id> HistoryArchivedProof` | The toolbar reset creates a row; opening it shows the prior question, reply, and read-only notice, `history-row`, `history-archived`. |
-| `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A 13-hour gap across a relaunch leaves History empty, `m1-15-overnight-history`. |
 | `sim.mjs test <run id> UpgradeHistoryProof` | Two v1 rows read Earlier chat; one opens read-only, `upgrade-welcome`, `upgrade-history`, `upgrade-history-read-only`. Missing prior data makes the proof skip. |
 | `sim.mjs test <run id> HistoryOpenProbe/testSeedFiftyResets`, then `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithFiftyArchived` | The kept store has 50 archives; `history-open-ms` measures opening them and `history-with-fifty-archived` shows the list. |
 | `sim.mjs test <run id> HistoryOpenProbe/testHistoryOpenWithNoneArchived` | A fresh store supplies the empty baseline, `history-open-empty-ms`. |

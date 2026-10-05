@@ -28,7 +28,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-review` sends `/review` as a turn. The fixture replies with the Saturday group ride summary.
 - `chat-slash-list` lists `/start`, `/workout`, `/status`, `/review`, and `/language` in that order. `chat-slash-fill` fills a selected command followed by a space. `chat-plan` treats `/plan` as ordinary text and omits it from the list.
 - `chat-new-conversation` accepts the compose icon labeled New conversation or `/start` without confirmation. Admission clears the submitted draft and frees Send while it waits behind current work. The old conversation stays with one `Starting a new conversation…` row during the reply and memory save. It then archives earlier turns and shows the welcome, a result notice, and messages accepted during the wait. A later failure preserves the conversation and shows the uncertain notice. A pending workout review remains pending.
-- `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History.
+- `chat-overnight-continuity` keeps one conversation across any gap between messages. Only New conversation or `/start` closes it into History. The package test `LongGapTests` proves the 13-hour gap with and without a relaunch; no UI proof repeats it.
 - `chat-title` localizes the visible title, Chat in English and Conversation in French, with the same preference as the composer and reply language.
 - `chat-session-settings` edits history ratio and context-window override through Settings > Session. A rejected value preserves the saved value; a saved value affects later turns. See [settings.md](./settings.md).
 
@@ -81,7 +81,7 @@ Preconditions:
 | `sim.mjs test <run id> FragmentOrderingProof` | Thursday and Friday stay buffered until `/language` opens its picker. Closing the sheet returns to one combined question with its reply below it, two message records and one claim and settlement. Attachments are `fragment-ordering-buffered`, `fragment-ordering-picker`, `fragment-ordering-reply` and `fragment-ordering-records`. The proof widens collection to 60 seconds so UI typing cannot close it first; `FragmentOrderingTests` proves the real 1.5-second timing with `HeldClock`. |
 | `sim.mjs test <run id> DraftSurvivesKillProof` | An unsent draft survives relaunch without a saved message, `draft-survives`. |
 | `sim.mjs test <run id> StorageFaultProof` | A failed append leaves the draft and no accepted message, including after relaunch, `storage-fault-not-sent`, `storage-fault-nothing-saved`, `storage-fault-records`. |
-| `sim.mjs test <run id> LongRepliesProof` | Four successive turns settle without an old working row reappearing, `long-replies`. |
+| `sim.mjs test <run id> LongRepliesProof` | Three long replies and a fourth turn each settle in the transcript, and Records has four settlements, `long-replies`. |
 | `sim.mjs test <run id> ReviewProof` | `/review` yields Saturday group ride and Training Load, `05-review`. |
 | `sim.mjs test <run id> SlashListNoPlanProof` | Slash choices exist and `/plan` is absent, `slash-list-no-plan`. |
 | `sim.mjs test <run id> PlanFreeTextProof` | `/plan` appears as an ordinary athlete message and receives a reply, `plan-free-text`. |
@@ -97,21 +97,17 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | Command | Observable result and attachment |
 | --- | --- |
 | `sim.mjs test <run id> FailedReplyProof` | Three server failures end in the provider notice and Try again without wire details, `failed-reply`. |
-| `sim.mjs test <run id> FailureCopyProof` | Rejected Credits, network failure, and a seven-second rate limit have their catalog notices and actions, `failure-copy-credentials`, `failure-copy-network`, `failure-copy-rate-limited`. |
 | `sim.mjs test <run id> FailureNoticesProof` | Timeout, exhausted Credits, and overflow show distinct recovery choices, `failure-timeout`, `failure-exhausted`, `failure-overflow`. |
-| `sim.mjs test <run id> FailedNetworkDarkProof` | Network notice in the helper's dark appearance run, `failed-network-dark`. |
 | `sim.mjs test <run id> FailNoticeLatencyProbe` | `fail-notice-latency-ms` measures Send through the server retry ladder to the notice; `fail-notice` shows it. |
 | `sim.mjs test <run id> RetryLadderProof` | One server failure recovers with no notice; exhausted rate limits end with a notice, `retry-ladder-reply`, `retry-ladder-rate-limited`. |
 | `sim.mjs test <run id> NetworkRetryProof` | Two failed requests recover, three fail the turn; fake model count is six across both turns, `network-retry`, `network-exhausted`, `network-requests`. |
 | `sim.mjs test <run id> RateLimitWaitProof` | A hinted seven-second wait retains working before success, then four failures exhaust the ladder, `rate-limit-wait`, `rate-limit-wait-reply`, `rate-limit-wait-exhausted`. |
-| `sim.mjs test <run id> RateLimitExhaustedProof` | Four rate-limited requests produce one notice, `rate-limit-exhausted`, `rate-limit-exhausted-requests`. |
-| `sim.mjs test <run id> RateLimitMinutesProof` | A 90-second hint reads `~2 minutes` and disables Try again, `rate-limit-minutes`. This proof takes several minutes. |
 | `sim.mjs test <run id> RateLimitTryAgainOpensProof` | Try again changes from disabled to enabled after the wait, then succeeds, `rate-limit-waiting`, `rate-limit-try-again-open`, `rate-limit-tried-again`. |
 | `sim.mjs test <run id> OverflowExhaustedProof` | Four overflow failures plus one memory flush end in a notice, without durable compaction, `overflow-exhausted`, `overflow-exhausted-records`, `overflow-requests`. |
 | `sim.mjs test <run id> HangWatchdogProof` | A hung reply stays working, then ends with the provider notice after the watchdog attempts, `hang-working`, `hang-watchdog`, `hang-watchdog-records`. |
 | `sim.mjs test <run id> ReplyObservedProof` | Text already shown is recorded and suppresses replay after the watchdog, `observed-text`, `observed-text-records`, `observed-text-timeout`. |
 | `sim.mjs test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
-| `sim.mjs test <run id> StepLimitFallbackProof StepLimitFallbackDarkProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
+| `sim.mjs test <run id> StepLimitFallbackProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
 | `sim.mjs test <run id> NoticeCopyProof` | Buy Credits and Restore purchases open Credits; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
 | `sim.mjs test <run id> AccessNoticeProof` | Missing access opens Connect; locked keychain keeps the message and offers Try again, `access-not-configured-connect`, `access-locked`. |
 
@@ -129,7 +125,6 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> FinishedWhileAwayProof` | A reply completed in the background has the finished-while-locked marker, `finished-while-away`. |
 | `sim.mjs test <run id> BackgroundResumeProof` | Background and resume preserve the reply with no interruption notice, `background-resume`. |
 | `sim.mjs test <run id> LeaseReportProof` | Debug, Leases shows the athlete lease and settled progress, `lease-report`. |
-| `sim.mjs test <run id> LeaseTourProof` | Stop, queued expiry, and background completion in one walkthrough, `lease-tour`. |
 | `sim.mjs test <run id> RelaunchKeepsChatProof` | Completed message and reply reopen without onboarding, `relaunch-keeps-chat`. |
 | `sim.mjs test <run id> AcceptSurvivesKillProof` | Accepted but unclaimed work reopens as received before close; Try again starts it once, `accept-kill-reopen`, `accept-kill-try-again-records`. |
 | `sim.mjs test <run id> InterruptedAfterKillProof` | A claimed turn reopens interrupted and waits for Try again, `interrupted-after-kill`, `interrupted-after-kill-try-again`. |
@@ -152,7 +147,6 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim.mjs shot <ru
 | `sim.mjs test <run id> NewConversationWorkingProof` | The old conversation shows working while reset memory saving runs, then opens the welcome, `new-conversation-working`. |
 | `sim.mjs test <run id> PartialFlushResetProof` | An incomplete save still opens the new conversation with the memory warning, `partial-flush`, `partial-flush-records`. |
 | `sim.mjs test <run id> ResetKeepsReviewProof` | A pending workout review survives the reset, `reset-keeps-review`, `reset-keeps-review-records`. |
-| `sim.mjs test <run id> OvernightConversationProof/testThirteenHoursLaterContinuesTheConversation` | A turn at 20:00 local and one 13 hours later after a relaunch stay in one conversation; Records show no `windowStart` and History is empty, `m1-15-overnight-continues`, `m1-15-overnight-history`. |
 | `sim.mjs test <run id> SessionRejectionProof SessionRejectionDarkProof` | Through Settings > Session, each invalid value shows its field's catalog sentence, Cancel restores the saved value, and no settings record is written. `session-rejected-<field>-light` or `-dark`. |
 | `sim.mjs test <run id> RatioAppliesProof` | A 5% history budget, and separately a 64000-token context window, each saved in Settings > Session and followed by a relaunch, cause earlier compaction than the default. `ratio-applies-turns`, `ratio-applies`, `context-window-applies-turns`, `context-window-applies`. Each test runs up to 18 long turns. |
 

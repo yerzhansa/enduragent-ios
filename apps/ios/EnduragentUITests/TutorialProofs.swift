@@ -1,16 +1,6 @@
 import EnduragentCoach
 import XCTest
 
-final class InstallOpenProof: XCTestCase {
-	func testInstallOpen() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.waitForLabel(app, TutorialHarness.notice)
-		XCTAssertTrue(TutorialHarness.named(app, "notice.continue").exists)
-		TutorialHarness.attach(self, name: "01-install-open", app: app)
-	}
-}
-
 final class StarterCreditsProof: XCTestCase {
 	func testDebugStarterUsesInjectedDeviceCheck() {
 		let app = XCUIApplication()

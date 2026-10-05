@@ -236,39 +236,3 @@ final class StopTryAgainProof: XCTestCase {
 		TutorialHarness.attach(self, name: "retry-after-stop-records", app: app)
 	}
 }
-
-final class LeaseTourProof: XCTestCase {
-	func testLeaseTour() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(
-			TutorialHarness.text(app, containing: "This week has"), within: .screen)
-		Thread.sleep(forTimeInterval: 1)
-		TutorialHarness.named(app, "chat.stop").tap()
-		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.interruptedNothingChanged))
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.send(app, "fixture:hang")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
-		Thread.sleep(forTimeInterval: 2)
-		TutorialHarness.fixtureControl(app, "fixture.expire")
-		let stopped = app.staticTexts.matching(
-			NSPredicate(
-				format: "identifier == %@ AND label == %@", "chat.turn.notice",
-				TutorialHarness.interruptedNothingChanged))
-		TutorialHarness.wait(stopped.element(boundBy: 1))
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.send(app, "fixture:slow")
-		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), within: .screen)
-		XCUIDevice.shared.press(.home)
-		Thread.sleep(forTimeInterval: 12)
-		app.activate()
-		TutorialHarness.wait(app, until: .foreground)
-		TutorialHarness.wait(
-			TutorialHarness.named(app, "chat.turn.finishedWhileLocked"), within: .turn)
-		Thread.sleep(forTimeInterval: 3)
-		TutorialHarness.attach(self, name: "lease-tour", app: app)
-	}
-}

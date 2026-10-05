@@ -22,14 +22,12 @@ final class FixtureLaunchTests {
 
 	func relaunch(
 		_ store: FixtureStorePolicy, keychain: FixtureKeychainPolicy = .unlocked,
-		recovery: FixtureRecoveryPolicy = .readable, clock: String? = nil,
-		language: LanguageTag? = nil
+		recovery: FixtureRecoveryPolicy = .readable, language: LanguageTag? = nil
 	) async throws -> (AppServices, UserDefaults) {
 		var launch = launch
 		launch.store = store
 		launch.keychain = keychain
 		launch.recovery = recovery
-		launch.clock = clock ?? launch.clock
 		await fixture.releaseOwners()
 		try await fixture.folder.waitUntilUnused()
 		let defaults = try launch.prepare()
@@ -185,7 +183,6 @@ final class FixtureLaunchTests {
 		#expect(model.connectKey.isEmpty)
 		#expect(model.route == .onboarding(.starter))
 		#expect(model.connected == nil)
-		#expect(model.athleteFirstName.isEmpty)
 	}
 
 	@Test func alreadyGrantedWithStoredKeyShowsBalance() async throws {

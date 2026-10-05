@@ -32,7 +32,6 @@ enum TutorialHarness {
 	static let restorePurchases = "Restore purchases"
 	static let chooseAccessMethod = "Choose access method"
 	static let rateLimitSevenSeconds = "Rate limited — please try again in ~7 seconds."
-	static let rateLimitTwoMinutes = "Rate limited — please try again in ~2 minutes."
 	static let rateLimitSixSeconds = "Rate limited — please try again in ~6 seconds."
 	static let unknownFailure = "Sorry, something went wrong. Please try again."
 	static let interruptedSomeSaved =
@@ -123,7 +122,6 @@ enum TutorialHarness {
 		case retry = 45
 		case watchdog = 75
 		case longTurn = 60
-		case rateLimitMinutes = 330
 		case bulk = 600
 		case probe = 2
 		case cooldown = 5
