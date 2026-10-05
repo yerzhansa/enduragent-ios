@@ -159,7 +159,7 @@ extension Simulator {
 		try makeFolder(out)
 		let simulator = NodePath.join(out, "simulator.png")
 		if let source {
-			try FileManager.default.copyItem(atPath: source, toPath: simulator)
+			try copyContent(of: source, to: simulator)
 		} else {
 			_ = try capture("xcrun", ["simctl", "ui", run.udid, "appearance", theme])
 			Thread.sleep(forTimeInterval: 1.5)
@@ -169,8 +169,12 @@ extension Simulator {
 		_ = try capture(
 			"sips",
 			["--resampleWidth", "390", simulator, "--out", NodePath.join(out, "simulator-390.png")])
-		try FileManager.default.copyItem(
-			atPath: prototype, toPath: NodePath.join(out, "prototype.png"))
+		try copyContent(of: prototype, to: NodePath.join(out, "prototype.png"))
 		try Console.say(out)
+	}
+
+	private func copyContent(of source: String, to destination: String) throws {
+		try FileManager.default.copyItem(
+			atPath: try FileSystem.realPath(source), toPath: destination)
 	}
 }
