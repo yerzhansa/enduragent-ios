@@ -67,7 +67,7 @@ struct Scratch: Sendable {
 	}
 
 	private func check(in root: URL) throws -> (status: Int32, output: String) {
-		_ = try Tool.output("git", ["init", "-q", root.path])
+		_ = try Subprocess().printed("git", ["init", "-q", root.path])
 		let contents =
 			files.mapValues { Data($0.utf8) }.merging(binaries.mapValues { Data($0) }) { $1 }
 		for (file, content) in contents {
@@ -84,9 +84,9 @@ struct Scratch: Sendable {
 		}
 		switch tracked {
 		case .everything:
-			_ = try Tool.output("git", ["-C", root.path, "add", "-f", "--", "."])
+			_ = try Subprocess().printed("git", ["-C", root.path, "add", "-f", "--", "."])
 		case .only(let paths):
-			_ = try Tool.output("git", ["-C", root.path, "add", "-f", "--"] + paths)
+			_ = try Subprocess().printed("git", ["-C", root.path, "add", "-f", "--"] + paths)
 		case .nothing:
 			break
 		}

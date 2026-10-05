@@ -45,9 +45,6 @@ extension SourceCases {
 		rejectsWithoutData("ignored documentation", "docs/example.md", "text", "forbidden-path"),
 		rejectsWithoutData(
 			"private key", "key.txt", "-----BEGIN " + "PRIVATE KEY-----", "secret-shape"),
-		rejectsWithoutData(
-			"app TypeScript public wording", "packages/i18n/scripts/message.ts",
-			#"const message = "Your CTL is rising";"#, "public-language"),
 		rejectsWithoutData("Swift label", screen, #"Text("Normalized Power")"#, "public-language"),
 		rejectsWithoutData("public prose", "README.md", "Your CTL is rising.", "public-language"),
 		rejectsWithoutData(

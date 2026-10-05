@@ -308,6 +308,41 @@ struct SimCommandTests {
 		}
 	}
 
+	@Test(.timeLimit(.minutes(2)))
+	func parityKeepsTheContentOfLinkedCaptures() throws {
+		try withTree { fixture in
+			let captures = "\(fixture.root)/captures"
+			try FileManager.default.createDirectory(
+				atPath: captures, withIntermediateDirectories: false)
+			try fixture.write("prototype pixels", to: "\(fixture.root)/stored-prototype.png")
+			try fixture.write("simulator pixels", to: "\(fixture.root)/stored-screen.png")
+			try FileManager.default.createSymbolicLink(
+				atPath: "\(captures)/native-welcome-light.png",
+				withDestinationPath: "../stored-prototype.png")
+			try FileManager.default.createSymbolicLink(
+				atPath: "\(fixture.root)/screen.png", withDestinationPath: "stored-screen.png")
+			#expect(try fixture.sim(["build"]).status == 0)
+			let created = try fixture.sim(["create", "parity-check"])
+			#expect(created.status == 0, "\(created.errors)")
+			let lines = created.output.split(separator: "\n").map(String.init)
+			let run = String(try #require(lines.first).dropFirst("run ".count))
+			let evidence = "\(fixture.runs)/\(run)/parity/welcome-light"
+
+			let compared = try fixture.sim(
+				["parity", run, "welcome", "light", "--from", "\(fixture.root)/screen.png"],
+				environment: ["ENDURAGENT_PROTOTYPE_CAPTURES": captures])
+
+			#expect(compared.status == 0, "\(compared.errors)")
+			#expect(compared.output == "\(evidence)\n")
+			for (name, pixels) in [
+				("simulator.png", "simulator pixels"), ("prototype.png", "prototype pixels"),
+			] {
+				#expect(try !FileSystem.isSymbolicLink("\(evidence)/\(name)"))
+				#expect(try fixture.read("\(evidence)/\(name)") == pixels)
+			}
+		}
+	}
+
 	private func value(after flag: String, in call: [String]) throws -> String {
 		let index = try #require(call.firstIndex(of: flag))
 		return call[index + 1]

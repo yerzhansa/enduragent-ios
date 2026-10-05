@@ -35,8 +35,6 @@ extension SourceChecker {
 	static let secretShape =
 		#"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}"#
 		+ #"|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b"#
-	static let typeScriptText =
-		#""(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\/\/[^\n]*|\/\*[\s\S]*?\*\/"#
 	static let swiftCopy =
 		#"\b(?:Text|Label|Button|Section|navigationTitle|alert|confirmationDialog"#
 		+ #"|String\(localized:)\s*\(?(?:\s*)"((?:\\.|[^"\\])*)""#
@@ -138,9 +136,6 @@ extension SourceChecker {
 			return [
 				try patterns.replaceAll(#"```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`]*`"#, text, with: "")
 			]
-		}
-		if try patterns.test(#"\.tsx?$"#, file) {
-			return try patterns.matchAll(Self.typeScriptText, text).map(\.text)
 		}
 		if file.hasUnitSuffix(".swift") && file.range(of: "/Tests/", options: .literal) == nil {
 			return try patterns.matchAll(Self.swiftCopy, text).map { $0.groups[1] }

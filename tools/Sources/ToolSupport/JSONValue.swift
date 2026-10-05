@@ -6,6 +6,17 @@ public struct JSONFailure: DescribedFailure {
 	}
 }
 
+public struct JSONSyntaxFailure: DescribedFailure {
+	public let byte: Int
+
+	public var description: String { "Invalid JSON at byte \(byte)" }
+}
+
+public enum JSONDialect: Sendable {
+	case javaScript
+	case textTree
+}
+
 public struct JSONMember {
 	public let key: String
 	public var value: JSONValue
@@ -25,8 +36,10 @@ public indirect enum JSONValue {
 	case array([JSONValue])
 	case object([JSONMember])
 
-	public static func parse(_ text: String) throws -> JSONValue {
-		var reader = JSONReader(bytes: Array(text.utf8))
+	public static func parse(_ text: String, as dialect: JSONDialect = .javaScript) throws
+		-> JSONValue
+	{
+		var reader = JSONReader(bytes: Array(text.utf8), dialect: dialect)
 		return try reader.document()
 	}
 
@@ -131,10 +144,12 @@ struct JSONReader {
 	private static let backslash = UInt8(ascii: "\\")
 
 	let bytes: [UInt8]
+	let dialect: JSONDialect
 	private var position = 0
 
-	init(bytes: [UInt8]) {
+	init(bytes: [UInt8], dialect: JSONDialect) {
 		self.bytes = bytes
+		self.dialect = dialect
 	}
 
 	static func isArrayIndex(_ key: String) -> Bool {
@@ -161,8 +176,8 @@ struct JSONReader {
 		position < bytes.count ? bytes[position] : nil
 	}
 
-	private var failure: JSONFailure {
-		JSONFailure(description: "Invalid JSON at byte \(position)")
+	private var failure: JSONSyntaxFailure {
+		JSONSyntaxFailure(byte: position)
 	}
 
 	private mutating func skipWhitespace() {
@@ -186,6 +201,8 @@ struct JSONReader {
 			return .string(try string())
 		case UInt8(ascii: "{"):
 			return .object(try members())
+		case _ where dialect == .textTree:
+			throw failure
 		case UInt8(ascii: "["):
 			return .array(try elements())
 		case UInt8(ascii: "t"):
@@ -291,7 +308,7 @@ struct JSONReader {
 			case UInt8(ascii: ","):
 				continue
 			case UInt8(ascii: "}"):
-				return Self.inEnumerationOrder(members)
+				return dialect == .javaScript ? Self.inEnumerationOrder(members) : members
 			default:
 				throw failure
 			}

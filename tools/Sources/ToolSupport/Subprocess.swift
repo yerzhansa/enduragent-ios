@@ -81,6 +81,19 @@ public struct Subprocess {
 		return String(decoding: captured.output, as: UTF8.self).trimmedAsJavaScript
 	}
 
+	public func printed(_ command: String, _ arguments: [String]) throws -> String {
+		let output = Pipe()
+		let process = try launch(
+			command, arguments, output: output, errors: FileHandle.standardError)
+		let printed = try output.fileHandleForReading.readToEnd() ?? Data()
+		process.waitUntilExit()
+		let end = Self.end(of: process)
+		guard end.succeeded else {
+			throw SubprocessFailure(description: "\(command) exited \(end.statusText)")
+		}
+		return String(decoding: printed, as: UTF8.self)
+	}
+
 	public func collect(_ command: String, _ arguments: [String]) throws -> (
 		end: SubprocessEnd, output: Data, errors: Data
 	) {

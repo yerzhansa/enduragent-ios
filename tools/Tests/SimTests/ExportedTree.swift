@@ -89,7 +89,7 @@ struct ExportedTree {
 			"\(classes.joined(separator: "\n"))\nfinal class TimingProbe: XCTestCase {}\n",
 			to: "\(source)/Proofs.swift")
 		try files.createDirectory(atPath: "\(root)/bin", withIntermediateDirectories: false)
-		for tool in ["git", "xcrun", "xcodegen", "xcodebuild", "plutil"] {
+		for tool in ["git", "xcrun", "xcodegen", "xcodebuild", "plutil", "sips"] {
 			try files.createSymbolicLink(
 				atPath: "\(root)/bin/\(tool)",
 				withDestinationPath: "\(Self.products)/SimFixtureTool")

@@ -49,6 +49,6 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 
 Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
 
-Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `pnpm check:source` for the cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
+Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `make check-source` for the cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
 
 Reach every Debug list row through `TutorialHarness.debugRow` before tapping it or reading its label. The helper scrolls with a deadline. Use `direction: .down` when returning from fixture counters to a row above them. Leave Settings and its destinations with `TutorialHarness.returnToChat`.

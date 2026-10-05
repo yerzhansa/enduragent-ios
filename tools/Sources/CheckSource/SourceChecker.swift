@@ -59,7 +59,7 @@ struct SourceChecker {
 	let findings: Findings
 
 	func run() throws -> Int {
-		let listing = try Tool.output("git", ["-C", root, "ls-files", "-z"])
+		let listing = try Subprocess().printed("git", ["-C", root, "ls-files", "-z"])
 		let files = listing.utf8.split(separator: 0).map { String(decoding: $0, as: UTF8.self) }
 		let tracked = TrackedFiles(files.map { NodePath.resolve(root, $0) })
 		var featureProofSources: [SourceFile] = []
