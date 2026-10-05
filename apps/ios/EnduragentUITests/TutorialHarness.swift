@@ -177,6 +177,30 @@ enum TutorialHarness {
 		return completed
 	}
 
+	@discardableResult
+	static func waitForProgress(
+		_ app: XCUIApplication, to goal: String, within limit: Timeout = .bulk,
+		stoppedBy failure: XCUIElement? = nil, until reached: @escaping () -> Bool
+	) -> Bool {
+		var stop: String?
+		let ended = wait(
+			until: {
+				if reached() { return true }
+				if app.state != .runningForeground {
+					stop = "the app is no longer in the foreground"
+				} else if let failure, failure.exists {
+					stop = "\(failure) appeared"
+				}
+				return stop != nil
+			}, within: limit, required: false, message: goal)
+		if let stop {
+			XCTFail("\(goal) did not happen: \(stop)")
+			return false
+		}
+		XCTAssertTrue(ended, "\(goal) did not happen")
+		return ended
+	}
+
 	static func meanLuminance(_ screenshot: XCUIScreenshot) -> Double {
 		guard let image = screenshot.image.cgImage else {
 			XCTFail("the screenshot has no bitmap")
@@ -274,8 +298,11 @@ enum TutorialHarness {
 			return
 		}
 		send(app, text)
-		let expected = "turns \(count + 1) settled \(count + 1)"
-		wait(progress, until: .value(expected), within: limit)
+		let settled = Condition.value("turns \(count + 1) settled \(count + 1)")
+		waitForProgress(
+			app, to: "\(progress) reaching \(settled)", within: limit,
+			stoppedBy: named(app, "chat.composer.notSent")
+		) { settled.matches(progress) }
 	}
 
 	static func sendLong(_ app: XCUIApplication) {
@@ -287,7 +314,8 @@ enum TutorialHarness {
 		let settings = named(app, "chat.settings")
 		guard wait(settings, until: .hittable) else { return }
 		settings.tap()
-		wait(named(app, "settings.credits"), within: .bulk)
+		let credits = named(app, "settings.credits")
+		waitForProgress(app, to: "Settings opening") { credits.exists }
 	}
 
 	static func openDebug(_ app: XCUIApplication) {

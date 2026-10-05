@@ -28,9 +28,9 @@ private enum AthleteOwnershipScreen {
 		TutorialHarness.openDebug(app)
 		TutorialHarness.debugRow(app, "fixture.seedOwnership").tap()
 		let seedResult = TutorialHarness.debugRow(app, "fixture.ownershipSeedResult")
-		TutorialHarness.wait(
-			until: { seedResult.label != "waiting" }, within: .bulk,
-			message: "Ownership seeding did not finish")
+		TutorialHarness.waitForProgress(app, to: "ownership seeding finishing") {
+			seedResult.label != "waiting"
+		}
 		XCTAssertEqual(seedResult.label, "seeded")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.workout)

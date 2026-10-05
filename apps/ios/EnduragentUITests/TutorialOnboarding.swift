@@ -6,10 +6,13 @@ extension TutorialHarness {
 		_ app: XCUIApplication, language: LanguageTag = .en, captureSetup: () -> Void = {}
 	) {
 		let phrasebook = CatalogPhrasebook(tag: language)
-		waitForLabel(app, phrasebook.say(Catalog.onboardingNoticeHealth))
+		let notice = text(app, containing: phrasebook.say(Catalog.onboardingNoticeHealth))
+		guard wait(notice) else { return }
 		named(app, "notice.continue").tap()
 		let key = named(app, "connect.apiKey")
-		wait(key, within: .bulk)
+		guard waitForProgress(app, to: "the connect step opening", until: { key.exists }) else {
+			return
+		}
 		key.tap()
 		key.typeText("fixture")
 		named(app, "connect.connect").tap()
