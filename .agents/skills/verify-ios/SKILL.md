@@ -48,7 +48,7 @@ Run `sim doctor [<run id>]` first, and again whenever a screen or command looks 
 
 XCUITest finds controls by accessibility identifier. The interactive tool taps by coordinates, so find each control in a fresh screenshot by its visible label and name its identifier from the table below in your report.
 
-**XCUITest proofs.** This is the scripted harness and the default. In `apps/ios/EnduragentUITests/`, classes ending in `Proof` hold the UI proofs. `sim suite` discovers them from the Swift sources. `LaunchProbes.swift` holds the timing probes. `TutorialHarness.swift` holds the launch arguments and the shared steps `completeOnboarding`, `send`, and `openSettings`. Each feature file names the proofs that cover it. Run them with `sim test`, described in **UI test run**. A state that no proof reaches gets a new proof in the file for its feature, reviewed with the change it proves. It is Swift, so `pnpm lint:swift` and `pnpm check:format` apply.
+**XCUITest proofs.** This is the scripted harness and the default. In `apps/ios/EnduragentUITests/`, classes ending in `Proof` hold the UI proofs. `sim suite` discovers them from the Swift sources. `LaunchProbes.swift` holds the timing probes. `TutorialHarness.swift` holds the launch arguments and the shared steps `completeOnboarding`, `send`, and `openSettings`. Each feature file names the proofs that cover it. Run them with `sim test`, described in **UI test run**. A state that no proof reaches gets a new proof in the file for its feature, reviewed with the change it proves. It is Swift, so `make lint-swift` and `make check-format` apply.
 
 **Interactive.** Use this for exploration, paths no proof covers, and parity captures. After `launch`, drive with the Claude Code iOS Simulator `control` tool and pass `device: <udid>` on every call. Its default target is the first booted simulator, which can be the operator's own. `screenshot` returns an image 924 pixels wide, and `tap` takes device points, so multiply a position in that image by 0.422. `text` types into the focused field. The simulator uses the Mac keyboard as a hardware keyboard, so no on-screen keyboard appears. Without that tool there is no tap path outside XCUITest, so write a proof.
 
@@ -142,10 +142,10 @@ Require `2 passed, 0 failed, 0 skipped`. `TutorialHarness.launchUpgrade` uses `F
 The stores were generated through the frozen v1 code at `82254bbda75ba79b0156d7efd3deac223489b2b0`. To regenerate them on macOS with that code's compatible Swift toolchain, run:
 
 ```sh
-caffeinate -i node tools/generate-v1-upgrade-stores.mjs
+caffeinate -i swift run --quiet --package-path tools upgrade-stores v1-upgrade
 ```
 
-The generator archives the frozen package and its unchanged `FirstWeekFixture` into a temporary directory, adds `tools/fixtures/V1UpgradeStoreSeed.swift` to the test target, and drives the v1 `Coach.send` and `SwiftDataRecordLog`. It checkpoints the generated SQLite databases and copies them into the two committed fixture folders. Do not hand-edit database rows or the frozen schema. CI and UI proof runs consume the committed stores and need no v1 installation or detached worktree.
+The generator archives the frozen package and its unchanged `FirstWeekFixture` into a temporary directory, adds `tools/fixtures/V1UpgradeStoreSeed.swift` to the test target, and drives the v1 `Coach.send` and `SwiftDataRecordLog`. It checkpoints the generated SQLite databases and copies them into the two committed fixture folders. Each run writes new record identifiers and a new store identifier, so the regenerated files hold the same records as the committed ones in different bytes. `upgrade-stores pre-vault-5de5c782` and `upgrade-stores build-2bbe2ee` regenerate the two package upgrade fixtures the same way from their frozen commits. Do not hand-edit database rows or the frozen schema. CI and UI proof runs consume the committed stores and need no v1 installation or detached worktree.
 
 ## Verify on the real phone
 
@@ -455,7 +455,7 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 | `parity <run id> <prototype>-<state> <light\|dark> [--from <png>]` | Prototype capture beside a simulator screenshot |
 | `cleanup <run id>` | Deletes the run's simulator and keeps the evidence |
 
-Run the helper tests with `swift test --package-path tools --filter SimTests`. They also run in `pnpm test:tools`. The command tests use fake executables and never touch a simulator.
+Run the helper tests with `swift test --package-path tools --filter SimTests`. They also run in `make test-tools`. The command tests use fake executables and never touch a simulator.
 
 `ENDURAGENT_SIM_DEVICE` changes the device type. Parity comparisons assume the default iPhone 17e.
 
