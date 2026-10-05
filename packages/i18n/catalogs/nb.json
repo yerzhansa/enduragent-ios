@@ -960,7 +960,7 @@
       "plan": "Start en plan i chatten",
       "review": "Se gjennom den siste samtalen din",
       "start": "Start en ny samtale",
-      "status": "Sjekk nåværende form (CTL), tretthet (ATL) og form",
+      "status": "Sjekk nåværende kondisjon, tretthet og form",
       "sync": "Tving oppdatering av treningsdata fra {{intervals}}",
       "update": "Se etter og installer oppdateringer",
       "version": "Vis nåværende versjon",
@@ -2509,7 +2509,7 @@
       "plan": "Lag en treningsplan",
       "review": "Se gjennom den siste treningsøkten din",
       "start": "Start en ny samtale",
-      "status": "Sjekk form (CTL), tretthet (ATL) og form (TSB)",
+      "status": "Sjekk kondisjon, tretthet og form",
       "sync": "Hent oppdaterte treningsdata fra {{service}}",
       "version": "Vis nåværende versjon",
       "whatsnew": "Se hva som er nytt i den nyeste versjonen",
@@ -2593,7 +2593,7 @@
       "unknownSection": "Ukjent del: `{{section}}`.\n\nGyldige deler: {{sections}}."
     },
     "status": {
-      "working": "Henter data om formen din…"
+      "working": "Henter data om kondisjonen din…"
     },
     "sync": {
       "complete": "Synkronisert ✅",
