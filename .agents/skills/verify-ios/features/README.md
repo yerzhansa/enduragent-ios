@@ -4,14 +4,14 @@ Enduragent has one ongoing conversation. New conversation closes it into History
 
 ## Baseline preconditions
 
-Use the existing [verify-ios skill](../SKILL.md) and its helper, `.agents/skills/verify-ios/helpers/sim.mjs`, abbreviated below as `sim.mjs`. Build, create a dedicated run, install, and require `sim.mjs doctor <run id>` to pass before driving that run. Never drive another run's simulator. A proof launches the app itself; interactive steps need `sim.mjs launch <run id>` first.
+Use the existing [verify-ios skill](../SKILL.md) and its helper, `swift run --quiet --package-path tools sim`, abbreviated below as `sim`. Build, create a dedicated run, install, and require `sim doctor <run id>` to pass before driving that run. Never drive another run's simulator. A proof launches the app itself; interactive steps need `sim launch <run id>` first.
 
 A task that forbids simulators permits only the source and proof inventory checks. Record UI execution as skipped in that task's report. This map is a recipe, not evidence that its recipes ran.
 
 ## Driving conventions
 
-- `sim.mjs launch <run id>` starts a fresh fixture store at the health notice. `sim.mjs launch <run id> --keep` keeps the conversation, drafts, settings, and connection.
-- `sim.mjs test <run id> ClassName` runs an existing XCUITest class. `ClassName/testMethod` selects one method. Use the commands in each feature file; keep their `Passed` summary and named attachments.
+- `sim launch <run id>` starts a fresh fixture store at the health notice. `sim launch <run id> --keep` keeps the conversation, drafts, settings, and connection.
+- `sim test <run id> ClassName` runs an existing XCUITest class. `ClassName/testMethod` selects one method. Use the commands in each feature file; keep their `Passed` summary and named attachments.
 - Prefer accessibility identifiers to visible labels. Labels in this map are English catalog values unless another language is explicit. Product chrome follows the language preference; Debug-only labels can remain English.
 - Type `fixture` as the intervals.icu key. In fixture mode `other-athlete` resolves to Bo Lind, and other non-empty keys resolve to Ada Kovač. No real account is needed.
 - Fixture directives are messages typed into `chat.composer`. See [chat.md](./chat.md) for failures, interruptions, storage faults, and memory work.
@@ -47,7 +47,7 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 
 ## Maintaining the map
 
-Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim.mjs and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
+Every feature file has `Sub-features`, `How to get to it (user POV)`, `Driving it with sim and XCUITest`, and `Gotchas`, in that order. Keep stable feature IDs and document uncovered paths as gaps.
 
 Cross-check the class names against `apps/ios/EnduragentUITests/`. Every XCTestCase class, including latency probes, must appear in a feature file, and every named proof or probe must exist. Run `pnpm check:source` for the cross-check and keep its output in the sweep report. It checks names and selected methods without launching the app. It does not establish that a proof passed.
 

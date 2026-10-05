@@ -18,7 +18,7 @@ The athlete's Credits screen shows available Credits, the two packs, and the tes
 - Receive starter Credits during [onboarding](./onboarding.md).
 - Debug, Credits is a separate developer entry for grant, identity, and purchase diagnostics. It does not replace the athlete's Credits screen.
 
-## Driving it with sim.mjs and XCUITest
+## Driving it with sim and XCUITest
 
 Preconditions:
 
@@ -26,10 +26,10 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim.mjs test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
-| `sim.mjs test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance` and return to the conversation after one Back, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
+| `sim test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
+| `sim test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance` and return to the conversation after one Back, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
 
-Interactively, inspect both Buy buttons as disabled and capture `sim.mjs shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
+Interactively, inspect both Buy buttons as disabled and capture `sim shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
 
 ## Gotchas
 

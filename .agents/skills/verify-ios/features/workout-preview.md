@@ -27,7 +27,7 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - Change the connected athlete through Settings, Debug, Credentials while a review exists.
 - Launch the committed `.v1Review` fixture with `TutorialHarness.launchUpgrade`, then inspect the earlier-version notice while disconnected and connected.
 
-## Driving it with sim.mjs and XCUITest
+## Driving it with sim and XCUITest
 
 Preconditions:
 
@@ -36,26 +36,26 @@ Preconditions:
 
 | Action and command | Observable result and attachment |
 | --- | --- |
-| `sim.mjs test <run id> UnknownCalendarSaveProof` | Light proofs assert exact sentence counts and review button identifiers and labels for unknown, absent, failed-read, and never-approved states. Attachments start with `calendar-`. |
-| `sim.mjs test <run id> UnknownCalendarSaveDarkProof` | The same proofs in dark appearance, with screenshots and an asserted luminance bound. |
-| `sim.mjs test <run id> CancelUnknownSaveProof` | Offline and locked Cancel leave one buttonless note after relaunch, allow fresh reviews in both conversations, and keep the original note in History. Screenshots start with `cancel-`. |
-| `sim.mjs test <run id> CancelUnknownSaveDarkProof` | The same Cancel proofs in dark appearance, with screenshots and an asserted luminance bound. |
-| `sim.mjs test <run id> ReconnectReviewProof` | Peer B replacement removes A's approval controls and requires B's own approval. Rotated A restores the review after relaunch and Check again confirms its unknown save with one read and no second save. Under B, online and offline Cancel make no A/B request, allow an immediate fresh review, and retain the exact button-free note after relaunch. Attachments start with `U5-4-`. |
-| `sim.mjs test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. Try again remains enabled after another failed read and restores valid controls without model or calendar requests. Screenshots start with `review-unreadable-` and `review-restored-`. |
-| `sim.mjs test <run id> SavedReviewReadFailureDarkProof` | The same saved-review read proofs in dark appearance, with screenshots and an asserted luminance bound. |
-| `sim.mjs test <run id> ReviewStorageFailureProof` | Failed Add shows the G22 sentence in English; failed Cancel shows it in French. Each keeps the review, shows one notice, makes no calendar write or model request, and allows a later Cancel. Attachments start with `review-save-failed-`. Saved-review read recovery is owned by `SavedReviewReadFailureProof`. |
-| `sim.mjs test <run id> ReviewStorageFailureDarkProof` | The same choice-save failure proofs in dark appearance, with screenshots and an asserted luminance bound. Saved-review read recovery is owned by `SavedReviewReadFailureDarkProof`. |
-| `sim.mjs test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
-| `sim.mjs test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
-| `sim.mjs test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
-| `sim.mjs test <run id> ReviewLanguageProof ReviewLanguageDarkProof` | A saved pending cycling review reopens in French with French regional decimals, repetitions, cadence, and an unchanged copied label. Approval leaves a durable outcome that follows a later English choice in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, with light and dark suffixes. Each theme asserts its luminance. |
-| `sim.mjs test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
-| `sim.mjs test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
-| `sim.mjs test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | The committed v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
-| `sim.mjs test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete`, `switch-confirmed`. |
-| `sim.mjs test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-rotation-added`. |
-| `sim.mjs test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
-| `sim.mjs test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
+| `sim test <run id> UnknownCalendarSaveProof` | Light proofs assert exact sentence counts and review button identifiers and labels for unknown, absent, failed-read, and never-approved states. Attachments start with `calendar-`. |
+| `sim test <run id> UnknownCalendarSaveDarkProof` | The same proofs in dark appearance, with screenshots and an asserted luminance bound. |
+| `sim test <run id> CancelUnknownSaveProof` | Offline and locked Cancel leave one buttonless note after relaunch, allow fresh reviews in both conversations, and keep the original note in History. Screenshots start with `cancel-`. |
+| `sim test <run id> CancelUnknownSaveDarkProof` | The same Cancel proofs in dark appearance, with screenshots and an asserted luminance bound. |
+| `sim test <run id> ReconnectReviewProof` | Peer B replacement removes A's approval controls and requires B's own approval. Rotated A restores the review after relaunch and Check again confirms its unknown save with one read and no second save. Under B, online and offline Cancel make no A/B request, allow an immediate fresh review, and retain the exact button-free note after relaunch. Attachments start with `U5-4-`. |
+| `sim test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. Try again remains enabled after another failed read and restores valid controls without model or calendar requests. Screenshots start with `review-unreadable-` and `review-restored-`. |
+| `sim test <run id> SavedReviewReadFailureDarkProof` | The same saved-review read proofs in dark appearance, with screenshots and an asserted luminance bound. |
+| `sim test <run id> ReviewStorageFailureProof` | Failed Add shows the G22 sentence in English; failed Cancel shows it in French. Each keeps the review, shows one notice, makes no calendar write or model request, and allows a later Cancel. Attachments start with `review-save-failed-`. Saved-review read recovery is owned by `SavedReviewReadFailureProof`. |
+| `sim test <run id> ReviewStorageFailureDarkProof` | The same choice-save failure proofs in dark appearance, with screenshots and an asserted luminance bound. Saved-review read recovery is owned by `SavedReviewReadFailureDarkProof`. |
+| `sim test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
+| `sim test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
+| `sim test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
+| `sim test <run id> ReviewLanguageProof ReviewLanguageDarkProof` | A saved pending cycling review reopens in French with French regional decimals, repetitions, cadence, and an unchanged copied label. Approval leaves a durable outcome that follows a later English choice in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, with light and dark suffixes. Each theme asserts its luminance. |
+| `sim test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
+| `sim test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
+| `sim test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | The committed v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
+| `sim test <run id> DifferentAthleteProof` | A refused replacement preserves the existing connection; confirmed Switch athlete hides review controls, `different-athlete`, `switch-confirmed`. |
+| `sim test <run id> SameAthleteRotationProof` | A replacement for the same athlete preserves review approval, `same-athlete-rotation-added`. |
+| `sim test <run id> ResetKeepsReviewProof` | New conversation leaves the pending review available, `reset-keeps-review`, `reset-keeps-review-records`. |
+| `sim test <run id> NoCrossChatMemoProof` | After approval, a later turn retries its server failure and finishes; the earlier prepared-ride reply remains visible without a failure notice, `no-cross-chat-memo-done`, `no-cross-chat-memo`. |
 
 For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyReviewNoticeProof` copies the committed `.v1Review` stores before launch and must pass with zero skips. It checks the create review while disconnected, connected, and in German. Package migration tests cover v1 edit and deletion reviews. Keep the fixture clock within the review's lifetime. A missing committed store is a failure.
 
@@ -77,10 +77,10 @@ The proof does not open Settings > Debug at the largest text size, so it does no
 Run all 17 languages on two simulators:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" node .agents/skills/verify-ios/helpers/sim.mjs suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" node .agents/skills/verify-ios/helpers/sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
 ```
 
-To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim.mjs test <run id> ReviewAccessibilityJaProof/testApprovalControls`.
+To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim test <run id> ReviewAccessibilityJaProof/testApprovalControls`.
 
 ## Gotchas
 
