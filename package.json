@@ -13,7 +13,7 @@
     "test:swift": "env -u OPENROUTER_API_KEY -u INTERVALS_API_KEY swift test --package-path apps/ios/Packages/EnduragentCoach",
     "check:source": "node tools/check-source.mjs",
     "lint:swift": "swiftlint lint --strict --quiet",
-    "test:tools": "node --experimental-test-module-mocks --test tools/check-source.test.mjs tools/sim-proof-appearance.test.mjs tools/verify-ios.test.mjs && node --test tools/check-swiftlint.test.mjs",
+    "test:tools": "node --experimental-test-module-mocks --test tools/check-source.test.mjs tools/sim-proof-appearance.test.mjs tools/verify-ios.test.mjs && node --test tools/check-swiftlint.test.mjs && swift test --package-path tools",
     "format:swift": "git ls-files -z -- '*.swift' ':!*.generated.swift' | xargs -0 swift format format --in-place --parallel --configuration .swift-format",
     "check:format": "git ls-files -z -- '*.swift' ':!*.generated.swift' | xargs -0 swift format lint --strict --parallel --configuration .swift-format"
   },
