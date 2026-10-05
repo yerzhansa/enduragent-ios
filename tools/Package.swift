@@ -12,6 +12,7 @@ let package = Package(
 		.executable(name: "generate-catalogs", targets: ["GenerateCatalogs"]),
 		.executable(name: "phone-check", targets: ["PhoneCheck"]),
 		.executable(name: "sim", targets: ["Sim"]),
+		.executable(name: "upgrade-stores", targets: ["UpgradeStores"]),
 	],
 	targets: [
 		.target(name: "ToolSupport"),
@@ -33,6 +34,7 @@ let package = Package(
 			resources: [.copy("Fixtures")]
 		),
 		.testTarget(name: "SwiftLintRuleTests", dependencies: ["ToolSupport"]),
+		.executableTarget(name: "UpgradeStores", dependencies: ["ToolSupport"]),
 	],
 	swiftLanguageModes: [.v6]
 )
