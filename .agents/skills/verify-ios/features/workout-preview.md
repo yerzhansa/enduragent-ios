@@ -77,7 +77,7 @@ The proof does not open Settings > Debug at the largest text size, so it does no
 Run all 17 languages on two simulators:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" node .agents/skills/verify-ios/helpers/sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
 ```
 
 To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim test <run id> ReviewAccessibilityJaProof/testApprovalControls`.

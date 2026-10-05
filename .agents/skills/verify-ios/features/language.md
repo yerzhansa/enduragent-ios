@@ -102,16 +102,16 @@ Each capture saves the screenshot `u9-5b-<tag>-<screen>` and the text attachment
 Run the whole matrix on two simulators:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-5b/simulator-proof" node .agents/skills/verify-ios/helpers/sim suite --build-folder /tmp/enduragent-dd/U9-5b-sim --shards 2 LanguageMatrixEnProof LanguageMatrixEsProof LanguageMatrixFrProof LanguageMatrixItProof LanguageMatrixDeProof LanguageMatrixNlProof LanguageMatrixDaProof LanguageMatrixSvProof LanguageMatrixNbProof LanguageMatrixFiProof LanguageMatrixPtPTProof LanguageMatrixPtBRProof LanguageMatrixPlProof LanguageMatrixKoProof LanguageMatrixJaProof LanguageMatrixZhHansProof LanguageMatrixZhHantProof
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-5b/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-5b-sim --shards 2 LanguageMatrixEnProof LanguageMatrixEsProof LanguageMatrixFrProof LanguageMatrixItProof LanguageMatrixDeProof LanguageMatrixNlProof LanguageMatrixDaProof LanguageMatrixSvProof LanguageMatrixNbProof LanguageMatrixFiProof LanguageMatrixPtPTProof LanguageMatrixPtBRProof LanguageMatrixPlProof LanguageMatrixKoProof LanguageMatrixJaProof LanguageMatrixZhHansProof LanguageMatrixZhHantProof
 ```
 
 To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. Pass `--timings <suite folder>/timings.json` from the earlier run to balance the two simulators. To repeat one flow of one language, use a single simulator:
 
 ```sh
-.agents/skills/verify-ios/helpers/sim create language-matrix
-.agents/skills/verify-ios/helpers/sim install <run id> --build-folder /tmp/enduragent-dd/U9-5b-sim
-.agents/skills/verify-ios/helpers/sim test <run id> LanguageMatrixJaProof/testSettings --build-folder /tmp/enduragent-dd/U9-5b-sim
-.agents/skills/verify-ios/helpers/sim cleanup <run id>
+swift run --quiet --package-path tools sim create language-matrix
+swift run --quiet --package-path tools sim install <run id> --build-folder /tmp/enduragent-dd/U9-5b-sim
+swift run --quiet --package-path tools sim test <run id> LanguageMatrixJaProof/testSettings --build-folder /tmp/enduragent-dd/U9-5b-sim
+swift run --quiet --package-path tools sim cleanup <run id>
 ```
 
 The matrix has no dark classes. Appearance is not part of this proof.
