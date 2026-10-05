@@ -250,7 +250,7 @@ struct CatalogGenerator {
 
 	private func load(_ tag: String) throws -> CatalogNode {
 		let url = root.appendingPathComponent("\(Self.catalogDirectory)/\(tag).json")
-		return try CatalogReader.read(String(decoding: Data(contentsOf: url), as: UTF8.self))
+		return try CatalogNode.read(String(decoding: Data(contentsOf: url), as: UTF8.self))
 	}
 
 	private func writeIfChanged(_ path: String, _ contents: String) throws {

@@ -17,7 +17,7 @@ let package = Package(
 		.target(name: "ToolSupport"),
 		.executableTarget(name: "CheckSource", dependencies: ["ToolSupport"]),
 		.testTarget(name: "CheckSourceTests", dependencies: ["CheckSource", "ToolSupport"]),
-		.executableTarget(name: "GenerateCatalogs"),
+		.executableTarget(name: "GenerateCatalogs", dependencies: ["ToolSupport"]),
 		.testTarget(
 			name: "GenerateCatalogsTests",
 			dependencies: ["GenerateCatalogs"],
