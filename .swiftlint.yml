@@ -1,8 +1,10 @@
 included:
   - apps/ios
+  - tools
 
 excluded:
   - apps/ios/Packages/EnduragentCoach/.build
+  - tools/.build
   - apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/I18n/CatalogKey.generated.swift
 
 only_rules:
