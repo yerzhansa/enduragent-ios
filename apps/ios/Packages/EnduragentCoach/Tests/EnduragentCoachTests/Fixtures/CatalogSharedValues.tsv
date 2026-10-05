@@ -96,7 +96,7 @@ da,de,es,fr,nb,nl,pl,sv	plan.view.planView.plan	Plan	Native noun or established 
 de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hours	{{hours}} h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
 de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hoursMinutes	{{hours}} h {{minutes}} min	Uses standard cycling metric names or unit abbreviations (h, min); remaining content is substituted values and punctuation.
 fr	plan.view.planningRequestDateConflict.date	Date	French noun for a calendar date; shared with English.
-da,de,nb	plan.view.readiness.currentForm	Form {{value1}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
+da,de,nb,sv	plan.view.readiness.currentForm	Form {{value1}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
 es,pt-BR,pt-PT	plan.view.readiness.experimental	Experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
 fr	plan.view.season.dates	Dates	French plural of date; shared with English.
 da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	plan.view.season.distance	 · {{value1}} km	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
