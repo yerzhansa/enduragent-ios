@@ -184,14 +184,15 @@ struct Simulator {
 		let listed = try JSONValue.parse(capture("xcrun", ["simctl", "list", "runtimes", "-j"]))
 		let available = try listed.member("runtimes").elements().compactMap {
 			runtime -> (name: String, identifier: String, version: String)? in
+			guard try runtime.member("platform").isString("iOS"),
+				try runtime.member("isAvailable").isTruthy
+			else { return nil }
 			guard let version = try runtime.member("version").string else {
-				throw SimFailure(description: "a simulator runtime has no version")
+				throw SimFailure(description: "an available iOS runtime has no version")
 			}
 			let major = JavaScriptNumber.parse(
 				String(version.split(separator: ".", omittingEmptySubsequences: false).first ?? ""))
-			guard try runtime.member("platform").isString("iOS"),
-				try runtime.member("isAvailable").isTruthy, major >= 26
-			else { return nil }
+			guard major >= 26 else { return nil }
 			return (
 				try runtime.member("name").interpolated,
 				try runtime.member("identifier").interpolated,
