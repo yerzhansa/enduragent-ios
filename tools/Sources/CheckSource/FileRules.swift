@@ -1,4 +1,5 @@
 import Foundation
+import ToolSupport
 
 extension SourceChecker {
 	static let language =

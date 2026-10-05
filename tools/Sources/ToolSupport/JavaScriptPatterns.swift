@@ -1,29 +1,33 @@
 import Foundation
 
-struct PatternMatch {
-	let index: Int
-	let end: Int
-	let groups: [String]
+public struct PatternMatch {
+	public let index: Int
+	public let end: Int
+	public let groups: [String]
 
-	var text: String { groups[0] }
+	public var text: String { groups[0] }
 }
 
-final class JavaScriptPatterns {
+public final class JavaScriptPatterns {
 	private var compiled: [String: NSRegularExpression] = [:]
 
-	func matchAll(_ source: String, _ text: String) throws -> [PatternMatch] {
+	public init() {}
+
+	public func matchAll(_ source: String, _ text: String) throws -> [PatternMatch] {
 		try scan(source, text, ignoringCase: false, onlyFirst: false)
 	}
 
-	func exec(_ source: String, _ text: String) throws -> PatternMatch? {
+	public func exec(_ source: String, _ text: String) throws -> PatternMatch? {
 		try scan(source, text, ignoringCase: false, onlyFirst: true).first
 	}
 
-	func test(_ source: String, _ text: String, ignoringCase: Bool = false) throws -> Bool {
+	public func test(_ source: String, _ text: String, ignoringCase: Bool = false) throws -> Bool {
 		try !scan(source, text, ignoringCase: ignoringCase, onlyFirst: true).isEmpty
 	}
 
-	func replaceAll(_ source: String, _ text: String, with replacement: String) throws -> String {
+	public func replaceAll(_ source: String, _ text: String, with replacement: String) throws
+		-> String
+	{
 		var result = ""
 		var position = 0
 		for match in try matchAll(source, text) {
@@ -33,7 +37,7 @@ final class JavaScriptPatterns {
 		return result + text.slice(position, text.utf16.count)
 	}
 
-	func split(_ source: String, _ text: String) throws -> [String] {
+	public func split(_ source: String, _ text: String) throws -> [String] {
 		var parts: [String] = []
 		var position = 0
 		for match in try matchAll(source, text) where match.end > match.index {
@@ -83,19 +87,19 @@ final class JavaScriptPatterns {
 }
 
 extension String {
-	func slice(_ start: Int, _ end: Int) -> String {
+	public func slice(_ start: Int, _ end: Int) -> String {
 		(self as NSString).substring(with: NSRange(location: start, length: end - start))
 	}
 
-	func hasUnitPrefix(_ prefix: String) -> Bool {
+	public func hasUnitPrefix(_ prefix: String) -> Bool {
 		utf8.starts(with: prefix.utf8)
 	}
 
-	func hasUnitSuffix(_ suffix: String) -> Bool {
+	public func hasUnitSuffix(_ suffix: String) -> Bool {
 		utf8.reversed().starts(with: suffix.utf8.reversed())
 	}
 
-	func hasSameUnits(as other: String) -> Bool {
+	public func hasSameUnits(as other: String) -> Bool {
 		utf8.elementsEqual(other.utf8)
 	}
 }

@@ -27,7 +27,7 @@ xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -confi
 
 `pnpm check:source` runs the source checker. `pnpm lint:swift` enforces the rules in `.swiftlint.yml`.
 
-Run `pnpm test:tools` when you change `tools/` or the `verify-ios` helper scripts. CI runs this gate before `pnpm check:source` on every pull request.
+Run `pnpm test:tools` when you change `tools/`, which holds the checker, the catalog generator and the `verify-ios` helpers. CI runs this gate before `pnpm check:source` on every pull request.
 
 `pnpm check:format` runs `swift format lint --strict` with `.swift-format` on tracked Swift sources. `pnpm format:swift` writes that layout. The generated catalog is left to its generator.
 

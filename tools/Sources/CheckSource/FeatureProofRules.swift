@@ -1,3 +1,5 @@
+import ToolSupport
+
 extension SourceChecker {
 	private struct ProofClass {
 		let file: String

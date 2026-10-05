@@ -1,13 +1,22 @@
-struct JSONFailure: Error, CustomStringConvertible {
-	let description: String
+public struct JSONFailure: DescribedFailure {
+	public let description: String
+
+	public init(description: String) {
+		self.description = description
+	}
 }
 
-struct JSONMember {
-	let key: String
-	var value: JSONValue
+public struct JSONMember {
+	public let key: String
+	public var value: JSONValue
+
+	public init(key: String, value: JSONValue) {
+		self.key = key
+		self.value = value
+	}
 }
 
-indirect enum JSONValue {
+public indirect enum JSONValue {
 	case undefined
 	case null
 	case bool(Bool)
@@ -16,12 +25,12 @@ indirect enum JSONValue {
 	case array([JSONValue])
 	case object([JSONMember])
 
-	static func parse(_ text: String) throws -> JSONValue {
+	public static func parse(_ text: String) throws -> JSONValue {
 		var reader = JSONReader(bytes: Array(text.utf8))
 		return try reader.document()
 	}
 
-	var isTruthy: Bool {
+	public var isTruthy: Bool {
 		switch self {
 		case .undefined, .null:
 			false
@@ -36,7 +45,7 @@ indirect enum JSONValue {
 		}
 	}
 
-	var entries: [JSONMember] {
+	public var entries: [JSONMember] {
 		switch self {
 		case .object(let members):
 			members
@@ -47,12 +56,12 @@ indirect enum JSONValue {
 		}
 	}
 
-	func isString(_ text: String) -> Bool {
+	public func isString(_ text: String) -> Bool {
 		guard case .string(let value) = self else { return false }
 		return value.unicodeScalars.elementsEqual(text.unicodeScalars)
 	}
 
-	func isSamePrimitive(as other: JSONValue) -> Bool {
+	public func isSamePrimitive(as other: JSONValue) -> Bool {
 		switch (self, other) {
 		case (.undefined, .undefined), (.null, .null):
 			true
@@ -67,7 +76,7 @@ indirect enum JSONValue {
 		}
 	}
 
-	func member(_ name: String) throws -> JSONValue {
+	public func member(_ name: String) throws -> JSONValue {
 		switch self {
 		case .undefined, .null:
 			throw JSONFailure(description: "Cannot read \(name) of a missing value")
@@ -85,11 +94,11 @@ indirect enum JSONValue {
 		}
 	}
 
-	func member(_ key: JSONValue) throws -> JSONValue {
+	public func member(_ key: JSONValue) throws -> JSONValue {
 		try member(key.propertyKey())
 	}
 
-	func elements() throws -> [JSONValue] {
+	public func elements() throws -> [JSONValue] {
 		guard case .array(let elements) = self else {
 			throw JSONFailure(description: "Expected a list")
 		}

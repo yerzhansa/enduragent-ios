@@ -1,3 +1,5 @@
+import ToolSupport
+
 extension SourceChecker {
 	private func readPlist(_ path: String) throws -> JSONValue {
 		try JSONValue.parse(Tool.output("plutil", ["-convert", "json", "-o", "-", "--", path]))
