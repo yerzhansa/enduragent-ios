@@ -17,10 +17,19 @@ struct JavaScriptPatternTranslator {
 	private var openGroups: [OpenGroup] = []
 	private var captureCount = 0
 	private var optionalCaptures: Set<Int> = []
+	private var preceding = Preceding.atom
 
 	private struct OpenGroup {
 		let start: Int
 		let capture: Int?
+		let capturesWhenOpened: Int
+	}
+
+	private enum Preceding {
+		case atom
+		case groupHoldingCapture
+		case quantifier
+		case lazyQuantifier
 	}
 
 	static func translate(_ source: String, ignoringCase: Bool) throws -> String {
@@ -48,7 +57,16 @@ struct JavaScriptPatternTranslator {
 	private mutating func translate() throws -> String {
 		guard source.allSatisfy({ (0x20..<0x7F).contains($0.value) }) else { throw failure }
 		while let scalar = next {
+			let quantifierEnd = quantifierEnd(at: position)
 			position += 1
+			if let quantifierEnd {
+				try repeatPreceding(lazily: scalar == "?")
+				output.append(
+					String(String.UnicodeScalarView(source[(position - 1)..<quantifierEnd])))
+				position = quantifierEnd
+				continue
+			}
+			preceding = .atom
 			switch scalar {
 			case "\\":
 				output.append(try escape())
@@ -70,6 +88,42 @@ struct JavaScriptPatternTranslator {
 		}
 		guard openGroups.isEmpty else { throw failure }
 		return output.joined()
+	}
+
+	private func quantifierEnd(at start: Int) -> Int? {
+		guard ["*", "+", "?"].contains(source[start]) else {
+			return source[start] == "{" ? countedQuantifierEnd(at: start) : nil
+		}
+		return start + 1
+	}
+
+	private func countedQuantifierEnd(at start: Int) -> Int? {
+		var index = start + 1
+		let digits: (inout Int) -> Bool = { index in
+			let first = index
+			while index < source.count, ("0"..."9").contains(source[index]) {
+				index += 1
+			}
+			return index > first
+		}
+		guard digits(&index) else { return nil }
+		if index < source.count, source[index] == "," {
+			index += 1
+			_ = digits(&index)
+		}
+		guard index < source.count, source[index] == "}" else { return nil }
+		return index + 1
+	}
+
+	private mutating func repeatPreceding(lazily: Bool) throws {
+		switch (preceding, lazily) {
+		case (.atom, _):
+			preceding = .quantifier
+		case (.quantifier, true):
+			preceding = .lazyQuantifier
+		default:
+			throw failure
+		}
 	}
 
 	private func isLetter(_ scalar: Unicode.Scalar) -> Bool {
@@ -198,25 +252,31 @@ struct JavaScriptPatternTranslator {
 	private mutating func openGroup() throws {
 		guard next == "?" else {
 			captureCount += 1
-			openGroups.append(OpenGroup(start: output.count, capture: captureCount))
+			openGroups.append(
+				OpenGroup(
+					start: output.count, capture: captureCount, capturesWhenOpened: captureCount))
 			output.append("(")
 			return
 		}
 		position += 1
 		let kind = try take()
 		guard [":", "=", "!"].contains(kind) else { throw failure }
-		openGroups.append(OpenGroup(start: output.count, capture: nil))
+		openGroups.append(
+			OpenGroup(start: output.count, capture: nil, capturesWhenOpened: captureCount))
 		output.append("(?\(kind)")
 	}
 
 	private mutating func closeGroup() throws {
 		guard let group = openGroups.popLast() else { throw failure }
+		let holdsCapture = captureCount > group.capturesWhenOpened
 		guard let capture = group.capture, next == "?" else {
 			output.append(")")
+			preceding = holdsCapture ? .groupHoldingCapture : .atom
 			return
 		}
 		position += 1
-		guard next != "?" else { throw failure }
+		guard !holdsCapture, next != "?" else { throw failure }
+		preceding = .quantifier
 		let inner = output[(group.start + 1)...].joined()
 		output.removeSubrange(group.start...)
 		output.append("((?:\(inner))?)")

@@ -23,6 +23,8 @@ struct JavaScriptPatternsTests {
 			finds: ["0:a{", "2:b;", "4:\n", "5:}", "6:c", "7:"]),
 		PatternProbe(#"[\s\S]*?`"#, in: "a\n`b`", finds: ["0:a\n`", "3:b`"]),
 		PatternProbe(#"[\w.]+"#, in: "a.b-c.d", finds: ["0:a.b", "4:c.d"]),
+		PatternProbe(#"a{2,3}?b"#, in: "aaab aab ab", finds: ["0:aaab", "5:aab"]),
+		PatternProbe(#"(a|b)+?c"#, in: "abc bc", finds: ["0:abc", "4:bc"]),
 	])
 	func findsWhatTheJavaScriptPatternFinds(_ probe: PatternProbe) throws {
 		let found = try JavaScriptPatterns().matchAll(probe.source, probe.text).map {
@@ -48,6 +50,8 @@ struct JavaScriptPatternsTests {
 		#"(?<=a)b"#, #"(?<name>a)"#, #"\p{L}"#, #"\u0041"#, #"\x41"#, #"a\B"#, #"(a)\1"#, "[]",
 		"(a",
 		"a)", "é",
+		"(?:(a)|b)+", "((a)|b)*", "(?:(a))?", "((a)b)?", "(?:(a)){2}", "(?=(a))+",
+		"a++", "a?+a", "(a)?*", "a**", "a{2}+", "a+??", "a{2}{3}",
 	])
 	func refusesAPatternItCannotTranslateExactly(_ source: String) {
 		#expect(throws: PatternFailure.self) {
