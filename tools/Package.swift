@@ -32,6 +32,7 @@ let package = Package(
 			dependencies: ["PhoneCheck", "Sim", "SimFixtureTool", "ToolSupport"],
 			resources: [.copy("Fixtures")]
 		),
+		.testTarget(name: "SwiftLintRuleTests", dependencies: ["ToolSupport"]),
 	],
 	swiftLanguageModes: [.v6]
 )
