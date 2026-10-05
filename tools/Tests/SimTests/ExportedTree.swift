@@ -3,10 +3,53 @@ import ToolSupport
 
 private final class BuiltProducts {}
 
+struct HelperOverdue: Error {
+	let command: String
+}
+
 struct HelperResult {
 	let status: Int32?
 	let output: String
 	let errors: String
+
+	static func of(
+		_ executable: String, _ arguments: [String], directory: String,
+		environment: [String: String], scratch: String
+	) throws -> HelperResult {
+		let files = FileManager.default
+		let run = UUID().uuidString
+		let printed = "\(scratch)/printed-\(run)"
+		let complained = "\(scratch)/complained-\(run)"
+		for file in [printed, complained] {
+			guard files.createFile(atPath: file, contents: nil) else {
+				throw FileFailure(code: EIO, path: file)
+			}
+		}
+		let process = Process()
+		process.executableURL = URL(fileURLWithPath: executable)
+		process.arguments = arguments
+		process.currentDirectoryURL = URL(fileURLWithPath: directory)
+		process.environment = environment
+		process.standardInput = FileHandle.nullDevice
+		process.standardOutput = try FileHandle(forWritingTo: URL(fileURLWithPath: printed))
+		process.standardError = try FileHandle(forWritingTo: URL(fileURLWithPath: complained))
+		try process.run()
+		let deadline = Date().addingTimeInterval(90)
+		while process.isRunning, Date() < deadline {
+			Thread.sleep(forTimeInterval: 0.02)
+		}
+		guard !process.isRunning else {
+			process.terminate()
+			throw HelperOverdue(command: ([executable] + arguments).joined(separator: " "))
+		}
+		let result = HelperResult(
+			status: Subprocess.end(of: process).status,
+			output: String(decoding: try FileSystem.read(printed), as: UTF8.self),
+			errors: String(decoding: try FileSystem.read(complained), as: UTF8.self))
+		try files.removeItem(atPath: printed)
+		try files.removeItem(atPath: complained)
+		return result
+	}
 }
 
 struct ExportedTree {
@@ -107,10 +150,7 @@ struct ExportedTree {
 		complete["ENDURAGENT_VERIFY_BUILD"] = build
 		complete["ENDURAGENT_VERIFY_REVISION"] = nil
 		complete.merge(environment) { $1 }
-		let finished = try Subprocess(directory: root, environment: complete).collect(
-			executable, arguments)
-		return HelperResult(
-			status: finished.end.status, output: String(decoding: finished.output, as: UTF8.self),
-			errors: String(decoding: finished.errors, as: UTF8.self))
+		return try HelperResult.of(
+			executable, arguments, directory: root, environment: complete, scratch: root)
 	}
 }

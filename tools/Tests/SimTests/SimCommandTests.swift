@@ -172,16 +172,17 @@ struct SimCommandTests {
 		try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
 		let evidence = folder.appendingPathComponent("evidence").path
 		let result = Result {
-			try Subprocess().collect(
+			try HelperResult.of(
 				"\(ExportedTree.products)/phone-check",
-				["openrouter", "tool", "synthetic-device", evidence])
+				["openrouter", "tool", "synthetic-device", evidence], directory: folder.path,
+				environment: ProcessInfo.processInfo.environment, scratch: folder.path)
 		}
 		let exists = FileManager.default.fileExists(atPath: evidence)
 		try FileManager.default.removeItem(at: folder)
 		let finished = try result.get()
-		#expect(finished.end.status != 0)
+		#expect(finished.status != 0)
 		#expect(
-			String(decoding: finished.errors, as: UTF8.self).contains(
+			finished.errors.contains(
 				"An operator terminal is required before approval, build, launch or Send"))
 		#expect(!exists)
 	}
