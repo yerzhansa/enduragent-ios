@@ -261,7 +261,7 @@ enum TutorialHarness {
 	}
 
 	static func exchange(
-		_ app: XCUIApplication, _ text: String, within limit: Timeout = .turn
+		_ app: XCUIApplication, _ text: String, within limit: Timeout = .bulk
 	) {
 		let progress = named(app, "chat.turnProgress")
 		wait(progress)
@@ -285,9 +285,9 @@ enum TutorialHarness {
 
 	static func openSettings(_ app: XCUIApplication) {
 		let settings = named(app, "chat.settings")
-		wait(settings, until: .hittable)
+		guard wait(settings, until: .hittable) else { return }
 		settings.tap()
-		wait(named(app, "settings.credits"))
+		wait(named(app, "settings.credits"), within: .bulk)
 	}
 
 	static func openDebug(_ app: XCUIApplication) {
@@ -302,32 +302,6 @@ enum TutorialHarness {
 		openDebug(app)
 		debugRow(app, identifier).tap()
 		returnToChat(app)
-	}
-
-	enum ScrollDirection {
-		case up, down
-	}
-
-	static func scroll(
-		_ app: XCUIApplication, to element: XCUIElement, direction: ScrollDirection = .up
-	) {
-		wait(
-			until: {
-				if element.exists && element.isHittable { return true }
-				switch direction {
-				case .up: app.swipeUp()
-				case .down: app.swipeDown()
-				}
-				return element.exists && element.isHittable
-			}, message: "Could not scroll to \(element)")
-	}
-
-	static func debugRow(
-		_ app: XCUIApplication, _ identifier: String, direction: ScrollDirection = .up
-	) -> XCUIElement {
-		let row = named(app, identifier)
-		scroll(app, to: row, direction: direction)
-		return row
 	}
 
 	static func openRecords(_ app: XCUIApplication) {

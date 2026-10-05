@@ -220,7 +220,9 @@ enum LanguageMatrix {
 		TutorialHarness.debugRow(app, "fixture.seedOwnership").tap()
 		let seeded = TutorialHarness.debugRow(app, "fixture.ownershipSeedResult")
 		TutorialHarness.wait(
-			until: { seeded.label == "seeded" }, message: "Ownership fixture was not seeded")
+			until: { seeded.label != "waiting" }, within: .bulk,
+			message: "Ownership seeding did not finish")
+		XCTAssertEqual(seeded.label, "seeded")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.fixtureControl(app, "fixture.switchAthlete")
 		TutorialHarness.exchange(app, "Read the connected athlete's week")

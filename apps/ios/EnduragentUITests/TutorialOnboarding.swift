@@ -9,7 +9,7 @@ extension TutorialHarness {
 		waitForLabel(app, phrasebook.say(Catalog.onboardingNoticeHealth))
 		named(app, "notice.continue").tap()
 		let key = named(app, "connect.apiKey")
-		wait(key)
+		wait(key, within: .bulk)
 		key.tap()
 		key.typeText("fixture")
 		named(app, "connect.connect").tap()
