@@ -65,6 +65,7 @@ for (const [name, files, links, tracked = true] of [
 const fixture = 'apps/ios/Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/intervals-activity.json';
 const sensitiveID = 'i' + '8'.repeat(8);
 const activityID = '9'.repeat(11);
+const phrasebook = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json';
 const recordModel = 'apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Records/StoredAthleteRecord.swift';
 
 const xcodeProject = 'apps/ios/Enduragent.xcodeproj/project.pbxproj';
@@ -496,12 +497,27 @@ test('accepts historical fixtures and technical identifiers', () => {
     'apps/ios/Screen.swift': 'let CTL = 1\nlet codingKey = "NP"\nText("Fitness")',
     'NOTICE.md': 'THE SOFTWARE IS PROVIDED AS IS, IF ANY.',
     'packages/i18n/catalogs/en.json': '{"NP":"weighted average power","IF":"Intensity"}',
-    'packages/i18n/catalogs/sv.json': '{"legacy":"TSB"}',
-    'apps/ios/Resources/Phrasebook.json': '{"legacy":"TSB"}',
+    'packages/i18n/catalogs/sv.json': '{"TSB":{"IF":"Form"}}',
+    [phrasebook]: '{"strings":{"plan.NP":{"localizations":{"sv":{"stringUnit":{"value":"Form"}}}}}}',
     'README.md': 'Fitness and Load.\n```\nCTL\n```\nUse `NP` as the API field.',
   });
   assert.equal(result.status, 0, result.output);
 });
+
+for (const [name, file, content, key] of [
+  ['a translated catalog', 'packages/i18n/catalogs/zh-Hant.json',
+    '{"telegram":{"NP":"體能","status":{"working":"正在取得體能（CTL）資料…"}}}', 'telegram.status.working'],
+  ['the bundled Phrasebook', phrasebook,
+    '{"strings":{"plan.NP":{"localizations":{"en":{"stringUnit":{"value":"Power"}},"sv":{"stringUnit":{"value":"TSB-utveckling"}}}}}}',
+    'strings.plan.NP.localizations.sv.stringUnit.value'],
+]) {
+  test(`rejects a training abbreviation in a sentence of ${name}, naming the file and key`, () => {
+    const result = run({ [file]: content });
+    assert.equal(result.status, 1, result.output);
+    assert.deepEqual(result.output.split('\n').filter(line => line.includes('[')),
+      [`${JSON.stringify(file)} [public-language] ${JSON.stringify(key)}`]);
+  });
+}
 
 test('does not inspect untracked credentials', () => {
   const result = run({ '.dev.vars': 'secret' }, false);

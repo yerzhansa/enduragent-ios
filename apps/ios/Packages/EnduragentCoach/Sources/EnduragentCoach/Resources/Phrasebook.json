@@ -13500,13 +13500,13 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrollera aktuell CTL, trötthet och TSB"
+            "value": "Kontrollera aktuell kondition, trötthet och form"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sjekk nåværende form (CTL), tretthet (ATL) og form"
+            "value": "Sjekk nåværende kondisjon, tretthet og form"
           }
         },
         "fi": {
@@ -73554,7 +73554,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
+            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
           },
           "substitutions": {
             "product": {
@@ -73574,7 +73574,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
+            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
           },
           "substitutions": {
             "product": {
@@ -182082,7 +182082,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "TSB på tävlingsdagen"
+            "value": "Form på tävlingsdagen"
           }
         },
         "nb": {
@@ -188432,7 +188432,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "TSB %#@value1@"
+            "value": "Form %#@value1@"
           },
           "substitutions": {
             "value1": {
@@ -189714,7 +189714,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "TSB-utveckling"
+            "value": "Formutveckling"
           }
         },
         "nb": {
@@ -189820,7 +189820,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "TSB är inte tillgängligt"
+            "value": "Form är inte tillgänglig"
           }
         },
         "nb": {
@@ -190138,7 +190138,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den senaste träningsbelastningen är ofullständig, så inget TSB-intervall för tävlingsdagen kan visas."
+            "value": "Den senaste träningsbelastningen är ofullständig, så inget formintervall för tävlingsdagen kan visas."
           }
         },
         "nb": {
@@ -191512,7 +191512,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "TSB-utveckling fram till tävlingsdagen"
+            "value": "Formutveckling fram till tävlingsdagen"
           }
         },
         "nb": {
@@ -191830,7 +191830,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrollerar den senaste träningen innan TSB-intervallet beräknas om. Den senast tillgängliga beredskapsvyn finns kvar."
+            "value": "Kontrollerar den senaste träningen innan formintervallet beräknas om. Den senast tillgängliga beredskapsvyn finns kvar."
           }
         },
         "nb": {
@@ -309082,13 +309082,13 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrollera aktuell CTL, trötthet och TSB"
+            "value": "Kontrollera aktuell kondition, trötthet och form"
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sjekk form (CTL), tretthet (ATL) og form (TSB)"
+            "value": "Sjekk kondisjon, tretthet og form"
           }
         },
         "fi": {
@@ -309130,13 +309130,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看当前体能（CTL）、疲劳（ATL）和状态（TSB）"
+            "value": "查看当前体能、疲劳和状态"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）"
+            "value": "查看目前體能、疲勞和狀態"
           }
         }
       }
@@ -322540,13 +322540,13 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hämtar dina data om fysisk form..."
+            "value": "Hämtar dina konditionsdata..."
           }
         },
         "nb": {
           "stringUnit": {
             "state": "translated",
-            "value": "Henter data om formen din…"
+            "value": "Henter data om kondisjonen din…"
           }
         },
         "fi": {
@@ -322588,13 +322588,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在获取体能（CTL）数据…"
+            "value": "正在获取体能数据…"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在取得體能（CTL）資料…"
+            "value": "正在取得體能資料…"
           }
         }
       }
@@ -328828,7 +328828,7 @@
         "sv": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrollerar din TSB och träningsplan..."
+            "value": "Kontrollerar din form och träningsplan..."
           }
         },
         "nb": {
@@ -328876,13 +328876,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在查看状态（TSB）和训练计划…"
+            "value": "正在查看状态和训练计划…"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在查看狀態（TSB）和訓練計畫…"
+            "value": "正在查看狀態和訓練計畫…"
           }
         }
       }

@@ -15,11 +15,17 @@ const appIcon = /^apps\/ios\/Enduragent\/Assets\.xcassets\/AppIcon\.appiconset\/
 const upgradeStore = /^apps\/ios\/Packages\/EnduragentCoach\/Tests\/EnduragentCoachTests\/Fixtures\/(?:v1-upgrade\/(?:history|review)|pre-vault-5de5c782|build-2bbe2ee)\/(?:synced|local)-records\.store$/;
 const proofFile = /^apps\/ios\/EnduragentUITests\/[^/]+\.swift$/;
 const featureFile = /^\.agents\/skills\/verify-ios\/features\/[^/]+\.md$/;
+const sentenceFile = /^(?:packages\/i18n\/catalogs\/[^/]+\.json|apps\/ios\/Packages\/EnduragentCoach\/Sources\/EnduragentCoach\/Resources\/Phrasebook\.json)$/;
 let violations = 0;
 let count = 0;
-function report(file, rule) {
+function report(file, rule, key) {
   violations++;
-  console.error(`${JSON.stringify(file)} [${rule}]`);
+  console.error(`${JSON.stringify(file)} [${rule}]${key === undefined ? '' : ` ${JSON.stringify(key)}`}`);
+}
+function sentences(value, key = '') {
+  if (typeof value === 'string') return [[key, value]];
+  if (typeof value !== 'object' || value === null) return [];
+  return Object.entries(value).flatMap(([name, entry]) => sentences(entry, key ? `${key}.${name}` : name));
 }
 function readPlist(path) {
   return JSON.parse(execFileSync('plutil', ['-convert', 'json', '-o', '-', '--', path], { encoding: 'utf8' }));
@@ -317,6 +323,11 @@ try {
     if (fixture.test(file) && [...text.matchAll(/\b(\d{4})-\d{2}-\d{2}\b/g)].some(match => Number(match[1]) >= 2015)) report(file, 'fixture-date');
     if (/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|sk-or-v1-[a-f0-9]{32,}|AKIA[A-Z0-9]{16})\b/.test(text)) report(file, 'secret-shape');
     if (publicText(file, text).some(value => language.test(value))) report(file, 'public-language');
+    if (sentenceFile.test(file)) {
+      for (const [key, value] of sentences(JSON.parse(text))) {
+        if (language.test(value)) report(file, 'public-language', key);
+      }
+    }
   }
   checkFeatureProofs(featureProofSources);
   checkNavigationStacks(appNavigationSources);
