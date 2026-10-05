@@ -1480,7 +1480,7 @@
       "restorePurchases": "恢复购买",
       "signInAgain": "重新登录"
     },
-    "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
+    "welcome": "欢迎使用 {{product}}！\n\n我是 AI 骑行教练，可以使用 {{service}} 数据制定训练计划、推荐训练课程并追踪体能。\n\n命令：\n{{commands}}\n\n也可以直接和我聊聊训练！",
     "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {

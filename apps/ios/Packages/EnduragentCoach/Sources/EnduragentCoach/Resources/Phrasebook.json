@@ -73554,7 +73554,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能（CTL）。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
+            "value": "欢迎使用 %#@product@！\n\n我是 AI 骑行教练，可以使用 %#@service@ 数据制定训练计划、推荐训练课程并追踪体能。\n\n命令：\n%#@commands@\n\n也可以直接和我聊聊训练！"
           },
           "substitutions": {
             "product": {
@@ -73574,7 +73574,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
+            "value": "歡迎使用 %#@product@！\n\n我是 AI 自行車教練，可以使用 %#@service@ 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n%#@commands@\n\n也可以直接和我聊聊訓練！"
           },
           "substitutions": {
             "product": {

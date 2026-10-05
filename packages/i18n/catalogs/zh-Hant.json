@@ -1480,7 +1480,7 @@
       "restorePurchases": "回復購買項目",
       "signInAgain": "重新登入"
     },
-    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
+    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
     "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
