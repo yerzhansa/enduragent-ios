@@ -44,6 +44,12 @@ struct CatalogGeneratorTests {
 			english: #"{"ride": {"title": "Ride"}}"#,
 			spanish: #"{"ride.title": "Paseo", "ride": {"title": "Vuelta"}}"#,
 			failure: "Two values for ride.title in catalog es"),
+		RejectedCatalog(
+			english: #"{"ride": "\ud800"}"#, failure: "Invalid catalog JSON at character 17"),
+		RejectedCatalog(
+			english: #"{"ride": "Ride"}"#,
+			spanish: "{\"caf\u{E9}\": \"Uno\", \"cafe\u{301}\": \"Dos\"}",
+			failure: "Two values for cafe\u{301} in catalog es"),
 	])
 	func rejectsACatalogItCannotGenerateFrom(_ catalog: RejectedCatalog) throws {
 		try withRepository { root in
@@ -63,6 +69,27 @@ struct CatalogGeneratorTests {
 			#expect(
 				!FileManager.default.fileExists(
 					atPath: root.appendingPathComponent(CatalogGenerator.phrasebookOutput).path))
+		}
+	}
+
+	@Test
+	func writesATopLevelKeyNamedLikeAJavaScriptProperty() throws {
+		try withRepository { root in
+			try FileManager.default.createDirectory(
+				at: catalogs(in: root), withIntermediateDirectories: true)
+			for tag in CatalogGenerator.tags {
+				try Data(#"{"__proto__": "Ride"}"#.utf8).write(
+					to: catalogs(in: root).appendingPathComponent("\(tag).json"))
+			}
+
+			let summary = try CatalogGenerator(root: root).generate()
+
+			#expect(summary == "1 leaves, 1 keys, 17 locales")
+			let phrasebook = String(
+				decoding: try Data(
+					contentsOf: root.appendingPathComponent(CatalogGenerator.phrasebookOutput)),
+				as: UTF8.self)
+			#expect(phrasebook.contains(#""__proto__": {"#))
 		}
 	}
 
