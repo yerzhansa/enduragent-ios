@@ -8,9 +8,12 @@ let package = Package(
 		.macOS(.v15)
 	],
 	products: [
-		.executable(name: "generate-catalogs", targets: ["GenerateCatalogs"])
+		.executable(name: "check-source", targets: ["CheckSource"]),
+		.executable(name: "generate-catalogs", targets: ["GenerateCatalogs"]),
 	],
 	targets: [
+		.executableTarget(name: "CheckSource"),
+		.testTarget(name: "CheckSourceTests", dependencies: ["CheckSource"]),
 		.executableTarget(name: "GenerateCatalogs"),
 		.testTarget(
 			name: "GenerateCatalogsTests",
