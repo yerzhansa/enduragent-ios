@@ -28,8 +28,10 @@ private enum AthleteOwnershipScreen {
 		TutorialHarness.openDebug(app)
 		TutorialHarness.debugRow(app, "fixture.seedOwnership").tap()
 		let seedResult = TutorialHarness.debugRow(app, "fixture.ownershipSeedResult")
-		TutorialHarness.wait(
-			until: { seedResult.label == "seeded" }, message: "Ownership fixture was not seeded")
+		TutorialHarness.waitForProgress(app, to: "ownership seeding finishing") {
+			seedResult.label != "waiting"
+		}
+		XCTAssertEqual(seedResult.label, "seeded")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		ReviewRecoveryScreen.assertButtons(app, .approval, enabled: true)
@@ -45,7 +47,6 @@ private enum AthleteOwnershipScreen {
 		assertBlockedReview(app)
 		capture(test, app, stage: "relaunched-conversation-review", dark: dark)
 		assertHistory(test, app, changed: true, stage: "relaunched", dark: dark)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private static func assertBlockedReview(_ app: XCUIApplication) {

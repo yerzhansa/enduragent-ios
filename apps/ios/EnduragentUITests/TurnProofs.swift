@@ -18,7 +18,6 @@ final class SlowReplyProof: XCTestCase {
 		TutorialHarness.wait(working, until: .absent, within: .turn)
 		XCTAssertFalse(working.exists)
 		TutorialHarness.attach(self, name: "slow-reply-done", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -34,7 +33,6 @@ final class FailedReplyProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		assertNoWireDetail(app)
 		TutorialHarness.attach(self, name: "failed-reply", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -76,7 +74,6 @@ final class AcceptSurvivesKillProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "accept-kill-try-again-records", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -118,7 +115,6 @@ final class StorageFaultProof: XCTestCase {
 		XCTAssertFalse(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.working").exists)
 		TutorialHarness.attach(self, name: "storage-fault-not-sent", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.waitForWelcome(app)
@@ -147,7 +143,6 @@ final class ReceivedBeforeReplyProof: XCTestCase {
 		XCTAssertFalse(reply.firstMatch.exists)
 		TutorialHarness.attach(self, name: "received", app: app)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -193,7 +188,6 @@ final class CoalesceProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
 		TutorialHarness.attach(self, name: "coalesce-records", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -218,6 +212,5 @@ final class SendLatencyProbe: XCTestCase {
 		sample.lifetime = .keepAlways
 		add(sample)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

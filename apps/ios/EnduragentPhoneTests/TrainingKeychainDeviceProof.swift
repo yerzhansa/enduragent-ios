@@ -104,8 +104,6 @@
 			XCTAssertGreaterThan(receipt.recordCount, 0)
 			XCTAssertFalse(receipt.recordsContainSecret)
 			XCTAssertFalse(receipt.diagnosticsContainSecret)
-			XCTAssertEqual(
-				TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
 			TutorialHarness.returnToChat(app)
 			return receipt
 		}

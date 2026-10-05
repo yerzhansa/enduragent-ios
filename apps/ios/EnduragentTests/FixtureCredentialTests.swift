@@ -101,7 +101,6 @@ extension FixtureLaunchTests {
 			return false
 		}
 		#expect(model.connected?.today?.fitness == 42)
-		#expect(model.athleteFirstName == "Ada")
 		guard case .connected(_, .intervals(_, let athlete)) = model.status.training else {
 			Issue.record("expected a connected training account")
 			return

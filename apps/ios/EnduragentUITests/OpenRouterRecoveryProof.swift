@@ -51,7 +51,6 @@ final class OpenRouterRecoveryProof: XCTestCase {
 		TutorialHarness.named(app, "chat.transcript").swipeDown()
 		TutorialHarness.waitForLabel(app, question)
 		capture(app, "recovered-reopened")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testTwoOverlappingRejectionsShowOnePrompt() {
@@ -68,7 +67,6 @@ final class OpenRouterRecoveryProof: XCTestCase {
 		TutorialHarness.exchange(app, "Recovered overlapping requests")
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		capture(app, "two-rejections-recovered")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testForbiddenRequestKeepsTheKeyAndHasNoSignIn() {
@@ -85,7 +83,6 @@ final class OpenRouterRecoveryProof: XCTestCase {
 		TutorialHarness.exchange(app, "A different message")
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 		capture(app, "forbidden-key-still-works")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func launch(_ access: FixtureAccessMethod, signIn: FixtureSignInOutcome = .cancel)

@@ -16,12 +16,6 @@ enum OnboardingStep: Equatable {
 	case consentDeferred
 }
 
-enum CivilDates {
-	static func today(clock: any Clock) -> CivilDate {
-		CivilDate(date: clock.now, timeZone: clock.timeZone)
-	}
-}
-
 struct AppServices: Sendable {
 	static var creditsWorkerBase: URL {
 		let raw = Bundle.main.object(forInfoDictionaryKey: "CreditsWorkerBase") as? String

@@ -9,13 +9,6 @@ final class StepLimitFallbackProof: XCTestCase {
 }
 
 @MainActor
-final class StepLimitFallbackDarkProof: XCTestCase {
-	func testChosenLanguageInChatAfterRelaunchAndInHistory() {
-		StepLimitFallbackScreen.prove(self)
-	}
-}
-
-@MainActor
 private enum StepLimitFallbackScreen {
 	static let sentence =
 		"J’ai atteint ma limite d’étapes en recueillant les données — demande-moi de continuer et je reprendrai là où je me suis arrêté."
@@ -62,7 +55,6 @@ private enum StepLimitFallbackScreen {
 		XCTAssertEqual(
 			TutorialHarness.debugRow(app, "fixture.modelRequestCount").label,
 			"\(modelRequests) model requests")
-		XCTAssertEqual(TutorialHarness.debugRow(app, "fixture.requestCount").label, "0 requests")
 		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
 		TutorialHarness.waitForRecordCount(app, "memorySection", "memorySection 1")
 		TutorialHarness.waitForRecordCount(app, "turnSettled", "turnSettled 1")

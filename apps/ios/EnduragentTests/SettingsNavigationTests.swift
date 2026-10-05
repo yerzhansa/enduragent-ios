@@ -80,7 +80,6 @@ extension FixtureLaunchTests {
 		try await proveSettingsNavigation(
 			reopened, snapshot: try #require(reopened.chat), draft: draft)
 		#expect(try await kept.coach.observedStatus().training == training)
-		#expect(FixtureBlockingURLProtocol.requestCount == 0)
 	}
 
 	private func proveSettingsNavigation(

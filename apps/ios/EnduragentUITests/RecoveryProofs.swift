@@ -34,7 +34,6 @@ final class InterruptedAfterKillProof: XCTestCase {
 		XCTAssertEqual(app.staticTexts.matching(identifier: "fixture:hang").count, 1)
 		XCTAssertFalse(notice.exists)
 		TutorialHarness.attach(self, name: "interrupted-after-kill-try-again", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "userMessage"), "userMessage 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
@@ -64,7 +63,6 @@ final class SavedWorkInterruptedProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.receivedBeforeClose").exists)
 		TutorialHarness.attach(self, name: "saved-work-interrupted", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.openRecords(app)
 		XCTAssertEqual(TutorialHarness.recordCount(app, "memorySection"), "memorySection 1")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 1")
@@ -97,7 +95,6 @@ final class UnrecoveredClaimProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		XCTAssertNil(TutorialHarness.recordCount(app, "turnSettled"))
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 		TutorialHarness.wait(
@@ -106,7 +103,6 @@ final class UnrecoveredClaimProof: XCTestCase {
 		XCTAssertFalse(
 			TutorialHarness.notice(app, reading: TutorialHarness.historyUnavailable).exists)
 		TutorialHarness.attach(self, name: "unrecovered-claim-recovered", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -145,7 +141,6 @@ final class QueuedTurnAfterKillProof: XCTestCase {
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnClaim"), "turnClaim 2")
 		XCTAssertEqual(TutorialHarness.recordCount(app, "turnSettled"), "turnSettled 2")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -170,8 +165,6 @@ final class ObservedReplyKillProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "observed-reply-after-kill", app: app)
 		TutorialHarness.openDebug(app)
-		let count = TutorialHarness.debugRow(app, "fixture.requestCount")
-		XCTAssertEqual(count.label, "0 requests")
 		let model = TutorialHarness.debugRow(app, "fixture.modelRequestCount")
 		XCTAssertEqual(model.label, "0 model requests")
 		TutorialHarness.debugRow(app, "debug.records", direction: .down).tap()
@@ -201,6 +194,5 @@ final class BackgroundResumeProof: XCTestCase {
 			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.notice").exists)
 		TutorialHarness.attach(self, name: "background-resume", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

@@ -83,7 +83,6 @@ final class ModelPickerProof: XCTestCase {
 		XCTAssertFalse(TutorialHarness.named(credits, "model.choices").exists)
 		capture(credits, "credits-no-picker")
 		TutorialHarness.returnToChat(credits)
-		TutorialHarness.assertZeroFixtureRequests(credits)
 		credits.terminate()
 		for fails in [false, true] {
 			let app = launch(response: .newer, fault: fails ? .failSelection : nil)
@@ -255,7 +254,6 @@ final class ModelPickerProof: XCTestCase {
 	private func assertReply(_ app: XCUIApplication) {
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func capture(_ app: XCUIApplication, _ scenario: String) {

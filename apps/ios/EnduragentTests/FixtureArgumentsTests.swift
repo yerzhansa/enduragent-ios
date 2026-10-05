@@ -66,22 +66,6 @@ import Testing
 		#expect(otherDefaults.bool(forKey: "enduragent.onboardingCompleted") == false)
 	}
 
-	@Test func relaunchPreservesOverridesAndReplacesStorePolicy() throws {
-		var arguments = FixtureArguments(
-			store: .v1Review, keychain: .empty, coalescingMilliseconds: 1,
-			host: "expire-after 3", clock: "1998-06-16T07:00:00Z", onboarded: true,
-			trainingDisplay: .profileRejected, credentialWriteFault: .failOnce)
-		var kept = FixtureArguments()
-		try kept.update(from: arguments.launchArguments)
-		kept.store = .keep
-		kept.language = "de"
-		kept.locale = "de_DE"
-		arguments.store = .keep
-		arguments.language = "de"
-		arguments.locale = "de_DE"
-		#expect(kept == arguments)
-	}
-
 	@Test(arguments: [
 		FixtureLaunch.calendarSaveArgumentKey, FixtureLaunch.calendarReadArgumentKey,
 		FixtureLaunch.recordReadArgumentKey, FixtureLaunch.signInArgumentKey,

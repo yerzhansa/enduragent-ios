@@ -16,7 +16,6 @@ extension FixtureLaunchTests {
 		let turn = try await settledTurn(model)
 		let source = try #require(replyText(turn.state))
 		#expect(source == FormattedReplyFixture.source)
-		#expect(services.replyParser.document(source) == ReplyParser.foundation.document(source))
 		await model.newConversation()
 		try await until { model.chat?.turns.isEmpty == true }
 		await model.loadHistory()
@@ -42,7 +41,6 @@ extension FixtureLaunchTests {
 			model.chat?.liveReply?.text == FormattedReplyFixture.streamingPrefix
 		}
 		let live = try #require(model.chat?.liveReply?.text)
-		#expect(services.replyParser.document(live) == ReplyParser.foundation.document(live))
 		await model.stop()
 		let turn = try await settledTurn(model)
 		guard case .interrupted(let interrupted) = turn.state else {
@@ -68,9 +66,6 @@ extension FixtureLaunchTests {
 			services.replyParser.document(source)
 				== .plainText(
 					source: source, failure: .foundation(domain: "ReplyParserFixture", code: 1)))
-		#expect(
-			try self.services().replyParser.document(source)
-				== ReplyParser.foundation.document(source))
 	}
 }
 

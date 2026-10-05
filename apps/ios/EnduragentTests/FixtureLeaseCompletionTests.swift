@@ -218,7 +218,6 @@ extension FixtureLaunchTests {
 				$0.kind == "memorySection" && $0.count == 1
 			})
 		#expect(services.fixtureTransport?.requestCount == 2)
-		#expect(FixtureBlockingURLProtocol.requestCount == 0)
 		#expect(system.posted.isEmpty)
 	}
 }

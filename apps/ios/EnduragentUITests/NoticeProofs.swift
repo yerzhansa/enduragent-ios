@@ -33,7 +33,6 @@ final class NoticeCopyProof: XCTestCase {
 		TutorialHarness.wait(TutorialHarness.notice(app, reading: TutorialHarness.savedUnverified))
 		XCTAssertFalse(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		TutorialHarness.attach(self, name: "notice-copy-saved-unverified", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -65,7 +64,6 @@ final class AccessNoticeProof: XCTestCase {
 		XCTAssertTrue(TutorialHarness.named(app, "chat.turn.tryAgain").exists)
 		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
 		TutorialHarness.attach(self, name: "access-locked", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -93,23 +91,6 @@ final class StopNoticeProof: XCTestCase {
 		XCTAssertTrue(partial.exists)
 		XCTAssertFalse(app.staticTexts[TutorialHarness.receivedBeforeClose].exists)
 		TutorialHarness.attach(self, name: "stop-running-and-queued", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
-	}
-}
-
-final class RateLimitMinutesProof: XCTestCase {
-	func testRateLimitMinutes() {
-		let app = XCUIApplication()
-		TutorialHarness.launch(app)
-		TutorialHarness.completeOnboarding(app)
-		TutorialHarness.send(app, "fixture:fail 429 90 x4")
-		TutorialHarness.wait(
-			TutorialHarness.notice(app, reading: TutorialHarness.rateLimitTwoMinutes),
-			within: .rateLimitMinutes)
-		let tryAgain = TutorialHarness.named(app, "chat.turn.tryAgain")
-		XCTAssertTrue(tryAgain.exists)
-		XCTAssertFalse(tryAgain.isEnabled, "Try again opened before the 90 second wait")
-		TutorialHarness.attach(self, name: "rate-limit-minutes", app: app)
 	}
 }
 

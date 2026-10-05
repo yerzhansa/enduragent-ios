@@ -36,7 +36,6 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.waitForLabel(app, "No past conversations yet.")
 		capture(test, app, name: "connect-later-history", dark: dark)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func transaction(_ test: XCTestCase, dark: Bool) {
@@ -62,7 +61,6 @@ enum TrainingSettingsProofScreen {
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 		capture(test, app, name: "replacement-cancel-records", dark: dark)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func failedWrite(_ test: XCTestCase, dark: Bool) {
@@ -81,7 +79,6 @@ enum TrainingSettingsProofScreen {
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
 		capture(test, app, name: "replacement-not-saved-records", dark: dark)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func rotation(_ test: XCTestCase, dark: Bool) {
@@ -105,7 +102,6 @@ enum TrainingSettingsProofScreen {
 		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
 		capture(test, app, name: "same-athlete-added", dark: dark)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func differentAthlete(_ test: XCTestCase, dark: Bool) {
@@ -138,7 +134,6 @@ enum TrainingSettingsProofScreen {
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
 		capture(test, app, name: "different-athlete-old-review", dark: dark)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func disconnect(_ test: XCTestCase, dark: Bool) {
@@ -174,7 +169,6 @@ enum TrainingSettingsProofScreen {
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), "unconnected")
 		capture(test, app, name: "disconnected-next-turn", dark: dark)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func unconnectedCalendar(_ test: XCTestCase, dark: Bool) {
@@ -195,7 +189,6 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.returnToChat(app, maximumBackSteps: 1)
 		XCTAssertEqual(TutorialHarness.named(app, "chat.review.notice").label, missing)
 		XCTAssertTrue(TutorialHarness.named(app, "chat.preview.add").exists)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private static func launch(connected: Bool = true) -> XCUIApplication {

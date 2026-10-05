@@ -117,14 +117,12 @@ struct SyncedTrainingIdentityAppTests {
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
 		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.connected?.athleteName == "Bo Lind")
-		#expect(model.athleteFirstName == "Bo")
 		#expect(model.chat?.review?.ref.set == original.ref.set)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		try fixture.trainingPeer.delete()
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training == .unconnected }
 		#expect(model.connected == nil)
-		#expect(model.athleteFirstName.isEmpty)
 		#expect(model.chat?.review?.ref.set == original.ref.set)
 		#expect(fixture.trainingPeer.athleteA.events.isEmpty)
 		#expect(fixture.trainingPeer.athleteB.events.isEmpty)

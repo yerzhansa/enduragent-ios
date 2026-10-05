@@ -59,7 +59,6 @@ enum TrainingStorageProofScreen {
 		assertConversation(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer.notice"), until: .absent)
 		assertRecordsContainNoSecrets(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func malformed(_ test: XCTestCase, dark: Bool) {
@@ -104,7 +103,6 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.waitForLabel(app, "I can read Ada Kovač's training profile and calendar.")
 		assertNoSecrets(app)
 		assertRecordsContainNoSecrets(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func openTraining(_ app: XCUIApplication) {

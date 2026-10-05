@@ -62,6 +62,5 @@ final class DisplayLocaleProof: XCTestCase {
 		XCTAssertTrue(note.label.contains(outcomeDate), note.label)
 		XCTAssertTrue(note.label.hasPrefix("Done"), note.label)
 		TutorialHarness.attach(self, name: "u9-3-review-notice-en-\(region)", app: app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

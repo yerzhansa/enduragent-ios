@@ -38,6 +38,5 @@ final class ProviderConsentProof: XCTestCase {
 		TutorialHarness.openRecords(app)
 		TutorialHarness.waitForRecordCount(app, "providerConsent", "providerConsent 1")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

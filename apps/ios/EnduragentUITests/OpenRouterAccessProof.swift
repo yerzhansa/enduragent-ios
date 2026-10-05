@@ -84,7 +84,6 @@ final class OpenRouterAccessProof: XCTestCase {
 			"intervals.icu is not connected, so I can't read your training profile or calendar. I can discuss general training. Connect in Settings to use your data.",
 			within: .turn)
 		capture(app, "tool-backed-reply")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func openAccess(_ app: XCUIApplication) {

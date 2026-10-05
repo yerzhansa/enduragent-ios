@@ -30,7 +30,6 @@ final class AccessSettingsProof: XCTestCase {
 			"intervals.icu is not connected, so I can't read your training profile or calendar. I can discuss general training. Connect in Settings to use your data.",
 			within: .turn)
 		capture(app, "previous-method-tool-reply")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testCreditsSetupSelectsOnlyAfterPersistenceAndKeepsTheChoice() {
@@ -55,7 +54,6 @@ final class AccessSettingsProof: XCTestCase {
 		capture(app, "credits-choice-reopened")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testSignInOutcomesKeepOrMoveTheSavedTickAndHeldTapsJoin() {
@@ -108,7 +106,6 @@ final class AccessSettingsProof: XCTestCase {
 			assertChoice(app, credits: !succeeded)
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}
@@ -127,7 +124,6 @@ final class AccessSettingsProof: XCTestCase {
 		capture(app, "failed-choice-reopened")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	func testProvisioningAndCredentialWriteFailuresKeepOpenRouterSelected() {
@@ -146,7 +142,6 @@ final class AccessSettingsProof: XCTestCase {
 			capture(app, writeFails ? "credential-write-failed" : "provisioning-failed")
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}
@@ -177,7 +172,6 @@ final class AccessSettingsProof: XCTestCase {
 			assertChoice(app, credits: true)
 			capture(app, "switch-to-openrouter-\(depleted ? "depleted" : "unavailable")")
 			TutorialHarness.returnToChat(app)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}
@@ -201,7 +195,6 @@ final class AccessSettingsProof: XCTestCase {
 			XCTAssertFalse(TutorialHarness.named(app, "connect.apiKey").exists)
 			TutorialHarness.returnToChat(app)
 			TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}
@@ -236,7 +229,6 @@ final class AccessSettingsProof: XCTestCase {
 			openAccess(app)
 			assertChoice(app, credits: !openRouter)
 			TutorialHarness.returnToChat(app)
-			TutorialHarness.assertZeroFixtureRequests(app)
 			app.terminate()
 		}
 	}

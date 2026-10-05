@@ -15,7 +15,7 @@ A task that forbids simulators permits only the source and proof inventory check
 - Prefer accessibility identifiers to visible labels. Labels in this map are English catalog values unless another language is explicit. Product chrome follows the language preference; Debug-only labels can remain English.
 - Type `fixture` as the intervals.icu key. In fixture mode `other-athlete` resolves to Bo Lind, and other non-empty keys resolve to Ada Kovač. No real account is needed.
 - Fixture directives are messages typed into `chat.composer`. See [chat.md](./chat.md) for failures, interruptions, storage faults, and memory work.
-- `fixture.requestCount` must read `0 requests`. This counts blocked network attempts. `fixture.modelRequestCount` counts requests to the fake model and is expected to grow.
+- `fixture.modelRequestCount` counts requests to the fake model and is expected to grow.
 - Capture the action and resulting state. A skipped or unreachable entry point remains unverified, even if another path reaches the same screen.
 
 ## Debug entry points
@@ -29,7 +29,7 @@ Open `chat.settings`, then `settings.debug`. Settings exists in every build. Its
 | Records | `debug.records` | `records.count.<kind>`, `records.row.<id>`, and `records.refresh`. A refresh reads new records. |
 | Language | `debug.language` | The same language choices opened by `/language`. See [language.md](./language.md). |
 | Leases | `debug.leases` | `leases.row.<n>` and the visible `Refresh` button. See [chat.md](./chat.md). |
-| Fixture counters and prompt text | Rows on Debug itself | `fixture.requestCount`, `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
+| Fixture counters and prompt text | Rows on Debug itself | `fixture.modelRequestCount`, `fixture.historyHead`, and `fixture.replyLanguage`. |
 
 The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settled count>`. Existing proofs use `TutorialHarness.exchange` to wait for a whole turn to settle.
 

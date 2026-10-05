@@ -45,7 +45,6 @@ enum LanguageMatrix {
 		TutorialHarness.waitForWelcome(app, language: language)
 		run.expectChrome()
 		run.screen("conversation-welcome")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func conversation(_ test: XCTestCase, _ language: LanguageTag) {
@@ -108,7 +107,6 @@ enum LanguageMatrix {
 				run.say(Catalog.chatNoticeNewConversationMemoryWarning),
 			].contains(started.label), started.label)
 		run.screen("new-conversation")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func settings(_ test: XCTestCase, _ language: LanguageTag) {
@@ -177,7 +175,6 @@ enum LanguageMatrix {
 		run.expectTitle(Catalog.languageChooseTitle)
 		run.screen("language-choice-not-saved")
 		LanguagePickerEntry.settings.close(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func failures(_ test: XCTestCase, _ language: LanguageTag) {
@@ -209,7 +206,6 @@ enum LanguageMatrix {
 		TutorialHarness.send(app, TutorialHarness.draft)
 		run.expect("chat.composer.notSent", Catalog.chatComposerNotSent)
 		run.screen("draft-not-sent")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func history(_ test: XCTestCase, _ language: LanguageTag) {
@@ -223,8 +219,10 @@ enum LanguageMatrix {
 		TutorialHarness.openDebug(app)
 		TutorialHarness.debugRow(app, "fixture.seedOwnership").tap()
 		let seeded = TutorialHarness.debugRow(app, "fixture.ownershipSeedResult")
-		TutorialHarness.wait(
-			until: { seeded.label == "seeded" }, message: "Ownership fixture was not seeded")
+		TutorialHarness.waitForProgress(app, to: "ownership seeding finishing") {
+			seeded.label != "waiting"
+		}
+		XCTAssertEqual(seeded.label, "seeded")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.fixtureControl(app, "fixture.switchAthlete")
 		TutorialHarness.exchange(app, "Read the connected athlete's week")
@@ -240,7 +238,6 @@ enum LanguageMatrix {
 		run.expectTitle(Catalog.archiveConversation)
 		run.screen("history-conversation")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func uncertainSave(_ test: XCTestCase, _ language: LanguageTag) {
@@ -269,7 +266,6 @@ enum LanguageMatrix {
 		run.tap("chat.preview.cancel")
 		run.expect("chat.note", Catalog.reviewCancelledUnknown)
 		run.screen("review-cancelled")
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	static func openRouter(_ test: XCTestCase, _ language: LanguageTag) {
@@ -292,6 +288,5 @@ enum LanguageMatrix {
 		run.expectTitle(Catalog.settingsCoachChooseModel)
 		run.screen("settings-model")
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }

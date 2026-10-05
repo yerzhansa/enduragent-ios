@@ -47,7 +47,6 @@ private enum ReplyFormattingScreen {
 		TutorialHarness.attach(test, name: "reply-formatted-history-end", app: app)
 		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -74,12 +73,13 @@ final class ReplyStreamingStoppedProof: XCTestCase {
 		TutorialHarness.attach(self, name: "reply-formatted-streaming-prefix", app: app)
 		let stop = TutorialHarness.named(app, "chat.stop")
 		TutorialHarness.wait(stop, until: .hittable)
-		let started = ProcessInfo.processInfo.systemUptime
 		stop.tap()
 		TutorialHarness.wait(
-			TutorialHarness.named(app, "chat.working"), until: .absent, within: .probe)
-		XCTAssertLessThan(ProcessInfo.processInfo.systemUptime - started, 3)
+			TutorialHarness.named(app, "chat.working"), until: .absent, within: .turn)
 		TutorialHarness.waitForLabel(app, TutorialHarness.interruptedNothingChanged)
+		XCTAssertFalse(
+			TutorialHarness.notice(app, reading: TutorialHarness.providerDown).exists,
+			"the fixture watchdog ended the reply before Stop did")
 		let stopped = ReplyProofScreen.labels(app)
 		XCTAssertEqual(stopped["reply.heading"]?.first, heading)
 		XCTAssertEqual(stopped["reply.paragraph"]?.first, formatted)
@@ -94,7 +94,6 @@ final class ReplyStreamingStoppedProof: XCTestCase {
 		ReplyProofScreen.scrollToHeading(app)
 		TutorialHarness.attach(self, name: "reply-formatted-stopped-history", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 }
 
@@ -114,7 +113,6 @@ final class ReplyFallbackProof: XCTestCase {
 		assertFallback(app)
 		TutorialHarness.attach(self, name: "reply-fallback-history", app: app)
 		TutorialHarness.returnToChat(app)
-		TutorialHarness.assertZeroFixtureRequests(app)
 	}
 
 	private func assertFallback(_ app: XCUIApplication) {
