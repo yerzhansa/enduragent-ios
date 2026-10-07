@@ -119,6 +119,12 @@ extension SourceCases {
 				phoneProjectFiles(settings: sharedBuildSettings.filter { $0.key != setting }),
 				finding: "xcode-shared-build-settings")
 		}
+		+ [
+			.rejects(
+				"rejects dropped shared settings in a generated project that is not tracked",
+				phoneProjectFiles(settings: [:]), tracked: .only([proofEntitlements]),
+				finding: "xcode-shared-build-settings")
+		]
 
 	static let navigationRoot = "apps/ios/Enduragent/Chat/ChatView.swift"
 	static let navigationChild = "apps/ios/Enduragent/Settings/SettingsView.swift"

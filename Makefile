@@ -7,7 +7,10 @@ SWIFT_SOURCES := git ls-files -z -- '*.swift' ':!*.generated.swift'
 SWIFT_FORMAT := xargs -0 swift format
 FORMAT_OPTIONS := --parallel --configuration .swift-format
 
-.PHONY: generate-catalogs check-catalogs check-source lint-swift format-swift check-format test-tools test-swift
+.PHONY: project generate-catalogs check-catalogs check-source lint-swift format-swift check-format test-tools test-swift
+
+project:
+	$(AT_ROOT) xcodegen generate --spec apps/ios/project.yml
 
 generate-catalogs:
 	$(AT_ROOT) $(TOOL) generate-catalogs
