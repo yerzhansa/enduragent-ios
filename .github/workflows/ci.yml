@@ -66,3 +66,37 @@ jobs:
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
       - name: Build unsigned iPhone app in Release
         run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+
+  screen-tests:
+    runs-on: macos-26
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [1, 2]
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - name: Install pinned XcodeGen
+        run: |
+          curl --fail --location --output /tmp/xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
+          echo '4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  /tmp/xcodegen.zip' | shasum -a 256 -c -
+          unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
+          echo /tmp/xcodegen/xcodegen/bin >> "$GITHUB_PATH"
+      - name: Pick a simulator device
+        run: |
+          device='iPhone 17e'
+          if ! xcrun simctl list devicetypes | grep -q "^$device ("; then
+            device="$(xcrun simctl list devicetypes | sed -n 's/^\(iPhone [^(]*\) (.*/\1/p' | tail -1)"
+          fi
+          echo "ENDURAGENT_SIM_DEVICE=$device" >> "$GITHUB_ENV"
+          echo "device: $device"
+          sysctl -n hw.ncpu hw.memsize
+      - name: Build the app and the screen test runner
+        run: swift run --quiet --package-path tools sim build
+      - name: Run five screen test classes
+        run: swift run --quiet --package-path tools sim shard ci-trial FirstConversationProof FailureNoticesProof ReviewProof LanguagePickerProof SettingsNavigationProof
+      - name: Print the per-class times
+        if: always()
+        run: cat "$HOME/Library/Logs/enduragent-verify/ci-trial/summary.json"
