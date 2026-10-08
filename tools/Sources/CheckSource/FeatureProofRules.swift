@@ -28,7 +28,7 @@ extension SourceChecker {
 		}
 		for source in sources where try patterns.test(Self.featureFile, source.file) {
 			let references = try patterns.matchAll(
-				#"\b[A-Z][A-Za-z0-9]*(?:Proof|Probe)\b"#, source.text
+				#"\b[A-Z][A-Za-z0-9]*(?:Proof|Probe|Sweep)\b"#, source.text
 			).map(\.text)
 			if references.contains(where: { classes[$0] == nil }) {
 				try findings.report(source.file, "feature-proof-reference")
@@ -37,7 +37,7 @@ extension SourceChecker {
 				mapped.formUnion(references)
 			}
 			let selectors = try patterns.matchAll(
-				#"\b([A-Z][A-Za-z0-9]*(?:Proof|Probe))\/(test\w+)\b"#, source.text)
+				#"\b([A-Z][A-Za-z0-9]*(?:Proof|Probe|Sweep))\/(test\w+)\b"#, source.text)
 			for selector in selectors {
 				let methods = classes[selector.groups[1]]?.methods ?? []
 				if !methods.contains(selector.groups[2]) {

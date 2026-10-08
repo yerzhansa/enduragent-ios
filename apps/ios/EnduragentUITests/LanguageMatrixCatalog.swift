@@ -129,7 +129,7 @@ private struct PhrasebookFile: Decodable {
 	}
 
 	static func read() throws -> PhrasebookFile {
-		let tests = Bundle(for: LanguageMatrixEnProof.self)
+		let tests = Bundle(for: LanguageMatrixEnSweep.self)
 		guard
 			let resources = tests.url(
 				forResource: "EnduragentCoach_EnduragentCoach", withExtension: "bundle"),

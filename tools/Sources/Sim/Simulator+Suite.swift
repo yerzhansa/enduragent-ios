@@ -66,9 +66,10 @@ extension Simulator {
 	}
 
 	func suite(_ requested: [String]) throws {
-		let available = try ShardPlan.proofClasses(repo: repo)
-		let proofs = requested.isEmpty ? available : requested
-		for proof in proofs where !available.contains(where: { $0.hasSameUnits(as: proof) }) {
+		let standing = try ShardPlan.proofClasses(repo: repo)
+		let proofs = requested.isEmpty ? standing : requested
+		let named = try standing + ShardPlan.proofClasses(repo: repo, ending: "Sweep")
+		for proof in proofs where !named.contains(where: { $0.hasSameUnits(as: proof) }) {
 			throw SimFailure(description: "unknown UI proof class \(proof)")
 		}
 		let timingFile = options.timings ?? NodePath.join(runsRoot, "timings.json")

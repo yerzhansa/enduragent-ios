@@ -82,11 +82,11 @@ struct ExportedTree {
 			withDestinationPath: "arm64-apple-macosx/debug")
 		let source = "\(tree)/apps/ios/EnduragentUITests"
 		try files.createDirectory(atPath: source, withIntermediateDirectories: true)
-		let classes = ["AlphaProof", "BravoDarkProof", "CharlieProof"].map {
+		let classes = ["AlphaProof", "BravoProof", "CharlieProof"].map {
 			"final class \($0): XCTestCase {}"
 		}
 		try write(
-			"\(classes.joined(separator: "\n"))\nfinal class TimingProbe: XCTestCase {}\n",
+			"\(classes.joined(separator: "\n"))\nfinal class TimingProbe: XCTestCase {}\nfinal class FrenchSweep: XCTestCase {}\n",
 			to: "\(source)/Proofs.swift")
 		try files.createDirectory(atPath: "\(root)/bin", withIntermediateDirectories: false)
 		for tool in ["git", "xcrun", "xcodegen", "xcodebuild", "plutil", "sips"] {

@@ -2,7 +2,7 @@ import EnduragentCoach
 import XCTest
 
 @MainActor
-final class LanguageMatrixEnProof: XCTestCase {
+final class LanguageMatrixEnSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .en) }
 	func testConversation() { LanguageMatrix.conversation(self, .en) }
 	func testSettings() { LanguageMatrix.settings(self, .en) }
@@ -13,7 +13,7 @@ final class LanguageMatrixEnProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixEsProof: XCTestCase {
+final class LanguageMatrixEsSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .es) }
 	func testConversation() { LanguageMatrix.conversation(self, .es) }
 	func testSettings() { LanguageMatrix.settings(self, .es) }
@@ -24,7 +24,7 @@ final class LanguageMatrixEsProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixFrProof: XCTestCase {
+final class LanguageMatrixFrSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .fr) }
 	func testConversation() { LanguageMatrix.conversation(self, .fr) }
 	func testSettings() { LanguageMatrix.settings(self, .fr) }
@@ -35,7 +35,7 @@ final class LanguageMatrixFrProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixItProof: XCTestCase {
+final class LanguageMatrixItSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .it) }
 	func testConversation() { LanguageMatrix.conversation(self, .it) }
 	func testSettings() { LanguageMatrix.settings(self, .it) }
@@ -57,7 +57,7 @@ final class LanguageMatrixDeProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixNlProof: XCTestCase {
+final class LanguageMatrixNlSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .nl) }
 	func testConversation() { LanguageMatrix.conversation(self, .nl) }
 	func testSettings() { LanguageMatrix.settings(self, .nl) }
@@ -68,7 +68,7 @@ final class LanguageMatrixNlProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixDaProof: XCTestCase {
+final class LanguageMatrixDaSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .da) }
 	func testConversation() { LanguageMatrix.conversation(self, .da) }
 	func testSettings() { LanguageMatrix.settings(self, .da) }
@@ -79,7 +79,7 @@ final class LanguageMatrixDaProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixSvProof: XCTestCase {
+final class LanguageMatrixSvSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .sv) }
 	func testConversation() { LanguageMatrix.conversation(self, .sv) }
 	func testSettings() { LanguageMatrix.settings(self, .sv) }
@@ -90,7 +90,7 @@ final class LanguageMatrixSvProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixNbProof: XCTestCase {
+final class LanguageMatrixNbSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .nb) }
 	func testConversation() { LanguageMatrix.conversation(self, .nb) }
 	func testSettings() { LanguageMatrix.settings(self, .nb) }
@@ -101,7 +101,7 @@ final class LanguageMatrixNbProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixFiProof: XCTestCase {
+final class LanguageMatrixFiSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .fi) }
 	func testConversation() { LanguageMatrix.conversation(self, .fi) }
 	func testSettings() { LanguageMatrix.settings(self, .fi) }
@@ -123,7 +123,7 @@ final class LanguageMatrixPtPTProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixPtBRProof: XCTestCase {
+final class LanguageMatrixPtBRSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .ptBR) }
 	func testConversation() { LanguageMatrix.conversation(self, .ptBR) }
 	func testSettings() { LanguageMatrix.settings(self, .ptBR) }
@@ -134,7 +134,7 @@ final class LanguageMatrixPtBRProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixPlProof: XCTestCase {
+final class LanguageMatrixPlSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .pl) }
 	func testConversation() { LanguageMatrix.conversation(self, .pl) }
 	func testSettings() { LanguageMatrix.settings(self, .pl) }
@@ -145,7 +145,7 @@ final class LanguageMatrixPlProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixKoProof: XCTestCase {
+final class LanguageMatrixKoSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .ko) }
 	func testConversation() { LanguageMatrix.conversation(self, .ko) }
 	func testSettings() { LanguageMatrix.settings(self, .ko) }
@@ -156,7 +156,7 @@ final class LanguageMatrixKoProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixJaProof: XCTestCase {
+final class LanguageMatrixJaSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .ja) }
 	func testConversation() { LanguageMatrix.conversation(self, .ja) }
 	func testSettings() { LanguageMatrix.settings(self, .ja) }
@@ -167,7 +167,7 @@ final class LanguageMatrixJaProof: XCTestCase {
 }
 
 @MainActor
-final class LanguageMatrixZhHansProof: XCTestCase {
+final class LanguageMatrixZhHansSweep: XCTestCase {
 	func testOnboarding() { LanguageMatrix.onboarding(self, .zhHans) }
 	func testConversation() { LanguageMatrix.conversation(self, .zhHans) }
 	func testSettings() { LanguageMatrix.settings(self, .zhHans) }

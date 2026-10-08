@@ -222,15 +222,18 @@ extension SourceCases {
 				featureFile: feature("ChatProof/testStop StopProof"),
 			], finding: "[feature-proof-method]"),
 		.accepts(
-			"accepts proofs and probes mapped across feature files with valid selectors",
+			"accepts proofs, probes and sweeps mapped across feature files with valid selectors",
 			[
 				proofFile: "\(chatProof)\n\(stopProof)",
 				"apps/ios/EnduragentUITests/LaunchProbes.swift":
 					"final class LaunchProbe: XCTestCase { func testLaunch() {} }",
+				"apps/ios/EnduragentUITests/LanguageSweeps.swift":
+					"final class FrenchSweep: XCTestCase { func testSettings() {} }",
 				featureFile:
 					feature("ChatProof/testReply StopProof").replacingOccurrences(
 						of: "\n", with: "\r\n"),
-				"\(featureDirectory)/launch.md": feature("LaunchProbe/testLaunch"),
+				"\(featureDirectory)/launch.md": feature(
+					"LaunchProbe/testLaunch FrenchSweep/testSettings"),
 				"\(featureDirectory)/README.md":
 					"# Proof map\nChatProof StopProof/testStop LaunchProbe",
 			]),

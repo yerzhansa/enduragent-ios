@@ -15,7 +15,7 @@ struct SuiteOutcome: Sendable, CustomTestStringConvertible {
 		SuiteOutcome(label: "pass", environment: [:], status: 0),
 		SuiteOutcome(label: "failure", environment: ["VERIFY_FAIL_CLASS": "AlphaProof"], status: 1),
 		SuiteOutcome(
-			label: "skip", environment: ["VERIFY_SKIP_CLASS": "BravoDarkProof"], status: 1),
+			label: "skip", environment: ["VERIFY_SKIP_CLASS": "BravoProof"], status: 1),
 		SuiteOutcome(
 			label: "missing result", environment: ["VERIFY_MISSING_CLASS": "AlphaProof"], status: 1),
 		SuiteOutcome(label: "boot failure", environment: ["VERIFY_FAIL_BOOT": "1"], status: 1),
@@ -94,9 +94,9 @@ struct SimCommandTests {
 		try withTree { fixture in
 			let timings = "\(fixture.root)/timings.json"
 			try fixture.write(
-				#"{"AlphaProof":10,"BravoDarkProof":100,"CharlieProof":90}"#, to: timings)
+				#"{"AlphaProof":10,"BravoProof":100,"CharlieProof":90}"#, to: timings)
 			let result = try fixture.sim(
-				["suite", "--shards", "2", "--timings", timings, "AlphaProof", "BravoDarkProof"])
+				["suite", "--shards", "2", "--timings", timings, "AlphaProof", "BravoProof"])
 			#expect(result.status == 0, "\(result.errors)")
 			let suite = try #require(
 				try fixture.names(in: fixture.runs).first { !$0.contains("shard") })
@@ -104,9 +104,23 @@ struct SimCommandTests {
 			let shards = try plan.member("shards").elements()
 			#expect(
 				try shards.map { try $0.member("proofs").compactText } == [
-					#"["BravoDarkProof"]"#, #"["AlphaProof"]"#,
+					#"["BravoProof"]"#, #"["AlphaProof"]"#,
 				])
 			#expect(try shards.map { try $0.member("estimatedSeconds").number } == [100, 10])
+		}
+	}
+
+	@Test("suite runs a sweep class only when it is named", .timeLimit(.minutes(2)))
+	func suiteRunsANamedSweep() throws {
+		try withTree { fixture in
+			let result = try fixture.sim(["suite", "--shards", "1", "FrenchSweep"])
+			#expect(result.status == 0, "\(result.errors)")
+			let suite = try #require(
+				try fixture.names(in: fixture.runs).first { !$0.contains("shard") })
+			let summary = try JSONValue.parse(fixture.read("\(fixture.runs)/\(suite)/summary.json"))
+			#expect(
+				try summary.member("classes").elements().map { try $0.member("name").interpolated }
+					== ["FrenchSweep"])
 		}
 	}
 
@@ -141,7 +155,7 @@ struct SimCommandTests {
 			}
 			#expect(
 				try classes.map { try $0.member("name").interpolated }.sorted()
-					== ["AlphaProof", "BravoDarkProof", "CharlieProof"])
+					== ["AlphaProof", "BravoProof", "CharlieProof"])
 			let shards = try summary.member("shards").elements()
 			#expect(shards.count == 2)
 			for shard in shards {
@@ -149,7 +163,7 @@ struct SimCommandTests {
 					fixture.exists("\(try shard.member("directory").interpolated)/summary.json"))
 			}
 			if outcome.label == "skip" {
-				#expect(try row("BravoDarkProof").member("skipped").number == 1)
+				#expect(try row("BravoProof").member("skipped").number == 1)
 			}
 			if outcome.label == "missing result" {
 				#expect(try row("AlphaProof").member("missing").number == 1)
@@ -188,9 +202,9 @@ struct SimCommandTests {
 	}
 
 	@Test(
-		"proof commands select their appearance and restore light after a dark failure",
+		"proof commands run in light appearance on a simulator left dark",
 		.timeLimit(.minutes(2)))
-	func proofCommandsSelectTheirAppearance() throws {
+	func proofCommandsRunInLightAppearance() throws {
 		try withTree { fixture in
 			try FileManager.default.createDirectory(
 				atPath: "\(fixture.runs)/fixture", withIntermediateDirectories: true)
@@ -203,23 +217,19 @@ struct SimCommandTests {
 				])
 			let udid = created.output.trimmedAsJavaScript
 			let recorded = "\(fixture.root)/proof-runs"
-			for (proofs, fails) in [
-				(["ConfirmedPreviewProof"], false),
-				(["ConfirmedPreviewProof", "ConfirmedPreviewDarkProof"], false),
-				(["ConfirmedPreviewDarkProof"], true),
-			] {
+			for fails in [false, true] {
+				let proofs = ["ConfirmedPreviewProof", "ReviewLanguageProof"]
 				_ = try fixture.fakeTool("xcrun", ["simctl", "ui", udid, "appearance", "dark"])
 				if fixture.exists(recorded) { try FileManager.default.removeItem(atPath: recorded) }
 				let result = try fixture.sim(
 					["test", "fixture"] + proofs,
-					environment: fails ? ["VERIFY_FAIL_CLASS": "ConfirmedPreviewDarkProof"] : [:])
+					environment: fails ? ["VERIFY_FAIL_CLASS": "ReviewLanguageProof"] : [:])
 				#expect(result.status == (fails ? 1 : 0), "\(result.errors)")
 				#expect(try fixture.read("\(fixture.root)/appearance") == "light")
 				#expect(
-					try fixture.read(recorded).split(separator: "\n").map(String.init)
-						== proofs.map {
-							"\($0.hasSuffix("DarkProof") ? "dark" : "light") -only-testing:EnduragentUITests/\($0)"
-						})
+					try fixture.read(recorded)
+						== "light \(proofs.map { "-only-testing:EnduragentUITests/\($0)" }.joined(separator: " "))\n"
+				)
 			}
 		}
 	}
@@ -261,34 +271,33 @@ struct SimCommandTests {
 				try fixture.sim(["shot", run, "first-screen"]).output
 					== "\(folder)/first-screen.png\n")
 			let tested = try fixture.sim([
-				"test", run, "AlphaProof", "BravoDarkProof/testVisibleResult",
+				"test", run, "AlphaProof", "BravoProof/testVisibleResult",
 			])
 			#expect(tested.status == 0, "\(tested.errors)")
 			let stamps = try patterns.matchAll(
 				#"(?:^|\n)log \S+/(uitest-[0-9a-f\-]+)\.log"#, tested.output
 			).map { $0.groups[1] }
-			#expect(stamps.count == 2)
-			let light = try #require(stamps.first)
+			#expect(stamps.count == 1)
+			let stamp = try #require(stamps.first)
 			#expect(
 				tested.output.hasPrefix(
-					"Passed: 1 passed, 0 failed, 0 skipped\n"
-						+ "attachment AlphaProof/testVisibleResult() final screen.png \(folder)/\(light)-attachments/AlphaProof.png\n"
-						+ "result bundle \(folder)/\(light).xcresult\nlog \(folder)/\(light).log\n")
+					"Passed: 2 passed, 0 failed, 0 skipped\n"
+						+ "attachment AlphaProof/testVisibleResult() final screen.png \(folder)/\(stamp)-attachments/AlphaProof.png\n"
+						+ "attachment BravoProof/testVisibleResult() final screen.png \(folder)/\(stamp)-attachments/BravoProof.png\n"
+						+ "result bundle \(folder)/\(stamp).xcresult\nlog \(folder)/\(stamp).log\n")
 			)
 			#expect(
-				try fixture.read("\(folder)/\(light)-classes.json")
-					== "[\n  {\n    \"name\": \"AlphaProof\",\n    \"passed\": 1,\n    \"failed\": 0,\n    \"skipped\": 0,\n    \"missing\": 0,\n    \"seconds\": 7\n  }\n]\n"
+				try fixture.read("\(folder)/\(stamp)-classes.json")
+					== "[\n  {\n    \"name\": \"AlphaProof\",\n    \"passed\": 1,\n    \"failed\": 0,\n    \"skipped\": 0,\n    \"missing\": 0,\n    \"seconds\": 7\n  },\n  {\n    \"name\": \"BravoProof\",\n    \"passed\": 1,\n    \"failed\": 0,\n    \"skipped\": 0,\n    \"missing\": 0,\n    \"seconds\": 7\n  }\n]\n"
 			)
 			let cleaned = try fixture.sim(["cleanup", run])
 			#expect(cleaned.status == 0, "\(cleaned.errors)")
 			let kept =
 				["run.json"]
-				+ stamps.sorted().flatMap { stamp in
-					[
-						"-attachments", "-classes.json", "-summary.json", "-tests.json", ".log",
-						".xcresult",
-					].map { "\(stamp)\($0)" }
-				}
+				+ [
+					"-attachments", "-classes.json", "-summary.json", "-tests.json", ".log",
+					".xcresult",
+				].map { "\(stamp)\($0)" }
 			#expect(try fixture.names(in: folder) == kept)
 			#expect(
 				cleaned.output

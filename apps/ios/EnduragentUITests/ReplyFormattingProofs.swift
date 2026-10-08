@@ -4,20 +4,13 @@ import XCTest
 @MainActor
 final class ReplyFormattingProof: XCTestCase {
 	func testFormattedReplyInChatAndHistory() {
-		ReplyFormattingScreen.prove(self, dark: false)
-	}
-}
-
-@MainActor
-final class ReplyFormattingDarkProof: XCTestCase {
-	func testFormattedReplyInChatAndHistory() {
-		ReplyFormattingScreen.prove(self, dark: true)
+		ReplyFormattingScreen.prove(self)
 	}
 }
 
 @MainActor
 private enum ReplyFormattingScreen {
-	static func prove(_ test: XCTestCase, dark: Bool) {
+	static func prove(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -29,13 +22,8 @@ private enum ReplyFormattingScreen {
 		ReplyProofScreen.assertDocument(app, source: FormattedReplyFixture.source)
 		ReplyProofScreen.assertLinks(app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark {
-			XCTAssertLessThan(luminance, 0.35)
-		} else {
-			XCTAssertGreaterThan(luminance, 0.65)
-		}
-		TutorialHarness.attach(
-			test, name: dark ? "reply-chat-long-dark" : "reply-chat-long-light", app: app)
+		XCTAssertGreaterThan(luminance, 0.65)
+		TutorialHarness.attach(test, name: "reply-chat-long-light", app: app)
 		TutorialHarness.startNewConversation(app)
 		ReplyProofScreen.openArchive(app)
 		ReplyProofScreen.scrollToHeading(app)

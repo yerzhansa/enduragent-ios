@@ -3,22 +3,11 @@ import XCTest
 @MainActor
 final class TrainingStorageProof: XCTestCase {
 	func testUnavailableStorageRecovers() {
-		TrainingStorageProofScreen.unavailable(self, dark: false)
+		TrainingStorageProofScreen.unavailable(self)
 	}
 
 	func testMalformedStorageCanBeCorrected() {
-		TrainingStorageProofScreen.malformed(self, dark: false)
-	}
-}
-
-@MainActor
-final class TrainingStorageDarkProof: XCTestCase {
-	func testUnavailableStorageRecovers() {
-		TrainingStorageProofScreen.unavailable(self, dark: true)
-	}
-
-	func testMalformedStorageCanBeCorrected() {
-		TrainingStorageProofScreen.malformed(self, dark: true)
+		TrainingStorageProofScreen.malformed(self)
 	}
 }
 
@@ -33,7 +22,7 @@ enum TrainingStorageProofScreen {
 		"fixture-malformed-secret", "fixture-credits-key", "synthetic-correction-key",
 	]
 
-	static func unavailable(_ test: XCTestCase, dark: Bool) {
+	static func unavailable(_ test: XCTestCase) {
 		let app = connectedConversation()
 		TutorialHarness.relaunchKeepingStore(app, keychain: .unavailable)
 		TutorialHarness.waitForIdentifier(
@@ -46,7 +35,7 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.waitForIdentifier(app, "training.notice", reading: unavailable)
 		XCTAssertFalse(TutorialHarness.named(app, "training.edit").exists)
 		XCTAssertEqual(TutorialHarness.named(app, "training.displayAction").label, "Try again")
-		capture(test, app, name: "training-storage-unavailable", dark: dark)
+		capture(test, app, name: "training-storage-unavailable")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.fixtureControl(app, "fixture.restoreSecureStorage")
 		openTraining(app)
@@ -54,21 +43,21 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Ada Kovač")
 		TutorialHarness.waitForIdentifier(app, "training.fitness", reading: "Fitness 42")
 		TutorialHarness.wait(TutorialHarness.named(app, "training.notice"), until: .absent)
-		capture(test, app, name: "training-storage-recovered", dark: dark)
+		capture(test, app, name: "training-storage-recovered")
 		TutorialHarness.returnToChat(app)
 		assertConversation(app)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer.notice"), until: .absent)
 		assertRecordsContainNoSecrets(app)
 	}
 
-	static func malformed(_ test: XCTestCase, dark: Bool) {
+	static func malformed(_ test: XCTestCase) {
 		let app = connectedConversation()
 		TutorialHarness.relaunchKeepingStore(app, keychain: .malformedIntervals)
 		assertConversation(app)
 		openTraining(app)
 		TutorialHarness.waitForIdentifier(app, "training.notice", reading: malformed)
 		XCTAssertEqual(TutorialHarness.named(app, "training.edit").label, "Replace key")
-		capture(test, app, name: "training-storage-malformed", dark: dark)
+		capture(test, app, name: "training-storage-malformed")
 		TutorialHarness.named(app, "training.edit").tap()
 		assertEmptyKey(app)
 		TutorialHarness.named(app, "training.cancel").tap()
@@ -90,13 +79,13 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.waitForIdentifier(
 			app, "training.saved", reading: "The connection wasn't saved. Try again.")
 		TutorialHarness.waitForIdentifier(app, "training.notice", reading: malformed)
-		capture(test, app, name: "training-correction-not-saved", dark: dark)
+		capture(test, app, name: "training-correction-not-saved")
 		TutorialHarness.named(app, "training.save").tap()
 		TutorialHarness.waitForIdentifier(app, "training.saved", reading: "Saved")
 		TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Ada Kovač")
 		TutorialHarness.waitForIdentifier(app, "training.form", reading: "Form -7")
 		XCTAssertFalse(TutorialHarness.named(app, "training.apiKey").exists)
-		capture(test, app, name: "training-correction-saved", dark: dark)
+		capture(test, app, name: "training-correction-saved")
 		TutorialHarness.returnToChat(app)
 		assertConversation(app)
 		TutorialHarness.exchange(app, "fixture:training-data")
@@ -147,12 +136,10 @@ enum TrainingStorageProofScreen {
 		TutorialHarness.returnToChat(app)
 	}
 
-	private static func capture(
-		_ test: XCTestCase, _ app: XCUIApplication, name: String, dark: Bool
-	) {
+	private static func capture(_ test: XCTestCase, _ app: XCUIApplication, name: String) {
 		assertNoSecrets(app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark { XCTAssertLessThan(luminance, 0.4) } else { XCTAssertGreaterThan(luminance, 0.4) }
-		TutorialHarness.attach(test, name: "\(name)-\(dark ? "dark" : "light")", app: app)
+		XCTAssertGreaterThan(luminance, 0.4)
+		TutorialHarness.attach(test, name: "\(name)-light", app: app)
 	}
 }

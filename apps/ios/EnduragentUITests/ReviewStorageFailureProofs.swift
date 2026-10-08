@@ -3,28 +3,17 @@ import XCTest
 @MainActor
 final class ReviewStorageFailureProof: XCTestCase {
 	func testFailedAddSaveKeepsTheReviewAndExplainsTheChoiceWasNotSaved() {
-		ReviewStorageFailureScreen.saveFailure(self, cancel: false, language: "en", dark: false)
+		ReviewStorageFailureScreen.saveFailure(self, cancel: false, language: "en")
 	}
 
 	func testFailedCancelSaveUsesTheChosenLanguage() {
-		ReviewStorageFailureScreen.saveFailure(self, cancel: true, language: "fr", dark: false)
-	}
-}
-
-@MainActor
-final class ReviewStorageFailureDarkProof: XCTestCase {
-	func testFailedAddSaveKeepsTheReviewAndExplainsTheChoiceWasNotSaved() {
-		ReviewStorageFailureScreen.saveFailure(self, cancel: false, language: "en", dark: true)
-	}
-
-	func testFailedCancelSaveUsesTheChosenLanguage() {
-		ReviewStorageFailureScreen.saveFailure(self, cancel: true, language: "fr", dark: true)
+		ReviewStorageFailureScreen.saveFailure(self, cancel: true, language: "fr")
 	}
 }
 
 @MainActor
 enum ReviewStorageFailureScreen {
-	static func saveFailure(_ test: XCTestCase, cancel: Bool, language: String, dark: Bool) {
+	static func saveFailure(_ test: XCTestCase, cancel: Bool, language: String) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -62,10 +51,10 @@ enum ReviewStorageFailureScreen {
 		XCTAssertEqual(ReviewRecoveryScreen.modelRequests(app), requests)
 		TutorialHarness.attach(
 			test,
-			name: "review-save-failed-" + (cancel ? "cancel-" : "add-") + (dark ? "dark" : "light"),
+			name: "review-save-failed-" + (cancel ? "cancel-light" : "add-light"),
 			app: app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark { XCTAssertLessThan(luminance, 0.4) } else { XCTAssertGreaterThan(luminance, 0.4) }
+		XCTAssertGreaterThan(luminance, 0.4)
 		TutorialHarness.named(app, "chat.preview.cancel").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.cancel"), until: .absent)
 		TutorialHarness.wait(app.staticTexts[sentence], until: .absent)

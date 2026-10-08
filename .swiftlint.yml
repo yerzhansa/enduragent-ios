@@ -66,3 +66,8 @@ custom_rules:
     regex: '\b(?:Text|Button|Label|Toggle|Section|TextField|SecureField|Link|Menu|Picker|LabeledContent|ContentUnavailableView|navigationTitle|alert|confirmationDialog|accessibilityLabel|accessibilityHint)\(\s*(?:verbatim:\s*)?"|String\(localized:|LocalizedStringKey\('
     message: 'Athlete-facing copy goes through the catalog. Use phrasebook.say(Catalog.key) and add the English string to packages/i18n/catalogs/en.json.'
     severity: error
+  no_fixed_colors:
+    included: 'apps/ios/Enduragent/.*\.swift$'
+    regex: '\bColor\(\s*(?:(?:red|white|hue|hex)\s*:|\.(?:sRGB|displayP3)|0x|"#)|\bUIColor\(|\bColor\.(?:white|black)\b|\.(?:foregroundStyle|foregroundColor|background|tint)\(\s*\.(?:white|black)\b|\.preferredColorScheme\('
+    message: 'Fixed colors do not adapt to dark appearance. Use semantic system colors such as .primary, .secondary, or Color(.systemBackground), or a color set in Assets.xcassets.'
+    severity: error

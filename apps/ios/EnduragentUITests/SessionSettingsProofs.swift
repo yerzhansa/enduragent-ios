@@ -4,52 +4,26 @@ import XCTest
 @MainActor
 final class SessionSettingsProof: XCTestCase {
 	func testEditsSurviveRelaunchWithCredits() {
-		SessionSettingsScreen.proveEdits(self, access: .credits, dark: false)
+		SessionSettingsScreen.proveEdits(self, access: .credits)
 	}
 
 	func testEditsSurviveRelaunchWithAnOpenRouterAccount() {
-		SessionSettingsScreen.proveEdits(self, access: .catalogOpenRouter, dark: false)
+		SessionSettingsScreen.proveEdits(self, access: .catalogOpenRouter)
 	}
 
 	func testCancelLeavesTheEditUnapplied() {
-		SessionSettingsScreen.proveCancel(self, dark: false)
+		SessionSettingsScreen.proveCancel(self)
 	}
 
 	func testFailedSaveKeepsTheSavedValueAndConversation() {
-		SessionSettingsScreen.proveFailedSave(self, dark: false)
-	}
-}
-
-@MainActor
-final class SessionSettingsDarkProof: XCTestCase {
-	func testEditsSurviveRelaunchWithCredits() {
-		SessionSettingsScreen.proveEdits(self, access: .credits, dark: true)
-	}
-
-	func testEditsSurviveRelaunchWithAnOpenRouterAccount() {
-		SessionSettingsScreen.proveEdits(self, access: .catalogOpenRouter, dark: true)
-	}
-
-	func testCancelLeavesTheEditUnapplied() {
-		SessionSettingsScreen.proveCancel(self, dark: true)
-	}
-
-	func testFailedSaveKeepsTheSavedValueAndConversation() {
-		SessionSettingsScreen.proveFailedSave(self, dark: true)
+		SessionSettingsScreen.proveFailedSave(self)
 	}
 }
 
 @MainActor
 final class SessionRejectionProof: XCTestCase {
 	func testSessionRejection() {
-		SessionSettingsScreen.proveRejection(self, dark: false)
-	}
-}
-
-@MainActor
-final class SessionRejectionDarkProof: XCTestCase {
-	func testSessionRejection() {
-		SessionSettingsScreen.proveRejection(self, dark: true)
+		SessionSettingsScreen.proveRejection(self)
 	}
 }
 
@@ -174,11 +148,11 @@ enum SessionSettingsScreen {
 			file: file, line: line)
 	}
 
-	static func proveEdits(_ test: XCTestCase, access: FixtureAccessMethod, dark: Bool) {
+	static func proveEdits(_ test: XCTestCase, access: FixtureAccessMethod) {
 		let app = XCUIApplication()
-		let name = "session-\(access.rawValue)-\(dark ? "dark" : "light")"
+		let name = "session-\(access.rawValue)-light"
 		launch(app, access: access)
-		assertAppearance(app, dark: dark)
+		assertAppearance(app)
 		open(app)
 		assertShown(app, ratio: "30", window: "")
 		assertCatalogText(app)
@@ -210,18 +184,17 @@ enum SessionSettingsScreen {
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekReply)
 	}
 
-	static func proveCancel(_ test: XCTestCase, dark: Bool) {
+	static func proveCancel(_ test: XCTestCase) {
 		let app = XCUIApplication()
-		let appearance = dark ? "dark" : "light"
 		launch(app, access: .credits)
-		assertAppearance(app, dark: dark)
+		assertAppearance(app)
 		open(app)
 		enter(app, .historyBudgetRatio, "5")
 		enter(app, .contextWindowOverride, "64000")
-		TutorialHarness.attach(test, name: "session-cancel-editing-\(appearance)", app: app)
+		TutorialHarness.attach(test, name: "session-cancel-editing-light", app: app)
 		cancel(app)
 		assertShown(app, ratio: "30", window: "")
-		TutorialHarness.attach(test, name: "session-cancel-restored-\(appearance)", app: app)
+		TutorialHarness.attach(test, name: "session-cancel-restored-light", app: app)
 		enter(app, .historyBudgetRatio, "7")
 		TutorialHarness.returnToChat(app)
 		open(app)
@@ -234,11 +207,10 @@ enum SessionSettingsScreen {
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func proveRejection(_ test: XCTestCase, dark: Bool) {
+	static func proveRejection(_ test: XCTestCase) {
 		let app = XCUIApplication()
-		let appearance = dark ? "dark" : "light"
 		launch(app, access: .credits)
-		assertAppearance(app, dark: dark)
+		assertAppearance(app)
 		open(app)
 		let rows: [(field: Field, sentence: String)] = [
 			(.historyBudgetRatio, "Enter a history budget above 0% and no more than 100%."),
@@ -251,7 +223,7 @@ enum SessionSettingsScreen {
 				app, "session.\(row.field.rawValue).rejection", reading: row.sentence)
 			XCTAssertFalse(TutorialHarness.named(app, "session.saveFailed").exists)
 			TutorialHarness.attach(
-				test, name: "session-rejected-\(row.field.rawValue)-\(appearance)", app: app)
+				test, name: "session-rejected-\(row.field.rawValue)-light", app: app)
 			cancel(app)
 			XCTAssertFalse(
 				TutorialHarness.named(app, "session.\(row.field.rawValue).rejection").exists)
@@ -265,11 +237,10 @@ enum SessionSettingsScreen {
 		assertShown(app, ratio: "30", window: "")
 	}
 
-	static func proveFailedSave(_ test: XCTestCase, dark: Bool) {
+	static func proveFailedSave(_ test: XCTestCase) {
 		let app = XCUIApplication()
-		let appearance = dark ? "dark" : "light"
 		launch(app, access: .credits)
-		assertAppearance(app, dark: dark)
+		assertAppearance(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		open(app)
 		enter(app, .contextWindowOverride, "64000")
@@ -282,7 +253,7 @@ enum SessionSettingsScreen {
 		save(app)
 		TutorialHarness.waitForIdentifier(app, "session.saveFailed", reading: notSaved)
 		TutorialHarness.wait(input(app, .historyBudgetRatio), until: .value("5"))
-		TutorialHarness.attach(test, name: "session-save-failed-\(appearance)", app: app)
+		TutorialHarness.attach(test, name: "session-save-failed-light", app: app)
 		cancel(app)
 		XCTAssertFalse(TutorialHarness.named(app, "session.saveFailed").exists)
 		assertShown(app, ratio: "30", window: "64000")
@@ -293,7 +264,7 @@ enum SessionSettingsScreen {
 		TutorialHarness.returnToChat(app)
 		reopenAfterRelaunch(app)
 		assertShown(app, ratio: "30", window: "64000")
-		TutorialHarness.attach(test, name: "session-save-failed-reopened-\(appearance)", app: app)
+		TutorialHarness.attach(test, name: "session-save-failed-reopened-light", app: app)
 		TutorialHarness.returnToChat(app)
 		assertConversation(app)
 	}
@@ -349,12 +320,8 @@ enum SessionSettingsScreen {
 		XCTAssertTrue(app.staticTexts[TutorialHarness.weekQuestion].exists)
 	}
 
-	private static func assertAppearance(_ app: XCUIApplication, dark: Bool) {
+	private static func assertAppearance(_ app: XCUIApplication) {
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark {
-			XCTAssertLessThan(luminance, 0.4, "the capture is not in dark appearance")
-		} else {
-			XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
-		}
+		XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
 	}
 }

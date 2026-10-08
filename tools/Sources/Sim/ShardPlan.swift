@@ -51,7 +51,7 @@ struct ClassResult: Equatable {
 }
 
 enum ShardPlan {
-	static func proofClasses(repo: String) throws -> [String] {
+	static func proofClasses(repo: String, ending suffix: String = "Proof") throws -> [String] {
 		let folder = NodePath.join(repo, "apps/ios/EnduragentUITests")
 		let patterns = JavaScriptPatterns()
 		var classes: [String] = []
@@ -62,7 +62,7 @@ enum ShardPlan {
 			let text = String(
 				decoding: try FileSystem.read(NodePath.join(folder, file)), as: UTF8.self)
 			classes += try patterns.matchAll(
-				#"\bfinal\s+class\s+(\w+Proof)\s*:\s*XCTestCase\b"#, text
+				#"\bfinal\s+class\s+(\w+"# + suffix + #")\s*:\s*XCTestCase\b"#, text
 			).map { $0.groups[1] }
 		}
 		return classes.sorted { $0.isOrdered(before: $1) }

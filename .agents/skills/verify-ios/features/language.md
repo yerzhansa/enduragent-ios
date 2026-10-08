@@ -54,7 +54,7 @@ Preconditions:
 | `sim test <run id> SavedLanguageFirstFrameProof` | Spanish chosen on an English phone remains Spanish through relaunch. `saved-spanish-first-frame-strings` lists observed strings; `m1-12-saved-spanish-first-frame` shows the screen. |
 | `sim test <run id> TutorialWaitProof` | The shared wait checks a satisfied condition immediately and samples a changing condition again within 0.5 seconds. This protects the snapshot sampling used by the saved-language first-frame proof. |
 | `sim test <run id> FrenchNoticesProof` | The exhausted-credits notice, Buy Credits action, and Send message label use the French catalog values, `notices-french`. |
-| `sim test <run id> ReviewLanguageProof ReviewLanguageDarkProof` | Saved pending review reopens with French labels and French regional decimals in compact steps. The copied label stays unchanged. Approval, relaunch, and a later English choice preserve the outcome in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, with light and dark suffixes. |
+| `sim test <run id> ReviewLanguageProof` | Saved pending review reopens with French labels and French regional decimals in compact steps. The copied label stays unchanged. Approval, relaunch, and a later English choice preserve the outcome in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, and end with `light`. |
 
 The existing Debug entry remains at `debug.language`. The unit's proofs cover the athlete's Settings row and command. The hosted `FixtureLaunchTests` language tests exercise both shell intents with store-preserving relaunch and the fixture append fault. `ShellLanguageTests.settingsLanguagePickerPreservesTheNavigationAndConversation` covers the Settings intent without changing the draft or conversation. No new fault hook is needed.
 
@@ -83,7 +83,7 @@ The shared `TutorialHarness.done` expectation now uses `6/16/1998` under its def
 
 ## The 17-language matrix
 
-Unit 9.5b proves the retained screens in every supported language. Each language has its own class, so one language failing leaves the other 16 results intact, and each flow is its own test method. The classes are `LanguageMatrixEnProof`, `LanguageMatrixEsProof`, `LanguageMatrixFrProof`, `LanguageMatrixItProof`, `LanguageMatrixDeProof`, `LanguageMatrixNlProof`, `LanguageMatrixDaProof`, `LanguageMatrixSvProof`, `LanguageMatrixNbProof`, `LanguageMatrixFiProof`, `LanguageMatrixPtPTProof`, `LanguageMatrixPtBRProof`, `LanguageMatrixPlProof`, `LanguageMatrixKoProof`, `LanguageMatrixJaProof`, `LanguageMatrixZhHansProof` and `LanguageMatrixZhHantProof`.
+Unit 9.5b proves the retained screens in every supported language. Each language has its own class, so one language failing leaves the other results intact, and each flow is its own test method. `sim suite` runs three languages: `LanguageMatrixDeProof` for German, `LanguageMatrixPtPTProof` for Portuguese of Portugal and `LanguageMatrixZhHantProof` for Traditional Chinese. The other 14 are release sweeps that `sim suite` runs only when they are named: `LanguageMatrixEnSweep`, `LanguageMatrixEsSweep`, `LanguageMatrixFrSweep`, `LanguageMatrixItSweep`, `LanguageMatrixNlSweep`, `LanguageMatrixDaSweep`, `LanguageMatrixSvSweep`, `LanguageMatrixNbSweep`, `LanguageMatrixFiSweep`, `LanguageMatrixPtBRSweep`, `LanguageMatrixPlSweep`, `LanguageMatrixKoSweep`, `LanguageMatrixJaSweep` and `LanguageMatrixZhHansSweep`.
 
 | Test method | Screens it captures, in order |
 | --- | --- |
@@ -99,10 +99,10 @@ Every flow except `testOnboarding` launches in English, finishes the fixture onb
 
 Each capture saves the screenshot `u9-5b-<tag>-<screen>` and the text attachment `u9-5b-<tag>-<screen>-strings`, which lists every string the sweep read. The sweep reads one accessibility snapshot of the app and fails on a catalog key shown as text, an unresolved `%#@name@` or `{{name}}` placeholder, and English catalog copy on a non-English screen. It compares with the bundled `Phrasebook.json`: English copy counts as a fallback only where that language's catalog has different words for the same key. The failure message names each offending string. The sweep leaves out the scripted coach reply (`reply.*`), the messages the proof typed, language endonyms, fixture names, Debug rows, the keyboard and unidentified navigation-bar buttons such as the system Back button.
 
-Run the whole matrix on two simulators:
+Run the 14 release sweeps on two simulators for a release screenshot pass. Add the three suite classes to the same command for all 17 languages:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-5b/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-5b-sim --shards 2 LanguageMatrixEnProof LanguageMatrixEsProof LanguageMatrixFrProof LanguageMatrixItProof LanguageMatrixDeProof LanguageMatrixNlProof LanguageMatrixDaProof LanguageMatrixSvProof LanguageMatrixNbProof LanguageMatrixFiProof LanguageMatrixPtPTProof LanguageMatrixPtBRProof LanguageMatrixPlProof LanguageMatrixKoProof LanguageMatrixJaProof LanguageMatrixZhHansProof LanguageMatrixZhHantProof
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-5b/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-5b-sim --shards 2 LanguageMatrixEnSweep LanguageMatrixEsSweep LanguageMatrixFrSweep LanguageMatrixItSweep LanguageMatrixNlSweep LanguageMatrixDaSweep LanguageMatrixSvSweep LanguageMatrixNbSweep LanguageMatrixFiSweep LanguageMatrixPtBRSweep LanguageMatrixPlSweep LanguageMatrixKoSweep LanguageMatrixJaSweep LanguageMatrixZhHansSweep
 ```
 
 To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. Pass `--timings <suite folder>/timings.json` from the earlier run to balance the two simulators. To repeat one flow of one language, use a single simulator:
@@ -110,8 +110,6 @@ To resume, read `summary.md` in the suite folder and run the same command with o
 ```sh
 swift run --quiet --package-path tools sim create language-matrix
 swift run --quiet --package-path tools sim install <run id> --build-folder /tmp/enduragent-dd/U9-5b-sim
-swift run --quiet --package-path tools sim test <run id> LanguageMatrixJaProof/testSettings --build-folder /tmp/enduragent-dd/U9-5b-sim
+swift run --quiet --package-path tools sim test <run id> LanguageMatrixJaSweep/testSettings --build-folder /tmp/enduragent-dd/U9-5b-sim
 swift run --quiet --package-path tools sim cleanup <run id>
 ```
-
-The matrix has no dark classes. Appearance is not part of this proof.

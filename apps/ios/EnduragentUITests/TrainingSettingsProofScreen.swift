@@ -7,16 +7,16 @@ enum TrainingSettingsProofScreen {
 		"The replacement wasn't saved. Your previous connection is unchanged. Try again."
 	static let missing = "intervals.icu is not connected. Connect to add workouts to your calendar."
 
-	static func connectLater(_ test: XCTestCase, dark: Bool) {
+	static func connectLater(_ test: XCTestCase) {
 		let app = launch(connected: false)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), "unconnected")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.openCredentials(app)
-		capture(test, app, name: "connect-later-before", dark: dark)
+		capture(test, app, name: "connect-later-before")
 		replace(app, with: "fixture")
 		assertAda(app)
-		capture(test, app, name: "connect-later-saved", dark: dark)
+		capture(test, app, name: "connect-later-saved")
 		let account = TutorialHarness.connectedAccount(app)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
@@ -34,11 +34,11 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.openHistory(app)
 		TutorialHarness.waitForLabel(app, "No past conversations yet.")
-		capture(test, app, name: "connect-later-history", dark: dark)
+		capture(test, app, name: "connect-later-history")
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func transaction(_ test: XCTestCase, dark: Bool) {
+	static func transaction(_ test: XCTestCase) {
 		let app = launch()
 		TutorialHarness.openCredentials(app)
 		assertAda(app)
@@ -48,7 +48,7 @@ enum TrainingSettingsProofScreen {
 		assertEmptyKey(app)
 		TutorialHarness.named(app, "training.save").tap()
 		TutorialHarness.waitForIdentifier(app, "training.saved", reading: blank)
-		capture(test, app, name: "replacement-blank", dark: dark)
+		capture(test, app, name: "replacement-blank")
 		TutorialHarness.type(app, "abandoned-key", into: "training.apiKey")
 		TutorialHarness.named(app, "training.cancel").tap()
 		TutorialHarness.wait(TutorialHarness.named(app, "training.edit"))
@@ -59,11 +59,11 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
-		capture(test, app, name: "replacement-cancel-records", dark: dark)
+		capture(test, app, name: "replacement-cancel-records")
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func failedWrite(_ test: XCTestCase, dark: Bool) {
+	static func failedWrite(_ test: XCTestCase) {
 		let app = launch()
 		TutorialHarness.openCredentials(app)
 		let account = TutorialHarness.connectedAccount(app)
@@ -73,15 +73,15 @@ enum TrainingSettingsProofScreen {
 		replace(app, with: "fixture-rotated", saved: false)
 		TutorialHarness.waitForIdentifier(app, "training.saved", reading: notSaved)
 		assertAda(app)
-		capture(test, app, name: "replacement-not-saved", dark: dark)
+		capture(test, app, name: "replacement-not-saved")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), account)
-		capture(test, app, name: "replacement-not-saved-records", dark: dark)
+		capture(test, app, name: "replacement-not-saved-records")
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func rotation(_ test: XCTestCase, dark: Bool) {
+	static func rotation(_ test: XCTestCase) {
 		let app = launch()
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"))
@@ -89,7 +89,7 @@ enum TrainingSettingsProofScreen {
 		let before = TutorialHarness.connectedAccount(app)
 		replace(app, with: "fixture-rotated")
 		assertAda(app)
-		capture(test, app, name: "same-athlete-saved", dark: dark)
+		capture(test, app, name: "same-athlete-saved")
 		let after = TutorialHarness.connectedAccount(app)
 		XCTAssertNotEqual(after, before)
 		XCTAssertTrue(after.hasSuffix(":i1001"))
@@ -101,10 +101,10 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.wait(add, until: .enabled)
 		add.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.done)
-		capture(test, app, name: "same-athlete-added", dark: dark)
+		capture(test, app, name: "same-athlete-added")
 	}
 
-	static func differentAthlete(_ test: XCTestCase, dark: Bool) {
+	static func differentAthlete(_ test: XCTestCase) {
 		let app = launch()
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.preview.add"), until: .enabled)
@@ -114,7 +114,7 @@ enum TrainingSettingsProofScreen {
 		let alert = app.alerts.firstMatch
 		TutorialHarness.wait(alert)
 		XCTAssertTrue(alert.staticTexts["Use another athlete?"].exists)
-		capture(test, app, name: "different-athlete-confirmation", dark: dark)
+		capture(test, app, name: "different-athlete-confirmation")
 		alert.buttons["Cancel"].tap()
 		TutorialHarness.wait(alert, until: .absent)
 		XCTAssertEqual(TutorialHarness.connectedAccount(app), before)
@@ -124,7 +124,7 @@ enum TrainingSettingsProofScreen {
 		alert.buttons["Switch athlete"].tap()
 		TutorialHarness.waitForIdentifier(app, "training.athlete", reading: "Bo Lind")
 		TutorialHarness.waitForIdentifier(app, "training.saved", reading: "Saved")
-		capture(test, app, name: "different-athlete-saved", dark: dark)
+		capture(test, app, name: "different-athlete-saved")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.waitForIdentifier(
 			app, "chat.preview.notice",
@@ -133,10 +133,10 @@ enum TrainingSettingsProofScreen {
 		)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.add").exists)
 		XCTAssertFalse(TutorialHarness.named(app, "chat.preview.cancel").exists)
-		capture(test, app, name: "different-athlete-old-review", dark: dark)
+		capture(test, app, name: "different-athlete-old-review")
 	}
 
-	static func disconnect(_ test: XCTestCase, dark: Bool) {
+	static func disconnect(_ test: XCTestCase) {
 		let app = launch()
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		TutorialHarness.startNewConversation(app)
@@ -145,7 +145,7 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.named(app, "training.disconnect").tap()
 		let alert = app.alerts.firstMatch
 		TutorialHarness.wait(alert)
-		capture(test, app, name: "disconnect-confirmation", dark: dark)
+		capture(test, app, name: "disconnect-confirmation")
 		alert.buttons["Cancel"].tap()
 		TutorialHarness.wait(alert, until: .absent)
 		assertAda(app)
@@ -155,7 +155,7 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.waitForIdentifier(app, "training.notice", reading: missing)
 		TutorialHarness.wait(TutorialHarness.named(app, "training.edit"))
 		XCTAssertFalse(TutorialHarness.named(app, "training.athlete").exists)
-		capture(test, app, name: "disconnected-connect-offered", dark: dark)
+		capture(test, app, name: "disconnected-connect-offered")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.waitForLabel(app, TutorialHarness.rememberReply)
 		TutorialHarness.openHistory(app)
@@ -163,15 +163,15 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.wait(row, until: .hittable)
 		row.tap()
 		TutorialHarness.waitForLabel(app, TutorialHarness.weekQuestion)
-		capture(test, app, name: "disconnected-history", dark: dark)
+		capture(test, app, name: "disconnected-history")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, TutorialHarness.weekQuestion)
 		XCTAssertEqual(TutorialHarness.lastClaimAccount(app), "unconnected")
-		capture(test, app, name: "disconnected-next-turn", dark: dark)
+		capture(test, app, name: "disconnected-next-turn")
 		TutorialHarness.returnToChat(app)
 	}
 
-	static func unconnectedCalendar(_ test: XCTestCase, dark: Bool) {
+	static func unconnectedCalendar(_ test: XCTestCase) {
 		let app = launch(connected: false)
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		let add = TutorialHarness.named(app, "chat.preview.add")
@@ -181,10 +181,10 @@ enum TrainingSettingsProofScreen {
 		let connect = TutorialHarness.named(app, "chat.review.connect")
 		TutorialHarness.wait(connect, until: .hittable)
 		XCTAssertEqual(connect.label, "Connect")
-		capture(test, app, name: "unconnected-calendar-notice", dark: dark)
+		capture(test, app, name: "unconnected-calendar-notice")
 		connect.tap()
 		assertEmptyKey(app)
-		capture(test, app, name: "unconnected-calendar-connect", dark: dark)
+		capture(test, app, name: "unconnected-calendar-connect")
 		TutorialHarness.named(app, "training.cancel").tap()
 		TutorialHarness.returnToChat(app, maximumBackSteps: 1)
 		XCTAssertEqual(TutorialHarness.named(app, "chat.review.notice").label, missing)
@@ -224,11 +224,9 @@ enum TrainingSettingsProofScreen {
 		TutorialHarness.waitForIdentifier(app, "training.form", reading: "Form -7")
 	}
 
-	private static func capture(
-		_ test: XCTestCase, _ app: XCUIApplication, name: String, dark: Bool
-	) {
+	private static func capture(_ test: XCTestCase, _ app: XCUIApplication, name: String) {
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark { XCTAssertLessThan(luminance, 0.4) } else { XCTAssertGreaterThan(luminance, 0.4) }
-		TutorialHarness.attach(test, name: "\(name)-\(dark ? "dark" : "light")", app: app)
+		XCTAssertGreaterThan(luminance, 0.4)
+		TutorialHarness.attach(test, name: "\(name)-light", app: app)
 	}
 }

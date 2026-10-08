@@ -4,14 +4,7 @@ import XCTest
 @MainActor
 final class AthleteOwnershipProof: XCTestCase {
 	func testOwnershipBeforeChangeAfterChangeAndRelaunch() {
-		AthleteOwnershipScreen.prove(self, dark: false)
-	}
-}
-
-@MainActor
-final class AthleteOwnershipDarkProof: XCTestCase {
-	func testOwnershipBeforeChangeAfterChangeAndRelaunch() {
-		AthleteOwnershipScreen.prove(self, dark: true)
+		AthleteOwnershipScreen.prove(self)
 	}
 }
 
@@ -21,7 +14,7 @@ private enum AthleteOwnershipScreen {
 	static let reviewNotice =
 		"This workout was prepared for a different intervals.icu athlete. Ask me again to prepare it for the connected athlete."
 
-	static func prove(_ test: XCTestCase, dark: Bool) {
+	static func prove(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -36,17 +29,17 @@ private enum AthleteOwnershipScreen {
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		ReviewRecoveryScreen.assertButtons(app, .approval, enabled: true)
 		assertExcludedCopy(in: TutorialHarness.named(app, "chat.transcript"))
-		capture(test, app, stage: "before-change-conversation-review", dark: dark)
-		assertHistory(test, app, changed: false, stage: "before-change", dark: dark)
+		capture(test, app, stage: "before-change-conversation-review")
+		assertHistory(test, app, changed: false, stage: "before-change")
 		TutorialHarness.fixtureControl(app, "fixture.switchAthlete")
 		TutorialHarness.exchange(app, "Read the connected athlete's week")
 		assertBlockedReview(app)
-		capture(test, app, stage: "after-change-conversation-review", dark: dark)
-		assertHistory(test, app, changed: true, stage: "after-change", dark: dark)
+		capture(test, app, stage: "after-change-conversation-review")
+		assertHistory(test, app, changed: true, stage: "after-change")
 		TutorialHarness.relaunchKeepingStore(app)
 		assertBlockedReview(app)
-		capture(test, app, stage: "relaunched-conversation-review", dark: dark)
-		assertHistory(test, app, changed: true, stage: "relaunched", dark: dark)
+		capture(test, app, stage: "relaunched-conversation-review")
+		assertHistory(test, app, changed: true, stage: "relaunched")
 	}
 
 	private static func assertBlockedReview(_ app: XCUIApplication) {
@@ -64,7 +57,7 @@ private enum AthleteOwnershipScreen {
 	}
 
 	private static func assertHistory(
-		_ test: XCTestCase, _ app: XCUIApplication, changed: Bool, stage: String, dark: Bool
+		_ test: XCTestCase, _ app: XCUIApplication, changed: Bool, stage: String
 	) {
 		TutorialHarness.openHistory(app)
 		let history = TutorialHarness.named(app, "history.content")
@@ -92,7 +85,7 @@ private enum AthleteOwnershipScreen {
 				NSPredicate(format: "identifier BEGINSWITH %@", "history.athlete.")
 			).firstMatch.exists)
 		assertExcludedCopy(in: history)
-		capture(test, app, stage: "\(stage)-history", dark: dark)
+		capture(test, app, stage: "\(stage)-history")
 		unknown.tap()
 		let archive = TutorialHarness.named(app, "archive.content")
 		TutorialHarness.wait(archive)
@@ -102,7 +95,7 @@ private enum AthleteOwnershipScreen {
 			archive.staticTexts.containing(
 				NSPredicate(format: "label CONTAINS %@", "Saved for another")
 			).firstMatch.exists)
-		capture(test, app, stage: "\(stage)-unverified-archive", dark: dark)
+		capture(test, app, stage: "\(stage)-unverified-archive")
 		TutorialHarness.returnToChat(app)
 	}
 
@@ -118,12 +111,9 @@ private enum AthleteOwnershipScreen {
 		}
 	}
 
-	private static func capture(
-		_ test: XCTestCase, _ app: XCUIApplication, stage: String, dark: Bool
-	) {
-		let theme = dark ? "dark" : "light"
-		TutorialHarness.attach(test, name: "u5-3-\(stage)-\(theme)", app: app)
+	private static func capture(_ test: XCTestCase, _ app: XCUIApplication, stage: String) {
+		TutorialHarness.attach(test, name: "u5-3-\(stage)-light", app: app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark { XCTAssertLessThan(luminance, 0.4) } else { XCTAssertGreaterThan(luminance, 0.4) }
+		XCTAssertGreaterThan(luminance, 0.4)
 	}
 }
