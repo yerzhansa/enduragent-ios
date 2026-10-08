@@ -23,6 +23,8 @@ extension TurnAccessTests {
 		try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
 		let fixture = try ICloudKeychainStore.fixture(directory: directory)
 		try installOpenRouter(fixture.store)
+		let original = try fixture.store.creditsAccount()
+		let selection = try fixture.store.accessSelection()
 		transport.respond = { _ in ScriptedReply([.fail(.http(status: 401))]) }
 		let coach = await recoveryCoach(fixture.store)
 		let turn = try #require(
@@ -48,9 +50,16 @@ extension TurnAccessTests {
 		#expect(
 			failure(try await next.sendAndSettle("After reopening"))
 				== .model(.accessUnavailable(.openRouterKeyRejected)))
+		try await next.retry(turn, in: .main)
+		#expect(
+			failure(try #require(await next.settledState(of: turn, in: .main)))
+				== .model(.accessUnavailable(.openRouterKeyRejected)))
 		try await assertRecoverySentence(next)
 		_ = await next.resetAndSettle(in: .main)
 		#expect(transport.requestCount == 1)
+		#expect(try reopened.creditsAccount() == original)
+		#expect(try reopened.openRouterAccountKey(at: .legacy) == rejectedKey)
+		#expect(try reopened.accessSelection() == selection)
 		let markers = try await store.fetch(
 			RecordQuery(scope: .deviceLocal([.openRouterKeyRejected])))
 		#expect(markers.records.count == 1)

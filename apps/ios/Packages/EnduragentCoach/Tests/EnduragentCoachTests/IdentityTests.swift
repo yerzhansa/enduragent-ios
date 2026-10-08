@@ -161,7 +161,6 @@ struct LedgerDigestRow: Codable, Equatable {
 	var date: String
 	var kind: String
 	var text: String
-	var digestInput: String
 	var digest: String
 	var estimateTokens: Int
 }

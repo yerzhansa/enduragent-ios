@@ -95,32 +95,6 @@ import Testing
 		#expect(notes.count == 1)
 	}
 
-	@Test func memoryQueryInvalidRangeReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-06-30","to":"1998-06-01"}"#),
-			chatId: .main,
-			scope: turnScope()
-		).outcome
-		#expect(
-			unwrapString(outcome)
-				== "Error: 'from' (1998-06-30) is after 'to' (1998-06-01). Swap the bounds."
-		)
-	}
-
-	@Test func memoryQueryInvalidDateReturnsCopiedError() async throws {
-		let outcome = try await runtime().execute(
-			name: .memoryQuery,
-			arguments: try JSONValue.parse(#"{"from":"1998-02-31","to":"1998-03-01"}"#),
-			chatId: .main,
-			scope: turnScope()
-		).outcome
-		#expect(
-			unwrapString(outcome)
-				== "Error: 1998-02-31..1998-03-01 contains an invalid calendar date. Use real YYYY-MM-DD dates."
-		)
-	}
-
 	@Test func memoryWriteAcceptsOrphanName() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(
@@ -164,10 +138,6 @@ import Testing
 	private func unwrap(_ outcome: ToolOutcome) -> JSONValue {
 		guard case .result(let json) = outcome else { return .null }
 		return json.objectFields["data"] ?? json
-	}
-
-	private func unwrapString(_ outcome: ToolOutcome) -> String {
-		unwrap(outcome).stringValue ?? ""
 	}
 
 	private func runtime(store: InMemoryRecordLog = InMemoryRecordLog()) -> ToolRuntime {

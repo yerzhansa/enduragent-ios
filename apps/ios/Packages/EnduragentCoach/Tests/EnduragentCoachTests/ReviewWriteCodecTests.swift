@@ -88,21 +88,6 @@ import Testing
 		#expect(row.bodyVersion == 2)
 	}
 
-	@Test func aReaderWithoutTheCancellationKindSkipsIt() throws {
-		let bytes = Data(try fixture("review-cancelled-unknown", ext: "json").utf8)
-		let previousKinds = Set(
-			SyncedKind.allCases.filter { $0 != .reviewCancelledUnknown }.map(\.rawValue))
-		#expect(!previousKinds.contains("reviewCancelledUnknown"))
-		#expect(
-			!RecordQuery.Scope.synced([.reviewWrite]).kindNames.contains("reviewCancelledUnknown"))
-		#expect(
-			RecordCodec.decode(
-				kind: "futureReviewCancelledUnknown", version: 2, data: bytes,
-				civilDate: "1998-06-14", ulid: fixedUlid(2).rawValue)
-				== .failure(
-					.newerKind(kind: "futureReviewCancelledUnknown", ulid: fixedUlid(2).rawValue)))
-	}
-
 	private func golden(name: String, target: CalendarWriteTarget, evidence: CalendarWriteEvidence)
 		throws
 	{

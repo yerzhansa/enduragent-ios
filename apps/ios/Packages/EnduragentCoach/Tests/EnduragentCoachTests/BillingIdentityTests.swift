@@ -125,53 +125,6 @@ extension CreditsClientTests {
 					.settlement() == settlement)
 		}
 
-		@Test func rejectedOpenRouterNeverUsesCreditsOnLaterAttempts() async throws {
-			let directory = try TestTemporaryFolders.make()
-			let original: CreditsAccount
-			let saved: ChatSnapshot
-			do {
-				let secrets = try identities(directory, method: .openRouterAccount)
-				original = try #require(try secrets.creditsAccount())
-				let transport = FakeModelTransport(respond: { _ in
-					ScriptedReply([.fail(.http(status: 401))])
-				})
-				let coach = try await coach(directory, secrets: secrets, transport: transport)
-				let turn = try #require(
-					try await coach.send(draft("Plan a ride"), to: .main).acceptedTurn)
-				let rejected = try #require(await coach.settledState(of: turn, in: .main))
-				#expect(failure(rejected) == .model(.credentialRejected(.openRouterAccount)))
-				#expect((turnNotice(of: rejected)?.actions ?? []).isEmpty)
-				#expect(
-					try await coach.observedStatus().access.notice?.actions == [.signInToOpenRouter]
-				)
-				try await coach.retry(turn, in: .main)
-				#expect(
-					failure(try #require(await coach.settledState(of: turn, in: .main)))
-						== .model(.accessUnavailable(.openRouterKeyRejected)))
-				#expect(
-					failure(try await coach.sendAndSettle("Try another ride"))
-						== .model(.accessUnavailable(.openRouterKeyRejected)))
-				try #require(transport.requestCount == 1)
-				try assertRequests(transport, method: .openRouterAccount)
-				saved = try await snapshot(coach)
-				await coach.lifecycle(.willTerminate)
-			}
-			let secrets = try ICloudKeychainStore.fixture(directory: directory).store
-			let transport = FakeModelTransport(respond: { _ in
-				ScriptedReply([.fail(.http(status: 401))])
-			})
-			let reopened = try await coach(directory, secrets: secrets, transport: transport)
-			#expect(try await snapshot(reopened).turns == saved.turns)
-			#expect(
-				failure(try await reopened.sendAndSettle("Try after reopening"))
-					== .model(.accessUnavailable(.openRouterKeyRejected)))
-			#expect(transport.requestCount == 0)
-			#expect(try secrets.creditsAccount() == original)
-			#expect(try secrets.openRouterAccountKey(at: .legacy) == accountKey)
-			#expect(try secrets.accessSelection() == accountSelection)
-			#expect(try await reopened.observedStatus().access.model == accountModel)
-		}
-
 		@Test(arguments: ["grant", "claim", "recover"], ["success", "unavailable", "persistence"])
 		func creditsOperationsKeepOpenRouterAndReportFailures(operation: String, fault: String)
 			async throws

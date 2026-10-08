@@ -108,7 +108,9 @@ import Testing
 				}
 			}
 		} else {
-			_ = await coach.decide(try read.decision(ready), in: .main)
+			let decision = try read.decision(ready)
+			let outcome = await coach.decide(decision, in: .main)
+			if decision != .presented(ready.ref) { #expect(outcome == .storageUnavailable) }
 		}
 		#expect(faults.failedFetchCount == 1)
 		let failed = try #require(await coach.currentSnapshot(.main)?.review)
@@ -127,6 +129,7 @@ import Testing
 				$0.sentence(in: displayLocale())
 			}
 		#expect(lines.filter { $0 == sentence }.count == 1)
+		#expect(!lines.contains(LanguageTag.en.phrasebook.say(Catalog.coachErrorUnknown)))
 		#expect(server.state.withLock { $0.requests.count } == calls)
 		if case .storageUnavailable = failed.state {
 			try await waitUntil { observed.latest?.review == failed }

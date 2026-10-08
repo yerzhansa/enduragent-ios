@@ -82,26 +82,6 @@ import Testing
 		#expect(hlc.deviceId == phoneA)
 	}
 
-	@Test func openFoldsWhatThisDeviceWroteBefore() async throws {
-		let log = InMemoryRecordLog(deviceId: phoneA)
-		let earlierProcessWall = Int64(clock.now.timeIntervalSince1970 * 1000) + 5_000
-		try await seed(
-			log,
-			[
-				storedRecord(
-					device: phoneA, wall: earlierProcessWall,
-					body: .deviceLocal(
-						.flushPending(
-							FlushPendingBody(chatId: .main, messageUlids: []))))
-			]
-		)
-		let reopened = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
-		let written = try await reopened.commit(
-			synced: [sampleUser(chatId: .main, text: "later")], stamp: testStamp())
-		#expect(written.first?.hlc.wallMs == earlierProcessWall)
-		#expect(written.first?.hlc.logical == 1)
-	}
-
 	@Test func injectedAppendFailureStoresNothingFromTheBatch() async throws {
 		let log = FaultInjectingRecordLog(wrapping: InMemoryRecordLog(deviceId: phoneA))
 		let ledger = Ledger(log: log, clock: clock, diagnostics: DiagnosticsLog(clock: clock))

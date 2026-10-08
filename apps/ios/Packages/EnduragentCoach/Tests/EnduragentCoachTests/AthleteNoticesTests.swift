@@ -59,8 +59,10 @@ struct NoticeRow: Sendable, CustomTestStringConvertible {
 			"Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.",
 			[.chooseAccessMethod], ["Choose access method"]),
 		rateLimited(.seconds(1), "Rate limited — please try again in ~1 seconds."),
+		rateLimited(.milliseconds(6_200), "Rate limited — please try again in ~7 seconds."),
 		rateLimited(.seconds(7), "Rate limited — please try again in ~7 seconds."),
 		rateLimited(.seconds(60), "Rate limited — please try again in ~1 minute."),
+		rateLimited(.seconds(61), "Rate limited — please try again in ~2 minutes."),
 		rateLimited(.seconds(90), "Rate limited — please try again in ~2 minutes."),
 		rateLimited(nil, "Rate limited — please try again in about a minute."),
 		rateLimited(.zero, "Rate limited — please try again in about a minute."),
@@ -273,24 +275,6 @@ private let npmsUnknownThree: Set = ["contextOverflow", "invalidRequest", "budge
 			#expect(refused.key == Catalog.chatTurnInterruptedNothingChanged)
 			#expect(refused.actions.isEmpty)
 		}
-	}
-
-	@Test func rateLimitPicksSecondsMinutesOrDefault() {
-		let seconds = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .milliseconds(6_200))), turn: turn,
-			waiting: false)
-		#expect(seconds.key == Catalog.coachErrorRateLimitSeconds)
-		#expect(seconds.count == 7)
-		#expect(seconds.vars == ["seconds": .integer(7)])
-		let minutes = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: .seconds(61))), turn: turn, waiting: false)
-		#expect(minutes.key == Catalog.coachErrorRateLimitMinutes)
-		#expect(minutes.count == 2)
-		#expect(minutes.vars == ["minutes": .integer(2)])
-		let fallback = AthleteNotices.notice(
-			for: .model(.rateLimited(retryAfter: nil)), turn: turn, waiting: false)
-		#expect(fallback.key == Catalog.coachErrorRateLimitDefault)
-		#expect(fallback.vars.isEmpty)
 	}
 
 	@Test func aRateLimitOffersTryAgainOnlyOnceItsWaitHasEnded() throws {

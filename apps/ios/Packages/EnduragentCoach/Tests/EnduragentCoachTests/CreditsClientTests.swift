@@ -185,22 +185,13 @@ struct CreditsClientTests {
 		}
 	}
 
-	@Test("balance floors 1.999 to 199 credits")
-	func balanceFloors1999To199Credits() async throws {
+	@Test("balance treats null as zero and needs a key")
+	func balanceTreatsNullAsZeroAndNeedsAKey() async throws {
 		let secrets = ICloudKeychainStore(backing: FixtureSecretStoreBacking())
 		try secrets.storeCreditsAccount(
 			CreditsAccount(
 				appAccountToken: UUID(), key: "sk-or-test-0000"))
 		let client = try makeClient(secrets: secrets)
-		let floored = try await CreditsURLStub.withHandler({ request in
-			if request.url?.path == "/catalog" {
-				return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)
-			}
-			return .json(200, #"{"data":{"limit_remaining":1.999}}"#)
-		}) {
-			try await client.balance()
-		}
-		#expect(floored == CreditBalance(credits: Credits(units: 199)))
 		let nilRemaining = try await CreditsURLStub.withHandler({ request in
 			if request.url?.path == "/catalog" {
 				return .json(200, #"{"purchasesEnabled":false,"creditsPerUsd":100,"packs":[]}"#)

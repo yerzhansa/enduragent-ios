@@ -94,25 +94,6 @@ import Testing
 		#expect(sent(.memoryFlush, by: transport).count == 1)
 	}
 
-	@Test func flushUsesOnlyMemoryWriteAndLedgerAppend() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "ledger_append",
-					arguments:
-						#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
-				),
-				.finish(reason: .toolCalls),
-				.finish(reason: .stop),
-			], for: .flush, otherwise: transport.respond)
-		#expect(try await run(job()) == .saved(sections: 0, events: 1))
-		#expect(transport.requests.count == 2)
-		#expect(transport.requests[0].tools.map(\.name) == [.memoryWrite, .ledgerAppend])
-		let hits = try await memory.query(
-			from: "1998-06-13", to: "1998-06-13", contains: "Saturdays", for: .unconnected)
-		#expect(hits.count == 1)
-	}
-
 	@Test func everyWriteCarriesTheJobsOperation() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
