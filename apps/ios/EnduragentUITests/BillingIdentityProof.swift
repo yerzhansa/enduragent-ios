@@ -145,7 +145,6 @@ final class BillingIdentityProof: XCTestCase {
 	}
 
 	private func capture(_ app: XCUIApplication, _ result: String) {
-		let appearance = TutorialHarness.meanLuminance(app.screenshot()) < 0.4 ? "dark" : "light"
-		TutorialHarness.attach(self, name: "billing-identity-\(result)-\(appearance)", app: app)
+		TutorialHarness.attach(self, name: "billing-identity-\(result)", app: app)
 	}
 }

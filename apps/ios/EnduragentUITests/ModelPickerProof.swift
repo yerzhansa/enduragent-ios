@@ -257,7 +257,6 @@ final class ModelPickerProof: XCTestCase {
 	}
 
 	private func capture(_ app: XCUIApplication, _ scenario: String) {
-		let appearance = TutorialHarness.meanLuminance(app.screenshot()) < 0.4 ? "dark" : "light"
-		TutorialHarness.attach(self, name: "model-picker-\(scenario)-\(appearance)", app: app)
+		TutorialHarness.attach(self, name: "model-picker-\(scenario)", app: app)
 	}
 }
