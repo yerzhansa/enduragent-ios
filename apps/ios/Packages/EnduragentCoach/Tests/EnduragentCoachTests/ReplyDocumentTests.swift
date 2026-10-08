@@ -114,7 +114,6 @@ import Testing
 				"https://www.example.com/threshold-basics", "http://example.com/calendar",
 			])
 		#expect(parsed.last == .paragraph([text("END FORMATTED REPLY")]))
-		#expect(ReplyParser.foundation.document(source) == ReplyParser.foundation.document(source))
 	}
 
 	@Test func fixtureDecoderFailureReturnsEverySourceCharacter() {

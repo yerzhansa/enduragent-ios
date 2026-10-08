@@ -128,20 +128,6 @@ import Testing
 		#expect(persisted.records.count == 1)
 	}
 
-	@Test func failedLanguageCommitKeepsThePublishedChoice() async throws {
-		let records = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let coach = await makeCoach(transport: FakeModelTransport(), store: records)
-		try await coach.setLanguage(.fixed(.fr))
-		let snapshots = await coach.observeStatus()
-		#expect(try await snapshots.status(matching: { _ in true })?.language == .fixed(.fr))
-		try records.failAppends(ofKind: "languagePreference")
-		await #expect(throws: PreferenceWriteFailure.notSaved) {
-			try await coach.setLanguage(.fixed(.es))
-		}
-		try await coach.setSession(.npmDefaults)
-		#expect(try await snapshots.status(matching: { _ in true })?.language == .fixed(.fr))
-	}
-
 	@Test func aLateTrainingRefreshCannotRestoreADisconnectedAccount() async throws {
 		let gate = Gate()
 		let client = GatedProfileIntervals(

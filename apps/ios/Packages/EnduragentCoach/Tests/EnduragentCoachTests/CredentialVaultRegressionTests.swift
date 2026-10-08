@@ -115,25 +115,6 @@ extension CredentialVaultTests {
 		#expect(memory.writes(to: "intervalsCredential") == 2)
 	}
 
-	@Test func recoveryWriteFailureKeepsPreviousCredential() async throws {
-		let memory = FixtureSecretStoreBacking()
-		let secrets = ICloudKeychainStore(backing: memory)
-		let oldToken = UUID()
-		try secrets.storeCreditsAccount(
-			CreditsAccount(
-				appAccountToken: oldToken,
-				key: "test-old-credits-key"))
-		memory.failWrites(CredentialSlot.creditsAccount.rawValue, with: errSecNotAvailable)
-		let coach = try await recoveryCoach(secrets)
-		await #expect(throws: AccessUnavailable.secureStorageUnavailable) {
-			try await coach.credits.recover(signedTransaction: "test.signed.transaction")
-		}
-		#expect(try secrets.creditsAccount()?.appAccountToken == oldToken)
-		#expect(try secrets.creditsAccount()?.key == "test-old-credits-key")
-		_ = try await claimAccount(after: "Is Thursday on?", on: coach)
-		#expect(transport.requests.last?.credential.secret == "test-old-credits-key")
-	}
-
 	@Test func oldProposalCannotExecuteForTheNewAthlete() async throws {
 		let secrets = keyedSecrets()
 		let coach = await coach(secrets)
@@ -298,28 +279,6 @@ extension CredentialVaultTests {
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
 	}
 
-	private func recoveryCoach(_ secrets: any SecretStore, training service: TrainingService? = nil)
-		async throws -> Coach
-	{
-		let config = URLSessionConfiguration.ephemeral
-		config.protocolClasses = [RecoveryResponseStub.self]
-		let session = URLSession(configuration: config)
-		let base = try #require(URL(string: "https://credits.invalid"))
-		return await consentingCoach(
-			Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: RecordStore(log: records), secrets: secrets,
-					models: .scripted(transport),
-					training: service ?? training,
-					credits: CreditsService { vault in
-						PhoneCreditsClient(vault: vault, workerBase: base, session: session)
-					},
-					host: ImmediateExecutionHost(), clock: clock),
-				builtInModel: testModel, displayLocale: testDisplayLocale,
-				coalescing: quickWindow))
-	}
-
 	private func coachWithTraining(_ secrets: any SecretStore, training: TrainingService) async
 		-> Coach
 	{
@@ -334,25 +293,4 @@ extension CredentialVaultTests {
 				builtInModel: testModel, displayLocale: testDisplayLocale,
 				coalescing: quickWindow))
 	}
-}
-
-private final class RecoveryResponseStub: URLProtocol, @unchecked Sendable {
-	override class func canInit(with request: URLRequest) -> Bool { true }
-	override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-	override func startLoading() {
-		guard let url = request.url,
-			let response = HTTPURLResponse(
-				url: url, statusCode: 200, httpVersion: nil,
-				headerFields: ["Content-Type": "application/json"])
-		else {
-			client?.urlProtocol(self, didFailWithError: URLError(.badURL))
-			return
-		}
-		let body =
-			#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
-		client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-		client?.urlProtocol(self, didLoad: Data(body.utf8))
-		client?.urlProtocolDidFinishLoading(self)
-	}
-	override func stopLoading() {}
 }

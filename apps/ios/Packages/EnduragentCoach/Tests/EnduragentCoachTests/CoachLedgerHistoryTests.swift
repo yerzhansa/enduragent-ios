@@ -89,8 +89,14 @@ extension SwiftDataSuites {
 				try await append([original], using: before, transport: transport)
 					== [.object(["duplicate": .bool(true), "recorded": .bool(false)])])
 			#expect(try await store.fetch(recordQuery).records == saved)
+			for date in ["next Tuesday", "2026-02-30"] {
+				let refused = event("decision", on: date, text: "This date must be refused.")
+				#expect(
+					try await append([refused], using: before, transport: transport)
+						== [.string("Error: \(date) is not a real calendar date. Use YYYY-MM-DD.")])
+				#expect(try await store.fetch(recordQuery).records == saved)
+			}
 			let invalid = [
-				event("decision", on: "next Tuesday", text: "This date must be refused."),
 				event("workout", on: "1998-06-02", text: "This kind must be refused."),
 				event("decision", on: "1998-06-03", text: ""),
 			]
@@ -110,43 +116,6 @@ extension SwiftDataSuites {
 			#expect(try await reopened.fetch(recordQuery).records == saved)
 			let history = try await query(
 				from: "1998-06-01", to: "1998-06-13", using: after, transport: relaunchedTransport)
-			#expect(try historyEvents(history) == [recorded(original, source: .chat)])
-		}
-
-		@Test func impossibleCalendarDateReturnsErrorAndLeavesHistoryUnchangedAfterRelaunch()
-			async throws
-		{
-			let directory = try TestTemporaryFolders.make()
-			let store = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let transport = FakeModelTransport()
-			let before = await makeCoach(transport: transport, store: store, clock: clock)
-			let original = event("decision", on: "2026-02-28", text: "Keep Saturday free.")
-			#expect(
-				try await append([original], using: before, transport: transport)
-					== [.object(["recorded": .bool(true)])])
-			let recordQuery = RecordQuery(scope: .synced([.ledgerEvent, .provenance]))
-			let saved = try await store.fetch(recordQuery).records
-			#expect(saved.filter { $0.body.kind == SyncedKind.ledgerEvent.rawValue }.count == 1)
-			#expect(saved.filter { $0.body.kind == SyncedKind.provenance.rawValue }.count == 1)
-			let impossible = event(
-				"decision", on: "2026-02-30", text: "This impossible date must be refused.")
-			#expect(
-				try await append([impossible], using: before, transport: transport)
-					== [
-						.string(
-							"Error: 2026-02-30 is not a real calendar date. Use YYYY-MM-DD.")
-					])
-			#expect(try await store.fetch(recordQuery).records == saved)
-			await before.lifecycle(.willTerminate)
-
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
-			#expect(try await reopened.fetch(recordQuery).records == saved)
-			let history = try await query(
-				from: "2026-02-01", to: "2026-03-31", using: after, transport: relaunchedTransport)
-			#expect(history.contains("## 2026-02-28\n"))
 			#expect(try historyEvents(history) == [recorded(original, source: .chat)])
 		}
 

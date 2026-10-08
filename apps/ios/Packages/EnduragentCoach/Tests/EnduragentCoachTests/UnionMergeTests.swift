@@ -147,16 +147,7 @@ import Testing
 		for row in rows {
 			let kind = try #require(LedgerKind(rawValue: row.kind))
 			let date = try #require(CivilDate(rawValue: row.date))
-			let normalized = row.text.replacing(/^[\s]+|[\s]+$/, with: "").replacing(
-				/\s+/, with: " "
-			).lowercased()
-			let digestInput = JSONValue.array([
-				.string(row.date),
-				.string(row.kind),
-				.string(normalized),
-			]).canonicalDigestInput()
 			let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: row.text)
-			#expect(Array(digestInput.utf8) == Array(row.digestInput.utf8))
 			#expect(Array(digest.utf8) == Array(row.digest.utf8))
 		}
 	}

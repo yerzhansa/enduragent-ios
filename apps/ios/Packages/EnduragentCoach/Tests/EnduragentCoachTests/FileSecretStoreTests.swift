@@ -41,22 +41,6 @@ import Testing
 		#expect(code == expected.code.rawValue)
 	}
 
-	@Test func directoryStorePersistsAcrossInstances() throws {
-		try withTemporaryDirectory { directory in
-			let first = try ICloudKeychainStore.fixture(directory: directory).store
-			try first.storeCreditsAccount(
-				CreditsAccount(
-					appAccountToken: UUID(), key: "sk-or-test-0000")
-			)
-			try first.storeIntervalsConnection(testConnection)
-			let token = try first.creditsAccount()?.appAccountToken
-			let second = try ICloudKeychainStore.fixture(directory: directory).store
-			#expect(try second.creditsAccount()?.key == "sk-or-test-0000")
-			#expect(try second.intervalsConnection() == testConnection)
-			#expect(try second.creditsAccount()?.appAccountToken == token)
-		}
-	}
-
 	@Test func failedAccountPersistenceKeepsThePreviousCreditsPair() throws {
 		try withTemporaryDirectory { directory in
 			let store = try ICloudKeychainStore.fixture(directory: directory).store

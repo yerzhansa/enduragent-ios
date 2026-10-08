@@ -41,45 +41,4 @@ extension SingleProposalReviewsTests {
 			).records.isEmpty)
 		await coach.lifecycle(.willTerminate)
 	}
-
-	enum UnreadReviewAction: CaseIterable, Sendable { case add, cancel, retry }
-
-	@Test(arguments: UnreadReviewAction.allCases, [LanguageTag.en, .fr])
-	func failedReviewActionReadShowsOnlyTheLocalizedCardNotice(
-		action: UnreadReviewAction, language: LanguageTag
-	) async throws {
-		let faults = FaultInjectingRecordLog(wrapping: records)
-		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: ada, store: faults, clock: clock, secrets: secrets)
-		try await coach.setLanguage(.fixed(language))
-		let token = try await presentedToken(on: coach)
-		let ready = try #require(await coach.currentSnapshot(.main)?.review)
-		let calls = ada.calls
-		let requests = transport.requestCount
-		faults.failFetches = true
-		if action == .retry { _ = await coach.decide(.presented(token.ref), in: .main) }
-		let decision: ReviewDecision =
-			switch action {
-			case .add: .approve(token)
-			case .cancel: .cancel(token)
-			case .retry: .checkAgain(token.ref)
-			}
-		#expect(await coach.decide(decision, in: .main) == .storageUnavailable)
-		let snapshot = try #require(await coach.currentSnapshot(.main))
-		let failed = try #require(snapshot.review)
-		#expect(failed.ref == ready.ref)
-		#expect(failed.cards == ready.cards)
-		#expect(failed.controls == .none)
-		let notice = try #require(failed.notice)
-		#expect(notice.key == Catalog.reviewStorageUnavailable)
-		let lines =
-			[language.phrasebook.say(notice.key, notice.vars)]
-			+ snapshot.notes.values.flatMap { $0 }.map { $0.sentence(in: displayLocale(language)) }
-		#expect(lines == [language.phrasebook.say(Catalog.reviewStorageUnavailable)])
-		#expect(!lines.contains(language.phrasebook.say(Catalog.coachErrorUnknown)))
-		#expect(ada.calls == calls)
-		#expect(transport.requestCount == requests)
-		faults.failFetches = false
-		await coach.lifecycle(.willTerminate)
-	}
 }

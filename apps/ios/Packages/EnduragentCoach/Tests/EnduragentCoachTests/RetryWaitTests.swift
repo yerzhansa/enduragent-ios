@@ -63,21 +63,6 @@ private func milliseconds(_ date: Date) -> Int64 {
 			])
 	}
 
-	@Test func tryAgainOpensOnlyWhenTheRateLimitWaitEnds() async throws {
-		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
-		let coach = await makeCoach(transport: FakeModelTransport(), store: store, clock: clock)
-		let waiting = await coach.currentSnapshot(.main)
-		#expect(actions(in: waiting) == [.wait(thenTryAgain: rateLimitedTurn)])
-		try await clock.waitUntilHeld(.seconds(7))
-		let stream = await coach.observe(.main)
-		clock.release(.seconds(7))
-		let opened = try await firstSnapshot(in: stream, within: .hangGuard) {
-			actions(in: $0) == [.tryAgain(rateLimitedTurn)]
-		}
-		#expect(opened != nil, "no snapshot opened Try again when the wait ended")
-		#expect(clock.held.isEmpty)
-	}
-
 	@Test func aRetryDuringTheWaitIsRefusedWithoutAModelRequest() async throws {
 		try await seedFailure(rateLimited(.seconds(7)), at: clock.now)
 		let transport = FakeModelTransport()
@@ -143,6 +128,7 @@ private func milliseconds(_ date: Date) -> Int64 {
 			actions(in: $0) == [.tryAgain(rateLimitedTurn)]
 		}
 		try #require(opened != nil, "no snapshot opened Try again when the wait ended")
+		#expect(clock.held.isEmpty)
 	}
 
 	@Test func aNewAttemptCancelsTheOldSleeperAndAStaleEndIsRefused() async throws {

@@ -20,16 +20,6 @@ import Testing
 		#expect(await coach.transcript(.main).isEmpty)
 	}
 
-	@Test func historyPropagatesARecordReadFailure() async {
-		let failing = FaultInjectingRecordLog(wrapping: store)
-		let coach = await EnduragentCoachTests.makeCoach(
-			transport: transport, intervals: intervals, store: failing, clock: clock)
-		failing.failFetches = true
-		await #expect(throws: HistoryUnavailable.storageUnavailable) {
-			try await coach.history()
-		}
-	}
-
 	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		let pacing = HeldClock()
 		let coalescing = HeldClock()

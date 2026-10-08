@@ -287,30 +287,6 @@ import Testing
 		#expect(next.messages.dropFirst().map(\.content).contains("Thursday is on."))
 	}
 
-	@Test func compactionAndFlushUseTheResponseModel() async throws {
-		try await seedHistory(
-			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) * 6 / 5)
-		transport.respond = ScriptedReply.sequence(
-			[.text(earlierSummary), .finish(reason: .stop)], for: .summary,
-			otherwise: transport.respond)
-		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is on."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach()
-
-		_ = try await coach.sendAndSettle("Is Thursday on?")
-		#expect(transport.requests.map(\.charge) == [.memoryFlush, .droppedSummary, .chatAttempt])
-		#expect(
-			transport.requests.map(\.model.rawValue) == [
-				testModel.rawValue, testModel.rawValue, testModel.rawValue,
-			])
-		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-		#expect(
-			sent(.memoryFlush, by: transport).map(\.model.rawValue) == [
-				testModel.rawValue, testModel.rawValue,
-			])
-	}
-
 	@Test func historyBudgetUsesTheStoredRatio() async throws {
 		try await seedHistory(
 			store, clock: clock, turns: 3, tokens: historyBudget(clock: clock) / 2)

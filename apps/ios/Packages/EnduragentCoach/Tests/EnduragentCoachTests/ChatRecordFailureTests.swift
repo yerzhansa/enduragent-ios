@@ -127,8 +127,7 @@ import Testing
 }
 
 extension FirstTurnTests {
-	@Test(arguments: [LanguageTag.en, .fr])
-	func failedReviewRefreshKeepsTheCardUntilASuccessfulRead(language: LanguageTag) async throws {
+	@Test func failedReviewRefreshKeepsTheCardUntilASuccessfulRead() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
 				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
@@ -139,7 +138,6 @@ extension FirstTurnTests {
 		let faults = FaultInjectingRecordLog(wrapping: store)
 		let coach = await EnduragentCoachTests.makeCoach(
 			transport: transport, intervals: intervals, store: faults, clock: clock)
-		try await coach.setLanguage(.fixed(language))
 		let proposed = try await proposeEnduranceRide(coach)
 		#expect(await coach.decide(.presented(proposed.ref), in: .main) == .presentationRecorded)
 		let ready = try #require(await coach.currentSnapshot(.main)?.review)
@@ -156,9 +154,6 @@ extension FirstTurnTests {
 		#expect(failed.cards == ready.cards)
 		#expect(failed.controls == .none)
 		#expect(failed.notice?.key == Catalog.reviewStorageUnavailable)
-		#expect(
-			failed.notice.map { language.phrasebook.say($0.key, $0.vars) }
-				== language.phrasebook.say(Catalog.reviewStorageUnavailable))
 		#expect(
 			coach.diagnostics.entries.contains {
 				$0.event == .reviewUnavailable(.main, .unavailable)

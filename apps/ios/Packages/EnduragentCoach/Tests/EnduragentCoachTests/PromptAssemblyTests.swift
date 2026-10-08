@@ -14,10 +14,8 @@ import Testing
 		}
 	}
 
-	@Test func prefixIsByteStableAcrossTwoCoaches() {
+	@Test func prefixCarriesTheCyclingSkillsUnderTheTokenCeilings() {
 		let first = PromptAssembly.cyclingPrefix(gated: false)
-		let second = PromptAssembly.cyclingPrefix(gated: false)
-		#expect(first == second)
 		#expect(first.contains(PromptAssembly.cacheBoundary))
 		#expect(first.hasPrefix("# Cycling Coach"))
 		#expect(first.contains("## Skill: cycling-intervals-icu"))

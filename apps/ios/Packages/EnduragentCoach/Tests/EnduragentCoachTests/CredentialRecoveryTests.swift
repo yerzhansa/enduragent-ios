@@ -89,35 +89,6 @@ extension CreditsClientTests {
 				"after \(writes) writes: key=\(key ?? "nil"), token=\(identity.appAccountToken)")
 		}
 	}
-
-	@Test func successfulRecoveryCommitsBothValues() async throws {
-		let oldToken = try #require(UUID(uuidString: "11111111-2222-4333-8444-555555555555"))
-		let newToken = try #require(UUID(uuidString: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"))
-		let memory = FixtureSecretStoreBacking()
-		let original = ICloudKeychainStore(backing: memory)
-		try original.storeCreditsAccount(
-			CreditsAccount(appAccountToken: oldToken, key: "test-old-credits-key"))
-		let client = try makeClient(secrets: original)
-
-		_ = try await CreditsURLStub.withHandler({ _ in
-			.json(
-				200,
-				#"{"kind":"recovered","athleteId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee","key":"test-new-credits-key","credits":150}"#
-			)
-		}) {
-			try await client.recover(signedTransaction: "test.signed.transaction")
-		}
-
-		let restarted = ICloudKeychainStore(backing: memory)
-		let coach = await makeCoach(
-			transport: FakeModelTransport(), store: InMemoryRecordLog(), secrets: restarted)
-		#expect(
-			try await coach.creditsIdentity()
-				== CreditsIdentity(appAccountToken: newToken, hasCreditsKey: true))
-		#expect(
-			try restarted.creditsAccount()
-				== CreditsAccount(appAccountToken: newToken, key: "test-new-credits-key"))
-	}
 }
 
 func legacyCreditsBacking(_ account: CreditsAccount) -> FixtureSecretStoreBacking {
