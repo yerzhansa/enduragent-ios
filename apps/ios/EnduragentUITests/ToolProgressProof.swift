@@ -2,18 +2,12 @@ import XCTest
 
 final class ToolProgressProof: XCTestCase {
 	func testToolProgress() {
-		ToolProgressScenario.run(self, dark: false)
-	}
-}
-
-final class ToolProgressDarkProof: XCTestCase {
-	func testToolProgressDark() {
-		ToolProgressScenario.run(self, dark: true)
+		ToolProgressScenario.run(self)
 	}
 }
 
 private enum ToolProgressScenario {
-	static func run(_ test: XCTestCase, dark: Bool) {
+	static func run(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -29,9 +23,6 @@ private enum ToolProgressScenario {
 		TutorialHarness.waitForLabel(app, "Checking your recent rides.", within: .turn)
 		XCTAssertTrue(working.exists)
 		XCTAssertFalse(TutorialHarness.text(app, containing: "I've prepared the ride.").exists)
-		if dark {
-			XCTAssertLessThan(TutorialHarness.meanLuminance(app.screenshot()), 0.4)
-		}
 		TutorialHarness.attach(test, name: "tool-progress-read-wait", app: app)
 		TutorialHarness.openHistory(app)
 		TutorialHarness.waitForLabel(

@@ -116,13 +116,13 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 caffeinate -i env ENDURAGENT_VERIFY_RUNS=/Users/yerzhansagyt/Library/Logs/enduragent-m2/VSKILL/simulator-proof swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/VSKILL --shards 2
 ```
 
-Change `--shards` to choose N simulators. Append class names to run a subset, for example `suite --shards 2 FirstConversationProof UnknownCalendarSaveDarkProof`. A suite takes classes, not individual methods. Each shard runs light proofs first and `DarkProof` classes second, with `-parallel-testing-enabled NO` on every xcodebuild call. Its `finally` cleanup also runs after a failed proof or boot. The coordinator waits for every shard and checks cleanup again before reporting.
+Change `--shards` to choose N simulators. Append class names to run a subset, for example `suite --shards 2 FirstConversationProof UnknownCalendarSaveProof`. A suite takes classes, not individual methods. Each shard runs with `-parallel-testing-enabled NO` on every xcodebuild call. Its `finally` cleanup also runs after a failed proof or boot. The coordinator waits for every shard and checks cleanup again before reporting.
 
 Each shard has its own `<suite id>-shard-N/` folder with `run.json`, xcodebuild logs, result bundles, exported attachments, and `summary.json`. The `<suite id>/` folder holds `plan.json`, each worker's log, a combined `summary.json`, a per-class table in `summary.md`, and `timings.json`. Counts include passed, failed, skipped, and missing results. Any failed shard, failed test, skipped test, or missing class makes the command exit 1. An infrastructure failure before testing can leave a shard without a result bundle; its summary still names every unverified class.
 
 Without timings, the planner distributes classes evenly. If `<evidence root>/timings.json` exists, or you pass `--timings <file>`, it assigns the longest measured classes first to the least-loaded shard. The file is a JSON map from class names to positive seconds, for example `{"FirstConversationProof": 82}`. New classes use the mean of known durations. A completed suite writes an updated timing file into its own folder; pass that file to the next run to reuse measurements. An explicitly requested missing or malformed timing file fails before simulator creation.
 
-Discovery takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
+Discovery takes classes whose names end in `Proof`. Classes that end in `Probe` measure time and run on their own. Classes that end in `Sweep` are the release language sweeps in [features/language.md](features/language.md) and run only when named. `LaunchLatencyProbe` must run `testSeedTwoHundredTurns` before its launch tests, and XCTest runs a class's tests in name order, so in one run the launch tests find no seeded store.
 
 The history and legacy-review upgrade proofs use committed v1 stores and must pass with zero skips. Each proof copies a fresh store set before launch, so data left by another proof does not supply its upgrade precondition. A missing fixture resource is a failure.
 
@@ -204,7 +204,7 @@ xcrun xcresulttool export attachments --path "$OPENROUTER_PHONE_RUN/openrouter.x
 
 ### Prove OpenRouter recovery, selected model, sync and phone lock
 
-Unit U7-4b adds `EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and the `phone-check openrouter` command. G34 keeps every step pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`, each run in light and dark. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
+Unit U7-4b adds `EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and the `phone-check openrouter` command. G34 keeps every step pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
 
 After unit 8.3, use the signed plain install, English, two updated iPhones on the same Apple ID, iCloud Keychain enabled, a working intervals.icu connection and an OpenRouter account with usable funds. The operator configures and verifies the associated domain as above. Do not put a key, code, verifier or athlete ID in launch arguments. Nothing in this procedure runs while the operator is away.
 
@@ -388,7 +388,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 
 1. Drive the app to the state with the interactive harness.
 2. Run `sim parity <run id> <prototype>-<state> <light|dark>`, for example `parity <run id> chat-menu dark`. The helper sets the simulator appearance, waits 1.5 seconds, and writes `parity/<prototype>-<state>-<theme>/` with `prototype.png`, `simulator.png` at 1170 × 2532, and `simulator-390.png` at the prototype's 390 × 844. An unknown state prints every available state. The appearance stays set afterwards.
-3. To use a proof screenshot instead, add `--from <attachment png>`. For the dark theme, name the proof class with the `DarkProof` suffix. `sim test` runs those classes in a second `xcodebuild` call after `xcrun simctl ui <udid> appearance dark`, then sets the appearance back to `light`, so one `test` call can mix light and dark proofs. Neither the `-AppleInterfaceStyle Dark` launch argument nor `XCUIDevice.shared.appearance` changes the app on the iOS 26 simulator; a poll of `simctl ui appearance` read `light` through a whole proof that set it on 2026-09-27.
+3. To use a proof screenshot instead, add `--from <attachment png>`. `sim test` sets light appearance before it runs, so proof screenshots are light. Neither the `-AppleInterfaceStyle Dark` launch argument nor `XCUIDevice.shared.appearance` changes the app on the iOS 26 simulator; a poll of `simctl ui appearance` read `light` through a whole proof that set it on 2026-09-27.
 4. Read `prototype.png` and `simulator-390.png` together and check each item:
    - The same states exist, and the athlete can reach each one.
    - The same catalog copy appears word for word. Copy comes from `packages/i18n/catalogs/en.json` through `phrasebook.say`.
@@ -410,7 +410,7 @@ The approved prototypes are HTML. Their native-look captures are 390 × 844 PNGs
 | `interruption-draft` | After tapping `fixture.failNextAppend` in Debug and sending a message: the composer keeps the text with `Not sent. Your draft is still here.` under it. `StorageFaultProof` attachment `storage-fault-not-sent` shows it |
 | `interruption-completed` | A reply that landed while the app was in the background: the whole reply with `Finished while the phone was locked.` under it, after `FinishedWhileAwayProof` |
 | `interruption-interrupted` | The dimmed partial reply with `This reply stopped before it finished. Nothing was changed.` and `Try again`, after `StopProof` or `ExpiryProof` |
-| `chat-long` | Formatted long reply after `ReplyFormattingProof` or `ReplyFormattingDarkProof`; use `reply-chat-long-light` or `reply-chat-long-dark` as the parity source. |
+| `chat-long` | Formatted long reply after `ReplyFormattingProof`; use `reply-chat-long-light` as the parity source. |
 | `chat-play`, other `review-*`, `language-*`, `settings-*`, other `interruption-*` | No app screen yet |
 
 ## Evidence
@@ -450,7 +450,7 @@ Never run `simctl delete all`, `simctl shutdown all`, or `simctl erase`. Never q
 | `install <run id>` | Installs the built app on the run's simulator |
 | `launch <run id> [--keep] [app arguments]` | Kills and opens the app in fixture mode; `--keep` reuses the fixture state instead of wiping it |
 | `shot <run id> <kebab-label>` | Screenshot to `<evidence>/<label>.png` |
-| `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported; `DarkProof` classes run in dark appearance |
+| `test <run id> <proof>...` | UI proofs on the run's simulator, with attachments exported, in light appearance |
 | `suite [<proof class>...] --shards <N> [--timings <json>]` | Build once, run owned simulator shards, clean up, and combine per-class results |
 | `parity <run id> <prototype>-<state> <light\|dark> [--from <png>]` | Prototype capture beside a simulator screenshot |
 | `cleanup <run id>` | Deletes the run's simulator and keeps the evidence |

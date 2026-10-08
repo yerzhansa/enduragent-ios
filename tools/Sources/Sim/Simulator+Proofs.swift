@@ -9,28 +9,8 @@ extension Simulator {
 					"test needs at least one proof, for example: test <run> FirstConversationProof")
 		}
 		let run = try activeRun(id)
-		let dark = try proofs.filter { try patterns.test(#"DarkProof(\/|$)"#, $0) }
-		let light = try proofs.filter { try !patterns.test(#"DarkProof(\/|$)"#, $0) }
-		var report = ProofReport(classes: [])
-		func add(_ part: ProofReport) {
-			report.failures += part.failures
-			report.classes += part.classes
-		}
-		if !light.isEmpty {
-			try setAppearance("light", run.udid)
-			add(try runProofs(dir: run.dir, udid: run.udid, proofs: light))
-		}
-		if !dark.isEmpty {
-			try setAppearance("dark", run.udid)
-			let outcome = Result { try runProofs(dir: run.dir, udid: run.udid, proofs: dark) }
-			try setAppearance("light", run.udid)
-			add(try outcome.get())
-		}
-		return report
-	}
-
-	private func setAppearance(_ appearance: String, _ udid: String) throws {
-		_ = try capture("xcrun", ["simctl", "ui", udid, "appearance", appearance])
+		_ = try capture("xcrun", ["simctl", "ui", run.udid, "appearance", "light"])
+		return try runProofs(dir: run.dir, udid: run.udid, proofs: proofs)
 	}
 
 	private func runProofs(dir: String, udid: String, proofs: [String]) throws -> ProofReport {

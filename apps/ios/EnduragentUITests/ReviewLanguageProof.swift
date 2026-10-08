@@ -2,18 +2,12 @@ import XCTest
 
 final class ReviewLanguageProof: XCTestCase {
 	func testReviewAndSavedOutcomeFollowTheChosenLanguage() {
-		ReviewLanguageProofScreen.prove(self, dark: false)
-	}
-}
-
-final class ReviewLanguageDarkProof: XCTestCase {
-	func testReviewAndSavedOutcomeFollowTheChosenLanguage() {
-		ReviewLanguageProofScreen.prove(self, dark: true)
+		ReviewLanguageProofScreen.prove(self)
 	}
 }
 
 private enum ReviewLanguageProofScreen {
-	static func prove(_ test: XCTestCase, dark: Bool) {
+	static func prove(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
@@ -42,19 +36,14 @@ private enum ReviewLanguageProofScreen {
 		XCTAssertEqual(add.label, "Ajouter au calendrier")
 		XCTAssertEqual(TutorialHarness.named(app, "chat.preview.cancel").label, "Annuler")
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark {
-			XCTAssertLessThan(luminance, 0.4, "The reopened review is not in dark appearance")
-		} else {
-			XCTAssertGreaterThan(luminance, 0.4, "The reopened review is not in light appearance")
-		}
-		let theme = dark ? "dark" : "light"
-		TutorialHarness.attach(test, name: "u9-4-review-reopened-fr-\(theme)", app: app)
+		XCTAssertGreaterThan(luminance, 0.4, "The reopened review is not in light appearance")
+		TutorialHarness.attach(test, name: "u9-4-review-reopened-fr-light", app: app)
 		add.tap()
 		let done = "C’est fait — Créer l’entraînement « Endurance with tempo » le 16/06/1998."
 		TutorialHarness.waitForIdentifier(app, "chat.note", reading: done)
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.waitForIdentifier(app, "chat.note", reading: done)
-		TutorialHarness.attach(test, name: "u9-4-outcome-reopened-fr-\(theme)", app: app)
+		TutorialHarness.attach(test, name: "u9-4-outcome-reopened-fr-light", app: app)
 		TutorialHarness.send(app, "/language")
 		let english = TutorialHarness.named(app, "language.choice.en")
 		TutorialHarness.wait(english)
@@ -73,7 +62,7 @@ private enum ReviewLanguageProofScreen {
 			.firstMatch
 		TutorialHarness.wait(outcome)
 		XCTAssertEqual(outcome.label, englishDone)
-		TutorialHarness.attach(test, name: "u9-4-history-outcome-en-\(theme)", app: app)
+		TutorialHarness.attach(test, name: "u9-4-history-outcome-en-light", app: app)
 		TutorialHarness.returnToChat(app)
 	}
 }

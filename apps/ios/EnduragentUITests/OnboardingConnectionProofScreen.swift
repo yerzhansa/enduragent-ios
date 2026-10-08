@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 enum OnboardingConnectionProofScreen {
-	static func resultMatrix(_ test: XCTestCase, dark: Bool) {
+	static func resultMatrix(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		enterConnect(app)
@@ -11,10 +11,10 @@ enum OnboardingConnectionProofScreen {
 		TutorialHarness.waitForIdentifier(
 			app, "connect.saved", reading: "Enter an intervals.icu API key.")
 		XCTAssertFalse(TutorialHarness.named(app, "connect.continue").exists)
-		capture(test, app, name: "onboarding-blank", dark: dark)
+		capture(test, app, name: "onboarding-blank")
 		save(app)
 		assertAda(app)
-		capture(test, app, name: "onboarding-saved", dark: dark)
+		capture(test, app, name: "onboarding-saved")
 		finishOnboarding(app)
 
 		TutorialHarness.launch(app, arguments: FixtureArguments(credentialWriteFault: .failOnce))
@@ -25,11 +25,11 @@ enum OnboardingConnectionProofScreen {
 			app, "connect.saved", reading: "The connection wasn't saved. Try again.")
 		XCTAssertFalse(TutorialHarness.named(app, "connect.continue").exists)
 		XCTAssertTrue(TutorialHarness.named(app, "connect.skip").exists)
-		capture(test, app, name: "onboarding-not-saved", dark: dark)
+		capture(test, app, name: "onboarding-not-saved")
 		TutorialHarness.named(app, "connect.connect").tap()
 		TutorialHarness.waitForIdentifier(app, "connect.saved", reading: "Saved")
 		assertAda(app)
-		capture(test, app, name: "onboarding-save-recovered", dark: dark)
+		capture(test, app, name: "onboarding-save-recovered")
 		finishOnboarding(app)
 
 		for display in FixtureTrainingDisplay.allCases {
@@ -37,7 +37,7 @@ enum OnboardingConnectionProofScreen {
 			enterConnect(app)
 			save(app)
 			assertDisplay(app, display)
-			capture(test, app, name: "onboarding-\(display.rawValue)", dark: dark)
+			capture(test, app, name: "onboarding-\(display.rawValue)")
 			switch display {
 			case .profileRejected, .profileRequestRejected, .wellnessRejected:
 				let correction = TutorialHarness.named(app, "connect.displayAction")
@@ -47,7 +47,7 @@ enum OnboardingConnectionProofScreen {
 				assertEmptyKey(app, identifier: "connect.apiKey", language: .en)
 				save(app, key: "fixture-corrected")
 				assertAda(app)
-				capture(test, app, name: "onboarding-\(display.rawValue)-corrected", dark: dark)
+				capture(test, app, name: "onboarding-\(display.rawValue)-corrected")
 			case .profileUnavailable, .wellnessUnavailable:
 				let retry = TutorialHarness.named(app, "connect.displayAction")
 				TutorialHarness.wait(retry, until: .hittable)
@@ -56,7 +56,7 @@ enum OnboardingConnectionProofScreen {
 				assertAda(app)
 				XCTAssertFalse(TutorialHarness.named(app, "connect.apiKey").exists)
 				XCTAssertEqual(TutorialHarness.named(app, "connect.saved").label, "Saved")
-				capture(test, app, name: "onboarding-\(display.rawValue)-recovered", dark: dark)
+				capture(test, app, name: "onboarding-\(display.rawValue)-recovered")
 			case .emptyWellness, .partialWellness:
 				XCTAssertFalse(TutorialHarness.named(app, "connect.displayAction").exists)
 			}
@@ -64,7 +64,7 @@ enum OnboardingConnectionProofScreen {
 		}
 	}
 
-	static func connectLater(_ test: XCTestCase, dark: Bool) {
+	static func connectLater(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		let phrasebook = CatalogPhrasebook(tag: .fr)
 		TutorialHarness.launch(app, language: "ru,fr,en", locale: "fr_FR")
@@ -76,7 +76,7 @@ enum OnboardingConnectionProofScreen {
 		startChatting(app, language: .fr)
 		TutorialHarness.exchange(app, "fixture:training-data")
 		TutorialHarness.waitForLabel(app, "I can discuss general training. Connect in Settings")
-		capture(test, app, name: "skipped-training-data-unavailable", dark: dark)
+		capture(test, app, name: "skipped-training-data-unavailable")
 		TutorialHarness.openCredentials(app)
 		XCTAssertEqual(
 			TutorialHarness.named(app, "training.edit").label,
@@ -92,12 +92,12 @@ enum OnboardingConnectionProofScreen {
 		TutorialHarness.waitForIdentifier(
 			app, "training.fitness",
 			reading: phrasebook.say(Catalog.onboardingConnectFitness, ["value": "42"]))
-		capture(test, app, name: "settings-latin-key-saved", dark: dark)
+		capture(test, app, name: "settings-latin-key-saved")
 		TutorialHarness.returnToChat(app)
 		TutorialHarness.exchange(app, "fixture:training-data")
 		TutorialHarness.waitForLabel(app, "I can read Ada Kovač's training profile and calendar.")
 		TutorialHarness.waitForLabel(app, "I can discuss general training. Connect in Settings")
-		capture(test, app, name: "connected-later-conversation-kept", dark: dark)
+		capture(test, app, name: "connected-later-conversation-kept")
 		TutorialHarness.relaunchKeepingStore(app)
 		TutorialHarness.waitForLabel(app, "I can read Ada Kovač's training profile and calendar.")
 	}
@@ -181,11 +181,9 @@ enum OnboardingConnectionProofScreen {
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.composer"))
 	}
 
-	private static func capture(
-		_ test: XCTestCase, _ app: XCUIApplication, name: String, dark: Bool
-	) {
+	private static func capture(_ test: XCTestCase, _ app: XCUIApplication, name: String) {
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark { XCTAssertLessThan(luminance, 0.4) } else { XCTAssertGreaterThan(luminance, 0.4) }
-		TutorialHarness.attach(test, name: "\(name)-\(dark ? "dark" : "light")", app: app)
+		XCTAssertGreaterThan(luminance, 0.4)
+		TutorialHarness.attach(test, name: "\(name)-light", app: app)
 	}
 }

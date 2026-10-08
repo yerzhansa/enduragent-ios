@@ -2,25 +2,25 @@ import EnduragentCoach
 import XCTest
 
 @MainActor
-final class ReviewAccessibilityEnProof: XCTestCase {
+final class ReviewAccessibilityEnSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .en) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .en) }
 }
 
 @MainActor
-final class ReviewAccessibilityEsProof: XCTestCase {
+final class ReviewAccessibilityEsSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .es) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .es) }
 }
 
 @MainActor
-final class ReviewAccessibilityFrProof: XCTestCase {
+final class ReviewAccessibilityFrSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .fr) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .fr) }
 }
 
 @MainActor
-final class ReviewAccessibilityItProof: XCTestCase {
+final class ReviewAccessibilityItSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .it) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .it) }
 }
@@ -32,31 +32,31 @@ final class ReviewAccessibilityDeProof: XCTestCase {
 }
 
 @MainActor
-final class ReviewAccessibilityNlProof: XCTestCase {
+final class ReviewAccessibilityNlSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .nl) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .nl) }
 }
 
 @MainActor
-final class ReviewAccessibilityDaProof: XCTestCase {
+final class ReviewAccessibilityDaSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .da) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .da) }
 }
 
 @MainActor
-final class ReviewAccessibilitySvProof: XCTestCase {
+final class ReviewAccessibilitySvSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .sv) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .sv) }
 }
 
 @MainActor
-final class ReviewAccessibilityNbProof: XCTestCase {
+final class ReviewAccessibilityNbSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .nb) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .nb) }
 }
 
 @MainActor
-final class ReviewAccessibilityFiProof: XCTestCase {
+final class ReviewAccessibilityFiSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .fi) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .fi) }
 }
@@ -68,31 +68,31 @@ final class ReviewAccessibilityPtPTProof: XCTestCase {
 }
 
 @MainActor
-final class ReviewAccessibilityPtBRProof: XCTestCase {
+final class ReviewAccessibilityPtBRSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .ptBR) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .ptBR) }
 }
 
 @MainActor
-final class ReviewAccessibilityPlProof: XCTestCase {
+final class ReviewAccessibilityPlSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .pl) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .pl) }
 }
 
 @MainActor
-final class ReviewAccessibilityKoProof: XCTestCase {
+final class ReviewAccessibilityKoSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .ko) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .ko) }
 }
 
 @MainActor
-final class ReviewAccessibilityJaProof: XCTestCase {
+final class ReviewAccessibilityJaSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .ja) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .ja) }
 }
 
 @MainActor
-final class ReviewAccessibilityZhHansProof: XCTestCase {
+final class ReviewAccessibilityZhHansSweep: XCTestCase {
 	func testApprovalControls() { ReviewAccessibility.approval(self, .zhHans) }
 	func testUncertainSaveControls() { ReviewAccessibility.uncertainSave(self, .zhHans) }
 }

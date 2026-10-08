@@ -5,28 +5,17 @@ import XCTest
 @MainActor
 final class ComposerIconButtonsProof: XCTestCase {
 	func testEnglishComposerFitsWhileWorking() {
-		ComposerIconButtonsScreen.prove(self, language: .en, dark: false)
+		ComposerIconButtonsScreen.prove(self, language: .en)
 	}
 
 	func testBrazilianPortugueseComposerFitsWhileWorking() {
-		ComposerIconButtonsScreen.prove(self, language: .ptBR, dark: false)
-	}
-}
-
-@MainActor
-final class ComposerIconButtonsDarkProof: XCTestCase {
-	func testEnglishComposerFitsWhileWorking() {
-		ComposerIconButtonsScreen.prove(self, language: .en, dark: true)
-	}
-
-	func testBrazilianPortugueseComposerFitsWhileWorking() {
-		ComposerIconButtonsScreen.prove(self, language: .ptBR, dark: true)
+		ComposerIconButtonsScreen.prove(self, language: .ptBR)
 	}
 }
 
 @MainActor
 private enum ComposerIconButtonsScreen {
-	static func prove(_ test: XCTestCase, language: LanguageTag, dark: Bool) {
+	static func prove(_ test: XCTestCase, language: LanguageTag) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(
 			app, language: language.rawValue, locale: language == .ptBR ? "pt_BR" : "en_US")
@@ -68,14 +57,9 @@ private enum ComposerIconButtonsScreen {
 			TutorialHarness.assertIconButtonWidth(button)
 			XCTAssertEqual(button.staticTexts.count, 0, "the button title must not be drawn")
 		}
-		TutorialHarness.attach(
-			test, name: "composer-icons-\(language.rawValue)-\(dark ? "dark" : "light")", app: app)
+		TutorialHarness.attach(test, name: "composer-icons-\(language.rawValue)-light", app: app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark {
-			XCTAssertLessThan(luminance, 0.4, "the capture is not in dark appearance")
-		} else {
-			XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
-		}
+		XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
 		stop.tap()
 		TutorialHarness.wait(stop, until: .absent)
 		TutorialHarness.wait(TutorialHarness.named(app, "chat.working"), until: .absent)

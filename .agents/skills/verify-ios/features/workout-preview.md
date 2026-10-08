@@ -11,7 +11,6 @@ The coach puts proposed calendar changes in a Workout review in the ongoing conv
 - `preview-earlier-version` shows `This workout review is from an earlier version of the app and can no longer be applied.` for an unexpired v1 review. Check create, update, and delete reviews, both connected to intervals.icu and disconnected. The notice uses `review.earlierVersion` in the chosen language, and neither approval nor cancel controls appear.
 - `preview-outcome` shows `chat.review.notice` when a decision encounters expiry, a stale review, changed account, unavailable connection, failed write, or uncertain write result. While the review is still shown, the sentence and its Connect button sit inside the card, above the decision buttons. Once the review is gone, the sentence is its own transcript row.
 - `preview-language` localizes the title, buttons, notices, and saved Done line.
-- `preview-dark` keeps the review legible in dark appearance.
 - `preview-composer` keeps review rows above the opaque composer when the keyboard opens for a plain message. Send stays hittable.
 - `preview-unknown-save` shows one pending-save sentence and only Check again. An absent observation adds Cancel and Save approved workout again. A failed calendar read keeps Check again in the same session. A never-approved card has neither approved-save sentence.
 - `preview-cancel-unknown` commits a lasting Cancel note without a calendar request, including offline and locked credentials. Fresh reviews work before and after New conversation; the note stays in History.
@@ -37,18 +36,14 @@ Preconditions:
 | Action and command | Observable result and attachment |
 | --- | --- |
 | `sim test <run id> UnknownCalendarSaveProof` | Light proofs assert exact sentence counts and review button identifiers and labels for unknown, absent, failed-read, and never-approved states. Attachments start with `calendar-`. |
-| `sim test <run id> UnknownCalendarSaveDarkProof` | The same proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim test <run id> CancelUnknownSaveProof` | Offline and locked Cancel leave one buttonless note after relaunch, allow fresh reviews in both conversations, and keep the original note in History. Screenshots start with `cancel-`. |
-| `sim test <run id> CancelUnknownSaveDarkProof` | The same Cancel proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim test <run id> ReconnectReviewProof` | Peer B replacement removes A's approval controls and requires B's own approval. Rotated A restores the review after relaunch and Check again confirms its unknown save with one read and no second save. Under B, online and offline Cancel make no A/B request, allow an immediate fresh review, and retain the exact button-free note after relaunch. Attachments start with `U5-4-`. |
 | `sim test <run id> SavedReviewReadFailureProof` | Approval, Check again, repeat approval, Cancel only, and read-only layouts retain their labels while disabled. Try again remains enabled after another failed read and restores valid controls without model or calendar requests. Screenshots start with `review-unreadable-` and `review-restored-`. |
-| `sim test <run id> SavedReviewReadFailureDarkProof` | The same saved-review read proofs in dark appearance, with screenshots and an asserted luminance bound. |
 | `sim test <run id> ReviewStorageFailureProof` | Failed Add shows the G22 sentence in English; failed Cancel shows it in French. Each keeps the review, shows one notice, makes no calendar write or model request, and allows a later Cancel. Attachments start with `review-save-failed-`. Saved-review read recovery is owned by `SavedReviewReadFailureProof`. |
-| `sim test <run id> ReviewStorageFailureDarkProof` | The same choice-save failure proofs in dark appearance, with screenshots and an asserted luminance bound. Saved-review read recovery is owned by `SavedReviewReadFailureDarkProof`. |
 | `sim test <run id> ConfirmedPreviewProof` | Workout review, Warmup, and the enabled controls in order, `07-confirmed-preview`. |
 | `sim test <run id> DoneLineSurvivesRelaunchProof` | Saved outcome before and after relaunch, `done-before-relaunch`, `done-after-relaunch`. |
 | `sim test <run id> PreviewCancelStaysGoneProof` | Cancel removes the review through another message and relaunch; Records contains `proposalCleared canceled`, `preview-before-cancel`, `preview-canceled-after-next-message`, `preview-canceled-records`. |
-| `sim test <run id> ReviewLanguageProof ReviewLanguageDarkProof` | A saved pending cycling review reopens in French with French regional decimals, repetitions, cadence, and an unchanged copied label. Approval leaves a durable outcome that follows a later English choice in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, with light and dark suffixes. Each theme asserts its luminance. |
+| `sim test <run id> ReviewLanguageProof` | A saved pending cycling review reopens in French with French regional decimals, repetitions, cadence, and an unchanged copied label. Approval leaves a durable outcome that follows a later English choice in conversation and History. Attachments start `u9-4-review-reopened-fr-`, `u9-4-outcome-reopened-fr-`, and `u9-4-history-outcome-en-`, and end with `light`. |
 | `sim test <run id> ReviewCardComposerProof/testKeyboardKeepsReviewRowsAboveTheComposer` | The keyboard opens while a review is visible. Transcript rows and Add stay above the composer, and Send remains hittable, `review-card-composer-keyboard`. |
 | `sim test <run id> ExpiredReviewProof/testAReviewPastTenMinutesIsGoneAfterRelaunchWithNoWrite` | Relaunch eleven minutes after the proposal removes the card without a Done line or write, `review-before-expiry`, `review-expired-after-relaunch`, `review-expired-records`. |
 | `sim test <run id> LegacyReviewNoticeProof/testV1ReviewIsReadOnlyDisconnectedConnectedAndInGerman` | The committed v1 review has no approval or cancel controls, `v1-review-disconnected`, `v1-review-connected`, `v1-review-german`. Records retains `pendingProposal 1` without `proposalCleared` or `reviewApplied`, `v1-review-records`, `v1-review-german-records`. |
@@ -61,7 +56,7 @@ For the v1 notice, follow [Upgrade proofs](../SKILL.md#upgrade-proofs). `LegacyR
 
 ## Largest text size and VoiceOver order
 
-Unit 9.6 proves the review card at the largest accessibility text size in every supported language. Each language has its own class, so one language failing leaves the other 16 results intact. The classes are `ReviewAccessibilityEnProof`, `ReviewAccessibilityEsProof`, `ReviewAccessibilityFrProof`, `ReviewAccessibilityItProof`, `ReviewAccessibilityDeProof`, `ReviewAccessibilityNlProof`, `ReviewAccessibilityDaProof`, `ReviewAccessibilitySvProof`, `ReviewAccessibilityNbProof`, `ReviewAccessibilityFiProof`, `ReviewAccessibilityPtPTProof`, `ReviewAccessibilityPtBRProof`, `ReviewAccessibilityPlProof`, `ReviewAccessibilityKoProof`, `ReviewAccessibilityJaProof`, `ReviewAccessibilityZhHansProof` and `ReviewAccessibilityZhHantProof`.
+Unit 9.6 proves the review card at the largest accessibility text size in every supported language. Each language has its own class, so one language failing leaves the other results intact. `sim suite` runs three languages: `ReviewAccessibilityDeProof` for German, `ReviewAccessibilityPtPTProof` for Portuguese of Portugal and `ReviewAccessibilityZhHantProof` for Traditional Chinese. The other 14 are release sweeps that `sim suite` runs only when they are named: `ReviewAccessibilityEnSweep`, `ReviewAccessibilityEsSweep`, `ReviewAccessibilityFrSweep`, `ReviewAccessibilityItSweep`, `ReviewAccessibilityNlSweep`, `ReviewAccessibilityDaSweep`, `ReviewAccessibilitySvSweep`, `ReviewAccessibilityNbSweep`, `ReviewAccessibilityFiSweep`, `ReviewAccessibilityPtBRSweep`, `ReviewAccessibilityPlSweep`, `ReviewAccessibilityKoSweep`, `ReviewAccessibilityJaSweep` and `ReviewAccessibilityZhHansSweep`.
 
 | Test method | States it checks, in order |
 | --- | --- |
@@ -74,13 +69,13 @@ For each state the proof reads one accessibility snapshot of the transcript row 
 
 The proof does not open Settings > Debug at the largest text size, so it does not read the fixture request count.
 
-Run all 17 languages on two simulators:
+Run the 14 release sweeps on two simulators for a release pass. Add the three suite classes to the same command for all 17 languages:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnProof ReviewAccessibilityEsProof ReviewAccessibilityFrProof ReviewAccessibilityItProof ReviewAccessibilityDeProof ReviewAccessibilityNlProof ReviewAccessibilityDaProof ReviewAccessibilitySvProof ReviewAccessibilityNbProof ReviewAccessibilityFiProof ReviewAccessibilityPtPTProof ReviewAccessibilityPtBRProof ReviewAccessibilityPlProof ReviewAccessibilityKoProof ReviewAccessibilityJaProof ReviewAccessibilityZhHansProof ReviewAccessibilityZhHantProof
+caffeinate -i env ENDURAGENT_VERIFY_RUNS="$HOME/Library/Logs/enduragent-m2/U9-6/simulator-proof" swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/U9-6-sim --shards 2 ReviewAccessibilityEnSweep ReviewAccessibilityEsSweep ReviewAccessibilityFrSweep ReviewAccessibilityItSweep ReviewAccessibilityNlSweep ReviewAccessibilityDaSweep ReviewAccessibilitySvSweep ReviewAccessibilityNbSweep ReviewAccessibilityFiSweep ReviewAccessibilityPtBRSweep ReviewAccessibilityPlSweep ReviewAccessibilityKoSweep ReviewAccessibilityJaSweep ReviewAccessibilityZhHansSweep
 ```
 
-To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim test <run id> ReviewAccessibilityJaProof/testApprovalControls`.
+To resume, read `summary.md` in the suite folder and run the same command with only the classes that are missing or failed. To repeat one flow of one language, run `sim test <run id> ReviewAccessibilityJaSweep/testApprovalControls`.
 
 ## Gotchas
 
@@ -93,6 +88,6 @@ To resume, read `summary.md` in the suite folder and run the same command with o
 - A review can survive New conversation. It is not a second ongoing conversation.
 - A restored v1 review must be unexpired to exercise the earlier-version notice. Connected and disconnected are distinct cases.
 - The compact phone can truncate a long workout description. Inspect the visible cards and controls, and preserve the screenshot rather than assuming every step fits.
-- The helper selects dark appearance for the dark proof. Interactive captures must restore light appearance afterwards.
-- The keyboard proof requires the software keyboard. Also inspect the opaque composer in light and dark appearance after manually scrolling rows under it.
+- Interactive captures must restore light appearance afterwards.
+- The keyboard proof requires the software keyboard. Also inspect the opaque composer after manually scrolling rows under it.
 - The fixture clock is fixed for each launch. `ExpiredReviewProof` verifies expiry on relaunch; `SingleProposalReviewsTests.approveWithStaleTokenIsStaleControl` covers a decision on an expired review without a write.

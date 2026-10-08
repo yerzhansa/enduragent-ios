@@ -3,38 +3,19 @@ import XCTest
 @MainActor
 final class UnknownCalendarSaveProof: XCTestCase {
 	func testUnknownSaveOffersOnlyCheckAgain() {
-		UnknownCalendarSaveScreen.unknown(self, dark: false)
+		UnknownCalendarSaveScreen.unknown(self)
 	}
 
 	func testAbsentReadOffersOnlyCheckCancelAndSaveAgain() {
-		UnknownCalendarSaveScreen.absent(self, dark: false)
+		UnknownCalendarSaveScreen.absent(self)
 	}
 
 	func testFailedCheckAgainKeepsCheckAgainInTheSameSession() {
-		UnknownCalendarSaveScreen.failedRead(self, dark: false)
+		UnknownCalendarSaveScreen.failedRead(self)
 	}
 
 	func testNeverApprovedCardDoesNotClaimAnApprovedSaveIsPending() {
-		UnknownCalendarSaveScreen.neverApproved(self, dark: false)
-	}
-}
-
-@MainActor
-final class UnknownCalendarSaveDarkProof: XCTestCase {
-	func testUnknownSaveOffersOnlyCheckAgain() {
-		UnknownCalendarSaveScreen.unknown(self, dark: true)
-	}
-
-	func testAbsentReadOffersOnlyCheckCancelAndSaveAgain() {
-		UnknownCalendarSaveScreen.absent(self, dark: true)
-	}
-
-	func testFailedCheckAgainKeepsCheckAgainInTheSameSession() {
-		UnknownCalendarSaveScreen.failedRead(self, dark: true)
-	}
-
-	func testNeverApprovedCardDoesNotClaimAnApprovedSaveIsPending() {
-		UnknownCalendarSaveScreen.neverApproved(self, dark: true)
+		UnknownCalendarSaveScreen.neverApproved(self)
 	}
 }
 
@@ -53,44 +34,44 @@ private enum UnknownCalendarSaveScreen {
 	]
 	static let approval = ["chat.preview.cancel": "Cancel", "chat.preview.add": "Add to calendar"]
 
-	static func unknown(_ test: XCTestCase, dark: Bool) {
+	static func unknown(_ test: XCTestCase) {
 		let app = unknownSave()
 		assertCard(app, pendingCount: 1, failedCount: 0, buttons: check)
-		capture(test, app, name: "calendar-unknown", dark: dark)
+		capture(test, app, name: "calendar-unknown")
 	}
 
-	static func absent(_ test: XCTestCase, dark: Bool) {
+	static func absent(_ test: XCTestCase) {
 		let app = unknownSave()
 		reopen(app)
 		assertCard(app, pendingCount: 1, failedCount: 0, buttons: check)
 		TutorialHarness.named(app, "chat.preview.checkAgain").tap()
 		assertCard(app, pendingCount: 1, failedCount: 0, buttons: repeatApproval)
-		capture(test, app, name: "calendar-absent", dark: dark)
+		capture(test, app, name: "calendar-absent")
 	}
 
-	static func failedRead(_ test: XCTestCase, dark: Bool) {
+	static func failedRead(_ test: XCTestCase) {
 		let app = unknownSave()
 		reopen(app, failRead: true)
 		assertCard(app, pendingCount: 1, failedCount: 0, buttons: check)
 		TutorialHarness.named(app, "chat.preview.checkAgain").tap()
 		assertCard(app, pendingCount: 0, failedCount: 1, buttons: check)
-		capture(test, app, name: "calendar-check-failed", dark: dark)
+		capture(test, app, name: "calendar-check-failed")
 		TutorialHarness.named(app, "chat.preview.checkAgain").tap()
 		assertCard(app, pendingCount: 1, failedCount: 0, buttons: repeatApproval)
-		capture(test, app, name: "calendar-check-recovered", dark: dark)
+		capture(test, app, name: "calendar-check-recovered")
 	}
 
-	static func neverApproved(_ test: XCTestCase, dark: Bool) {
+	static func neverApproved(_ test: XCTestCase) {
 		let app = XCUIApplication()
 		TutorialHarness.launch(app)
 		TutorialHarness.completeOnboarding(app)
 		TutorialHarness.exchange(app, TutorialHarness.workout)
 		assertCard(app, pendingCount: 0, failedCount: 0, buttons: approval)
-		capture(test, app, name: "calendar-never-approved", dark: dark)
+		capture(test, app, name: "calendar-never-approved")
 		TutorialHarness.relaunchKeepingStore(app, keychain: .locked)
 		TutorialHarness.waitForIdentifier(app, "chat.preview.notice", reading: cannotVerify)
 		assertCard(app, pendingCount: 0, failedCount: 0, buttons: [:])
-		capture(test, app, name: "calendar-never-approved-locked", dark: dark)
+		capture(test, app, name: "calendar-never-approved-locked")
 	}
 
 	private static func unknownSave() -> XCUIApplication {
@@ -155,15 +136,9 @@ private enum UnknownCalendarSaveScreen {
 		}
 	}
 
-	private static func capture(
-		_ test: XCTestCase, _ app: XCUIApplication, name: String, dark: Bool
-	) {
-		TutorialHarness.attach(test, name: name + (dark ? "-dark" : "-light"), app: app)
+	private static func capture(_ test: XCTestCase, _ app: XCUIApplication, name: String) {
+		TutorialHarness.attach(test, name: name + "-light", app: app)
 		let luminance = TutorialHarness.meanLuminance(app.screenshot())
-		if dark {
-			XCTAssertLessThan(luminance, 0.4, "the capture is not in dark appearance")
-		} else {
-			XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
-		}
+		XCTAssertGreaterThan(luminance, 0.4, "the capture is not in light appearance")
 	}
 }

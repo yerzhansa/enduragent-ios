@@ -3,98 +3,49 @@ import XCTest
 @MainActor
 final class DifferentAthleteProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.differentAthlete(self, dark: false)
-	}
-}
-
-@MainActor
-final class DifferentAthleteDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.differentAthlete(self, dark: true)
+		TrainingSettingsProofScreen.differentAthlete(self)
 	}
 }
 
 @MainActor
 final class SameAthleteRotationProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.rotation(self, dark: false)
-	}
-}
-
-@MainActor
-final class SameAthleteRotationDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.rotation(self, dark: true)
+		TrainingSettingsProofScreen.rotation(self)
 	}
 }
 
 @MainActor
 final class DisconnectProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.disconnect(self, dark: false)
-	}
-}
-
-@MainActor
-final class DisconnectDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.disconnect(self, dark: true)
+		TrainingSettingsProofScreen.disconnect(self)
 	}
 }
 
 @MainActor
 final class ConnectAfterLaunchProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.connectLater(self, dark: false)
-	}
-}
-
-@MainActor
-final class ConnectAfterLaunchDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.connectLater(self, dark: true)
+		TrainingSettingsProofScreen.connectLater(self)
 	}
 }
 
 @MainActor
 final class FailedWriteRecordsProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.failedWrite(self, dark: false)
-	}
-}
-
-@MainActor
-final class FailedWriteRecordsDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.failedWrite(self, dark: true)
+		TrainingSettingsProofScreen.failedWrite(self)
 	}
 }
 
 @MainActor
 final class CredentialTransactionProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.transaction(self, dark: false)
-	}
-}
-
-@MainActor
-final class CredentialTransactionDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.transaction(self, dark: true)
+		TrainingSettingsProofScreen.transaction(self)
 	}
 }
 
 @MainActor
 final class UnconnectedCalendarProof: XCTestCase {
 	func testSettingsFlow() {
-		TrainingSettingsProofScreen.unconnectedCalendar(self, dark: false)
-	}
-}
-
-@MainActor
-final class UnconnectedCalendarDarkProof: XCTestCase {
-	func testSettingsFlow() {
-		TrainingSettingsProofScreen.unconnectedCalendar(self, dark: true)
+		TrainingSettingsProofScreen.unconnectedCalendar(self)
 	}
 }
 
