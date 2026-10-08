@@ -13,6 +13,7 @@ struct ClassResult: Equatable {
 	var skipped = 0
 	var missing = 0
 	var seconds = 0.0
+	var firstRunFailed: Int?
 
 	var isUnverified: Bool { failed != 0 || skipped != 0 || missing != 0 }
 
@@ -22,6 +23,7 @@ struct ClassResult: Equatable {
 			"failed": .number(Double(failed)),
 			"skipped": .number(Double(skipped)), "missing": .number(Double(missing)),
 			"seconds": .number(seconds),
+			"firstRunFailed": firstRunFailed.map { .number(Double($0)) } ?? .undefined,
 		])
 	}
 
@@ -47,6 +49,17 @@ struct ClassResult: Equatable {
 		failed = try count("failed")
 		skipped = try count("skipped")
 		missing = try count("missing")
+		switch try json.member("firstRunFailed") {
+		case .undefined:
+			firstRunFailed = nil
+		case .number(let value):
+			guard let whole = Int(exactly: value) else {
+				throw SimFailure(description: "class result has no firstRunFailed count")
+			}
+			firstRunFailed = whole
+		default:
+			throw SimFailure(description: "class result has no firstRunFailed count")
+		}
 	}
 }
 

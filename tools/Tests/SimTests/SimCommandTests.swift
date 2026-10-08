@@ -31,7 +31,7 @@ struct HelperFolder: Sendable, CustomTestStringConvertible {
 }
 
 struct SimCommandTests {
-	private func withTree(_ body: (ExportedTree) throws -> Void) throws {
+	func withTree(_ body: (ExportedTree) throws -> Void) throws {
 		let fixture = try ExportedTree()
 		let outcome = Result { try body(fixture) }
 		try fixture.remove()
@@ -173,6 +173,15 @@ struct SimCommandTests {
 			for call in calls where call.contains("test-without-building") {
 				#expect(try value(after: "-parallel-testing-enabled", in: call) == "NO")
 				#expect(try value(after: "-derivedDataPath", in: call) == fixture.build)
+			}
+			if outcome.label == "failure" {
+				let proofRuns = calls.filter { $0.contains("test-without-building") }
+				#expect(proofRuns.count == 3)
+				#expect(
+					proofRuns.filter { call in
+						call.filter { $0.hasPrefix("-only-testing:") }
+							== ["-only-testing:EnduragentUITests/AlphaProof"]
+					}.count == 1)
 			}
 		}
 	}
@@ -354,7 +363,7 @@ struct SimCommandTests {
 		}
 	}
 
-	private func value(after flag: String, in call: [String]) throws -> String {
+	func value(after flag: String, in call: [String]) throws -> String {
 		let index = try #require(call.firstIndex(of: flag))
 		return call[index + 1]
 	}

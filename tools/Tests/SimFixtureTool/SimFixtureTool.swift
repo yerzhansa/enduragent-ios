@@ -93,10 +93,10 @@ struct SimFixtureTool {
 		try FileManager.default.createDirectory(atPath: bundle, withIntermediateDirectories: true)
 		let selected = arguments.filter { $0.hasPrefix("-only-testing:") }
 		let classes = selected.map { NodePath.segments($0).dropFirst().first ?? "" }
+		var distinct: [String] = []
+		for name in classes where !distinct.contains(name) { distinct.append(name) }
 		let nodes = classes.filter { $0 != environment["VERIFY_MISSING_CLASS"] }.map { name in
-			let result =
-				name == environment["VERIFY_FAIL_CLASS"]
-				? "Failed" : name == environment["VERIFY_SKIP_CLASS"] ? "Skipped" : "Passed"
+			let result = classResult(name, among: distinct)
 			return JSONValue.keyed([
 				"name": .string(name), "nodeType": .string("Test Suite"),
 				"children": .array([
@@ -116,7 +116,18 @@ struct SimFixtureTool {
 		let runs = NodePath.join(root, "proof-runs")
 		let earlier = FileManager.default.fileExists(atPath: runs) ? try read(runs) : ""
 		try write("\(earlier)\(shown) \(selected.joined(separator: " "))\n", to: runs)
-		return environment["VERIFY_FAIL_CLASS"].map(classes.contains) ?? false ? 65 : 0
+		return classes.contains(where: { classResult($0, among: distinct) == "Failed" }) ? 65 : 0
+	}
+
+	private func classResult(_ name: String, among classes: [String]) -> String {
+		if named("VERIFY_FAIL_CLASS").contains(name) { return "Failed" }
+		if classes.count > 1, environment["VERIFY_BUSY_CLASS"] == name { return "Failed" }
+		if environment["VERIFY_SKIP_CLASS"] == name { return "Skipped" }
+		return "Passed"
+	}
+
+	private func named(_ variable: String) -> [String] {
+		environment[variable]?.split(separator: ",").map(String.init) ?? []
 	}
 
 	private func resultTool() throws {
