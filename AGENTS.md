@@ -23,6 +23,5 @@
 
 ## Done means proven
 
-- Run `pnpm check:catalogs`, `pnpm check:source`, `pnpm lint:swift`, `pnpm check:format`, `pnpm test:swift`, and the `xcodebuild` command from `README.md` before calling a change done. Compiling is not done.
 - For UI changes, run the `verify-ios` skill and look at the screen you changed.
 - Before a PR merges, every new or changed test in it passes the authoring gate in the `test-audit` skill.

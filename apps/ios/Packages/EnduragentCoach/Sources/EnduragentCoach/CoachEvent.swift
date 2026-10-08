@@ -1,58 +1,22 @@
 import Foundation
 
-public enum CoachEvent: Sendable, Equatable {
-	case textDelta(String)
-	case toolStarted(name: String, callId: String)
-	case toolFinished(name: String, callId: String)
-	case proposalPending(PendingProposal)
-	case planCard(PlanCard)
-	case languagePicker
-	case finished
-	case failed(message: String)
-	case interrupted(text: String)
-}
+package struct ChatMessage: Sendable, Equatable {
+	package let author: Author
+	package let text: String
 
-public struct ChatMessage: Sendable, Equatable {
-	public var role: Role
-	public var text: String
-	public var civilDate: CivilDate?
-
-	public init(role: Role, text: String, civilDate: CivilDate? = nil) {
-		self.role = role
+	package init(author: Author, text: String) {
+		self.author = author
 		self.text = text
-		self.civilDate = civilDate
 	}
 
-	public enum Role: String, Sendable {
-		case user
-		case assistant
-	}
-}
-
-public enum ConfirmOutcome: Sendable, Equatable {
-	case executed(summary: String)
-	case refused(message: String)
-	case failed(message: String)
-	case expired
-	case mismatch
-	case none
-}
-
-public struct LanguagePreference: Sendable, Equatable {
-	public var ui: LanguageTag
-	public var coachReply: LanguageTag?
-
-	public init(ui: LanguageTag, coachReply: LanguageTag?) {
-		self.ui = ui
-		self.coachReply = coachReply
+	package enum Author: Sendable, Equatable {
+		case athlete(sent: Date, timeZone: IANATimeZone)
+		case coach
 	}
 }
 
 public enum ToolName: String, Sendable {
 	case calculateZones = "calculate_zones"
-	case buildPlanSkeleton = "build_plan_skeleton"
-	case assessFeasibility = "assess_feasibility"
-	case getSampleWeek = "get_sample_week"
 	case intervalsFetchAthlete = "intervals_fetch_athlete"
 	case intervalsFetchWellness = "intervals_fetch_wellness"
 	case intervalsFetchActivity = "intervals_fetch_activity"
@@ -68,17 +32,16 @@ public enum ToolName: String, Sendable {
 	case memoryWrite = "memory_write"
 	case ledgerAppend = "ledger_append"
 	case planSave = "plan_save"
-	case planLoad = "plan_load"
 }
 
-public enum GatedToolName: String, Sendable {
+package enum GatedToolName: String, Sendable {
 	case intervalsCreateWorkout = "intervals_create_workout"
 	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
 	case intervalsDeleteWorkout = "intervals_delete_workout"
 	case intervalsUpdateWorkout = "intervals_update_workout"
 	case planSave = "plan_save"
 
-	public var toolName: ToolName {
+	package var toolName: ToolName {
 		switch self {
 		case .intervalsCreateWorkout: .intervalsCreateWorkout
 		case .intervalsCreateStrengthWorkout: .intervalsCreateStrengthWorkout
@@ -88,7 +51,7 @@ public enum GatedToolName: String, Sendable {
 		}
 	}
 
-	public static let all: Set<GatedToolName> = [
+	package static let all: Set<GatedToolName> = [
 		.intervalsCreateWorkout,
 		.intervalsCreateStrengthWorkout,
 		.intervalsDeleteWorkout,
@@ -97,7 +60,7 @@ public enum GatedToolName: String, Sendable {
 	]
 }
 
-public enum ReplayUnsafeToolName: String, Sendable {
+package enum ReplayUnsafeToolName: String, Sendable {
 	case intervalsCreateWorkout = "intervals_create_workout"
 	case intervalsCreateStrengthWorkout = "intervals_create_strength_workout"
 	case intervalsDeleteWorkout = "intervals_delete_workout"

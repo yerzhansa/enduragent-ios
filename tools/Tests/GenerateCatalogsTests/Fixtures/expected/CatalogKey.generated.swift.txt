@@ -1,0 +1,15 @@
+public enum Catalog {
+	public static let appBraces = CatalogKey(rawValue: "app.braces")
+	public static let appGreeting = CatalogKey(rawValue: "app.greeting")
+	public static let appProgress = CatalogKey(rawValue: "app.progress")
+	public static let appTitle = CatalogKey(rawValue: "app.title")
+	public static let days = CatalogKey(rawValue: "days")
+	public static let daysOne = CatalogKey(rawValue: "days_one")
+	public static let daysOther = CatalogKey(rawValue: "days_other")
+	public static let orphanFew = CatalogKey(rawValue: "orphan_few")
+	public static let ridesCount = CatalogKey(rawValue: "rides.count")
+	public static let ridesCountOne = CatalogKey(rawValue: "rides.count_one")
+	public static let ridesCountOther = CatalogKey(rawValue: "rides.count_other")
+	public static let ridesEmpty = CatalogKey(rawValue: "rides.empty")
+	public static let ridesLastRideTitle = CatalogKey(rawValue: "rides.last_ride_title")
+}

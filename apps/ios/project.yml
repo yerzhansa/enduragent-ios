@@ -1,4 +1,8 @@
 name: Enduragent
+configs:
+  Debug: debug
+  Release: release
+  DebugKeychainProof: debug
 options:
   bundleIdPrefix: icu.enduragent
   deploymentTarget:
@@ -6,9 +10,13 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 settings:
-  DEVELOPMENT_TEAM: FA494ACVTF
-  CODE_SIGN_STYLE: Automatic
-  SWIFT_VERSION: "6.0"
+  base:
+    DEVELOPMENT_TEAM: FA494ACVTF
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "6.0"
+  configs:
+    DebugKeychainProof:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: $(inherited) DEBUG KEYCHAIN_DEVICE_PROOF
 packages:
   EnduragentCoach:
     path: Packages/EnduragentCoach
@@ -21,6 +29,12 @@ targets:
       - path: Enduragent
         excludes:
           - Info.plist
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/v1-upgrade
+        type: folder
+        buildPhase: resources
+      - path: Packages/EnduragentCoach/Tests/EnduragentCoachTests/Fixtures/pre-vault-5de5c782
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.app
@@ -31,6 +45,7 @@ targets:
         OPENROUTER_MODEL: deepseek/deepseek-v4.1-flash-20260910
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         INFOPLIST_KEY_CFBundleDisplayName: Enduragent
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
@@ -39,6 +54,13 @@ targets:
         DEVELOPMENT_TEAM: FA494ACVTF
         CODE_SIGN_STYLE: Automatic
         CODE_SIGN_ENTITLEMENTS: Enduragent/Enduragent.entitlements
+      configs:
+        DebugKeychainProof:
+          PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.keychainproof
+          INFOPLIST_KEY_CFBundleDisplayName: Enduragent Keychain Proof
+          CODE_SIGN_ENTITLEMENTS: Enduragent/KeychainProof.entitlements
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: $(inherited) *EnduragentCoachFixtures* v1-upgrade pre-vault-5de5c782
     info:
       path: Enduragent/Info.plist
       properties:
@@ -48,17 +70,12 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         CreditsWorkerBase: $(CREDITS_WORKER_BASE)
         OpenRouterModel: $(OPENROUTER_MODEL)
-    entitlements:
-      path: Enduragent/Enduragent.entitlements
-      properties:
-        com.apple.developer.icloud-container-identifiers:
-          - iCloud.icu.enduragent.ios
-        com.apple.developer.icloud-services:
-          - CloudKit
-        keychain-access-groups:
-          - $(AppIdentifierPrefix)icu.enduragent.app
+        BGTaskSchedulerPermittedIdentifiers:
+          - $(PRODUCT_BUNDLE_IDENTIFIER).coach.*
     dependencies:
       - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
   EnduragentTests:
     type: bundle.unit-test
     platform: iOS
@@ -77,12 +94,34 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+  EnduragentPhoneTests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: EnduragentPhoneTests
+      - path: EnduragentUITests/TutorialHarness.swift
+      - path: EnduragentUITests/TutorialOnboarding.swift
+      - path: EnduragentUITests/TutorialScrolling.swift
+      - path: Enduragent/Fixtures/FixtureArguments.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.phonetests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Enduragent
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - target: Enduragent
+      - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
   EnduragentUITests:
     type: bundle.ui-testing
     platform: iOS
     deploymentTarget: "26.0"
     sources:
       - path: EnduragentUITests
+      - path: Enduragent/Fixtures/FixtureArguments.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: icu.enduragent.ios.uitests
@@ -94,7 +133,52 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - target: Enduragent
+      - package: EnduragentCoach
+      - package: EnduragentCoach
+        product: EnduragentCoachFixtures
 schemes:
+  EnduragentKeychainProof:
+    run:
+      config: DebugKeychainProof
+    profile:
+      config: DebugKeychainProof
+    analyze:
+      config: DebugKeychainProof
+    archive:
+      config: DebugKeychainProof
+    build:
+      targets:
+        Enduragent: all
+        EnduragentPhoneTests: [test]
+    test:
+      config: DebugKeychainProof
+      environmentVariables:
+        ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
+        ENDURAGENT_DEVICE_UPDATE_CHECK: $(ENDURAGENT_DEVICE_UPDATE_CHECK)
+        ENDURAGENT_OTHER_PHONE_BUILD: $(ENDURAGENT_OTHER_PHONE_BUILD)
+        ENDURAGENT_RECONNECT_STEP: $(ENDURAGENT_RECONNECT_STEP)
+      targets:
+        - EnduragentPhoneTests
+  EnduragentPhone:
+    build:
+      targets:
+        Enduragent: all
+        EnduragentPhoneTests: [test]
+    test:
+      config: Debug
+      environmentVariables:
+        ENDURAGENT_PHONE_MESSAGE_BUDGET: $(ENDURAGENT_PHONE_MESSAGE_BUDGET)
+        ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED: $(ENDURAGENT_PHONE_CHARGES_ACKNOWLEDGED)
+        ENDURAGENT_OPENROUTER_MODEL: $(ENDURAGENT_OPENROUTER_MODEL)
+        ENDURAGENT_OPENROUTER_REVOKED: $(ENDURAGENT_OPENROUTER_REVOKED)
+        ENDURAGENT_SECOND_PHONE: $(ENDURAGENT_SECOND_PHONE)
+        ENDURAGENT_OPENROUTER_MODEL_NAME: $(ENDURAGENT_OPENROUTER_MODEL_NAME)
+        ENDURAGENT_OPENROUTER_PROVIDER: $(ENDURAGENT_OPENROUTER_PROVIDER)
+        ENDURAGENT_CHOICES_MESSAGE: $(ENDURAGENT_CHOICES_MESSAGE)
+        ENDURAGENT_CHOICES_MODEL: $(ENDURAGENT_CHOICES_MODEL)
+        ENDURAGENT_CHOICES_FRESH: $(ENDURAGENT_CHOICES_FRESH)
+      targets:
+        - EnduragentPhoneTests
   Enduragent:
     build:
       targets:

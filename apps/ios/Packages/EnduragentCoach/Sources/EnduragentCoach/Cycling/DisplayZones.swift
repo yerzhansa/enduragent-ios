@@ -1,10 +1,6 @@
 import Foundation
 
-public enum DisplayZones {
-	public static func calculate(ftpWatts: Int) throws -> [String] {
-		try table(ftpWatts: ftpWatts).map(\.value)
-	}
-
+package enum DisplayZones {
 	package struct Row: Sendable, Equatable {
 		package var label: String
 		package var value: String
@@ -30,23 +26,5 @@ public enum DisplayZones {
 			Row(label: "Z4 Threshold", value: "\(band(0.91))-\(band(1.05))W", overlaps: false),
 			Row(label: "Z5 VO2max", value: "\(band(1.06))-\(band(1.2))W", overlaps: false),
 		]
-	}
-
-	package static func json(ftpWatts: [Int]) throws -> JSONValue {
-		var object: [String: JSONValue] = [:]
-		for ftp in ftpWatts {
-			object[String(ftp)] = .array(
-				try table(ftpWatts: ftp).map { row in
-					var fields: [String: JSONValue] = [
-						"label": .string(row.label),
-						"value": .string(row.value),
-					]
-					if row.overlaps {
-						fields["overlaps"] = .bool(true)
-					}
-					return .object(fields)
-				})
-		}
-		return .object(object)
 	}
 }

@@ -1,0 +1,199 @@
+de,fr,it,nl	archive.coach	Coach	Established loanword for a sports coach in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryDetail	{{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.entryLabel	{{timestamp}} · {{turnCount}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	archive.timestamp	{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+fr	archive.turnCount_one	{{formattedCount}} message	Message is also a French noun; the count is substituted.
+fr	archive.turnCount_other	{{formattedCount}} messages	Messages is also the French plural; the count is substituted.
+fr	chat.attachment.date	Date	French noun for a calendar date; shared with English.
+da,fr	chat.attachment.distance	Distance	French and Danish noun for distance; shared with English.
+pt-BR,pt-PT	chat.attachment.hours	{{number}}h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
+pt-BR,pt-PT	chat.attachment.hoursMinutes	{{hours}}h {{minutes}}m	Uses standard cycling metric names or unit abbreviations (h, m); remaining content is substituted values and punctuation.
+da,de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.attachment.kilobytes	{{number}} KB	Uses standard cycling metric names or unit abbreviations (KB); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.attachment.kilometers	{{number}} km	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
+da,de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.attachment.megabytes	{{number}} MB	Uses standard cycling metric names or unit abbreviations (MB); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.attachment.minutes	{{number}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+es,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.date.civil	{{day}} {{month}} {{year}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de	chat.date.month.april	Apr	German abbreviated month name for April; shared spelling.
+de	chat.date.month.august	Aug	German abbreviated month name for August; shared spelling.
+de	chat.date.month.february	Feb	German abbreviated month name for Februar; shared spelling.
+de	chat.date.month.january	Jan	German abbreviated month name for Januar; shared spelling.
+de	chat.date.month.july	Jul	German abbreviated month name for Juli; shared spelling.
+de	chat.date.month.june	Jun	German abbreviated month name for Juni; shared spelling.
+de	chat.date.month.november	Nov	German abbreviated month name for November; shared spelling.
+de	chat.date.month.september	Sept	German abbreviated month name for September; shared spelling.
+da,fr,it,nl,pl,pt-BR,pt-PT	chat.menu	Menu	Established interface loanword in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.difference	{{before}} → {{after}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.eventValue	{{name}} · {{date}} · {{role}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.ftpCandidate	{{source}} · {{watts}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+da,de,fi,it,ja,ko,nb,nl,pl,sv,zh-Hans,zh-Hant	chat.planChange.ftpSource.intervalsEftp	{{provider}} eFTP	Uses standard cycling metric names or unit abbreviations (eFTP); remaining content is substituted values and punctuation.
+da,de,fi,it,ja,ko,nb,nl,pl,sv,zh-Hans,zh-Hant	chat.planChange.ftpSource.intervalsFtp	{{provider}} FTP	Uses standard cycling metric names or unit abbreviations (FTP); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.minuteDifference	{{before}} min → {{after}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.minutes	{{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.premiseLabel	{{label}} · {{source}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.renamedDifference	{{before}} → {{after}} · {{name}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planChange.watts	{{watts}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+nl	chat.planChange.week	Week {{number}}	Native Dutch noun for a week; the ordinal is substituted.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.weekdayMinutes	{{day}} · {{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.workoutOption	{{name}} · {{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.workoutPower	{{date}} · {{minutes}} min · {{watts}} W	Uses standard cycling metric names or unit abbreviations (min, W); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planChange.workoutValue	{{date}} · {{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planCreation.answerSource	{{title}} · {{source}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.planCreation.eventDate	{{name}} · {{date}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+nl	chat.planCreation.later	Later	Native Dutch adverb meaning later; shared spelling.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planCreation.workoutSummary	{{name}} · {{minutes}} min · {{guidance}}	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+fr	chat.planReference.date	Date	French noun for a calendar date; shared with English.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.planReference.minutes	{{minutes}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+de,fr	chat.planReference.phase	Phase	German and French noun for a phase; shared spelling.
+da,de,nb,nl,pl,pt-BR,sv	chat.planReference.status	Status	Established status noun in these locales; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.spend.belowAmount	<{{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+fr	chat.supportingEvent.role.important	Important	French adjective for an important event; shared spelling.
+de,nl	chat.supportingEvent.role.training	Training	Established German and Dutch loanword for training.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.supportingEvent.sourceOption	{{name}} · {{source}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.trainingContext.anchorDetail	{{source}} · {{confidence}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+es,pt-BR,pt-PT	chat.trainingContext.confidence.manual	manual	Spanish and Portuguese adjective for manual input; shared spelling.
+da,nl	chat.trainingContext.confidence.platform	platform	Native Danish and Dutch noun for a platform; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	chat.trainingContext.power	{{watts}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	chat.trainingContext.workoutDetail	{{minutes}} min · {{sport}}	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,it,nb,nl,pt-BR	chat.view.title	Chat	Established loanword for an online conversation in these locales.
+da,de,fr,it,ja,ko,nb,pl,sv,zh-Hans,zh-Hant	chat.welcomeCommand	{{command}} — {{description}}	Only substituted values and language-neutral punctuation; no English words.
+da,nl,pl	cli.setup.model	Model	Native model noun in these locales; shared spelling.
+es,pt-BR,pt-PT	cli.setup.modelHints.experimental	experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
+da,fr,nb,nl,pt-BR,pt-PT,sv	cli.setup.modelVia	{{model}} (via {{provider}})	Via is also the localized preposition in these locales; model and provider names are substituted.
+es	cli.startup.error	Error: {{msg}}	Error is also the Spanish noun for an error; the remainder is a substituted message.
+sv	cli.startup.policy	Policy: {{dmPolicy}}	Policy is an established Swedish noun for a policy; the policy name is substituted.
+da,de,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv	cli.startup.telegram	  {{telegram}}:     @{{value1}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	cli.startup.text	  {{id}}{{value1}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+fr	coach.proposal.description	description	French noun for a description; shared spelling.
+fr	desktop.tray.tag.attention	attention	French noun for attention; shared spelling.
+nl	desktop.tray.tag.conflict	conflict	Native Dutch noun for a conflict; shared spelling.
+da,de,it,nl,pl,pt-BR,pt-PT,sv	desktop.tray.tag.online	online	Established connectivity loanword in these locales.
+fr	onboarding.connect.fatigue	Fatigue {{value}}	Fatigue is the French training term; the numeric value is substituted.
+de	onboarding.connect.fitness	Fitness {{value}}	Fitness is an established German training loanword; the numeric value is substituted.
+da,de,nb,sv	onboarding.connect.form	Form {{value}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.library.closedSummary	{{span}} · {{reason}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+nl	plan.library.weekCount_one	{{weeks}} week	Week is the native Dutch singular noun; the count is substituted.
+de,fr,it,nl	plan.view.active.coach	Coach	Established loanword for a sports coach in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.active.ftpSummary	 · FTP {{value1}} W	Uses standard cycling metric names or unit abbreviations (FTP, W); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.active.powerRange	{{value1}}–{{value2}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+fr	plan.view.active.source	Source	French noun for a source; shared spelling.
+da,de,nb,nl,pl,pt-BR,sv	plan.view.active.status	Status	Established status noun in these locales; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	plan.view.courseSummary.summary	{{distance}} km · {{elevation}}	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
+es,fr,it,nb,nl,pl,pt-PT,sv	plan.view.date.dayMonth	{{day}} {{month}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hant	plan.view.date.shortWeekdayDate	{{weekday}} {{date}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,it,nb,nl,pl,pt-BR,pt-PT,sv	plan.view.date.weekdayDate	{{weekday}}, {{date}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+es,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	plan.view.date.weekdayDay	{{weekday}} {{day}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.decimalHours.hours	{{value1}} h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
+nl	plan.view.draft.weeks_one	{{weeks}} week	Week is the native Dutch singular noun; the count is substituted.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.duration.clock	{{major}}:{{minor}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+es,fr,pt-BR,pt-PT	plan.view.ended.total	Total	French, Spanish and Portuguese total label; shared spelling.
+de,nl	plan.view.ended.training	Training	Established German and Dutch loanword for training.
+de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.finishRange.hoursMinutes	{{hours}} h {{value2}}	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.ftpSource.sourceSummary	{{value1}} W · {{refreshed}}	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+it,nl,pt-BR,pt-PT,sv	plan.view.labels.extra	Extra	Established adjective for an extra item in these locales; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.planCoach.ftpLabel	FTP	Uses standard cycling metric names or unit abbreviations (FTP); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	plan.view.planCoach.ftpSummary	{{value1}} W{{value2}}	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+da,de,es,fr,nb,nl,pl,sv	plan.view.planView.plan	Plan	Native noun or established loanword for a plan in these locales.
+de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hours	{{hours}} h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
+de,es,fi,fr,it,pt-BR,pt-PT,sv	plan.view.plannedTime.hoursMinutes	{{hours}} h {{minutes}} min	Uses standard cycling metric names or unit abbreviations (h, min); remaining content is substituted values and punctuation.
+fr	plan.view.planningRequestDateConflict.date	Date	French noun for a calendar date; shared with English.
+da,de,nb,sv	plan.view.readiness.currentForm	Form {{value1}}	Form is the native training-readiness term in these locales; the numeric value is substituted.
+es,pt-BR,pt-PT	plan.view.readiness.experimental	Experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
+fr	plan.view.season.dates	Dates	French plural of date; shared with English.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	plan.view.season.distance	 · {{value1}} km	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
+de,fr	plan.view.season.phase	Phase	German and French noun for a phase; shared spelling.
+nl	plan.view.season.week	Week	Native Dutch noun for a week; shared spelling.
+nl	plan.view.season.weekNumber	Wk {{value1}}	Wk is the conventional Dutch abbreviation of week; the ordinal is substituted.
+de	review.workout.cooldown	Cooldown	Established German training loanword for the easy closing portion of a workout.
+da,de,nb,pl,sv	settings.appearance.system	System	Native system noun in these locales; shared spelling.
+fr	settings.application.danger	Danger	French noun for danger; the localized spelling matches English.
+fr	settings.application.title	Application	French noun for an application; the localized spelling matches English.
+da,de,fr,sv	settings.application.version	Version {{version}}	Version is the localized noun in these locales; the version number is substituted.
+it,pt-BR,pt-PT	settings.coach.endpoint	Endpoint	Established technical loanword for a model API endpoint in Italian and Portuguese.
+da,nl,pl	settings.coach.model	Model	Native model noun in these locales; shared spelling.
+de,fr,it,nl	settings.coach.title	Coach	Established loanword for a sports coach in these locales.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	settings.conversation.fieldSuffix	 ({{suffix}})	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+fr	settings.conversation.fields.idleMinutes.suffix	minutes	French plural of minute; shared spelling.
+fr	settings.credentials.runtime.active	Active	French feminine adjective for an active credential; the localized spelling matches English.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.credentials.summary	{{kind}} · {{state}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+fr,it	settings.palette.title	Palette	French noun and Italian loanword for a color palette; shared spelling.
+da,fr,sv	settings.session.title	Session	Native Danish, French and Swedish noun for a session; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.session.units.percent	%	Only the language-neutral percent sign; no English words.
+da,es,nl,pt-BR,pt-PT	settings.session.units.tokens	tokens	Established loanword plural for model tokens, as in each language's other token strings.
+da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amount	${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountAgainstCap	{{known}} / {{cap}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,es,fi,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.amountBelow	<${{amount}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.spend.minimumAmount	{{amount}}+	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de	settings.spend.month.april	Apr	German abbreviated month name for April; shared spelling.
+de	settings.spend.month.august	Aug	German abbreviated month name for August; shared spelling.
+de	settings.spend.month.february	Feb	German abbreviated month name for Februar; shared spelling.
+de	settings.spend.month.january	Jan	German abbreviated month name for Januar; shared spelling.
+de	settings.spend.month.july	Jul	German abbreviated month name for Juli; shared spelling.
+de	settings.spend.month.june	Jun	German abbreviated month name for Juni; shared spelling.
+de	settings.spend.month.november	Nov	German abbreviated month name for November; shared spelling.
+de	settings.spend.month.september	Sep	German abbreviated month name for September; shared spelling.
+da,de,it,nl,pl,pt-BR,pt-PT,sv	settings.telegram.channel.online	Online	Established connectivity loanword in these locales.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	settings.training.title	intervals.icu	Service name is unchanged in every language.
+da,de,es,pt-BR,pt-PT	settings.units.imperial	Imperial	Established unit-system label in these locales; shared spelling.
+it,pt-BR,pt-PT	setup.ai.endpoint.title	Endpoint	Established technical loanword for a model API endpoint in Italian and Portuguese.
+da,nl,pl	setup.ai.model	Model	Native model noun in these locales; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	setup.ai.modelHint	{{model}} · {{hint}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+es,pt-BR,pt-PT	setup.ai.modelHints.experimental	experimental	Spanish and Portuguese adjective for an experimental feature; shared spelling.
+da,fr,nb,nl,pt-BR,pt-PT,sv	setup.ai.modelVia	{{model}} (via {{provider}})	Via is also the localized preposition in these locales; model and provider names are substituted.
+de	setup.telegram.optional	Optional	German adjective for an optional step; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.ariaLabel	{{action}} · {{headline}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.ariaLabelDetail	{{action}} · {{headline}} · {{detail}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.message.external	{{message}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	sidebar.sync.timestamp	{{year}}-{{month}}-{{day}} {{hour}}:{{minute}}:{{second}} {{timezone}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,it,nb,nl,pt-BR	sidebar.views.chat	Chat	Established loanword for an online conversation in these locales.
+da,de,es,fr,nb,nl,pl,sv	sidebar.views.plan	Plan	Native noun or established loanword for a plan in these locales.
+de,nl	sidebar.views.training	Training	Established German and Dutch loanword for training.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	telegram.sync.elapsed	{{timestamp}} ({{elapsed}})	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de,fi,fr,it,ja,ko,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.power.bpm	{{value}} bpm	Uses standard cycling metric names or unit abbreviations (bpm); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	training.power.changeLabel	{{direction}}, {{value}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	training.power.durationMinutes	{{value}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+nl	training.power.durationSeconds	{{value}} sec	Uses standard cycling metric names or unit abbreviations (sec); remaining content is substituted values and punctuation.
+fr	training.power.effort	Effort	French training noun for an effort; shared with English.
+de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.power.percent	{{value}}%	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	training.power.refreshNoticeEnd	.	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.power.watts	{{value}} W	Uses standard cycling metric names or unit abbreviations (W); remaining content is substituted values and punctuation.
+fr	training.response.cadence	Cadence	French cycling term for pedaling cadence; shared with English.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.response.fitQualityValue	R² {{value}}	R-squared is the language-neutral statistical notation for the coefficient of determination.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.response.measurement	{{value}} {{unit}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	training.response.minutes	{{value}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.response.percent	{{value}}%	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.response.range	{{lower}}–{{upper}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+nl	training.response.seconds	{{value}} sec	Uses standard cycling metric names or unit abbreviations (sec); remaining content is substituted values and punctuation.
+da,fr,nb,nl,sv	training.response.segment	Segment	Native segment noun or established training term in these locales; shared spelling.
+fr	training.ride.cadence	Cadence	French cycling term for pedaling cadence; shared with English.
+fr	training.ride.date	Date	French noun for a calendar date; shared with English.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.ride.dateTime	{{date}} · {{time}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.ride.decimalUnit	{{value}}{{unit}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,fr	training.ride.distance	Distance	French and Danish noun for distance; shared with English.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv	training.ride.durationMinutes	{{value}} min	Uses standard cycling metric names or unit abbreviations (min); remaining content is substituted values and punctuation.
+da,de,es,fi,it,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hant	training.ride.effortRank	#{{value}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,fr,nb,nl,sv	training.ride.groupSegments_one	Segment {{values}}	Native segment noun or established training term in these locales; values are substituted.
+fr	training.ride.groupSegments_other	Segments {{values}}	French plural of segment; values are substituted.
+de,fi,fr,it,ja,ko,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.ride.halfStats	{{watts}} W · {{heartRate}} bpm	Uses standard cycling metric names or unit abbreviations (W, bpm); remaining content is substituted values and punctuation.
+da,nl	training.ride.intervalOrdinal	Interval {{value}}	Interval is the Danish and Dutch training term; the ordinal is substituted.
+da,fr,nb,nl,sv	training.ride.intervalSegment	Segment	Native segment noun or established training term in these locales; shared spelling.
+de,fi,fr	training.ride.kindCyclocrossShort	Cyclocross	International name of the cycling discipline, used unchanged in these locales.
+da,de,it,nl,pt-BR,pt-PT,sv	training.ride.kindDownhillShort	Downhill	Established cycling discipline loanword in these locales.
+da,de,es,fi,fr,it,nl,pl,pt-BR,pt-PT	training.ride.kindGravelShort	Gravel	Established international loanword for the cycling discipline in these locales.
+de,it	training.ride.kindIndoorShort	Indoor	Established German and Italian cycling loanword for indoor activity.
+it,pt-BR	training.ride.kindMountainShort	Mountain bike	Established Italian and Brazilian Portuguese loanword for the cycling discipline.
+es,pt-BR,pt-PT	training.ride.kindVirtualShort	Virtual	Spanish and Portuguese adjective for virtual activity; shared spelling.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.ride.measurement	{{value}} {{unit}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.ride.percent	{{value}}%	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+it,sv	training.ride.sensorMaximum	{{value}} max {{unit}}	Uses standard cycling metric names or unit abbreviations (max); remaining content is substituted values and punctuation.
+da,de,fr,nl	training.ride.zone	Zone	Native zone noun or established training term in these locales; shared spelling.
+da,de,fr,nl	training.ride.zoneValue	Zone {{value}}	Native zone noun or established training term in these locales; the zone number is substituted.
+da,de,es,fi,fr,it,ko,nb,nl,pl,pt-BR,pt-PT,sv	training.view.announcement	{{period}}. {{notice}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+pt-BR,pt-PT	training.view.format.hours	{{value}}h	Uses standard cycling metric names or unit abbreviations (h); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	training.view.format.kilometers	{{value}} km	Uses standard cycling metric names or unit abbreviations (km); remaining content is substituted values and punctuation.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans	training.view.format.miles	{{value}} mi	Uses standard cycling metric names or unit abbreviations (mi); remaining content is substituted values and punctuation.
+nl	training.view.format.minutes	{{value}}m	Uses standard cycling metric names or unit abbreviations (m); remaining content is substituted values and punctuation.
+de,es,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.view.format.percentage	{{value}}%	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+da,de,es,fi,fr,it,ja,ko,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.view.rideMeta	{{kind}} · {{distance}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.
+de,nl	training.view.title	Training	Established German and Dutch loanword for training.
+nl	training.view.week	Week	Native Dutch noun for a week; shared spelling.
+da,de,es,fi,fr,it,nb,nl,pl,pt-BR,pt-PT,sv,zh-Hans,zh-Hant	training.view.weekRange	{{start}}–{{end}}	Only substituted values and language-neutral punctuation or numeric notation; no English words.

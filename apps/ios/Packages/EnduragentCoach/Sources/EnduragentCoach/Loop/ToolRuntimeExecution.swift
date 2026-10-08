@@ -4,29 +4,18 @@ extension ToolRuntime {
 	func executeGated(
 		_ gated: GatedToolName,
 		arguments: JSONValue,
-		chatId: ChatID
+		chatId: ChatID,
+		scope: TurnScope
 	) async throws -> ToolOutcome {
-		if gated == .planSave {
-			return .result(
-				UntrustedEnvelope.wrap(
-					.object([
-						"error": .string("not_implemented"),
-						"details": .string("Saving a plan is not available yet."),
-					])
-				)
-			)
-		}
 		do {
 			let parsed = try parseGated(gated, arguments: arguments)
-			let proposal = try await ProposalPolicy.propose(
+			let proposal = try await reviews.propose(
 				chatId: chatId,
 				tool: gated,
 				input: parsed.input,
 				summary: parsed.summary,
 				description: parsed.description,
-				now: clock.now,
-				store: store,
-				clock: clock
+				scope: scope
 			)
 			return .pending(proposal)
 		} catch let error as IntervalsError {
@@ -43,7 +32,7 @@ extension ToolRuntime {
 		}
 	}
 
-	func parseGated(
+	private func parseGated(
 		_ gated: GatedToolName,
 		arguments: JSONValue
 	) throws -> (input: GatedToolInput, summary: String, description: String) {
@@ -75,22 +64,21 @@ extension ToolRuntime {
 		}
 	}
 
-	static let activityIDDescription =
-		"Activity ID from intervals_fetch_activities — a positive integer or digit string, optionally i-prefixed for intervals-native activities, or a lowercase 64-hex canonical ID. Pass exactly as listed."
-
 	func memory() -> Memory {
-		Memory(store: store, clock: clock)
+		Memory(ledger: ledger, clock: clock)
 	}
 
-	func executeMemoryRead() async throws -> ToolOutcome {
-		let text = try await memory().complementContext()
+	func executeMemoryRead(for account: TrainingAccount) async throws -> ToolExecution {
+		let text = try await memory().complementContext(for: account)
 		if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
 			return .result(.string("Every stored section is already in your Athlete Context."))
 		}
 		return .result(.string(text))
 	}
 
-	func executeMemoryQuery(_ arguments: JSONValue) async throws -> ToolOutcome {
+	func executeMemoryQuery(_ arguments: JSONValue, for account: TrainingAccount) async throws
+		-> ToolExecution
+	{
 		let fields = arguments.objectFields
 		let fromRaw = fields["from"]?.stringValue ?? ""
 		let toRaw = fields["to"]?.stringValue ?? ""
@@ -103,79 +91,14 @@ extension ToolRuntime {
 			)
 		}
 		do {
-			let hits = try await memory().query(from: from, to: to, contains: query)
+			let hits = try await memory().query(from: from, to: to, contains: query, for: account)
 			return .result(.string(MemoryQuery.render(hits, from: from, to: to, query: query)))
 		} catch let failure as MemoryQueryFailure {
 			return .result(.string(failure.message))
 		}
 	}
 
-	func executeMemoryWrite(_ arguments: JSONValue) async throws -> ToolOutcome {
-		let fields = arguments.objectFields
-		let type = fields["type"]?.stringValue
-		let content = fields["content"]?.stringValue ?? ""
-		if type == "memory" {
-			guard let section = fields["section"]?.stringValue else {
-				return .result(
-					.object([
-						"details": .string(
-							"type='memory' requires a section. Pick one of the listed sections, or use type='daily' for free-form notes."
-						),
-						"error": .string("section_required"),
-					])
-				)
-			}
-			let allowed = Set(
-				SectionName.cyclingEffective.map(\.rawValue)
-					+ (try await memory().view()).orphanNames)
-			if !allowed.contains(section) {
-				return .result(
-					.object([
-						"details": .string("Unknown memory section."),
-						"error": .string("unknown_section"),
-					])
-				)
-			}
-			try await memory().writeSection(
-				SectionName(rawValue: section), content: content, source: .chat)
-			return .result(.object(["saved": .bool(true)]))
-		}
-		try await memory().appendDailyNote(content)
-		return .result(.object(["saved": .bool(true)]))
-	}
-
-	func executeLedgerAppend(_ arguments: JSONValue) async throws -> ToolOutcome {
-		let fields = arguments.objectFields
-		guard
-			let dateRaw = fields["date"]?.stringValue,
-			let date = CivilDate(rawValue: dateRaw),
-			let kindRaw = fields["kind"]?.stringValue,
-			let kind = LedgerKind(rawValue: kindRaw),
-			let text = fields["text"]?.stringValue,
-			!text.isEmpty
-		else {
-			let dateRaw = fields["date"]?.stringValue ?? ""
-			return .result(
-				.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
-		}
-		let recorded = try await memory().appendEvent(
-			date: date, kind: kind, text: text, source: .chat)
-		if recorded {
-			return .result(.object(["recorded": .bool(true)]))
-		}
-		return .result(.object(["duplicate": .bool(true), "recorded": .bool(false)]))
-	}
-
-	func shouldOfferMemoryRead(_ view: MemoryView) -> Bool {
-		for name in SectionName.cyclingEffective where !name.inject {
-			if let content = view.sections[name.rawValue], memorySectionHasLogicalContent(content) {
-				return true
-			}
-		}
-		return false
-	}
-
-	func executeCalculateZones(_ arguments: JSONValue) throws -> ToolOutcome {
+	func executeCalculateZones(_ arguments: JSONValue) throws -> ToolExecution {
 		guard let ftp = arguments.objectFields["ftpWatts"]?.intValue() else {
 			throw IntervalsError(code: "invalid_ftp", details: "ftpWatts is required.")
 		}
@@ -204,7 +127,12 @@ extension ToolRuntime {
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
 			return (oldest, newest)
 		}
-		if let days = fields["days"]?.intValue(), days >= 1 {
+		if let value = fields["days"] {
+			guard let days = value.intValue(), days >= 1 else {
+				throw IntervalsError(
+					code: "invalid_input", details: "days must be a positive integer.")
+			}
+			try IntervalsPolicy.rejectListDayCount(days)
 			let newest = today
 			let oldest = today.adding(days: -(days - 1))
 			try IntervalsPolicy.rejectListRange(oldest: oldest, newest: newest)
@@ -216,7 +144,7 @@ extension ToolRuntime {
 		)
 	}
 
-	func optionalDate(_ value: JSONValue?, label: String) throws -> CivilDate? {
+	private func optionalDate(_ value: JSONValue?, label: String) throws -> CivilDate? {
 		guard let value else { return nil }
 		guard let raw = value.stringValue else {
 			throw IntervalsError(
@@ -292,56 +220,6 @@ extension ToolRuntime {
 		}
 		if let uid = event.uid {
 			fields["uid"] = .string(uid)
-		}
-		return .object(fields)
-	}
-
-	func objectSchema(properties: [String: JSONValue], required: [String]) -> JSONValue {
-		var fields: [String: JSONValue] = [
-			"type": .string("object"),
-			"properties": .object(properties),
-		]
-		if !required.isEmpty {
-			fields["required"] = .array(required.map { .string($0) })
-		}
-		return .object(fields)
-	}
-
-	func stringProperty(_ description: String) -> JSONValue {
-		.object([
-			"type": .string("string"),
-			"description": .string(description),
-		])
-	}
-
-	func uniqueStrings(_ values: [String]) -> [String] {
-		var seen: Set<String> = []
-		var unique: [String] = []
-		for value in values where seen.insert(value).inserted {
-			unique.append(value)
-		}
-		return unique
-	}
-
-	func memorySectionHasLogicalContent(_ stamped: String) -> Bool {
-		guard let newline = stamped.firstIndex(of: "\n") else { return false }
-		return !stamped[stamped.index(after: newline)...]
-			.trimmingCharacters(in: .whitespacesAndNewlines)
-			.isEmpty
-	}
-
-	func integerProperty(_ description: String, minimum: Int? = nil, maximum: Int? = nil)
-		-> JSONValue
-	{
-		var fields: [String: JSONValue] = [
-			"type": .string("integer"),
-			"description": .string(description),
-		]
-		if let minimum {
-			fields["minimum"] = .number(Double(minimum))
-		}
-		if let maximum {
-			fields["maximum"] = .number(Double(maximum))
 		}
 		return .object(fields)
 	}

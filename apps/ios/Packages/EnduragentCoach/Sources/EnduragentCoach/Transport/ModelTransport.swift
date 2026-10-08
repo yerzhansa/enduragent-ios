@@ -1,45 +1,87 @@
 import Foundation
 
-public struct CompletionRequest: Sendable, Equatable {
-	public static var openRouterModel: String {
-		if let value = Bundle.main.object(forInfoDictionaryKey: "OpenRouterModel") as? String,
-			!value.isEmpty
-		{
-			return value
-		}
-		return "deepseek/deepseek-v4.1-flash-20260910"
+package struct ProviderCredential: Sendable, Equatable, CustomStringConvertible,
+	CustomDebugStringConvertible, CustomReflectable
+{
+	package let secret: String
+	package let method: AccessMethod
+	package let openRouterReference: OpenRouterCredentialRef?
+
+	package init(
+		secret: String, method: AccessMethod, openRouterReference: OpenRouterCredentialRef? = nil
+	) {
+		self.secret = secret
+		self.method = method
+		self.openRouterReference =
+			method == .openRouterAccount ? openRouterReference ?? .legacy : nil
 	}
 
-	public var model: String
-	public var messages: [WireMessage]
-	public var tools: [ToolSchema]
-	public var stream: Bool
-	public var includeUsage: Bool
-	public var deadline: Duration
+	package var description: String { "ProviderCredential(redacted)" }
+	package var debugDescription: String { description }
+	package var customMirror: Mirror { Mirror(self, children: ["method": method]) }
+}
 
-	public static func openRouter(
+package struct ResolvedAccess: Sendable, Equatable {
+	package let credential: ProviderCredential
+	package let model: ModelID
+	package let provider: NamedProvider?
+
+	package init(credential: ProviderCredential, model: ModelID, provider: NamedProvider? = nil) {
+		self.credential = credential
+		self.model = model
+		self.provider = provider
+	}
+
+	package var method: AccessMethod { credential.method }
+}
+
+package enum GenerateCharge: Sendable, Equatable {
+	case chatAttempt
+	case stepRecovery
+	case compaction
+	case droppedSummary
+	case memoryFlush
+}
+
+package struct CompletionRequest: Sendable, Equatable {
+	package let credential: ProviderCredential
+	package let model: ModelID
+	package let provider: NamedProvider?
+	package let attempt: AttemptID
+	package let origin: AttemptOrigin?
+	package let charge: GenerateCharge
+	package let messages: [WireMessage]
+	package let tools: [ToolSchema]
+	package let deadline: Duration
+
+	package init(
+		access: ResolvedAccess,
+		attempt: AttemptID,
+		origin: AttemptOrigin? = nil,
+		charge: GenerateCharge,
 		messages: [WireMessage],
 		tools: [ToolSchema],
 		deadline: Duration
-	) -> CompletionRequest {
-		CompletionRequest(
-			model: Self.openRouterModel,
-			messages: messages,
-			tools: tools,
-			stream: true,
-			includeUsage: true,
-			deadline: deadline
-		)
+	) {
+		self.credential = access.credential
+		self.model = access.model
+		self.provider = access.provider
+		self.attempt = attempt
+		self.origin = origin
+		self.charge = charge
+		self.messages = messages
+		self.tools = tools
+		self.deadline = deadline
 	}
 }
 
-public struct WireMessage: Sendable, Equatable {
-	public var role: Role
-	public var content: String
-	public var toolCalls: [WireToolCall]
-	public var toolCallId: String?
+package struct WireMessage: Sendable, Equatable {
+	package var role: Role
+	package var content: String
+	package var toolCalls: [WireToolCall]
+	package var toolCallId: String?
 
-	public enum Role: String, Sendable {
+	package enum Role: String, Sendable {
 		case system
 		case user
 		case assistant
@@ -47,124 +89,73 @@ public struct WireMessage: Sendable, Equatable {
 	}
 }
 
-public struct WireToolCall: Sendable, Equatable {
-	public var id: String
-	public var name: ToolName
-	public var arguments: String
+package struct WireToolCall: Sendable, Equatable {
+	package var id: String
+	package var name: String
+	package var arguments: String
+
+	package init(id: String, name: String, arguments: String) {
+		self.id = id
+		self.name = name
+		self.arguments = arguments
+	}
+
+	package func parseArguments() throws(DecodingError) -> JSONValue {
+		try JSONValue.parse(arguments.isEmpty ? "{}" : arguments)
+	}
 }
 
-public enum TransportEvent: Sendable, Equatable {
+package enum TransportEvent: Sendable, Equatable {
 	case textDelta(String)
 	case toolCall(WireToolCall)
 	case heartbeat
 	case finished(reason: FinishReason, usage: Usage)
 }
 
-public enum FinishReason: String, Sendable {
-	case stop
-	case toolCalls = "tool-calls"
-	case length
-	case contentFilter = "content_filter"
-	case error
+package struct Usage: Sendable, Equatable {
+	package var inputTokens: Int
+	package var outputTokens: Int
+	package var cost: Double?
+
+	package init(inputTokens: Int, outputTokens: Int, cost: Double?) {
+		self.inputTokens = inputTokens
+		self.outputTokens = outputTokens
+		self.cost = cost
+	}
 }
 
-public struct Usage: Sendable, Equatable {
-	public var inputTokens: Int
-	public var outputTokens: Int
-	public var cost: Double?
-}
-
-public protocol ModelTransport: Sendable {
+package protocol ModelTransport: Sendable {
 	func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
 }
 
-public struct ProviderAuthError: Error, Equatable, Sendable {
-	public var statusCode: Int
-	public var body: String
-
-	public init(statusCode: Int, body: String) {
-		self.statusCode = statusCode
-		self.body = body
-	}
-}
-
-public struct UnknownFinishReasonError: Error, Equatable, Sendable {
-	public var reason: String
-
-	public init(reason: String) {
-		self.reason = reason
-	}
-}
-
-public struct OpenRouterHTTPError: Error, Equatable, Sendable {
-	public var statusCode: Int
-	public var body: String
-
-	public init(statusCode: Int, body: String) {
-		self.statusCode = statusCode
-		self.body = body
-	}
-}
-
-public struct OpenRouterTransport: ModelTransport {
-	private let apiKey: String
+package struct OpenRouterTransport: ModelTransport {
 	private let baseURL: URL
+	private let diagnostics: DiagnosticsLog
 	private let makeSession: @Sendable (TimeInterval) -> URLSession
 
-	public static let apiBase: URL = {
-		guard let url = URL(string: "https://openrouter.ai/api/v1") else {
-			fatalError("https://openrouter.ai/api/v1 is invalid")
-		}
-		return url
-	}()
-
-	public init(apiKey: String, baseURL: URL = OpenRouterTransport.apiBase) {
-		self.init(apiKey: apiKey, baseURL: baseURL, makeSession: Self.makeDefaultSession)
-	}
-
 	package init(
-		apiKey: String,
-		baseURL: URL = OpenRouterTransport.apiBase,
-		makeSession: @escaping @Sendable (TimeInterval) -> URLSession
+		baseURL: URL,
+		diagnostics: DiagnosticsLog,
+		makeSession: @escaping @Sendable (TimeInterval) -> URLSession = {
+			ephemeralSession(requestTimeout: $0)
+		}
 	) {
-		self.apiKey = apiKey
 		self.baseURL = baseURL
+		self.diagnostics = diagnostics
 		self.makeSession = makeSession
 	}
 
-	public func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error> {
+	package func stream(_ request: CompletionRequest) -> AsyncThrowingStream<TransportEvent, Error>
+	{
 		AsyncThrowingStream { continuation in
 			let task = Task {
-				let session = makeSession(OpenRouterHTTP.timeInterval(from: request.deadline))
-				defer { session.finishTasksAndInvalidate() }
 				do {
-					let urlRequest = try OpenRouterHTTP.urlRequest(
-						apiKey: apiKey,
-						baseURL: baseURL,
-						request: request
-					)
-					let (bytes, response) = try await session.bytes(for: urlRequest)
-					guard let http = response as? HTTPURLResponse else {
-						throw URLError(.badServerResponse)
-					}
-					if http.statusCode == 401 {
-						throw ProviderAuthError(
-							statusCode: 401,
-							body: try await OpenRouterHTTP.utf8String(from: bytes)
-						)
-					}
-					if http.statusCode != 200 {
-						throw OpenRouterHTTPError(
-							statusCode: http.statusCode,
-							body: try await OpenRouterHTTP.utf8String(from: bytes)
-						)
-					}
-					try await OpenRouterSSEParser.parse(lines: bytes.lines) { event in
+					try await exchange(request) { event in
 						continuation.yield(event)
 					}
 					continuation.finish()
 				} catch {
-					continuation.finish(throwing: error)
+					continuation.finish(throwing: settle(error, of: request))
 				}
 			}
 			continuation.onTermination = { _ in
@@ -173,51 +164,120 @@ public struct OpenRouterTransport: ModelTransport {
 		}
 	}
 
-	private static let makeDefaultSession: @Sendable (TimeInterval) -> URLSession = { timeout in
-		let configuration = URLSessionConfiguration.ephemeral
-		configuration.timeoutIntervalForRequest = timeout
-		return URLSession(configuration: configuration)
+	private func exchange(
+		_ request: CompletionRequest,
+		yield: @escaping @Sendable (TransportEvent) -> Void
+	) async throws {
+		let session = makeSession(request.deadline.timeInterval)
+		defer { session.finishTasksAndInvalidate() }
+		let urlRequest: URLRequest
+		do {
+			urlRequest = try OpenRouterHTTP.urlRequest(baseURL: baseURL, request: request)
+		} catch {
+			throw ExchangeFault.unencodable(String(describing: error))
+		}
+		let (bytes, response) = try await session.bytes(for: urlRequest)
+		guard let http = response as? HTTPURLResponse else {
+			throw ProviderFailure.malformedStream
+		}
+		guard (200..<300).contains(http.statusCode) else {
+			throw ExchangeFault.rejected(
+				status: http.statusCode,
+				headers: OpenRouterHTTP.headers(of: http),
+				body: try await OpenRouterHTTP.errorBody(from: bytes)
+			)
+		}
+		try await OpenRouterSSEParser.parse(bytes: bytes, yield: yield)
+	}
+
+	private func settle(_ error: any Error, of request: CompletionRequest) -> any Error {
+		let failure: ProviderFailure
+		let detail: String
+		switch error {
+		case is CancellationError:
+			return CancellationError()
+		case let urlError as URLError where urlError.code == .cancelled:
+			return CancellationError()
+		case ExchangeFault.rejected(let status, let headers, let body):
+			failure = ProviderFailure(status: status, headers: headers, body: body)
+			detail = "HTTP \(status): \(body)"
+		case ExchangeFault.unencodable(let reason):
+			failure = .invalidRequest
+			detail = reason
+		case let urlError as URLError:
+			failure = ProviderFailure(urlError)
+			detail = "URLError \(urlError.code.rawValue)"
+		case let parsed as ProviderFailure:
+			failure = parsed
+			detail = ""
+		default:
+			failure = .network
+			detail = String(describing: error)
+		}
+		diagnostics.record(
+			.providerFailure(request.attempt, failure, detail: detail),
+			redacting: [request.credential.secret]
+		)
+		return failure
 	}
 }
 
-public enum OpenRouterHTTP {
-	public static func body(for request: CompletionRequest) -> JSONValue {
+private enum ExchangeFault: Error {
+	case unencodable(String)
+	case rejected(status: Int, headers: [String: String], body: String)
+}
+
+package enum OpenRouterHTTP {
+	package static func body(for request: CompletionRequest) -> JSONValue {
 		var object: [String: JSONValue] = [
-			"model": .string(request.model),
+			"model": .string(request.model.rawValue),
 			"messages": .array(request.messages.map(encode(message:))),
-			"stream": .bool(request.stream),
-			"usage": .object(["include": .bool(request.includeUsage)]),
+			"stream": .bool(true),
+			"usage": .object(["include": .bool(true)]),
 		]
 		if !request.tools.isEmpty {
 			object["tools"] = .array(request.tools.map(encode(tool:)))
 			object["tool_choice"] = .string("auto")
 		}
+		if let provider = request.provider {
+			object["provider"] = .object([
+				"only": .array([.string(provider.routingSlug)]),
+				"allow_fallbacks": .bool(false),
+			])
+		}
 		return .object(object)
 	}
 
-	package static func urlRequest(
-		apiKey: String,
-		baseURL: URL,
-		request: CompletionRequest
-	) throws -> URLRequest {
+	package static func urlRequest(baseURL: URL, request: CompletionRequest) throws -> URLRequest {
 		var urlRequest = URLRequest(url: baseURL.appending(path: "chat/completions"))
 		urlRequest.httpMethod = "POST"
-		urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+		urlRequest.setValue(
+			"Bearer \(request.credential.secret)", forHTTPHeaderField: "Authorization")
 		urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
 		urlRequest.httpBody = try OpenRouterJSON.data(from: body(for: request))
 		return urlRequest
 	}
 
-	package static func timeInterval(from duration: Duration) -> TimeInterval {
-		let components = duration.components
-		return TimeInterval(components.seconds)
-			+ TimeInterval(components.attoseconds) / 1_000_000_000_000_000_000
+	package static func headers(of response: HTTPURLResponse) -> [String: String] {
+		var headers: [String: String] = [:]
+		for (key, value) in response.allHeaderFields {
+			if let name = key.base as? String, let text = value as? String {
+				headers[name] = text
+			}
+		}
+		return headers
 	}
 
-	package static func utf8String(from bytes: URLSession.AsyncBytes) async throws -> String {
+	package static let errorBodyLimit = 16_384
+
+	package static func errorBody<Bytes: AsyncSequence>(from bytes: Bytes) async throws -> String
+	where Bytes.Element == UInt8 {
 		var data = Data()
 		for try await byte in bytes {
 			data.append(byte)
+			if data.count >= errorBodyLimit {
+				break
+			}
 		}
 		return String(decoding: data, as: UTF8.self)
 	}
@@ -241,7 +301,7 @@ public enum OpenRouterHTTP {
 			"id": .string(toolCall.id),
 			"type": .string("function"),
 			"function": .object([
-				"name": .string(toolCall.name.rawValue),
+				"name": .string(toolCall.name),
 				"arguments": .string(toolCall.arguments),
 			]),
 		])

@@ -1,71 +1,52 @@
 import Foundation
 
-public enum ZoneMidpoints {
-	public static let values: [Int: Double] = [
+package enum ZoneMidpoints {
+	package static let values: [Int: Double] = [
 		1: 0.45, 2: 0.65, 3: 0.83, 4: 0.98, 5: 1.13, 6: 1.355, 7: 1.6,
 	]
 }
 
-public enum IntervalsSerializer {
-	public static let maxWatts = 1500
-	public static let maxPercentFtp = 200
-	public static let maxSteps = 40
-	public static let maxRepeat = 20
+package enum IntervalsSerializer {
+	package static let maxWatts = 1500
+	package static let maxDurationSeconds = 24 * 60 * 60
+	package static let maxPercentFtp = 200
+	package static let maxSteps = 40
+	package static let maxRepeat = 20
 	private static let maxZone = 7
 	private static let minZone = 1
 	private static let maxName = 120
 
-	public static func serialize(_ workout: IntervalsWorkoutInput) throws -> SerializedWorkout {
+	package static func serialize(_ workout: IntervalsWorkoutInput) throws -> SerializedWorkout {
+		try validate(workout)
+		return SerializedWorkout(
+			description: description(workout).joined(separator: "\n"),
+			movingTime: try totalSeconds(workout.steps)
+		)
+	}
+
+	package static func validate(_ workout: IntervalsWorkoutInput) throws {
 		try validateSchema(workout)
 		try workout.steps.enumerated().forEach { index, step in
 			try preValidate(step, path: "steps[\(index)]")
 		}
-
-		var lines: [String] = []
-		var currentLabel: String?
-
-		for (index, step) in workout.steps.enumerated() {
-			let label = sectionLabel(for: step)
-			if label != currentLabel {
-				if !lines.isEmpty {
-					lines.append("")
-				}
-				lines.append(label)
-				currentLabel = label
-			}
-			let path = "steps[\(index)]"
-			switch step {
-			case .set(let set):
-				lines.append("\(set.repeatCount)x")
-				lines.append(try formatStepLine(set.interval, path: "\(path).interval"))
-				lines.append(try formatStepLine(set.recovery, path: "\(path).recovery"))
-			case .simple(let simple):
-				lines.append(try formatStepLine(simple, path: path))
-			}
-		}
-
-		return SerializedWorkout(
-			description: lines.joined(separator: "\n"),
-			movingTime: totalSeconds(workout.steps)
-		)
 	}
 
-	public static func formatDuration(_ duration: DurationInput) -> String {
-		let total = Int(toSeconds(duration).rounded())
+	package static func formatDuration(_ duration: DurationInput) -> String {
+		let total = toSeconds(duration).rounded()
 		if total < 60 {
-			return "\(total)s"
+			return "\(String(format: "%.0f", total))s"
 		}
-		let minutes = total / 60
-		let seconds = total % 60
-		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(seconds)"
+		let minutes = String(format: "%.0f", (total / 60).rounded(.down))
+		let seconds = total.truncatingRemainder(dividingBy: 60)
+		return seconds == 0 ? "\(minutes)m" : "\(minutes)m\(String(format: "%.0f", seconds))"
 	}
 
-	public static func slug(date: CivilDate, name: String) -> String {
+	package static func slug(date: CivilDate, name: String) -> String {
 		_ = date
 		return ChatExternalID.slugify(name: name)
 	}
 
-	public static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
+	package static func chatExternalId(date: CivilDate, name: String) -> ChatExternalID {
 		ChatExternalID(date: date, slug: slug(date: date, name: name))
 	}
 
@@ -118,6 +99,10 @@ public enum IntervalsSerializer {
 			}
 			if let power = simple.power {
 				try validatePowerBounds(power, path: path)
+				try validatePowerShape(power, isRamp: simple.type == .ramp, path: path)
+			}
+			if let cadence = simple.cadence {
+				try validateCadenceShape(cadence, path: path)
 			}
 			if let label = simple.label, label.count > maxName {
 				throw InvalidWorkout(
@@ -126,6 +111,13 @@ public enum IntervalsSerializer {
 			if simple.duration.value <= 0 {
 				throw InvalidWorkout(
 					message: "\(path).duration.value: Number must be greater than 0")
+			}
+			guard wholeInt(toSeconds(simple.duration).rounded()) != nil else {
+				throw InvalidWorkout(message: "\(path).duration: Seconds must fit in an integer")
+			}
+			if toSeconds(simple.duration) > Double(maxDurationSeconds) {
+				throw InvalidWorkout(
+					message: "\(path).duration: Seconds exceed sanity bound \(maxDurationSeconds)")
 			}
 		}
 	}
@@ -151,11 +143,9 @@ public enum IntervalsSerializer {
 		try check(power.high, name: "high")
 	}
 
-	private static func formatPower(_ power: PowerTarget, isRamp: Bool, path: String) throws
-		-> String
+	private static func validatePowerShape(_ power: PowerTarget, isRamp: Bool, path: String) throws
 	{
 		let hasRange = power.low != nil && power.high != nil
-		let prefix = isRamp ? "ramp " : ""
 		if isRamp && !hasRange {
 			throw InvalidWorkout(message: "\(path): ramp requires power.low and power.high")
 		}
@@ -168,34 +158,17 @@ public enum IntervalsSerializer {
 			if power.kind == .zone {
 				try assertZone(low, path: "\(path).power.low")
 				try assertZone(high, path: "\(path).power.high")
-				if isRamp {
-					let lowPct = Int(
-						(try zoneMidpoint(low, path: "\(path).power.low") * 100).rounded())
-					let highPct = Int(
-						(try zoneMidpoint(high, path: "\(path).power.high") * 100).rounded())
-					return "\(prefix)\(lowPct)-\(highPct)%"
-				}
-				return "Z\(jsString(low))-Z\(jsString(high))"
 			}
-			if power.kind == .percentFtp {
-				return "\(prefix)\(jsString(low))-\(jsString(high))%"
-			}
-			return "\(prefix)\(jsString(low))-\(jsString(high))w"
-		}
-		if let value = power.value {
+		} else if let value = power.value {
 			if power.kind == .zone {
 				try assertZone(value, path: "\(path).power.value")
-				return "Z\(jsString(value))"
 			}
-			if power.kind == .percentFtp {
-				return "\(jsString(value))%"
-			}
-			return "\(jsString(value))w"
+		} else {
+			throw InvalidWorkout(message: "\(path): power requires 'value' or 'low'+'high'")
 		}
-		throw InvalidWorkout(message: "\(path): power requires 'value' or 'low'+'high'")
 	}
 
-	private static func formatCadence(_ cadence: CadenceTarget, path: String) throws -> String {
+	private static func validateCadenceShape(_ cadence: CadenceTarget, path: String) throws {
 		let hasLow = cadence.low != nil
 		let hasHigh = cadence.high != nil
 		if hasLow != hasHigh {
@@ -206,37 +179,8 @@ public enum IntervalsSerializer {
 				throw InvalidWorkout(
 					message: "\(path): cadence.low (\(low)) > cadence.high (\(high))")
 			}
-			return "\(low)-\(high)rpm"
-		}
-		if let value = cadence.value {
-			return "\(value)rpm"
-		}
-		throw InvalidWorkout(message: "\(path): cadence requires 'target' or 'low'+'high'")
-	}
-
-	private static func formatStepLine(_ step: SimpleStep, path: String) throws -> String {
-		var parts = [formatDuration(step.duration)]
-		if let power = step.power {
-			parts.append(try formatPower(power, isRamp: step.type == .ramp, path: path))
-		}
-		if let cadence = step.cadence {
-			parts.append(try formatCadence(cadence, path: path))
-		}
-		let body = parts.joined(separator: " ")
-		if let label = step.label {
-			return "- \(body) \(label)"
-		}
-		return "- \(body)"
-	}
-
-	private static func sectionLabel(for step: WorkoutStep) -> String {
-		switch step {
-		case .set:
-			return "Main set"
-		case .simple(let simple):
-			if simple.type == .warmup { return "Warmup" }
-			if simple.type == .cooldown { return "Cooldown" }
-			return "Main set"
+		} else if cadence.value == nil {
+			throw InvalidWorkout(message: "\(path): cadence requires 'target' or 'low'+'high'")
 		}
 	}
 
@@ -244,7 +188,7 @@ public enum IntervalsSerializer {
 		duration.unit == .seconds ? duration.value : duration.value * 60
 	}
 
-	private static func totalSeconds(_ steps: [WorkoutStep]) -> Int {
+	private static func totalSeconds(_ steps: [WorkoutStep]) throws -> Int {
 		var total = 0.0
 		func visit(_ step: WorkoutStep, multiplier: Double) {
 			switch step {
@@ -258,17 +202,10 @@ public enum IntervalsSerializer {
 		for step in steps {
 			visit(step, multiplier: 1)
 		}
-		return Int(total.rounded())
-	}
-
-	private static func zoneMidpoint(_ zone: Double, path: String) throws -> Double {
-		guard let midpoint = ZoneMidpoints.values[Int(zone)] else {
-			throw InvalidWorkout(
-				message:
-					"\(path): zone must be an integer \(minZone)-\(maxZone), got \(jsString(zone))"
-			)
+		guard let seconds = wholeInt(total.rounded()) else {
+			throw InvalidWorkout(message: "steps: Total seconds must fit in an integer")
 		}
-		return midpoint
+		return seconds
 	}
 
 	private static func assertZone(_ value: Double, path: String) throws {
@@ -363,7 +300,7 @@ public enum IntervalsSerializer {
 		)
 	}
 
-	private static func jsString(_ value: Double) -> String {
+	static func jsString(_ value: Double) -> String {
 		if value.isFinite, value.rounded(.towardZero) == value, abs(value) <= 9_007_199_254_740_991
 		{
 			return String(Int64(value))

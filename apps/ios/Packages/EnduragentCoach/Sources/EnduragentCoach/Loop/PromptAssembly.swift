@@ -45,23 +45,23 @@ package enum PromptAssembly {
 
 	package static func volatile(
 		context: String,
-		snapshot: AthleteSnapshot?,
+		evidence: EvidenceBlock,
 		timeZoneName: String,
-		replyLanguage: String
+		displayLocale: DisplayLocale
 	) -> String {
 		var parts: [String] = [
 			"# Athlete Context\n\n" + wrapAthleteContext(context)
 		]
-		if let snapshot, snapshot.fitness != nil || snapshot.fatigue != nil || snapshot.form != nil
-		{
-			parts.append(renderSnapshot(snapshot))
+		if let wellness = evidence.wellnessLine {
+			parts.append(
+				PromptStaticBlocks.snapshotHeading + "\n\n" + wellness + "\n"
+					+ PromptStaticBlocks.snapshotGuidance)
 		} else {
 			parts.append(PromptStaticBlocks.snapshotFallback)
 		}
 		parts.append("# Current Date & Time\n\nTime zone: \(timeZoneName)")
-		if !replyLanguage.isEmpty {
-			parts.append(replyLanguage)
-		}
+		parts.append(replyLanguageSection(displayLocale.language))
+		parts.append(displayLocale.formattingInstruction)
 		return parts.joined(separator: sectionSeparator)
 	}
 
@@ -88,13 +88,9 @@ package enum PromptAssembly {
 		return base + "\n" + currentTimeLine(now: now, timeZone: timeZone)
 	}
 
-	package static func replyLanguageSection(resolution: LanguageResolution) -> String {
-		let englishName = resolution.language.englishName
-		let endonym = resolution.language.endonym
+	package static func replyLanguageSection(_ tag: LanguageTag) -> String {
 		let direction =
-			resolution.source == .preference
-			? "The athlete chose \(englishName) (\(endonym)). Write every athlete-facing sentence in \(englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(englishName); never mirror the language itself."
-			: "No language is saved. Reply in the language of the athlete's latest message; that is what \"Mirror the athlete's register\" means for language. When the message carries no language signal (a bare command, numbers only), reply in \(englishName) (\(endonym))."
+			"Reply in \(tag.englishName) (\(tag.endonym)). Write every athlete-facing sentence in \(tag.englishName), even when the athlete writes in another language. This rule outranks \"Mirror the athlete's register\": mirror register, tone, and level of detail within \(tag.englishName); never mirror the language itself."
 		return """
 			# Reply language
 
@@ -112,42 +108,75 @@ package enum PromptAssembly {
 	package static func cyclingPrefix(gated: Bool) -> String {
 		prefix(soul: PromptResources.soul(), skills: PromptResources.cyclingSkills(), gated: gated)
 	}
-}
 
-public struct AthleteSnapshot: Sendable, Equatable {
-	public var fitness: Double?
-	public var fatigue: Double?
-	public var form: Double?
+	package static let summaryPrefix = "[Previous conversation summary]"
 
-	public init(fitness: Double?, fatigue: Double?, form: Double?) {
-		self.fitness = fitness
-		self.fatigue = fatigue
-		self.form = form
+	package static let compactionSystem =
+		"Summarize the conversation. Required headings: ## Athlete Profile, ## Training Status, ## Coach Stance, ## Discussion Context, ## Pending Questions."
+
+	package static func summaryMessage(_ summary: String) -> String {
+		summaryPrefix + "\n" + summary
+	}
+
+	package static func droppedSummaryRequest(previous: String?, transcript: String) -> String {
+		summaryRequest(
+			"Incorporate the older conversation messages below into the existing summary, producing one updated summary with the five required sections.",
+			label: "Messages to incorporate:", previous: previous, transcript: transcript)
+	}
+
+	package static func compactionRequest(previous: String?, transcript: String) -> String {
+		summaryRequest(
+			"Summarize the conversation below into the five required sections.",
+			label: "Messages to summarize:", previous: previous, transcript: transcript)
+	}
+
+	package static func wireMessage(from message: ChatMessage) -> WireMessage {
+		switch message.author {
+		case .athlete(let sent, let zone):
+			WireMessage(
+				role: .user,
+				content: "[" + GregorianStamp.weekdayMinute(sent, in: zone.timeZone) + "] "
+					+ message.text,
+				toolCalls: [], toolCallId: nil)
+		case .coach:
+			WireMessage(role: .assistant, content: message.text, toolCalls: [], toolCallId: nil)
+		}
+	}
+
+	package static func transcript(_ messages: [WireMessage]) -> String {
+		messages.map { "\($0.role.rawValue): \($0.content)" }.joined(separator: "\n")
+	}
+
+	private static func summaryRequest(
+		_ instruction: String, label: String, previous: String?, transcript: String
+	) -> String {
+		var parts = [instruction]
+		if let previous, !previous.isEmpty {
+			parts.append("Existing summary of earlier context:\n" + previous)
+		}
+		parts.append(label + "\n" + transcript)
+		return parts.joined(separator: "\n\n")
 	}
 }
 
-public struct HistoryWindow {
-	public static func trim(
-		messages: [ChatMessage],
+package struct HistoryWindow {
+	package static func trim(
+		messages conversation: [WireMessage],
 		systemTokens: Int,
 		window: Int = TurnPolicy.contextWindowCap,
-		ratio: Double = TurnPolicy.historyTokenBudgetRatio
-	) -> (kept: [ChatMessage], dropped: [ChatMessage], budget: Int) {
+		ratio: Double
+	) -> (kept: [WireMessage], dropped: [WireMessage], budget: Int) {
 		let budget = historyTokenBudget(systemTokens: systemTokens, window: window, ratio: ratio)
-		if messages.isEmpty {
+		if conversation.isEmpty {
 			return ([], [], budget)
 		}
-		var conversation = messages
-		if conversation[0].text.hasPrefix("[Previous conversation summary]") {
-			conversation = Array(conversation.dropFirst())
-			if conversation.isEmpty {
-				return ([], [], budget)
-			}
-		}
 		var startIdx = 0
-		var totalTokens = conversation.reduce(0) { $0 + estimateTokens($1.text) }
+		var totalTokens = conversation.reduce(0) { $0 + estimateTokens($1.content) }
 		while totalTokens > budget, startIdx < conversation.count - 1 {
-			totalTokens -= estimateTokens(conversation[startIdx].text)
+			totalTokens -= estimateTokens(conversation[startIdx].content)
+			startIdx += 1
+		}
+		while startIdx > 0, startIdx < conversation.count, conversation[startIdx].role != .user {
 			startIdx += 1
 		}
 		return (
@@ -157,19 +186,18 @@ public struct HistoryWindow {
 		)
 	}
 
-	public static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
+	package static func historyTokenBudget(systemTokens: Int, window: Int, ratio: Double) -> Int {
 		let effective = min(window, TurnPolicy.contextWindowCap)
-		let raw = Int((Double(effective) * ratio).rounded(.down)) - systemTokens - 20_000
+		let raw =
+			Int((Double(effective) * ratio).rounded(.down)) - systemTokens
+			- TurnPolicy.reserveTokens
 		return max(raw, TurnPolicy.historyBudgetFloor)
 	}
 
-	public static func shouldSoftFlush(historyTokens: Int, budget: Int, messagesSinceFlush: Int)
-		-> Bool
-	{
-		if messagesSinceFlush < 5 {
-			return false
+	package static func estimatedTokens(summary: String?, messages: [WireMessage]) -> Int {
+		messages.reduce(summary.map { estimateTokens(PromptAssembly.summaryMessage($0)) } ?? 0) {
+			$0 + estimateTokens($1.content)
 		}
-		return Double(historyTokens) > Double(budget) * 0.8
 	}
 }
 
@@ -301,34 +329,4 @@ private func isoFallback(_ date: Date) -> String {
 	formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 	formatter.timeZone = TimeZone(secondsFromGMT: 0)
 	return formatter.string(from: date)
-}
-
-private func renderSnapshot(_ snapshot: AthleteSnapshot) -> String {
-	var parts: [String] = []
-	if let fitness = snapshot.fitness {
-		parts.append("Fitness \(formatSnapshotNumber(fitness))")
-	}
-	if let fatigue = snapshot.fatigue {
-		parts.append("Fatigue \(formatSnapshotNumber(fatigue))")
-	}
-	if let form = snapshot.form {
-		parts.append("Form \(formatSignedSnapshotNumber(form))")
-	}
-	if parts.isEmpty {
-		return PromptStaticBlocks.snapshotFallback
-	}
-	return PromptStaticBlocks.snapshotHeading
-		+ "\n\n"
-		+ parts.joined(separator: " · ")
-		+ "\n"
-		+ PromptStaticBlocks.snapshotGuidance
-}
-
-private func formatSnapshotNumber(_ value: Double) -> String {
-	value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value)
-}
-
-private func formatSignedSnapshotNumber(_ value: Double) -> String {
-	let body = formatSnapshotNumber((value * 10).rounded() / 10)
-	return value > 0 ? "+\(body)" : body
 }

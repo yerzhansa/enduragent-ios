@@ -5,11 +5,81 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct OpenRouterTransportTests {
+	@Test func catalogRecipientRestrictsHTTPRouting() async throws {
+		let provider = try NamedProvider(name: "Published Host", routingSlug: "published-host")
+		let request = CompletionRequest(
+			access: ResolvedAccess(
+				credential: ProviderCredential(
+					secret: "synthetic-account", method: .openRouterAccount),
+				model: ModelID(rawValue: "author/model"), provider: provider),
+			attempt: AttemptID(ulid: fixedUlid(901)), charge: .chatAttempt,
+			messages: [], tools: [], deadline: .seconds(30))
+		let transport = try OpenRouterStub.transport { received in
+			do {
+				let body = try #require(openRouterHTTPBody(from: received))
+				let object = try JSONValue.parse(String(decoding: body, as: UTF8.self)).objectFields
+				#expect(object["model"] == .string("author/model"))
+				#expect(
+					object["provider"]
+						== .object([
+							"only": .array([.string("published-host")]),
+							"allow_fallbacks": .bool(false),
+						]))
+			} catch {
+				Issue.record(error)
+			}
+			return .reply(
+				.sse(
+					#"data: {"choices":[{"delta":{"content":"Host answered."},"finish_reason":"stop"}]}"#
+						+ "\ndata: [DONE]\n"))
+		}
+		let events = try await collect(transport.stream(request))
+		#expect(textDeltas(in: events) == ["Host answered."])
+	}
+
+	@Test(arguments: ["\n", "\r\n", "\r"], [false, true])
+	func streamKeepsUnicodeSeparators(lineEnding: String, fragmented: Bool) async throws {
+		let text = "Ride\u{2028}recover\u{2029}repeat\u{0085}rest"
+		let sse = [
+			": keep-alive",
+			"",
+			#"data: {"choices":[{"delta":{"content":"\#(text)"}}]}"#,
+			"",
+			#"data: {"choices":[{"delta":{},"finish_reason":"stop"}]}"#,
+			"",
+			"data: [DONE]",
+			"",
+			"",
+		].joined(separator: lineEnding)
+		let transport = try OpenRouterStub.transport { _ in
+			.reply(.sse(sse, fragmented: fragmented))
+		}
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
+		#expect(
+			events == [
+				.heartbeat,
+				.textDelta(text),
+				.heartbeat,
+				.finished(reason: .stop, usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
+			])
+	}
+
+	@Test func parserPreservesUnknownToolNames() async throws {
+		let sse =
+			#"data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"unknown_call","function":{"name":"invented_tool","arguments":"{}"}}]},"finish_reason":"tool_calls"}]}"#
+		let transport = try OpenRouterStub.transport { _ in .reply(.sse(sse + "\ndata: [DONE]\n")) }
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
+		let call = try #require(toolCalls(in: events).first)
+		#expect(call.name == "invented_tool")
+		#expect(call.id == "unknown_call")
+		#expect(call.arguments == "{}")
+	}
+
 	@Test func bodyOmitsTemperatureAndIncludesUsage() throws {
 		let body = OpenRouterHTTP.body(for: sampleRequest(tools: true))
 		let object = try objectValue(body)
 		#expect(object["temperature"] == nil)
-		#expect(object["model"] == .string(CompletionRequest.openRouterModel))
+		#expect(object["model"] == .string(testModel.rawValue))
 		#expect(object["stream"] == .bool(true))
 		#expect(object["usage"] == .object(["include": .bool(true)]))
 		#expect(object["tool_choice"] == .string("auto"))
@@ -51,7 +121,7 @@ import Testing
 		let calls = toolCalls(in: events)
 		#expect(calls.count == 1)
 		#expect(calls[0].id == "call_ada_week")
-		#expect(calls[0].name == .intervalsFetchActivities)
+		#expect(calls[0].name == "intervals_fetch_activities")
 		#expect(calls[0].arguments == "{\"days\":7}")
 		guard case .finished(let reason, let usage) = events.last else {
 			Issue.record("expected finished")
@@ -68,16 +138,16 @@ import Testing
 		let calls = toolCalls(in: events)
 		#expect(calls.count == 2)
 		#expect(calls[0].id == "call_ada_athlete")
-		#expect(calls[0].name == .intervalsFetchAthlete)
+		#expect(calls[0].name == "intervals_fetch_athlete")
 		#expect(calls[0].arguments == "{}")
 		#expect(calls[1].id == "call_ada_wellness")
-		#expect(calls[1].name == .intervalsFetchWellness)
+		#expect(calls[1].name == "intervals_fetch_wellness")
 		#expect(calls[1].arguments == "{\"oldest\":\"1998-06-01\",\"newest\":\"1998-06-13\"}")
 	}
 
 	@Test func parserYieldsTextUsageAndNoTemperatureLeak() async throws {
 		let events = try await parseFixture("openrouter-text-usage")
-		#expect(transportTextDeltas(in: events) == ["Your week ", "looked strong, Ada."])
+		#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
 		guard case .finished(let reason, let usage) = events.last else {
 			Issue.record("expected finished")
 			return
@@ -91,7 +161,7 @@ import Testing
 	@Test func parserTreatsReasoningAndKeepAlivesAsHeartbeats() async throws {
 		let events = try await parseFixture("openrouter-reasoning-keepalive")
 		#expect(events.filter { $0 == .heartbeat }.count >= 3)
-		#expect(transportTextDeltas(in: events) == ["Rest on Sunday."])
+		#expect(textDeltas(in: events) == ["Rest on Sunday."])
 		guard case .finished(let reason, _) = events.last else {
 			Issue.record("expected finished")
 			return
@@ -112,7 +182,7 @@ import Testing
 
 	@Test func parserMapsErrorFinishReasonAndKeepsPartialText() async throws {
 		let events = try await parseFixture("openrouter-finish-error")
-		#expect(transportTextDeltas(in: events) == ["Tomorrow's ride is queued."])
+		#expect(textDeltas(in: events) == ["Tomorrow's ride is queued."])
 		guard case .finished(let reason, let usage) = events.last else {
 			Issue.record("expected finished")
 			return
@@ -124,18 +194,12 @@ import Testing
 
 	@Test func parserMapsContentFilterFinishReason() async throws {
 		let events = try await parseFixture("openrouter-finish-content-filter")
-		#expect(transportTextDeltas(in: events) == ["Stopped."])
+		#expect(textDeltas(in: events) == ["Stopped."])
 		guard case .finished(let reason, _) = events.last else {
 			Issue.record("expected finished")
 			return
 		}
 		#expect(reason == .contentFilter)
-	}
-
-	@Test func parserThrowsOnUnknownFinishReason() async {
-		await #expect(throws: UnknownFinishReasonError.self) {
-			_ = try await parseFixture("openrouter-finish-unknown")
-		}
 	}
 
 	@Test func parserSumsUsageAndCostAcrossSteps() async throws {
@@ -160,86 +224,68 @@ import Testing
 		#expect(usage.cost == nil)
 	}
 
-	@Suite(.serialized)
-	struct HTTP {
-		@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
-			let sse = try fixture("openrouter-text-usage", ext: "sse")
-			let state = HTTPCapture()
-			let transport = try stubbedTransport()
-			let events = try await OpenRouterURLStub.withHandler({ request in
-				state.record(request)
-				return .ok(sse)
-			}) {
-				try await transportEvents(transport.stream(sampleRequest(tools: false)))
-			}
-			#expect(state.posts == 1)
-			let request = try #require(state.request)
-			#expect(request.httpMethod == "POST")
-			#expect(
-				request.url?.absoluteString == "https://openrouter.test/api/v1/chat/completions")
-			#expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer test-key")
-			#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
-			#expect(request.value(forHTTPHeaderField: "Referer") == nil)
-			#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
-			let bodyData = try #require(transportHTTPBody(from: request))
-			let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
-			#expect(body?["temperature"] == nil)
-			#expect(body?["stream"] as? Bool == true)
-			#expect(transportTextDeltas(in: events) == ["Your week ", "looked strong, Ada."])
+	@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
+		let sse = try fixture("openrouter-text-usage", ext: "sse")
+		let state = HTTPCapture()
+		let transport = try OpenRouterStub.transport { request in
+			state.record(request)
+			return .reply(.sse(sse))
 		}
+		let events = try await collect(transport.stream(sampleRequest(tools: false)))
+		#expect(state.posts == 1)
+		let request = try #require(state.request)
+		#expect(request.httpMethod == "POST")
+		#expect(request.url?.path() == "/api/v1/chat/completions")
+		#expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer \(testKey)")
+		#expect(request.value(forHTTPHeaderField: "HTTP-Referer") == nil)
+		#expect(request.value(forHTTPHeaderField: "Referer") == nil)
+		#expect(request.value(forHTTPHeaderField: "X-OpenRouter-Title") == nil)
+		let bodyData = try #require(openRouterHTTPBody(from: request))
+		let body = try JSONSerialization.jsonObject(with: bodyData) as? [String: Any]
+		#expect(body?["temperature"] == nil)
+		#expect(body?["stream"] as? Bool == true)
+		#expect(body?["model"] as? String == testModel.rawValue)
+		#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
+	}
 
-		@Test func streamUsesDeadlineAsRequestTimeout() async throws {
-			let sse = try fixture("openrouter-text-usage", ext: "sse")
-			let state = TimeoutCapture()
-			let transport = OpenRouterTransport(
-				apiKey: "test-key",
-				baseURL: try #require(URL(string: "https://openrouter.test/api/v1"))
-			) { value in
-				state.value = value
-				let configuration = URLSessionConfiguration.ephemeral
-				configuration.timeoutIntervalForRequest = value
-				configuration.protocolClasses = [OpenRouterURLStub.self]
-				return URLSession(configuration: configuration)
-			}
-			try await OpenRouterURLStub.withHandler({ _ in .ok(sse) }) {
-				_ = try await transportEvents(
-					transport.stream(
-						CompletionRequest.openRouter(
-							messages: [
-								WireMessage(
-									role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
-							],
-							tools: [],
-							deadline: .seconds(45)
-						)
-					)
-				)
-			}
-			#expect(state.value == 45)
+	@Test func streamUsesDeadlineAsRequestTimeout() async throws {
+		let sse = try fixture("openrouter-text-usage", ext: "sse")
+		let state = TimeoutCapture()
+		let transport = try OpenRouterStub.transport(onSession: { state.value = $0 }) { _ in
+			.reply(.sse(sse))
 		}
+		_ = try await collect(
+			transport.stream(
+				testRequest(
+					[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
+					deadline: .seconds(45))))
+		#expect(state.value == 45)
+	}
 
-		@Test func streamSurfaces401AsProviderAuthError() async throws {
-			let body = try fixture("openrouter-unauthorized", ext: "json")
-			let state = HTTPCapture()
-			let transport = try stubbedTransport()
-			do {
-				_ = try await OpenRouterURLStub.withHandler({ request in
-					state.record(request)
-					return OpenRouterURLStub.Response(
-						statusCode: 401,
-						headers: ["Content-Type": "application/json"],
-						body: Data(body.utf8)
-					)
-				}) {
-					try await transportEvents(transport.stream(sampleRequest(tools: false)))
-				}
-				Issue.record("expected provider auth error")
-			} catch let error as ProviderAuthError {
-				#expect(error.statusCode == 401)
-				#expect(error.body.contains("User not found."))
-			}
-			#expect(state.posts == 1)
+	@Test(.timeLimit(.minutes(1))) func errorBodyReadStopsAtItsLimit() async throws {
+		let endless = AsyncStream<UInt8>(unfolding: { UInt8(ascii: "x") })
+		let body = try await OpenRouterHTTP.errorBody(from: endless)
+		#expect(body.count == OpenRouterHTTP.errorBodyLimit)
+	}
+
+	@Test func credentialNeverAppearsInDescription() {
+		let request = sampleRequest(tools: true)
+		var dumped = ""
+		dump(request, to: &dumped)
+		let renderings = [
+			request.credential.description,
+			request.credential.debugDescription,
+			String(describing: request.credential),
+			String(reflecting: request.credential),
+			String(describing: request),
+			String(reflecting: request),
+			"\(testAccess)",
+			dumped,
+		]
+		for rendering in renderings {
+			#expect(!rendering.contains(testKey), "\(rendering)")
 		}
+		#expect(request.credential.description == "ProviderCredential(redacted)")
 	}
 }
 
@@ -268,5 +314,73 @@ private final class TimeoutCapture: Sendable {
 	var value: TimeInterval? {
 		get { stored.withLock { $0 } }
 		set { stored.withLock { $0 = newValue } }
+	}
+}
+
+private func sampleRequest(tools: Bool) -> CompletionRequest {
+	testRequest(
+		[
+			WireMessage(
+				role: .system, content: "You are Ada Kovač's coach.", toolCalls: [], toolCallId: nil
+			),
+			WireMessage(
+				role: .user, content: "How did 1998-06-13 look?", toolCalls: [], toolCallId: nil),
+			WireMessage(
+				role: .assistant,
+				content: "",
+				toolCalls: [
+					WireToolCall(id: "call_ada_1", name: "intervals_fetch_athlete", arguments: "{}")
+				],
+				toolCallId: nil
+			),
+			WireMessage(
+				role: .tool,
+				content: "{\"name\":\"Ada Kovač\"}",
+				toolCalls: [],
+				toolCallId: "call_ada_1"
+			),
+		],
+		tools: tools
+			? [
+				ToolSchema(
+					name: .intervalsFetchAthlete,
+					description: "Fetch the athlete profile.",
+					parameters: .object(["type": .string("object")])
+				)
+			]
+			: []
+	)
+}
+
+private func parseFixture(_ name: String) async throws -> [TransportEvent] {
+	let sse = try fixture(name, ext: "sse")
+	let transport = try OpenRouterStub.transport { _ in .reply(.sse(sse)) }
+	return try await collect(transport.stream(sampleRequest(tools: false)))
+}
+
+private struct UnexpectedJSONShape: Error {
+	let value: JSONValue?
+}
+
+private func objectValue(_ value: JSONValue?) throws -> [String: JSONValue] {
+	guard case .object(let object) = value else {
+		throw UnexpectedJSONShape(value: value)
+	}
+	return object
+}
+
+private func arrayValue(_ value: JSONValue?) throws -> [JSONValue] {
+	guard case .array(let items) = value else {
+		throw UnexpectedJSONShape(value: value)
+	}
+	return items
+}
+
+private func toolCalls(in events: [TransportEvent]) -> [WireToolCall] {
+	events.compactMap { event in
+		if case .toolCall(let call) = event {
+			return call
+		}
+		return nil
 	}
 }

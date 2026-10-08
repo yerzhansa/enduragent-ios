@@ -1,13 +1,6 @@
 import Foundation
 
-public enum CyclingTools {
-	public static func parseCreateWorkout(_ arguments: JSONValue, today: CivilDate) throws
-		-> ChatCalendarCreate
-	{
-		let parsed = try parseCreateWorkoutInput(arguments, today: today)
-		return parsed.draft
-	}
-
+package enum CyclingTools {
 	package static func parseCreateWorkoutInput(
 		_ arguments: JSONValue,
 		today: CivilDate
@@ -156,8 +149,8 @@ extension JSONValue {
 
 	package func intValue() -> Int? {
 		switch self {
-		case .number(let value) where value.rounded(.towardZero) == value:
-			return Int(value)
+		case .number(let value):
+			return wholeInt(value)
 		case .string(let value):
 			return Int(value)
 		default:

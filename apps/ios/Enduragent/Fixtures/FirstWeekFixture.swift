@@ -1,80 +1,112 @@
-import EnduragentCoach
-import Foundation
+#if DEBUG
+	import EnduragentCoach
+	import EnduragentCoachFixtures
+	import Foundation
 
-enum FirstWeekFixture {
-	static let athleteName = "Ada Kovač"
-	static let today: CivilDate = "1998-06-15"
-	static let tomorrow: CivilDate = "1998-06-16"
+	enum FirstWeekFixture {
+		static let athleteName = "Ada Kovač"
+		static let otherAthleteKey = FixtureTrainingPeer.Key.athleteB.secret
+		static let otherAthleteName = "Bo Lind"
+		static let today: CivilDate = "1998-06-15"
+		static let creditsKey = "fixture-credits-key"
+		static let tomorrow: CivilDate = "1998-06-16"
 
-	static let workoutArguments = """
-		{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":76,"high":90}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
-		"""
+		static let weekSummary =
+			"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
 
-	static func install(on intervals: FakeIntervalsClient) {
-		intervals.athleteName = athleteName
-		intervals.ftp = 250
-		intervals.wellness = [
-			WellnessDay(date: today, fitness: 42, fatigue: 49, form: -7)
-		]
-		intervals.activities = [
-			.ride(
-				name: "Tuesday sweet spot", date: "1998-06-09", durationS: 3_600, trainingLoad: 72),
-			.ride(
-				name: "Saturday group ride", date: "1998-06-13", durationS: 7_800, trainingLoad: 118
-			),
-		]
-	}
+		static let rememberReply = "Noted. I'll remember you ride with a group on Saturdays."
 
-	static func install(on credits: FakeCreditsClient) {
-		credits.grantResult = .success(.minted(Credits(units: 200)))
-		credits.catalogResult = .success(
-			PackCatalog(
-				purchasesEnabled: false,
-				scale: CreditScale(creditsPerUsd: 100),
-				packs: [
-					CreditPack(id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
-					CreditPack(id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
-				]
-			)
-		)
-		credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
-	}
+		static let earlierSummary = "Summary of the earlier conversation."
 
-	static func script(for text: String) -> [ScriptedEvent] {
-		let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-		if SlashRouting.parse(trimmed) == .review {
-			return [
-				.text(
-					"Saturday group ride on 1998-06-13, 2 h 10 min, Training Load 118. It sat a little above your Fatigue of 49 against Fitness 42. Keep the next ride easier."
+		static let summaryReply: [ScriptedEvent] = [.text(earlierSummary), .finish(reason: .stop)]
+
+		static let longReplyLines = 100
+
+		static let longReply = (1...longReplyLines).map { "Day \($0). " + weekSummary }
+			.joined(separator: "\n")
+
+		static let workoutArguments = """
+			{"date":"1998-06-16","workout":{"name":"Endurance with tempo","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"ramp","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":60.5,"high":80.5},"cadence":{"value":90},"label":"Warmup ramp 1.5"},{"type":"set","repeat":2,"interval":{"type":"interval","duration":{"value":10,"unit":"minutes"},"power":{"kind":"watts","low":190.5,"high":225.5},"cadence":{"low":85,"high":95}},"recovery":{"type":"recovery","duration":{"value":5,"unit":"minutes"},"power":{"kind":"zone","low":1,"high":2}}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}}]}}
+			"""
+
+		static func install(on intervals: FakeIntervalsClient) {
+			intervals.athleteName = athleteName
+			intervals.ftp = 250
+			intervals.wellness = [
+				WellnessDay(date: today, fitness: 42, fatigue: 49, form: -7)
+			]
+			intervals.activities = [
+				.ride(
+					name: "Tuesday sweet spot", date: "1998-06-09", durationS: 3_600,
+					trainingLoad: 72),
+				.ride(
+					name: "Saturday group ride", date: "1998-06-13", durationS: 7_800,
+					trainingLoad: 118
 				),
-				.finish(reason: .stop),
 			]
 		}
-		if trimmed.lowercased().hasPrefix("remember that") {
-			return [
-				.text("Noted. I'll remember you ride with a group on Saturdays."),
-				.finish(reason: .stop),
-			]
-		}
-		if isWorkoutRequest(trimmed) {
-			return [
-				.toolCall(
-					name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
-				.finish(reason: .toolCalls),
-				.text("I've prepared the ride. Confirm to add it."),
-				.finish(reason: .stop),
-			]
-		}
-		return [
-			.text(
-				"This week has Tuesday sweet spot, 1 h, Training Load 72, and Saturday group ride, 2 h 10 min, Training Load 118. Two solid rides with a quieter stretch between them."
-			),
-			.finish(reason: .stop),
-		]
-	}
 
-	private static func isWorkoutRequest(_ text: String) -> Bool {
-		let lowered = text.lowercased()
-		return lowered.contains("endurance ride") || lowered.contains("60 minute endurance")
+		static func install(on secrets: ICloudKeychainStore) throws {
+			try secrets.storeCreditsAccount(
+				CreditsAccount(
+					appAccountToken: secrets.prepareCreditsAccount().appAccountToken,
+					key: creditsKey))
+		}
+
+		static func install(on credits: FakeCreditsClient) {
+			credits.grantResult = .success(.minted(Credits(units: 200)))
+			credits.catalogResult = .success(
+				PackCatalog(
+					purchasesEnabled: false,
+					scale: CreditScale(creditsPerUsd: 100),
+					packs: [
+						CreditPack(
+							id: "icu.enduragent.credits.small", credits: Credits(units: 500)),
+						CreditPack(
+							id: "icu.enduragent.credits.large", credits: Credits(units: 2000)),
+					]
+				)
+			)
+			credits.balanceResult = .success(CreditBalance(credits: Credits(units: 200)))
+		}
+
+		static func script(for text: String) -> [ScriptedEvent] {
+			let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+			if SlashRouting.parse(trimmed) == .review {
+				return [
+					.text(
+						"Saturday group ride on 1998-06-13, 2 h 10 min, Training Load 118. It sat a little above your Fatigue of 49 against Fitness 42. Keep the next ride easier."
+					),
+					.finish(reason: .stop),
+				]
+			}
+			if trimmed.lowercased().hasPrefix("remember that") {
+				return [.text(rememberReply), .finish(reason: .stop)]
+			}
+			if isWorkoutRequest(trimmed) {
+				return [
+					.toolCall(
+						name: ToolName.intervalsCreateWorkout.rawValue, arguments: workoutArguments),
+					.finish(reason: .toolCalls),
+					.text("I've prepared the ride. Confirm to add it."),
+					.finish(reason: .stop),
+				]
+			}
+			return [.text(weekSummary), .finish(reason: .stop)]
+		}
+
+		static func weekSummaryByWord() -> [ScriptedEvent] {
+			let words = weekSummary.split(separator: " ")
+			var script = words.enumerated().map { index, word in
+				ScriptedEvent.text(index == words.count - 1 ? String(word) : word + " ")
+			}
+			script.append(.finish(reason: .stop))
+			return script
+		}
+
+		private static func isWorkoutRequest(_ text: String) -> Bool {
+			let lowered = text.lowercased()
+			return lowered.contains("endurance ride") || lowered.contains("60 minute endurance")
+		}
 	}
-}
+#endif

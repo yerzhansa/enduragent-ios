@@ -190,7 +190,8 @@
         "historyTokenBudgetRatio": "請輸入大於 0% 且不超過 100% 的對話記錄配額。",
         "idleMinutes": "請輸入安全範圍內大於或等於 0 的整數分鐘數。",
         "resetArchiveRetentionDays": "請輸入安全範圍內大於或等於 0 的整數天數。",
-        "timezone": "請輸入有效的 IANA 時區，例如 {{timezone}}。"
+        "timezone": "請輸入有效的 IANA 時區，例如 {{timezone}}。",
+        "contextWindowTokens": "請輸入有效範圍內且不小於 1 的整數作為詞元數。"
       }
     },
     "credentials": {
@@ -511,6 +512,32 @@
         "remove": "移除 webhook",
         "title": "移除現有的 webhook"
       }
+    },
+    "modelAccessTitle": "模型存取",
+    "session": {
+      "title": "工作階段",
+      "contextWindow": {
+        "label": "上下文視窗",
+        "help": "模型上下文的上限。留空則使用預設值。",
+        "default": "預設"
+      },
+      "units": {
+        "percent": "%",
+        "tokens": "詞元"
+      }
+    },
+    "training": {
+      "section": "訓練連線",
+      "title": "intervals.icu",
+      "replace": "替換金鑰",
+      "keep": "保留目前連線",
+      "disconnect": "中斷連線",
+      "disconnectTitle": "中斷 intervals.icu 連線？",
+      "disconnectDetail": "對話和歷史記錄仍可查看。",
+      "switchTitle": "使用其他運動員？",
+      "switchDetail": "此金鑰屬於運動員 {{new}}。你的對話、歷史紀錄和記憶仍為運動員 {{current}} 儲存，不會用於運動員 {{new}}。是否切換以使用此金鑰？",
+      "switch": "切換運動員",
+      "athlete": "運動員 {{id}}"
     }
   },
   "archive": {
@@ -529,20 +556,22 @@
     "entryDetail": "{{turnCount}} · {{reason}}",
     "entryLabel": "{{timestamp}} · {{turnCount}} · {{reason}}",
     "listFailure": "暫時無法使用過往對話。",
-    "loadEarlier": "載入更早的訊息",
     "loading": "正在載入過往對話…",
     "pageFailure": "暫時無法使用此對話。",
     "readOnly": "過往對話僅供唯讀。",
     "reason": {
       "explicit": "您已開始新對話",
-      "stale": "閒置一段時間後關閉"
+      "stale": "閒置一段時間後關閉",
+      "earlierChat": "先前的聊天"
     },
     "retry": "重試",
     "timestamp": "{{year}}-{{month}}-{{day}} {{hour}}:{{minute}} {{timezone}}",
     "title": "過往聊天",
     "truncated": "僅列出最近的過往對話。",
     "turnCount_other": "{{formattedCount}} 則訊息",
-    "unavailable": "此對話已無法使用。"
+    "unavailable": "此對話已無法使用。",
+    "history": "歷史紀錄",
+    "savedForAnotherAthlete": "為另一位 intervals.icu 運動員儲存 ({{id}})"
   },
   "setup": {
     "ai": {
@@ -937,7 +966,8 @@
       "messagePlaceholder": "傳送訊息給教練",
       "responding": "教練正在回覆…",
       "send": "傳送訊息",
-      "stop": "停止回覆"
+      "stop": "停止回覆",
+      "notSent": "未傳送。你的草稿仍然保留。"
     },
     "date": {
       "civil": "{{year}}年{{month}}{{day}}日",
@@ -970,7 +1000,6 @@
     },
     "history": {
       "failure": "暫時無法檢視對話記錄。",
-      "loadEarlier": "載入更早的訊息",
       "retry": "重試載入記錄"
     },
     "newConversation": {
@@ -979,6 +1008,7 @@
       "cancel": "取消",
       "confirm": "開始新對話",
       "hydrated": "目前顯示的對話與在 {{computer}} 上還原的早期訊息將被清除。訓練資料與已儲存的教練記憶會保留。",
+      "label": "新對話",
       "title": "要開始新對話嗎？"
     },
     "notice": {
@@ -1002,13 +1032,17 @@
       "planningRequestLoadFailure": "無法檢查已儲存的計畫請求。請重新連線後重試。",
       "protocolFailure": "無法驗證教練回覆。請重試。",
       "questionSkipped": "已略過問題",
+      "replyUnsaved": "無法儲存此回覆。重新嘗試儲存時，請保持應用程式開啟。",
       "queueLoadFailure": "無法檢查已儲存的訊息。請重新連線後重試。",
       "queueRemoveFailure": "無法移除此已儲存的訊息。請重試。",
       "responseFailure": "教練無法回覆。請重試。",
-      "responseStopped": "已停止回覆。已產生的部分回覆已保留。",
       "retryMessage": "重試傳送訊息",
       "savedChoice": "已儲存的選擇",
-      "working": "教練正在處理…"
+      "working": "教練正在處理…",
+      "responseStopped": "已停止回覆。已產生的部分回覆已保留。",
+      "calendarUnverified": "行事曆變更可能已儲存。再次提出要求前，請先檢查行事曆。",
+      "savedUnverified": "我已儲存你的資訊，但無法驗證我的回覆。請重試。",
+      "startingNewConversation": "正在開始新對話…"
     },
     "planChange": {
       "activePlan": "目前啟用的計畫",
@@ -1434,7 +1468,20 @@
       "hideContext": "隱藏訓練背景",
       "showContext": "顯示訓練背景",
       "title": "聊天"
-    }
+    },
+    "menu": "選單",
+    "turn": {
+      "buyCredits": "購買點數",
+      "chooseAccessMethod": "選擇存取方式",
+      "finishedWhileLocked": "已在手機鎖定期間完成。",
+      "interruptedNothingChanged": "本次回覆在完成前中斷。未做任何變更。",
+      "interruptedSomeSaved": "本次回覆在完成前中斷。部分資訊已在中斷前儲存。",
+      "receivedBeforeClose": "已在應用程式關閉前收到。點一下「重試」即可傳送。",
+      "restorePurchases": "回復購買項目",
+      "signInAgain": "重新登入"
+    },
+    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能。\n\n指令：\n{{commands}}\n\n也可以直接和我聊聊訓練！",
+    "welcomeCommand": "{{command}} — {{description}}"
   },
   "plan": {
     "details": {
@@ -2604,7 +2651,9 @@
       "structure": "訓練課表結構",
       "trainingLoad": "訓練負荷改為 {{load}}",
       "unnamed": "未命名訓練課表",
-      "update": "更新 {{date}} 的訓練課表「{{name}}」：{{detail}}"
+      "update": "更新 {{date}} 的訓練課表「{{name}}」：{{detail}}",
+      "deleteFallback": "刪除訓練課表",
+      "updateFallback": "更新訓練課表：{{detail}}"
     },
     "history": {
       "diskFull": "\n\n（提醒一下：磁碟已滿，無法將這次交流儲存到歷史記錄中，但訊息已收到。方便時請清出一些空間。）",
@@ -2643,9 +2692,8 @@
       "plan": "產生訓練計畫",
       "review": "回顧上次訓練",
       "start": "開始新對話",
-      "status": "查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）",
+      "status": "查看目前體能、疲勞和狀態",
       "sync": "強制從 {{service}} 重新整理訓練資料",
-      "update": "檢查並安裝更新",
       "version": "顯示目前版本",
       "whatsnew": "查看最新版本的變更",
       "workout": "取得今日訓練課表"
@@ -2726,7 +2774,7 @@
       "unknownSection": "未知部分：`{{section}}`。\n\n有效部分：{{sections}}。"
     },
     "status": {
-      "working": "正在取得體能（CTL）資料…"
+      "working": "正在取得體能資料…"
     },
     "sync": {
       "complete": "同步完成 ✅",
@@ -2759,9 +2807,8 @@
       "managedInstruction": "傳送 {{whatsnew}} 查看變更。{{notice}}",
       "prepareFailed": "暫時無法安全地準備更新。請稍後再次嘗試 {{command}}。"
     },
-    "welcome": "歡迎使用 {{product}}！\n\n我是 AI 自行車教練，可以使用 {{service}} 資料制定訓練計畫、推薦訓練課表並追蹤體能（CTL）。\n\n指令：\n{{plan}} — 產生訓練計畫\n{{workout}} — 取得今日訓練課表\n{{status}} — 查看目前體能（CTL）、疲勞（ATL）和狀態（TSB）\n{{review}} — 回顧上次訓練\n{{sync}} — 強制從 {{service}} 重新整理訓練資料\n{{version}} — 顯示目前版本\n{{whatsnew}} — 查看最新版本的變更\n{{update}} — {{updateDescription}}\n\n也可以直接和我聊聊訓練！",
     "workout": {
-      "working": "正在查看狀態（TSB）和訓練計畫…"
+      "working": "正在查看狀態和訓練計畫…"
     }
   },
   "desktop": {
@@ -2848,5 +2895,107 @@
         "transferRequired": "需要移轉機器人"
       }
     }
+  },
+  "review": {
+    "accountChanged": "這項訓練是為 {{service}} 上的另一位運動員準備的。請再次提出請求，讓我為目前連線的運動員準備訓練。",
+    "add": "加入行事曆",
+    "cannotVerify": "無法檢查你的 {{service}} 連線，因此未做任何變更。請稍後重試。",
+    "turnStopping": "正在停止此回覆。停止後，你可以核准或取消訓練審核。",
+    "earlierVersion": "此訓練審核來自舊版 App，已無法套用。",
+    "cancelledUnknown": "已取消。此訓練可能仍已儲存。請檢查你的行事曆。",
+    "saveFailed": "無法在此 iPhone 上儲存你的選擇，因此未做任何變更。請重試。",
+    "storageUnavailable": "無法讀取已儲存的訓練審核內容。其按鈕已暫時停用。",
+    "title": "訓練審核",
+    "uncertain": "無法確認此變更是否已同步至你的 {{service}} 行事曆。再次提出請求前，請先檢查行事曆。",
+    "workout": {
+      "warmup": "暖身",
+      "mainSet": "主要訓練",
+      "cooldown": "緩和",
+      "ramp": "漸增"
+    },
+    "writePending": "此訓練可能已儲存。請先檢查行事曆再繼續。",
+    "writeReadFailed": "無法檢查行事曆。你已核准的訓練仍在等待確認。",
+    "saveApprovedAgain": "重新儲存已核准的訓練"
+  },
+  "credits": {
+    "buy": "購買",
+    "testers": "測試者目前還不能購買點數包。",
+    "title": "點數",
+    "balance_other": "{{formattedCount}} 點數",
+    "pack_other": "{{formattedCount}} 點數",
+    "packPrice_other": "{{formattedCount}} 點數 · {{price}}",
+    "error": {
+      "accessRejected": "無法使用你的點數。請回復購買項目以繼續。",
+      "exhausted": "你的點數已用完。你可以切換到你的 OpenRouter 帳戶。",
+      "unavailable": "點數目前無法使用。請稍後重試。",
+      "accountChanged": "完成此請求期間，你的點數帳戶發生了變更。你目前的帳戶已保留。"
+    }
+  },
+  "onboarding": {
+    "connect": {
+      "action": "連結",
+      "apiKey": "intervals.icu API 金鑰",
+      "fatigue": "疲勞 {{value}}",
+      "fitness": "體能 {{value}}",
+      "form": "狀態 {{value}}",
+      "skip": "暫時略過"
+    },
+    "starter": {
+      "start": "開始聊天",
+      "progress": "正在申請初始點數",
+      "alreadyGranted": "此裝置已使用過初始點數。",
+      "added_other": "已新增 {{formattedCount}} 點數"
+    },
+    "notice": {
+      "health": "僅提供訓練建議，不構成醫療建議。進行重大調整前，請諮詢醫師。"
+    },
+    "consent": {
+      "title": "你的教練使用 AI",
+      "body": "為了回覆，Enduragent 會將你的訊息、教練記憶以及從 intervals.icu 連接的訓練資料傳送給 OpenRouter，後者會將資料傳遞給 {{provider}} 以執行 {{model}}。這些資料僅用於產生教練的回覆。在你同意之前，不會傳送任何內容。",
+      "accept": "同意並繼續",
+      "decline": "暫不",
+      "saveFailed": "無法儲存你的同意。請再試一次。"
+    }
+  },
+  "access": {
+    "error": {
+      "locked": "請解鎖 iPhone 以繼續。你的訊息已儲存。",
+      "notConfigured": "請選擇教練連接模型的方式以繼續。",
+      "requestBlocked": "OpenRouter 封鎖了此請求。請嘗試其他模型或訊息。",
+      "providerConsentRequired": "與 AI 服務供應商分享聊天資料前，需要取得你的許可。",
+      "openRouterFunds": "你的 OpenRouter 帳戶餘額不足。請在 OpenRouter 儲值，或切換到點數。",
+      "storageUnavailable": "安全儲存空間暫時無法使用。你的對話、歷史紀錄和記憶仍在。請重試。",
+      "malformed": "無法讀取已儲存的存取方式。請選擇存取方式以繼續。"
+    },
+    "title": "存取方式",
+    "openRouterAccount": "OpenRouter 帳戶",
+    "signIn": "使用 OpenRouter 登入",
+    "signInCancelled": "登入已取消。你的存取方式未變更。",
+    "signInIncomplete": "OpenRouter 登入未完成。你的存取方式未變更。請重試。",
+    "switchToOpenRouter": "切換到 OpenRouter"
+  },
+  "connect": {
+    "error": {
+      "rejected": "intervals.icu 未接受這組金鑰。",
+      "blank": "請輸入 intervals.icu API 金鑰。目前的連線未變更。",
+      "notSaved": "替換未儲存。先前的連線未變更。請重試。",
+      "profileUnavailable": "運動員資料暫時無法取得。請重試。",
+      "wellnessRejected": "intervals.icu 未允許讀取今天的健康資料。請檢查連線。",
+      "wellnessUnavailable": "今天的健康資料暫時無法取得。請重試。",
+      "blankConnection": "請輸入 intervals.icu API 金鑰。",
+      "connectionNotSaved": "連線未儲存。請重試。",
+      "storageLocked": "請解鎖 iPhone 以讀取 intervals.icu 連線，然後重試。",
+      "storageUnavailable": "由於無法讀取安全儲存空間，intervals.icu 連線暫時無法使用。請重試。",
+      "storageMalformed": "無法讀取已儲存的 intervals.icu 連線。請更換金鑰以重新連線。"
+    },
+    "wellness": {
+      "empty": "今天沒有健康資料。",
+      "waiting": "正在讀取今天的健康資料…"
+    },
+    "review": "檢查連線",
+    "profile": {
+      "waiting": "正在讀取運動員資料…"
+    },
+    "missing": "尚未連接 intervals.icu。連接後可將訓練加入行事曆。"
   }
 }

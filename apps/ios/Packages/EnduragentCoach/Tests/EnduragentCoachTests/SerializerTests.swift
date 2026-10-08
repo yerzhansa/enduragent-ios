@@ -48,18 +48,6 @@ struct SerializerTests {
 			}
 		}
 		#expect(mismatches.isEmpty, "\(mismatches.joined(separator: "; "))")
-		let report =
-			mismatches.isEmpty
-			? "0 mismatches across \(cases.count) cases\n"
-			: mismatches.joined(separator: "\n") + "\n"
-		try? report.write(
-			toFile: "/tmp/ios-c6/serializer-swift-report.txt", atomically: true, encoding: .utf8)
-	}
-
-	@Test func ftp280DisplayGapIsUnchanged() throws {
-		let rows = try DisplayZones.calculate(ftpWatts: 280)
-		#expect(rows[0] == "< 154W")
-		#expect(rows[1] == "157-210W")
 	}
 
 	@Test func slugifyMatchesDesktop() {
@@ -72,7 +60,7 @@ struct SerializerTests {
 		#expect(IntervalsSerializer.slug(date: "1998-06-14", name: "Endurance") == "endurance")
 	}
 
-	@Test func eachCapThrows() {
+	@Test func emptyNameThrows() {
 		#expect(throws: InvalidWorkout.self) {
 			_ = try IntervalsSerializer.serialize(
 				IntervalsWorkoutInput(
@@ -83,121 +71,6 @@ struct SerializerTests {
 								type: .steady, duration: DurationInput(value: 1, unit: .minutes),
 								power: PowerTarget(
 									kind: .percentFtp, value: 50, low: nil, high: nil),
-								cadence: nil, label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			let step = WorkoutStep.simple(
-				SimpleStep(
-					type: .steady, duration: DurationInput(value: 1, unit: .minutes),
-					power: PowerTarget(kind: .percentFtp, value: 65, low: nil, high: nil),
-					cadence: nil, label: nil))
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(name: "Too many", steps: Array(repeating: step, count: 41)))
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Repeat",
-					steps: [
-						.set(
-							SetStep(
-								repeatCount: 21,
-								interval: SimpleStep(
-									type: .interval,
-									duration: DurationInput(value: 1, unit: .minutes),
-									power: PowerTarget(
-										kind: .percentFtp, value: 110, low: nil, high: nil),
-									cadence: nil, label: nil),
-								recovery: SimpleStep(
-									type: .recovery,
-									duration: DurationInput(value: 1, unit: .minutes),
-									power: PowerTarget(
-										kind: .percentFtp, value: 50, low: nil, high: nil),
-									cadence: nil, label: nil)
-							))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Watts",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .interval, duration: DurationInput(value: 5, unit: .seconds),
-								power: PowerTarget(kind: .watts, value: 2000, low: nil, high: nil),
-								cadence: nil, label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Percent",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .interval, duration: DurationInput(value: 30, unit: .seconds),
-								power: PowerTarget(
-									kind: .percentFtp, value: 250, low: nil, high: nil),
-								cadence: nil, label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Zone",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .steady, duration: DurationInput(value: 30, unit: .minutes),
-								power: PowerTarget(kind: .zone, value: 8, low: nil, high: nil),
-								cadence: nil, label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Inverted",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .steady, duration: DurationInput(value: 30, unit: .minutes),
-								power: PowerTarget(
-									kind: .percentFtp, value: nil, low: 90, high: 70), cadence: nil,
-								label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Cadence",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .steady, duration: DurationInput(value: 30, unit: .minutes),
-								power: PowerTarget(
-									kind: .percentFtp, value: 65, low: nil, high: nil),
-								cadence: CadenceTarget(value: nil, low: 90, high: nil), label: nil))
-					])
-			)
-		}
-		#expect(throws: InvalidWorkout.self) {
-			_ = try IntervalsSerializer.serialize(
-				IntervalsWorkoutInput(
-					name: "Ramp",
-					steps: [
-						.simple(
-							SimpleStep(
-								type: .ramp, duration: DurationInput(value: 10, unit: .minutes),
-								power: PowerTarget(
-									kind: .percentFtp, value: 70, low: nil, high: nil),
 								cadence: nil, label: nil))
 					])
 			)

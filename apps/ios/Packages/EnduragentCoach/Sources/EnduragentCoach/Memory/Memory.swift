@@ -1,15 +1,32 @@
 import Foundation
 
-public struct Memory: Sendable {
-	let store: any RecordLog
-	let clock: any Clock
+package struct Memory: Sendable {
+	package static let snapshotScope: RecordQuery.Scope = .synced([
+		.memorySection, .dailyNote, .ledgerEvent, .journal, .compactionSummary,
+	])
 
-	public init(store: any RecordLog, clock: any Clock) {
-		self.store = store
+	let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void
+	let ledger: Ledger
+	let clock: any Clock
+	let watchdogSleep: @Sendable (Duration) async throws -> Void
+
+	package init(
+		ledger: Ledger, clock: any Clock,
+		watchdogSleep: @escaping @Sendable (Duration) async throws -> Void = SystemClock().sleep,
+		authorizeInvocation: @escaping @Sendable (ModelInvocation) async throws -> Void = { _ in
+			throw AccessUnavailable.providerConsentRequired
+		}
+	) {
+		self.authorizeInvocation = authorizeInvocation
+		self.ledger = ledger
 		self.clock = clock
+		self.watchdogSleep = watchdogSleep
 	}
 
-	public func query(from: CivilDate, to: CivilDate, contains: String?) async throws -> [MemoryHit]
+	package func query(
+		from: CivilDate, to: CivilDate, contains: String?, for account: TrainingAccount
+	) async throws
+		-> [MemoryHit]
 	{
 		if from > to {
 			throw MemoryQueryFailure(
@@ -24,7 +41,7 @@ public struct Memory: Sendable {
 					"Error: range is \(days) days; the maximum is \(MemoryQuery.maxRangeDays). Query a narrower range."
 			)
 		}
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: account)
 		let needle = contains?.lowercased()
 		var collected: [(hit: MemoryHit, order: Int)] = []
 		var order = 0
@@ -51,19 +68,19 @@ public struct Memory: Sendable {
 		}
 
 		for record in snapshot.ledgerRecords {
-			guard record.civilDate >= from, record.civilDate <= to else { continue }
-			guard case .ledgerEvent(let body) = record.body else { continue }
+			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
+			guard body.date >= from, body.date <= to else { continue }
 			let line = serializeLedger(record, body: body)
 			if let needle, !line.lowercased().contains(needle) { continue }
 			collected.append(
-				(MemoryHit(date: record.civilDate, kind: .ledger(body.kind), text: line), order)
+				(MemoryHit(date: body.date, kind: .ledger(body.kind), text: line), order)
 			)
 			order += 1
 		}
 
 		for record in snapshot.journalRecords {
 			guard record.civilDate >= from, record.civilDate <= to else { continue }
-			guard case .journal(let body) = record.body else { continue }
+			guard case .synced(.journal(let body)) = record.body else { continue }
 			let parsed = parseJournalPreview(body.preview)
 			let section = parsed.section
 			let oldBody = parsed.oldBody
@@ -103,25 +120,31 @@ public struct Memory: Sendable {
 		}.map(\.hit)
 	}
 
-	public func context() async throws -> String {
-		try await renderContext(
-			excluding: SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue))
+	package func prompt(for account: TrainingAccount) async throws -> (
+		context: String, view: MemoryView
+	) {
+		let snapshot = try await loadSnapshot(for: account)
+		return (renderContext(snapshot, excluding: hiddenSections), view(snapshot))
 	}
 
-	package func fullContext() async throws -> String {
-		try await renderContext(excluding: [])
+	private var hiddenSections: [String] {
+		SectionName.cyclingEffective.filter { !$0.inject }.map(\.rawValue)
 	}
 
-	package func complementContext() async throws -> String {
+	package func fullContext(for account: TrainingAccount) async throws -> String {
+		renderContext(try await loadSnapshot(for: account), excluding: [])
+	}
+
+	package func complementContext(for account: TrainingAccount) async throws -> String {
 		let injected = SectionName.cyclingEffective.filter(\.inject).map(\.rawValue)
-		return try await renderContext(excluding: injected)
+		return renderContext(try await loadSnapshot(for: account), excluding: injected)
 	}
 
-	public func writeSection(_ name: SectionName, content: String, source: LedgerSource)
-		async throws
-	{
+	package func writeSection(
+		_ name: SectionName, content: String, source: LedgerSource, stamp: OperationStamp
+	) async throws {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: stamp)
 		let previous = UnionMerge.sectionText(snapshot.sections, name: name)
 		let stamped = stampUpdated(demoteEmbeddedH2(content), date: today)
 		_ = MemoryFlushPolicy.sectionSoftWarnChars
@@ -134,103 +157,69 @@ public struct Memory: Sendable {
 			unknown: logical,
 			contentSha256: sha256Hex(digestBody)
 		)
-		try await append(.provenance(provenance), civilDate: today)
 		let preview = JSONValue.object([
 			"newBody": .string(stamped),
 			"oldBody": previous.map(JSONValue.string) ?? .null,
 			"section": .string(name.rawValue),
 			"source": .string(source.rawValue),
 		]).canonicalDigestInput()
-		try await append(
-			.journal(JournalBody(op: .writeSection, preview: preview)), civilDate: today)
-		try await append(
-			.memorySection(MemorySectionBody(name: name, content: stamped)), civilDate: today)
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(provenance),
+				.journal(JournalBody(op: .writeSection, preview: preview)),
+				.memorySection(MemorySectionBody(name: name, content: stamped)),
+			],
+			stamp: stamp
+		)
 	}
 
-	public func appendDailyNote(_ note: String) async throws {
+	@discardableResult
+	package func appendDailyNote(_ note: String, stamp: OperationStamp) async throws -> Bool {
 		let today = IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone)
-		let snapshot = try await loadSnapshot()
+		let snapshot = try await loadSnapshot(for: stamp)
 		let existing = snapshot.dailyNotesOnly(on: today)
 		if !existing.isEmpty, "\n\(existing)\n".contains("\n\(note)\n") {
-			return
+			return false
 		}
-		try await append(.dailyNote(DailyNoteBody(note: note)), civilDate: today)
+		_ = try await ledger.commit(synced: [.dailyNote(DailyNoteBody(note: note))], stamp: stamp)
+		return true
 	}
 
-	public func appendEvent(date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource)
-		async throws -> Bool
-	{
-		let snapshot = try await loadSnapshot()
+	package func appendEvent(
+		date: CivilDate, kind: LedgerKind, text: String, source: LedgerSource,
+		stamp: OperationStamp
+	) async throws -> Bool {
+		let snapshot = try await loadSnapshot(for: stamp)
 		let digest = UnionMerge.ledgerDigest(date: date, kind: kind, text: text)
 		for record in snapshot.ledgerRecords {
-			guard case .ledgerEvent(let body) = record.body else { continue }
-			if UnionMerge.ledgerDigest(date: record.civilDate, kind: body.kind, text: body.text)
-				== digest
+			guard case .synced(.ledgerEvent(let body)) = record.body else { continue }
+			if UnionMerge.ledgerDigest(date: body.date, kind: body.kind, text: body.text) == digest
 			{
 				return false
 			}
 		}
-		let body = LedgerEventBody(kind: kind, text: text, source: source)
+		let body = LedgerEventBody(date: date, kind: kind, text: text, source: source)
 		let line = serializeLedgerLine(
 			date: date, kind: kind, text: text, source: source, wallMs: wallMs(clock.now))
-		try await append(
-			.provenance(
-				ProvenanceBody(
-					key: "ledger:\(sha256Hex(line))",
-					garmin: false,
-					nonGarmin: false,
-					unknown: true,
-					contentSha256: sha256Hex(line)
-				)
-			),
-			civilDate: date
+		_ = try await ledger.commit(
+			synced: [
+				.provenance(
+					ProvenanceBody(
+						key: "ledger:\(sha256Hex(line))",
+						garmin: false,
+						nonGarmin: false,
+						unknown: true,
+						contentSha256: sha256Hex(line)
+					)
+				),
+				.ledgerEvent(body),
+			],
+			stamp: stamp
 		)
-		try await append(.ledgerEvent(body), civilDate: date)
 		return true
 	}
 
-	public func flush(trigger: FlushTrigger, chatId: ChatID, transport: any ModelTransport)
-		async throws
-	{
-		let pending = try await oldestUnconsumedFlush(chatId: chatId)
-		let effectiveTrigger: FlushTrigger = {
-			if let pending, case .flushPending(let body) = pending.body {
-				return body.trigger
-			}
-			return trigger
-		}()
-		let conversation = try await loadFlushMessages(
-			trigger: effectiveTrigger, chatId: chatId, pending: pending)
-		if conversation.isEmpty, pending == nil {
-			return
-		}
-		var attempt = 0
-		var lastWrites = 0
-		var lastLedger = 0
-		while attempt < MemoryFlushPolicy.maxAttempts {
-			attempt += 1
-			let outcome = try await runFlushGenerate(
-				conversation: conversation, transport: transport)
-			lastWrites = outcome.writes
-			lastLedger = outcome.ledgerAppends
-			let zeroWrite =
-				outcome.writes == 0
-				&& outcome.ledgerAppends == 0
-				&& conversation.count >= MemoryFlushPolicy.flushZeroWriteMinMessages
-			if effectiveTrigger == .staleReset, zeroWrite, attempt < MemoryFlushPolicy.maxAttempts {
-				continue
-			}
-			break
-		}
-		_ = lastWrites
-		_ = lastLedger
-		if let pending {
-			try await markConsumed(pending)
-		}
-	}
-
-	public func view() async throws -> MemoryView {
-		let snapshot = try await loadSnapshot()
+	private func view(_ snapshot: MemorySnapshot) -> MemoryView {
 		var sections: [String: String] = [:]
 		for name in SectionName.cyclingEffective {
 			if let content = UnionMerge.sectionText(snapshot.sections, name: name) {
@@ -255,25 +244,11 @@ public struct Memory: Sendable {
 		)
 	}
 
-	package func hiddenSectionsHaveLogicalContent() async throws -> Bool {
-		let snapshot = try await loadSnapshot()
-		for name in SectionName.cyclingEffective where !name.inject {
-			if let content = UnionMerge.sectionText(snapshot.sections, name: name),
-				hasLogicalSectionContent(content)
-			{
-				return true
-			}
-		}
-		return false
-	}
-
-	private func renderContext(excluding: [String]) async throws -> String {
-		let snapshot = try await loadSnapshot()
+	private func renderContext(_ snapshot: MemorySnapshot, excluding: [String]) -> String {
 		let exclude = Set(excluding)
 		var parts: [String] = []
 		var blocks: [String] = []
-		for name in SectionName.cyclingEffective
-		where name.inject && !exclude.contains(name.rawValue) {
+		for name in SectionName.cyclingEffective where !exclude.contains(name.rawValue) {
 			if let content = UnionMerge.sectionText(snapshot.sections, name: name), !content.isEmpty
 			{
 				blocks.append("## \(name.rawValue)\n\(content)")
@@ -286,6 +261,13 @@ public struct Memory: Sendable {
 			{
 				blocks.append("## \(orphan)\n\(content)")
 			}
+		}
+		let events = snapshot.ledgerRecords.compactMap { record -> String? in
+			guard case .synced(.ledgerEvent(let body)) = record.body else { return nil }
+			return "event: \(serializeLedger(record, body: body))"
+		}
+		if !events.isEmpty {
+			blocks.append("## Ledger Events\n" + events.joined(separator: "\n"))
 		}
 		if !blocks.isEmpty {
 			parts.append("## Athlete Memory\n" + blocks.joined(separator: "\n\n") + "\n")

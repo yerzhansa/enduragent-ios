@@ -1,225 +1,353 @@
 import Foundation
 
 public actor Coach {
-	public let memory: Memory
-	public let planning: Planning
-
+	package let memory: Memory
+	public nonisolated let credits: any CreditsClient
+	package nonisolated let diagnostics: DiagnosticsLog
 	private let sport: SportID
 	private let transport: any ModelTransport
-	private let intervals: any IntervalsClient
-	private let store: any RecordLog
-	private let clock: any Clock
-	private var language: LanguagePreference
-	private let tools: ToolRuntime
+	let ledger: Ledger
+	let clock: any Clock
+	private let coalescing: CoalescingPolicy
+	private let coalescingSleep: @Sendable (Duration) async throws -> Void
+	private let host: any ExecutionHost
+	let resolveDisplayLocale: DisplayLocaleResolver
+	let preferences: CoachPreferences
+	let builtInModel: ModelID
+	let vault: CredentialVault
+	let catalogs: ModelCatalogOwner
+	var catalogObservation: Task<Void, Never>?
 	private let runner: TurnRunner
-	private var mailboxes: [ChatID: ChatMailbox]
+	private let reviews: SingleProposalReviews
+	private var mailboxSlots: [ChatID: MailboxSlot] = [:]
+	var mailboxes: [ChatID: ChatMailbox] { mailboxSlots.compactMapValues(\.mailbox) }
+	let lifetime = Lifetime()
+	private var recovery: Task<Bool, Never>?
+	let statusFeed = SnapshotFeed<CoachStatus>()
+	let statusChanges = Turnstile()
+	let identityChanges = Turnstile()
+	var identityWriteFailure: ConnectionID?
+	var trainingStatus: TrainingStatus?
+	var trainingRefresh: Task<Void, Never>?
+	var trainingReadID: TrainingDisplayReadID?
+	var trainingGeneration: UInt64 = 0
+	var accessObservation: Task<Void, Never>?
+	var importObservation: Task<Void, Never>?
+	var pendingImportRefresh: Task<Void, Never>?
+	private let process: ProcessID
+
+	deinit {
+		accessObservation?.cancel()
+		catalogObservation?.cancel()
+		importObservation?.cancel()
+		pendingImportRefresh?.cancel()
+	}
 
 	public init(
 		sport: SportID,
-		transport: any ModelTransport,
-		intervals: any IntervalsClient,
-		store: any RecordLog,
-		clock: any Clock,
-		language: LanguagePreference
+		ports: CoachPorts,
+		builtInModel: ModelID,
+		displayLocale: @escaping DisplayLocaleResolver,
+		coalescing: CoalescingPolicy = .npm
 	) {
+		let clock = ports.clock
+		let diagnostics = DiagnosticsLog(clock: clock)
+		let transport = ports.models.makeTransport(diagnostics)
+		let ledger = Ledger(log: ports.records.log, clock: clock, diagnostics: diagnostics)
+		let vault = CredentialVault(
+			store: ports.secrets, training: ports.training, clock: clock, ledger: ledger,
+			diagnostics: diagnostics,
+			catalogs: ports.models.catalogs, signInService: ports.openRouterSignIn)
+		self.diagnostics = diagnostics
 		self.sport = sport
 		self.transport = transport
-		self.intervals = intervals
-		self.store = store
+		self.vault = vault
+		self.catalogs = ports.models.catalogs
+		self.credits = ports.credits.makeClient(vault)
+		self.builtInModel = builtInModel
+		self.ledger = ledger
+		let preferences = CoachPreferences(
+			ledger: ledger, clock: clock, diagnostics: diagnostics, vault: vault,
+			builtInModel: builtInModel)
+		self.preferences = preferences
+		let authorizeInvocation: @Sendable (ModelInvocation) async throws -> Void = { request in
+			try await preferences.authorizeInvocation(request)
+		}
 		self.clock = clock
-		self.language = language
-		self.memory = Memory(store: store, clock: clock)
-		let planning = Planning(store: store, intervals: intervals, clock: clock)
-		self.planning = planning
-		let tools = ToolRuntime(
-			intervals: intervals, store: store, planning: planning, clock: clock)
-		self.tools = tools
+		self.coalescing = coalescing
+		self.coalescingSleep = ports.coalescingSleep
+		self.host = ports.host
+		self.resolveDisplayLocale = displayLocale
+		self.memory = Memory(
+			ledger: ledger, clock: clock, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation)
+		let reviews = SingleProposalReviews(
+			ledger: ledger, clock: clock, diagnostics: diagnostics,
+			training: { (recheck: Bool) async throws(AccessUnavailable) in
+				try await vault.trainingConnection(recheck: recheck)
+			}
+		)
+		self.reviews = reviews
 		self.runner = TurnRunner(
-			transport: transport,
-			intervals: intervals,
-			store: store,
-			clock: clock,
-			tools: tools,
-			planning: planning
+			transport: transport, ledger: ledger, clock: clock,
+			diagnostics: diagnostics, ladder: .npm,
+			evidence: WellnessEvidence(clock: clock, diagnostics: diagnostics),
+			reviews: reviews, watchdogSleep: ports.watchdogSleep,
+			authorizeInvocation: authorizeInvocation
 		)
-		self.mailboxes = [:]
+		self.process = ProcessID(ulid: ULID.generate(at: clock.now))
 	}
 
-	public nonisolated func send(_ text: String, chatId: ChatID) -> AsyncThrowingStream<
-		CoachEvent, Error
-	> {
-		AsyncThrowingStream { continuation in
-			let task = Task {
-				do {
-					let stream = await self.streamFromMailbox(text, chatId: chatId)
-					for try await event in stream {
-						continuation.yield(event)
-					}
-					continuation.finish()
-				} catch {
-					continuation.finish(throwing: error)
-				}
-			}
-			continuation.onTermination = { termination in
-				guard case .cancelled = termination else { return }
-				task.cancel()
-			}
-		}
-	}
-
-	public func history(chatId: ChatID) async throws -> [ChatMessage] {
-		try await loadHistory(chatId: chatId)
-	}
-
-	public func pendingProposal(chatId: ChatID) async throws -> PendingProposal? {
-		let records = try await store.fetch(
-			RecordQuery(
-				kinds: [.pendingProposal, .proposalCleared], chatId: chatId,
-				deviceLocalOnly: true)
-		)
-		guard let current = UnionMerge.pendingProposal(records, chatId: chatId, now: clock.now)
-		else {
-			return nil
-		}
-		return PendingProposal(
-			chatId: current.chatId,
-			nonce: current.nonce,
-			summary: current.summary,
-			description: current.description,
-			expiresAt: current.expiresAt
-		)
-	}
-
-	public func confirm(chatId: ChatID, nonce: Nonce) async throws -> ConfirmOutcome {
-		_ = sport
-		_ = transport
-		_ = intervals
-		let tools = self.tools
+	public func archivedConversation(_ ref: ArchivedConversationRef)
+		async throws(HistoryUnavailable) -> ArchivedConversation?
+	{
 		do {
-			let lookup = try await ProposalPolicy.take(
-				chatId: chatId,
-				nonce: nonce,
-				store: store,
-				clock: clock,
-				run: { input in
-					try await tools.rebuildConfirmed(input)
-				}
-			)
-			switch lookup {
-			case .found(let body):
-				return .executed(summary: body.summary)
-			case .expired:
-				return .expired
-			case .mismatch:
-				return .mismatch
-			case .none:
-				return .none
-			}
-		} catch let error as IntervalsError {
-			return .refused(message: error.details)
-		} catch let error as InvalidWorkout {
-			return .refused(message: error.message)
+			return try await ledger.archivedConversation(
+				ref, process: process, today: CivilDate(date: clock.now, timeZone: clock.timeZone))
 		} catch {
-			return .failed(message: "\(error)")
+			throw .storageUnavailable
 		}
 	}
 
-	public func setCoachReplyLanguage(_ tag: LanguageTag?) async throws {
-		language.coachReply = tag
-		let tz =
-			IANATimeZone(identifier: clock.timeZone.identifier) ?? .gmt
-		let record = AthleteRecord(
-			ulid: ULID.generate(at: clock.now),
-			deviceId: store.deviceId,
-			hlc: .tick(now: clock.now, deviceId: store.deviceId, last: nil),
-			timeZone: tz,
-			civilDate: IntervalsPolicy.today(now: clock.now, timeZone: clock.timeZone),
-			body: .coachReplyLanguage(CoachReplyLanguageBody(tag: tag))
-		)
-		try await store.append(record)
-	}
-
-	public func waitForMemoryFlush() async throws {
-		for box in mailboxes.values {
-			try await box.runQueuedFlush()
+	public func lifecycle(_ event: AppLifecycleEvent) async {
+		lifetime.apply(event)
+		switch event {
+		case .becameActive:
+			await catalogs.refresh()
+			await refreshDisplayLocale()
+			await recoverOnce()
+		case .willTerminate:
+			await catalogs.cancelRefresh()
+			catalogObservation?.cancel()
+			catalogObservation = nil
+			let access = accessObservation
+			accessObservation?.cancel()
+			accessObservation = nil
+			let observation = importObservation
+			let refresh = pendingImportRefresh
+			importObservation?.cancel()
+			importObservation = nil
+			pendingImportRefresh?.cancel()
+			pendingImportRefresh = nil
+			await access?.value
+			await observation?.value
+			await refresh?.value
+			_ = await recovery?.value
+			for mailbox in await openedMailboxes() {
+				await mailbox.cancelInFlight(cause: .appTerminating)
+			}
+		case .enteredBackground:
+			for mailbox in mailboxes.values {
+				await mailbox.enteredBackground()
+			}
+		}
+		if event == .becameActive {
+			await refreshTrainingStatus()
 		}
 	}
 
-	public func stop(chatId: ChatID) async {
-		await mailbox(for: chatId).stop()
+	public func decide(_ decision: ReviewDecision, in chat: ChatID) async -> ReviewOutcome {
+		let mailbox: ChatMailbox
+		do {
+			mailbox = try await self.mailbox(for: chat)
+		} catch {
+			diagnostics.record(.recoveryUnavailable(error))
+			return await reviews.unresolved(.unknown(.readFailed))
+		}
+		if case .checkAgain(let ref) = decision, await mailbox.reviewReadUnavailable {
+			return await mailbox.reviewChanged(ref)
+		}
+		let outcome = await mailbox.decide(decision)
+		await publishStatus()
+		return outcome
 	}
 
-	public func snapshot(chatId: ChatID) async throws -> ViewSeam {
-		let transcript = try await history(chatId: chatId)
-		let pending = try await pendingProposal(chatId: chatId)
-		let box = mailbox(for: chatId)
-		let busy = await box.busy
-		let phase: TurnPhase
-		if busy {
-			phase = .streaming
-		} else if pending != nil {
-			phase = .awaitingConfirmation
+	public func changeTraining(_ change: IntervalsConnectionChange) async
+		-> CredentialOutcome<IntervalsSummary>
+	{
+		invalidateTrainingDisplay()
+		let generation = trainingGeneration
+		let clock = self.clock
+		let outcome = await vault.change(change) { await self.holdsBoundWork(now: clock.now) }
+		let stored = await vault.storedTrainingStatus()
+		guard generation == trainingGeneration else { return outcome }
+		if case .connected(let saved, let account) = stored {
+			let summary: IntervalsSummary?
+			switch outcome {
+			case .replaced(let receipt, _), .kept(let receipt?),
+				.failedPreviousKept(_, let receipt?):
+				summary = receipt
+			case .kept(nil), .failedPreviousKept(_, nil), .disconnected, .refused:
+				if case .connected(let previous, _) = trainingStatus {
+					summary = previous
+				} else {
+					summary = nil
+				}
+			}
+			trainingStatus = .connected(
+				summary.flatMap { $0.connectionID == saved.connectionID ? $0 : nil } ?? saved,
+				account: account)
 		} else {
-			phase = .idle
+			trainingStatus = stored
 		}
-		return ViewSeam(
-			transcript: transcript,
-			streamingText: "",
-			leadFact: nil,
-			commands: SlashCommand.all,
-			pendingWrite: pending,
-			planCards: [],
-			phase: phase
-		)
-	}
-
-	private func streamFromMailbox(_ text: String, chatId: ChatID) async -> AsyncThrowingStream<
-		CoachEvent, Error
-	> {
-		await mailbox(for: chatId).send(text, language: language)
-	}
-
-	private func mailbox(for chatId: ChatID) -> ChatMailbox {
-		if let existing = mailboxes[chatId] {
-			return existing
+		await recordTrainingIdentity(in: stored)
+		for mailbox in mailboxes.values {
+			_ = await mailbox.reviewChanged()
 		}
-		let created = ChatMailbox(
-			chatId: chatId,
-			runner: runner,
-			memory: memory,
-			store: store,
-			clock: clock,
-			transport: transport
-		)
-		mailboxes[chatId] = created
-		return created
+		await publishStatus()
+		if statusFeed.isObserved, generation == trainingGeneration,
+			case .connected(let summary, _) = trainingStatus, summary.needsDisplayRead
+		{
+			startTrainingDisplay(from: summary)
+		}
+		return outcome
 	}
 
-	private func loadHistory(chatId: ChatID) async throws -> [ChatMessage] {
-		let records = try await store.fetch(
-			RecordQuery(kinds: [.userMessage, .assistantMessage, .windowStart], chatId: chatId)
-		)
-		let ordered = records.sorted { $0.hlc < $1.hlc }
-		let start = ordered.reversed().compactMap { record -> ULID? in
-			if case .windowStart(let body) = record.body { return body.firstIncludedUlid }
-			return nil
-		}.first
-		var messages: [ChatMessage] = []
-		for record in ordered {
-			if let start, record.ulid.rawValue < start.rawValue {
-				continue
+	#if DEBUG
+		public func replaceAppAccountToken() async throws(AccessUnavailable) {
+			try await vault.replaceAppAccountToken()
+		}
+	#endif
+
+	#if DEBUG
+		public nonisolated func recordSyncProbe() -> RecordSyncProbe {
+			RecordSyncProbe(ledger: ledger, clock: clock)
+		}
+	#endif
+
+	private func recoverOnce() async {
+		guard !lifetime.terminating else { return }
+		let recovering = recovery ?? Task { await self.recoverDeadClaims() }
+		recovery = recovering
+		if await !recovering.value, recovery == recovering {
+			recovery = nil
+		}
+	}
+
+	private func recoverDeadClaims() async -> Bool {
+		do {
+			for (chat, plan) in try await recoveryPlans() {
+				await mailboxes[chat]?.recover(plan)
 			}
-			switch record.body {
-			case .userMessage(let body):
-				messages.append(
-					ChatMessage(role: .user, text: body.athleteText, civilDate: record.civilDate))
-			case .assistantMessage(let body):
-				messages.append(
-					ChatMessage(role: .assistant, text: body.text, civilDate: record.civilDate))
-			default:
-				break
+			return true
+		} catch {
+			diagnostics.record(.recoveryUnavailable(error))
+			return false
+		}
+	}
+
+	private func recoveryPlans() async throws(LedgerFailure) -> [ChatID: RecoveryPlan] {
+		let device = ledger.deviceId
+		let local = try await ledger.read(
+			RecordQuery(scope: TurnRecovery.localScope, writtenBy: device)
+		).records
+		let chats = Set(local.compactMap(\.chatId))
+		guard !chats.isEmpty else { return [:] }
+		var conversations: [ChatID: Conversation] = [:]
+		var flushQueue: [ChatID: [FlushJob]] = [:]
+		for chat in chats {
+			let mailbox = try await makeMailbox(for: chat, recoveryRecords: local)
+			conversations[chat] = await mailbox.conversation
+			flushQueue[chat] = await mailbox.jobs
+		}
+		let turns = conversations.mapValues { $0.segments.flatMap(\.turns) }
+		let dead = Set(
+			turns.values.flatMap {
+				TurnRecovery.plan(turns: $0, writes: [:], device: device, process: process)
+					.interrupt.map(\.attempt)
+			})
+		var writes: [AttemptID: WriteSummary] = [:]
+		if !dead.isEmpty {
+			let stamped = try await ledger.read(
+				RecordQuery(scope: TurnRecovery.stampedWrites, writtenBy: device)
+			).records
+			writes = TurnRecovery.writes(of: dead, in: stamped)
+		}
+		return TurnRecovery.plans(
+			in: conversations, jobs: flushQueue, writes: writes, device: device, process: process)
+	}
+
+	func mailbox(for chatId: ChatID) async throws(LedgerFailure) -> ChatMailbox {
+		await recoverOnce()
+		return try await makeMailbox(for: chatId)
+	}
+
+	func snapshotFeed(for chat: ChatID) -> SnapshotFeed<ChatSnapshot> {
+		if let slot = mailboxSlots[chat] { return slot.feed }
+		let slot = MailboxSlot()
+		mailboxSlots[chat] = slot
+		return slot.feed
+	}
+
+	func openedMailboxes() async -> [ChatMailbox] {
+		for (chat, slot) in mailboxSlots {
+			guard let opening = slot.opening else { continue }
+			if case .failure(let error) = await opening.value {
+				diagnostics.record(.importsUnavailable(chat, error))
 			}
 		}
-		return messages
+		return Array(mailboxes.values)
+	}
+
+	private func makeMailbox(for chatId: ChatID, recoveryRecords: [AthleteRecord]? = nil)
+		async throws(LedgerFailure) -> ChatMailbox
+	{
+		observeImports()
+		if let existing = mailboxSlots[chatId]?.mailbox { return existing }
+		guard !lifetime.terminating else { throw .unavailable }
+		_ = snapshotFeed(for: chatId)
+		let opening =
+			mailboxSlots[chatId]?.opening
+			?? Task { await self.openMailbox(for: chatId, recoveryRecords: recoveryRecords) }
+		mailboxSlots[chatId]?.opening = opening
+		let result = await opening.value
+		if mailboxSlots[chatId]?.opening == opening { mailboxSlots[chatId]?.opening = nil }
+		return try result.get()
+	}
+
+	private func openMailbox(for chatId: ChatID, recoveryRecords: [AthleteRecord]?) async
+		-> Result<ChatMailbox, LedgerFailure>
+	{
+		do {
+			let preferences = self.preferences
+			let access: @Sendable () async throws(AccessUnavailable) -> ResolvedAccess = {
+				() async throws(AccessUnavailable) in
+				try await preferences.modelAccess()
+			}
+			let created = try await ChatMailbox.open(
+				chatId: chatId,
+				ledger: ledger,
+				runner: runner,
+				flushes: FlushWork(
+					chat: chatId, process: process, ledger: ledger, memory: memory,
+					transport: transport, clock: clock,
+					diagnostics: diagnostics, ladder: runner.ladder),
+				clock: clock,
+				coalescing: coalescing,
+				coalescingSleep: coalescingSleep,
+				environment: EnvironmentResolver(
+					preferences: { await preferences.load() }, access: access,
+					training: { [weak self] () async throws(AccessUnavailable) in
+						let resolved: Result<TrainingConnection, AccessUnavailable>
+						do throws(AccessUnavailable) {
+							guard let self else { throw AccessUnavailable.recordStorageUnavailable }
+							resolved = .success(try await self.coachingTrainingConnection())
+						} catch {
+							resolved = .failure(error)
+						}
+						await self?.publishStatus()
+						return try resolved.get()
+					}, displayLocale: resolveDisplayLocale),
+				reviews: reviews,
+				process: process,
+				host: host,
+				lifetime: lifetime, feed: snapshotFeed(for: chatId),
+				recoveryRecords: recoveryRecords
+			)
+			mailboxSlots[chatId]?.mailbox = created
+			return .success(created)
+		} catch {
+			return .failure(error)
+		}
 	}
 }

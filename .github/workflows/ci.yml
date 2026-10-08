@@ -20,13 +20,6 @@ jobs:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version-file: .node-version
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm check:source
       - name: Install pinned SwiftLint
         run: |
           curl --fail --location --output /tmp/swiftlint.zip https://github.com/realm/SwiftLint/releases/download/0.65.1/portable_swiftlint.zip
@@ -34,11 +27,15 @@ jobs:
           unzip -q /tmp/swiftlint.zip -d /tmp/swiftlint
           echo /tmp/swiftlint >> "$GITHUB_PATH"
           /tmp/swiftlint/swiftlint version
-      - run: pnpm lint:swift
-      - run: pnpm check:format
+      - run: make test-tools
+      - run: make check-source
+      - run: make lint-swift
+      - run: make check-format
       - run: xcodebuild -version
-      - run: pnpm check:catalogs
-      - run: pnpm test:swift
+      - run: make check-catalogs
+      - run: make test-swift
+      - name: Build coach package in Release
+        run: swift build -c release --package-path apps/ios/Packages/EnduragentCoach
       - name: Install pinned XcodeGen
         run: |
           curl --fail --location --output /tmp/xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
@@ -46,7 +43,26 @@ jobs:
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
           /tmp/xcodegen/xcodegen/bin/xcodegen --version
           /tmp/xcodegen/xcodegen/bin/xcodegen generate --spec apps/ios/project.yml
-      - name: Build unsigned iPhone app
-        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
+          make check-source
+      - name: Test iPhone app
+        run: |
+          xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations > "$RUNNER_TEMP/enduragent-destinations.txt"
+          destination_id="$(awk '
+            /Available destinations for/ { available = 1; next }
+            /Ineligible destinations for/ { available = 0 }
+            available && /platform:iOS Simulator/ && /name:iPhone/ {
+              sub(/^.*id:/, "")
+              sub(/,.*/, "")
+              print
+              exit
+            }
+          ' "$RUNNER_TEMP/enduragent-destinations.txt")"
+          if [ -z "$destination_id" ]; then
+            cat "$RUNNER_TEMP/enduragent-destinations.txt"
+            exit 1
+          fi
+          xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$destination_id" -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
+      - name: Build unsigned iPhone app in Release
+        run: xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build

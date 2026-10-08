@@ -16,7 +16,7 @@ package enum PromptStaticBlocks {
 	package static let confirmationGateRules = #"""
 		# Mutation Confirmations
 
-		The host may require confirmation for intervals_create_workout, intervals_create_strength_workout, intervals_delete_workout, intervals_update_workout, and plan_save. When one of these tools returns {pendingConfirmation: true}, it only proposed the change and will execute after the athlete confirms through a button or prompt outside this conversation.
+		The host may require confirmation for intervals_create_workout, intervals_create_strength_workout, intervals_delete_workout, and intervals_update_workout. When one of these tools returns {pendingConfirmation: true}, it only proposed the change and will execute after the athlete confirms through a button or prompt outside this conversation.
 
 		After a pending-confirmation result, state what you proposed and that confirmation is pending. Never claim the write happened. Never call the tool again to retry a pending proposal. Propose at most one mutation per turn because a new proposal replaces the outstanding one.
 		"""#
@@ -24,9 +24,9 @@ package enum PromptStaticBlocks {
 	package static let coachDecisionRules = #"""
 		# Material Coach Decisions
 
-		When available, call request_user_decision only for a material choice between coaching or Plan directions; the host renders the panel. Otherwise ask the same choice as numbered text. Ask ordinary questions in text.
+		Ask material choices between coaching or Plan directions as numbered text. Ask ordinary questions in text.
 
-		Give 2–5 options with a short label, one-sentence description, consequence, and recommendation flag. Recommend at most one. Call the tool alone. Never use it for medical red flags or to mutate Plan, Calendar, or Training.
+		Give 2–5 options with a short label, one-sentence description, consequence, and recommendation flag. Recommend at most one. Never offer numbered choices for medical red flags, and never treat a chosen option as permission to mutate Plan, Calendar, or Training.
 		"""#
 
 	package static let crossSportVoiceRules = #"""
@@ -65,7 +65,9 @@ package enum PromptStaticBlocks {
 		memory_query tool. Before answering any question about the past ("what did we note...",
 		"when did I...", "how did that experiment go", anything tied to a date or period), call
 		memory_query with a date range covering that period FIRST. Derive the range from the
-		per-message "Current time:" line. Never claim a past note or decision does not exist
+		per-message "Current time:" line. Earlier athlete messages start with a bracketed send time,
+		such as [Mon 2026-09-28 07:12 Europe/Amsterdam], that the app adds. It is not text the
+		athlete typed, and your replies never include it. Never claim a past note or decision does not exist
 		until a memory_query over the covering range has come back empty.
 		"""#
 
@@ -238,8 +240,9 @@ package enum PromptStaticBlocks {
 
 	package static let recoveryPrompt = "summarize what you did and what's left"
 
-	package static let stepLimitCopy =
-		"I ran out of steps gathering data — ask me to continue and I'll pick up where I left off."
+	package static let toolSaveFailure = "The change could not be saved on this device."
+
+	package static let toolFailure = "The tool could not finish."
 
 	package static let snapshotHeading = "# Athlete Profile & Latest Wellness"
 
@@ -251,7 +254,4 @@ package enum PromptStaticBlocks {
 	package static let snapshotGuidance =
 		"Fetch wellness or activities only for a date range or history not shown here. "
 		+ "Treat a single HRV or resting-HR value as one signal, not a verdict; weigh the athlete's reported feel at least as much."
-
-	package static let compactionFailureCopy =
-		"Conversation could not be shortened safely to fit the context budget. Please try again."
 }

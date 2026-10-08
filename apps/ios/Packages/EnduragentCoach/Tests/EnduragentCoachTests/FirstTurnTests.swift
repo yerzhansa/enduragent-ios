@@ -1,3 +1,5 @@
+import EnduragentCoachFixtures
+import Foundation
 import Testing
 
 @testable import EnduragentCoach
@@ -8,81 +10,64 @@ import Testing
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	func makeCoach() -> Coach {
-		Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: intervals,
-			store: store,
-			clock: clock,
-			language: .init(ui: .en, coachReply: nil)
-		)
+	func makeCoach() async -> Coach {
+		await EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 
 	@Test func coachStartsWithNoHistory() async throws {
-		let coach = makeCoach()
-		#expect(try await coach.history(chatId: "main").isEmpty)
+		let coach = await makeCoach()
+		#expect(await coach.transcript(.main).isEmpty)
 	}
 
-	@Test func historyPropagatesARecordReadFailure() async {
-		let coach = Coach(
-			sport: .cycling,
-			transport: transport,
-			intervals: intervals,
-			store: FetchFailingLog(),
-			clock: clock,
-			language: .init(ui: .en, coachReply: nil)
-		)
-		await #expect(throws: RecordDecodeFailure.self) {
-			try await coach.history(chatId: "main")
-		}
-	}
-
-	@Test func wellnessFailureFailsTheTurn() async {
-		intervals.loadFailure = IntervalsError(
-			code: "unavailable", details: "wellness unavailable")
-		transport.script = [.text("hi"), .finish(reason: .stop)]
-		let coach = makeCoach()
-		await #expect(throws: IntervalsError.self) {
-			for try await _ in coach.send("hello", chatId: "main") {}
-		}
-	}
-
-	@Test func invalidToolArgumentsReturnAToolError() async throws {
-		transport.script = [
-			.toolCall(name: "memory_read", arguments: "not-json"),
-			.finish(reason: .toolCalls),
-			.text("ok"),
-			.finish(reason: .stop),
-		]
-		let coach = makeCoach()
-		for try await _ in coach.send("read memory", chatId: "main") {}
-		let followUp = try #require(transport.requests.dropFirst().first)
-		#expect(followUp.messages.contains { $0.content.contains("invalid_arguments") })
-	}
-
-	@Test func replyStreamsTextThenFinishes() async throws {
-		transport.script = [
-			.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
-		]
-		let coach = makeCoach()
-
-		var text = ""
-		var finished = false
-		for try await event in coach.send("What did my week look like?", chatId: "main") {
-			switch event {
-			case .textDelta(let delta): text += delta
-			case .finished: finished = true
-			default: break
+	@Test func replyFinishesWithTheAssembledRequest() async throws {
+		let pacing = HeldClock()
+		let coalescing = HeldClock()
+		let transport = FakeModelTransport(clock: pacing)
+		transport.respond = ScriptedReply.sequence(
+			[
+				.text("Your week: "), .text("two rides, 3 h 10 min."), .finish(reason: .stop),
+			], deltaDelay: .milliseconds(1), otherwise: transport.respond)
+		let coach = await EnduragentCoachTests.makeCoach(
+			transport: transport, intervals: intervals, store: store, clock: clock,
+			coalescingClock: coalescing)
+		let turn = try #require(
+			try await coach.send(draft("What did my week look like?"), to: .main).acceptedTurn)
+		try await coalescing.waitUntilHeld(quickWindow.window)
+		coalescing.advance(by: quickWindow.window)
+		var liveTexts: [String] = []
+		var settled: TurnState?
+		let snapshots = await coach.observe(.main)
+		for text in ["Your week: ", "Your week: two rides, 3 h 10 min."] {
+			let held = try await beforeDeadline(within: .hangGuard) {
+				try await pacing.waitUntilHeld(.milliseconds(1))
+				return true
 			}
+			try #require(held == true)
+			pacing.advance(by: .milliseconds(1))
+			_ = try #require(
+				try await firstSnapshot(in: snapshots, within: .hangGuard) { snapshot in
+					guard case .processing? = snapshot.turns.first?.state else { return false }
+					return snapshot.liveReply?.text == text
+				})
+			liveTexts.append(text)
 		}
-
-		#expect(text == "Your week: two rides, 3 h 10 min.")
-		#expect(finished)
-		#expect(try await coach.history(chatId: "main").count == 2)
+		let finishing = try await beforeDeadline(within: .hangGuard) {
+			try await pacing.waitUntilHeld(.milliseconds(1))
+			return true
+		}
+		try #require(finishing == true)
+		pacing.advance(by: .milliseconds(1))
+		settled = try #require(await coach.settledState(of: turn, in: .main, within: .hangGuard))
+		#expect(liveTexts.contains("Your week: "))
+		#expect(replyText(try #require(settled)) == "Your week: two rides, 3 h 10 min.")
+		#expect(await coach.transcript(.main).count == 2)
+		#expect(turn == (await coach.currentSnapshot(.main))?.turns.first?.id)
 
 		let request = transport.requests[0]
-		#expect(request.stream == true)
+		#expect(request.credential == ProviderCredential(secret: testKey, method: .credits))
+		#expect(request.model == testModel)
+		#expect(request.charge == .chatAttempt)
 		#expect(request.messages.first?.role == .system)
 		#expect(request.messages.first?.content.contains("=== BEGIN ATHLETE DATA") == true)
 		#expect(request.messages.last?.content.contains("Current time:") == true)
@@ -92,84 +77,67 @@ import Testing
 	}
 
 	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
-		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .error)]
-		let coach = makeCoach()
-		var finished = false
-		var failed: String?
-		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
-			switch event {
-			case .finished:
-				finished = true
-			case .failed(let message):
-				failed = message
-			default:
-				break
-			}
-		}
-		#expect(finished)
-		#expect(failed == nil)
+		transport.respond = ScriptedReply.sequence(
+			[.text("Tomorrow's ride is queued."), .finish(reason: .error)], for: .chat,
+			otherwise: transport.respond)
+		let coach = await makeCoach()
+		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
+		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 		#expect(
-			try await coach.history(chatId: "main").map(\.text) == [
+			await coach.transcript(.main) == [
 				"Give me a ride for tomorrow",
 				"Tomorrow's ride is queued.",
 			])
 	}
 
 	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
-		transport.script = [.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)]
-		let coach = makeCoach()
-		var finished = false
-		var failed: String?
-		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
-			switch event {
-			case .finished:
-				finished = true
-			case .failed(let message):
-				failed = message
-			default:
-				break
-			}
-		}
-		#expect(finished)
-		#expect(failed == nil)
-		#expect(
-			try await coach.history(chatId: "main").map(\.text) == [
-				"Give me a ride for tomorrow",
-				"Tomorrow's ride is queued.",
-			])
+		transport.respond = ScriptedReply.sequence(
+			[.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)], for: .chat,
+			otherwise: transport.respond)
+		let coach = await makeCoach()
+		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
+		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 	}
 
-	@Test func emptyProviderErrorFinishFailsWithoutPersisting() async throws {
-		transport.script = [.finish(reason: .error)]
-		let coach = makeCoach()
-		var failed: String?
-		for try await event in coach.send("Give me a ride for tomorrow", chatId: "main") {
-			if case .failed(let message) = event {
-				failed = message
-			}
-		}
-		#expect(failed == "CHAT_PROVIDER_ERROR")
-		#expect(try await coach.history(chatId: "main").isEmpty)
+	@Test func emptyProviderErrorFinishFailsWithoutAReply() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[.finish(reason: .error)], otherwise: transport.respond)
+		let coach = await makeCoach()
+		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
+		#expect(failure(settled) == .model(.generationFailed(.emptyAfterError)))
+		guard case .failed(let failed) = settled else { return }
+		#expect(failed.notice?.key == Catalog.chatNoticeResponseFailure)
+		#expect(await coach.transcript(.main) == ["Give me a ride for tomorrow"])
+		let replies = try await store.fetch(
+			RecordQuery(scope: .synced([.turnSettled]), chatId: .main)
+		)
+		.records
+		#expect(replies.count == 1)
 	}
 
 	@Test func toolCallRunsAndFeedsBackIntoTheTurn() async throws {
 		intervals.activities = [
 			.ride(name: "Sunday long ride", date: "1998-06-07", durationS: 7200, trainingLoad: 120)
 		]
-		transport.script = [
-			.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
-			.finish(reason: .toolCalls),
-			.text("Sunday long ride, 2 h, load 120."),
-			.finish(reason: .stop),
-		]
-		let coach = makeCoach()
-
-		var toolNames: [String] = []
-		for try await event in coach.send("Review my last ride", chatId: "main") {
-			if case .toolStarted(let name, _) = event { toolNames.append(name) }
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
+				.finish(reason: .toolCalls),
+				.text("Sunday long ride, 2 h, load 120."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		let turn = try #require(
+			try await coach.send(draft("Review my last ride"), to: .main).acceptedTurn)
+		var activities: [TurnActivity] = []
+		for await snapshot in await coach.observe(.main) {
+			guard let state = snapshot.turns.first?.state else { continue }
+			if case .processing(let processing) = state, activities.last != processing.activity {
+				activities.append(processing.activity)
+			}
+			if state.isSettled { break }
 		}
-
-		#expect(toolNames == ["intervals_fetch_activities"])
+		#expect(activities.contains(.runningTools([.intervalsFetchActivities])))
 		#expect(transport.requests.count == 2)
 		#expect(
 			intervals.calls == [
@@ -177,132 +145,74 @@ import Testing
 				.activities(days: 7),
 			]
 		)
+		#expect(
+			replyText(try #require(await coach.settledState(of: turn, in: .main)))
+				== "Sunday long ride, 2 h, load 120.")
 	}
 
-	@Test func memoryIsWrittenAfterTheReplyAndQueryable() async throws {
-		transport.script = [
-			.text("Noted: group ride on Saturdays."), .finish(reason: .stop),
-			.toolCall(
-				name: "ledger_append",
-				arguments:
-					#"{"kind":"decision","date":"1998-06-13","text":"Rides with a group on Saturdays"}"#
-			),
-			.finish(reason: .toolCalls), .finish(reason: .stop),
-		]
-		let coach = makeCoach()
-		for try await _ in coach.send(
-			"Remember that I ride with a group on Saturdays", chatId: "main")
-		{}
-		try await coach.waitForMemoryFlush()
-
-		let hits = try await coach.memory.query(
-			from: "1998-06-01", to: "1998-06-30", contains: "Saturdays")
-		#expect(hits.count == 1)
-		#expect(hits[0].date == "1998-06-13")
-		#expect(hits[0].kind == .ledger(.decision))
-	}
-
-	@Test func calendarWriteBecomesAPendingProposal() async throws {
-		transport.script = [
-			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
-		let coach = makeCoach()
-
-		var proposal: PendingProposal?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
-		{
-			if case .proposalPending(let pending) = event { proposal = pending }
-		}
-
-		let pending = try #require(proposal)
-		#expect(pending.chatId == "main")
-		#expect(pending.summary == "Create workout \"Endurance\" on 1998-06-14")
-		#expect(pending.description.hasPrefix("Warmup\n- 10m 55-65%"))
-		#expect(pending.expiresAt == clock.now.addingTimeInterval(10 * 60))
+	@Test func calendarWriteBecomesAReview() async throws {
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .stop),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		let review = try await proposeEnduranceRide(coach)
+		#expect(review.ref.chat == "main")
+		let card = try #require(review.cards.first)
+		#expect(card.action == .add)
+		#expect(card.name.sentence(in: displayLocale()) == "Endurance")
+		#expect(card.date == "1998-06-14")
+		#expect(
+			card.lines(in: displayLocale()).joined(separator: "\n").hasPrefix(
+				"Warmup\n- 10m 55-65%"))
+		#expect(
+			review.totals
+				== ReviewTotals(additions: 1, edits: 0, deletions: 0, durationMinutes: nil))
+		let live = try #require(
+			try await ProposalPolicy.live(
+				chatId: "main",
+				ledger: Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock)),
+				now: clock.now))
+		#expect(live.body.summary == "Create workout \"Endurance\" on 1998-06-14")
+		#expect(live.body.expiresAt == clock.now.addingTimeInterval(10 * 60))
 		#expect(
 			!intervals.calls.contains { call in
 				if case .createEvent = call { return true }
 				return false
 			}
 		)
-		#expect(try await coach.pendingProposal(chatId: "main")?.nonce == pending.nonce)
+		#expect(await makeCoach().currentSnapshot(.main)?.review?.cards == review.cards)
 	}
 
 	@Test func calendarProposalSurvivesProviderErrorFinish() async throws {
-		transport.script = [
-			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .error),
-		]
-		let coach = makeCoach()
-		var proposal: PendingProposal?
-		var failed: String?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
-		{
-			switch event {
-			case .proposalPending(let pending):
-				proposal = pending
-			case .failed(let message):
-				failed = message
-			default:
-				break
-			}
-		}
-		#expect(failed == nil)
-		#expect(try #require(proposal).summary == "Create workout \"Endurance\" on 1998-06-14")
+		transport.respond = ScriptedReply.sequence(
+			[
+				.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
+				.finish(reason: .toolCalls),
+				.text("I've prepared the ride. Confirm to add it."),
+				.finish(reason: .error),
+			], otherwise: transport.respond)
+		let coach = await makeCoach()
+		let review = try await proposeEnduranceRide(coach)
 		#expect(
-			try await coach.history(chatId: "main").map(\.text).contains(
-				"I've prepared the ride. Confirm to add it."))
-		#expect(try await coach.pendingProposal(chatId: "main") != nil)
-	}
-
-	@Test func confirmRunsTheWriteOnce() async throws {
-		let coach = makeCoach()
-		let pending = try await proposeEnduranceRide(coach)
-
-		let outcome = try await coach.confirm(chatId: "main", nonce: pending.nonce)
-
-		#expect(outcome == .executed(summary: "Create workout \"Endurance\" on 1998-06-14"))
+			review.cards.map { $0.name.sentence(in: displayLocale()) } == ["Endurance"])
 		#expect(
-			intervals.calls.last
-				== .createEvent(
-					date: "1998-06-14", externalId: "cycling-coach:1998-06-14:endurance"))
-		#expect(try await coach.pendingProposal(chatId: "main") == nil)
-
-		let again = try await coach.confirm(chatId: "main", nonce: pending.nonce)
-		#expect(again == .none)
+			await coach.transcript(.main).contains("I've prepared the ride. Confirm to add it."))
 	}
 
 	var workoutArguments: String {
 		#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"warmup","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","low":55,"high":65}},{"type":"steady","duration":{"value":70,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}},{"type":"cooldown","duration":{"value":10,"unit":"minutes"},"power":{"kind":"percent_ftp","value":50}}]}}"#
 	}
 
-	func proposeEnduranceRide(_ coach: Coach) async throws -> PendingProposal {
-		transport.script = [
-			.toolCall(name: "intervals_create_workout", arguments: workoutArguments),
-			.finish(reason: .toolCalls),
-			.text("I've prepared the ride. Confirm to add it."),
-			.finish(reason: .stop),
-		]
-		var proposal: PendingProposal?
-		for try await event in coach.send("Give me an endurance ride for tomorrow", chatId: "main")
-		{
-			if case .proposalPending(let pending) = event { proposal = pending }
-		}
-		return try #require(proposal)
-	}
-}
-
-private struct FetchFailingLog: RecordLog {
-	let deviceId = DeviceID()
-
-	func append(_ record: AthleteRecord) async throws {}
-
-	func fetch(_ query: RecordQuery) async throws -> [AthleteRecord] {
-		throw RecordDecodeFailure(reason: "unreadable")
+	func proposeEnduranceRide(_ coach: Coach) async throws -> ReviewSnapshot {
+		let turn = try #require(
+			try await coach.send(draft("Give me an endurance ride for tomorrow"), to: .main)
+				.acceptedTurn)
+		_ = try #require(await coach.settledState(of: turn, in: .main))
+		let snapshot = try #require(await coach.currentSnapshot(.main))
+		return try #require(snapshot.review)
 	}
 }
