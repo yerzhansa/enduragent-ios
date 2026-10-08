@@ -59,6 +59,7 @@ struct ExportedTree {
 	let tree: String
 	let build: String
 	let runs: String
+	let recordings: String
 	let devices: String
 
 	static var products: String {
@@ -73,6 +74,7 @@ struct ExportedTree {
 		tree = "\(root)/export"
 		build = "\(root)/build"
 		runs = "\(root)/runs"
+		recordings = "\(root)/recordings"
 		devices = "\(root)/devices"
 		let helpers = "\(tree)/\(Self.helperFolders[1])"
 		try files.createDirectory(atPath: helpers, withIntermediateDirectories: true)
@@ -147,6 +149,7 @@ struct ExportedTree {
 		complete["PATH"] = "\(root)/bin"
 		complete["ENDURAGENT_VERIFY_FAKE_ROOT"] = root
 		complete["ENDURAGENT_VERIFY_RUNS"] = runs
+		complete["ENDURAGENT_VERIFY_RECORDINGS"] = recordings
 		complete["ENDURAGENT_VERIFY_BUILD"] = build
 		complete["ENDURAGENT_VERIFY_REVISION"] = nil
 		complete.merge(environment) { $1 }

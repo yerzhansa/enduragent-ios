@@ -20,6 +20,7 @@ struct Simulator {
 	let environment: [String: String]
 	let executable: String
 	let runsRoot: String
+	let recordingsRoot: String
 	let captures: String
 	let deviceType: String
 	let project: String
@@ -48,6 +49,8 @@ struct Simulator {
 		runsRoot =
 			environment["ENDURAGENT_VERIFY_RUNS"]
 			?? NodePath.join(home, "Library/Logs/enduragent-verify")
+		recordingsRoot =
+			environment["ENDURAGENT_VERIFY_RECORDINGS"] ?? "/tmp/enduragent-verify-recordings"
 		captures =
 			environment["ENDURAGENT_PROTOTYPE_CAPTURES"]
 			?? NodePath.join(
