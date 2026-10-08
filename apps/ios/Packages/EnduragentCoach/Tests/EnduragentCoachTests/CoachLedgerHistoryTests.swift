@@ -89,22 +89,32 @@ extension SwiftDataSuites {
 				try await append([original], using: before, transport: transport)
 					== [.object(["duplicate": .bool(true), "recorded": .bool(false)])])
 			#expect(try await store.fetch(recordQuery).records == saved)
-			for date in ["next Tuesday", "2026-02-30"] {
-				let refused = event("decision", on: date, text: "This date must be refused.")
-				#expect(
-					try await append([refused], using: before, transport: transport)
-						== [.string("Error: \(date) is not a real calendar date. Use YYYY-MM-DD.")])
-				#expect(try await store.fetch(recordQuery).records == saved)
-			}
-			let invalid = [
-				event("workout", on: "1998-06-02", text: "This kind must be refused."),
-				event("decision", on: "1998-06-03", text: ""),
+			let dateHelp = "is not a real calendar date. Use YYYY-MM-DD."
+			let kindHelp =
+				"is not an allowed kind. Use one of: decision, override, illness, experiment, outcome."
+			let refusals = [
+				(
+					event("decision", on: "next Tuesday", text: "This date must be refused."),
+					"Error: next Tuesday \(dateHelp)"
+				),
+				(
+					event("decision", on: "2026-02-30", text: "This date must be refused."),
+					"Error: 2026-02-30 \(dateHelp)"
+				),
+				(event("workout", on: "2026-02-30", text: ""), "Error: 2026-02-30 \(dateHelp)"),
+				(
+					event("workout", on: "1998-06-02", text: "This kind must be refused."),
+					"Error: workout \(kindHelp)"
+				),
+				(event("workout", on: "1998-06-02", text: ""), "Error: workout \(kindHelp)"),
+				(
+					event("decision", on: "1998-06-03", text: ""),
+					"Error: text is empty. Write one or two sentences."
+				),
 			]
-			for arguments in invalid {
+			for (arguments, answer) in refusals {
 				let results = try await append([arguments], using: before, transport: transport)
-				let error = try #require(results.first?.stringValue)
-				#expect(error.hasPrefix("Error:"))
-				#expect(error.contains("Use YYYY-MM-DD."))
+				#expect(results == [.string(answer)])
 				#expect(try await store.fetch(recordQuery).records == saved)
 			}
 			await before.lifecycle(.willTerminate)
