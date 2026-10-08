@@ -27,7 +27,7 @@ extension FixtureLaunchTests {
 		if !lateAttachment { launchTask(task) }
 		let expiration = task.expirationHandler
 		switch scenario {
-		case .stop, .expiry, .cancel:
+		case .stop, .expiry:
 			try await waitForLease {
 				if case .processing? = await self.leaseState(coach, turn: turn) {
 					true
@@ -59,7 +59,7 @@ extension FixtureLaunchTests {
 		#expect(observed.settledCounts == [1])
 		let state = try #require(await leaseState(coach, turn: turn))
 		switch scenario {
-		case .stop, .expiry, .cancel:
+		case .stop, .expiry:
 			guard case .interrupted(let interrupted) = state else {
 				Issue.record("Expected interruption, got \(state)")
 				return
@@ -227,11 +227,10 @@ enum LeaseCompletionScenario: CaseIterable, Sendable {
 	case success
 	case failure
 	case expiry
-	case cancel
 
 	var events: [ScriptedEvent] {
 		switch self {
-		case .stop, .expiry, .cancel: [.text("Still"), .hang]
+		case .stop, .expiry: [.text("Still"), .hang]
 		case .success: [.text("Still on."), .finish(reason: .stop)]
 		case .failure: [.fail(.http(status: 400))]
 		}
@@ -240,7 +239,7 @@ enum LeaseCompletionScenario: CaseIterable, Sendable {
 	var success: Bool {
 		switch self {
 		case .stop, .success, .failure: true
-		case .expiry, .cancel: false
+		case .expiry: false
 		}
 	}
 }

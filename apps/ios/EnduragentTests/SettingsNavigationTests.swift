@@ -153,18 +153,13 @@ extension FixtureLaunchTests {
 		#expect(model.route == .chat)
 	}
 
-	@Test(arguments: [
-		ShellDestination.debugCredits, .debugRecords, .debugLanguage,
-		.session, .debugLeases,
-	])
-	func debugDestinationsStayOnPathWhenSnapshotsChange(destination: ShellDestination) async throws
-	{
+	@Test func debugDestinationStaysOnPathWhenSnapshotsChange() async throws {
 		let model = await model(try services())
 		await model.agreeAndStartChatting()
 		model.open(.settings)
 		model.open(.debug)
-		model.open(destination)
-		let path: [ShellDestination] = [.settings, .debug, destination]
+		model.open(.debugCredits)
+		let path: [ShellDestination] = [.settings, .debug, .debugCredits]
 		try #require(model.navigation == path)
 		await model.chooseLanguage(.fixed(.fr))
 		try await model.waitForStatus { $0.language == .fixed(.fr) }

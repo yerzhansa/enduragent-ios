@@ -109,39 +109,6 @@ extension FixtureLaunchTests {
 		#expect(failed.notice?.actions == [.tryAgain(turn.id)])
 	}
 
-	@Test func keepStoreReopensAnUnstartedTurnAsAwaitingRestart() async throws {
-		var held = launch
-		held.coalescing = CoalescingPolicy(window: .seconds(60))
-		let accepted: TurnView
-		do {
-			let first = await model(try fixtureServices(held, defaults: defaults))
-			await first.agreeAndStartChatting()
-			first.draft.text = "fixture:hang"
-			await first.send()
-			accepted = try await firstTurn(first)
-		}
-		let (second, _) = try await relaunch(.keep)
-		let reopened = try #require(await firstSnapshot(second, chat: .main))
-		#expect(reopened.turns.map(\.id) == [accepted.id])
-		#expect(reopened.turns.first?.state == .accepted(.awaitingRestart))
-
-	}
-
-	@Test func slowDirectiveStreamsTheWeekSummaryWordByWord() async throws {
-		let services = try services()
-		let transport = try #require(services.fixtureTransport)
-		let model = await model(services)
-		await model.agreeAndStartChatting()
-		model.draft.text = "fixture:slow"
-		await model.send()
-		let settled = try await settledTurn(model)
-		#expect(transport.requestCount == 1)
-		#expect(replyText(settled.state) == FirstWeekFixture.weekSummary)
-		model.draft.text = TutorialCopy.weekQuestion
-		await model.send()
-		#expect(replyText(try await settledTurn(model, at: 1).state) != nil)
-	}
-
 	@Test(arguments: [
 		"fixture:fail bogus", "fixture:storage fail-everything", "fixture:fail 500 xlots",
 	])

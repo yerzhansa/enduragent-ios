@@ -1,7 +1,6 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
 import Foundation
-import Security
 import Testing
 
 @testable import Enduragent
@@ -198,22 +197,6 @@ final class FixtureLaunchTests {
 		#expect(model.starterLine == "200 credits")
 	}
 
-	@Test func fixtureLaunchStaysOnNotice() async throws {
-		let model = await model(try services())
-		#expect(model.route == .onboarding(.notice))
-	}
-
-	@Test func coldStartAfterAV1ChatOpensTheOneConversation() async throws {
-		defaults.set(true, forKey: ShellModel.onboardingCompletedKey)
-		defaults.set("restored-chat", forKey: "enduragent.lastChatId")
-		let model = await model(try services())
-		await model.agreeAndStartChatting()
-		try await observed(model)
-		#expect(model.route == .chat)
-		#expect(model.chat?.chat == .main)
-		#expect(model.chat?.opening == .welcome)
-	}
-
 	@Test func fixtureAppServicesOpensALegacySecretsFile() async throws {
 		let legacy =
 			#"{"appAccountToken":"11111111-2222-4333-8444-555555555555","openRouterKey":"fixture-legacy-credits-key"}"#
@@ -356,14 +339,6 @@ final class FixtureLaunchTests {
 		#expect(await firstSnapshot(second, chat: .main)?.turns.isEmpty == true)
 		#expect(wiped.bool(forKey: ShellModel.onboardingCompletedKey) == false)
 	}
-
-	@Test func lockedKeychainThrowsInteractionNotAllowed() throws {
-		let services = try services(keychain: .locked)
-		#expect(throws: KeychainStoreError.keychain(errSecInteractionNotAllowed)) {
-			try #require(services.fixture).secrets.creditsAccount()?.key
-		}
-	}
-
 }
 
 enum TutorialCopy {

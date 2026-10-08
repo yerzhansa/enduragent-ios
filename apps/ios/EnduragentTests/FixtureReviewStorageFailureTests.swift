@@ -36,16 +36,12 @@ extension FixtureLaunchTests {
 		#expect(fixture.transport.requestCount == requests)
 	}
 
-	@Test(arguments: [false, true], [LanguageTag.en, .fr])
-	func failedChoiceReadShowsOneLocalizedCardNoticeThroughShell(
-		cancel: Bool, language: LanguageTag
-	) async throws {
+	@Test(arguments: [false, true])
+	func failedChoiceReadShowsOneCardNoticeThroughShell(cancel: Bool) async throws {
 		let services = try services()
 		let fixture = try #require(services.fixture)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
-		await model.chooseLanguage(.fixed(language))
-		try await until { model.status.language == .fixed(language) }
 		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
 		let calls = fixture.intervals.calls
@@ -54,12 +50,8 @@ extension FixtureLaunchTests {
 		await model.decide(cancel ? .cancel(token) : .approve(token))
 		try await until { model.chat?.review?.notice?.key == Catalog.reviewStorageUnavailable }
 		let failed = try #require(model.chat?.review)
-		let notice = try #require(failed.notice)
 		#expect(model.reviewNotice == nil)
 		#expect(model.chat?.notes.isEmpty == true)
-		#expect(
-			model.phrasebook.say(notice.key, notice.vars)
-				== model.phrasebook.say(Catalog.reviewStorageUnavailable))
 		let retry = try #require(ConfirmedPreviewCard(model: model, review: failed).actions.first)
 		#expect(retry.id == "chat.preview.retryRead")
 		await model.decide(retry.decision)

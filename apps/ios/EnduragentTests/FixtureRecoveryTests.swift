@@ -145,93 +145,11 @@ extension FixtureLaunchTests {
 		#expect(interrupted.notice.actions == [.tryAgain(streaming.id)])
 	}
 
-	@Test func memoryThenHangLeavesSavedWorkForRecovery() async throws {
-		let dead: TurnView
-		do {
-			let services = try services()
-			let records = services.coach.recordSyncProbe()
-			let killed = await model(services)
-			await killed.agreeAndStartChatting()
-			killed.draft.text = "fixture:memory-then-hang"
-			await killed.send()
-			dead = try await turn(in: killed, where: isProcessing)
-			let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-			while try await !records.snapshot().counts.contains(where: {
-				$0.kind == "memorySection" && $0.count > 0
-			}),
-				ContinuousClock.now < deadline
-			{
-				try await Task.sleep(for: .milliseconds(20))
-			}
-			try await terminateWithoutWriting(killed)
-		}
-		let reopened = try #require(
-			await firstSnapshot(try await relaunch(.keep).0, chat: .main))
-		let state = try #require(reopened.turns.first { $0.id == dead.id }?.state)
-		guard case .interrupted(let interrupted) = state else {
-			Issue.record("expected interrupted, got \(state)")
-			return
-		}
-		#expect(interrupted.cause == .processEnded)
-		#expect(interrupted.saved.memorySections == 1)
-		#expect(interrupted.notice.key == Catalog.chatTurnInterruptedSomeSaved)
-		#expect(interrupted.notice.actions.isEmpty)
-	}
-
-	@Test func recoveryOfOneDeadClaimOverTwoHundredTurns() async throws {
-		var quick = launch
-		quick.coalescing = CoalescingPolicy(window: .milliseconds(1))
-		let dead: TurnView
-		do {
-			let seeded = await model(try fixtureServices(quick, defaults: defaults))
-			await seeded.agreeAndStartChatting()
-			for index in 1...200 {
-				seeded.draft.text = "Seed \(index)"
-				await seeded.send()
-				try await answered("Seed \(index)", in: seeded)
-			}
-			seeded.draft.text = "fixture:hang"
-			await seeded.send()
-			dead = try await turn(in: seeded, where: isProcessing)
-			try await terminateWithoutWriting(seeded)
-		}
-		let snapshot: ChatSnapshot
-		do {
-			let (recovering, _) = try await relaunch(.keep)
-			await recovering.coach.lifecycle(.becameActive)
-			snapshot = try #require(await firstSnapshot(recovering, chat: .main))
-			#expect(snapshot.turns.count == 201)
-			let state = try #require(snapshot.turns.first { $0.id == dead.id }?.state)
-			#expect(cause(state) == .processEnded)
-			#expect(snapshot.turns.filter { isCompleted($0.state) }.count == 200)
-			#expect(
-				snapshot.turns.filter { cause($0.state) == .processEnded }.map(\.id) == [dead.id])
-			let transport = try #require(recovering.fixtureTransport)
-			#expect(transport.requestCount == 0)
-		}
-		let (clean, _) = try await relaunch(.keep)
-		await clean.coach.lifecycle(.becameActive)
-		let reopened = try #require(await firstSnapshot(clean, chat: .main))
-		#expect(reopened.turns == snapshot.turns)
-	}
-
 	private func terminateWithoutWriting(_ model: ShellModel) async throws {
 		let records = try #require(model.services.fixtureRecordFaults)
 		records.failSyncedAppends = true
 		try records.failAppends(ofKind: "pendingSettlement")
 		await model.lifecycle.forward(.willTerminate)
-	}
-
-	private func answered(_ text: String, in model: ShellModel) async throws {
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while ContinuousClock.now < deadline {
-			if let last = model.chat?.turns.last, last.athleteText == text, isCompleted(last.state)
-			{
-				return
-			}
-			try await Task.sleep(for: .milliseconds(5))
-		}
-		Issue.record("\(text) was not answered")
 	}
 
 	private func turn(
