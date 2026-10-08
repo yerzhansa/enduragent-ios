@@ -70,6 +70,9 @@ extension SourceChecker {
 		if try isProof && patterns.test(#"\bXCTSkip(?:If|Unless)?\b"#, text) {
 			try findings.report(file, "ui-proof-no-skips")
 		}
+		if try isProof && patterns.test(#"\bclass\s+\w*DarkProof\b"#, text) {
+			try findings.report(file, "ui-proof-no-dark-classes")
+		}
 		if try file.hasUnitSuffix(".swift") && hasExtraSecretStore(text) {
 			try findings.report(file, "single-secret-store")
 		}

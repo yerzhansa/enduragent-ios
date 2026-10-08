@@ -211,7 +211,14 @@ extension SourceCases {
 		+ [
 			.rejects(
 				"rejects skipped UI proofs", [exampleProof: #"throw XCTSkip("missing old store")"#],
-				finding: "ui-proof-no-skips")
+				finding: "ui-proof-no-skips"),
+			.rejects(
+				"rejects a dark copy of a UI proof",
+				[exampleProof: "final class ExampleDarkProof {}"],
+				finding: "ui-proof-no-dark-classes"),
+			.accepts(
+				"accepts a UI proof whose name only starts with Dark",
+				[exampleProof: "final class DarkThemeProof {}"]),
 		]
 
 	static let upgradeStore =
