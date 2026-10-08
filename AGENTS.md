@@ -20,6 +20,7 @@
 - Format commits as Conventional Commits: `<type>(ios): <description>`.
 - Open every PR you create as a draft.
 - Mark a PR ready only after CI passes and, for UI changes, `verify-ios` has run on the final version.
+- Fix Critical and required review findings in the pull request. File every other finding with the `ledger` skill.
 
 ## Done means proven
 
