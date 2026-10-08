@@ -52,6 +52,7 @@ struct SourceChecker {
 		+ #"|xcuserdata|\.idea)(?:\/|$)|(?:^|\/)(?:\.env(?:\.[^/]*)?|\.dev\.vars(?:\.[^/]*)?"#
 		+ #"|credentials(?:\.[^/]*)?"#
 		+ #"|[^/]+\.(?:p12|p8|mobileprovision|keychain|keychain-db|ipa|xcarchive))$"#
+	static let xcodeProject = "apps/ios/Enduragent.xcodeproj/project.pbxproj"
 	static let sqliteHeader = Array("SQLite format 3\0".utf8)
 
 	let root: String
@@ -67,15 +68,16 @@ struct SourceChecker {
 		for file in files {
 			guard let text = try readableText(file, tracked: tracked) else { continue }
 			let source = SourceFile(file: file, text: text)
-			if file.hasSameUnits(as: "apps/ios/Enduragent.xcodeproj/project.pbxproj") {
-				try checkXcodeBuildSettings(file, NodePath.resolve(root, file))
-			}
 			if try patterns.test(Self.appSource, file) { appNavigationSources.append(source) }
 			try checkTestRules(source)
 			if try patterns.test(Self.proofFile, file) || patterns.test(Self.featureFile, file) {
 				featureProofSources.append(source)
 			}
 			try checkContentRules(source)
+		}
+		let generatedProject = NodePath.resolve(root, Self.xcodeProject)
+		if FileManager.default.fileExists(atPath: generatedProject) {
+			try checkXcodeBuildSettings(Self.xcodeProject, generatedProject)
 		}
 		try checkFeatureProofs(featureProofSources)
 		try checkNavigationStacks(appNavigationSources)
