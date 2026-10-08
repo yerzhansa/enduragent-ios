@@ -57,17 +57,20 @@ extension Memory {
 		-> ToolExecution
 	{
 		let fields = arguments.objectFields
-		guard
-			let dateRaw = fields["date"]?.stringValue,
-			let date = CivilDate(rawValue: dateRaw),
-			let kindRaw = fields["kind"]?.stringValue,
-			let kind = LedgerKind(rawValue: kindRaw),
-			let text = fields["text"]?.stringValue,
-			!text.isEmpty
-		else {
-			let dateRaw = fields["date"]?.stringValue ?? ""
+		let dateRaw = fields["date"]?.stringValue ?? ""
+		guard let date = CivilDate(rawValue: dateRaw) else {
 			return .result(
 				.string("Error: \(dateRaw) is not a real calendar date. Use YYYY-MM-DD."))
+		}
+		let kindRaw = fields["kind"]?.stringValue ?? ""
+		guard let kind = LedgerKind(rawValue: kindRaw) else {
+			let allowed = LedgerKind.allCases.map(\.rawValue).joined(separator: ", ")
+			return .result(
+				.string("Error: \(kindRaw) is not an allowed kind. Use one of: \(allowed)."))
+		}
+		let text = fields["text"]?.stringValue ?? ""
+		guard !text.isEmpty else {
+			return .result(.string("Error: text is empty. Write one or two sentences."))
 		}
 		let recorded = try await appendEvent(
 			date: date, kind: kind, text: text, source: source, stamp: stamp)
