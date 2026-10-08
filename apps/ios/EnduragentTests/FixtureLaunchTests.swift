@@ -357,8 +357,13 @@ extension ShellModel {
 	func agreeAndStartChatting() async {
 		await startChatting()
 		if route == .onboarding(.consent) {
-			await acceptConsent()
 			let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
+			var statuses = await services.coach.observeStatus().makeAsyncIterator()
+			let asked = await statuses.next()?.access.consent
+			while status.access.consent != asked, ContinuousClock.now < deadline {
+				await Task.yield()
+			}
+			await acceptConsent()
 			while route != .chat, ContinuousClock.now < deadline { await Task.yield() }
 		}
 		#expect(route == .chat)
