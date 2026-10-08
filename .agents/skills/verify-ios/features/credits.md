@@ -7,7 +7,7 @@ The athlete's Credits screen shows available Credits, the two packs, and the tes
 - `credits-balance` shows the fixture's `200 credits` in `credits.balance`.
 - `credits-packs` shows 500 and 2000 credits, with disabled Buy buttons, in `credits.pack.icu.enduragent.credits.small` and `credits.pack.icu.enduragent.credits.large`.
 - `credits-note` shows `Testers cannot buy packs yet.` in `credits.note`.
-- `credits-unavailable` shows `Credits are unavailable right now. Try again later.` in `credits.notice` when loading fails.
+- `credits-unavailable` shows `Credits are unavailable right now. Try again later.` in `credits.notice` when loading fails. At zero Credits the same element shows the out-of-Credits sentence.
 - `credits-recovery` opens Credits from the turn's `chat.turn.buyCredits` or `chat.turn.restorePurchases` action without replacing the conversation.
 - `credits-language` renders the title, amounts, pack rows, Buy, tester notice, and failure notice through the current language preference.
 
@@ -29,7 +29,7 @@ Preconditions:
 | `sim test <run id> CreditsProof` | `chat.settings`, then `settings.credits` under Model access, opens 200 credits, both packs, and the tester note, `06-credits`. |
 | `sim test <run id> NoticeCopyProof` | `fixture:fail 402` offers Buy Credits; `fixture:fail 401` offers Restore purchases. Both actions open `credits.balance` and return to the conversation after one Back, `notice-copy-buy-credits-opens-credits`, `notice-copy-restore-purchases-opens-credits`. |
 
-Interactively, inspect both Buy buttons as disabled and capture `sim shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. There is no dedicated XCUITest class for these two checks. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
+Interactively, inspect both Buy buttons as disabled and capture `sim shot <run id> credits-buy-disabled`. For fixed French, choose it through `/language` before opening `settings.credits` and capture `credits-french`. `BillingIdentityProof` and `AccessSettingsProof` assert that both Buy buttons are disabled, and `LanguageMatrixFrSweep` opens Credits in French when it is named. The hosted app tests `creditsFailuresShowCatalogNotices` and `AccessSettingsTests.creditsResultsDiscardStaleSuccess` cover failed reads and clearing an earlier successful amount. The launch argument `-EnduragentFixtureCredits unavailable` scripts a failed Credits read.
 
 ## Gotchas
 
@@ -48,9 +48,9 @@ Interactively, inspect both Buy buttons as disabled and capture `sim shot <run i
 - `access.notice` shows availability or the latest choice outcome.
 - `credits.switchToOpenRouter` opens this same screen without selecting a method.
 
-Fixture launch arguments use `-EnduragentFixtureAccess` with `credits`, `openrouter`, `credits-needs-setup` or `openrouter-needs-credits`. OpenRouter launch states store the synthetic OpenRouter credential and saved model; the ordinary OpenRouter state also stores Credits. `-EnduragentFixtureCredits` accepts `ready`, `zero`, `unavailable`, `provisioning-failed` or `already-granted`. A minted grant persists the scripted credential through CredentialVault before returning. Keep launches never reseed either identity or the selection. `-EnduragentFixtureKeychain malformed-access` supplies an unreadable saved model selection.
+Fixture launch arguments use `-EnduragentFixtureAccess` with `credits`, `openrouter`, `catalog-openrouter`, `missing-openrouter`, `rejected-openrouter`, `synced-openrouter`, `credits-needs-setup` or `openrouter-needs-credits`. OpenRouter launch states store the synthetic OpenRouter credential and saved model; the ordinary OpenRouter state also stores Credits. `-EnduragentFixtureCredits` accepts `ready`, `zero`, `unavailable`, `provisioning-failed` or `already-granted`. A minted grant persists the scripted credential through CredentialVault before returning. Keep launches never reseed either identity or the selection. `-EnduragentFixtureKeychain malformed-access` supplies an unreadable saved model selection.
 
-Choose access method, Switch to OpenRouter and Sign in again recovery actions open this screen directly above the conversation. Buy Credits opens Credits with Buy disabled and the tester notice. These routes keep the conversation and the saved method.
+The Choose access method and Switch to OpenRouter recovery actions open this screen directly above the conversation. Sign in again starts the OpenRouter sign-in without leaving the conversation. Buy Credits opens Credits with Buy disabled and the tester notice. These routes keep the conversation and the saved method.
 
 ## Separate billing identities
 

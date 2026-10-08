@@ -14,7 +14,7 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 - `chat-stop` stops the running and queued turns when the athlete taps `chat.stop`. A later message can still run. Saved work determines which interruption notice appears and whether Try again is offered.
 - `chat-expiry` settles interrupted work when its execution lease expires. The running turn keeps observed partial text; queued turns do not start.
 - `chat-finished-away` adds `Finished while the phone was locked.` under a reply completed in the background. It lasts until relaunch. Device notification behavior needs a device check beyond these fixture proofs.
-- `chat-failed` displays `chat.turn.notice` and at most one recovery action for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
+- `chat-failed` displays `chat.turn.notice` and up to two recovery actions for that turn. Provider details, status codes, and Swift error names do not belong in these notices.
 - `chat-retry` keeps working visible while the coach retries a recoverable failure. Server and network failures allow two retries, timeouts one, rate limits three, and context overflow three. Once reply text or saved work prevents replay, the coach settles instead.
 - `chat-saved-unverified` shows the saved-work notice without Try again when information was saved before the response failed. The athlete must send a new message.
 - `chat-step-limit` makes one final model request without tools after ten tool steps. An empty finalization shows the catalog fallback in the chosen language, including after relaunch and in History. A prior memory change stays saved without replay or Try again.
@@ -37,12 +37,13 @@ The athlete sends messages into one ongoing conversation. Each turn saves the me
 | Server, network, timeout, or watchdog failure | `The model provider is having trouble — try again in a few minutes.` with Try again. |
 | Rejected Credits access | `Your Credits couldn't be used. Restore purchases to continue.` with `chat.turn.restorePurchases`, which opens Credits. |
 | Exhausted Credits | `You're out of Credits. You can switch to your OpenRouter account.` with `chat.turn.buyCredits`, which opens Credits, and below it `chat.turn.switchToOpenRouter`, which opens Access method. |
+| OpenRouter account out of funds | `Your OpenRouter account is out of funds. Add funds on OpenRouter, or switch to Credits.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. No UI proof or hosted app test reaches this notice. |
 | Rate limited | A duration such as `~7 seconds`, `~2 minutes`, or `about a minute` in the rate-limit sentence. `chat.turn.tryAgain` stays disabled until the wait ends. |
 | Bad request, overflow, or exhausted turn budget | `Sorry, something went wrong. Please try again.` with Try again. |
 | Unknown or broken provider stream | `The coach couldn't respond. Please try again.` with Try again. |
 | Locked keychain | `Unlock your iPhone to continue. Your message is saved.` with Try again under the turn; a coach-wide notice also uses `chat.composer.notice`. |
-| No configured access | `Choose how the coach reaches a model to continue.` with `chat.turn.chooseAccessMethod`, which opens the connect step. |
-| Rejected OpenRouter account | Sign-in recovery uses `chat.turn.signInAgain` and currently opens the connect step. There is no fixture UI proof for this access method. |
+| No configured access | `Choose how the coach reaches a model to continue.` with `chat.turn.chooseAccessMethod`, which opens the Access method screen. |
+| Rejected OpenRouter account | The turn shows no notice. The transcript shows `chat.access.notice` with `chat.access.signInAgain`, which starts sign-in without leaving the conversation. `OpenRouterRecoveryProof` proves it. |
 | Information saved, reply unverified | `I saved your information, but couldn't verify my response. Please try again.` with no recovery button. Send a new message. |
 | Interrupted without saved work | `This reply stopped before it finished. Nothing was changed.` with Try again. |
 | Interrupted after saved work | `This reply stopped before it finished. Some information was saved first.` with no recovery button. |
@@ -109,7 +110,7 @@ For slash fill, type `/`, tap `chat.slash.status`, and capture `sim shot <run id
 | `sim test <run id> SavedUnverifiedProof` | A saved memory write followed by failure or Stop offers no Try again, `saved-unverified`, `saved-unverified-records`, `stopped-after-save`. |
 | `sim test <run id> StepLimitFallbackProof` | Choose French, save memory before the step limit, and read the French fallback in Chat, after relaunch, and in History. Check eleven model requests before relaunch, zero after, one memory record, and no Try again. Inspect `step-limit-french`, `step-limit-french-restored`, and `step-limit-french-history`. |
 | `sim test <run id> NoticeCopyProof` | Buy Credits and Restore purchases open Credits; saved-work failure has no replay action, `notice-copy-saved-unverified`. |
-| `sim test <run id> AccessNoticeProof` | Missing access opens Connect; locked keychain keeps the message and offers Try again, `access-not-configured-connect`, `access-locked`. |
+| `sim test <run id> AccessNoticeProof` | Missing access opens Access method; locked keychain keeps the message and offers Try again, `access-not-configured-access-method`, `access-locked`. |
 
 ### Stop, expiry, background, and relaunch
 
@@ -157,10 +158,10 @@ Settings > Session uses the field names `historyBudgetRatio` and `contextWindowO
 | Command | Observable result and attachment |
 | --- | --- |
 | `sim test <run id> ReplyFormattingProof` | Complete long reply and code, two tappable links, supported formatting without markup in accessibility labels, and identical History rendering. `reply-chat-long-light` captures the approved `chat-long` comparison state. The chat and History end attachments show `END FORMATTED REPLY`. |
-| `sim test <run id> ReplyStreamingStoppedProof` | A heading and markup-free formatted paragraph while `chat.working` shows, Stop within three seconds, unchanged partial text, and equal stopped labels in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-streaming-prefix`, `reply-formatted-stopped-end`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
+| `sim test <run id> ReplyStreamingStoppedProof` | A heading and markup-free formatted paragraph while `chat.working` shows, Stop, unchanged partial text, and equal stopped labels in Chat and History. Inspect `reply-formatted-streaming-deltas`, `reply-formatted-streaming-prefix`, `reply-formatted-stopped-end`, `reply-formatted-stopped-dimmed` and `reply-formatted-stopped-history`. |
 | `sim test <run id> ReplyFallbackProof` | The Debug parser fault shows the complete literal source, with zero links, in Chat and History. `reply-fallback-chat-top`, `reply-fallback-chat-end` and `reply-fallback-history` capture it. |
 
-Compare each `reply-chat-long-<theme>` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels under G38. The markup-free assertion applies to supported formatting.
+Compare the `reply-chat-long-light` attachment with `chat-long` using the verify-ios parity command with `--from <attachment png>`. Inspect the headings, indented lists, table alignment, code and links. Literal links, unknown blocks, code and fallback retain literal characters in accessibility labels. The markup-free assertion applies to supported formatting.
 
 Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks use slow swipes so both links settle hittable. After the History end capture, the proof returns to the heading before returning with `TutorialHarness.returnToChat`. The streaming proof checks the heading and first formatted paragraph before Stop, then collects and validates every label after Stop. Keep the full label sweeps after Stop so the fixture's 30-second watchdog cannot end the turn first.
 
@@ -184,6 +185,6 @@ Reply scrolling uses the harness's bounded 600-second bulk duration. Link checks
 - `fixture.historyHead` and `fixture.replyLanguage` show the most recent model request. Inspect them after that turn settles and before another request changes them.
 - The default clock is `1998-06-15T08:00:00Z` in Europe/Ljubljana. Use `-EnduragentFixtureClock <instant>` on relaunch to move it; the clock stays fixed during a launch.
 - Settings and History push onto the conversation navigation stack. Use `TutorialHarness.returnToChat` until `chat.settings` is hittable before interacting with the conversation.
-- Unknown stream, rejected OpenRouter account, uncertain New conversation boundary, and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.
+- Unknown stream and some device lifecycle paths have no dedicated fixture UI proof. Keep those gaps explicit when reporting coverage.
 
 `OpenRouterRecoveryProof` covers missing/rejected/403 recovery and overlapping requests. `OpenRouterAccessProof` covers Settings and onboarding sign-in/cancel marks, relaunch and tool replies. The guarded live procedure is in the skill's real-phone OpenRouter recovery section.

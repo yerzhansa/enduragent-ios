@@ -41,9 +41,9 @@ The Debug-only `chat.turnProgress` element exposes `turns <count> settled <settl
 | [Conversation](./chat.md) | Send, working and notice states, Try again, Stop, relaunch, memory work, New conversation, overnight continuity, and Debug settings. |
 | [Language](./language.md) | All language rows, fixed language, Automatic on a French phone, saved-language first frame, and notice language. |
 | [Workout review](./workout-preview.md) | Approve or cancel, durable outcomes, account changes, v1 notice connected and disconnected, and French review text. |
-| [Settings](./settings.md) | Toolbar navigation, Credits under Model access, intervals.icu connection and calendar guidance, draft and setup continuity, and French icon actions. |
+| [Settings](./settings.md) | Toolbar navigation, Credits and the model picker under Model access, intervals.icu connection and calendar guidance, Session, draft and setup continuity, and French icon actions. |
 | [History](./history.md) | Archived conversations, close reasons, read-only content, upgrade, and open-time probes. |
-| [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, and recovery links from a turn. |
+| [Credits](./credits.md) | Credit count, disabled packs, unavailable notice, recovery links from a turn, and Access method in Settings. |
 
 ## Maintaining the map
 

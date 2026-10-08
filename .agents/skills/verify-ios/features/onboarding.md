@@ -21,7 +21,7 @@ The athlete accepts the health notice, connects intervals.icu or skips it, recei
 - Choose Continue after connection, or Skip for now. Choose Credits or Sign in with OpenRouter on the starter step, then Start chatting. Successful sign-in selects OpenRouter; cancellation and failures keep the saved choice.
 - Read Your coach uses AI, then choose Agree and continue or Not now. After Not now, tap Agree and continue once to open chat. A saved turn refused for missing consent stays unchanged after agreement until the athlete taps Try again.
 - From the conversation, choose Settings > intervals.icu. Choose Replace key, enter the masked value and save. Known owner changes and Disconnect need explicit confirmation. Debug holds only credential fault controls.
-- Choose access method under a turn notice returns to the connect step; finishing it returns to the existing conversation.
+- Choose access method under a turn notice opens the Access method screen above the conversation; Back returns to the existing conversation.
 
 ## Driving it with sim and XCUITest
 
@@ -38,11 +38,11 @@ Preconditions:
 | `sim test <run id> OpenRouterConsentProof` | First sign-in names the built-in model and provider. Another device's synced selection names its model and provider before any model request. Decline and relaunch keep requests at zero. Attachments start with `openrouter-consent-` and end with `light`. |
 | `sim test <run id> ProviderConsentProof` | Consent before chat, decline without opening chat, consent on relaunch, a deferred consent screen without starter Credits, and one saved consent after one Agree tap, `provider-consent`, `provider-consent-deferred`, and `provider-consent-deferred-accepted`. |
 | `sim test <run id> WelcomeAfterSkipProof` | Welcome lists `/start`, `/workout`, `/status`, `/review`, and `/language` with localized titles whether or not intervals.icu is connected, `welcome-after-skip`. |
-| `sim test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`; network count stays zero. |
-| `sim test <run id> UpgradeConnectionProof` | An existing pre-vault connection reaches the next turn, `upgrade-item`. Requires its earlier store and keychain; a skip is not a pass. |
+| `sim test <run id> FirstConversationProof` | Onboarding reaches the composer and two complete turns, `04-first-conversation`. |
+| `sim test <run id> UpgradeConnectionProof` | An existing pre-vault connection reaches the next turn, `upgrade-item`. The proof copies the bundled pre-vault store and its `secrets.json` at launch; a missing store fails it. |
 | `sim test <run id> LockedKeychainProof` | The kept conversation remains visible with the unlock notice, `locked-keychain`. |
 | `sim test <run id> StorageUnavailableProof` | An unreadable store shows the history-unavailable and reopen notice, `storage-unavailable`. |
-| `sim test <run id> AccessNoticeProof` | An absent Credits key opens the connect step; a locked keychain preserves the message and offers Try again, `access-not-configured`, `access-not-configured-connect`, `access-locked`. |
+| `sim test <run id> AccessNoticeProof` | An absent Credits key offers Choose access method, which opens the Access method screen; a locked keychain preserves the message and offers Try again, `access-not-configured`, `access-not-configured-access-method`, `access-locked`. |
 
 The hosted `OnboardingConnectionTests` suite drives `ShellModel.connect`, correction, display retry, Continue, and failed saves. `FixtureLaunchTests.skippingThenConnectingInSettingsKeepsConversationAndReadsKeyOwner` preserves the skipped turn and reads Bo Lind's actual profile and calendar after Settings connection. Package `ConnectLaterTests.missingTrainingToolResultsThenSavedKeyOwnerReachTheModel` checks the real model input, including both `not_connected` tool results and the saved key owner's profile and calendar. `AccessOnboardingTests` drives ShellModel through starter setup, explicit choices, completion, Settings and a reopened text-and-tool turn. Package `StarterGrantTests` retains the starter result and failure contract. The existing launch arguments select Credits setup, provisioning failure and failed credential writes.
 

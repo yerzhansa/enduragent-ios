@@ -23,7 +23,7 @@ History contains archived conversations and opens each one read-only. There is s
 
 Preconditions:
 
-- Follow the [index](./README.md) setup. Upgrade proofs additionally require the earlier store described in the verify-ios skill's Upgrade proofs section.
+- Follow the [index](./README.md) setup. Upgrade proofs copy the committed v1 stores at launch, as the Upgrade proofs paragraph of the verify-ios skill describes.
 
 | Action and command | Observable result and attachment |
 | --- | --- |
@@ -31,7 +31,7 @@ Preconditions:
 | `sim test <run id> HistoryListProof` | History is empty after the first reply; `/start` creates one row, `history-empty`, `history-list`. |
 | `sim test <run id> ReplyFormattingProof ReplyStreamingStoppedProof ReplyFallbackProof` | A New conversation archive preserves formatted replies, stopped prefixes and the literal fallback. The [conversation map](./chat.md) names the attachments and parity procedure. |
 | `sim test <run id> HistoryArchivedProof` | The toolbar reset creates a row; opening it shows the prior question, reply, and read-only notice, `history-row`, `history-archived`. |
-| `sim test <run id> UpgradeHistoryProof` | Two v1 rows read Earlier chat; one opens read-only, `upgrade-welcome`, `upgrade-history`, `upgrade-history-read-only`. Missing prior data makes the proof skip. |
+| `sim test <run id> UpgradeHistoryProof` | Two v1 rows read Earlier chat; one opens read-only, `upgrade-welcome`, `upgrade-history`, `upgrade-history-read-only`. A missing store fails the proof. |
 | `sim test <run id> HistoryOpenProbe/testSeedFiftyResets`, then `sim test <run id> HistoryOpenProbe/testHistoryOpenWithFiftyArchived` | The kept store has 50 archives; `history-open-ms` measures opening them and `history-with-fifty-archived` shows the list. |
 | `sim test <run id> HistoryOpenProbe/testHistoryOpenWithNoneArchived` | A fresh store supplies the empty baseline, `history-open-empty-ms`. |
 
