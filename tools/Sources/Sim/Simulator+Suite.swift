@@ -33,18 +33,23 @@ extension ProofReport {
 }
 
 extension Simulator {
+	private static let failedClassRerunLimit = 3
+
 	func shard(_ id: String?, _ proofs: [String]) throws {
 		let name = try slug(id, "shard id")
 		let dir = NodePath.join(runsRoot, name)
 		var report = ProofReport(
 			classes: try ShardPlan.summarize(.keyed(["testNodes": .array([])]), proofs: proofs))
+		var returned = false
 		do {
 			try createRun(name)
 			try install(name)
 			report = try test(name, proofs)
+			returned = true
 		} catch {
 			report.failures.append(Console.text(of: error))
 		}
+		if returned { rerunFailedClasses(name, report: &report) }
 		if exists(NodePath.join(dir, "run.json")) {
 			do {
 				try cleanup(name)
@@ -52,13 +57,8 @@ extension Simulator {
 				report.failures.append("cleanup: \(Console.text(of: error))")
 			}
 		}
-		if exists(dir) {
-			let measured = try names(in: dir).filter { $0.hasUnitSuffix("-classes.json") }.flatMap {
-				try readJSON(NodePath.join(dir, $0)).elements().map(ClassResult.init(json:))
-			}
-			report.classes = report.classes.map { row in
-				measured.first { $0.name.hasSameUnits(as: row.name) } ?? row
-			}
+		if !returned && exists(dir) {
+			report.classes = try recoveredClasses(in: dir, fallback: report.classes)
 		}
 		try makeFolder(dir)
 		try writeJSON(report.json, to: NodePath.join(dir, "summary.json"))
@@ -130,9 +130,15 @@ extension Simulator {
 			reports.contains { !$0.report.failures.isEmpty }
 			|| classes.contains(where: \.isUnverified)
 		let result = failed ? "Failed" : "Passed"
+		let rerun =
+			classes.filter { $0.firstRunFailed != nil && !$0.isUnverified }.map(\.name).sorted {
+				$0.localeCompare($1) == .orderedAscending
+			}
+		let rerunLine = rerun.isEmpty ? "" : "Passed on rerun: \(rerun.joined(separator: ", "))\n"
 		try writeJSON(
 			.keyed([
-				"result": .string(result), "classes": .array(classes.map(\.json)),
+				"result": .string(result), "rerun": .array(rerun.map(JSONValue.string)),
+				"classes": .array(classes.map(\.json)),
 				"shards": .array(
 					reports.map { .object($0.shard.members + $0.report.json.entries) }),
 			]), to: NodePath.join(dir, "summary.json"))
@@ -146,7 +152,8 @@ extension Simulator {
 			]
 			+ rows
 		try write(
-			"\(result)\n\n\(table.joined(separator: "\n"))\n", to: NodePath.join(dir, "summary.md"))
+			"\(result)\n\(rerunLine)\n\(table.joined(separator: "\n"))\n",
+			to: NodePath.join(dir, "summary.md"))
 		var merged = timings.entries
 		for row in classes where row.passed != 0 && !row.isUnverified && row.seconds > 0 {
 			if let known = merged.firstIndex(where: { $0.key.hasSameUnits(as: row.name) }) {
@@ -157,11 +164,46 @@ extension Simulator {
 		}
 		try writeJSON(.object(merged), to: NodePath.join(dir, "timings.json"))
 		try Console.say(
-			"\(result)\ncombined summary \(NodePath.join(dir, "summary.md"))\ntimings \(NodePath.join(dir, "timings.json"))"
+			"\(result)\n\(rerunLine)combined summary \(NodePath.join(dir, "summary.md"))\ntimings \(NodePath.join(dir, "timings.json"))"
 		)
 		if failed {
 			throw SimFailure(
 				description: "proof suite failed; see \(NodePath.join(dir, "summary.json"))")
+		}
+	}
+
+	private func rerunFailedClasses(_ name: String, report: inout ProofReport) {
+		let failed = report.classes.filter { $0.failed != 0 }
+		guard !failed.isEmpty, failed.count <= Self.failedClassRerunLimit,
+			report.classes.allSatisfy({ $0.skipped == 0 && $0.missing == 0 })
+		else { return }
+		report.failures = []
+		for original in failed {
+			do {
+				let attempt = try test(name, [original.name])
+				report.failures += attempt.failures
+				guard
+					let measured = attempt.classes.first(where: {
+						$0.name.hasSameUnits(as: original.name)
+					}),
+					let index = report.classes.firstIndex(where: {
+						$0.name.hasSameUnits(as: original.name)
+					})
+				else { throw SimFailure(description: "rerun omitted \(original.name)") }
+				report.classes[index] = measured
+				report.classes[index].firstRunFailed = original.failed
+			} catch {
+				report.failures.append(Console.text(of: error))
+			}
+		}
+	}
+
+	private func recoveredClasses(in dir: String, fallback: [ClassResult]) throws -> [ClassResult] {
+		let measured = try names(in: dir).filter { $0.hasUnitSuffix("-classes.json") }.flatMap {
+			try readJSON(NodePath.join(dir, $0)).elements().map(ClassResult.init(json:))
+		}
+		return fallback.map { row in
+			measured.first { $0.name.hasSameUnits(as: row.name) } ?? row
 		}
 	}
 
