@@ -209,7 +209,8 @@
 			) { app.state == .runningForeground && element("chat.composer").isHittable }
 			guard !app.alerts.firstMatch.exists, !element("chat.stop").exists,
 				!element("chat.preview.add").exists,
-				element("chat.composer").value as? String == ""
+				["", element("chat.composer").placeholderValue].contains(
+					element("chat.composer").value as? String ?? "")
 			else {
 				throw PhoneRunBlocked(reason: "An alert, draft, turn or review needs the operator.")
 			}
