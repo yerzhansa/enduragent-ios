@@ -18,6 +18,7 @@
 - Every task branches off the latest `origin/main`. Delete the branch after merge.
 - In a stacked sequence, leave a parent branch until the pull request that depends on it is merged. Then retarget the child to `main`, merge it, and delete both branches.
 - Format commits as Conventional Commits: `<type>(ios): <description>`.
+- Start the review and the screen tests as soon as the pull request opens, while CI runs.
 - Open every PR you create as a draft.
 - Mark a PR ready only after CI passes and, for UI changes, `verify-ios` has run on the final version.
 
