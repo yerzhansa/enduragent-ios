@@ -181,11 +181,7 @@ import Testing
 					store, at: clock.now.addingTimeInterval(-3),
 					ulid: ULID.generate(at: clock.now.addingTimeInterval(-3)),
 					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed"))))
+						consumedFlushMarker(for: job.ulid)))
 			])
 		transport.respond = ScriptedReply.sequence(
 			[.text("Noted."), .finish(reason: .stop)], otherwise: transport.respond)

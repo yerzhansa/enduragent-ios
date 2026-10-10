@@ -68,11 +68,7 @@ import Testing
 		let newer = FlushJobID(ulid: try #require(pending.last?.ulid))
 		_ = try await ledger.commit(
 			synced: [
-				.provenance(
-					ProvenanceBody(
-						key: MemoryFlushPolicy.consumedFlushKeyPrefix + newer.ulid.rawValue,
-						garmin: false, nonGarmin: false, unknown: false,
-						contentSha256: "consumed"))
+				consumedFlushMarker(for: newer.ulid)
 			], stamp: testStamp())
 		let conversation = try await ledger.conversation(.main)
 		let jobs =

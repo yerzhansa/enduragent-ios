@@ -52,12 +52,9 @@ extension SwiftDataSuites {
 				}
 			}
 			#expect(results == Array(repeating: .object(["recorded": .bool(true)]), count: 5))
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let history = try await query(
 				from: "1998-06-01", to: "1998-06-05", using: after, transport: relaunchedTransport)
 			for arguments in events {
@@ -65,7 +62,7 @@ extension SwiftDataSuites {
 				#expect(history.contains("## \(date)\n"))
 			}
 			#expect(
-				try historyEvents(history)
+				try MemoryProbe.events(in: history)
 					== events.reversed().map { recorded($0, source: source) })
 			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
 				.records
@@ -117,16 +114,13 @@ extension SwiftDataSuites {
 				#expect(results == [.string(answer)])
 				#expect(try await store.fetch(recordQuery).records == saved)
 			}
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			#expect(try await reopened.fetch(recordQuery).records == saved)
 			let history = try await query(
 				from: "1998-06-01", to: "1998-06-13", using: after, transport: relaunchedTransport)
-			#expect(try historyEvents(history) == [recorded(original, source: .chat)])
+			#expect(try MemoryProbe.events(in: history) == [recorded(original, source: .chat)])
 		}
 
 		@Test func laterDifferentDecisionKeepsBothDatedEventsAfterRelaunch() async throws {
@@ -142,18 +136,15 @@ extension SwiftDataSuites {
 					try await append([arguments], using: before, transport: transport)
 						== [.object(["recorded": .bool(true)])])
 			}
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let history = try await query(
 				from: "1998-06-01", to: "1998-06-08", using: after, transport: relaunchedTransport)
 			#expect(history.contains("## 1998-06-01\n"))
 			#expect(history.contains("## 1998-06-08\n"))
 			#expect(
-				try historyEvents(history)
+				try MemoryProbe.events(in: history)
 					== [recorded(later, source: .chat), recorded(earlier, source: .chat)])
 			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
 				.records
@@ -170,15 +161,12 @@ extension SwiftDataSuites {
 			#expect(
 				try await append([whitespace], using: before, transport: transport)
 					== [.object(["recorded": .bool(true)])])
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let history = try await query(
 				from: "1998-06-01", to: "1998-06-01", using: after, transport: relaunchedTransport)
-			#expect(try historyEvents(history) == [recorded(whitespace, source: .chat)])
+			#expect(try MemoryProbe.events(in: history) == [recorded(whitespace, source: .chat)])
 			let records = try await reopened.fetch(RecordQuery(scope: .synced([.ledgerEvent])))
 				.records
 			#expect(records.count == 1)
@@ -198,17 +186,12 @@ extension SwiftDataSuites {
 		private func append(
 			_ arguments: [JSONValue], using coach: Coach, transport: FakeModelTransport
 		) async throws -> [JSONValue] {
-			let calls = arguments.map {
-				ScriptedEvent.toolCall(name: "ledger_append", arguments: $0.canonicalDigestInput())
-			}
-			transport.respond = ScriptedReply.sequence(
-				calls + [.finish(reason: .toolCalls), .text("Checked."), .finish(reason: .stop)],
-				otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-			#expect(
-				replyText(try await coach.sendAndSettle("Remember this dated training event."))
-					== "Checked.")
-			let request = try #require(sent(.chatAttempt, by: transport).last)
-			let results = try request.messages.filter { $0.role == .tool }.map(toolData)
+			let request = try await MemoryProbe.turn(
+				arguments.map {
+					.toolCall(name: "ledger_append", arguments: $0.canonicalDigestInput())
+				}, saying: "Remember this dated training event.", expecting: "Checked.",
+				using: coach, transport: transport)
+			let results = try request.messages.filter { $0.role == .tool }.map(MemoryProbe.data)
 			#expect(results.count == arguments.count)
 			return results
 		}
@@ -216,34 +199,17 @@ extension SwiftDataSuites {
 		private func query(
 			from: String, to: String, using coach: Coach, transport: FakeModelTransport
 		) async throws -> String {
-			transport.respond = ScriptedReply.sequence(
+			let request = try await MemoryProbe.turn(
 				[
 					.toolCall(
 						name: "memory_query",
 						arguments: JSONValue.object(["from": .string(from), "to": .string(to)])
-							.canonicalDigestInput()),
-					.finish(reason: .toolCalls), .text("History recovered."),
-					.finish(reason: .stop),
-				], otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-			#expect(
-				replyText(try await coach.sendAndSettle("What happened over those dates?"))
-					== "History recovered.")
-			let request = try #require(sent(.chatAttempt, by: transport).last)
+							.canonicalDigestInput())
+				], saying: "What happened over those dates?", expecting: "History recovered.",
+				using: coach, transport: transport)
 			let results = request.messages.filter { $0.role == .tool }
 			try #require(results.count == 1)
-			return try #require(toolData(results[0]).stringValue)
-		}
-
-		private func toolData(_ message: WireMessage) throws -> JSONValue {
-			let payload = try JSONValue.parse(message.content)
-			#expect(payload.objectFields["untrusted_data"]?.stringValue == UntrustedEnvelope.banner)
-			return try #require(payload.objectFields["data"])
-		}
-
-		private func historyEvents(_ text: String) throws -> [JSONValue] {
-			try text.split(separator: "\n").filter { $0.hasPrefix("event: ") }.map {
-				try JSONValue.parse(String($0.dropFirst("event: ".count)))
-			}
+			return try MemoryProbe.text(in: results[0])
 		}
 	}
 }
