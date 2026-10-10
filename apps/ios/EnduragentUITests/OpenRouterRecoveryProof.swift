@@ -123,8 +123,7 @@ final class OpenRouterRecoveryProof: XCTestCase {
 	}
 
 	private func capture(_ app: XCUIApplication, _ scenario: String) {
-		let appearance = TutorialHarness.meanLuminance(app.screenshot()) < 0.4 ? "dark" : "light"
 		TutorialHarness.attach(
-			self, name: "openrouter-recovery-\(scenario)-\(appearance)", app: app)
+			self, name: "openrouter-recovery-\(scenario)", app: app)
 	}
 }

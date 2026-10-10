@@ -107,7 +107,6 @@ final class OpenRouterAccessProof: XCTestCase {
 	private var phrasebook: CatalogPhrasebook { CatalogPhrasebook(tag: .en) }
 
 	private func capture(_ app: XCUIApplication, _ scenario: String) {
-		let appearance = TutorialHarness.meanLuminance(app.screenshot()) < 0.4 ? "dark" : "light"
-		TutorialHarness.attach(self, name: "openrouter-access-\(scenario)-\(appearance)", app: app)
+		TutorialHarness.attach(self, name: "openrouter-access-\(scenario)", app: app)
 	}
 }

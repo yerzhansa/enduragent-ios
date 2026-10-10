@@ -55,7 +55,6 @@ final class OpenRouterConsentProof: XCTestCase {
 	}
 
 	private func capture(_ app: XCUIApplication, _ scenario: String) {
-		let appearance = TutorialHarness.meanLuminance(app.screenshot()) < 0.4 ? "dark" : "light"
-		TutorialHarness.attach(self, name: "openrouter-consent-\(scenario)-\(appearance)", app: app)
+		TutorialHarness.attach(self, name: "openrouter-consent-\(scenario)", app: app)
 	}
 }
