@@ -17,7 +17,9 @@ extension Simulator {
 		_ = try Subprocess().run(
 			"xcrun", ["simctl", "terminate", udid, bundleID], output: .discarded)
 		let name = "uitest-\(stamp())"
-		let bundle = NodePath.join(dir, "\(name).xcresult")
+		let recordings = NodePath.join(recordingsRoot, NodePath.basename(dir))
+		try makeFolder(recordings)
+		let bundle = NodePath.join(recordings, "\(name).xcresult")
 		let log = NodePath.join(dir, "\(name).log")
 		let end = try logged(
 			log, "xcodebuild",

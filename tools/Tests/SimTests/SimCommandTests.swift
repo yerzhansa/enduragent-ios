@@ -284,8 +284,11 @@ struct SimCommandTests {
 					"Passed: 2 passed, 0 failed, 0 skipped\n"
 						+ "attachment AlphaProof/testVisibleResult() final screen.png \(folder)/\(stamp)-attachments/AlphaProof.png\n"
 						+ "attachment BravoProof/testVisibleResult() final screen.png \(folder)/\(stamp)-attachments/BravoProof.png\n"
-						+ "result bundle \(folder)/\(stamp).xcresult\nlog \(folder)/\(stamp).log\n")
+						+ "result bundle \(fixture.recordings)/\(run)/\(stamp).xcresult\nlog \(folder)/\(stamp).log\n"
+				)
 			)
+			#expect(
+				try fixture.names(in: "\(fixture.recordings)/\(run)") == ["\(stamp).xcresult"])
 			#expect(
 				try fixture.read("\(folder)/\(stamp)-classes.json")
 					== "[\n  {\n    \"name\": \"AlphaProof\",\n    \"passed\": 1,\n    \"failed\": 0,\n    \"skipped\": 0,\n    \"missing\": 0,\n    \"seconds\": 7\n  },\n  {\n    \"name\": \"BravoProof\",\n    \"passed\": 1,\n    \"failed\": 0,\n    \"skipped\": 0,\n    \"missing\": 0,\n    \"seconds\": 7\n  }\n]\n"
@@ -296,7 +299,6 @@ struct SimCommandTests {
 				["run.json"]
 				+ [
 					"-attachments", "-classes.json", "-summary.json", "-tests.json", ".log",
-					".xcresult",
 				].map { "\(stamp)\($0)" }
 			#expect(try fixture.names(in: folder) == kept)
 			#expect(
