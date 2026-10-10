@@ -20,7 +20,7 @@ swift run --quiet --package-path tools sim test <run id> FirstConversationProof
 swift run --quiet --package-path tools sim cleanup <run id>
 ```
 
-Every command accepts `--build-folder <path>`. The flag overrides `ENDURAGENT_VERIFY_BUILD`; both default to `<tree>/DerivedData`. Use the same folder for build, doctor, install, and test. Milestone 2 builds go under `/tmp/enduragent-dd/`, for example `ENDURAGENT_VERIFY_BUILD=/tmp/enduragent-dd/VSKILL`.
+Every command accepts `--build-folder <path>`. The flag overrides `ENDURAGENT_VERIFY_BUILD`; both default to `<tree>/DerivedData`. Use the same folder for build, doctor, install, and test. Put builds under `/tmp/enduragent-dd/`, for example `ENDURAGENT_VERIFY_BUILD=/tmp/enduragent-dd/<task>`.
 
 Below, `sim` means `swift run --quiet --package-path tools sim`. The first call builds the helper into `tools/.build`, and later calls reuse that build. `create` prints the run id, for example `2026-10-01-120000-a1b2c3d4-onboarding`. Commands for that simulator take its run id.
 
@@ -28,7 +28,7 @@ The feature map in [features/README.md](features/README.md) is the recipe for ea
 
 ## Launch
 
-1. Build once per checkout with `sim build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. The build-folder option replaces `DerivedData` in those paths. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. Before it builds, it records the SHA-256 of every source under `apps/ios`, and after a successful build it writes them to `DerivedData/verify-ios-sources.json`. A clean build took 36 seconds on 2026-09-25. Commit generated-project changes when sources or `project.yml` change.
+1. Build once per checkout with `sim build`. It runs `xcodegen generate --spec apps/ios/project.yml`, then `xcodebuild build-for-testing` with the README flags: the generic simulator destination, `-derivedDataPath DerivedData`, and `CODE_SIGNING_ALLOWED=NO`. The build-folder option replaces `DerivedData` in those paths. It also builds the UI test runner that `test` needs. The log is `DerivedData/verify-ios-build.log`. Before it builds, it records the SHA-256 of every source under `apps/ios`, and after a successful build it writes them to `DerivedData/verify-ios-sources.json`. A clean build took 36 seconds on 2026-09-25. The generated `Enduragent.xcodeproj` is ignored by git, so a change to sources or `project.yml` leaves no project file to commit. `make project` regenerates it for Xcode.
 2. Create the run with `sim create <kebab-slug>`. It creates and boots the simulator, waits for `simctl bootstatus`, sets the status bar to 9:41 with full signal and battery like the prototype captures, sets light appearance, and writes `run.json` into the evidence folder. The first boot takes about a minute.
 3. Install with `sim install <run id>`. Install again after every build.
 4. Launch with `sim launch <run id>`. It runs `xcrun simctl launch --terminate-running-process <udid> icu.enduragent.app -EnduragentFixture first-week -AppleLanguages (en) -AppleLocale en_US -EnduragentFixtureStore fresh` and prints `icu.enduragent.app: <pid>`. The app is ready when `sim shot <run id> notice` shows the notice text `Training suggestions, not medical advice. Check with a doctor before big changes.` and `Continue`. `sim launch <run id> --keep` passes `-EnduragentFixtureStore keep` instead, which reopens the app on the state the last launch left: after onboarding and a reply it opens on the chat with the transcript. Other arguments after the run id pass through to the app, for example `-EnduragentFixtureKeychain locked`, which makes every keychain read throw as a locked iPhone would, `-EnduragentFixtureKeychain empty`, which leaves the fixture keychain without a Credits key, `-EnduragentFixtureStore unreadable`, which wipes the fixture and makes the record store fail to open so the app shows `launch.storageUnavailable` instead of the notice, `-EnduragentFixtureCoalescing <milliseconds>`, which replaces the 1.5 second window in which a second message joins the first, `-EnduragentFixtureRecovery unreadable`, which makes the launch recovery's read of earlier claims fail so a reply cut off by a kill stays unsettled, `-EnduragentFixtureHost "expire-after 3"`, which makes the fixture's execution host expire every lease three seconds after it begins, as iOS would when it stops the app's background work, and `-EnduragentFixtureClock 1998-06-16T04:20:00Z`, which starts the fixed clock at that ISO 8601 instant instead of `1998-06-15T08:00:00Z`. XCUITest needs about two seconds between two Send taps, so proofs that need a joined turn, a shot before the reply, or a kill before the claim pass `TutorialHarness.launch(app, coalescingMilliseconds:)`.
@@ -113,7 +113,7 @@ To prove state across a kill and reopen, call `TutorialHarness.relaunchKeepingSt
 **Every proof split across owned simulators.** One command builds once, discovers every UI proof class, splits them across two simulators, and deletes both after the run:
 
 ```sh
-caffeinate -i env ENDURAGENT_VERIFY_RUNS=/Users/yerzhansagyt/Library/Logs/enduragent-m2/VSKILL/simulator-proof swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/VSKILL --shards 2
+caffeinate -i swift run --quiet --package-path tools sim suite --build-folder /tmp/enduragent-dd/<task> --shards 2
 ```
 
 Change `--shards` to choose N simulators. Append class names to run a subset, for example `suite --shards 2 FirstConversationProof UnknownCalendarSaveProof`. A suite takes classes, not individual methods. Each shard runs with `-parallel-testing-enabled NO` on every xcodebuild call. Its `finally` cleanup also runs after a failed proof or boot. The coordinator waits for every shard and checks cleanup again before reporting.
@@ -161,7 +161,7 @@ Ask the operator to provide the connected, unlocked iPhone and approve the singl
 4. Send `What should I focus on in training this week?`. Capture partial text while working and the settled reply.
 5. Send the eight-week base-training question in the script. Stop during partial text, check the dimmed partial reply, notice, and Try again, then tap Try again once. A missed Stop is a failed proof. Do not resend without another budget.
 6. Send the short tempo-ride question, press Home for twenty seconds, and return. Check the complete reply and the finished-while-locked line. The 2026-10-01 run pressed Home; it did not lock the phone. An actual lock and unlock is an operator action.
-7. Send the 100 km pacing question, terminate during partial text, and relaunch plainly. Check the interrupted turn and Try again, then tap Try again once. Partial text lost on a hard kill is accepted for Milestone 2 under G16.
+7. Send the 100 km pacing question, terminate during partial text, and relaunch plainly. Check the interrupted turn and Try again, then tap Try again once. Partial text lost on a hard kill is accepted for Milestone 2.
 8. Request one 45-minute endurance ride for tomorrow. Capture the review and tap Add exactly once. Capture the Done line. The operator checks intervals.icu for exactly one matching event on that date. The UI's Done line alone cannot prove the server count. Do not repeat Add if its outcome is uncertain.
 9. Request one recovery spin for the day after tomorrow. Cancel once and relaunch. Check that the review stays gone.
 10. Start New conversation with the compose icon in the top bar, check the composer, send the warm-up question, and open the previous conversation in History. Record Credits afterward and leave the app in the foreground. The 2026-10-01 run did not exercise a second device or purchases.
@@ -177,7 +177,7 @@ The runner checks English questions exactly and requires existing conversation a
 
 ### Prove the OpenRouter HTTPS callback and cancellation
 
-Unit U7-3 adds `EnduragentPhoneTests/OpenRouterSignInPhoneCheck`. Run it at slice completion after 7.2 supplies `OpenRouterSignInSession` from `AppServices` and the sign-in actions are connected. G34 leaves this proof pending while the operator is away. Controlled app completions do not prove the installed phone's associated-domain handoff. No simulator proof is owed while the domain is unconfigured.
+`EnduragentPhoneTests/OpenRouterSignInPhoneCheck` proves OpenRouter sign-in on a signed phone. It stays pending until the operator runs it. Controlled app completions do not prove the installed phone's associated-domain handoff. No simulator proof is owed while the domain is unconfigured.
 
 The operator configures `enduragent.icu`, its site-association file, the App ID capability and the signed install's Associated Domains entitlement. The callback is `https://enduragent.icu/auth/openrouter/callback`. This unit changes no entitlement or signing setting. Use an unlocked physical iPhone, English, working model access, accepted consent, no draft, no unfinished turn and no open workout review.
 
@@ -204,9 +204,9 @@ xcrun xcresulttool export attachments --path "$OPENROUTER_PHONE_RUN/openrouter.x
 
 ### Prove OpenRouter recovery, selected model, sync and phone lock
 
-Unit U7-4b adds `EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and the `phone-check openrouter` command. G34 keeps every step pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
+`EnduragentPhoneTests/OpenRouterRecoveryPhoneCheck` and the `phone-check openrouter` command prove OpenRouter recovery on a signed phone. Every step stays pending until the operator's signed-phone session. Simulator proofs are `OpenRouterRecoveryProof` and `OpenRouterAccessProof`. The phone procedure reuses `OpenRouterSignInPhoneCheck` for the actual callback, which remains its primary owner.
 
-After unit 8.3, use the signed plain install, English, two updated iPhones on the same Apple ID, iCloud Keychain enabled, a working intervals.icu connection and an OpenRouter account with usable funds. The operator configures and verifies the associated domain as above. Do not put a key, code, verifier or athlete ID in launch arguments. Nothing in this procedure runs while the operator is away.
+Use the signed plain install, English, two updated iPhones on the same Apple ID, iCloud Keychain enabled, a working intervals.icu connection and an OpenRouter account with usable funds. The operator configures and verifies the associated domain as above. Do not put a key, code, verifier or athlete ID in launch arguments. Nothing in this procedure runs while the operator is away.
 
 Before every invocation the interactive helper asks for a fresh message budget and explicit acknowledgement of automatic usage charges. It refuses a non-interactive terminal and an insufficient budget before build, launch or Send. Every Send consumes one slot. The planned minimum is zero for sign-in, model picking, cancel, recovery and second-phone consent, and one for each tool, revoked-key or locked-turn step. No Try again, New conversation, purchase or calendar Add. A failed invocation stops, records its Sends and phone state, and requires a fresh budget before another run.
 
@@ -230,7 +230,7 @@ The helper saves the approval, xcodebuild log, result summary, screenshots, acce
 
 ### Prove native training persistence on one phone
 
-Unit U4-5 adds `EnduragentKeychainProof` and `EnduragentPhoneTests/TrainingKeychainDeviceProof`. This device-only proof pairs native `ICloudKeychainStore` with the existing fake model, Credits and intervals.icu ports. It proves native persistence, not live service authentication or two-device synchronization. Keep criteria 1 and 4 and the timing evidence pending until the operator runs it.
+The `EnduragentKeychainProof` scheme and `EnduragentPhoneTests/TrainingKeychainDeviceProof` are a device-only proof. It pairs native `ICloudKeychainStore` with the existing fake model, Credits and intervals.icu ports. It proves native persistence, not live service authentication or two-device synchronization. Keep criteria 1 and 4 and the timing evidence pending until the operator runs it.
 
 Before every invocation, ask the operator for that invocation's message budget. Explain that this proof uses two scripted Sends and zero live messages. Record the answer even when it is zero. A failed invocation needs a fresh budget. Ask the operator to confirm that every device on TestFlight build 3 was updated together with M1+ devices. Record the checked build versions in the confirmation. Never infer that check from the proof app's version.
 
@@ -254,7 +254,7 @@ Ordinary locking after first unlock may still permit reads under `AfterFirstUnlo
 
 ### Prove reconnect across two phones
 
-Unit U5-1 adds `EnduragentPhoneTests/TwoPhoneReconnectCheck` to U4-5's isolated `EnduragentKeychainProof` build. Run it only with the operator present and two updated physical iPhones on the same Apple ID with iCloud Keychain enabled. Criterion 5 and this check remain pending under G34. Use synthetic proof credentials and fake services. Zero live messages and no billed service are used.
+`EnduragentPhoneTests/TwoPhoneReconnectCheck` runs in the isolated `EnduragentKeychainProof` build. Run it only with the operator present and two updated physical iPhones on the same Apple ID with iCloud Keychain enabled. This check stays pending until the operator runs it. Use synthetic proof credentials and fake services. Zero live messages and no billed service are used.
 
 Before each invocation, ask for that invocation's message budget and record the answer, including zero. Confirm that every TestFlight build-3 device was updated together with M1+ devices. Record the checked build versions in `DEVICE_UPDATE_CHECK`, beginning with `updated-together:`. Supply the other phone's installed proof-build version in `OTHER_PHONE_BUILD`. Read both installed versions from the native receipt attachments across the paired runs and compare them with that confirmation. Never record a device identifier in source or commit evidence.
 
@@ -290,7 +290,7 @@ For later simulator units, `first-week` launch fixtures expose `fixture.peerA`, 
 
 ### Prove live French replies after choosing a language
 
-Unit U9-2 adds `EnduragentPhoneTests/LanguageReplyCheck` and the `phone-check language` command. G34 leaves this check pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits or use the connected OpenRouter account. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
+`EnduragentPhoneTests/LanguageReplyCheck` and the `phone-check language` command prove live replies in the chosen language. The check stays pending for the operator's real-phone session. The helper requires an interactive terminal and asks for this invocation's message budget before building, launching or sending. Explain that four live Sends spend Credits or use the connected OpenRouter account. A failed invocation needs a new budget. Nothing in the simulator procedure runs this check.
 
 Prepare the unlocked phone with working model access, consent accepted, no composer draft and no open turn or workout review. In iPhone Settings, arrange the preferred languages as Russian, French, English. French must be the first supported language. The operator handles every credential, consent and system alert. Use a plain Debug app launch without fixture arguments or language overrides.
 
@@ -311,7 +311,7 @@ The physical-device `EnduragentPhone` scheme includes this proof, which compiles
 
 ### System banner check with a scripted model
 
-Unit U1-2 adds `-EnduragentFixtureHost continued-processing`. This Debug composition keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, and uses `ContinuedProcessingHost` with the real iOS scheduler and notifications. The live-message budget is zero. Run only with the operator present on a physical iPhone. A simulator cannot show the system banner.
+The launch argument `-EnduragentFixtureHost continued-processing` selects a Debug composition. It keeps the scripted model, fake Credits and intervals.icu, fixture secrets and records, and uses `ContinuedProcessingHost` with the real iOS scheduler and notifications. The live-message budget is zero. Run only with the operator present on a physical iPhone. A simulator cannot show the system banner.
 
 Install a signed Debug build, then launch it without a test runner or debugger. Supply the connected phone identifier. Keep screenshots in a new local phone evidence folder.
 
@@ -319,7 +319,7 @@ Install a signed Debug build, then launch it without a test runner or debugger. 
 xcrun devicectl device process launch --device "$DEVICE_ID" icu.enduragent.app -EnduragentFixture first-week -EnduragentFixtureStore fresh -EnduragentFixtureHost continued-processing -AppleLanguages '(en)' -AppleLocale en_US
 ```
 
-Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, language and the lease kind in Settings > Debug > Leases. Require `continuedProcessing`; a scheduler refusal with `gracePeriodOnly` does not prove a system banner. Capture each observation. Start with the foreground probe, before judging banner changes. If iOS covers the toolbar, keep background finishing and record that limit under G19.
+Complete fixture onboarding and consent. For every relaunch, use the same command with `-EnduragentFixtureStore keep`. Record the OS, build, language and the lease kind in Settings > Debug > Leases. Require `continuedProcessing`; a scheduler refusal with `gracePeriodOnly` does not prove a system banner. Capture each observation. Start with the foreground probe, before judging banner changes. If iOS covers the toolbar, keep background finishing and record the covered toolbar as a known limit.
 
 Use `fixture:text-then-hang` for Stop and `fixture:slow` for completion. For system Cancel and natural expiry, use `fixture:memory-until-system-interruption`. That directive saves fixture memory, then sends a model heartbeat every ten seconds so the reply watchdog does not settle it first. It does not extend the system lease or synthesize expiry. Check the saved memory in Settings > Debug > Records before locking. The artificial Expire current lease button is absent with the real host. A natural expiry must come from iOS.
 
@@ -340,11 +340,11 @@ Use `fixture:text-then-hang` for Stop and `fixture:slow` for completion. For sys
 | 6 | Choose another language mid-reply through Settings > Debug > Language. | App language changes. |
 | 6 | Background that reply. | System title uses the chosen language. |
 
-The app reports Stop, a finished reply and a failed reply as successful system completion under G39. A failure stays visible in the conversation. System Cancel and expiry share the same argument-free expiration callback and remain unsuccessful. Do not infer which system event occurred from the stored `systemExpired` label. Record the operator's action alongside the screenshot. Criterion 2's dismissal timing, criterion 3's foreground behavior, background completion, lock, Cancel, natural expiry and title pixels remain phone gates until this procedure runs.
+The app reports Stop, a finished reply and a failed reply as successful system completion. A failure stays visible in the conversation. System Cancel and expiry share the same argument-free expiration callback and remain unsuccessful. Do not infer which system event occurred from the stored `systemExpired` label. Record the operator's action alongside the screenshot. Criterion 2's dismissal timing, criterion 3's foreground behavior, background completion, lock, Cancel, natural expiry and title pixels remain phone gates until this procedure runs.
 
 ### ChoicesInConversationCheck
 
-Unit U11-1 adds the `phone-check choices` command and `EnduragentPhoneTests/ChoicesInConversationCheck`. Run this separate proof only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. G34 leaves this proof pending while the operator is away.
+The `phone-check choices` command and `EnduragentPhoneTests/ChoicesInConversationCheck` are a separate proof. Run it only with the operator present. It proposes twelve live messages across six cases. Each invocation sends one message and asks for its own message budget before launch or Send. A fresh conversation can also spend Credits saving memory. The operator approves that memory work with the invocation's budget. It stays pending while the operator is away.
 
 Use the phone's own Credits, the live built-in model, English, and a plain launch. The operator selects Credits and handles consent, credentials, onboarding, or system alerts before the run. The helper records the model ID from the built app's `OpenRouterModel` value. It uses only the physical-device `EnduragentPhone` scheme, and the capture test compiles out on simulators. It never approves a workout review. The messages include synthetic medical symptoms and remain in the phone's conversation records.
 
@@ -374,13 +374,13 @@ These gaps were checked against `FixtureArguments`, `FirstWeekFixture`, Debug co
 | State without a UI hook | Evidence to use instead |
 | --- | --- |
 | A calendar write loses its response in the running session | `SingleProposalReviewsTests.lostResponseSettlesUncertain` proves the current package outcome through `Coach.decide`. Pending unknown-write recovery and read-back need the 0.4b hooks and proofs before their screens can be called verified. |
-| A lost-response write is found on a later calendar read, or a calendar network read fails | The P51 report records `DurableCalendarWriteTests.committedWriteWithLostResponseIsConfirmedByReading(response:)` and `unreadableCalendarKeepsTheWriteUnknown(malformed:)` on PR #84. They are evidence for that pending change, not tests on this tree. Unit 0.4b supplies the UI hooks. A Keychain lock follows a different branch and cannot prove a network read failure. |
-| A workout review's record refresh fails and later succeeds | `FirstTurnTests.failedReviewRefreshKeepsTheCardUntilASuccessfulRead` proves retention and recovery. Unit 0.4b supplies a record-read failure hook and proves disabled controls on screen. |
+| A lost-response write is found on a later calendar read, or a calendar network read fails | The package tests `DurableCalendarWriteTests.committedWriteWithLostResponseIsConfirmedByReading(response:)` and `unreadableCalendarKeepsTheWriteUnknown(malformed:)` prove both. A Keychain lock follows a different branch and cannot prove a network read failure. |
+| A workout review's record refresh fails and later succeeds | `FirstTurnTests.failedReviewRefreshKeepsTheCardUntilASuccessfulRead` proves retention and recovery. `SavedReviewReadFailureProof` proves the disabled controls on screen. |
 | Stop while the fixture turn is still proposing its workout | `RetryLadderTests.approvalDuringBackoffSettlesSavedWork`, `RetryLadderTests.approvalBeforeTimeoutFailureSettlesSavedWork`, and `RetryLadderTests.hungApprovalDoesNotBlockStopOrNewSend` cover the package boundaries. The fixture proposing turn finishes at once; Stop during `fixture:slow` does not prove this state. |
 | Real continued-processing banners, OS suspension or expiry, lock and unlock, and a hard kill losing partial text | The real-phone procedure and its screenshots. Home proves backgrounding only. The operator performs an actual lock and unlock. Fixture host expiry proves the package's expiry response, not when iOS expires a real lease. A device run must capture an actual OS expiry before claiming that part. |
 | Live networking, real Keychain access or sync, CloudKit imports, and a second device's consent or conversation | The closing real-phone run plus an operator-assisted second-device check on the same Apple ID. The one-phone script does not cover the second device. Fixture stores have CloudKit off. |
-| Exactly one intervals.icu event, including UID upsert after an uncertain write | The operator reads the real calendar after the single Add. Repeated-write UID-upsert evidence belongs to unit 0.4's authorized live check; this phone script never repeats Add. |
-| StoreKit prices, purchases, and Restore | Operator-approved store-release testing. G12 excludes purchases and Restore from Milestone 2, so neither this suite nor the phone script claims that proof. |
+| Exactly one intervals.icu event, including UID upsert after an uncertain write | The operator reads the real calendar after the single Add. Repeated-write UID-upsert evidence belongs to the operator's authorized live calendar-save check; this phone script never repeats Add. |
+| StoreKit prices, purchases, and Restore | Operator-approved store-release testing. Purchases and Restore are outside Milestone 2, so neither this suite nor the phone script claims that proof. |
 
 ## Compare with the prototype
 
