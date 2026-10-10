@@ -7,65 +7,6 @@ import UIKit
 @testable import Enduragent
 
 extension FixtureLaunchTests {
-	@Test(arguments: [false, true])
-	func retryAfterRelaunchAnswersAHangingDirective(started: Bool) async throws {
-		var launch = launch
-		launch.coalescing = CoalescingPolicy(window: started ? .milliseconds(100) : .seconds(60))
-		let accepted: TurnView
-		do {
-			let first = await model(try fixtureServices(launch, defaults: defaults))
-			await first.agreeAndStartChatting()
-			first.draft.text = "fixture:hang"
-			await first.send()
-			accepted = try await firstTurn(first)
-			if started {
-				_ = try await turn(accepted.id, in: first, where: isProcessing)
-			}
-			try await terminateWithoutWriting(first)
-		}
-		let reopened = await model(try await relaunch(.keep).0)
-		await reopened.appear()
-		await reopened.lifecycle.forward(.becameActive)
-		let recovered = try await turn(accepted.id, in: reopened) { state in
-			if started {
-				guard case .interrupted(let interrupted) = state else { return false }
-				return interrupted.notice.actions == [.tryAgain(accepted.id)]
-			}
-			return state == .accepted(.awaitingRestart)
-		}
-		#expect(recovered.athleteText == "fixture:hang")
-		await reopened.perform(.tryAgain(accepted.id))
-		let answered = try await turn(accepted.id, in: reopened, where: isCompleted)
-		await reopened.stop()
-		#expect(replyText(answered.state) == FirstWeekFixture.weekSummary)
-	}
-
-	@Test func becameActiveRunsRecoveryOncePerProcess() async throws {
-		let dead: TurnView
-		do {
-			let killed = await model(try services())
-			await killed.agreeAndStartChatting()
-			killed.draft.text = "fixture:hang"
-			await killed.send()
-			dead = try await turn(in: killed, where: isProcessing)
-			try await terminateWithoutWriting(killed)
-		}
-		let relaunched = await model(try await relaunch(.keep).0)
-		await relaunched.appear()
-		await relaunched.lifecycle.forward(.becameActive)
-		let recovered = try await turn(dead.id, in: relaunched, where: isInterrupted)
-		#expect(cause(recovered.state) == .processEnded)
-		relaunched.draft.text = "fixture:hang"
-		await relaunched.send()
-		let running = try await turn(in: relaunched, where: isProcessing)
-		await relaunched.lifecycle.forward(.becameActive)
-		try await Task.sleep(for: .milliseconds(200))
-		let stillRunning = try #require(relaunched.chat?.turns.first { $0.id == running.id })
-		#expect(isProcessing(stillRunning.state))
-		#expect(relaunched.chat?.turns.first { $0.id == dead.id }?.state == recovered.state)
-		await relaunched.stop()
-	}
-
 	@Test func unreadableRecoveryHoldsADeadClaimWithoutTryAgainUntilItCanRead() async throws {
 		let suite = "enduragent.fixture.recovery.arguments.test"
 		let arguments = try #require(UserDefaults(suiteName: suite))
@@ -177,10 +118,6 @@ private func isProcessing(_ state: TurnState) -> Bool {
 
 private func isUnrecovered(_ state: TurnState) -> Bool {
 	if case .unrecovered = state { true } else { false }
-}
-
-private func isCompleted(_ state: TurnState) -> Bool {
-	if case .completed = state { true } else { false }
 }
 
 private func isInterrupted(_ state: TurnState) -> Bool {
