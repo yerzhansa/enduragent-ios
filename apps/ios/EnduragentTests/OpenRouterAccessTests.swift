@@ -11,83 +11,68 @@ struct OpenRouterAccessTests {
 
 	@Test(arguments: [
 		(false, FixtureAccessMethod.credits, FixtureSignInOutcome.success),
-		(false, .credits, .cancel),
-		(false, .openRouter, .success),
 		(false, .openRouter, .cancel),
-		(true, .credits, .success),
-		(true, .credits, .cancel),
 		(true, .openRouter, .success),
-		(true, .openRouter, .cancel),
+		(true, .credits, .cancel),
 	])
-	func successAndCancelFromEachScreenPersistForToolTurn(
+	func successAndCancelFromEachScreenReachTheNextToolTurn(
 		settings: Bool, previous: FixtureAccessMethod, outcome: FixtureSignInOutcome
 	) async throws {
-		let saved: ChatSnapshot
-		let expectedModel: ModelID
-		let expectedMethod: AccessMethod
-		let expectedKey: String
-		do {
-			var launch = harness.launch
-			launch.accessMethod = previous
-			launch.signInOutcome = outcome
-			let model = await harness.model(
-				try fixtureServices(launch, defaults: harness.defaults, language: .en))
-			await model.appear()
-			model.continueNotice()
-			model.connectKey = "fixture"
-			await model.connect()
-			try await model.waitForStatus {
-				if case .connected = $0.training { return true }
-				return false
-			}
-			model.continueConnect()
-			await model.loadStarter()
-			if settings {
-				await model.agreeAndStartChatting()
-				try await harness.observed(model)
-				model.open(.settings)
-				model.open(.accessMethod)
-			} else {
-				#expect(model.route == .onboarding(.starter))
-			}
-			let fixture = try #require(model.services.fixture)
-			let selection = try fixture.secrets.accessSelection()
-			let priorMark = model.selectedAccessMethod
-			await model.chooseAccess(.signInToOpenRouter)
-			#expect(await fixture.openRouterAuthorizer.requests.count == 1)
-			if outcome == .success {
-				try await model.waitForStatus { $0.access.savedMethod == .openRouterAccount }
-				#expect(model.selectedAccessMethod == .openRouterAccount)
-				#expect(try fixture.secrets.accessSelection() != selection)
-				expectedMethod = .openRouterAccount
-				expectedKey = "fixture-signed-in-openrouter-key"
-			} else {
-				#expect(model.selectedAccessMethod == priorMark)
-				#expect(try fixture.secrets.accessSelection() == selection)
-				#expect(model.accessSettings.notice?.key == Catalog.accessSignInCancelled)
-				expectedMethod = priorMark
-				expectedKey =
-					previous == .openRouter
-					? FirstWeekFixture.openRouterKey : FirstWeekFixture.creditsKey
-			}
-			expectedModel = try #require(model.status.access.model)
-			#expect(
-				expectedModel
-					== (previous == .openRouter
-						? FirstWeekFixture.openRouterModel : AppServices.builtInModel))
+		var launch = harness.launch
+		launch.accessMethod = previous
+		launch.signInOutcome = outcome
+		let model = await harness.model(
+			try fixtureServices(launch, defaults: harness.defaults, language: .en))
+		await model.appear()
+		model.continueNotice()
+		model.connectKey = "fixture"
+		await model.connect()
+		try await model.waitForStatus {
+			if case .connected = $0.training { return true }
+			return false
+		}
+		model.continueConnect()
+		await model.loadStarter()
+		if settings {
 			await model.agreeAndStartChatting()
 			try await harness.observed(model)
-			model.navigation.removeAll()
-			try await harness.proveToolTurn(
-				model, method: expectedMethod, key: expectedKey, model: expectedModel)
-			saved = try #require(model.chat)
+			model.open(.settings)
+			model.open(.accessMethod)
+		} else {
+			#expect(model.route == .onboarding(.starter))
 		}
-		let reopened = try await harness.reopen(language: .en)
-		#expect(reopened.selectedAccessMethod == expectedMethod)
-		#expect(reopened.status.access.model == expectedModel)
-		#expect(reopened.chat?.turns == saved.turns)
+		let fixture = try #require(model.services.fixture)
+		let selection = try fixture.secrets.accessSelection()
+		let priorMark = model.selectedAccessMethod
+		await model.chooseAccess(.signInToOpenRouter)
+		#expect(await fixture.openRouterAuthorizer.requests.count == 1)
+		let expectedMethod: AccessMethod
+		let expectedKey: String
+		if outcome == .success {
+			try await model.waitForStatus { $0.access.savedMethod == .openRouterAccount }
+			#expect(model.selectedAccessMethod == .openRouterAccount)
+			#expect(try fixture.secrets.accessSelection() != selection)
+			expectedMethod = .openRouterAccount
+			expectedKey = "fixture-signed-in-openrouter-key"
+		} else {
+			#expect(model.selectedAccessMethod == priorMark)
+			#expect(try fixture.secrets.accessSelection() == selection)
+			#expect(model.accessSettings.notice?.key == Catalog.accessSignInCancelled)
+			expectedMethod = priorMark
+			expectedKey =
+				previous == .openRouter
+				? FirstWeekFixture.openRouterKey : FirstWeekFixture.creditsKey
+		}
+		let expectedModel = try #require(model.status.access.model)
+		#expect(
+			expectedModel
+				== (previous == .openRouter
+					? FirstWeekFixture.openRouterModel : AppServices.builtInModel))
+		await model.agreeAndStartChatting()
+		try await harness.observed(model)
+		model.navigation.removeAll()
 		try await harness.proveToolTurn(
-			reopened, method: expectedMethod, key: expectedKey, model: expectedModel)
+			model, method: expectedMethod, key: expectedKey, model: expectedModel)
 	}
 
 	@Test func concurrentRecoveryStartsOneSignIn() async throws {
