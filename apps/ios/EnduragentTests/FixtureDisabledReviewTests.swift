@@ -15,23 +15,9 @@ extension FixtureLaunchTests {
 		let fixture = try #require(services.fixture)
 		let model = await model(services)
 		await model.agreeAndStartChatting()
-		model.trainingSettings.edit()
-		model.connectKey = "fixture"
-		await model.connect()
-		model.draft.text =
-			"Give me a 60 minute endurance ride for tomorrow with two 10 minute tempo blocks"
-		await model.send()
+		let token = try await presentedReview(on: model)
 		_ = try await settledTurn(model)
-		let initial = try #require(model.chat?.review)
-		await model.decide(.presented(initial.ref))
-		try await until {
-			if case .approveOrCancel? = model.chat?.review?.controls { return true }
-			return false
-		}
 		if layout != .approval {
-			guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
-				throw DisabledReviewFixtureFailure()
-			}
 			fixture.intervals.writeFailure = URLError(.timedOut)
 			await model.decide(.approve(token))
 			try await until {
@@ -95,5 +81,3 @@ extension FixtureLaunchTests {
 		#expect(fixture.transport.requestCount == requests)
 	}
 }
-
-private struct DisabledReviewFixtureFailure: Error {}

@@ -23,12 +23,8 @@ final class ShellLanguageTests {
 		await model.agreeAndStartChatting()
 		model.draft.text = "How was my training week?"
 		await model.send()
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.chat?.turns.last?.state.isSettled != true, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { model.chat?.turns.last?.state.isSettled == true }
 		let turn = try #require(model.chat?.turns.last)
-		try #require(turn.state.isSettled)
 		model.draft.text = "My next question"
 		model.open(.settings)
 		model.openLanguagePicker()
@@ -120,12 +116,8 @@ final class ShellLanguageTests {
 		await model.appear()
 		model.draft.text = "Add a workout tomorrow."
 		await model.send()
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while model.chat?.review == nil || model.isWorking, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
+		try await until { model.chat?.review != nil && !model.isWorking }
 		let review = try #require(model.chat?.review)
-		try #require(!model.isWorking)
 		let calls = transport.requestCount
 		await model.chooseLanguage(.fixed(.fr))
 		try await model.waitForStatus { $0.language == .fixed(.fr) }
@@ -134,9 +126,7 @@ final class ShellLanguageTests {
 				services: try services(displayLocale: phone.resolve), defaults: defaults))
 		#expect(model.displayLocale.language == .fr)
 		await model.appear()
-		while model.chat?.review == nil, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
+		try await until { model.chat?.review != nil }
 		let restored = try #require(model.chat?.review)
 		#expect(restored.ref.set == review.ref.set)
 		#expect(
@@ -155,9 +145,7 @@ final class ShellLanguageTests {
 		try await model.waitForStatus { $0.language == .fixed(.en) }
 		#expect(transport.requestCount == calls)
 		await model.decide(.presented(restored.ref))
-		while model.chat?.review?.controls == ReviewControls.none, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
+		try await until { model.chat?.review?.controls != ReviewControls.none }
 		guard case .approveOrCancel(let token)? = model.chat?.review?.controls else {
 			Issue.record("The presented review has no approval control")
 			return
@@ -167,9 +155,7 @@ final class ShellLanguageTests {
 		}
 		await model.decide(.approve(token))
 		if !expires {
-			while model.chat?.notes.isEmpty != false, ContinuousClock.now < deadline {
-				try await Task.sleep(for: .milliseconds(10))
-			}
+			try await until { model.chat?.notes.isEmpty == false }
 			try #require(model.chat?.notes.values.flatMap { $0 }.count == 1)
 		}
 		let visible = {

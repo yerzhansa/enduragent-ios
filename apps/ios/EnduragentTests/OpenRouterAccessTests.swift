@@ -1,6 +1,5 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
-import Synchronization
 import Testing
 
 @testable import Enduragent
@@ -79,18 +78,15 @@ struct OpenRouterAccessTests {
 			await model.agreeAndStartChatting()
 			try await harness.observed(model)
 			model.navigation.removeAll()
-			try await proveToolTurn(
+			try await harness.proveToolTurn(
 				model, method: expectedMethod, key: expectedKey, model: expectedModel)
 			saved = try #require(model.chat)
 		}
-		let (services, defaults) = try await harness.relaunch(.keep, language: .en)
-		let reopened = await fixtureModel(
-			environment: AppEnvironment(services: services, defaults: defaults))
-		try await harness.observed(reopened)
+		let reopened = try await harness.reopen(language: .en)
 		#expect(reopened.selectedAccessMethod == expectedMethod)
 		#expect(reopened.status.access.model == expectedModel)
 		#expect(reopened.chat?.turns == saved.turns)
-		try await proveToolTurn(
+		try await harness.proveToolTurn(
 			reopened, method: expectedMethod, key: expectedKey, model: expectedModel)
 	}
 
@@ -125,10 +121,7 @@ struct OpenRouterAccessTests {
 			one.cancel()
 			two.cancel()
 		}
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while await fixture.openRouterAuthorizer.requests.isEmpty, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(20))
-		}
+		try await until { await !fixture.openRouterAuthorizer.requests.isEmpty }
 		try #require(await fixture.openRouterAuthorizer.requests.count == 1)
 		await fixture.openRouterAuthorizer.complete(.success(.init(code: "fixture-code")), at: 0)
 		await one.value
@@ -139,7 +132,7 @@ struct OpenRouterAccessTests {
 		#expect(model.selectedAccessMethod == .openRouterAccount)
 		#expect(model.navigation.isEmpty)
 		#expect(model.chat?.turns.first == first)
-		try await proveToolTurn(
+		try await harness.proveToolTurn(
 			model, method: .openRouterAccount, key: "fixture-signed-in-openrouter-key",
 			model: FirstWeekFixture.openRouterModel)
 	}
@@ -173,29 +166,5 @@ struct OpenRouterAccessTests {
 		let fixture = try #require(model.services.fixture)
 		#expect(await fixture.openRouterAuthorizer.requests.isEmpty)
 		#expect(fixture.transport.requestCount == (forbidden ? 1 : 0))
-	}
-
-	private func proveToolTurn(
-		_ shell: ShellModel, method: AccessMethod, key: String, model: ModelID
-	) async throws {
-		let fixture = try #require(shell.services.fixture)
-		let response = fixture.transport.respond
-		let requests = Mutex<[ScriptedRequest]>([])
-		fixture.transport.respond = { request in
-			requests.withLock { $0.append(request) }
-			return response(request)
-		}
-		let index = try #require(shell.chat).turns.count
-		shell.draft.text = FirstWeekFixture.trainingDataDirective
-		await shell.send()
-		let turn = try await harness.settledTurn(shell, at: index)
-		#expect(replyText(turn.state) == "I can read Ada Kovač's training profile and calendar.")
-		let sent = requests.withLock { $0.filter { $0.purpose == .chat } }
-		try #require(sent.count >= 2)
-		#expect(sent.contains { !$0.toolResults.isEmpty })
-		#expect(
-			sent.allSatisfy {
-				$0.accessMethod == method && $0.credential == key && $0.model == model
-			})
 	}
 }

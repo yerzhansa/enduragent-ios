@@ -32,10 +32,17 @@ extension FakeIntervalsReadGate {
 @MainActor
 extension ShellModel {
 	func waitForStatus(_ matches: (CoachStatus) -> Bool) async throws {
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while matches(status) != true, ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		try #require(matches(status) == true)
+		try await until { matches(status) }
+	}
+}
+
+@MainActor
+func until(
+	within limit: TestWaitLimit = .hangGuard, _ condition: () async throws -> Bool
+) async throws {
+	let deadline = ContinuousClock.now + limit.duration
+	while try await !condition() {
+		try #require(ContinuousClock.now < deadline, "The condition never held within \(limit)")
+		try await Task.sleep(for: .milliseconds(20))
 	}
 }

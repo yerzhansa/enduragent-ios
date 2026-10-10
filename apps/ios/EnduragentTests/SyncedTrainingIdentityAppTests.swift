@@ -26,7 +26,7 @@ struct SyncedTrainingIdentityAppTests {
 		model.draft.text = "Is Thursday still on?"
 		await model.send()
 		await model.sceneChanged(.enteredBackground)
-		try await harness.until { model.chat?.liveReply?.text == "Still on." }
+		try await until { model.chat?.liveReply?.text == "Still on." }
 		let running = try #require(model.chat)
 		try #require(running.turns.last?.state.isSettled == false)
 		let turn = try await harness.settledTurn(model)
@@ -61,10 +61,10 @@ struct SyncedTrainingIdentityAppTests {
 		model.draft.text = "Give me an endurance ride for tomorrow"
 		await model.send()
 		_ = try await harness.settledTurn(model)
-		try await harness.until { model.chat?.review != nil }
+		try await until { model.chat?.review != nil }
 		let review = try #require(model.chat?.review)
 		await model.decide(.presented(review.ref))
-		try await harness.until {
+		try await until {
 			if case .approveOrCancel? = model.chat?.review?.controls { return true }
 			return false
 		}
@@ -79,7 +79,7 @@ struct SyncedTrainingIdentityAppTests {
 			try await model.waitForStatus {
 				$0.training.notice?.key == Catalog.connectErrorProfileUnavailable
 			}
-			try await harness.until {
+			try await until {
 				model.chat?.review?.notice?.key == Catalog.reviewCannotVerify
 			}
 			let rechecked = try #require(await harness.firstSnapshot(services, chat: .main))
@@ -107,7 +107,7 @@ struct SyncedTrainingIdentityAppTests {
 		model.draft.text = "Give me an endurance ride for tomorrow"
 		await model.send()
 		_ = try await harness.settledTurn(model)
-		try await harness.until { model.chat?.review != nil }
+		try await until { model.chat?.review != nil }
 		let presented = try #require(model.chat?.review)
 		await model.decide(.presented(presented.ref))
 		let original = try #require(model.chat?.review)
@@ -115,7 +115,7 @@ struct SyncedTrainingIdentityAppTests {
 		try fixture.trainingPeer.replace(.athleteB)
 		await model.sceneChanged(.becameActive)
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
-		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.connected?.athleteName == "Bo Lind")
 		#expect(model.chat?.review?.ref.set == original.ref.set)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
@@ -139,10 +139,10 @@ struct SyncedTrainingIdentityAppTests {
 		model.draft.text = "Give me an endurance ride for tomorrow"
 		await model.send()
 		_ = try await harness.settledTurn(model)
-		try await harness.until { model.chat?.review != nil }
+		try await until { model.chat?.review != nil }
 		let presented = try #require(model.chat?.review)
 		await model.decide(.presented(presented.ref))
-		try await harness.until {
+		try await until {
 			if case .approveOrCancel? = model.chat?.review?.controls { return true }
 			return false
 		}
@@ -153,7 +153,7 @@ struct SyncedTrainingIdentityAppTests {
 		try fixture.trainingPeer.replace(.athleteB)
 		await model.decide(.approve(token))
 		try await model.waitForStatus { $0.training.athleteName == "Bo Lind" }
-		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewAccountChanged }
 		#expect(model.chat?.review?.notice?.key == Catalog.reviewAccountChanged)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		#expect(fixture.trainingPeer.athleteB.events.isEmpty)
@@ -166,7 +166,7 @@ struct SyncedTrainingIdentityAppTests {
 		try await model.waitForStatus {
 			$0.training.notice?.key == Catalog.connectErrorProfileUnavailable
 		}
-		try await harness.until { model.chat?.review?.notice?.key == Catalog.reviewCannotVerify }
+		try await until { model.chat?.review?.notice?.key == Catalog.reviewCannotVerify }
 		#expect(model.chat?.review?.ref.set == token.ref.set)
 		#expect(model.chat?.review?.controls == ReviewControls.none)
 		#expect(model.chat?.review?.notice?.key == Catalog.reviewCannotVerify)

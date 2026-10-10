@@ -1,6 +1,5 @@
 import EnduragentCoach
 import EnduragentCoachFixtures
-import Synchronization
 import Testing
 
 @testable import Enduragent
@@ -35,10 +34,10 @@ struct AccessOnboardingTests {
 			model.open(.accessMethod)
 			#expect(model.selectedAccessMethod == .credits)
 		}
-		let reopened = try await reopen()
+		let reopened = try await harness.reopen(language: .en)
 		#expect(reopened.selectedAccessMethod == .credits)
 		#expect(reopened.status.access.availability == .ready)
-		try await proveToolTurn(reopened, method: .credits, model: AppServices.builtInModel)
+		try await harness.proveToolTurn(reopened, method: .credits, model: AppServices.builtInModel)
 	}
 
 	@Test(arguments: [
@@ -113,19 +112,19 @@ struct AccessOnboardingTests {
 			#expect(model.accessSettings.notice == nil)
 			#expect(model.accessNotice == nil)
 			model.navigation.removeAll()
-			try await proveToolTurn(
+			try await harness.proveToolTurn(
 				model, method: previous.savedMethod ?? .credits,
 				model: try #require(previous.model))
 			saved = try #require(model.chat)
 			#expect(fixture.credits.calls.allSatisfy { $0 == .grant || $0 == .balance })
 		}
-		let reopened = try await reopen()
+		let reopened = try await harness.reopen(language: .en)
 		#expect(reopened.status.access.selection == previous.selection)
 		#expect(reopened.status.access.savedMethod == previous.savedMethod)
 		#expect(reopened.status.access.model == previous.model)
 		#expect(reopened.status.access.availability == previous.availability)
 		#expect(reopened.chat?.turns == saved.turns)
-		try await proveToolTurn(
+		try await harness.proveToolTurn(
 			reopened, method: previous.savedMethod ?? .credits,
 			model: try #require(previous.model))
 	}
@@ -149,34 +148,5 @@ struct AccessOnboardingTests {
 		model.continueConnect()
 		try #require(model.route == .onboarding(.starter))
 		return model
-	}
-
-	private func reopen() async throws -> ShellModel {
-		let (services, defaults) = try await harness.relaunch(.keep, language: .en)
-		let model = await fixtureModel(
-			environment: AppEnvironment(services: services, defaults: defaults))
-		try await harness.observed(model)
-		return model
-	}
-
-	private func proveToolTurn(
-		_ shell: ShellModel, method: AccessMethod, model: ModelID
-	) async throws {
-		let transport = try #require(shell.services.fixtureTransport)
-		let previous = transport.respond
-		let requests = Mutex<[ScriptedRequest]>([])
-		transport.respond = { request in
-			requests.withLock { $0.append(request) }
-			return previous(request)
-		}
-		let index = try #require(shell.chat).turns.count
-		shell.draft.text = FirstWeekFixture.trainingDataDirective
-		await shell.send()
-		let turn = try await harness.settledTurn(shell, at: index)
-		#expect(replyText(turn.state) == "I can read Ada Kovač's training profile and calendar.")
-		let chatRequests = requests.withLock { $0.filter { $0.purpose == .chat } }
-		try #require(chatRequests.count >= 2)
-		#expect(chatRequests.contains { !$0.toolResults.isEmpty })
-		#expect(chatRequests.allSatisfy { $0.accessMethod == method && $0.model == model })
 	}
 }
