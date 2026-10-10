@@ -145,16 +145,11 @@ extension RetryLadderTests {
 		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
 		records: (any RecordLog)? = nil
 	) async -> Coach {
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records ?? store), secrets: keyedSecrets(),
-				models: ModelService(catalog: .fixture) { _ in model },
-				training: .fake { _, _ in intervals },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, displayLocale: testDisplayLocale,
-			coalescing: CoalescingPolicy(window: .zero))
-		return await consentingCoach(coach)
+		await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: records ?? store),
+				models: ModelService(catalog: .fixture) { _ in model }, intervals: intervals,
+				clock: held, coalescing: CoalescingPolicy(window: .zero)))
 	}
 
 	func expectSingleApproval(

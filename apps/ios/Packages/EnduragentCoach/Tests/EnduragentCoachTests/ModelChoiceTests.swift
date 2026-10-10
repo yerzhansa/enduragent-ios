@@ -271,14 +271,9 @@ import Testing
 		records: InMemoryRecordLog = InMemoryRecordLog(), catalog: ModelCatalog = .bundled,
 		builtIn: ModelID = ModelCatalog.bundled.orderedEntries[0].id, consent: Bool = true
 	) async -> Coach {
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records), secrets: secrets,
-				models: .scripted(transport, catalog: catalog),
-				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: builtIn, displayLocale: testDisplayLocale, coalescing: quickWindow)
+		let coach = makeCoach(
+			records: RecordStore(log: records), secrets: secrets,
+			models: .scripted(transport, catalog: catalog), clock: clock, builtInModel: builtIn)
 		return consent ? await consentingCoach(coach) : coach
 	}
 }

@@ -65,23 +65,27 @@ import Testing
 		}
 	}
 
-	@Test func flushCannotWriteAnUnlistedSection() async throws {
+	@Test(arguments: [
+		(#"{"section":"unlisted","content":"Must not be stored."}"#, "unknown_section"),
+		(#"{"section":"schedule"}"#, "requires a section and content"),
+	])
+	func aRefusedFlushWriteTellsTheModelAndStoresNothing(arguments: String, refusal: String)
+		async throws
+	{
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"unlisted","content":"Must not be stored."}"#),
-				.finish(reason: .toolCalls),
-				.finish(reason: .stop),
+				.toolCall(name: "memory_write", arguments: arguments),
+				.finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: store, clock: clock)
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-		let written = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-		#expect(written.isEmpty)
-		let followUp = try #require(sent(.memoryFlush, by: transport).last)
-		let result = try #require(followUp.messages.last(where: { $0.role == .tool }))
-		#expect(result.content.contains("unknown_section"))
+		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
+		#expect(result.role == .tool)
+		#expect(result.content.contains(refusal))
+		#expect(!result.content.contains("type='"))
+		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
+		#expect(sections.isEmpty)
 	}
 
 	@Test(arguments: [FinishReason.error, .contentFilter])
@@ -97,9 +101,7 @@ import Testing
 	@Test func everyWriteCarriesTheJobsOperation() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
@@ -121,9 +123,7 @@ import Testing
 	@Test func aFailedGenerateUsesTheLadderThenReportsTheWritesItMade() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 				.fail(.http(status: 500)),
@@ -149,9 +149,7 @@ import Testing
 			arguments: #"{"kind":"decision","date":"1998-06-13","text":"Keep Saturdays free"}"#)
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				append, .finish(reason: .toolCalls), .fail(.http(status: 500)),
 				append, .finish(reason: .toolCalls), .finish(reason: .stop),
 			], for: .flush, otherwise: transport.respond)
@@ -167,22 +165,6 @@ import Testing
 		#expect(events.count == 1)
 		let repeated = try #require(transport.requests.last?.messages.last)
 		#expect(repeated.content.contains(#""duplicate":true"#))
-	}
-
-	@Test func missingFlushContentGetsTheFlushArgumentMessage() async throws {
-		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(name: "memory_write", arguments: #"{"section":"schedule"}"#),
-				.finish(reason: .toolCalls), .finish(reason: .stop),
-			], for: .flush, otherwise: transport.respond)
-		let coach = await makeCoach(transport: transport, store: store, clock: clock)
-		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-		let result = try #require(sent(.memoryFlush, by: transport).last?.messages.last)
-		#expect(result.content.contains("requires a section and content"))
-		#expect(!result.content.contains("type='"))
-		let sections = try await store.fetch(RecordQuery(scope: .synced([.memorySection]))).records
-		#expect(sections.isEmpty)
 	}
 
 	@Test func flushCapsAtFiveSteps() async throws {

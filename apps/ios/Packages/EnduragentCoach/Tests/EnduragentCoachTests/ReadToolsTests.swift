@@ -170,22 +170,11 @@ struct ReadToolsTests {
 				to: try #require(CivilDate(rawValue: newest))) == days)
 	}
 
-	@Test func wholeCalendarRangeReturnsRangeTooWide() {
-		#expect(throws: IntervalsError.self) {
-			do {
-				try IntervalsPolicy.rejectListRange(
-					oldest: "1583-01-01", newest: "9999-12-31")
-			} catch let error as IntervalsError {
-				#expect(error.code == "range_too_wide")
-				throw error
-			}
-		}
-	}
-
-	@Test func rangeTooWideReturnsTypedError() async throws {
+	@Test(arguments: [("1998-01-01", "1999-01-02"), ("1583-01-01", "9999-12-31")])
+	func rangeTooWideReturnsTypedError(oldest: String, newest: String) async throws {
 		let outcome = try await runtime().execute(
 			name: .intervalsFetchActivities,
-			arguments: try JSONValue.parse(#"{"oldest":"1998-01-01","newest":"1999-01-02"}"#),
+			arguments: .object(["oldest": .string(oldest), "newest": .string(newest)]),
 			chatId: .main,
 			scope: turnScope()
 		).outcome

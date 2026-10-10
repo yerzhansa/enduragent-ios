@@ -80,21 +80,6 @@ import Testing
 		#expect(!snapshots.contains { $0.opening != .continuing && $0.activity != .idle })
 	}
 
-	@Test func aResetQueuedBehindAReplyShowsTheNewConversationWorkingRow() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[.text("Thursday is"), .hang], otherwise: transport.respond)
-		let coach = await coach()
-		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
-		await coach.waitForLiveText(turn)
-		let resetting = startNewConversation(on: coach)
-		try await Task.sleep(for: .milliseconds(200))
-		#expect(
-			await coach.currentSnapshot(.main)?.activity
-				== .working(label: Catalog.chatNoticeStartingNewConversation))
-		await coach.stop(.main)
-		#expect(try await outcome(resetting) == .started(memory: .saved))
-	}
-
 	@Test func aNewConversationTappedDuringStopRunsAfterTheStopSettles() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
@@ -103,8 +88,7 @@ import Testing
 		let turn = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.waitForLiveText(turn)
 		async let stopped: Void = coach.stop(.main)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		let resetting = startNewConversation(on: coach)
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(resetting.landed == nil)
@@ -123,7 +107,7 @@ import Testing
 				== Catalog.chatNoticeNewConversationSuccess)
 	}
 
-	@Test func stopKeepsANewConversationQueuedBehindTheStoppedReply() async throws {
+	@Test func aNewConversationQueuedBehindAReplyShowsWorkingAndSurvivesStop() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Thursday is"), .hang], otherwise: transport.respond)
 		let coach = await coach()
@@ -131,6 +115,9 @@ import Testing
 		await coach.waitForLiveText(turn)
 		let resetting = startNewConversation(on: coach)
 		try await Task.sleep(for: .milliseconds(200))
+		#expect(
+			await coach.currentSnapshot(.main)?.activity
+				== .working(label: Catalog.chatNoticeStartingNewConversation))
 		await coach.stop(.main)
 		#expect(try await outcome(resetting) == .started(memory: .saved))
 		let archivedRef = try #require(try await coach.history().first?.id)

@@ -124,3 +124,13 @@ final class HeldAppendLog: RecordLog, Sendable {
 
 	var imports: AsyncStream<Void> { inner.imports }
 }
+
+extension HeldAppendLog {
+	func waitUntilReached() async throws {
+		let parked = try await beforeDeadline(within: .hangGuard, onTimeout: release) {
+			var arrivals = self.reached.makeAsyncIterator()
+			return await arrivals.next() != nil
+		}
+		try #require(parked == true, "The held append was never reached")
+	}
+}

@@ -10,10 +10,6 @@ import Testing
 	let store = InMemoryRecordLog()
 	let host = ImmediateExecutionHost()
 
-	let schedule: ScriptedEvent = .toolCall(
-		name: "memory_write",
-		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
-
 	func coach(over log: (any RecordLog)? = nil, window: Duration = .milliseconds(20)) async
 		-> Coach
 	{
@@ -106,7 +102,8 @@ import Testing
 								settlement: .saved(sections: 1, events: 0))))),
 			])
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
 		#expect(await coach().resetAndSettle(in: .main) == .started(memory: .saved))
 		let window = try #require(flushed().first)
 		#expect(!window.contains("Question 0"))

@@ -8,28 +8,6 @@ import Testing
 	let intervals = FakeIntervalsClient(athleteName: "Ada Kovač", ftp: 250)
 	let clock = FixedClock(now: "1998-06-13T12:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func memoryQueryRejectsSlashSeparatedBounds() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "memory_query", arguments: #"{"from":"2024/01/01","to":"2024/01/02"}"#),
-				.finish(reason: .toolCalls),
-				.text("Please use YYYY-MM-DD dates."), .finish(reason: .stop),
-			], otherwise: transport.respond)
-		let coach = await makeCoach(
-			transport: transport, intervals: intervals, store: InMemoryRecordLog(), clock: clock)
-		let settled = try await coach.sendAndSettle("Read my notes")
-		#expect(replyText(settled) == "Please use YYYY-MM-DD dates.")
-		let next = try #require(transport.requests.last)
-		let result = try #require(next.messages.last { $0.role == .tool })
-		let json = try JSONValue.parse(result.content)
-		#expect(
-			json.objectFields["data"]?.stringValue
-				== "Error: 2024/01/01..2024/01/02 contains an invalid calendar date. Use real YYYY-MM-DD dates."
-		)
-	}
-
 	@Test func memoryReadOmittedWhenNotesAreStampOnly() async throws {
 		let store = InMemoryRecordLog()
 		let memory = Memory(

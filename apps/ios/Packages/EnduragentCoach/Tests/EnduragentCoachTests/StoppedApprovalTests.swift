@@ -66,8 +66,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
 		let stopping = Task { await coach.stop(.main) }
-		var settlement = records.reached.makeAsyncIterator()
-		_ = await settlement.next()
+		try await records.waitUntilReached()
 		let outcome = await coach.decide(.approve(token), in: .main)
 		#expect(outcome == .blocked(.turnStopping))
 		#expect(
