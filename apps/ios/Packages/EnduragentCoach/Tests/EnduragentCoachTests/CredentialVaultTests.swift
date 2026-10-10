@@ -65,14 +65,16 @@ import Testing
 					wellness: .available(.noData(on: "1998-06-13")))))
 	}
 
-	func coach(_ secrets: any SecretStore, log: (any RecordLog)? = nil) async -> Coach {
+	func coach(
+		_ secrets: any SecretStore, log: (any RecordLog)? = nil, training: TrainingService? = nil
+	) async -> Coach {
 		await consentingCoach(
 			Coach(
 				sport: .cycling,
 				ports: CoachPorts(
 					records: RecordStore(log: log ?? records), secrets: secrets,
 					models: .scripted(transport),
-					training: training, credits: .fake(FakeCreditsClient()),
+					training: training ?? self.training, credits: .fake(FakeCreditsClient()),
 					host: ImmediateExecutionHost(), clock: clock),
 				builtInModel: testModel,
 				displayLocale: testDisplayLocale,

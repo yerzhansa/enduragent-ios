@@ -113,55 +113,36 @@ extension ConnectionResultTests {
 				== .available(.noData(on: "1998-06-13")))
 	}
 
-	@Test(arguments: [false, true])
-	func lateProfileRetryCannotRestoreReplacedOrDisconnectedConnection(disconnect: Bool)
+	@Test(arguments: [false, true], [false, true])
+	func lateRetryCannotRestoreReplacedOrDisconnectedConnection(wellness: Bool, disconnect: Bool)
 		async throws
 	{
-		client.setProfileOutcome(.failure(failure(503)))
-		let coach = await coach()
-		let statuses = await coach.observeStatus()
-		_ = await coach.changeTraining(.replace(apiKey: "synthetic-a", athlete: .keyOwner))
-		let failed = try await landed(in: statuses)
-		client.setProfileOutcome(.success(AthleteProfile(id: "i1001", name: "Ada", ftp: 250)))
-		let gate = client.holdNextProfileRead()
-		defer { Task { await gate.release() } }
-		let retry = Task { await coach.retryTrainingDisplay(for: failed.connectionID) }
-		try await entered(gate)
-		client.setProfileOutcome(.success(AthleteProfile(id: "i2002", name: "Bo", ftp: 240)))
-		_ = await coach.changeTraining(
-			disconnect ? .disconnect : .replace(apiKey: "synthetic-b", athlete: .keyOwner))
-		let current = try secrets.intervalsConnection()
-		if !disconnect { _ = try await landed(in: statuses) }
-		await gate.release()
-		try await finished(retry, releasing: gate)
-		#expect(try secrets.intervalsConnection() == current)
-		let status = try await coach.observedStatus()
-		if disconnect {
-			#expect(status.training == .unconnected)
+		if wellness {
+			client.setWellnessOutcome(.failure(failure(503)))
 		} else {
-			#expect(try summary(status).connectionID == current?.id)
-			#expect(try summary(status).athleteName == "Bo")
+			client.setProfileOutcome(.failure(failure(503)))
 		}
-	}
-
-	@Test(arguments: [false, true])
-	func lateWellnessRetryCannotRestoreReplacedOrDisconnectedConnection(disconnect: Bool)
-		async throws
-	{
-		client.setWellnessOutcome(.failure(failure(503)))
 		let coach = await coach()
 		let statuses = await coach.observeStatus()
 		_ = await coach.changeTraining(.replace(apiKey: "synthetic-a", athlete: .keyOwner))
 		let failed = try await landed(in: statuses)
-		client.setWellnessOutcome(
-			.success([WellnessDay(date: "1998-06-13", fitness: 42, fatigue: nil, form: nil)]))
-		let gate = client.holdNextWellnessRead()
+		let gate: FakeIntervalsReadGate
+		if wellness {
+			client.setWellnessOutcome(
+				.success([WellnessDay(date: "1998-06-13", fitness: 42, fatigue: nil, form: nil)]))
+			gate = client.holdNextWellnessRead()
+		} else {
+			client.setProfileOutcome(.success(AthleteProfile(id: "i1001", name: "Ada", ftp: 250)))
+			gate = client.holdNextProfileRead()
+		}
 		defer { Task { await gate.release() } }
 		let retry = Task { await coach.retryTrainingDisplay(for: failed.connectionID) }
 		try await entered(gate)
 		client.setProfileOutcome(.success(AthleteProfile(id: "i2002", name: "Bo", ftp: 240)))
-		client.setWellnessOutcome(
-			.success([WellnessDay(date: "1998-06-13", fitness: 90, fatigue: nil, form: nil)]))
+		if wellness {
+			client.setWellnessOutcome(
+				.success([WellnessDay(date: "1998-06-13", fitness: 90, fatigue: nil, form: nil)]))
+		}
 		_ = await coach.changeTraining(
 			disconnect ? .disconnect : .replace(apiKey: "synthetic-b", athlete: .keyOwner))
 		let current = try secrets.intervalsConnection()
@@ -175,7 +156,7 @@ extension ConnectionResultTests {
 		} else {
 			#expect(try summary(status).connectionID == current?.id)
 			#expect(try summary(status).athleteName == "Bo")
-			#expect(try summary(status).today?.fitness == 90)
+			if wellness { #expect(try summary(status).today?.fitness == 90) }
 		}
 	}
 

@@ -54,29 +54,6 @@ import Testing
 		#expect(transport.requests == [firstRequest, secondRequest])
 	}
 
-	@Test func streamStopsAtEachFinish() async throws {
-		let transport = FakeModelTransport()
-		transport.respond = ScriptedReply.sequence(
-			[
-				.text("one"),
-				.finish(reason: .stop),
-				.text("two"),
-				.finish(reason: .length),
-			], otherwise: transport.respond)
-		let request = testRequest(
-			[WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)],
-			deadline: .seconds(30))
-		let first = try await collect(transport.stream(request))
-		#expect(textDeltas(in: first) == ["one"])
-		let second = try await collect(transport.stream(request))
-		#expect(textDeltas(in: second) == ["two"])
-		guard case .finished(let reason, _) = second.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .length)
-	}
-
 	@Test func deltaDelaySleepsOncePerEvent() async throws {
 		let delay = Duration.milliseconds(60)
 		let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")

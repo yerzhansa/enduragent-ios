@@ -131,11 +131,7 @@ import Testing
 				record(
 					8, wall: 6,
 					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed")))),
+						consumedFlushMarker(for: job.ulid))),
 			])
 		let ledger = Ledger(log: store, clock: clock, diagnostics: DiagnosticsLog(clock: clock))
 		try #require(
@@ -259,11 +255,7 @@ import Testing
 				record(
 					8,
 					body: .synced(
-						.provenance(
-							ProvenanceBody(
-								key: MemoryFlushPolicy.consumedFlushKeyPrefix + job.ulid.rawValue,
-								garmin: false, nonGarmin: false, unknown: false,
-								contentSha256: "consumed")))),
+						consumedFlushMarker(for: job.ulid))),
 				record(
 					10,
 					body: .synced(

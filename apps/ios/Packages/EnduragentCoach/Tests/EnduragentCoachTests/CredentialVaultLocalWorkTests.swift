@@ -182,8 +182,7 @@ extension CredentialVaultTests {
 		#expect(active.id != testConnection.id)
 	}
 
-	private func expectAthleteSwitchRefused(on coach: Coach, secrets: any SecretStore) async throws
-	{
+	func expectAthleteSwitchRefused(on coach: Coach, secrets: any SecretStore) async throws {
 		let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
 		let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
 		#expect(

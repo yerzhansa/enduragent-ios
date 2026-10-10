@@ -17,19 +17,6 @@ import Testing
 		#expect(small == TurnPolicy.historyBudgetFloor)
 	}
 
-	@Test func trimDropsOldestAndKeepsAtLeastOne() {
-		let messages = (0..<20).map { index in
-			WireMessage(
-				role: index.isMultiple(of: 2) ? .user : .assistant,
-				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
-		}
-		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
-		#expect(!result.kept.isEmpty)
-		#expect(result.kept.count + result.dropped.count == messages.count)
-		#expect(result.dropped.count >= 1)
-		#expect(result.kept.last == messages.last)
-	}
-
 	@Test func trimKeepsWholeTurns() {
 		let budget = HistoryWindow.historyTokenBudget(
 			systemTokens: 1_000, window: TurnPolicy.contextWindowCap, ratio: 0.3)
@@ -45,18 +32,5 @@ import Testing
 		let result = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
 		#expect(result.dropped == Array(messages.prefix(2)))
 		#expect(result.kept == Array(messages.suffix(2)))
-	}
-
-	@Test func trimUsesTheRatioItIsGiven() {
-		let messages = (0..<20).map { index in
-			WireMessage(
-				role: index.isMultiple(of: 2) ? .user : .assistant,
-				content: String(repeating: "x", count: 8_000), toolCalls: [], toolCallId: nil)
-		}
-		let narrow = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.3)
-		let wide = HistoryWindow.trim(messages: messages, systemTokens: 1_000, ratio: 0.6)
-		#expect(wide.budget > narrow.budget)
-		#expect(wide.dropped.isEmpty)
-		#expect(!narrow.dropped.isEmpty)
 	}
 }

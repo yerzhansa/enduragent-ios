@@ -37,12 +37,9 @@ extension SwiftDataSuites {
 					[.object(["type": .string("daily"), "content": .string(fatigue)])],
 					using: before, transport: transport)
 			}
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let notes = try await reopened.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
 			try #require(notes.count == 1)
 			#expect(notes[0].civilDate.rawValue == "1998-06-13")
@@ -56,12 +53,12 @@ extension SwiftDataSuites {
 			let request = try await query(
 				[("1998-06-13", "1998-06-13")], containing: "Fatigue",
 				using: after, transport: relaunchedTransport)
-			let context = try #require(request.messages.first { $0.role == .system }).content
+			let context = try MemoryProbe.systemText(in: request)
 			#expect(context.contains("## cycling-profile\n_updated: 1998-06-13\n" + profile))
 			#expect(context.contains("## schedule\n_updated: 1998-06-13\n" + schedule))
 			#expect(context.contains("## Today's Notes\n" + fatigue))
 			#expect(context.components(separatedBy: fatigue).count == 2)
-			let results = try request.messages.filter { $0.role == .tool }.map(toolText)
+			let results = try request.messages.filter { $0.role == .tool }.map(MemoryProbe.text)
 			#expect(
 				results == [
 					"Memory query 1998-06-13..1998-06-13 matching \"Fatigue\"\n\n## 1998-06-13\n"
@@ -85,12 +82,9 @@ extension SwiftDataSuites {
 			try await write(
 				[.object(["type": .string("daily"), "content": .string(morning)])],
 				using: before, transport: transport)
-			await before.lifecycle(.willTerminate)
 
-			let reopened = try makeSwiftDataLog(deviceId: phone, directory: directory)
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport, store: reopened, clock: clock)
+			let (after, relaunchedTransport, reopened) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let notes = try await reopened.fetch(RecordQuery(scope: .synced([.dailyNote]))).records
 				.sorted { $0.hlc < $1.hlc }
 			#expect(notes.map(\.civilDate.rawValue) == ["1998-06-13", "1998-06-14"])
@@ -105,7 +99,7 @@ extension SwiftDataSuites {
 					("1998-06-13", "1998-06-13"), ("1998-06-14", "1998-06-14"),
 					("1998-06-13", "1998-06-14"),
 				], using: after, transport: relaunchedTransport)
-			let results = try request.messages.filter { $0.role == .tool }.map(toolText)
+			let results = try request.messages.filter { $0.role == .tool }.map(MemoryProbe.text)
 			#expect(
 				results == [
 					"Memory query 1998-06-13..1998-06-13\n\n## 1998-06-13\n" + evening,
@@ -113,7 +107,7 @@ extension SwiftDataSuites {
 					"Memory query 1998-06-13..1998-06-14\n\n## 1998-06-14\n" + morning
 						+ "\n\n## 1998-06-13\n" + evening,
 				])
-			let context = try #require(request.messages.first { $0.role == .system }).content
+			let context = try MemoryProbe.systemText(in: request)
 			#expect(context.contains("## Today's Notes\n" + morning))
 			#expect(!context.contains(evening))
 		}
@@ -121,22 +115,9 @@ extension SwiftDataSuites {
 		private func write(
 			_ arguments: [JSONValue], using coach: Coach, transport: FakeModelTransport
 		) async throws {
-			let calls = arguments.map {
-				ScriptedEvent.toolCall(name: "memory_write", arguments: $0.canonicalDigestInput())
-			}
-			transport.respond = ScriptedReply.sequence(
-				calls + [.finish(reason: .toolCalls), .text("Saved."), .finish(reason: .stop)],
-				otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-			#expect(
-				replyText(try await coach.sendAndSettle("Remember this training update."))
-					== "Saved.")
-			let request = try #require(sent(.chatAttempt, by: transport).last)
-			let results = request.messages.filter { $0.role == .tool }
-			#expect(results.count == arguments.count)
-			for result in results {
-				let payload = try JSONValue.parse(result.content)
-				#expect(payload.objectFields["data"]?.objectFields["saved"]?.boolValue == true)
-			}
+			try await MemoryProbe.save(
+				arguments, saying: "Remember this training update.", using: coach,
+				transport: transport)
 		}
 
 		private func query(
@@ -150,21 +131,9 @@ extension SwiftDataSuites {
 					name: "memory_query", arguments: JSONValue.object(fields).canonicalDigestInput()
 				)
 			}
-			transport.respond = ScriptedReply.sequence(
-				calls + [
-					.finish(reason: .toolCalls), .text("Notes recovered."), .finish(reason: .stop),
-				],
-				otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-			#expect(
-				replyText(try await coach.sendAndSettle("What do my dated training notes say?"))
-					== "Notes recovered.")
-			return try #require(sent(.chatAttempt, by: transport).last)
-		}
-
-		private func toolText(_ message: WireMessage) throws -> String {
-			let payload = try JSONValue.parse(message.content)
-			#expect(payload.objectFields["untrusted_data"]?.stringValue == UntrustedEnvelope.banner)
-			return try #require(payload.objectFields["data"]?.stringValue)
+			return try await MemoryProbe.turn(
+				calls, saying: "What do my dated training notes say?",
+				expecting: "Notes recovered.", using: coach, transport: transport)
 		}
 	}
 }
