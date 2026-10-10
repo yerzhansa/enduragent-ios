@@ -23,7 +23,8 @@
 		var replyLength: Int {
 			tail.filter {
 				$0.type == .staticText
-					&& ["", "chat.transcript", "reply.paragraph"].contains($0.identifier)
+					&& (["", "chat.transcript"].contains($0.identifier)
+						|| $0.identifier.hasPrefix("reply."))
 			}
 			.map(\.label.count).reduce(0, +)
 		}
@@ -183,12 +184,6 @@
 						$0.identifier == "chat.turn.notice" || $0.identifier == "chat.turn.tryAgain"
 					}
 			}
-			let current = try sample(question)
-			XCTAssertGreaterThan(current.replyLength, 0)
-			XCTAssertFalse(
-				current.tail.contains {
-					$0.identifier == "chat.turn.notice" || $0.identifier == "chat.turn.tryAgain"
-				})
 		}
 
 		@MainActor
@@ -367,7 +362,9 @@
 			}
 			addsRemaining = 0
 			try tap("chat.preview.add")
-			try wait("Add did not finish.", seconds: 60) { element("chat.note").exists }
+			try wait("Add did not finish.", seconds: 60) {
+				try sample(question).tail.contains { $0.identifier == "chat.note" }
+			}
 			shot("workout-after-one-add")
 			let cancelled = "Create one 30 minute recovery spin for the day after tomorrow."
 			let next = try send(cancelled)
