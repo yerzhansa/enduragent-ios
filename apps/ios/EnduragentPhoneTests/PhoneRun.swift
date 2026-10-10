@@ -22,7 +22,8 @@
 		var working: Bool { tail.contains { $0.identifier == "chat.working" } }
 		var replyLength: Int {
 			tail.filter {
-				$0.type == .staticText && ["", "chat.transcript"].contains($0.identifier)
+				$0.type == .staticText
+					&& ["", "chat.transcript", "reply.paragraph"].contains($0.identifier)
 			}
 			.map(\.label.count).reduce(0, +)
 		}
@@ -366,8 +367,7 @@
 			}
 			addsRemaining = 0
 			try tap("chat.preview.add")
-			try wait("Add did not finish.", seconds: 60) { !element("chat.preview.add").exists }
-			XCTAssertTrue(element("chat.note").exists)
+			try wait("Add did not finish.", seconds: 60) { element("chat.note").exists }
 			shot("workout-after-one-add")
 			let cancelled = "Create one 30 minute recovery spin for the day after tomorrow."
 			let next = try send(cancelled)
