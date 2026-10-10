@@ -242,24 +242,17 @@ import Testing
 			let reopened = try ICloudKeychainStore.fixture(directory: directory)
 			opened.withLock { $0 = reopened.backing }
 			let secrets = reopened.store
-			let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
-			let coach = Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: RecordStore(log: records), secrets: secrets,
-					models: ModelService(
-						catalogSource: source,
-						catalogCache: cache ?? FileModelCatalogCache(directory: directory)
-					) { [transport] _ in transport },
-					training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: clock,
-					openRouterSignIn: .fake(
-						authorizer: FakeOpenRouterAuthorizer(
-							response: .completed(
-								.success(OpenRouterAuthCode(code: "fixture-refresh-code")))))),
-				builtInModel: ModelCatalog.bundled.orderedEntries[0].id,
-				displayLocale: testDisplayLocale, coalescing: quickWindow)
+			let coach = makeCoach(
+				records: RecordStore(log: records), secrets: secrets,
+				models: ModelService(
+					catalogSource: source,
+					catalogCache: cache ?? FileModelCatalogCache(directory: directory)
+				) { [transport] _ in transport },
+				openRouterSignIn: .fake(
+					authorizer: FakeOpenRouterAuthorizer(
+						response: .completed(
+							.success(OpenRouterAuthCode(code: "fixture-refresh-code"))))),
+				builtInModel: ModelCatalog.bundled.orderedEntries[0].id)
 			let status = try await coach.observedStatus()
 			if case .required(let challenge) = status.access.consent {
 				try await coach.recordConsent(challenge)

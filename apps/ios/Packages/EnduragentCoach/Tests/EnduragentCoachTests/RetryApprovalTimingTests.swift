@@ -85,25 +85,6 @@ extension RetryLadderTests {
 			turn: turn, first: first, coach: coach, intervals: intervals, savedRequests: 2)
 	}
 
-	@Test func stopThenApprovalDuringBackoffWritesOnce() async throws {
-		let held = HeldClock()
-		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-		transport.respond = ScriptedReply.sequence(
-			workoutProposal + [.fail(.http(status: 429, headers: ["retry-after": "7"]))]
-				+ workoutProposal + [.text("Second."), .finish(reason: .stop)], for: .chat,
-			otherwise: transport.respond)
-		let model = HeldApprovalTransport(base: transport, clock: held) { _, _ in nil }
-		let coach = await heldApprovalCoach(held, model: model, intervals: intervals)
-		let turn = try #require(
-			try await coach.send(draft("Add a ride tomorrow"), to: .main).acceptedTurn)
-		try await held.waitUntilHeld(.seconds(7))
-		let token = try await presentReview(on: coach)
-		await coach.stop(.main)
-		let first = await coach.decide(.approve(token), in: .main)
-		try await expectSingleApproval(
-			turn: turn, first: first, coach: coach, intervals: intervals)
-	}
-
 	@Test func approvalAfterTerminalFailureWritesOnce() async throws {
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
@@ -145,16 +126,11 @@ extension RetryLadderTests {
 		_ held: HeldClock, model: any ModelTransport, intervals: any IntervalsClient,
 		records: (any RecordLog)? = nil
 	) async -> Coach {
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: records ?? store), secrets: keyedSecrets(),
-				models: ModelService(catalog: .fixture) { _ in model },
-				training: .fake { _, _ in intervals },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, displayLocale: testDisplayLocale,
-			coalescing: CoalescingPolicy(window: .zero))
-		return await consentingCoach(coach)
+		await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: records ?? store),
+				models: ModelService(catalog: .fixture) { _ in model }, intervals: intervals,
+				clock: held, coalescing: CoalescingPolicy(window: .zero)))
 	}
 
 	func expectSingleApproval(

@@ -195,16 +195,10 @@ extension ProviderConsentTests {
 						.finish(reason: .toolCalls),
 					], requestDelay: .seconds(1))
 			})
-		var ports = CoachPorts(
+		let coach = makeCoach(
 			records: RecordStore(log: store), secrets: secrets,
-			models: .scripted(transport, catalog: .bundled),
-			training: .fake { _, _ in FakeIntervalsClient(athleteName: "Synthetic Rider", ftp: 250)
-			}, credits: .fake(FakeCreditsClient()),
-			host: ImmediateExecutionHost(), clock: clock)
-		ports.watchdogSleep = HeldClock().sleep
-		let coach = Coach(
-			sport: .cycling, ports: ports, builtInModel: first.id,
-			displayLocale: testDisplayLocale, coalescing: quickWindow)
+			models: .scripted(transport, catalog: .bundled), clock: clock,
+			watchdogClock: HeldClock(), builtInModel: first.id)
 		try await coach.recordConsent(try await challenge(coach))
 		let turn = try #require(
 			try await coach.send(draft("Read my training"), to: .main).acceptedTurn)
@@ -218,17 +212,10 @@ extension ProviderConsentTests {
 	}
 
 	private func namedCoach(secrets: any SecretStore, log: any RecordLog) -> Coach {
-		Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: log), secrets: secrets,
-				models: .scripted(transport, catalog: .bundled),
-				training: .fake { _, _ in
-					FakeIntervalsClient(athleteName: "Synthetic Rider", ftp: 250)
-				},
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock),
-			builtInModel: ModelCatalog.bundled.orderedEntries[0].id,
-			displayLocale: testDisplayLocale, coalescing: quickWindow)
+		makeCoach(
+			records: RecordStore(log: log), secrets: secrets,
+			models: .scripted(transport, catalog: .bundled), clock: clock,
+			builtInModel: ModelCatalog.bundled.orderedEntries[0].id)
 	}
 
 	private func challenge(_ coach: Coach) async throws -> ConsentChallenge {

@@ -109,11 +109,7 @@ extension SwiftDataSuites {
 			for step in 0..<10 {
 				if commitsMemory, step == 0 {
 					events.append(
-						.toolCall(
-							name: "memory_write",
-							arguments:
-								#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-						))
+						.saturdayScheduleWrite)
 				} else {
 					events.append(
 						.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#))

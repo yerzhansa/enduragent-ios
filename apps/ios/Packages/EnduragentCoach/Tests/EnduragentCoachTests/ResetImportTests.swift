@@ -125,11 +125,7 @@ extension ResetWindowTests {
 			[.text("Late answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let local = try #require(
 			try await coach.send(draft("Earlier question"), to: .main).acceptedTurn)
-		let parked = try await beforeDeadline(within: .hangGuard) {
-			var reached = held.reached.makeAsyncIterator()
-			return await reached.next() != nil
-		}
-		try #require(parked == true)
+		try await held.waitUntilReached()
 		let foreign = InMemoryRecordLog(deviceId: DeviceID(rawValue: "remote-phone"))
 		let ahead = FixedClock(now: "1998-06-13T12:02:00+02:00", timeZone: "Europe/Amsterdam")
 		let remote = await makeCoach(transport: FakeModelTransport(), store: foreign, clock: ahead)

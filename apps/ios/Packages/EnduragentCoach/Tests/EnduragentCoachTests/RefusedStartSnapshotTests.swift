@@ -21,16 +21,14 @@ import Testing
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let first = try #require(try await coach.send(draft("Thursday?"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
-		var firstReached = firstClaim.reached.makeAsyncIterator()
-		await firstReached.next()
+		try await firstClaim.waitUntilReached()
 		let second = try #require(try await coach.send(draft("Friday?"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
 		while let snapshot = await snapshots.next() {
 			if snapshot.turns.last?.state == .accepted(.queued(position: 2)) { break }
 		}
 		firstClaim.release()
-		var secondReached = secondClaim.reached.makeAsyncIterator()
-		await secondReached.next()
+		try await secondClaim.waitUntilReached()
 		let shown = try #require(await snapshots.next())
 		let firstState = try #require(shown.turns.first(where: { $0.id == first })?.state)
 		#expect(failure(firstState) == .model(.accessUnavailable(.notConfigured(.credits))))
@@ -49,8 +47,7 @@ import Testing
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
-		var reached = claim.reached.makeAsyncIterator()
-		await reached.next()
+		try await claim.waitUntilReached()
 		while let snapshot = await snapshots.next() {
 			if snapshot.turns.first?.state == .accepted(.queued(position: 1)) { break }
 		}
@@ -72,8 +69,7 @@ import Testing
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		let turn = try #require(try await coach.send(draft("Hello"), to: .main).acceptedTurn)
 		await coach.lifecycle(.enteredBackground)
-		var reached = claim.reached.makeAsyncIterator()
-		await reached.next()
+		try await claim.waitUntilReached()
 		async let stopped: Void = coach.stop(.main)
 		while let snapshot = await snapshots.next() {
 			if snapshot.activity == .stopping { break }

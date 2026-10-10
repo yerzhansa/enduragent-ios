@@ -114,6 +114,7 @@ extension MemoryToolsTests {
 				("1999-01-01", "1998-01-01", nil),
 				("1998-02-30", "1998-03-01", nil),
 				("1998-02-01", "1998-02-30", nil),
+				("2024/01/01", "2024/01/02", nil),
 				("1999-02-01", "1999-02-03", nil),
 				("1998-01-01", "1999-01-01", "absent"),
 			], coach: coach, transport: transport)
@@ -124,6 +125,7 @@ extension MemoryToolsTests {
 				"Error: 'from' (1999-01-01) is after 'to' (1998-01-01). Swap the bounds.",
 				"Error: 1998-02-30..1998-03-01 contains an invalid calendar date. Use real YYYY-MM-DD dates.",
 				"Error: 1998-02-01..1998-02-30 contains an invalid calendar date. Use real YYYY-MM-DD dates.",
+				"Error: 2024/01/01..2024/01/02 contains an invalid calendar date. Use real YYYY-MM-DD dates.",
 				"Memory query 1999-02-01..1999-02-03: no daily notes, events, or history found.",
 				"Memory query 1998-01-01..1999-01-01 matching \"absent\": no daily notes, events, or history found.",
 			])

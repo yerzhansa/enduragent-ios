@@ -118,29 +118,9 @@ extension RetryLadderTests {
 		#expect(intervals.calls.filter(\.isWrite).isEmpty)
 	}
 
-	var workoutProposal: [ScriptedEvent] {
-		[
-			.toolCall(
-				name: "intervals_create_workout",
-				arguments:
-					#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-			),
-			.finish(reason: .toolCalls),
-		]
-	}
-
 	private func approvalCoach(_ held: HeldClock, intervals: FakeIntervalsClient) async -> Coach {
-		let model = ApprovalWaitTransport(base: transport, clock: held)
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService(catalog: .fixture) { _ in model },
-				training: .fake { _, _ in intervals },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: held),
-			builtInModel: testModel, displayLocale: testDisplayLocale,
-			coalescing: CoalescingPolicy(window: .zero))
-		return await consentingCoach(coach)
+		await heldApprovalCoach(
+			held, model: ApprovalWaitTransport(base: transport, clock: held), intervals: intervals)
 	}
 
 	func presentReview(on coach: Coach) async throws -> ReviewControlToken {

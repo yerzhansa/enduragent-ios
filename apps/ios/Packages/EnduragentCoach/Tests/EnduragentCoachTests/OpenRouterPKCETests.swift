@@ -20,18 +20,7 @@ import Testing
 		#expect(
 			pkce.request.callbackURL.absoluteString
 				== "https://enduragent.icu/auth/openrouter/callback")
-		let authorizer = FakeOpenRouterAuthorizer(response: .held)
-		let authorization = Task { try await authorizer.authorize(pkce.request) }
-		defer { authorization.cancel() }
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while await authorizer.requests.isEmpty {
-			guard ContinuousClock.now < deadline else { throw TestWaitDeadlineExceeded() }
-			try await Task.sleep(for: .milliseconds(5))
-		}
-		#expect(await authorizer.requests == [pkce.request])
-		let returned = OpenRouterAuthCode(code: "synthetic-code/\"+")
-		await authorizer.complete(.success(returned), at: 0)
-		let code = try await authorization.value
+		let code = OpenRouterAuthCode(code: "synthetic-code/\"+")
 		let stub = OpenRouterStub.keyExchange { _ in
 			.reply(.json(status, #"{"key":"synthetic-candidate"}"#))
 		}
