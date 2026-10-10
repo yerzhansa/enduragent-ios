@@ -25,3 +25,4 @@
 ## Done means proven
 
 - For UI changes, run the `verify-ios` skill and look at the screen you changed.
+- Before a PR merges, every new or changed test in it passes the authoring gate in the `test-audit` skill.
