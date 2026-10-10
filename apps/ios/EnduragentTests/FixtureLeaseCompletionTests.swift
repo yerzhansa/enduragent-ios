@@ -19,7 +19,7 @@ extension FixtureLaunchTests {
 		observed.coach = coach
 		let turn = try #require(
 			try await coach.send(Draft(id: DraftID(), text: "Thursday?"), to: .main).turn)
-		try await waitForLease { system.submitted.count == 1 }
+		try await until { system.submitted.count == 1 }
 		let request = try #require(system.submitted.first)
 		let launchTask = try #require(system.launchHandlers[request.identifier])
 		let task = FakeContinuedTask()
@@ -28,7 +28,7 @@ extension FixtureLaunchTests {
 		let expiration = task.expirationHandler
 		switch scenario {
 		case .stop, .expiry:
-			try await waitForLease {
+			try await until {
 				if case .processing? = await self.leaseState(coach, turn: turn) {
 					true
 				} else {
@@ -46,9 +46,9 @@ extension FixtureLaunchTests {
 		case .success, .failure:
 			break
 		}
-		try await waitForLease { host.leases.first?.ending != nil }
+		try await until { host.leases.first?.ending != nil }
 		if lateAttachment { launchTask(task) }
-		try await waitForLease { !task.completed.isEmpty }
+		try await until { !task.completed.isEmpty }
 		if lateAttachment && (scenario == .stop || scenario == .success || scenario == .failure) {
 			#expect(system.canceled == [request.identifier])
 		} else {
@@ -70,7 +70,7 @@ extension FixtureLaunchTests {
 			#expect(system.posted.isEmpty)
 		case .success:
 			#expect(replyText(state) == "Still on.")
-			try await waitForLease { system.posted.count == 1 }
+			try await until { system.posted.count == 1 }
 			#expect(system.posted.first?.content.body == "Still on.")
 		case .failure:
 			guard case .failed(let failed) = state else {
@@ -85,11 +85,11 @@ extension FixtureLaunchTests {
 		system.onSubmit = { #expect(host.leases.first?.ending != nil) }
 		let next = try #require(
 			try await coach.send(Draft(id: DraftID(), text: "Friday?"), to: .main).turn)
-		try await waitForLease { system.submitted.count == 2 }
+		try await until { system.submitted.count == 2 }
 		#expect(system.submitted[1].identifier != request.identifier)
 		expiration?()
 		await coach.stop(.main)
-		try await waitForLease { host.leases.last?.ending != nil }
+		try await until { host.leases.last?.ending != nil }
 		#expect(await leaseState(coach, turn: next)?.isSettled == true)
 		#expect(task.completed == [scenario.success])
 	}
@@ -104,7 +104,7 @@ extension FixtureLaunchTests {
 			respond: ScriptedReply.sequence([.text("Still on."), .finish(reason: .stop)]))
 		let coach = try await leaseCoach(host: host, transport: transport)
 		_ = try await coach.send(Draft(id: DraftID(), text: "Thursday?"), to: .main)
-		try await waitForLease { await closure.started }
+		try await until { await closure.started }
 		transport.respond = { _ in ScriptedReply([.hang]) }
 		system.onSubmit = { #expect(system.posted.count == 1) }
 		_ = try await coach.send(Draft(id: DraftID(), text: "Friday?"), to: .main)
@@ -112,9 +112,9 @@ extension FixtureLaunchTests {
 		try await Task.sleep(for: .milliseconds(200))
 		#expect(system.submitted.count == 1)
 		await closure.release()
-		try await waitForLease { system.submitted.count == 2 }
+		try await until { system.submitted.count == 2 }
 		await coach.stop(.main)
-		try await waitForLease { host.leases.last?.ending != nil }
+		try await until { host.leases.last?.ending != nil }
 		#expect(system.posted.count == 1)
 	}
 
@@ -126,12 +126,12 @@ extension FixtureLaunchTests {
 		let coach = try await leaseCoach(host: host, transport: transport)
 		let turn = try #require(
 			try await coach.send(Draft(id: DraftID(), text: "Thursday?"), to: .main).turn)
-		try await waitForLease { system.submitted.count == 1 }
+		try await until { system.submitted.count == 1 }
 		let request = try #require(system.submitted.first)
 		let launchTask = try #require(system.launchHandlers[request.identifier])
 		let task = FakeContinuedTask()
 		if !lateAttachment { launchTask(task) }
-		try await waitForLease {
+		try await until {
 			if case .processing? = await self.leaseState(coach, turn: turn) { true } else { false }
 		}
 		try await coach.setLanguage(.fixed(.es))
@@ -139,9 +139,9 @@ extension FixtureLaunchTests {
 		if lateAttachment { launchTask(task) }
 		#expect(task.titles.last == "El entrenador está trabajando…")
 		try await coach.setLanguage(.automatic)
-		try await waitForLease { task.titles.last == "Coach is working…" }
+		try await until { task.titles.last == "Coach is working…" }
 		await coach.stop(.main)
-		try await waitForLease { !task.completed.isEmpty }
+		try await until { !task.completed.isEmpty }
 		let closedTitles = task.titles
 		try await coach.setLanguage(.fixed(.de))
 		#expect(task.titles == closedTitles)
@@ -162,13 +162,13 @@ extension FixtureLaunchTests {
 		launchTask(task)
 		let interrupt = try #require(task.expirationHandler)
 		interrupt()
-		try await waitForLease { await settlement.started }
+		try await until { await settlement.started }
 		interrupt()
 		await lease.end(.finished(nil))
 		#expect(task.completed.isEmpty)
 		#expect(host.leases.first?.ending == nil)
 		await settlement.release()
-		try await waitForLease { !task.completed.isEmpty }
+		try await until { !task.completed.isEmpty }
 		await lease.end(.interrupted(.athleteStopped))
 		#expect(task.completed == [false])
 		#expect(host.leases.first?.ending == .interrupted(.systemExpired))
@@ -187,13 +187,13 @@ extension FixtureLaunchTests {
 		#expect(services.fixture?.host == nil)
 		model.draft.text = "fixture:memory-until-system-interruption"
 		await model.send()
-		try await waitForLease { system.submitted.count == 1 }
+		try await until { system.submitted.count == 1 }
 		let request = try #require(system.submitted.first)
 		let task = FakeContinuedTask()
 		let launchTask = try #require(system.launchHandlers[request.identifier])
 		launchTask(task)
 		let probe = services.coach.recordSyncProbe()
-		try await waitForLease {
+		try await until {
 			try await probe.snapshot().counts.contains {
 				$0.kind == "memorySection" && $0.count == 1
 			}
@@ -203,7 +203,7 @@ extension FixtureLaunchTests {
 		#expect(task.completed.isEmpty)
 		let interrupt = try #require(task.expirationHandler)
 		interrupt()
-		try await waitForLease { !task.completed.isEmpty }
+		try await until { !task.completed.isEmpty }
 		let settled = try await settledTurn(model)
 		guard case .interrupted(let interrupted) = settled.state else {
 			Issue.record("Expected system interruption, got \(settled.state)")

@@ -108,12 +108,4 @@ struct FixtureResetAdmissionTests {
 		try await until { model.chat != nil }
 		return model
 	}
-
-	private func until(_ condition: () -> Bool) async throws {
-		let deadline = ContinuousClock.now + TestWaitLimit.hangGuard.duration
-		while !condition(), ContinuousClock.now < deadline {
-			try await Task.sleep(for: .milliseconds(10))
-		}
-		try #require(condition())
-	}
 }
