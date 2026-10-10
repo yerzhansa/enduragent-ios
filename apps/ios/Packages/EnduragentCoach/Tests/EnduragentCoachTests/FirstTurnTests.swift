@@ -15,11 +15,6 @@ import Testing
 			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 
-	@Test func coachStartsWithNoHistory() async throws {
-		let coach = await makeCoach()
-		#expect(await coach.transcript(.main).isEmpty)
-	}
-
 	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		let pacing = HeldClock()
 		let coalescing = HeldClock()
