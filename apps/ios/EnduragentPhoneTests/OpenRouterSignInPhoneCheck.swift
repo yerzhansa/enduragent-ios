@@ -76,6 +76,11 @@
 			try launchPlain()
 		}
 
+		@MainActor private var composerIsEmpty: Bool {
+			let composer = element("chat.composer")
+			return ["", composer.placeholderValue].contains(composer.value as? String ?? "")
+		}
+
 		private func launchPlain() throws {
 			guard app.launchArguments.isEmpty, app.launchEnvironment.isEmpty else {
 				throw PhoneRunBlocked(
@@ -89,7 +94,7 @@
 			guard !app.alerts.firstMatch.exists, !springboard.alerts.firstMatch.exists,
 				!element("chat.stop").exists, !element("chat.preview.add").exists,
 				!element("chat.preview.notice").exists,
-				element("chat.composer").value as? String == ""
+				composerIsEmpty
 			else {
 				throw PhoneRunBlocked(
 					reason: "An alert, unfinished turn, review or draft needs the operator.")
@@ -135,7 +140,7 @@
 			let before = try progress()
 			let fields = before.split(separator: " ")
 			guard fields.count == 4, let turns = Int(fields[1]), let settled = Int(fields[3]),
-				turns == settled, element("chat.composer").value as? String == ""
+				turns == settled, composerIsEmpty
 			else {
 				throw PhoneRunBlocked(
 					reason: "The conversation is not ready for the one approved Send.")
