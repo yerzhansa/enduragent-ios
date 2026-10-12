@@ -23,7 +23,8 @@ import Testing
 		let memory = FixtureSecretStoreBacking()
 		let secrets = keyedSecrets(backing: memory)
 		let helper = DurableCalendarWriteTests()
-		let fixture = await helper.fixture(url: url)
+		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
+		let fixture = await helper.fixture(url: url, store: faults)
 		let coach = await makeCoach(
 			transport: fixture.model, intervals: fixture.client, store: fixture.store,
 			secrets: secrets)
@@ -54,6 +55,9 @@ import Testing
 			memory.fail("intervalsCredential", with: errSecInteractionNotAllowed)
 		}
 		let calls = server.state.withLock { $0.requests.count }
+		faults.failFetches = true
+		#expect(await coach.decide(.cancel(token), in: .main) == .storageUnavailable)
+		faults.failFetches = false
 		#expect(await coach.decide(.cancel(token), in: .main) == .canceled(kept: []))
 		#expect(server.state.withLock { $0.requests.count } == calls)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
@@ -70,6 +74,9 @@ import Testing
 			transport: fixture.model, intervals: fixture.client, store: fixture.store,
 			secrets: secrets)
 		#expect(await reopened.currentSnapshot(.main)?.review == nil)
+		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)
+		#expect(
+			(turnNotice(of: try #require(await reopened.state(of: turn)))?.actions ?? []).isEmpty)
 		await #expect(throws: RetryRefusal.alreadyAnswered) {
 			try await reopened.retry(turn, in: .main)
 		}

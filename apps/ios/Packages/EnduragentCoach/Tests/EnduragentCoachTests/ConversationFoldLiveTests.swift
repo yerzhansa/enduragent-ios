@@ -102,30 +102,19 @@ extension ConversationFoldTests {
 		let after = TurnID(ulid: fixedUlid(4))
 		let resetId = ResetID(ulid: fixedUlid(3))
 		let records = [
-			storedRecord(
-				device: phoneA, wall: 1, ulid: fixedUlid(1),
-				account: testConnection.account,
-				body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
-			storedRecord(
-				device: phoneA, wall: 2, ulid: fixedUlid(2),
-				account: testConnection.account,
-				body: .synced(sampleReply(chatId: .main, turn: before, text: "before reply"))),
-			storedRecord(
-				device: phoneB, wall: 3, ulid: fixedUlid(3),
-				account: testConnection.account,
-				body: .synced(
+			foldRow(1, phoneA, .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+			foldRow(
+				2, phoneA, .synced(sampleReply(chatId: .main, turn: before, text: "before reply"))),
+			foldRow(
+				3, phoneB,
+				.synced(
 					.windowStart(
 						WindowStartBody(
 							chatId: .main, firstIncludedUlid: fixedUlid(3),
 							reason: .reset(resetId))))),
-			storedRecord(
-				device: phoneA, wall: 4, ulid: fixedUlid(4),
-				account: testConnection.account,
-				body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
-			storedRecord(
-				device: phoneA, wall: 5, ulid: fixedUlid(5),
-				account: testConnection.account,
-				body: .synced(sampleReply(chatId: .main, turn: after, text: "after reply"))),
+			foldRow(4, phoneA, .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+			foldRow(
+				5, phoneA, .synced(sampleReply(chatId: .main, turn: after, text: "after reply"))),
 		]
 		let conversation = ConversationFold.fold(chat: .main, synced: records, device: phoneA)
 		#expect(conversation.segments.count == 2)
@@ -148,20 +137,16 @@ extension ConversationFoldTests {
 		let folded = ConversationFold.fold(
 			chat: .main,
 			synced: [
-				storedRecord(
-					device: phoneA, wall: 1, ulid: fixedUlid(1),
-					account: testConnection.account,
-					body: .synced(sampleUser(chatId: .main, text: "before", turn: before))),
-				storedRecord(
-					device: phoneA, wall: 2, ulid: fixedUlid(4),
-					account: testConnection.account,
-					body: .synced(sampleUser(chatId: .main, text: "after", turn: after))),
+				foldRow(
+					1, phoneA, .synced(sampleUser(chatId: .main, text: "before", turn: before))),
+				foldRow(
+					4, wall: 2, phoneA,
+					.synced(sampleUser(chatId: .main, text: "after", turn: after))),
 			], device: phoneA)
 		#expect(folded.segments.count == 1)
-		let boundary = storedRecord(
-			device: phoneA, wall: 3, ulid: fixedUlid(5),
-			account: testConnection.account,
-			body: .synced(
+		let boundary = foldRow(
+			5, wall: 3, phoneA,
+			.synced(
 				.windowStart(
 					WindowStartBody(
 						chatId: .main, firstIncludedUlid: fixedUlid(3),

@@ -282,7 +282,7 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 	override func startLoading() {
 		Self.lock.lock()
 		Self.lastRequest = request
-		Self.lastBody = Self.copyBody(request)
+		Self.lastBody = httpBody(from: request)
 		let handler = Self.handler
 		Self.lock.unlock()
 		do {
@@ -305,29 +305,6 @@ final class IntervalsURLProtocolStub: URLProtocol, @unchecked Sendable {
 	}
 
 	override func stopLoading() {}
-
-	private static func copyBody(_ request: URLRequest) -> Data? {
-		if let body = request.httpBody {
-			return body
-		}
-		guard let stream = request.httpBodyStream else {
-			return nil
-		}
-		stream.open()
-		defer { stream.close() }
-		var data = Data()
-		let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
-		defer { buffer.deallocate() }
-		while stream.hasBytesAvailable {
-			let count = stream.read(buffer, maxLength: 4096)
-			if count > 0 {
-				data.append(buffer, count: count)
-			} else {
-				break
-			}
-		}
-		return data
-	}
 }
 
 func fixtureData(_ name: String) throws -> Data {

@@ -12,19 +12,12 @@ extension CredentialVaultTests {
 		let ada = self.ada
 		let bo = self.bo
 		let held = GatedReviewIntervals(base: ada, gate: gate)
-		let coach = await consentingCoach(
-			Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: RecordStore(log: records), secrets: secrets,
-					models: .scripted(transport),
-					training: .fake { credential, _ in
-						if credential == .apiKey("other-athlete") { return bo }
-						return held
-					},
-					credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-					clock: clock),
-				builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow))
+		let coach = await coach(
+			secrets,
+			training: .fake { credential, _ in
+				if credential == .apiKey("other-athlete") { return bo }
+				return held
+			})
 		let review = try await proposeRide(on: coach)
 		#expect(await coach.decide(.presented(review.ref), in: .main) == .presentationRecorded)
 		let token = try #require(await coach.currentSnapshot(.main)?.review?.token)
@@ -37,16 +30,8 @@ extension CredentialVaultTests {
 		if redisplay {
 			#expect(await coach.decide(.showAgain(review.ref), in: .main) == .staleControl)
 		}
-		let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
-		let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		let outcome = await coach.changeTraining(
-			.replace(apiKey: "other-athlete", athlete: .keyOwner))
-		#expect(outcome == .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.intervalsConnection() == testConnection)
-		let repeated = await coach.changeTraining(
-			.replace(apiKey: "other-athlete", athlete: .keyOwner))
-		#expect(repeated == .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.intervalsConnection() == testConnection)
+		try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
+		try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
 		await gate.release()
 		let applied = await approval.value
 		guard case .applied = applied else {
@@ -82,14 +67,11 @@ extension CredentialVaultTests {
 		let secrets = keyedSecrets()
 		let coach = await coach(secrets)
 		if opened { _ = await coach.currentSnapshot(.main) }
-		let outcome = await coach.changeTraining(
-			.replace(apiKey: "other-athlete", athlete: .keyOwner))
 		if owned {
-			let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
-			let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
-			#expect(outcome == .refused(.differentAthlete(current: current, new: new)))
-			#expect(try secrets.intervalsConnection() == testConnection)
+			try await expectAthleteSwitchRefused(on: coach, secrets: secrets)
 		} else {
+			let outcome = await coach.changeTraining(
+				.replace(apiKey: "other-athlete", athlete: .keyOwner))
 			guard case .replaced(_, .changed?) = outcome else {
 				Issue.record("other-device unresolved write blocked replacement: \(outcome)")
 				return
@@ -113,11 +95,6 @@ extension CredentialVaultTests {
 		await original.lifecycle(.willTerminate)
 		let reopened = await coach(secrets)
 		if opened { _ = await reopened.currentSnapshot(.main) }
-		let current = try #require(IntervalsAthleteID(rawValue: "i1001"))
-		let new = try #require(IntervalsAthleteID(rawValue: "i2002"))
-		#expect(
-			await reopened.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
-				== .refused(.differentAthlete(current: current, new: new)))
-		#expect(try secrets.intervalsConnection() == testConnection)
+		try await expectAthleteSwitchRefused(on: reopened, secrets: secrets)
 	}
 }

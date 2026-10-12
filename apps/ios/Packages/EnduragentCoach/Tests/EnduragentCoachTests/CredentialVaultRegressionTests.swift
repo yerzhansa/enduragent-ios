@@ -20,7 +20,7 @@ extension CredentialVaultTests {
 		try secrets.storeIntervalsConnection(unresolved)
 		let gate = Gate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
-		let coach = await coachWithTraining(
+		let coach = await coach(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
 		defer {
@@ -95,7 +95,7 @@ extension CredentialVaultTests {
 		try secrets.storeIntervalsConnection(unresolved)
 		let gate = Gate()
 		let client = GatedProfileIntervals(base: ada, gate: gate)
-		let coach = await coachWithTraining(
+		let coach = await coach(
 			secrets, training: TrainingService { _, _, _ in client })
 		let status = Task { try await coach.refreshedStatus() }
 		await gate.waitUntilParked()
@@ -148,15 +148,7 @@ extension CredentialVaultTests {
 		#expect(current.resolvedAthlete == testConnection.resolvedAthlete)
 		#expect(current.id != testConnection.id)
 		#expect(account(original).authority(under: account(current)) == .sameAthlete)
-		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
-		#expect(
-			await coach.decide(.approve(token), in: .main)
-				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
-		#expect(
-			ada.calls.contains {
-				if case .createEvent = $0 { return true }
-				return false
-			})
+		try await expectStillApproved(token, on: coach)
 	}
 
 	@Test func resolvingTheSameConnectionPreservesProposal() async throws {
@@ -175,6 +167,10 @@ extension CredentialVaultTests {
 		#expect(current.id == testConnection.id)
 		#expect(current.resolvedAthlete != nil)
 		#expect(account(original).authority(under: account(current)) == .same)
+		try await expectStillApproved(token, on: coach)
+	}
+
+	private func expectStillApproved(_ token: ReviewControlToken, on coach: Coach) async throws {
 		#expect(await coach.currentSnapshot(.main)?.review?.token == token)
 		#expect(
 			await coach.decide(.approve(token), in: .main)
@@ -241,7 +237,7 @@ extension CredentialVaultTests {
 			if credential == .apiKey("test-delayed-key") { return client }
 			return self.ada
 		}
-		let coach = await coachWithTraining(secrets, training: service)
+		let coach = await coach(secrets, training: service)
 		let replacement = Task {
 			await coach.changeTraining(.replace(apiKey: "test-delayed-key", athlete: .keyOwner))
 		}
@@ -268,7 +264,7 @@ extension CredentialVaultTests {
 			if credential == .apiKey("test-unresolved") { return old }
 			return self.bo
 		}
-		let coach = await coachWithTraining(secrets, training: service)
+		let coach = await coach(secrets, training: service)
 		let status = Task { try await coach.refreshedStatus() }
 		await gate.waitUntilParked()
 		_ = await coach.changeTraining(.replace(apiKey: "other-athlete", athlete: .keyOwner))
@@ -277,20 +273,5 @@ extension CredentialVaultTests {
 		_ = try await status.value
 		#expect(try secrets.intervalsConnection() == replacement)
 		#expect(try await claimAccount(after: "Is Thursday on?", on: coach) == account(replacement))
-	}
-
-	private func coachWithTraining(_ secrets: any SecretStore, training: TrainingService) async
-		-> Coach
-	{
-		await consentingCoach(
-			Coach(
-				sport: .cycling,
-				ports: CoachPorts(
-					records: RecordStore(log: records), secrets: secrets,
-					models: .scripted(transport),
-					training: training, credits: .fake(FakeCreditsClient()),
-					host: ImmediateExecutionHost(), clock: clock),
-				builtInModel: testModel, displayLocale: testDisplayLocale,
-				coalescing: quickWindow))
 	}
 }

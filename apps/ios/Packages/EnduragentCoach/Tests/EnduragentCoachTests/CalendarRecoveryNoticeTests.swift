@@ -107,63 +107,6 @@ import Testing
 		#expect(server.posts.count == 1)
 	}
 
-	@Test(arguments: [false, true])
-	func cancelingAnAbsentWriteLeavesALastingNoteWithoutErasingDispatch(storageReadFails: Bool)
-		async throws
-	{
-		let server = try CalendarWriteServer()
-		let url = try await server.start()
-		defer { server.stop() }
-		server.state.withLock { $0.response = .heldBeforeCommit }
-		let helpers = DurableCalendarWriteTests()
-		let faults = FaultInjectingRecordLog(wrapping: InMemoryRecordLog())
-		let fixture = await helpers.fixture(url: url, store: faults)
-		let (turn, token) = try await helpers.proposal(on: fixture.coach, model: fixture.model)
-		let approval = Task { await fixture.coach.decide(.approve(token), in: .main) }
-		try await waitUntil { server.posts.count == 1 }
-		approval.cancel()
-		try #require(
-			try await beforeDeadline(
-				within: .hangGuard,
-				onTimeout: {
-					approval.cancel()
-					server.release()
-				}
-			) { await approval.value } != nil,
-			"Calendar approval did not finish within five seconds")
-		await fixture.coach.stop(.main)
-		let pending = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		_ = await fixture.coach.decide(.checkAgain(pending.ref), in: .main)
-		let absent = try #require(await fixture.coach.currentSnapshot(.main)?.review)
-		guard case .retryRemainingOrCancel(let token) = absent.controls else {
-			Issue.record("expected approved-write recovery controls")
-			return
-		}
-		if storageReadFails {
-			faults.failFetches = true
-			let outcome = await fixture.coach.decide(.cancel(token), in: .main)
-			#expect(outcome == .storageUnavailable)
-			faults.failFetches = false
-		}
-		let canceled = await fixture.coach.decide(.cancel(token), in: .main)
-		#expect(canceled == .canceled(kept: []))
-		#expect(await fixture.coach.currentSnapshot(.main)?.review == nil)
-		let reopened = await makeCoach(
-			transport: FakeModelTransport(), intervals: fixture.client, store: fixture.store)
-		#expect(await reopened.currentSnapshot(.main)?.review == nil)
-		#expect(
-			await reopened.currentSnapshot(.main)?.notes.values.flatMap { $0 }.map {
-				$0.sentence(in: displayLocale())
-			} == [CancelUnknownSaveTests.sentence])
-		server.release()
-		#expect(await reopened.decide(.checkAgain(absent.ref), in: .main) == .staleControl)
-		#expect(
-			(turnNotice(of: try #require(await reopened.state(of: turn)))?.actions ?? []).isEmpty)
-		#expect(await reopened.currentSnapshot(.main)?.review == nil)
-		#expect(server.posts.count == 1)
-		#expect(server.events.count == 1)
-	}
-
 	@Test func failedRepeatIntentCommitSendsNoAdditionalPOST() async throws {
 		let server = try CalendarWriteServer()
 		let url = try await server.start()

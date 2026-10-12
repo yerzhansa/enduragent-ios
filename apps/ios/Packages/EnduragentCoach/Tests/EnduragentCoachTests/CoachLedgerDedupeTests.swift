@@ -39,26 +39,17 @@ import Testing
 		try #require(before.count == 3)
 		let transport = FakeModelTransport()
 		let coach = await makeCoach(transport: transport, store: store)
-		transport.respond = ScriptedReply.sequence(
+		let request = try await MemoryProbe.turn(
 			[
 				.toolCall(
 					name: "memory_query",
-					arguments: #"{"from":"1998-06-13","to":"1998-06-13"}"#),
-				.finish(reason: .toolCalls), .text("History recovered."), .finish(reason: .stop),
-			], otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-		#expect(
-			replyText(try await coach.sendAndSettle("What training decisions did I make?"))
-				== "History recovered.")
-		let request = try #require(sent(.chatAttempt, by: transport).last)
+					arguments: #"{"from":"1998-06-13","to":"1998-06-13"}"#)
+			], saying: "What training decisions did I make?", expecting: "History recovered.",
+			using: coach, transport: transport)
 		let results = request.messages.filter { $0.role == .tool }
 		let result = try #require(results.first)
 		try #require(results.count == 1)
-		let payload = try JSONValue.parse(result.content)
-		#expect(payload.objectFields["untrusted_data"]?.stringValue == UntrustedEnvelope.banner)
-		let history = try #require(payload.objectFields["data"]?.stringValue)
-		let events = try history.split(separator: "\n").filter { $0.hasPrefix("event: ") }.map {
-			try JSONValue.parse(String($0.dropFirst("event: ".count)))
-		}
+		let events = try MemoryProbe.events(in: MemoryProbe.text(in: result))
 		let expectedEvents: [JSONValue] = [
 			.object([
 				"date": .string("1998-06-13"), "kind": .string("decision"),
@@ -73,18 +64,9 @@ import Testing
 		]
 		#expect(events == expectedEvents)
 		for request in sent(.chatAttempt, by: transport) {
-			let system = try #require(request.messages.first { $0.role == .system }).content
-			let open = try #require(system.range(of: PromptAssembly.athleteDataOpen))
-			let close = try #require(system.range(of: PromptAssembly.athleteDataClose))
-			try #require(open.upperBound <= close.lowerBound)
-			let memory = String(system[open.upperBound..<close.lowerBound])
+			let memory = try MemoryProbe.athleteData(in: MemoryProbe.systemText(in: request))
 			#expect(memory.contains("## Athlete Memory\n"))
-			let memoryEvents = try memory.split(separator: "\n").filter {
-				$0.hasPrefix("event: ")
-			}.map {
-				try JSONValue.parse(String($0.dropFirst("event: ".count)))
-			}
-			#expect(memoryEvents == expectedEvents)
+			#expect(try MemoryProbe.events(in: memory) == expectedEvents)
 		}
 		#expect(try await store.fetch(storedQuery).records == before)
 	}

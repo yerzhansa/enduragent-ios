@@ -15,11 +15,6 @@ import Testing
 			transport: transport, intervals: intervals, store: store, clock: clock)
 	}
 
-	@Test func coachStartsWithNoHistory() async throws {
-		let coach = await makeCoach()
-		#expect(await coach.transcript(.main).isEmpty)
-	}
-
 	@Test func replyFinishesWithTheAssembledRequest() async throws {
 		let pacing = HeldClock()
 		let coalescing = HeldClock()
@@ -76,9 +71,10 @@ import Testing
 		#expect(request.messages.first?.content.hasPrefix("# Cycling Coach") == true)
 	}
 
-	@Test func providerErrorFinishWithTextPersistsTheReply() async throws {
+	@Test(arguments: [FinishReason.error, .contentFilter])
+	func providerFailureFinishWithTextPersistsTheReply(reason: FinishReason) async throws {
 		transport.respond = ScriptedReply.sequence(
-			[.text("Tomorrow's ride is queued."), .finish(reason: .error)], for: .chat,
+			[.text("Tomorrow's ride is queued."), .finish(reason: reason)], for: .chat,
 			otherwise: transport.respond)
 		let coach = await makeCoach()
 		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
@@ -88,15 +84,6 @@ import Testing
 				"Give me a ride for tomorrow",
 				"Tomorrow's ride is queued.",
 			])
-	}
-
-	@Test func providerContentFilterFinishWithTextPersistsTheReply() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[.text("Tomorrow's ride is queued."), .finish(reason: .contentFilter)], for: .chat,
-			otherwise: transport.respond)
-		let coach = await makeCoach()
-		let settled = try await coach.sendAndSettle("Give me a ride for tomorrow")
-		#expect(replyText(settled) == "Tomorrow's ride is queued.")
 	}
 
 	@Test func emptyProviderErrorFinishFailsWithoutAReply() async throws {

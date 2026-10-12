@@ -28,15 +28,16 @@ extension SwiftDataSuites {
 			try await save(facts, using: coach, transport: transport)
 			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let flush = try #require(sent(.memoryFlush, by: transport).first?.messages.last)
-			let extractionData = try fencedData(in: flush.content)
+			let extractionData = try MemoryProbe.athleteData(in: flush.content)
 			for (section, content) in facts {
 				#expect(extractionData.contains("## \(section.rawValue)\n"))
 				#expect(extractionData.contains(content))
 			}
 
 			let request = try await recall(using: coach, transport: transport)
-			let context = try fencedData(in: systemText(in: request))
-			let result = try toolText(in: #require(request.messages.last { $0.role == .tool }))
+			let context = try MemoryProbe.athleteData(in: MemoryProbe.systemText(in: request))
+			let result = try MemoryProbe.text(
+				in: #require(request.messages.last { $0.role == .tool }))
 			#expect(request.tools.map(\.name).contains(.memoryRead))
 			#expect(request.messages.filter { $0.role == .user }.count == 1)
 			for (section, content) in facts {
@@ -73,15 +74,13 @@ extension SwiftDataSuites {
 			clock.advance(by: 86_400)
 			try await save(corrected, using: before, transport: transport)
 			#expect(await before.resetAndSettle(in: .main) == .started(memory: .saved))
-			await before.lifecycle(.willTerminate)
 
-			let relaunchedTransport = FakeModelTransport()
-			let after = await makeCoach(
-				transport: relaunchedTransport,
-				store: try makeSwiftDataLog(deviceId: phone, directory: directory), clock: clock)
+			let (after, relaunchedTransport, _) = try await MemoryProbe.relaunch(
+				before, on: phone, in: directory, clock: clock)
 			let request = try await recall(using: after, transport: relaunchedTransport)
-			let context = try fencedData(in: systemText(in: request))
-			let read = try toolText(in: #require(request.messages.last { $0.role == .tool }))
+			let context = try MemoryProbe.athleteData(in: MemoryProbe.systemText(in: request))
+			let read = try MemoryProbe.text(
+				in: #require(request.messages.last { $0.role == .tool }))
 			#expect(context.contains(corrected[0].1))
 			#expect(read.contains(corrected[1].1))
 			#expect(context.contains("_updated: 1998-06-14"))
@@ -91,7 +90,7 @@ extension SwiftDataSuites {
 				#expect(!read.contains(content))
 			}
 
-			script(
+			let query = try await MemoryProbe.turn(
 				[
 					.toolCall(
 						name: "memory_query",
@@ -101,17 +100,12 @@ extension SwiftDataSuites {
 						name: "memory_query",
 						arguments:
 							#"{"from":"1998-06-13","to":"1998-06-14","query":"cycling-equipment"}"#),
-					.finish(reason: .toolCalls), .text("History recovered."),
-					.finish(reason: .stop),
-				], on: relaunchedTransport)
-			#expect(
-				replyText(try await after.sendAndSettle("What changed over those two days?"))
-					== "History recovered.")
-			let query = try #require(sent(.chatAttempt, by: relaunchedTransport).last)
+				], saying: "What changed over those two days?", expecting: "History recovered.",
+				using: after, transport: relaunchedTransport)
 			let results = query.messages.filter { $0.role == .tool }
 			try #require(results.count == 2)
 			for index in earlier.indices {
-				let history = try toolText(in: results[index])
+				let history = try MemoryProbe.text(in: results[index])
 				#expect(history.contains("## 1998-06-13\n"))
 				#expect(history.contains("## 1998-06-14\n"))
 				#expect(history.contains(earlier[index].1))
@@ -128,13 +122,15 @@ extension SwiftDataSuites {
 				transport: transport, store: InMemoryRecordLog(), clock: clock)
 			try await save(hidden.map { ($0, "") }, using: coach, transport: transport)
 			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
-			script([.text("No useful saved facts."), .finish(reason: .stop)], on: transport)
+			transport.respond = ScriptedReply.sequence(
+				[.text("No useful saved facts."), .finish(reason: .stop)],
+				otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
 			#expect(
 				replyText(try await coach.sendAndSettle("What useful facts are remembered?"))
 					== "No useful saved facts.")
 			let empty = try #require(sent(.chatAttempt, by: transport).last)
 			#expect(!empty.tools.map(\.name).contains(.memoryRead))
-			let emptyContext = try fencedData(in: systemText(in: empty))
+			let emptyContext = try MemoryProbe.athleteData(in: MemoryProbe.systemText(in: empty))
 			#expect(!emptyContext.contains("## Athlete Memory"))
 			#expect(!emptyContext.contains("_updated:"))
 
@@ -143,7 +139,7 @@ extension SwiftDataSuites {
 			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let useful = try await recall(using: coach, transport: transport)
 			#expect(useful.tools.map(\.name).contains(.memoryRead))
-			let read = try toolText(in: #require(useful.messages.last { $0.role == .tool }))
+			let read = try MemoryProbe.text(in: #require(useful.messages.last { $0.role == .tool }))
 			#expect(read.contains("## \(section.rawValue)\n"))
 			#expect(read.contains(content))
 		}
@@ -163,15 +159,15 @@ extension SwiftDataSuites {
 				], using: coach, transport: transport)
 			#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 			let request = try await recall(using: coach, transport: transport)
-			let system = try systemText(in: request)
-			let context = try fencedData(in: system)
+			let system = try MemoryProbe.systemText(in: request)
+			let context = try MemoryProbe.athleteData(in: system)
 			#expect(context.contains(visibleInstruction))
 			#expect(context.contains(PromptStaticBlocks.fenceTokenReplacement))
 			#expect(!system.contains(hiddenInstruction))
 			#expect(
 				!system.replacingOccurrences(of: context, with: "").contains(visibleInstruction))
 			let tool = try #require(request.messages.last { $0.role == .tool })
-			let read = try toolText(in: tool)
+			let read = try MemoryProbe.text(in: tool)
 			#expect(read.contains(hiddenInstruction))
 			#expect(read.contains(PromptStaticBlocks.fenceTokenReplacement))
 			#expect(!read.contains(visibleInstruction))
@@ -182,63 +178,22 @@ extension SwiftDataSuites {
 		private func save(
 			_ facts: [(SectionName, String)], using coach: Coach, transport: FakeModelTransport
 		) async throws {
-			let writes = facts.map { section, content in
-				ScriptedEvent.toolCall(
-					name: "memory_write",
-					arguments: JSONValue.object([
+			try await MemoryProbe.save(
+				facts.map { section, content in
+					.object([
 						"type": .string("memory"), "section": .string(section.rawValue),
 						"content": .string(content),
-					]).canonicalDigestInput())
-			}
-			script(
-				writes + [.finish(reason: .toolCalls), .text("Saved."), .finish(reason: .stop)],
-				on: transport)
-			#expect(replyText(try await coach.sendAndSettle("Remember these facts.")) == "Saved.")
-			let request = try #require(sent(.chatAttempt, by: transport).last)
-			let results = request.messages.filter { $0.role == .tool }
-			#expect(results.count == facts.count)
-			for result in results {
-				let payload = try JSONValue.parse(result.content)
-				#expect(payload.objectFields["data"]?.objectFields["saved"]?.boolValue == true)
-			}
+					])
+				}, saying: "Remember these facts.", using: coach, transport: transport)
 		}
 
 		private func recall(using coach: Coach, transport: FakeModelTransport) async throws
 			-> CompletionRequest
 		{
-			script(
-				[
-					.toolCall(name: "memory_read", arguments: "{}"), .finish(reason: .toolCalls),
-					.text("Facts recovered."), .finish(reason: .stop),
-				], on: transport)
-			#expect(
-				replyText(try await coach.sendAndSettle("Recover my saved facts."))
-					== "Facts recovered.")
-			return try #require(sent(.chatAttempt, by: transport).last)
-		}
-
-		private func script(_ events: [ScriptedEvent], on transport: FakeModelTransport) {
-			transport.respond = ScriptedReply.sequence(
-				events, otherwise: { _ in ScriptedReply([.finish(reason: .stop)]) })
-		}
-
-		private func systemText(in request: CompletionRequest) throws -> String {
-			try #require(request.messages.first { $0.role == .system }).content
-		}
-
-		private func toolText(in message: WireMessage) throws -> String {
-			let payload = try JSONValue.parse(message.content)
-			#expect(payload.objectFields["untrusted_data"]?.stringValue == UntrustedEnvelope.banner)
-			return try #require(payload.objectFields["data"]?.stringValue)
-		}
-
-		private func fencedData(in text: String) throws -> String {
-			let open = try #require(text.range(of: PromptAssembly.athleteDataOpen))
-			let close = try #require(text.range(of: PromptAssembly.athleteDataClose))
-			try #require(open.upperBound <= close.lowerBound)
-			#expect(text.components(separatedBy: PromptAssembly.athleteDataOpen).count == 2)
-			#expect(text.components(separatedBy: PromptAssembly.athleteDataClose).count == 2)
-			return String(text[open.upperBound..<close.lowerBound])
+			try await MemoryProbe.turn(
+				[.toolCall(name: "memory_read", arguments: "{}")],
+				saying: "Recover my saved facts.", expecting: "Facts recovered.", using: coach,
+				transport: transport)
 		}
 	}
 }
