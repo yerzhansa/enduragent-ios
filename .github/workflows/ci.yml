@@ -41,27 +41,11 @@ jobs:
           curl --fail --location --output /tmp/xcodegen.zip https://github.com/yonaskolb/XcodeGen/releases/download/2.46.0/xcodegen.zip
           echo '4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  /tmp/xcodegen.zip' | shasum -a 256 -c -
           unzip -q /tmp/xcodegen.zip -d /tmp/xcodegen
+          echo /tmp/xcodegen/xcodegen/bin >> "$GITHUB_PATH"
           /tmp/xcodegen/xcodegen/bin/xcodegen --version
-          /tmp/xcodegen/xcodegen/bin/xcodegen generate --spec apps/ios/project.yml
-          make check-source
-      - name: Test iPhone app
-        run: |
-          xcodebuild -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -showdestinations > "$RUNNER_TEMP/enduragent-destinations.txt"
-          destination_id="$(awk '
-            /Available destinations for/ { available = 1; next }
-            /Ineligible destinations for/ { available = 0 }
-            available && /platform:iOS Simulator/ && /name:iPhone/ {
-              sub(/^.*id:/, "")
-              sub(/,.*/, "")
-              print
-              exit
-            }
-          ' "$RUNNER_TEMP/enduragent-destinations.txt")"
-          if [ -z "$destination_id" ]; then
-            cat "$RUNNER_TEMP/enduragent-destinations.txt"
-            exit 1
-          fi
-          xcodebuild test -project apps/ios/Enduragent.xcodeproj -scheme Enduragent -configuration Debug -sdk iphonesimulator -destination "platform=iOS Simulator,arch=arm64,id=$destination_id" -derivedDataPath DerivedData -only-testing:EnduragentTests CODE_SIGNING_ALLOWED=NO
+      - run: make project
+      - run: make check-source
+      - run: make test-app
       - name: Verify bundled Phrasebook
         run: cmp apps/ios/Packages/EnduragentCoach/Sources/EnduragentCoach/Resources/Phrasebook.json DerivedData/Build/Products/Debug-iphonesimulator/Enduragent.app/EnduragentCoach_EnduragentCoach.bundle/Phrasebook.json
       - name: Build unsigned iPhone app in Release
