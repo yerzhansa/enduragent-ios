@@ -5,69 +5,39 @@ import Testing
 
 @Suite struct ProviderFailureTests {
 	@Test(arguments: [
-		(401, "openrouter-unauthorized"),
-		(403, "openrouter-forbidden"),
+		StatusRow(401, body: "openrouter-unauthorized", is: .credentialRejected(status: 401)),
+		StatusRow(403, body: "openrouter-forbidden", is: .requestBlocked),
+		StatusRow(402, body: "openrouter-insufficient-credits", is: .accessExhausted),
+		StatusRow(
+			429, body: "openrouter-rate-limited", headers: ["Retry-After": "7"],
+			is: .rateLimited(retryAfter: .seconds(7))),
+		StatusRow(
+			429, body: "openrouter-rate-limited",
+			headers: ["Retry-After": "7", "retry-after-ms": "1500"],
+			is: .rateLimited(retryAfter: .milliseconds(1_500))),
+		StatusRow(
+			429, body: "openrouter-rate-limited",
+			headers: ["Retry-After": "Wed, 21 Oct 1998 07:28:00 GMT"],
+			is: .rateLimited(retryAfter: nil)),
+		StatusRow(
+			502, body: "openrouter-server-error", headers: ["Retry-After": "3"],
+			is: .serverError(status: 502, retryAfter: .seconds(3))),
+		StatusRow(
+			503, body: "openrouter-server-error", is: .serverError(status: 503, retryAfter: nil)),
+		StatusRow(400, body: "openrouter-context-overflow", is: .contextOverflow),
+		StatusRow(400, body: "openrouter-bad-request", is: .invalidRequest),
+		StatusRow(408, is: .timeout(.request)),
+		StatusRow(404, is: .invalidRequest),
+		StatusRow(409, is: .invalidRequest),
+		StatusRow(413, is: .invalidRequest),
+		StatusRow(422, is: .invalidRequest),
+		StatusRow(302, is: .malformedStream),
 	])
-	func unauthorizedAndForbiddenHaveDifferentRecovery(status: Int, body: String) async throws {
-		let failure = try await failure(of: .reply(.json(status, try fixture(body, ext: "json"))))
-		#expect(failure == (status == 401 ? .credentialRejected(status: status) : .requestBlocked))
-	}
-
-	@Test func status402IsAccessExhausted() async throws {
-		let body = try fixture("openrouter-insufficient-credits", ext: "json")
-		#expect(try await failure(of: .reply(.json(402, body))) == .accessExhausted)
-	}
-
-	@Test func status429ReadsRetryAfterSeconds() async throws {
-		let body = try fixture("openrouter-rate-limited", ext: "json")
-		let failure = try await failure(of: .reply(.json(429, body, headers: ["Retry-After": "7"])))
-		#expect(failure == .rateLimited(retryAfter: .seconds(7)))
-	}
-
-	@Test func retryAfterMsWinsOverRetryAfterSeconds() async throws {
-		let body = try fixture("openrouter-rate-limited", ext: "json")
-		let headers = ["Retry-After": "7", "retry-after-ms": "1500"]
-		let failure = try await failure(of: .reply(.json(429, body, headers: headers)))
-		#expect(failure == .rateLimited(retryAfter: .milliseconds(1_500)))
-	}
-
-	@Test func status429WithoutAHintHasNoRetryAfter() async throws {
-		let body = try fixture("openrouter-rate-limited", ext: "json")
-		let headers = ["Retry-After": "Wed, 21 Oct 1998 07:28:00 GMT"]
-		let failure = try await failure(of: .reply(.json(429, body, headers: headers)))
-		#expect(failure == .rateLimited(retryAfter: nil))
-	}
-
-	@Test func status5xxIsServerErrorWithRetryAfter() async throws {
-		let body = try fixture("openrouter-server-error", ext: "json")
-		let failure = try await failure(of: .reply(.json(502, body, headers: ["Retry-After": "3"])))
-		#expect(failure == .serverError(status: 502, retryAfter: .seconds(3)))
+	func httpStatusBecomesATypedFailure(row: StatusRow) async throws {
+		let body = try row.body.map { try fixture($0, ext: "json") } ?? "{}"
 		#expect(
-			try await self.failure(of: .reply(.json(503, body)))
-				== .serverError(status: 503, retryAfter: nil))
-	}
-
-	@Test func overflowBodyBecomesContextOverflow() async throws {
-		let body = try fixture("openrouter-context-overflow", ext: "json")
-		#expect(try await failure(of: .reply(.json(400, body))) == .contextOverflow)
-	}
-
-	@Test func other400BecomesInvalidRequest() async throws {
-		let body = try fixture("openrouter-bad-request", ext: "json")
-		#expect(try await failure(of: .reply(.json(400, body))) == .invalidRequest)
-	}
-
-	@Test func status408IsRequestTimeout() async throws {
-		#expect(try await failure(of: .reply(.json(408, "{}"))) == .timeout(.request))
-	}
-
-	@Test(arguments: [404, 409, 413, 422])
-	func otherClientErrorsBecomeInvalidRequest(status: Int) async throws {
-		#expect(try await failure(of: .reply(.json(status, "{}"))) == .invalidRequest)
-	}
-
-	@Test func statusOutsideClientAndServerErrorsIsMalformedStream() async throws {
-		#expect(try await failure(of: .reply(.json(302, "{}"))) == .malformedStream)
+			try await failure(of: .reply(.json(row.status, body, headers: row.headers)))
+				== row.expected)
 	}
 
 	@Test func cancelledRequestEndsAsCancellationAndRecordsNothing() async throws {
@@ -103,19 +73,13 @@ import Testing
 		#expect(try await failure(of: .fail(code)) == .network)
 	}
 
-	@Test func unknownFinishReasonBecomesUnknownFinish() async throws {
-		let sse = try fixture("openrouter-finish-unknown", ext: "sse")
-		#expect(try await failure(of: .reply(.sse(sse))) == .unknownFinish)
-	}
-
-	@Test func missingFinishReasonBecomesUnknownFinish() async throws {
-		let sse = try fixture("openrouter-finish-missing", ext: "sse")
-		#expect(try await failure(of: .reply(.sse(sse))) == .unknownFinish)
-	}
-
-	@Test func malformedChunkBecomesMalformedStream() async throws {
-		let sse = try fixture("openrouter-malformed-chunk", ext: "sse")
-		#expect(try await failure(of: .reply(.sse(sse))) == .malformedStream)
+	@Test(arguments: [
+		("openrouter-finish-unknown", ProviderFailure.unknownFinish),
+		("openrouter-finish-missing", .unknownFinish),
+		("openrouter-malformed-chunk", .malformedStream),
+	])
+	func brokenStreamsBecomeTypedFailures(name: String, expected: ProviderFailure) async throws {
+		#expect(try await failure(of: .reply(.sse(try fixture(name, ext: "sse")))) == expected)
 	}
 
 	private func failure(of outcome: OpenRouterStub.Outcome) async throws -> ProviderFailure {
@@ -127,5 +91,26 @@ import Testing
 						WireMessage(role: .user, content: "Hi Ada", toolCalls: [], toolCallId: nil)
 					])))
 		}
+	}
+}
+
+struct StatusRow: Sendable, CustomTestStringConvertible {
+	let status: Int
+	let body: String?
+	let headers: [String: String]
+	let expected: ProviderFailure
+
+	init(
+		_ status: Int, body: String? = nil, headers: [String: String] = [:],
+		is expected: ProviderFailure
+	) {
+		self.status = status
+		self.body = body
+		self.headers = headers
+		self.expected = expected
+	}
+
+	var testDescription: String {
+		"\(status) \(body ?? "{}") \(headers.sorted { $0.key < $1.key })"
 	}
 }

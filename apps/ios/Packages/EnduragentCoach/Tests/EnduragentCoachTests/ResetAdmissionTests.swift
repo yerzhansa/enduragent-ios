@@ -25,11 +25,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: held)
 		let first = try #require(
 			try await coach.send(draft("Old question"), to: .main).acceptedTurn)
-		let reached = try await beforeDeadline(within: .hangGuard) {
-			var events = held.reached.makeAsyncIterator()
-			return await events.next() != nil
-		}
-		try #require(reached == true)
+		try await held.waitUntilReached()
 		let admitted = try await beforeDeadline(
 			within: .subject(.seconds(1)),
 			onTimeout: {
@@ -57,7 +53,7 @@ import Testing
 			Issue.record("The waiting conversation must have one working row")
 		}
 		held.release()
-		try await parked(memory)
+		try await memory.waitUntilReached()
 		let saving = try #require(await coach.currentSnapshot(.main))
 		#expect(saving.reset == .waiting(reset))
 		#expect(saving.turns.map(\.id) == [first])
@@ -69,7 +65,7 @@ import Testing
 			$0.opening.showsWelcome && $0.turns.map(\.id) == [next]
 		}
 		#expect(try #require(opened).opening == .afterNewConversation(reset: reset, memory: .saved))
-		try await parked(nextReply)
+		try await nextReply.waitUntilReached()
 		nextReply.release()
 		_ = try #require(await coach.settledState(of: next, in: .main, within: .hangGuard))
 		let history = try #require(try await coach.history().first?.id)
@@ -92,7 +88,7 @@ import Testing
 			otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: held)
 		_ = try await coach.send(draft("Old question"), to: .main)
-		try await parked(held)
+		try await held.waitUntilReached()
 		try faults.failAppends(ofKind: kind)
 		let admission = try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
 			try await coach.send(draft("/start"), to: .main)
@@ -134,7 +130,7 @@ import Testing
 			], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: held)
 		_ = try await coach.send(draft("Old question"), to: .main)
-		try await parked(held)
+		try await held.waitUntilReached()
 		_ = try #require(
 			try await beforeDeadline(
 				within: .hangGuard,
@@ -164,7 +160,7 @@ import Testing
 		}
 		let next = try #require(try await coach.send(draft("New question"), to: .main).acceptedTurn)
 		held.release()
-		try await parked(secondFlush)
+		try await secondFlush.waitUntilReached()
 		let waiting = try #require(await coach.currentSnapshot(.main))
 		#expect(waiting.reset == .waiting(reset))
 		#expect(waiting.turns.map(\.id) == [middle])
@@ -186,7 +182,7 @@ import Testing
 			[.text("Old answer"), .finish(reason: .stop)], otherwise: transport.respond)
 		let coach = await makeCoach(transport: transport, store: importing)
 		_ = try await coach.send(draft("Old question"), to: .main)
-		try await parked(held)
+		try await held.waitUntilReached()
 		_ = try #require(
 			try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
 				try await coach.send(draft("/start"), to: .main)
@@ -208,13 +204,4 @@ import Testing
 		#expect(await coach.currentSnapshot(.main)?.opening == replacement)
 		#expect(await coach.currentSnapshot(.main)?.reset == .idle)
 	}
-
-	private func parked(_ held: HeldAppendLog) async throws {
-		let reached = try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
-			var events = held.reached.makeAsyncIterator()
-			return await events.next() != nil
-		}
-		try #require(reached == true)
-	}
-
 }

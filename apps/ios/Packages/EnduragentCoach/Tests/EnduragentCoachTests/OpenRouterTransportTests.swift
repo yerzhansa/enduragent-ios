@@ -145,19 +145,6 @@ import Testing
 		#expect(calls[1].arguments == "{\"oldest\":\"1998-06-01\",\"newest\":\"1998-06-13\"}")
 	}
 
-	@Test func parserYieldsTextUsageAndNoTemperatureLeak() async throws {
-		let events = try await parseFixture("openrouter-text-usage")
-		#expect(textDeltas(in: events) == ["Your week ", "looked strong, Ada."])
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .stop)
-		#expect(usage.inputTokens == 24)
-		#expect(usage.outputTokens == 8)
-		#expect(usage.cost == 0.25)
-	}
-
 	@Test func parserTreatsReasoningAndKeepAlivesAsHeartbeats() async throws {
 		let events = try await parseFixture("openrouter-reasoning-keepalive")
 		#expect(events.filter { $0 == .heartbeat }.count >= 3)
@@ -169,59 +156,30 @@ import Testing
 		#expect(reason == .stop)
 	}
 
-	@Test func parserMapsLengthFinishReason() async throws {
-		let events = try await parseFixture("openrouter-finish-length")
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .length)
-		#expect(usage.inputTokens == 40)
-		#expect(usage.outputTokens == 20)
-	}
-
-	@Test func parserMapsErrorFinishReasonAndKeepsPartialText() async throws {
-		let events = try await parseFixture("openrouter-finish-error")
-		#expect(textDeltas(in: events) == ["Tomorrow's ride is queued."])
-		guard case .finished(let reason, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .error)
-		#expect(usage.inputTokens == 40)
-		#expect(usage.outputTokens == 8)
-	}
-
-	@Test func parserMapsContentFilterFinishReason() async throws {
-		let events = try await parseFixture("openrouter-finish-content-filter")
-		#expect(textDeltas(in: events) == ["Stopped."])
-		guard case .finished(let reason, _) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(reason == .contentFilter)
-	}
-
-	@Test func parserSumsUsageAndCostAcrossSteps() async throws {
-		let events = try await parseFixture("openrouter-usage-sum")
-		guard case .finished(_, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(usage.inputTokens == 20)
-		#expect(usage.outputTokens == 3)
-		#expect(usage.cost == 0.75)
-	}
-
-	@Test func parserOmitsCostWhenAnyStepLacksIt() async throws {
-		let events = try await parseFixture("openrouter-usage-partial-cost")
-		guard case .finished(_, let usage) = events.last else {
-			Issue.record("expected finished")
-			return
-		}
-		#expect(usage.inputTokens == 8)
-		#expect(usage.outputTokens == 3)
-		#expect(usage.cost == nil)
+	@Test(arguments: [
+		FinishRow(
+			"openrouter-text-usage", text: ["Your week ", "looked strong, Ada."], reason: .stop,
+			usage: Usage(inputTokens: 24, outputTokens: 8, cost: 0.25)),
+		FinishRow(
+			"openrouter-finish-length", text: ["Ada's June 1998 block ", "was cut short."],
+			reason: .length, usage: Usage(inputTokens: 40, outputTokens: 20, cost: 0.5)),
+		FinishRow(
+			"openrouter-finish-error", text: ["Tomorrow's ride is queued."], reason: .error,
+			usage: Usage(inputTokens: 40, outputTokens: 8, cost: 0.2)),
+		FinishRow(
+			"openrouter-finish-content-filter", text: ["Stopped."], reason: .contentFilter,
+			usage: Usage(inputTokens: 0, outputTokens: 0, cost: nil)),
+		FinishRow(
+			"openrouter-usage-sum", text: ["Hi ", "Ada"], reason: .stop,
+			usage: Usage(inputTokens: 20, outputTokens: 3, cost: 0.75)),
+		FinishRow(
+			"openrouter-usage-partial-cost", text: ["Hi", " Ada"], reason: .stop,
+			usage: Usage(inputTokens: 8, outputTokens: 3, cost: nil)),
+	])
+	func parserYieldsTextFinishReasonAndSummedUsage(row: FinishRow) async throws {
+		let events = try await parseFixture(row.fixture)
+		#expect(textDeltas(in: events) == row.text)
+		#expect(events.last == .finished(reason: row.reason, usage: row.usage))
 	}
 
 	@Test func streamPostsOnceWithBearerAndNoReferer() async throws {
@@ -383,4 +341,20 @@ private func toolCalls(in events: [TransportEvent]) -> [WireToolCall] {
 		}
 		return nil
 	}
+}
+
+struct FinishRow: Sendable, CustomTestStringConvertible {
+	let fixture: String
+	let text: [String]
+	let reason: FinishReason
+	let usage: Usage
+
+	init(_ fixture: String, text: [String], reason: FinishReason, usage: Usage) {
+		self.fixture = fixture
+		self.text = text
+		self.reason = reason
+		self.usage = usage
+	}
+
+	var testDescription: String { fixture }
 }

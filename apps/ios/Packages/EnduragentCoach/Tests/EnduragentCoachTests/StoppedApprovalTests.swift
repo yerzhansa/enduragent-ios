@@ -5,8 +5,10 @@ import Testing
 @testable import EnduragentCoach
 
 extension RetryLadderTests {
-	@Test(arguments: [false, true])
-	func stoppedCardApprovalRemovesTryAgain(reopenBeforeApproval: Bool) async throws {
+	@Test(arguments: [(false, false), (true, false), (false, true)])
+	func stoppedCardApprovalRemovesTryAgain(reopenBeforeApproval: Bool, presentedBeforeStop: Bool)
+		async throws
+	{
 		let held = HeldClock()
 		let intervals = FakeIntervalsClient(athleteName: "Ada", ftp: 250)
 		transport.respond = ScriptedReply.sequence(
@@ -17,6 +19,8 @@ extension RetryLadderTests {
 		let turn = try #require(
 			try await original.send(draft("Add a ride"), to: .main).acceptedTurn)
 		try await held.waitUntilHeld(.seconds(7))
+		let shownBeforeStop: ReviewControlToken? =
+			try await (presentedBeforeStop ? presentReview(on: original) : nil)
 		await original.stop(.main)
 		let before = try #require(await settledTurn(turn, on: original))
 		#expect(turnNotice(of: before)?.actions == [.tryAgain(turn)])
@@ -24,7 +28,8 @@ extension RetryLadderTests {
 			reopenBeforeApproval
 			? await heldApprovalCoach(HeldClock(), model: transport, intervals: intervals)
 			: original
-		let token = try await presentReview(on: coach)
+		let token =
+			if let shownBeforeStop { shownBeforeStop } else { try await presentReview(on: coach) }
 		#expect(
 			await coach.decide(.approve(token), in: .main)
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
@@ -49,6 +54,9 @@ extension RetryLadderTests {
 		}
 		#expect(transport.requests.filter { $0.charge == .chatAttempt }.count == 2)
 		#expect(intervals.calls.filter(\.isWrite).count == 1)
+		#expect(
+			try await store.fetch(RecordQuery(scope: .deviceLocal([.pendingProposal]))).records
+				.count == 1)
 		#expect(await coach.currentSnapshot(.main)?.review == nil)
 	}
 
@@ -66,8 +74,7 @@ extension RetryLadderTests {
 		try await held.waitUntilHeld(.seconds(7))
 		let token = try await presentReview(on: coach)
 		let stopping = Task { await coach.stop(.main) }
-		var settlement = records.reached.makeAsyncIterator()
-		_ = await settlement.next()
+		try await records.waitUntilReached()
 		let outcome = await coach.decide(.approve(token), in: .main)
 		#expect(outcome == .blocked(.turnStopping))
 		#expect(

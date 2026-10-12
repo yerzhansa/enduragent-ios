@@ -296,20 +296,12 @@ import Testing
 		transport: FakeModelTransport = FakeModelTransport(),
 		records: InMemoryRecordLog = InMemoryRecordLog()
 	) async -> Coach {
-		let ports = CoachPorts(
-			records: RecordStore(log: records), secrets: store,
-			models: .scripted(transport, catalog: catalog),
-			training: .fake { _, _ in
-				FakeIntervalsClient(athleteName: "Synthetic Athlete", ftp: 250)
-			},
-			credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-			clock: FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam"),
-			openRouterSignIn: .init(authorizer: authorizer, exchange: exchange))
-		return await consentingCoach(
-			Coach(
-				sport: .cycling, ports: ports,
-				builtInModel: catalog.orderedEntries[0].id, displayLocale: testDisplayLocale,
-				coalescing: quickWindow))
+		await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: records), secrets: store,
+				models: .scripted(transport, catalog: catalog),
+				openRouterSignIn: .init(authorizer: authorizer, exchange: exchange),
+				builtInModel: catalog.orderedEntries[0].id))
 	}
 
 	private func assertTurn(

@@ -97,23 +97,15 @@ extension TurnRunnerTests {
 		#expect(result.objectFields["error"] == .string("invalid_date"))
 	}
 
-	@Test func promptDoesNotRequestUnavailableTools() async throws {
+	@Test func promptOmitsUnavailableToolsAndKeepsNumberedChoiceSafetyRules() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
 		let settled = try await makeCoach().sendAndSettle("Help me plan")
 		#expect(replyText(settled) == "Ready.")
 		let request = try #require(transport.requests.first)
-		let prompt = request.messages.map(\.content).joined(separator: "\n")
-		#expect(!prompt.contains("plan_save"))
-		#expect(!prompt.contains("request_user_decision"))
-	}
-
-	@Test func promptPreservesNumberedChoiceSafetyRules() async throws {
-		transport.respond = ScriptedReply.sequence(
-			[.text("Ready."), .finish(reason: .stop)], otherwise: transport.respond)
-		let settled = try await makeCoach().sendAndSettle("Help me plan")
-		#expect(replyText(settled) == "Ready.")
-		let request = try #require(transport.requests.first)
+		let everyMessage = request.messages.map(\.content).joined(separator: "\n")
+		#expect(!everyMessage.contains("plan_save"))
+		#expect(!everyMessage.contains("request_user_decision"))
 		let prompt = try #require(request.messages.first { $0.role == .system }?.content)
 		#expect(
 			prompt.contains(

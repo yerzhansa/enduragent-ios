@@ -9,10 +9,6 @@ import Testing
 	let transport = FakeModelTransport()
 	let store = InMemoryRecordLog()
 
-	let schedule: ScriptedEvent = .toolCall(
-		name: "memory_write",
-		arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#)
-
 	func coach(over log: (any RecordLog)? = nil) async -> Coach {
 		await makeCoach(transport: transport, store: log ?? store, clock: clock)
 	}
@@ -39,7 +35,8 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(
 			try await written(["flushPending", "memorySection", "windowStart", "flushSettled"])
@@ -61,7 +58,8 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
 		try log.failAppends(ofKind: "windowStart")
 		#expect(await coach.resetAndSettle(in: .main) == .notStarted(.local(.recordStorage)))
 		#expect(await coach.transcript(.main) == ["How was my week?", "Two rides."])
@@ -99,7 +97,7 @@ import Testing
 		answer("Two rides.")
 		_ = try await coach.sendAndSettle("How was my week?")
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)]
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)]
 				+ Array(repeating: .fail(.http(status: 500)), count: 4), for: .flush,
 			otherwise: transport.respond)
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .partiallySaved))
@@ -179,7 +177,8 @@ import Testing
 
 		transport.respond = ScriptedReply.sequence(
 
-			[schedule, .finish(reason: .toolCalls), .finish(reason: .stop)], for: .flush,
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls), .finish(reason: .stop)],
+			for: .flush,
 			otherwise: transport.respond)
 		let healthyHost = ImmediateExecutionHost()
 		let recovered = await makeCoach(
@@ -221,7 +220,8 @@ import Testing
 			transport: transport, clock: clock,
 			diagnostics: DiagnosticsLog(clock: clock), ladder: .npm)
 		transport.respond = ScriptedReply.sequence(
-			[schedule, .finish(reason: .toolCalls)], for: .flush, otherwise: transport.respond)
+			[.untypedSaturdayScheduleWrite, .finish(reason: .toolCalls)], for: .flush,
+			otherwise: transport.respond)
 		let conversation = try await ledger.conversation(.main)
 		let reset = try await ledger.reserveReset()
 		let result = await ConversationReset(
@@ -248,8 +248,7 @@ import Testing
 		answer("Two rides.")
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		_ = await snapshots.next()
 		let resetting = Task { await coach.resetAndSettle(in: .main) }
@@ -275,8 +274,7 @@ import Testing
 		answer("Two rides.", "Noted.")
 		let first = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		var snapshots = await coach.observe(.main).makeAsyncIterator()
 		_ = await snapshots.next()
 		let resetting = Task { await coach.resetAndSettle(in: .main) }

@@ -71,18 +71,7 @@ extension SwiftDataSuites {
 
 		private func coach(_ store: RecordStore) async -> Coach {
 			await consentingCoach(
-				Coach(
-					sport: .cycling,
-					ports: CoachPorts(
-						records: store, secrets: keyedSecrets(),
-						models: .scripted(FakeModelTransport()),
-						training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250)
-						},
-						credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(),
-						clock: FixedClock(
-							now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")),
-					builtInModel: testModel, displayLocale: testDisplayLocale,
-					coalescing: quickWindow))
+				makeCoach(records: store, models: .scripted(FakeModelTransport())))
 		}
 	}
 }

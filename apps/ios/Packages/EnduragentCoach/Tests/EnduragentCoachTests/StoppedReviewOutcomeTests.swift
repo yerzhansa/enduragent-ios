@@ -66,9 +66,7 @@ extension RetryLadderTests {
 		let memory: [ScriptedEvent] =
 			memorySaved
 			? [
-				.toolCall(
-					name: "memory_write",
-					arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+				.untypedSaturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 			] : []
 		transport.respond = ScriptedReply.sequence(

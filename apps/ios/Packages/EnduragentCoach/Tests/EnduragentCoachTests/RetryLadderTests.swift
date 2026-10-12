@@ -9,27 +9,16 @@ import Testing
 	let store = InMemoryRecordLog()
 	let clock = FixedClock(now: "1998-06-13T08:00:00+02:00", timeZone: "Europe/Amsterdam")
 
-	@Test func rateLimitRetriesThreeTimesHonoringRetryAfter() async throws {
-		transport.respond = ScriptedReply.sequence(
-			Array(
-				repeating: .fail(.http(status: 429, headers: ["retry-after": "7"])), count: 4),
-			for: .chat, otherwise: transport.respond)
-		let coach = await makeCoach()
-		let turn = try #require(
-			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		let settled = try #require(await coach.settledState(of: turn, in: .main))
-		#expect(transport.requests.count == 4)
-		#expect(clock.slept.prefix(3) == [.seconds(7), .seconds(7), .seconds(7)])
-		#expect(failure(settled) == .model(.rateLimited(retryAfter: .seconds(7))))
-		#expect(turnNotice(of: settled)?.actions == [.wait(thenTryAgain: turn)])
-	}
-
 	@Test(arguments: [
-		RateLimitRow(headers: [:], waits: [.seconds(5), .seconds(10), .seconds(20)]),
+		RateLimitRow(headers: [:], hint: nil, waits: [.seconds(5), .seconds(10), .seconds(20)]),
 		RateLimitRow(
-			headers: ["retry-after": "300"], waits: [.seconds(120), .seconds(120), .seconds(120)]),
+			headers: ["retry-after": "7"], hint: .seconds(7),
+			waits: [.seconds(7), .seconds(7), .seconds(7)]),
 		RateLimitRow(
-			headers: ["retry-after-ms": "1500"],
+			headers: ["retry-after": "300"], hint: .seconds(300),
+			waits: [.seconds(120), .seconds(120), .seconds(120)]),
+		RateLimitRow(
+			headers: ["retry-after-ms": "1500"], hint: .milliseconds(1_500),
 			waits: [.milliseconds(1_500), .milliseconds(1_500), .milliseconds(1_500)]),
 	])
 	func rateLimitWaitsFollowTheHintOrBackOffUnderTheCeiling(row: RateLimitRow) async throws {
@@ -37,9 +26,15 @@ import Testing
 			Array(
 				repeating: .fail(.http(status: 429, headers: row.headers)), count: 4), for: .chat,
 			otherwise: transport.respond)
-		_ = try await makeCoach().sendAndSettle("How was my week?")
+		let coach = await makeCoach()
+		let turn = try #require(
+			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
+		let settled = try #require(await coach.settledState(of: turn, in: .main))
 		#expect(Array(clock.slept.prefix(row.waits.count)) == row.waits)
+		#expect(transport.requests.count == 4)
 		#expect(chatRequests() == 4)
+		#expect(failure(settled) == .model(.rateLimited(retryAfter: row.hint)))
+		#expect(turnNotice(of: settled)?.actions == [.wait(thenTryAgain: turn)])
 	}
 
 	@Test func serverErrorRetriesTwiceWithJitteredWaits() async throws {
@@ -136,11 +131,7 @@ import Testing
 	@Test func committedMemoryWriteSettlesSavedUnverified() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 				.text("Never sent."),
@@ -179,11 +170,7 @@ import Testing
 	@Test func savedWorkReachesTheNextPromptAsTheCoachsReply() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.fail(.http(status: 500)),
 			], otherwise: transport.respond)
@@ -332,6 +319,7 @@ import Testing
 
 struct RateLimitRow: Sendable, CustomTestStringConvertible {
 	let headers: [String: String]
+	let hint: Duration?
 	let waits: [Duration]
 
 	var testDescription: String { headers.isEmpty ? "no hint" : "\(headers)" }

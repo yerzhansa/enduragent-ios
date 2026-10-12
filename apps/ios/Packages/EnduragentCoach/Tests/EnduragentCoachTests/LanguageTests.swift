@@ -217,8 +217,7 @@ import Testing
 		let coach = await makeCoach(transport: FakeModelTransport(), store: held)
 		#expect(try await coach.observedStatus().language == .automatic)
 		let first = Task { try await coach.setLanguage(.fixed(.fr)) }
-		var reached = held.reached.makeAsyncIterator()
-		await reached.next()
+		try await held.waitUntilReached()
 		try await coach.setLanguage(.fixed(.de))
 		held.release()
 		try await first.value
@@ -265,8 +264,7 @@ import Testing
 		let coach = await makeCoach(transport: transport, store: store, host: host)
 		let turn = try #require(
 			try await coach.send(draft("How was my week?"), to: .main).acceptedTurn)
-		var reached = store.reached.makeAsyncIterator()
-		await reached.next()
+		try await store.waitUntilReached()
 		try await coach.setLanguage(.fixed(.es))
 		#expect(try await coach.observedStatus().language == .fixed(.es))
 		store.release()

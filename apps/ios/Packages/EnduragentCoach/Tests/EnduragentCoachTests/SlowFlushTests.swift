@@ -13,9 +13,7 @@ import Testing
 		let transport = FakeModelTransport()
 		try await seedHistory(store, clock: clock, turns: 1, tokens: 200)
 		var events: [ScriptedEvent] = [
-			.toolCall(
-				name: "memory_write",
-				arguments: #"{"section":"schedule","content":"Group ride on Saturdays."}"#),
+			.untypedSaturdayScheduleWrite,
 			.finish(reason: .toolCalls),
 		]
 		if let retryAfter {
@@ -30,15 +28,10 @@ import Testing
 		]
 		transport.respond = ScriptedReply.sequence(events, for: .flush)
 		let slow = SlowFlushTransport(inner: transport, clock: clock)
-		let coach = Coach(
-			sport: .cycling,
-			ports: CoachPorts(
-				records: RecordStore(log: store), secrets: keyedSecrets(),
-				models: ModelService(catalog: .fixture) { _ in slow },
-				training: .fake { _, _ in FakeIntervalsClient(athleteName: "Ada", ftp: 250) },
-				credits: .fake(FakeCreditsClient()), host: ImmediateExecutionHost(), clock: clock
-			), builtInModel: testModel, displayLocale: testDisplayLocale, coalescing: quickWindow)
-		_ = await consentingCoach(coach)
+		let coach = await consentingCoach(
+			makeCoach(
+				records: RecordStore(log: store),
+				models: ModelService(catalog: .fixture) { _ in slow }, clock: clock))
 		#expect(await coach.resetAndSettle(in: .main) == .started(memory: .saved))
 		#expect(clock.uptime == .seconds(retryAfter == nil ? 15 : 22))
 		#expect(clock.slept == (retryAfter == nil ? [] : [.seconds(7)]))

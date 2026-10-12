@@ -21,14 +21,8 @@ import Testing
 				.text(introduction),
 				.toolCall(name: "intervals_fetch_activities", arguments: #"{"days":7}"#),
 				.finish(reason: .toolCalls),
-				.toolCall(
-					name: "intervals_create_workout",
-					arguments:
-						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-				),
-				.finish(reason: .toolCalls),
-				.text(completion), .finish(reason: .stop),
-			], requestDelay: .seconds(10))
+			] + workoutProposal + [.text(completion), .finish(reason: .stop)],
+			requestDelay: .seconds(10))
 	}
 
 	@Test func workingPersistsAcrossIndependentModelAndToolWaits() async throws {

@@ -22,12 +22,7 @@ extension SwiftDataSuites {
 				defer { held.release() }
 				let coach = await makeCoach(transport: transport, store: held)
 				_ = try await coach.send(draft("Old question"), to: .main)
-				let reached = try await beforeDeadline(within: .hangGuard, onTimeout: held.release)
-				{
-					var events = held.reached.makeAsyncIterator()
-					return await events.next() != nil
-				}
-				try #require(reached == true)
+				try await held.waitUntilReached()
 				_ = try #require(
 					try await beforeDeadline(within: .hangGuard, onTimeout: held.release) {
 						try await coach.send(draft("/start"), to: .main)

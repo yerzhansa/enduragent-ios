@@ -4,10 +4,6 @@ import Testing
 @testable import EnduragentCoach
 
 @Suite struct TurnFailurePropagationTests {
-	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
-		try await expectPromptReadFailure(on: 1)
-	}
-
 	@Test func memorySectionValidationFailureDoesNotWrite() async throws {
 		let store = InMemoryRecordLog()
 		let failing = FaultInjectingRecordLog(wrapping: store)
@@ -131,10 +127,10 @@ import Testing
 		return store
 	}
 
-	private func expectPromptReadFailure(on occurrence: Int) async throws {
+	@Test func memorySnapshotReadFailureSettlesTheTurnWithoutARequest() async throws {
 		let store = InMemoryRecordLog()
 		let failing = FaultInjectingRecordLog(wrapping: store)
-		failing.failNextFetch(in: Memory.snapshotScope, skipping: occurrence - 1)
+		failing.failNextFetch(in: Memory.snapshotScope, skipping: 0)
 		let transport = FakeModelTransport()
 		transport.respond = ScriptedReply.sequence(
 			[.text("This response must not be generated."), .finish(reason: .stop)], for: .chat,

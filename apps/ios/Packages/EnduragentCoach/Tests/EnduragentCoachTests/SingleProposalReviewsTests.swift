@@ -191,10 +191,16 @@ import Testing
 				== .applied([ReviewReceipt(index: 0, result: .confirmed(eventId: "1"))]))
 	}
 
-	@Test func dispatchedRejectionKeepsPendingReviewWithACatalogSentence() async throws {
+	@Test(arguments: [
+		IntervalsError(code: "http", details: "status 422", status: 422) as any Error,
+		URLError(.timedOut),
+	])
+	func anUnconfirmedWriteKeepsThePendingReviewWithACatalogSentence(writeFailure: any Error)
+		async throws
+	{
 		let coach = await coach()
 		let token = try await presentedToken(on: coach)
-		ada.writeFailure = IntervalsError(code: "http", details: "status 422", status: 422)
+		ada.writeFailure = writeFailure
 
 		let outcome = await coach.decide(.approve(token), in: .main)
 
@@ -209,6 +215,7 @@ import Testing
 		)
 		#expect(
 			await coach.currentSnapshot(.main)?.review?.notice?.key == Catalog.reviewWritePending)
+		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
 		#expect(
 			coach.diagnostics.entries.contains {
 				if case .toolFailed(_, .intervalsCreateWorkout, _) = $0.event {
@@ -217,25 +224,6 @@ import Testing
 					false
 				}
 			})
-	}
-
-	@Test func lostResponseSettlesUncertain() async throws {
-		let coach = await coach()
-		let token = try await presentedToken(on: coach)
-		ada.writeFailure = URLError(.timedOut)
-
-		let outcome = await coach.decide(.approve(token), in: .main)
-
-		#expect(
-			outcome
-				== .uncertain(
-					ReviewNotice(kind: .partialFailure, key: Catalog.reviewWritePending, vars: [:]))
-		)
-		#expect(
-			outcome.notice?.sentence(in: displayLocale(phrasebook.tag))
-				== "This workout may have been saved. Check the calendar before continuing."
-		)
-		#expect(await coach.currentSnapshot(.main)?.notes.isEmpty == true)
 	}
 
 	@Test func redisplayIssuesNoModelRequest() async throws {

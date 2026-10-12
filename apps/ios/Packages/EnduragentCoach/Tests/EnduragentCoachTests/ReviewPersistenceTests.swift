@@ -9,15 +9,8 @@ extension TurnRunnerTests {
 		let phone = DisplayPhone()
 		phone.change(languages: ["en"], region: "en_US")
 		transport.respond = ScriptedReply.sequence(
-			[
-				.toolCall(
-					name: "intervals_create_workout",
-					arguments:
-						#"{"date":"1998-06-14","workout":{"name":"Endurance","steps":[{"type":"steady","duration":{"value":60,"unit":"minutes"},"power":{"kind":"percent_ftp","low":56,"high":75}}]}}"#
-				),
-				.finish(reason: .toolCalls),
-				.text("I've prepared the ride. Confirm to add it."),
-				.finish(reason: .stop),
+			workoutProposal + [
+				.text("I've prepared the ride. Confirm to add it."), .finish(reason: .stop),
 			], otherwise: transport.respond)
 		let coach = await makeCoach(displayLocale: phone.resolve)
 		_ = try await coach.sendAndSettle("Give me an endurance ride for tomorrow")

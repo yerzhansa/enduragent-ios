@@ -71,11 +71,7 @@ import Testing
 	@Test func budgetFailureAfterAMemoryWriteKeepsTheWriteInTheSettlement() async throws {
 		transport.respond = ScriptedReply.sequence(
 			[
-				.toolCall(
-					name: "memory_write",
-					arguments:
-						#"{"type":"memory","section":"schedule","content":"Group ride on Saturdays."}"#
-				),
+				.saturdayScheduleWrite,
 				.finish(reason: .toolCalls),
 				.finish(reason: .toolCalls),
 			], otherwise: transport.respond)
